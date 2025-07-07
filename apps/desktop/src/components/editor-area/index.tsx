@@ -115,11 +115,11 @@ export default function EditorArea({
 
   const handleEnhanceWithTemplate = useCallback((templateId: string) => {
     const targetTemplateId = templateId === "auto" ? null : templateId;
-    enhance.mutate({ templateId: targetTemplateId, triggerType: 'template' });
+    enhance.mutate({ templateId: targetTemplateId, triggerType: "template" });
   }, [enhance]);
 
   const handleClickEnhance = useCallback(() => {
-    enhance.mutate({ triggerType: 'manual' });
+    enhance.mutate({ triggerType: "manual" });
   }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
@@ -246,13 +246,13 @@ export function useEnhanceMutation({
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
-    mutationFn: async ({ 
-      triggerType, 
-      templateId 
-    }: { 
-      triggerType: 'manual' | 'template' | 'auto';
+    mutationFn: async ({
+      triggerType,
+      templateId,
+    }: {
+      triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
-    } = { triggerType: 'manual' }) => {
+    } = { triggerType: "manual" }) => {
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -284,10 +284,10 @@ export function useEnhanceMutation({
 
       // Get current config for default template
       const config = await dbCommands.getConfig();
-      
+
       // Use provided templateId or fall back to config
-      const effectiveTemplateId = templateId !== undefined 
-        ? templateId 
+      const effectiveTemplateId = templateId !== undefined
+        ? templateId
         : config.general?.selected_template_id;
 
       let templateInfo = "";
@@ -500,7 +500,7 @@ function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: (params: { triggerType: 'auto'; templateId?: string | null }) => void;
+  enhanceMutate: (params: { triggerType: "auto"; templateId?: string | null }) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const autoEnhanceTemplate = useOngoingSession((s) => s.autoEnhanceTemplate);
@@ -515,13 +515,13 @@ function useAutoEnhance({
       && enhanceStatus !== "pending"
     ) {
       setShowRaw(false);
-      
+
       // Use the selected template and then clear it
-      enhanceMutate({ 
-        triggerType: 'auto',
-        templateId: autoEnhanceTemplate 
+      enhanceMutate({
+        triggerType: "auto",
+        templateId: autoEnhanceTemplate,
       });
-      
+
       // Clear the template after using it (one-time use)
       setAutoEnhanceTemplate(null);
     }

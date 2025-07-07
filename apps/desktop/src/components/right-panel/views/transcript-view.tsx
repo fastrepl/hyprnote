@@ -9,6 +9,10 @@ import { useHypr } from "@/contexts";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
+  getSpeakerLabel,
+  SPEAKER_ID_ATTR,
+  SPEAKER_INDEX_ATTR,
+  SPEAKER_LABEL_ATTR,
   type SpeakerChangeRange,
   type SpeakerViewInnerProps,
   type TranscriptEditorRef,
@@ -320,29 +324,11 @@ const MemoizedSpeakerSelector = memo(({
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
 
-  const { data: participants = [] } = useQuery({
-    enabled: !!sessionId,
-    queryKey: ["participants", sessionId!, "selector"],
-    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
-  });
-
   useEffect(() => {
     if (human) {
       onSpeakerChange(human, speakerRange);
     }
   }, [human]);
-
-  useEffect(() => {
-    if (participants.length === 1 && participants[0]) {
-      setHuman(participants[0]);
-      return;
-    }
-
-    const foundHuman = participants.find((s) => s.id === speakerId);
-    if (foundHuman) {
-      setHuman(foundHuman);
-    }
-  }, [participants, speakerId]);
 
   const handleClickHuman = (human: Human) => {
     setHuman(human);
@@ -358,13 +344,19 @@ const MemoizedSpeakerSelector = memo(({
   }
 
   const getDisplayName = (human: Human | null) => {
-    if (!human) {
-      return `Speaker ${speakerIndex ?? 0}`;
+    if (human) {
+      if (human.id === userId && !human.full_name) {
+        return "You";
+      }
+
+      return human.full_name ?? human.id;
     }
-    if (human.id === userId && !human.full_name) {
-      return "You";
-    }
-    return human.full_name ?? `Speaker ${speakerIndex ?? 0}`;
+
+    return getSpeakerLabel({
+      [SPEAKER_INDEX_ATTR]: speakerIndex,
+      [SPEAKER_ID_ATTR]: speakerId,
+      [SPEAKER_LABEL_ATTR]: null,
+    });
   };
 
   return (
@@ -417,7 +409,7 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
         {options.map((option) => (
           <label
             key={option.value}
-            className={`flex-1 ${option.value === "current" ? "cursor-pointer" : "cursor-not-allowed"}`}
+            className="flex-1 cursor-pointer"
           >
             <input
               type="radio"
@@ -426,14 +418,13 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
               className="sr-only"
               checked={value === option.value}
               onChange={() => onChange(option.value)}
-              disabled={option.value !== "current"}
             />
             <div
               className={`px-2 py-1 text-xs font-medium text-center rounded transition-colors ${
                 value === option.value
                   ? "bg-white text-neutral-900 shadow-sm"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/50"
-              } ${option.value !== "current" ? "opacity-50" : ""}`}
+              }`}
             >
               {option.label}
             </div>

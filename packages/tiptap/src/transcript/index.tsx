@@ -14,7 +14,8 @@ import { SpeakerNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
-export { SpeakerChangeRange, SpeakerViewInnerProps };
+export { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
+export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;

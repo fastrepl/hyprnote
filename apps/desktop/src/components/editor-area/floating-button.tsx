@@ -127,8 +127,6 @@ export function FloatingButton({
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
 
-    queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
-
     if (templateId !== "auto") {
       analyticsCommands.event({
         event: "custom_template_enhancement_started",

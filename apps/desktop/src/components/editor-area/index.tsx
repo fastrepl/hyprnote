@@ -292,6 +292,8 @@ export function useEnhanceMutation({
 }) {
   const { userId, onboardingSessionId } = useHypr();
   const [progress, setProgress] = useState(0);
+  const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
+  const queryClient = useQueryClient();
 
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
@@ -316,7 +318,15 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async () => {
-      if (isLocalLlm) {
+      await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const { type } = await connectorCommands.getLlmConnection();
+      const freshIsLocalLlm = type === "HyprLocal";
+      
+      setActualIsLocalLlm(freshIsLocalLlm);
+
+      if (freshIsLocalLlm) {
         setProgress(0);
       }
 
@@ -334,11 +344,8 @@ export function useEnhanceMutation({
           dismissible: true,
           duration: 5000,
         });
-
         return;
       }
-
-      const { type } = await connectorCommands.getLlmConnection();
 
       const config = await dbCommands.getConfig();
 
@@ -399,8 +406,6 @@ Sections:`;
         : provider.languageModel("defaultModel");
 
       if (sessionId !== onboardingSessionId) {
-        const { type } = await connectorCommands.getLlmConnection();
-
         analyticsCommands.event({
           event: "normal_enhance_start",
           distinct_id: userId,
@@ -412,7 +417,8 @@ Sections:`;
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        ...(isLocalLlm && {
+        // Use fresh value for tools
+        ...(freshIsLocalLlm && {
           tools: {
             update_progress: tool({ parameters: z.any() }),
           },
@@ -425,7 +431,8 @@ Sections:`;
           markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
-        ...(isLocalLlm && {
+        // Use fresh value for provider options
+        ...(freshIsLocalLlm && {
           providerOptions: {
             [localProviderName]: {
               metadata: customGrammar
@@ -446,7 +453,8 @@ Sections:`;
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
         }
-        if (chunk.type === "tool-call" && isLocalLlm) {
+        // Use fresh value for progress updates
+        if (chunk.type === "tool-call" && freshIsLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;
           setProgress(chunkProgress);
         }
@@ -469,12 +477,13 @@ Sections:`;
       });
 
       persistSession();
-      if (isLocalLlm) {
+      
+      if (actualIsLocalLlm) {
         setProgress(0);
       }
     },
     onError: (error) => {
-      if (isLocalLlm) {
+      if (actualIsLocalLlm) {
         setProgress(0);
       }
       console.error(error);
@@ -485,7 +494,7 @@ Sections:`;
     },
   });
 
-  return { enhance, progress: isLocalLlm ? progress : undefined };
+  return { enhance, progress: actualIsLocalLlm ? progress : undefined };
 }
 
 function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {

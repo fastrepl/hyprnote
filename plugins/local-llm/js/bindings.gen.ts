@@ -46,7 +46,7 @@ async restartServer() : Promise<string> {
 
 /** user-defined types **/
 
-export type SupportedModel = "Llama3p2_3bQ4"
+export type SupportedModel = "Llama3p2_3bQ4" | "HyprLLM"
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

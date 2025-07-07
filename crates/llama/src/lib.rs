@@ -229,6 +229,12 @@ impl Llama {
             let mut output_string = String::with_capacity(32);
             let _decode_result = decoder.decode_to_string(&output_bytes, &mut output_string, false);
 
+            if cfg!(debug_assertions) {
+                use std::io::{self, Write};
+                print!("{}", output_string);
+                io::stdout().flush().unwrap();
+            }
+
             if response_sender.send(output_string).is_err() {
                 break;
             }
@@ -330,9 +336,8 @@ mod tests {
     use super::*;
     use futures_util::StreamExt;
 
-    async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) -> String {
+    async fn run(model: &Llama, request: LlamaRequest) -> String {
         use futures_util::pin_mut;
-        use std::io::{self, Write};
 
         let stream = model
             .generate_stream_with_callback(
@@ -346,14 +351,6 @@ mod tests {
 
         while let Some(token) = stream.next().await {
             acc += &token;
-            if print_stream {
-                print!("{}", token);
-                io::stdout().flush().unwrap();
-            }
-        }
-
-        if print_stream {
-            println!();
         }
 
         acc
@@ -380,7 +377,7 @@ mod tests {
         let llama = get_model();
 
         let request = LlamaRequest {
-            grammar: Some(hypr_gbnf::GBNF::Enhance.build()),
+            grammar: Some(hypr_gbnf::GBNF::EnhanceOther.build()),
             messages: vec![
                 LlamaChatMessage::new(
                     "system".into(),
@@ -392,6 +389,6 @@ mod tests {
             ],
         };
 
-        run(&llama, request, true).await;
+        run(&llama, request).await;
     }
 }

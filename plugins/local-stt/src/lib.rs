@@ -33,16 +33,19 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::models_dir::<Wry>,
             commands::list_ggml_backends::<Wry>,
             commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
-            commands::start_server::<Wry>,
-            commands::stop_server::<Wry>,
+            commands::list_supported_models,
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
-            commands::list_supported_models,
+            commands::start_server::<Wry>,
+            commands::stop_server::<Wry>,
+            commands::restart_server::<Wry>,
+            commands::process_recorded::<Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::RecordedProcessingEvent
@@ -58,8 +61,29 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let backends = app.list_ggml_backends();
-            tracing::info!(backends = ?backends, "ggml");
+            let data_dir = app.path().app_data_dir().unwrap();
+            let models_dir = app.models_dir();
+
+            // for backward compatibility
+            {
+                let _ = std::fs::create_dir_all(&models_dir);
+
+                if let Ok(entries) = std::fs::read_dir(&data_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().and_then(|ext| ext.to_str()) == Some("bin")
+                            && path
+                                .file_name()
+                                .and_then(|name| name.to_str())
+                                .map(|name| name.contains("ggml"))
+                                .unwrap_or(false)
+                        {
+                            let new_path = models_dir.join(path.file_name().unwrap());
+                            let _ = std::fs::rename(path, new_path);
+                        }
+                    }
+                }
+            }
 
             app.manage(SharedState::default());
             Ok(())
@@ -120,7 +144,10 @@ mod test {
         ))
         .unwrap();
 
-        let listen_stream = listen_client.from_audio(audio_source).await.unwrap();
+        let listen_stream = listen_client
+            .from_realtime_audio(audio_source)
+            .await
+            .unwrap();
         let mut listen_stream = Box::pin(listen_stream);
 
         while let Some(chunk) = listen_stream.next().await {
@@ -138,12 +165,13 @@ mod test {
 
         let model_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.dev")
+            .join("com.hyprnote.dev/stt")
             .join("ggml-tiny.en-q8_0.bin");
 
         let words = app
-            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH)
-            .await
+            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH, |event| {
+                println!("{:?}", event);
+            })
             .unwrap();
 
         println!("{:?}", words);

@@ -6,9 +6,9 @@ pub enum SupportedModel {
 }
 
 impl SupportedModel {
-    pub fn model_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
+    pub fn file_name(&self) -> &str {
         match self {
-            SupportedModel::Llama3p2_3bQ4 => data_dir.into().join("llm.gguf"),
+            SupportedModel::Llama3p2_3bQ4 => "llm.gguf",
         }
     }
 

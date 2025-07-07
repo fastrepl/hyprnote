@@ -11,7 +11,7 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-tauri-plugin-local-stt = { path = "../local-stt" }
+tauri-plugin-local-stt = { workspace = true }
 
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
@@ -62,3 +62,7 @@ statig = { workspace = true, features = ["async"] }
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
+
+[features]
+default = []
+load-dynamic = ["hypr-aec/load-dynamic"]

@@ -60,7 +60,19 @@ export default function NotesList({ ongoingSessionId, filter }: NotesListProps) 
         end: to,
         limit: 100,
       });
-      sessions.forEach(insertSession);
+      // Defensively insert sessions - don't overwrite existing data that might be more recent
+      sessions.forEach((session) => {
+        const existingStore = sessionsStore[session.id];
+        // Only insert if session doesn't exist or existing data is older
+        if (!existingStore) {
+          insertSession(session);
+        } else {
+          const existingSession = existingStore.getState().session;
+          if (new Date(existingSession.visited_at) <= new Date(session.visited_at)) {
+            insertSession(session);
+          }
+        }
+      });
 
       const sessionWithEvents = await Promise.all(sessions.map(async (session) => {
         const event = await dbCommands.sessionGetEvent(session.id);
@@ -235,21 +247,22 @@ function NoteItem({
 
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!isActive || !buttonRef.current) {
-      return;
-    }
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (!isActive || !buttonRef.current) {
+  //     return;
+  //   }
 
-    const height = window.innerHeight || document.documentElement.clientHeight;
-    const width = window.innerWidth || document.documentElement.clientWidth;
+  //   const height = window.innerHeight || document.documentElement.clientHeight;
+  //   const width = window.innerWidth || document.documentElement.clientWidth;
 
-    const { top, left, bottom, right } = buttonRef.current.getBoundingClientRect();
-    const isInView = top >= 0 && left >= 0 && bottom <= height && right <= width;
+  //   const { top, left, bottom, right } = buttonRef.current.getBoundingClientRect();
+  //   const isInView = top >= 0 && left >= 0 && bottom <= height && right <= width;
 
-    if (!isInView) {
-      buttonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [isActive]);
+  //   if (!isInView) {
+  //     buttonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  //   }
+  // }, [isActive]);
 
   const handleClickDelete = () => {
     confirm(t`Are you sure you want to delete this note?`).then((yes) => {

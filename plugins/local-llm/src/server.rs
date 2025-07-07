@@ -1,6 +1,12 @@
 use std::net::{Ipv4Addr, SocketAddr};
 use std::pin::Pin;
 
+use async_openai::types::{
+    ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk,
+    ChatCompletionResponseMessage, ChatCompletionStreamResponseDelta, ChatCompletionToolType,
+    CreateChatCompletionRequest, CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
+    FunctionCallStream, Role,
+};
 use axum::{
     extract::State as AxumState,
     http::StatusCode,
@@ -8,14 +14,10 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use futures_util::StreamExt;
-use tower_http::cors::{self, CorsLayer};
 
-use async_openai::types::{
-    ChatChoice, ChatChoiceStream, ChatCompletionResponseMessage, ChatCompletionStreamResponseDelta,
-    CreateChatCompletionRequest, CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
-    Role,
-};
+use futures_util::StreamExt;
+use tokio::sync::mpsc;
+use tower_http::cors::{self, CorsLayer};
 
 use crate::local::ModelManager;
 
@@ -96,7 +98,7 @@ async fn chat_completions(
 async fn build_and_send_response(
     request: &CreateChatCompletionRequest,
     response_stream_fn: impl FnOnce() -> Result<
-        Pin<Box<dyn futures_util::Stream<Item = String> + Send>>,
+        Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
         crate::Error,
     >,
 ) -> Result<Response, crate::Error> {
@@ -158,8 +160,15 @@ async fn build_and_send_response(
     let is_stream = request.stream.unwrap_or(false);
 
     if !is_stream {
-        let stream = response_stream_fn()?;
-        let completion = futures_util::StreamExt::collect::<String>(stream).await;
+        let mut stream = response_stream_fn()?;
+        let mut completion = String::new();
+
+        while let Some(event) = futures_util::StreamExt::next(&mut stream).await {
+            match event {
+                StreamEvent::Content(chunk) => completion.push_str(&chunk),
+                StreamEvent::Progress(_) => {}
+            }
+        }
 
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
@@ -175,20 +184,49 @@ async fn build_and_send_response(
     } else {
         let source_stream = response_stream_fn()?;
         let stream = source_stream
-            .map(move |chunk| {
+            .enumerate()
+            .map(move |(index, event)| {
                 let delta_template = empty_stream_response_delta.clone();
                 let response_template = base_stream_response_template.clone();
-                CreateChatCompletionStreamResponse {
-                    choices: vec![ChatChoiceStream {
-                        index: 0,
-                        delta: ChatCompletionStreamResponseDelta {
-                            content: Some(chunk),
-                            ..delta_template
-                        },
-                        finish_reason: None,
-                        logprobs: None,
-                    }],
-                    ..response_template
+
+                match event {
+                    StreamEvent::Content(chunk) => CreateChatCompletionStreamResponse {
+                        choices: vec![ChatChoiceStream {
+                            index: 0,
+                            delta: ChatCompletionStreamResponseDelta {
+                                content: Some(chunk),
+                                ..delta_template
+                            },
+                            finish_reason: None,
+                            logprobs: None,
+                        }],
+                        ..response_template
+                    },
+                    StreamEvent::Progress(progress) => CreateChatCompletionStreamResponse {
+                        choices: vec![ChatChoiceStream {
+                            index: 0,
+                            delta: ChatCompletionStreamResponseDelta {
+                                tool_calls: Some(vec![ChatCompletionMessageToolCallChunk {
+                                    index: index.try_into().unwrap_or(0),
+                                    id: Some("progress_update".to_string()),
+                                    r#type: Some(ChatCompletionToolType::Function),
+                                    function: Some(FunctionCallStream {
+                                        name: Some("update_progress".to_string()),
+                                        arguments: Some(
+                                            serde_json::to_string(&serde_json::json!({
+                                                "progress": progress
+                                            }))
+                                            .unwrap(),
+                                        ),
+                                    }),
+                                }]),
+                                ..delta_template
+                            },
+                            finish_reason: None,
+                            logprobs: None,
+                        }],
+                        ..response_template
+                    },
                 }
             })
             .map(|chunk| {
@@ -213,10 +251,16 @@ async fn inference_without_mock(
     build_and_send_response(request, || build_response(model, request)).await
 }
 
+#[derive(Debug, Clone)]
+enum StreamEvent {
+    Content(String),
+    Progress(f64),
+}
+
 fn build_response(
     model: &hypr_llama::Llama,
     request: &CreateChatCompletionRequest,
-) -> Result<Pin<Box<dyn futures_util::Stream<Item = String> + Send>>, crate::Error> {
+) -> Result<Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>, crate::Error> {
     let messages = request
         .messages
         .iter()
@@ -232,15 +276,53 @@ fn build_response(
     {
         Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
         Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
+        Some("custom") => request
+            .metadata
+            .as_ref()
+            .unwrap_or(&serde_json::Value::Object(Default::default()))
+            .get("customGrammar")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string()),
+        Some("none") => None,
         _ => Some(hypr_gbnf::GBNF::Enhance.build()),
     };
 
     let request = hypr_llama::LlamaRequest { messages, grammar };
 
-    Ok(Box::pin(model.generate_stream(request)?))
+    let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
+
+    let content_stream = model.generate_stream_with_callback(
+        request,
+        Box::new(move |v| {
+            let _ = progress_sender.send(v);
+        }),
+    )?;
+
+    let mixed_stream = async_stream::stream! {
+        tokio::pin!(content_stream);
+
+        loop {
+            tokio::select! {
+                content_result = content_stream.next() => {
+                    match content_result {
+                        Some(content) => yield StreamEvent::Content(content),
+                        None => break,
+                    }
+                },
+                progress_result = progress_receiver.recv() => {
+                    match progress_result {
+                        Some(progress) => yield StreamEvent::Progress(progress),
+                        None => {}
+                    }
+                }
+            }
+        }
+    };
+
+    Ok(Box::pin(mixed_stream))
 }
 
-fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = String> + Send>> {
+fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>> {
     use futures_util::stream::{self, StreamExt};
     use std::time::Duration;
 
@@ -256,6 +338,6 @@ fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = String> + Se
 
     Box::pin(stream::iter(chunks).then(|chunk| async move {
         tokio::time::sleep(Duration::from_millis(200)).await;
-        chunk
+        StreamEvent::Content(chunk)
     }))
 }

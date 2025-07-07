@@ -141,7 +141,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         let app_clone = app.clone();
 
                         app.dialog()
-                            .message(&app_name)
+                            .message(&message)
                             .title("About Hyprnote")
                             .buttons(MessageDialogButtons::OkCustom("Copy".to_string()))
                             .show(move |result| {

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
 import { AppWindowMacIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { useHyprSearch } from "@/contexts/search";
 import { type SearchMatch } from "@/stores/search";
@@ -165,11 +165,12 @@ export function SessionMatch({ match: { item: session }, isSelected, query }: {
   const routeMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const isActive = routeMatch?.params.id === session.id;
 
-  useEffect(() => {
-    if (isSelected && elementRef.current) {
-      elementRef.current.scrollIntoView({ block: "nearest" });
-    }
-  }, [isSelected]);
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (isSelected && elementRef.current) {
+  //     elementRef.current.scrollIntoView({ block: "nearest" });
+  //   }
+  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -208,11 +209,12 @@ function EventMatch({ match, isSelected, query }: {
   const event = match.item;
   const elementRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (isSelected && elementRef.current) {
-      elementRef.current.scrollIntoView({ block: "nearest" });
-    }
-  }, [isSelected]);
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (isSelected && elementRef.current) {
+  //     elementRef.current.scrollIntoView({ block: "nearest" });
+  //   }
+  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({ to: "/app/new", search: { calendarEventId: event.id } });
@@ -257,11 +259,12 @@ function HumanMatch({ match: { item }, isSelected, query }: {
 
   const isActive = routeMatch?.params.id === item.id;
 
-  useEffect(() => {
-    if (isSelected && elementRef.current) {
-      elementRef.current.scrollIntoView({ block: "nearest" });
-    }
-  }, [isSelected]);
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (isSelected && elementRef.current) {
+  //     elementRef.current.scrollIntoView({ block: "nearest" });
+  //   }
+  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -338,11 +341,12 @@ function OrganizationMatch({ match: { item: organization }, isSelected, query }:
 
   const isActive = routeMatch?.params.id === organization.id;
 
-  useEffect(() => {
-    if (isSelected && elementRef.current) {
-      elementRef.current.scrollIntoView({ block: "nearest" });
-    }
-  }, [isSelected]);
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (isSelected && elementRef.current) {
+  //     elementRef.current.scrollIntoView({ block: "nearest" });
+  //   }
+  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({

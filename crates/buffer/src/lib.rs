@@ -62,7 +62,13 @@ fn md_to_html(text: &str) -> Result<String, Error> {
     let html = markdown::to_html_with_options(
         text,
         &markdown::Options {
-            parse: markdown::ParseOptions::default(),
+            parse: markdown::ParseOptions {
+                constructs: markdown::Constructs {
+                    gfm_autolink_literal: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
             compile: markdown::CompileOptions {
                 allow_dangerous_html: true,
                 ..Default::default()

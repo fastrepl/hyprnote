@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "models_dir",
     "list_ggml_backends",
     "is_server_running",
     "is_model_downloaded",
@@ -9,6 +10,7 @@ const COMMANDS: &[&str] = &[
     "get_current_model",
     "set_current_model",
     "list_supported_models",
+    "process_recorded",
 ];
 
 fn main() {

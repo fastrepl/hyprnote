@@ -41,6 +41,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::models_dir::<Wry>,
             commands::list_supported_models,
             commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
@@ -48,6 +49,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::download_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
+            commands::restart_server::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -58,9 +60,30 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let model_path = app.path().app_data_dir().unwrap().join("llm.gguf");
-            let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
-            app.manage(state);
+            let data_dir = app.path().app_data_dir().unwrap();
+            let models_dir = app.models_dir();
+
+            // for backward compatibility
+            {
+                let _ = std::fs::create_dir_all(&models_dir);
+
+                if let Ok(entries) = std::fs::read_dir(&data_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.extension().and_then(|ext| ext.to_str()) == Some("gguf") {
+                            let new_path = models_dir.join(path.file_name().unwrap());
+                            let _ = std::fs::rename(path, new_path);
+                        }
+                    }
+                }
+            }
+
+            {
+                let model_path = models_dir.join("llm.gguf");
+                let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
+                app.manage(state);
+            }
+
             Ok(())
         })
         .build()

@@ -150,7 +150,7 @@ impl ListenClient {
         ListenClientBuilder::default()
     }
 
-    pub async fn from_audio(
+    pub async fn from_realtime_audio(
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
@@ -194,7 +194,7 @@ mod tests {
             })
             .build_single();
 
-        let stream = client.from_audio(audio).await.unwrap();
+        let stream = client.from_realtime_audio(audio).await.unwrap();
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {

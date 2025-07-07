@@ -7,3 +7,7 @@ edition = "2021"
 bytes = { workspace = true }
 futures-util = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
+thiserror = { workspace = true }
+
+rodio = { workspace = true }
+rubato = "0.16.2"

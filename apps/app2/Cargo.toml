@@ -1,0 +1,11 @@
+[package]
+name = "app2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-gguf = { workspace = true, features = ["patch"] }
+
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["fs", "cors", "timeout", "trace"] }

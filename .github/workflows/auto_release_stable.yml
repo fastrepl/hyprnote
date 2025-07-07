@@ -1,0 +1,90 @@
+on:
+  schedule:
+    - cron: "0 14 * * *" # daily, UTC 14 = PT 07
+
+permissions:
+  actions: write
+
+jobs:
+  auto-release-stable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-latest
+        run: |
+          set -euo pipefail
+          response=$(curl -f -s "https://cdn.crabnebula.app/update/fastrepl/hyprnote/darwin-aarch64/latest?channel=nightly")
+          latest_version=$(echo "$response" | jq -r '.version')
+          echo "latest_version=$latest_version" >> $GITHUB_OUTPUT
+
+      - id: get-current
+        run: |
+          set -euo pipefail
+          current_version=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          echo "current_version=$current_version" >> $GITHUB_OUTPUT
+
+      - id: compare-versions
+        uses: jackbilestech/semver-compare@1.0.4
+        continue-on-error: true
+        with:
+          head: ${{ steps.get-latest.outputs.latest_version }}
+          base: ${{ steps.get-current.outputs.current_version }}
+          operator: ">"
+
+      - id: set-result
+        run: |
+          if [[ "${{ steps.compare-versions.outcome }}" == "success" ]]; then
+            echo "new_version_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "new_version_available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - if: steps.set-result.outputs.new_version_available == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const latestVersion = '${{ steps.get-latest.outputs.latest_version }}';
+            const tag = `desktop_v${latestVersion}`;
+
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'desktop_cd.yaml',
+              ref: tag,
+              inputs: {
+                channel: 'stable'
+              }
+            })
+
+      - if: steps.set-result.outputs.new_version_available == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const latestVersion = '${{ steps.get-latest.outputs.latest_version }}';
+            const tag = `desktop_v${latestVersion}`;
+
+            try {
+              // Find the existing release by tag
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag
+              });
+
+              // Update the release to make it not a prerelease
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                prerelease: false
+              });
+
+              console.log(`Updated release ${tag} to stable (prerelease=false)`);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log(`No release found for tag: ${tag}`);
+              } else {
+                console.error(`Error updating release: ${error.message}`);
+                throw error;
+              }
+            }

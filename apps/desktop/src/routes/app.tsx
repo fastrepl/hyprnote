@@ -1,5 +1,8 @@
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
 
 import { IndividualizationModal } from "@/components/individualization-modal";
@@ -54,6 +57,8 @@ function Component() {
           <LeftSidebarProvider>
             <RightPanelProvider>
               <AudioPermissions />
+              <RestartTTT />
+              <RestartSTT />
               <MainWindowStateEventSupport />
               <SettingsProvider>
                 <NewNoteProvider>
@@ -103,6 +108,54 @@ function Component() {
       {showNotifications && <Notifications />}
     </>
   );
+}
+
+function RestartTTT() {
+  const watcher = async () => {
+    const llmPath = await localLlmCommands.modelsDir();
+
+    return watch(llmPath, (_event) => {
+      localLlmCommands.restartServer();
+    }, { delayMs: 1000 });
+  };
+
+  useEffect(() => {
+    let unwatch: () => void;
+
+    watcher().then((f) => {
+      unwatch = f;
+    });
+
+    return () => {
+      unwatch?.();
+    };
+  }, []);
+
+  return null;
+}
+
+function RestartSTT() {
+  const watcher = async () => {
+    const sttPath = await localSttCommands.modelsDir();
+
+    return watch(sttPath, (_event) => {
+      localSttCommands.restartServer();
+    }, { delayMs: 1000 });
+  };
+
+  useEffect(() => {
+    let unwatch: () => void;
+
+    watcher().then((f) => {
+      unwatch = f;
+    });
+
+    return () => {
+      unwatch?.();
+    };
+  }, []);
+
+  return null;
 }
 
 function AudioPermissions() {

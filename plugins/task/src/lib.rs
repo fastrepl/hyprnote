@@ -61,4 +61,9 @@ mod test {
             .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
     }
+
+    #[test]
+    fn test_task() {
+        let _app = create_app(tauri::test::mock_builder());
+    }
 }

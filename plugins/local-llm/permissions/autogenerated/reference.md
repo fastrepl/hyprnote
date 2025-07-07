@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-models-dir`
 - `allow-is-server-running`
 - `allow-is-model-downloading`
 - `allow-is-model-downloaded`
@@ -173,6 +174,32 @@ Enables the list_ollama_models command without any pre-configured scope.
 <td>
 
 Denies the list_ollama_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-models-dir`
+
+</td>
+<td>
+
+Enables the models_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-models-dir`
+
+</td>
+<td>
+
+Denies the models_dir command without any pre-configured scope.
 
 </td>
 </tr>

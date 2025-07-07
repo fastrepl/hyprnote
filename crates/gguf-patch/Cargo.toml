@@ -1,0 +1,12 @@
+[package]
+name = "gguf-patch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-gguf = { workspace = true }
+
+prost = { workspace = true }
+
+[build-dependencies]
+prost-build = { workspace = true }

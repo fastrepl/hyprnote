@@ -123,16 +123,10 @@ async fn websocket_with_model(
 ) {
     let model_type = state.model_type;
     let model_cache_dir = state.model_cache_dir.clone();
-
-    let model_path = model_type.model_path(&model_cache_dir);
-    let language = params.language.try_into().unwrap_or_else(|e| {
-        tracing::error!("convert_to_whisper_language: {e:?}");
-        hypr_whisper::Language::En
-    });
+    let model_path = model_cache_dir.join(model_type.file_name());
 
     let model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
-        .language(language)
         .static_prompt(&params.static_prompt)
         .dynamic_prompt(&params.dynamic_prompt)
         .build();

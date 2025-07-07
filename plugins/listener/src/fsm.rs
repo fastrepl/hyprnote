@@ -344,7 +344,7 @@ impl Session {
             SAMPLE_RATE,
         );
 
-        let listen_stream = listen_client.from_audio(audio_stream).await?;
+        let listen_stream = listen_client.from_realtime_audio(audio_stream).await?;
 
         tasks.spawn({
             let app = self.app.clone();

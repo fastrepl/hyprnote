@@ -1,16 +1,25 @@
 # https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
+    inputs:
+      channel:
+        required: false
+        default: "stable"
+        type: choice
+        options:
+          - "stable"
+          - "nightly"
   release:
     types:
       - published
+      - prereleased
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'nightly' }}
-  TAURI_CONF_PATH: ${{ github.event_name == 'workflow_dispatch' && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
+  RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'nightly' }}
+  TAURI_CONF_PATH: ${{ (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable') && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
 jobs:
   draft:
     if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
@@ -64,10 +73,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/poetry_install
       - run: poetry run python scripts/pre_build.py

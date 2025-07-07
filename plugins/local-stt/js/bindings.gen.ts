@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async modelsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|models_dir");
+},
 async listGgmlBackends() : Promise<GgmlBackend[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
 },
@@ -22,11 +25,8 @@ async isModelDownloading(model: SupportedModel) : Promise<boolean> {
 async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
-async startServer() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|start_server");
-},
-async stopServer() : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|stop_server");
+async listSupportedModels() : Promise<SupportedModel[]> {
+    return await TAURI_INVOKE("plugin:local-stt|list_supported_models");
 },
 async getCurrentModel() : Promise<SupportedModel> {
     return await TAURI_INVOKE("plugin:local-stt|get_current_model");
@@ -34,8 +34,17 @@ async getCurrentModel() : Promise<SupportedModel> {
 async setCurrentModel(model: SupportedModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
 },
-async listSupportedModels() : Promise<SupportedModel[]> {
-    return await TAURI_INVOKE("plugin:local-stt|list_supported_models");
+async startServer() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|start_server");
+},
+async stopServer() : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|stop_server");
+},
+async restartServer() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|restart_server");
+},
+async processRecorded(audioPath: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|process_recorded", { audioPath });
 }
 }
 
@@ -55,8 +64,10 @@ recordedProcessingEvent: "plugin:local-stt:recorded-processing-event"
 /** user-defined types **/
 
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type RecordedProcessingEvent = { type: "inactive"; current: number; total: number }
+export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word }
+export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type SupportedModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
+export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

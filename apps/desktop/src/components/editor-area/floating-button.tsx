@@ -147,7 +147,6 @@ export function FloatingButton({
 
       const handleWindowFocus = () => {
         queryClient.invalidateQueries({ queryKey: ["templates"] });
-        queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
         window.removeEventListener("focus", handleWindowFocus);
       };
 

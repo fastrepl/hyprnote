@@ -1,6 +1,7 @@
-pub static SUPPORTED_MODELS: &[SupportedModel; 1] = &[SupportedModel::Llama3p2_3bQ4];
+pub static SUPPORTED_MODELS: &[SupportedModel] =
+    &[SupportedModel::Llama3p2_3bQ4, SupportedModel::HyprLLM];
 
-#[derive(serde::Serialize, serde::Deserialize, specta::Type, Clone)]
+#[derive(Debug, Eq, Hash, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum SupportedModel {
     Llama3p2_3bQ4,
     HyprLLM,

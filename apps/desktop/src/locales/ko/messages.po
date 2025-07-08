@@ -372,8 +372,8 @@ msgid "Assistant:"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:341
-msgid "Auto (Default)"
-msgstr ""
+#~ msgid "Auto (Default)"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:49
 msgid "Billing"
@@ -830,6 +830,14 @@ msgstr ""
 
 #: src/components/settings/components/ai/stt-view.tsx:284
 msgid "No speech-to-text models available or failed to load."
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "No Template"
+#~ msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+msgid "No Template (Default)"
 msgstr ""
 
 #: src/components/settings/views/templates.tsx:265

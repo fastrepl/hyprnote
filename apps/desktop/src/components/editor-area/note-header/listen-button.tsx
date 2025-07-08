@@ -338,7 +338,7 @@ function RecordingControls({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="auto">
-              <Trans>Auto (Default)</Trans>
+              <Trans>No Template (Default)</Trans>
             </SelectItem>
             {templatesQuery.data?.map((template) => (
               <SelectItem key={template.id} value={template.id}>

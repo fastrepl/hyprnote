@@ -22,6 +22,7 @@ import { StoryView } from "../individualization-modal/story-view";
 import { ThankYouView } from "../individualization-modal/thank-you-view";
 import { PermissionsValidationView } from "../setup-validator/permissions-validation-view";
 import { SetupCompleteView } from "../setup-validator/setup-complete-view";
+import { CalendarLinkingView } from "./calendar-linking-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
 
@@ -33,6 +34,7 @@ interface WelcomeModalProps {
 type OnboardingStep =
   | "welcome"
   | "model-selection"
+  | "calendar-linking"
   | "survey-story"
   | "survey-industry"
   | "survey-role"
@@ -117,6 +119,14 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleModelSelectionComplete = (model: SupportedModel) => {
+    setCurrentStep("calendar-linking");
+  };
+
+  const handleCalendarLinkingComplete = () => {
+    setCurrentStep("survey-story");
+  };
+
+  const handleCalendarLinkingSkip = () => {
     setCurrentStep("survey-story");
   };
 
@@ -198,8 +208,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       case "model-selection":
         setCurrentStep("welcome");
         break;
-      case "survey-story":
+      case "calendar-linking":
         setCurrentStep("model-selection");
+        break;
+      case "survey-story":
+        setCurrentStep("calendar-linking");
         break;
       case "survey-industry":
         setCurrentStep("survey-story");
@@ -281,6 +294,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             <ModelSelectionView
               onContinue={handleModelSelectionComplete}
               onModelSelected={handleModelSelected}
+            />
+          )}
+          {currentStep === "calendar-linking" && (
+            <CalendarLinkingView
+              onComplete={handleCalendarLinkingComplete}
+              onSkip={handleCalendarLinkingSkip}
             />
           )}
           {currentStep === "survey-story" && (

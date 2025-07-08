@@ -152,19 +152,22 @@ export const ModelSelectionView = ({
     return (
       <div className="flex flex-col items-center max-w-md mx-auto">
         <h2 className="text-xl font-semibold mb-2 text-center">
-          {modelsAlreadyInstalled ? <Trans>Models Ready</Trans> : <Trans>Downloading Models</Trans>}
+          {modelsAlreadyInstalled ? <Trans>Your Private AI is Ready</Trans> : <Trans>Setting Up…</Trans>}
         </h2>
         <p className="text-sm text-muted-foreground mb-8 text-center">
           {modelsAlreadyInstalled
-            ? <Trans>AI models are already installed and ready to use.</Trans>
-            : <Trans>Setting up AI models for local transcription. This may take a few minutes.</Trans>}
+            ? <Trans>Your secure, on-device AI is ready to keep your notes private.</Trans>
+            : <Trans>Downloading AI models (~2GB). This is a one-time setup.</Trans>}
         </p>
 
         <div className="w-full space-y-6">
           {/* STT Model Download */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Speech-to-Text Model</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">HyperWhisper</span>
+                <span className="text-xs text-neutral-500">Transcribes locally</span>
+              </div>
               {sttComplete && (
                 <span className="text-xs text-neutral-600">
                   ✓ {sttAlreadyInstalled ? "Already Installed" : "Complete"}
@@ -187,7 +190,10 @@ export const ModelSelectionView = ({
           {/* LLM Model Download */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">AI Processing Model</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">HyperLLM</span>
+                <span className="text-xs text-neutral-500">Summarizes securely</span>
+              </div>
               {llmComplete && (
                 <span className="text-xs text-neutral-600">
                   ✓ {llmAlreadyInstalled ? "Already Installed" : "Complete"}
@@ -213,9 +219,15 @@ export const ModelSelectionView = ({
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-xl font-semibold mb-4 flex items-center justify-center">
-        <Trans>Select a transcribing model</Trans>
+      <h2 className="text-xl font-semibold mb-2 text-center">
+        <Trans>Setting up your private AI</Trans>
       </h2>
+      <p className="text-sm text-muted-foreground mb-8 text-center max-w-md">
+        <Trans>
+          Choose your transcription model. All processing happens locally on your device to keep your conversations
+          private.
+        </Trans>
+      </p>
 
       <div className="w-full mb-8">
         <Carousel
@@ -284,7 +296,7 @@ export const ModelSelectionView = ({
         className="w-full max-w-sm"
         disabled={!selectedModel}
       >
-        <Trans>Continue</Trans>
+        <Trans>Start Setup</Trans>
       </PushableButton>
     </div>
   );

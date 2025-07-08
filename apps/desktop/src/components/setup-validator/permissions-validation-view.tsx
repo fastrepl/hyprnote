@@ -34,7 +34,7 @@ function PermissionItem({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-md border p-3 transition-colors",
+        "flex items-center justify-between rounded-md border p-2.5 transition-colors",
         isGranted ? "bg-neutral-50 border-neutral-200" : "bg-neutral-50",
       )}
     >
@@ -183,17 +183,21 @@ export function PermissionsValidationView({ onComplete, onSkipToApp }: Permissio
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
-      <div className="text-center mb-6">
+    <div className="flex flex-col items-center justify-center p-6">
+      <div className="text-center mb-5">
+        <MicIcon className="h-6 w-6 mx-auto mb-3 text-neutral-600" />
         <h2 className="text-xl font-semibold mb-2">
-          <Trans>Quick Setup</Trans>
+          <Trans>Let's test your setup!</Trans>
         </h2>
-        <p className="text-sm text-muted-foreground max-w-sm">
-          <Trans>Grant a few permissions to get the best experience</Trans>
+        <p className="text-sm text-muted-foreground max-w-sm mb-2">
+          <Trans>Hyprnote listens to your meetings so you don't have to take notes.</Trans>
         </p>
+        <div className="inline-flex items-center bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs text-green-700">
+          <Trans>Your audio never leaves your device</Trans>
+        </div>
       </div>
 
-      <div className="w-full max-w-md space-y-2 mb-6">
+      <div className="w-full max-w-md space-y-2 mb-5">
         {permissions.map((permission, index) => (
           <PermissionItem
             key={index}
@@ -208,7 +212,7 @@ export function PermissionsValidationView({ onComplete, onSkipToApp }: Permissio
           onClick={onSkipToApp}
           className="px-4 py-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
         >
-          <Trans>Skip</Trans>
+          <Trans>Skip for Now</Trans>
         </Button>
 
         <PushableButton
@@ -216,7 +220,7 @@ export function PermissionsValidationView({ onComplete, onSkipToApp }: Permissio
           disabled={!requiredPermissionsGranted}
           className="px-6 py-2 bg-black text-white hover:bg-neutral-800 transition-colors rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Trans>Continue</Trans>
+          <Trans>All Set! Let's Go</Trans>
         </PushableButton>
       </div>
     </div>

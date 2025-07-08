@@ -326,8 +326,8 @@ msgid "AI"
 msgstr "AI"
 
 #: src/components/welcome-modal/model-selection-view.tsx:159
-msgid "AI models are already installed and ready to use."
-msgstr "AI models are already installed and ready to use."
+#~ msgid "AI models are already installed and ready to use."
+#~ msgstr "AI models are already installed and ready to use."
 
 #: src/components/login-modal.tsx:97
 #~ msgid "AI notepad for meetings"
@@ -340,6 +340,10 @@ msgstr "All Participants"
 #: src/components/setup-validator/setup-complete-view.tsx:33
 #~ msgid "All Set!"
 #~ msgstr "All Set!"
+
+#: src/components/setup-validator/permissions-validation-view.tsx:223
+msgid "All Set! Let's Go"
+msgstr "All Set! Let's Go"
 
 #. placeholder {0}: members.length - 5
 #: src/components/organization-profile/members-list.tsx:102
@@ -378,6 +382,10 @@ msgstr "Ask questions about past meetings"
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
 msgstr "Assistant:"
+
+#: src/components/welcome-modal/calendar-linking-view.tsx:81
+msgid "Automatically label meetings and keep everything organized."
+msgstr "Automatically label meetings and keep everything organized."
 
 #: src/routes/app.settings.tsx:58
 msgid "Billing"
@@ -429,6 +437,10 @@ msgstr "Choose whether to save your recordings locally."
 msgid "Choose your preferred language of use"
 msgstr "Choose your preferred language of use"
 
+#: src/components/welcome-modal/model-selection-view.tsx:226
+msgid "Choose your transcription model. All processing happens locally on your device to keep your conversations private."
+msgstr "Choose your transcription model. All processing happens locally on your device to keep your conversations private."
+
 #: src/components/settings/components/ai/wer-modal.tsx:126
 msgid "Close"
 msgstr "Close"
@@ -476,8 +488,7 @@ msgstr "Connect your calendar and track events"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:287
-#: src/components/setup-validator/permissions-validation-view.tsx:219
+#: src/components/welcome-modal/calendar-linking-view.tsx:140
 msgid "Continue"
 msgstr "Continue"
 
@@ -553,9 +564,13 @@ msgstr "Download {0}"
 #~ msgid "Download Models"
 #~ msgstr "Download Models"
 
+#: src/components/welcome-modal/model-selection-view.tsx:160
+msgid "Downloading AI models (~2GB). This is a one-time setup."
+msgstr "Downloading AI models (~2GB). This is a one-time setup."
+
 #: src/components/welcome-modal/model-selection-view.tsx:155
-msgid "Downloading Models"
-msgstr "Downloading Models"
+#~ msgid "Downloading Models"
+#~ msgstr "Downloading Models"
 
 #: src/components/setup-validator/models-validation-view.tsx:79
 #~ msgid "Downloading..."
@@ -667,13 +682,13 @@ msgstr "General"
 msgid "Generating title..."
 msgstr "Generating title..."
 
-#: src/components/welcome-modal/welcome-view.tsx:36
+#: src/components/welcome-modal/welcome-view.tsx:45
 msgid "Get Started"
 msgstr "Get Started"
 
 #: src/components/setup-validator/permissions-validation-view.tsx:192
-msgid "Grant a few permissions to get the best experience"
-msgstr "Grant a few permissions to get the best experience"
+#~ msgid "Grant a few permissions to get the best experience"
+#~ msgstr "Grant a few permissions to get the best experience"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
@@ -718,6 +733,10 @@ msgstr "How did you hear about Hyprnote?"
 #: src/components/setup-validator/setup-complete-view.tsx:42
 #~ msgid "Hyprnote is ready to use. You can now start recording and transcribing your meetings."
 #~ msgstr "Hyprnote is ready to use. You can now start recording and transcribing your meetings."
+
+#: src/components/setup-validator/permissions-validation-view.tsx:193
+msgid "Hyprnote listens to your meetings so you don't have to take notes."
+msgstr "Hyprnote listens to your meetings so you don't have to take notes."
 
 #: src/components/setup-validator/models-validation-view.tsx:168
 #~ msgid "Hyprnote needs AI models to work locally. You need at least one speech-to-text model to get started."
@@ -767,6 +786,10 @@ msgstr "Language"
 #: src/components/settings/views/billing.tsx:200
 msgid "Learn more about our pricing plans"
 msgstr "Learn more about our pricing plans"
+
+#: src/components/setup-validator/permissions-validation-view.tsx:190
+msgid "Let's test your setup!"
+msgstr "Let's test your setup!"
 
 #: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"
@@ -831,8 +854,8 @@ msgid "Model Name"
 msgstr "Model Name"
 
 #: src/components/welcome-modal/model-selection-view.tsx:155
-msgid "Models Ready"
-msgstr "Models Ready"
+#~ msgid "Models Ready"
+#~ msgstr "Models Ready"
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
@@ -931,6 +954,10 @@ msgstr "Open in new window"
 msgid "Open Note"
 msgstr "Open Note"
 
+#: src/components/welcome-modal/calendar-linking-view.tsx:71
+msgid "Optional"
+msgstr "Optional"
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
 msgstr "Optional for participant suggestions"
@@ -956,6 +983,10 @@ msgstr "Performance difference between languages"
 msgid "Play video"
 msgstr "Play video"
 
+#: src/components/welcome-modal/welcome-view.tsx:37
+msgid "Private. Secure. On-device."
+msgstr "Private. Secure. On-device."
+
 #: src/components/settings/views/billing.tsx:33
 msgid "Pro"
 msgstr "Pro"
@@ -969,8 +1000,8 @@ msgid "Publish your note"
 msgstr "Publish your note"
 
 #: src/components/setup-validator/permissions-validation-view.tsx:189
-msgid "Quick Setup"
-msgstr "Quick Setup"
+#~ msgid "Quick Setup"
+#~ msgstr "Quick Setup"
 
 #: src/components/organization-profile/recent-notes.tsx:42
 msgid "Recent Notes"
@@ -1063,8 +1094,8 @@ msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
 #: src/components/welcome-modal/model-selection-view.tsx:217
-msgid "Select a transcribing model"
-msgstr "Select a transcribing model"
+#~ msgid "Select a transcribing model"
+#~ msgstr "Select a transcribing model"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:69
 msgid "Select Calendars"
@@ -1079,8 +1110,16 @@ msgid "Send invite"
 msgstr "Send invite"
 
 #: src/components/welcome-modal/model-selection-view.tsx:160
-msgid "Setting up AI models for local transcription. This may take a few minutes."
-msgstr "Setting up AI models for local transcription. This may take a few minutes."
+#~ msgid "Setting up AI models for local transcription. This may take a few minutes."
+#~ msgstr "Setting up AI models for local transcription. This may take a few minutes."
+
+#: src/components/welcome-modal/model-selection-view.tsx:223
+msgid "Setting up your private AI"
+msgstr "Setting up your private AI"
+
+#: src/components/welcome-modal/model-selection-view.tsx:155
+msgid "Setting Up…"
+msgstr "Setting Up…"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
@@ -1107,13 +1146,18 @@ msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
 #: src/components/setup-validator/permissions-validation-view.tsx:211
-msgid "Skip"
-msgstr "Skip"
+#~ msgid "Skip"
+#~ msgstr "Skip"
 
 #: src/components/setup-validator/permissions-validation-view.tsx:199
 #: src/components/setup-validator/models-validation-view.tsx:227
 #~ msgid "Skip for now"
 #~ msgstr "Skip for now"
+
+#: src/components/welcome-modal/calendar-linking-view.tsx:132
+#: src/components/setup-validator/permissions-validation-view.tsx:215
+msgid "Skip for Now"
+msgstr "Skip for Now"
 
 #: src/routes/app.settings.tsx:98
 msgid "Sound"
@@ -1130,6 +1174,10 @@ msgstr "Start Monthly Plan"
 #: src/components/editor-area/note-header/listen-button.tsx:151
 msgid "Start recording"
 msgstr "Start recording"
+
+#: src/components/welcome-modal/model-selection-view.tsx:299
+msgid "Start Setup"
+msgstr "Start Setup"
 
 #: src/components/setup-validator/setup-complete-view.tsx:56
 msgid "Start Using Hyprnote"
@@ -1178,8 +1226,8 @@ msgid "Templates"
 msgstr "Templates"
 
 #: src/components/welcome-modal/welcome-view.tsx:28
-msgid "The AI Meeting Notepad"
-msgstr "The AI Meeting Notepad"
+#~ msgid "The AI Meeting Notepad"
+#~ msgstr "The AI Meeting Notepad"
 
 #: src/components/settings/views/billing.tsx:113
 msgid "There's a plan for everyone"
@@ -1274,6 +1322,10 @@ msgstr "View in calendar"
 msgid "View Note"
 msgstr "View Note"
 
+#: src/components/welcome-modal/calendar-linking-view.tsx:77
+msgid "Want to link your calendars?"
+msgstr "Want to link your calendars?"
+
 #: src/components/settings/views/profile.tsx:193
 msgid "We think different."
 msgstr "We think different."
@@ -1293,6 +1345,10 @@ msgstr "What's your organization size?"
 #: src/components/individualization-modal/role-view.tsx:29
 msgid "What's your role?"
 msgstr "What's your role?"
+
+#: src/components/welcome-modal/welcome-view.tsx:28
+msgid "Where Conversations Stay Yours"
+msgstr "Where Conversations Stay Yours"
 
 #: src/components/settings/components/ai/wer-modal.tsx:69
 msgid "Whisper Model Language Performance (WER)"
@@ -1322,6 +1378,10 @@ msgstr "Works offline"
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
 
+#: src/components/setup-validator/permissions-validation-view.tsx:196
+msgid "Your audio never leaves your device"
+msgstr "Your audio never leaves your device"
+
 #: src/components/settings/views/profile.tsx:213
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
@@ -1329,6 +1389,14 @@ msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 #: src/components/settings/views/profile.tsx:123
 msgid "Your Name"
 msgstr "Your Name"
+
+#: src/components/welcome-modal/model-selection-view.tsx:155
+msgid "Your Private AI is Ready"
+msgstr "Your Private AI is Ready"
+
+#: src/components/welcome-modal/model-selection-view.tsx:159
+msgid "Your secure, on-device AI is ready to keep your notes private."
+msgstr "Your secure, on-device AI is ready to keep your notes private."
 
 #: src/components/settings/views/templates.tsx:230
 #: src/components/settings/components/templates-sidebar.tsx:45

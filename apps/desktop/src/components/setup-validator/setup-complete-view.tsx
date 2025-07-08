@@ -11,7 +11,7 @@ interface SetupCompleteViewProps {
 
 export function SetupCompleteView({ onComplete }: SetupCompleteViewProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
+    <div className="flex flex-col items-center justify-center p-6">
       {/* Success Icon */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -30,7 +30,7 @@ export function SetupCompleteView({ onComplete }: SetupCompleteViewProps) {
           once
           className="text-xl font-semibold text-foreground"
         >
-          All Set!
+          You're Ready!
         </TextAnimate>
 
         <TextAnimate
@@ -39,7 +39,7 @@ export function SetupCompleteView({ onComplete }: SetupCompleteViewProps) {
           once
           className="text-sm text-muted-foreground max-w-sm"
         >
-          Hyprnote is ready to use. You can now start recording and transcribing your meetings.
+          Hyprnote is set up to keep your meetings private and organized.
         </TextAnimate>
       </div>
 

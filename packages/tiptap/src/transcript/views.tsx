@@ -50,7 +50,12 @@ export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentTyp
       </NodeViewWrapper>
     );
   }, (prevProps, nextProps) => {
-    return true;
+    const prevAttrs = prevProps.node.attrs;
+    const nextAttrs = nextProps.node.attrs;
+
+    return prevAttrs[SPEAKER_ID_ATTR] === nextAttrs[SPEAKER_ID_ATTR]
+      && prevAttrs[SPEAKER_INDEX_ATTR] === nextAttrs[SPEAKER_INDEX_ATTR]
+      && prevAttrs[SPEAKER_LABEL_ATTR] === nextAttrs[SPEAKER_LABEL_ATTR];
   });
 };
 

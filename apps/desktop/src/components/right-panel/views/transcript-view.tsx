@@ -314,6 +314,7 @@ const MemoizedSpeakerSelector = memo(({
   onSpeakerChange,
   speakerId,
   speakerIndex,
+  speakerLabel,
 }: SpeakerViewInnerProps) => {
   const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
@@ -328,7 +329,7 @@ const MemoizedSpeakerSelector = memo(({
     if (human) {
       onSpeakerChange(human, speakerRange);
     }
-  }, [human]);
+  }, [human, speakerRange]);
 
   const handleClickHuman = (human: Human) => {
     setHuman(human);
@@ -355,7 +356,7 @@ const MemoizedSpeakerSelector = memo(({
     return getSpeakerLabel({
       [SPEAKER_INDEX_ATTR]: speakerIndex,
       [SPEAKER_ID_ATTR]: speakerId,
-      [SPEAKER_LABEL_ATTR]: null,
+      [SPEAKER_LABEL_ATTR]: speakerLabel ?? null,
     });
   };
 
@@ -373,14 +374,12 @@ const MemoizedSpeakerSelector = memo(({
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
-            {!speakerId && (
-              <div className="border-b border-neutral-100 pb-3">
-                <SpeakerRangeSelector
-                  value={speakerRange}
-                  onChange={setSpeakerRange}
-                />
-              </div>
-            )}
+            <div className="border-b border-neutral-100 pb-3">
+              <SpeakerRangeSelector
+                value={speakerRange}
+                onChange={setSpeakerRange}
+              />
+            </div>
 
             <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
           </div>

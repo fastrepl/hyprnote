@@ -486,7 +486,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             ),
             words: {
                 let words = serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
-                    &hypr_data::english_6::WORDS_JSON,
+                    &hypr_data::english_4::WORDS_JSON,
                 )
                 .unwrap();
                 let mut repeated = Vec::with_capacity(words.len() * 100);
@@ -508,7 +508,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             )
             .unwrap(),
             words: serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
-                &hypr_data::english_4::WORDS_JSON,
+                &hypr_data::english_6::WORDS_JSON,
             )
             .unwrap(),
             ..new_default_session(&user.id)

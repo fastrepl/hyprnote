@@ -267,13 +267,7 @@ fn build_response(
         .map(hypr_llama::FromOpenAI::from_openai)
         .collect();
 
-    let grammar = select_grammar(
-        &model.name,
-        request
-            .metadata
-            .as_ref()
-            .and_then(|v| v.get("grammar").and_then(|v| v.as_str())),
-    );
+    let grammar = select_grammar(&request, &model.name);
 
     let request = hypr_llama::LlamaRequest { messages, grammar };
 
@@ -330,14 +324,28 @@ fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = StreamEvent>
     }))
 }
 
-fn select_grammar(model_name: &hypr_llama::ModelName, task: Option<&str>) -> Option<String> {
-    match task {
+fn select_grammar(
+    request: &CreateChatCompletionRequest,
+    model_name: &hypr_llama::ModelName,
+) -> Option<String> {
+    let grammar = request
+        .metadata
+        .as_ref()
+        .and_then(|v| v.get("grammar").and_then(|v| v.as_str()));
+
+    let custom_grammar = request
+        .metadata
+        .as_ref()
+        .and_then(|v| v.get("customGrammar").and_then(|v| v.as_str()));
+
+    match grammar {
         Some("enhance") => match model_name {
             hypr_llama::ModelName::HyprLLM => Some(hypr_gbnf::GBNF::EnhanceHypr.build()),
             _ => Some(hypr_gbnf::GBNF::EnhanceOther.build()),
         },
         Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
         Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
+        Some("custom") => custom_grammar.map(|s| s.to_string()),
         _ => None,
     }
 }

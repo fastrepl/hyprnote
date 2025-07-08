@@ -138,9 +138,28 @@ impl CalendarSource for Handle {
                         .collect::<Vec<Participant>>();
                     return Ok(participants);
                 }
-                Err(_) => {
-                    // Event not found in this calendar, continue searching
-                    continue;
+                Err(err) => {
+                    let error_string = err.to_string().to_lowercase();
+
+                    // Check if this is a "not found" error (HTTP 404 or similar)
+                    if error_string.contains("404")
+                        || error_string.contains("not found")
+                        || error_string.contains("notfound")
+                        || error_string.contains("event not found")
+                    {
+                        // Event not found in this calendar, continue searching
+                        continue;
+                    } else {
+                        // This is a more serious error (network, API limits, auth, etc.)
+                        // Log it and continue, but the error is now visible
+                        tracing::warn!(
+                            "Error accessing calendar '{}' while searching for event '{}': {}",
+                            calendar.id,
+                            event_tracking_id,
+                            err
+                        );
+                        continue;
+                    }
                 }
             }
         }

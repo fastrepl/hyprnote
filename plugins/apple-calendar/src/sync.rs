@@ -280,30 +280,27 @@ pub async fn get_event_participants(
             .unwrap();
 
         rt.block_on(async {
-            match handle
+            handle
                 .get_event_participants(event_tracking_id.clone())
                 .await
-            {
-                Ok(participants) => participants,
-                Err(e) => {
+                .map_err(|e| {
                     tracing::error!(
                         "Failed to get event participants for tracking_id {}: {}",
                         event_tracking_id,
                         e
                     );
-                    vec![]
-                }
-            }
+                    crate::Error::CalendarError(e.to_string())
+                })
         })
     })
     .await
-    .unwrap_or_else(|e| {
+    .map_err(|e| {
         tracing::error!(
             "Failed to spawn blocking task for get_event_participants: {}",
             e
         );
-        vec![]
-    });
+        crate::Error::CalendarError(format!("Spawn blocking failed: {}", e))
+    })??;
 
     Ok(participants)
 }

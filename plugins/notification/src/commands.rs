@@ -98,3 +98,39 @@ pub(crate) async fn stop_event_notification<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.stop_event_notification().map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_auto_record_enabled<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.get_auto_record_enabled().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_auto_record_enabled<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    enabled: bool,
+) -> Result<(), String> {
+    app.set_auto_record_enabled(enabled)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_auto_record_threshold<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<f64, String> {
+    app.get_auto_record_threshold().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_auto_record_threshold<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    threshold: f64,
+) -> Result<(), String> {
+    app.set_auto_record_threshold(threshold)
+        .map_err(|e| e.to_string())
+}

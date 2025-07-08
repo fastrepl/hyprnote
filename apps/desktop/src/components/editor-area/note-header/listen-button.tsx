@@ -17,10 +17,12 @@ import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { MicrophoneDeviceInfo } from "@/utils/microphone-devices";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
@@ -233,6 +235,7 @@ function WhenActive() {
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
     stop: s.stop,
+    setAutoEnhanceTemplate: s.setAutoEnhanceTemplate,
   }));
   const sessionWords = useSession(ongoingSessionId!, (s) => s.session.words);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -242,7 +245,11 @@ function WhenActive() {
     setIsPopoverOpen(false);
   };
 
-  const handleStopSession = () => {
+  const handleStopSession = (templateId?: string | null) => {
+    if (templateId !== undefined) {
+      ongoingSessionStore.setAutoEnhanceTemplate(templateId);
+    }
+
     ongoingSessionStore.stop();
     setIsPopoverOpen(false);
 
@@ -252,7 +259,7 @@ function WhenActive() {
   };
 
   return (
-    <Popover>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
         <button
           className={cn([
@@ -279,12 +286,13 @@ function RecordingControls({
   onStop,
 }: {
   onPause: () => void;
-  onStop: () => void;
+  onStop: (templateId?: string | null) => void;
 }) {
   const ongoingSessionMuted = useOngoingSession((s) => ({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
   }));
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("auto");
 
   const toggleMicMuted = useMutation({
     mutationFn: () => listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted),
@@ -294,9 +302,34 @@ function RecordingControls({
     mutationFn: () => listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted),
   });
 
+  const configQuery = useQuery({
+    queryKey: ["config"],
+    queryFn: () => dbCommands.getConfig(),
+    refetchOnWindowFocus: true,
+  });
+
+  const templatesQuery = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => dbCommands.listTemplates(),
+    refetchOnWindowFocus: true,
+  });
+
+  useEffect(() => {
+    if (configQuery.data?.general?.selected_template_id) {
+      setSelectedTemplate(configQuery.data.general.selected_template_id);
+    } else {
+      setSelectedTemplate("auto");
+    }
+  }, [configQuery.data]);
+
+  const handleStopWithTemplate = () => {
+    const actualTemplateId = selectedTemplate === "auto" ? null : selectedTemplate;
+    onStop(actualTemplateId);
+  };
+
   return (
     <>
-      <div className="flex w-full justify-between mb-4">
+      <div className="flex w-full justify-between mb-3">
         <AudioControlButton
           isMuted={ongoingSessionMuted.micMuted}
           onClick={() => toggleMicMuted.mutate()}
@@ -307,6 +340,24 @@ function RecordingControls({
           onClick={() => toggleSpeakerMuted.mutate()}
           type="speaker"
         />
+      </div>
+
+      <div className="mb-3">
+        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+          <SelectTrigger className="w-full text-sm">
+            <SelectValue placeholder="Select template..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">
+              <Trans>No Template (Default)</Trans>
+            </SelectItem>
+            {templatesQuery.data?.map((template) => (
+              <SelectItem key={template.id} value={template.id}>
+                {template.title || "Untitled"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex gap-2">
@@ -320,7 +371,7 @@ function RecordingControls({
         </Button>
         <Button
           variant="destructive"
-          onClick={onStop}
+          onClick={handleStopWithTemplate}
           className="w-full"
         >
           <StopCircleIcon size={16} />

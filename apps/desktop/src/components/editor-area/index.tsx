@@ -63,37 +63,12 @@ export default function EditorArea({
     [sessionId, showRaw],
   );
 
-  const [needsRestoration, setNeedsRestoration] = useState(false);
-  const [originalTemplateId, setOriginalTemplateId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-
-  const configQuery = useQuery({
-    queryKey: ["config", "general"],
-    queryFn: async () => {
-      const result = await dbCommands.getConfig();
-      return result;
-    },
-  });
-
-  const setConfigMutation = useMutation({
-    mutationFn: async (configData: any) => {
-      await dbCommands.setConfig(configData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["config", "general"] });
-    },
-    onError: (error) => {
-      console.error("Failed to set template config:", error);
-    },
-  });
-
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: () => dbCommands.listTemplates(),
     refetchOnWindowFocus: true,
   });
 
-  const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
@@ -108,26 +83,13 @@ export default function EditorArea({
     rawContent,
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
-      generateTitle.mutate({ enhancedContent: content });
-
-      if (needsRestoration && configQuery.data) {
-        const restoreConfig = {
-          ...configQuery.data,
-          general: {
-            ...configQuery.data.general,
-            selected_template_id: originalTemplateId,
-          },
-        };
-        setConfigMutation.mutate(restoreConfig);
-        setNeedsRestoration(false);
-        setOriginalTemplateId(null);
-      }
-
       if (hasTranscriptWords) {
         generateTitle.mutate({ enhancedContent: content });
       }
     },
   });
+
+  const generateTitle = useGenerateTitleMutation({ sessionId });
 
   useAutoEnhance({
     sessionId,
@@ -151,46 +113,13 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
-  const handleEnhanceWithTemplate = useCallback(async (templateId: string) => {
-    if (configQuery.data) {
-      const currentTemplateId = configQuery.data.general?.selected_template_id || null;
-      setOriginalTemplateId(currentTemplateId);
-      setNeedsRestoration(true);
-
-      const targetTemplateId = templateId === "auto" ? null : templateId;
-
-      const updatedConfig = {
-        ...configQuery.data,
-        general: {
-          ...configQuery.data.general,
-          selected_template_id: targetTemplateId,
-        },
-      };
-
-      try {
-        await setConfigMutation.mutateAsync(updatedConfig);
-
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        const verifyConfig = await dbCommands.getConfig();
-
-        if (verifyConfig.general?.selected_template_id !== targetTemplateId) {
-          setOriginalTemplateId(null);
-          setNeedsRestoration(false);
-          return;
-        }
-      } catch (error) {
-        setOriginalTemplateId(null);
-        setNeedsRestoration(false);
-        return;
-      }
-    }
-
-    enhance.mutate();
-  }, [enhance, configQuery.data, setConfigMutation]);
+  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
+    const targetTemplateId = templateId === "auto" ? null : templateId;
+    enhance.mutate({ templateId: targetTemplateId, triggerType: "template" });
+  }, [enhance]);
 
   const handleClickEnhance = useCallback(() => {
-    enhance.mutate();
+    enhance.mutate({ triggerType: "manual" });
   }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
@@ -317,7 +246,13 @@ export function useEnhanceMutation({
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
-    mutationFn: async () => {
+    mutationFn: async ({
+      triggerType,
+      templateId,
+    }: {
+      triggerType: "manual" | "template" | "auto";
+      templateId?: string | null;
+    } = { triggerType: "manual" }) => {
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -347,15 +282,20 @@ export function useEnhanceMutation({
         return;
       }
 
+      // Get current config for default template
       const config = await dbCommands.getConfig();
+
+      // Use provided templateId or fall back to config
+      const effectiveTemplateId = templateId !== undefined
+        ? templateId
+        : config.general?.selected_template_id;
 
       let templateInfo = "";
       let customGrammar: string | null = null;
-      const selectedTemplateId = config.general.selected_template_id;
 
-      if (selectedTemplateId) {
+      if (effectiveTemplateId) {
         const templates = await dbCommands.listTemplates();
-        const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
+        const selectedTemplate = templates.find(t => t.id === effectiveTemplateId);
 
         if (selectedTemplate) {
           if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
@@ -560,9 +500,11 @@ function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: () => void;
+  enhanceMutate: (params: { triggerType: "auto"; templateId?: string | null }) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const autoEnhanceTemplate = useOngoingSession((s) => s.autoEnhanceTemplate);
+  const setAutoEnhanceTemplate = useOngoingSession((s) => s.setAutoEnhanceTemplate);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
 
@@ -573,7 +515,15 @@ function useAutoEnhance({
       && enhanceStatus !== "pending"
     ) {
       setShowRaw(false);
-      enhanceMutate();
+
+      // Use the selected template and then clear it
+      enhanceMutate({
+        triggerType: "auto",
+        templateId: autoEnhanceTemplate,
+      });
+
+      // Clear the template after using it (one-time use)
+      setAutoEnhanceTemplate(null);
     }
   }, [
     ongoingSessionStatus,
@@ -581,6 +531,9 @@ function useAutoEnhance({
     sessionId,
     enhanceMutate,
     setShowRaw,
+    autoEnhanceTemplate,
+    setAutoEnhanceTemplate,
+    prevOngoingSessionStatus,
   ]);
 }
 

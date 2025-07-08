@@ -13,12 +13,14 @@ type State = {
   enhanceController: AbortController | null;
   micMuted: boolean;
   speakerMuted: boolean;
+  autoEnhanceTemplate: string | null;
 };
 
 type Actions = {
   get: () => State & Actions;
   cancelEnhance: () => void;
   setEnhanceController: (controller: AbortController | null) => void;
+  setAutoEnhanceTemplate: (templateId: string | null) => void;
   start: (sessionId: string) => void;
   stop: () => void;
   pause: () => void;
@@ -33,6 +35,7 @@ const initialState: State = {
   enhanceController: null,
   micMuted: false,
   speakerMuted: false,
+  autoEnhanceTemplate: null,
 };
 
 export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
@@ -58,6 +61,13 @@ export const createOngoingSessionStore = (
       set((state) =>
         mutate(state, (draft) => {
           draft.enhanceController = controller;
+        })
+      );
+    },
+    setAutoEnhanceTemplate: (templateId: string | null) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.autoEnhanceTemplate = templateId;
         })
       );
     },

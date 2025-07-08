@@ -371,6 +371,10 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "Auto (Default)"
+#~ msgstr "Auto (Default)"
+
 #: src/routes/app.settings.tsx:49
 msgid "Billing"
 msgstr "Billing"
@@ -855,6 +859,14 @@ msgstr "No recent notes for this organization"
 #: src/components/settings/components/ai/stt-view.tsx:284
 msgid "No speech-to-text models available or failed to load."
 msgstr "No speech-to-text models available or failed to load."
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "No Template"
+#~ msgstr "No Template"
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+msgid "No Template (Default)"
+msgstr "No Template (Default)"
 
 #: src/components/settings/views/templates.tsx:265
 msgid "No templates yet"

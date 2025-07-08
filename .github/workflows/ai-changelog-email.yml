@@ -213,7 +213,6 @@ jobs:
 
           node changelog-generator.js
 
-
       - name: Generate changelog file
         run: |
           # Create a timestamped changelog file

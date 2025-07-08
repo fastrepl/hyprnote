@@ -967,7 +967,7 @@ msgstr "Search names or emails"
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/search-bar.tsx:144
+#: src/components/search-bar.tsx:145
 msgid "Search..."
 msgstr "Search..."
 

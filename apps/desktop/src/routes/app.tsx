@@ -105,7 +105,7 @@ function Component() {
           </LeftSidebarProvider>
         </OngoingSessionProvider>
       </SessionsProvider>
-      {isMain && <Notifications showAll={showNotifications} />}
+      {showNotifications && <Notifications />}
     </>
   );
 }

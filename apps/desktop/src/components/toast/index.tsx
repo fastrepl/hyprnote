@@ -1,15 +1,11 @@
 import ModelDownloadNotification from "./model-download";
 import OtaNotification from "./ota";
 
-interface NotificationsProps {
-  showAll?: boolean;
-}
-
-export default function Notifications({ showAll = false }: NotificationsProps) {
+export default function Notifications() {
   return (
     <>
       <OtaNotification />
-      {showAll && <ModelDownloadNotification />}
+      <ModelDownloadNotification />
     </>
   );
 }

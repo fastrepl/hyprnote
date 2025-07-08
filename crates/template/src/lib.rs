@@ -128,5 +128,9 @@ pub fn render(
         Template::Dynamic(t) => env.get_template(&t)?,
     };
 
-    tpl.render(ctx).map_err(Into::into)
+    tpl.render(ctx).map_err(Into::into).map(|s| {
+        #[cfg(debug_assertions)]
+        println!("--\n{}\n--", s);
+        s
+    })
 }

@@ -42,6 +42,9 @@ async fn websocket(socket: WebSocket, state: STTState, params: ListenParams) {
                             let audio = Bytes::from(data);
                             Ok::<Option<(Bytes, _)>, axum::Error>(Some((audio, ws_receiver)))
                         }
+                        ListenInputChunk::DualAudio { .. } => {
+                            todo!()
+                        }
                         ListenInputChunk::End => Ok::<Option<(Bytes, _)>, axum::Error>(None),
                     }
                 }

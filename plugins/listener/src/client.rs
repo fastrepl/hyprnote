@@ -1,4 +1,4 @@
-use futures_util::Stream;
+use futures_util::{Stream, StreamExt};
 
 use hypr_audio::AsyncSource;
 use hypr_audio_utils::AudioFormatExt;
@@ -29,29 +29,39 @@ impl ListenClientBuilder {
         self
     }
 
-    pub fn build(self) -> ListenClient {
-        let uri = {
-            let mut url: url::Url = self.api_base.unwrap().parse().unwrap();
+    fn build_uri(&self, audio_mode: hypr_listener_interface::AudioMode) -> String {
+        let mut url: url::Url = self.api_base.as_ref().unwrap().parse().unwrap();
 
-            let params = self.params.unwrap_or_default();
-            let language = params.language.code();
-
-            url.set_path("/api/desktop/listen/realtime");
-            url.query_pairs_mut()
-                .append_pair("language", language)
-                .append_pair("static_prompt", &params.static_prompt)
-                .append_pair("dynamic_prompt", &params.dynamic_prompt);
-
-            let host = url.host_str().unwrap();
-
-            if host.contains("127.0.0.1") || host.contains("localhost") {
-                url.set_scheme("ws").unwrap();
-            } else {
-                url.set_scheme("wss").unwrap();
-            }
-
-            url.to_string().parse().unwrap()
+        let params = hypr_listener_interface::ListenParams {
+            audio_mode,
+            ..self.params.clone().unwrap_or_default()
         };
+
+        let language = params.language.code();
+
+        url.set_path("/api/desktop/listen/realtime");
+        url.query_pairs_mut()
+            .append_pair("language", language)
+            .append_pair("static_prompt", &params.static_prompt)
+            .append_pair("dynamic_prompt", &params.dynamic_prompt)
+            .append_pair("audio_mode", params.audio_mode.as_ref());
+
+        let host = url.host_str().unwrap();
+
+        if host.contains("127.0.0.1") || host.contains("localhost") {
+            url.set_scheme("ws").unwrap();
+        } else {
+            url.set_scheme("wss").unwrap();
+        }
+
+        url.to_string()
+    }
+
+    pub fn build_single(self) -> ListenClient {
+        let uri = self
+            .build_uri(hypr_listener_interface::AudioMode::Single)
+            .parse()
+            .unwrap();
 
         let request = match self.api_key {
             Some(key) => ClientRequestBuilder::new(uri)
@@ -61,6 +71,21 @@ impl ListenClientBuilder {
 
         ListenClient { request }
     }
+
+    pub fn build_dual(self) -> ListenClientDual {
+        let uri = self
+            .build_uri(hypr_listener_interface::AudioMode::Dual)
+            .parse()
+            .unwrap();
+
+        let request = match self.api_key {
+            Some(key) => ClientRequestBuilder::new(uri)
+                .with_header("Authorization", format!("Bearer {}", key)),
+            None => ClientRequestBuilder::new(uri),
+        };
+
+        ListenClientDual { request }
+    }
 }
 
 #[derive(Clone)]
@@ -69,12 +94,42 @@ pub struct ListenClient {
 }
 
 impl WebSocketIO for ListenClient {
+    type Data = bytes::Bytes;
     type Input = ListenInputChunk;
     type Output = ListenOutputChunk;
 
-    fn to_input(data: bytes::Bytes) -> Self::Input {
+    fn to_input(data: Self::Data) -> Self::Input {
         ListenInputChunk::Audio {
             data: data.to_vec(),
+        }
+    }
+
+    fn to_message(input: Self::Input) -> Message {
+        Message::Text(serde_json::to_string(&input).unwrap().into())
+    }
+
+    fn from_message(msg: Message) -> Option<Self::Output> {
+        match msg {
+            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ListenClientDual {
+    request: ClientRequestBuilder,
+}
+
+impl WebSocketIO for ListenClientDual {
+    type Data = (bytes::Bytes, bytes::Bytes);
+    type Input = ListenInputChunk;
+    type Output = ListenOutputChunk;
+
+    fn to_input(data: Self::Data) -> Self::Input {
+        ListenInputChunk::DualAudio {
+            mic: data.0.to_vec(),
+            speaker: data.1.to_vec(),
         }
     }
 
@@ -105,6 +160,18 @@ impl ListenClient {
     }
 }
 
+impl ListenClientDual {
+    pub async fn from_realtime_audio(
+        &self,
+        mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+        speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+    ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
+        let dual_stream = mic_stream.zip(speaker_stream);
+        let ws = WebSocketClient::new(self.request.clone());
+        ws.from_audio::<Self>(dual_stream).await
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,7 +192,7 @@ mod tests {
                 language: hypr_language::ISO639::En.into(),
                 ..Default::default()
             })
-            .build();
+            .build_single();
 
         let stream = client.from_realtime_audio(audio).await.unwrap();
         futures_util::pin_mut!(stream);

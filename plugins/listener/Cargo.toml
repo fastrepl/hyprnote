@@ -53,8 +53,9 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 
-flume = { workspace = true }
 hound = { workspace = true }
+
+flume = { workspace = true }
 statig = { workspace = true, features = ["async"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]

@@ -23,7 +23,13 @@ const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
+pub enum ModelName {
+    HyprLLM,
+    Other(Option<String>),
+}
+
 pub struct Llama {
+    pub name: ModelName,
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,
 }
 
@@ -79,9 +85,12 @@ impl Llama {
             }
         }
 
-        samplers.push(LlamaSampler::temp(0.8));
-        samplers.push(LlamaSampler::penalties(0, 1.4, 0.1, 0.0));
-        samplers.push(LlamaSampler::mirostat_v2(1234, 3.0, 0.2));
+        {
+            // https://huggingface.co/Qwen/Qwen3-1.7B-GGUF
+            samplers.push(LlamaSampler::temp(0.6));
+            samplers.push(LlamaSampler::penalties(0, 1.4, 0.1, 1.3));
+            samplers.push(LlamaSampler::mirostat_v2(1234, 3.0, 0.2));
+        }
 
         LlamaSampler::chain_simple(samplers)
     }
@@ -223,6 +232,12 @@ impl Llama {
             let mut output_string = String::with_capacity(32);
             let _decode_result = decoder.decode_to_string(&output_bytes, &mut output_string, false);
 
+            if cfg!(debug_assertions) {
+                use std::io::{self, Write};
+                print!("{}", output_string);
+                io::stdout().flush().unwrap();
+            }
+
             if response_sender.send(output_string).is_err() {
                 break;
             }
@@ -247,6 +262,11 @@ impl Llama {
 
         let backend = Self::get_backend();
         let model = Self::load_model(model_path)?;
+        let name = match model.meta_val_str("general.name") {
+            Ok(name) if name == "hypr-llm" => ModelName::HyprLLM,
+            Ok(name) => ModelName::Other(Some(name.to_string())),
+            Err(_) => ModelName::Other(None),
+        };
 
         let (task_sender, mut task_receiver) = tokio::sync::mpsc::unbounded_channel::<Task>();
 
@@ -283,7 +303,7 @@ impl Llama {
             }
         });
 
-        Ok(Self { task_sender })
+        Ok(Self { name, task_sender })
     }
 
     pub fn generate_stream(
@@ -319,9 +339,8 @@ mod tests {
     use super::*;
     use futures_util::StreamExt;
 
-    async fn run(model: &Llama, request: LlamaRequest, print_stream: bool) -> String {
+    async fn run(model: &Llama, request: LlamaRequest) -> String {
         use futures_util::pin_mut;
-        use std::io::{self, Write};
 
         let stream = model
             .generate_stream_with_callback(
@@ -335,14 +354,6 @@ mod tests {
 
         while let Some(token) = stream.next().await {
             acc += &token;
-            if print_stream {
-                print!("{}", token);
-                io::stdout().flush().unwrap();
-            }
-        }
-
-        if print_stream {
-            println!();
         }
 
         acc
@@ -369,7 +380,7 @@ mod tests {
         let llama = get_model();
 
         let request = LlamaRequest {
-            grammar: Some(hypr_gbnf::GBNF::Enhance.build()),
+            grammar: Some(hypr_gbnf::GBNF::EnhanceOther.build()),
             messages: vec![
                 LlamaChatMessage::new(
                     "system".into(),
@@ -381,6 +392,6 @@ mod tests {
             ],
         };
 
-        run(&llama, request, true).await;
+        run(&llama, request).await;
     }
 }

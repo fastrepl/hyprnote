@@ -359,7 +359,7 @@ msgid "Apple"
 msgstr "Apple"
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:267
+#: src/components/left-sidebar/notes-list.tsx:269
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -485,7 +485,7 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/workspace-calendar/event-card.tsx:166
+#: src/components/workspace-calendar/event-card.tsx:170
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -507,7 +507,7 @@ msgstr "Custom Endpoint"
 
 #: src/components/settings/views/template.tsx:206
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:334
+#: src/components/left-sidebar/notes-list.tsx:336
 msgid "Delete"
 msgstr "Delete"
 
@@ -737,7 +737,7 @@ msgstr "Loading events..."
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
-#: src/components/workspace-calendar/event-card.tsx:163
+#: src/components/workspace-calendar/event-card.tsx:167
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr "Loading..."
@@ -795,8 +795,8 @@ msgstr "My Templates"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:311
-#: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/notes-list.tsx:313
+#: src/components/left-sidebar/events-list.tsx:182
 msgid "New window"
 msgstr "New window"
 
@@ -832,7 +832,7 @@ msgstr "No speech-to-text models available or failed to load."
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/components/left-sidebar/events-list.tsx:95
+#: src/components/left-sidebar/events-list.tsx:94
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -867,8 +867,8 @@ msgstr "Open calendar view"
 msgid "Open in new window"
 msgstr "Open in new window"
 
-#: src/components/workspace-calendar/note-card.tsx:123
-#: src/components/workspace-calendar/event-card.tsx:153
+#: src/components/workspace-calendar/note-card.tsx:125
+#: src/components/workspace-calendar/event-card.tsx:157
 msgid "Open Note"
 msgstr "Open Note"
 
@@ -1137,7 +1137,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:62
+#: src/components/left-sidebar/events-list.tsx:61
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1165,11 +1165,11 @@ msgstr "User:"
 msgid "username"
 msgstr "username"
 
-#: src/components/left-sidebar/notes-list.tsx:322
+#: src/components/left-sidebar/notes-list.tsx:324
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:193
+#: src/components/left-sidebar/events-list.tsx:194
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr "View in calendar"

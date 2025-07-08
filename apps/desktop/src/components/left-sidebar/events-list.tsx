@@ -19,7 +19,6 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 type EventWithSession = Event & { session: Session | null };
 
@@ -135,7 +134,9 @@ function EventItem({
     } as const satisfies LinkProps;
 
     const url = `${params.to}?date=${params.search.date}`;
-    safeNavigate({ type: "calendar" }, url);
+    windowsCommands.windowShow({ type: "calendar" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "calendar" }, url);
+    });
   };
 
   const isActive = activeSessionId

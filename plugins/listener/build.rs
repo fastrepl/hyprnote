@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "list_microphone_devices",
     "check_microphone_access",
     "check_system_audio_access",
     "request_microphone_access",

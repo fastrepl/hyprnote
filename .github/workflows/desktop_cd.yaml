@@ -64,10 +64,10 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
-          target: "macos"
+          target: ${{ matrix.platform }}
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/poetry_install
       - run: poetry run python scripts/pre_build.py

@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "models_dir",
     "list_ggml_backends",
     "is_server_running",
     "is_model_downloaded",

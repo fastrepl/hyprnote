@@ -4,6 +4,7 @@
 <h1 align="center">Hyprnote <i>(Public Beta)</i></h1>
 <p align="center">AI notepad for meetings. <strong>Local-first & Extensible</strong>.</p>
  <p align="center">
+  <a href="https://deepwiki.com/fastrepl/hyprnote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
   <a href="https://hyprnote.com/discord" target="_blank"><img src="https://img.shields.io/static/v1?label=Join%20our&message=Discord&color=blue&logo=Discord" alt="Discord"></a>
   <a href="https://x.com/tryhyprnote" target="_blank"><img src="https://img.shields.io/static/v1?label=Follow%20us%20on&message=X&color=black&logo=x" alt="X"></a>
 </p>

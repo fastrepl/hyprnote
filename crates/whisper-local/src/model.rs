@@ -116,7 +116,7 @@ impl Whisper {
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {
-                Self::suppress_beg(&mut p, self.token_beg);
+                Self::suppress_beg(&mut p, &self.token_beg);
             }
 
             p.set_no_timestamps(true);
@@ -208,7 +208,7 @@ impl Whisper {
         total_confidence / valid_tokens as f32
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: WhisperToken) {
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
@@ -227,7 +227,7 @@ impl Whisper {
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
         params.set_filter_logits_callback_user_data(
-            &token_beg as *const WhisperToken as *mut std::ffi::c_void,
+            token_beg as *const WhisperToken as *mut std::ffi::c_void,
         );
     }
 }

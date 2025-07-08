@@ -2,6 +2,4 @@
 rustflags = [
   "-C",
   "target-feature=-crt-static",
-  "-C",
-  "link-arg=/FORCE:MULTIPLE",
 ]

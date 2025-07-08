@@ -70,18 +70,18 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
 
-tauri = "2"
-tauri-build = "2"
+tauri = "2.6"
+tauri-build = "2.3"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
-tauri-plugin = "2"
-tauri-plugin-clipboard-manager = "2"
-tauri-plugin-deep-link = "2"
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-http = { version = "2", features = ["unsafe-headers"] }
+tauri-plugin = "2.3"
+tauri-plugin-clipboard-manager = "2.3"
+tauri-plugin-deep-link = "2.4"
+tauri-plugin-dialog = "2.3"
+tauri-plugin-fs = "2.4"
+tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-machine-uid = "0.1.1"
-tauri-plugin-opener = "2"
-tauri-plugin-store = "2"
+tauri-plugin-opener = "2.4"
+tauri-plugin-store = "2.3"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
@@ -153,6 +153,7 @@ chrono = "0.4.39"
 chrono-tz = "0.10.1"
 
 prost = "0.13.4"
+prost-build = "0.13.4"
 tonic = "0.12.3"
 tonic-build = "0.12.3"
 

@@ -125,7 +125,7 @@ async fn websocket_with_model(
     let model_type = state.model_type;
     let model_cache_dir = state.model_cache_dir.clone();
 
-    let model_path = model_type.model_path(&model_cache_dir);
+    let model_path = model_cache_dir.join(model_type.file_name());
     let language = params.language.try_into().unwrap_or_else(|e| {
         tracing::error!("convert_to_whisper_language: {e:?}");
         hypr_whisper::Language::En

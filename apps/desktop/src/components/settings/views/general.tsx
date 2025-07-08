@@ -130,6 +130,7 @@ export default function General() {
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         auto_start_recording: v.autoStartRecording ?? false,
+        selected_template_id: config.data.general.selected_template_id,
       };
 
       await dbCommands.setConfig({

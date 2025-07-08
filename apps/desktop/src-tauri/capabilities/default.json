@@ -65,6 +65,13 @@
       "allow": [{ "path": "/Applications/*" }]
     },
     {
+      "identifier": "fs:allow-watch",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
       "identifier": "fs:allow-write-file",
       "allow": [
         { "path": "$APPDATA/*" },

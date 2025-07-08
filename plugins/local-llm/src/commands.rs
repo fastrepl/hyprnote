@@ -4,6 +4,12 @@ use tauri::ipc::Channel;
 
 #[tauri::command]
 #[specta::specta]
+pub async fn models_dir<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    Ok(app.models_dir().to_string_lossy().to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn list_supported_models() -> Result<Vec<crate::local::SupportedModel>, String> {
     Ok(crate::local::SUPPORTED_MODELS.to_vec())
 }
@@ -49,4 +55,11 @@ pub async fn start_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 #[specta::specta]
 pub async fn stop_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.stop_server().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn restart_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.stop_server().await.map_err(|e| e.to_string())?;
+    app.start_server().await.map_err(|e| e.to_string())
 }

@@ -1,9 +1,66 @@
 on:
   workflow_dispatch:
+  release:
+    types:
+      - published
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  TAURI_CONF_PATH: "./src-tauri/tauri.conf.nightly.json"
 jobs:
-  deploy:
-    runs-on: windows-latest
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "windows"
+            runner: "warp-windows-latest-x64-32x"
+            target: "x86_64-pc-windows-msvc"
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/install_desktop_deps
+        with:
+          target: ${{ matrix.platform }}
+      - uses: ./.github/actions/rust_install
+        with:
+          target: ${{ matrix.platform }}
+      - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/poetry_install
       - run: poetry run python scripts/pre_build.py
+      - run: pnpm -F desktop lingui:compile
+      - run: pnpm -F ui build
+      - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
+        env:
+          # https://github.com/tauri-apps/tauri-action/issues/740
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - run: |
+          mkdir -p target/release/
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            find target/${{ matrix.target }}/release -type f ! -name ".*" -exec cp {} target/release/ \;
+          else
+            find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+          fi
+        shell: bash
+        working-directory: ./apps/desktop/src-tauri
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-build-${{ matrix.platform }}-${{ github.run_number }}
+          path: |
+            apps/desktop/src-tauri/target/release/*.msi
+            apps/desktop/src-tauri/target/release/*.exe
+          retention-days: 30

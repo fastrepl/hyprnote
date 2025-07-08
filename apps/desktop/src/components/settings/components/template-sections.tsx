@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react/macro";
-import { GripVertical as HandleIcon, PlusIcon } from "lucide-react";
+import { GripVertical as HandleIcon, PlusIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useState } from "react";
 
@@ -32,11 +32,18 @@ export function SectionsList({
     onChange(items);
   };
 
+  const handleDelete = (itemId: string) => {
+    const newItems = items.filter((item) => item.id !== itemId);
+    setItems(newItems);
+    onChange(newItems);
+  };
+
   const handleReorder = (v: typeof items) => {
     if (disabled) {
       return;
     }
     setItems(v);
+    onChange(v);
   };
 
   const handleAddSection = () => {
@@ -50,24 +57,18 @@ export function SectionsList({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-3">
       <Reorder.Group values={items} onReorder={handleReorder}>
-        <div className="flex flex-col">
+        <div className="flex flex-col space-y-2">
           {items.map((item) => (
-            <Reorder.Item key={item.id} value={item} className="mb-4">
-              <div className="relative cursor-move bg-neutral-50">
-                <button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 cursor-move opacity-50 hover:opacity-100"
-                  onPointerDown={(e) => controls.start(e)}
-                >
-                  <HandleIcon className="h-4 w-4" />
-                </button>
-                <SectionItem
-                  disabled={disabled}
-                  item={item}
-                  onChange={handleChange}
-                />
-              </div>
+            <Reorder.Item key={item.id} value={item}>
+              <SectionItem
+                disabled={disabled}
+                item={item}
+                onChange={handleChange}
+                onDelete={handleDelete}
+                dragControls={controls}
+              />
             </Reorder.Item>
           ))}
         </div>
@@ -76,7 +77,7 @@ export function SectionsList({
       <Button
         variant="outline"
         size="sm"
-        className="mt-2"
+        className="mt-2 text-sm"
         onClick={handleAddSection}
         disabled={disabled}
       >
@@ -91,9 +92,11 @@ interface SectionItemProps {
   disabled: boolean;
   item: ReorderItem & { id: string };
   onChange: (item: ReorderItem & { id: string }) => void;
+  onDelete: (itemId: string) => void;
+  dragControls: any;
 }
 
-export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
+export function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
   const { t } = useLingui();
 
   const handleChangeTitle = useCallback(
@@ -110,20 +113,49 @@ export function SectionItem({ disabled, item, onChange }: SectionItemProps) {
     [item, onChange],
   );
 
+  const handleDelete = useCallback(() => {
+    onDelete(item.id);
+  }, [item.id, onDelete]);
+
   return (
-    <div className="ml-8 flex flex-col gap-2 rounded-lg border p-4">
-      <Input
+    <div className="group relative rounded-md border border-border bg-card p-2 transition-all">
+      <button
+        className="absolute left-2 top-2 cursor-move opacity-30 hover:opacity-60 transition-opacity"
+        onPointerDown={(e) => dragControls.start(e)}
         disabled={disabled}
-        value={item.title}
-        onChange={handleChangeTitle}
-        placeholder={t`Enter a section title`}
-      />
-      <Textarea
+      >
+        <HandleIcon className="h-4 w-4 text-muted-foreground" />
+      </button>
+
+      <button
+        className="absolute right-2 top-2 opacity-30 hover:opacity-100 hover:text-red-500 transition-all"
+        onClick={handleDelete}
         disabled={disabled}
-        value={item.description}
-        onChange={handleChangeDescription}
-        placeholder={t`Describe the content and purpose of this section`}
-      />
+      >
+        <XIcon className="h-3 w-3" />
+      </button>
+
+      <div className="ml-5 mr-5 space-y-1">
+        <div>
+          <Input
+            disabled={disabled}
+            value={item.title}
+            onChange={handleChangeTitle}
+            placeholder={t`Enter a section title`}
+            className="border-0 bg-transparent p-0 text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+          />
+        </div>
+
+        <div>
+          <Textarea
+            disabled={disabled}
+            value={item.description}
+            onChange={handleChangeDescription}
+            placeholder={t`Describe the content and purpose of this section`}
+            className="min-h-[30px] resize-none border-0 bg-transparent p-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+          />
+        </div>
+      </div>
     </div>
   );
 }

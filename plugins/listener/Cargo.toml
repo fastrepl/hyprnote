@@ -60,3 +60,7 @@ statig = { workspace = true, features = ["async"] }
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
+
+[features]
+default = []
+load-dynamic = ["hypr-aec/load-dynamic"]

@@ -1,5 +1,14 @@
-root ::= think content
+root ::= thinking sectionf section section section? section?
+
+sectionf ::= "# Objective\n\n" line line? line? "\n"
+section ::= header "\n\n" bline bline bline? bline? bline? "\n"
+header ::= "# " [^*.\n]+
 
 line ::= "- " [A-Z] [^*.\n[(]+ ".\n"
-think ::= "<think>\n" line line? line? line? "\n</think>"
-content ::= .*
+bline ::= "- **" [A-Z] [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n"
+
+hsf ::= "- Objective\n"
+hd ::= "- " [A-Z] [^[(*\n]+ "\n"
+thinking ::= "<thinking>\n" hsf hd hd? hd? hd? "</thinking>"
+
+link ::= "[" [^\]]+ "]" "(" [^)]+ ")"

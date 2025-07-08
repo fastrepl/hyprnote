@@ -44,9 +44,7 @@ impl WhisperBuilder {
     }
 
     pub fn build(self) -> Whisper {
-        if !cfg!(debug_assertions) {
-            unsafe { Self::suppress_log() };
-        }
+        unsafe { Self::suppress_log() };
 
         let context_param = {
             let mut p = WhisperContextParameters::default();

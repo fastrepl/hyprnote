@@ -7,6 +7,7 @@ use llama_cpp_2::{
     llama_batch::LlamaBatch,
     model::{params::LlamaModelParams, AddBos, LlamaChatTemplate, LlamaModel, Special},
     sampling::LlamaSampler,
+    send_logs_to_tracing, LogOptions,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
@@ -82,6 +83,10 @@ impl Llama {
         if let Some(grammar) = grammar {
             if let Some(grammar_sampler) = LlamaSampler::grammar(&model, grammar, "root") {
                 samplers.push(grammar_sampler);
+            }
+
+            if cfg!(debug_assertions) {
+                println!("---\n{:?}\n---", grammar);
             }
         }
 
@@ -256,7 +261,13 @@ impl Llama {
         }
     }
 
+    fn setup_log() {
+        send_logs_to_tracing(LogOptions::default().with_logs_enabled(false));
+    }
+
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
+        Self::setup_log();
+
         let fmt = model_path.gguf_chat_format()?.unwrap();
         let tpl = LlamaChatTemplate::new(fmt.as_ref()).unwrap();
 

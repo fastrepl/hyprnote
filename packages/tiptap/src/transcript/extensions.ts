@@ -1,6 +1,8 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 
+import { SPEAKER_NODE_NAME } from "./nodes";
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     transcriptCommands: {
@@ -47,8 +49,13 @@ export const SpeakerSplit = Extension.create({
                 }
               }
 
+              const currentSpeakerNode = $from.node($from.depth);
+              const speakerAttrs = currentSpeakerNode.type.name === SPEAKER_NODE_NAME
+                ? currentSpeakerNode.attrs
+                : {};
+
               const tr = state.tr.split(splitPos, 1, [
-                { type: state.schema.nodes.speaker },
+                { type: state.schema.nodes[SPEAKER_NODE_NAME], attrs: speakerAttrs },
               ]);
 
               const newPos = tr.mapping.map(splitPos);

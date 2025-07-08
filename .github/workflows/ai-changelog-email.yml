@@ -43,8 +43,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          AI_MODEL: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-          TEST_MODE: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
+          AI_MODEL: ${{ (github.event.inputs && github.event.inputs.ai_model) || 'anthropic/claude-sonnet-4' }}
+          TEST_MODE: ${{ (github.event.inputs && github.event.inputs.test_mode) || 'false' }}
         run: |
           cat > changelog-generator.js << 'EOF'
           const { Octokit } = require('@octokit/rest');
@@ -178,17 +178,19 @@ jobs:
               );
 
               console.log('Generating changelog with AI...');
-              const changelog = await generateChangelog(commits, commitDetails);
+              const commitsToProcess = commits.slice(0, 20);
+              const changelog = await generateChangelog(commitsToProcess, commitDetails);
 
               fs.writeFileSync('changelog.md', changelog);
 
               const metadata = {
                 generated_at: new Date().toISOString(),
                 commit_count: commits.length,
+                commits_processed: commitsToProcess.length,
                 model_used: process.env.AI_MODEL,
                 test_mode: testMode,
                 repository: `${owner}/${repo}`,
-                commits_analyzed: commits.slice(0, 20).map(c => ({
+                commits_analyzed: commitsToProcess.map(c => ({
                   sha: c.sha.substring(0, 8),
                   message: c.commit.message.split('\n')[0],
                   author: c.commit.author.name,
@@ -226,8 +228,8 @@ jobs:
           **Generation Details:**
           - Generated: $(date -u)
           - Trigger: ${{ github.event_name == 'release' && 'Release Published' || 'Manual Trigger' }}
-          - Model: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-          - Test Mode: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
+          - Model: ${{ (github.event.inputs && github.event.inputs.ai_model) || 'anthropic/claude-sonnet-4' }}
+          - Test Mode: ${{ (github.event.inputs && github.event.inputs.test_mode) || 'false' }}
           - Repository: ${{ github.repository }}
           - Workflow Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
@@ -261,8 +263,8 @@ jobs:
             git commit -m "Add AI-generated changelog
 
             Generated: $(date -u)
-            Model: ${{ github.event.inputs.ai_model != '' && github.event.inputs.ai_model || 'anthropic/claude-sonnet-4' }}
-            Test Mode: ${{ github.event.inputs.test_mode != '' && github.event.inputs.test_mode || 'false' }}
+            Model: ${{ (github.event.inputs && github.event.inputs.ai_model) || 'anthropic/claude-sonnet-4' }}
+            Test Mode: ${{ (github.event.inputs && github.event.inputs.test_mode) || 'false' }}
 
             🤖 Generated with AI Changelog Workflow
 

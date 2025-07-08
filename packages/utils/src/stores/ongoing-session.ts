@@ -40,7 +40,14 @@ const initialState: State = {
 
 export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
 
-export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
+type OngoingSessionCallbacks = {
+  onRecordingStartFailed?: (error: any) => void;
+};
+
+export const createOngoingSessionStore = (
+  sessionsStore: ReturnType<typeof createSessionsStore>,
+  callbacks?: OngoingSessionCallbacks,
+) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
@@ -140,6 +147,11 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       }).catch((error) => {
         console.error(error);
         set(initialState);
+
+        // Notify user about recording failure
+        if (callbacks?.onRecordingStartFailed) {
+          callbacks.onRecordingStartFailed(error);
+        }
       });
     },
     stop: () => {

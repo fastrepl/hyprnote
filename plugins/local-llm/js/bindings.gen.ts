@@ -7,6 +7,9 @@
 
 
 export const commands = {
+async modelsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|models_dir");
+},
 async listSupportedModels() : Promise<SupportedModel[]> {
     return await TAURI_INVOKE("plugin:local-llm|list_supported_models");
 },
@@ -43,7 +46,7 @@ async restartServer() : Promise<string> {
 
 /** user-defined types **/
 
-export type SupportedModel = "Llama3p2_3bQ4"
+export type SupportedModel = "Llama3p2_3bQ4" | "HyprLLM"
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

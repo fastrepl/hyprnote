@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package gguf.patch;
+
+enum PatchOperation {
+  ADD = 0;
+  REMOVE = 1;
+  REPLACE = 2;
+}
+
+message PatchEntry {
+  PatchOperation operation = 1;
+  uint64 offset = 2;
+  optional uint64 length = 3;
+  optional bytes data = 4;
+  optional string description = 5;
+}
+
+message PatchMetadata {
+  uint32 version = 1;
+  uint64 created_at = 2;
+  optional string original_hash = 3;
+  optional string target_hash = 4;
+  optional string description = 5;
+  optional string author = 6;
+}
+  
+message GgufPatch {
+  optional PatchMetadata metadata = 1;
+  repeated PatchEntry entries = 2;
+} 

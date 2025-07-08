@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use hypr_onnx::{
     ndarray::{Array3, Array4},
-    ort::session::Session,
+    ort::{session::Session, value::TensorRef},
 };
 
 mod error;
@@ -173,15 +173,15 @@ impl AEC {
         lpb_mag: &Array3<f32>,
     ) -> Result<hypr_onnx::ndarray::Array1<f32>, crate::Error> {
         let mut outputs = self.session_1.run(hypr_onnx::ort::inputs![
-            in_mag.view(),
-            self.states_1.view(),
-            lpb_mag.view()
-        ]?)?;
+            TensorRef::from_array_view(in_mag.view())?,
+            TensorRef::from_array_view(self.states_1.view())?,
+            TensorRef::from_array_view(lpb_mag.view())?
+        ])?;
 
         let out_mask = outputs
             .remove("Identity")
             .ok_or_else(|| Error::MissingOutput("Identity".to_string()))?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .view()
             .to_owned();
         let out_mask_1d = out_mask.into_shape_with_order((self.block_len / 2 + 1,))?;
@@ -189,7 +189,7 @@ impl AEC {
         self.states_1 = outputs
             .remove("Identity_1")
             .ok_or_else(|| Error::MissingOutput("Identity_1".to_string()))?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .view()
             .to_owned()
             .into_shape_with_order((1, 2, model::STATE_SIZE, 2))?;
@@ -203,15 +203,15 @@ impl AEC {
         in_lpb: &Array3<f32>,
     ) -> Result<hypr_onnx::ndarray::Array1<f32>, crate::Error> {
         let mut outputs = self.session_2.run(hypr_onnx::ort::inputs![
-            estimated_block.view(),
-            self.states_2.view(),
-            in_lpb.view()
-        ]?)?;
+            TensorRef::from_array_view(estimated_block.view())?,
+            TensorRef::from_array_view(self.states_2.view())?,
+            TensorRef::from_array_view(in_lpb.view())?
+        ])?;
 
         let out_block = outputs
             .remove("Identity")
             .ok_or_else(|| Error::MissingOutput("Identity".into()))?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .view()
             .to_owned();
         let out_block_1d = out_block.into_shape_with_order((self.block_len,))?;
@@ -219,7 +219,7 @@ impl AEC {
         self.states_2 = outputs
             .remove("Identity_1")
             .ok_or_else(|| Error::MissingOutput("Identity_1".into()))?
-            .try_extract_tensor::<f32>()?
+            .try_extract_array::<f32>()?
             .view()
             .to_owned()
             .into_shape_with_order((1, 2, model::STATE_SIZE, 2))?;

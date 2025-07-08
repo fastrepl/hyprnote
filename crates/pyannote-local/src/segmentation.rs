@@ -1,6 +1,6 @@
 use hypr_onnx::{
     ndarray::{self, ArrayBase, Axis, IxDyn, ViewRepr},
-    ort::{self, session::Session},
+    ort::{self, session::Session, value::TensorRef},
 };
 
 const SEGMENTATION_ONNX: &[u8] = include_bytes!("./data/segmentation.onnx");
@@ -47,12 +47,12 @@ impl Segmenter {
                 .insert_axis(Axis(1))
                 .into_dyn();
 
-            let inputs = ort::inputs![array]?;
+            let inputs = ort::inputs![TensorRef::from_array_view(array.view())?];
             let run_output = self.session.run(inputs)?;
             let output_tensor = run_output.values().next().unwrap();
-            let outputs = output_tensor.try_extract_tensor::<f32>()?;
+            let outputs = output_tensor.try_extract_array::<f32>()?;
 
-            self.process_outputs(
+            Self::process_outputs(
                 outputs,
                 &mut is_speaking,
                 &mut start_offset,
@@ -64,7 +64,7 @@ impl Segmenter {
         }
 
         if is_speaking {
-            self.create_segment(start_offset, offset, sample_rate, &padded, &mut segments)?;
+            Self::create_segment(start_offset, offset, sample_rate, &padded, &mut segments)?;
         }
 
         Ok(segments)
@@ -82,7 +82,6 @@ impl Segmenter {
     }
 
     fn process_outputs(
-        &self,
         outputs: ArrayBase<ViewRepr<&f32>, IxDyn>,
         is_speaking: &mut bool,
         start_offset: &mut f64,
@@ -93,7 +92,7 @@ impl Segmenter {
     ) -> Result<(), crate::Error> {
         for row in outputs.outer_iter() {
             for sub_row in row.axis_iter(Axis(0)) {
-                let max_index = self.find_max_index(sub_row)?;
+                let max_index = Self::find_max_index(sub_row)?;
 
                 if max_index != 0 {
                     if !*is_speaking {
@@ -101,7 +100,7 @@ impl Segmenter {
                         *is_speaking = true;
                     }
                 } else if *is_speaking {
-                    self.create_segment(
+                    Self::create_segment(
                         *start_offset,
                         *offset,
                         sample_rate,
@@ -117,7 +116,7 @@ impl Segmenter {
         Ok(())
     }
 
-    fn find_max_index(&self, row: ArrayBase<ViewRepr<&f32>, IxDyn>) -> Result<usize, crate::Error> {
+    fn find_max_index(row: ArrayBase<ViewRepr<&f32>, IxDyn>) -> Result<usize, crate::Error> {
         row.iter()
             .enumerate()
             .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
@@ -126,7 +125,6 @@ impl Segmenter {
     }
 
     fn create_segment(
-        &self,
         start_offset: f64,
         end_offset: usize,
         sample_rate: u32,

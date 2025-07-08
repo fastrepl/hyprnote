@@ -17,6 +17,19 @@ pub struct TaskRecord {
     pub data: std::collections::HashMap<u32, serde_json::Value>,
 }
 
+impl Default for TaskRecord {
+    fn default() -> Self {
+        Self {
+            id: String::new(),
+            status: TaskStatus::Running {
+                current: 0,
+                total: 1,
+            },
+            data: std::collections::HashMap::new(),
+        }
+    }
+}
+
 #[derive(Deserialize, specta::Type, PartialEq, Eq, Hash, strum::Display)]
 pub enum StoreKey {
     Tasks(String),

@@ -122,8 +122,24 @@ impl UserDatabase {
                 specific: ListSessionFilterSpecific::Search { query },
             }) => {
                 conn.query(
-                    "SELECT * FROM sessions WHERE user_id = ? AND title LIKE ? ORDER BY created_at DESC LIMIT ?",
-                    vec![user_id, format!("%{}%", query), limit.unwrap_or(100).to_string()],
+                    "SELECT * FROM sessions 
+                     WHERE user_id = ? AND (
+                       title LIKE ? OR 
+                       REPLACE(REPLACE(REPLACE(enhanced_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
+                       REPLACE(REPLACE(REPLACE(raw_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ?
+                     ) 
+                     ORDER BY 
+                       CASE WHEN title LIKE ? THEN 0 ELSE 1 END,
+                       created_at DESC 
+                     LIMIT ?",
+                    vec![
+                        user_id,
+                        format!("%{}%", query),  // title search
+                        format!("%{}%", query),  // enhanced_memo search (HTML stripped)
+                        format!("%{}%", query),  // raw_memo search (HTML stripped)
+                        format!("%{}%", query),  // title priority check
+                        limit.unwrap_or(100).to_string(),
+                    ],
                 )
                 .await?
             }

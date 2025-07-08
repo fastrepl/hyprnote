@@ -5,7 +5,7 @@ section ::= header "\n\n" bline bline bline? bline? bline? "\n"
 header ::= "# " [^*.\n]+
 
 line ::= "- " [A-Z] [^*.\n[(]+ ".\n"
-bline ::= "- **" [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n"
+bline ::= "- **" [A-Z] [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n"
 
 hsf ::= "- Objective\n"
 hd ::= "- " [A-Z] [^[(*\n]+ "\n"

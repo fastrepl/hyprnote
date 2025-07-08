@@ -1,6 +1,7 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
+    "allow-models-dir",
     "allow-is-server-running",
     "allow-is-model-downloaded",
     "allow-is-model-downloading",
@@ -10,4 +11,5 @@ permissions = [
     "allow-get-current-model",
     "allow-set-current-model",
     "allow-list-supported-models",
+    "allow-process-recorded",
 ]

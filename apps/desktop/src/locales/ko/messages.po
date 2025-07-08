@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:163
-#: src/components/editor-area/note-header/listen-button.tsx:202
+#: src/components/editor-area/note-header/listen-button.tsx:187
+#: src/components/editor-area/note-header/listen-button.tsx:226
 msgid "{0}"
 msgstr ""
 
@@ -359,7 +359,7 @@ msgid "Apple"
 msgstr ""
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:267
+#: src/components/left-sidebar/notes-list.tsx:268
 msgid "Are you sure you want to delete this note?"
 msgstr ""
 
@@ -507,7 +507,7 @@ msgstr ""
 
 #: src/components/settings/views/template.tsx:206
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:334
+#: src/components/left-sidebar/notes-list.tsx:335
 msgid "Delete"
 msgstr ""
 
@@ -596,11 +596,11 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:462
+#: src/components/editor-area/note-header/listen-button.tsx:492
 msgid "Failed to load microphone devices. Please check permissions."
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:386
+#: src/components/editor-area/note-header/listen-button.tsx:416
 msgid "Failed to switch to {displayName}"
 msgstr ""
 
@@ -669,6 +669,10 @@ msgstr ""
 msgid "Help us tailor your Hyprnote experience"
 msgstr ""
 
+#: src/components/left-sidebar/events-list.tsx:305
+#~ msgid "Hide Event"
+#~ msgstr ""
+
 #: src/components/settings/views/feedback.tsx:19
 msgid "Hmm... this is off..."
 msgstr ""
@@ -729,7 +733,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:194
+#: src/components/settings/views/sound.tsx:187
 msgid "Loading available devices..."
 msgstr ""
 
@@ -737,7 +741,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:456
+#: src/components/editor-area/note-header/listen-button.tsx:486
 msgid "Loading devices..."
 msgstr ""
 
@@ -754,7 +758,7 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:68
+#: src/components/left-sidebar/top-area/settings-button.tsx:87
 msgid "Local mode"
 msgstr ""
 
@@ -779,19 +783,19 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:449
+#: src/components/editor-area/note-header/listen-button.tsx:479
 msgid "Microphone"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:138
+#: src/components/settings/views/sound.tsx:131
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:163
+#: src/components/settings/views/sound.tsx:156
 msgid "Microphone Device"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:374
+#: src/components/editor-area/note-header/listen-button.tsx:404
 msgid "Microphone switched to {displayName}"
 msgstr ""
 
@@ -807,7 +811,7 @@ msgstr ""
 msgid "Much better AI performance"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:89
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr ""
 
@@ -819,7 +823,7 @@ msgstr ""
 msgid "New note"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:311
+#: src/components/left-sidebar/notes-list.tsx:312
 #: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr ""
@@ -886,8 +890,8 @@ msgid "Open calendar view"
 msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:316
-#: src/components/left-sidebar/search-list.tsx:392
+#: src/components/left-sidebar/search-list.tsx:319
+#: src/components/left-sidebar/search-list.tsx:396
 msgid "Open in new window"
 msgstr ""
 
@@ -905,7 +909,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:289
+#: src/components/editor-area/note-header/listen-button.tsx:319
 msgid "Pause"
 msgstr ""
 
@@ -917,11 +921,11 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:182
+#: src/components/editor-area/note-header/listen-button.tsx:206
 msgid "Play video"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:387
+#: src/components/editor-area/note-header/listen-button.tsx:417
 msgid "Please try again or check your microphone permissions."
 msgstr ""
 
@@ -957,15 +961,15 @@ msgstr ""
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:148
+#: src/components/settings/views/sound.tsx:141
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:139
+#: src/components/settings/views/sound.tsx:132
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:91
+#: src/components/editor-area/note-header/listen-button.tsx:115
 msgid "Resume"
 msgstr ""
 
@@ -995,7 +999,7 @@ msgstr ""
 msgid "Search templates..."
 msgstr ""
 
-#: src/components/search-bar.tsx:144
+#: src/components/search-bar.tsx:145
 msgid "Search..."
 msgstr ""
 
@@ -1023,7 +1027,7 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:178
+#: src/components/settings/views/sound.tsx:171
 msgid "Select microphone device"
 msgstr ""
 
@@ -1031,7 +1035,7 @@ msgstr ""
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
 
-#: src/components/settings/views/sound.tsx:166
+#: src/components/settings/views/sound.tsx:159
 msgid "Select which microphone to use for recording"
 msgstr ""
 
@@ -1039,7 +1043,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:82
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr ""
 
@@ -1071,11 +1075,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:138
+#: src/components/editor-area/note-header/listen-button.tsx:162
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:297
+#: src/components/editor-area/note-header/listen-button.tsx:327
 msgid "Stop"
 msgstr ""
 
@@ -1091,15 +1095,19 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:147
+#: src/components/settings/views/sound.tsx:140
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:182
-#: src/components/editor-area/note-header/listen-button.tsx:372
-#: src/components/editor-area/note-header/listen-button.tsx:384
-#: src/components/editor-area/note-header/listen-button.tsx:416
+#: src/components/settings/views/sound.tsx:175
+#: src/components/editor-area/note-header/listen-button.tsx:402
+#: src/components/editor-area/note-header/listen-button.tsx:414
+#: src/components/editor-area/note-header/listen-button.tsx:446
 msgid "System Default"
+msgstr ""
+
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
+msgid "Talk to Founders"
 msgstr ""
 
 #: src/routes/app.settings.tsx:47
@@ -1204,7 +1212,7 @@ msgstr ""
 msgid "username"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:322
+#: src/components/left-sidebar/notes-list.tsx:323
 msgid "View calendar"
 msgstr ""
 

@@ -20,17 +20,15 @@ pub enum SupportedModel {
 }
 
 impl SupportedModel {
-    pub fn model_path(&self, data_dir: impl Into<std::path::PathBuf>) -> std::path::PathBuf {
+    pub fn file_name(&self) -> &str {
         match self {
-            SupportedModel::QuantizedTiny => data_dir.into().join("ggml-tiny-q8_0.bin"),
-            SupportedModel::QuantizedTinyEn => data_dir.into().join("ggml-tiny.en-q8_0.bin"),
-            SupportedModel::QuantizedBase => data_dir.into().join("ggml-base-q8_0.bin"),
-            SupportedModel::QuantizedBaseEn => data_dir.into().join("ggml-base.en-q8_0.bin"),
-            SupportedModel::QuantizedSmall => data_dir.into().join("ggml-small-q8_0.bin"),
-            SupportedModel::QuantizedSmallEn => data_dir.into().join("ggml-small.en-q8_0.bin"),
-            SupportedModel::QuantizedLargeTurbo => {
-                data_dir.into().join("ggml-large-v3-turbo-q8_0.bin")
-            }
+            SupportedModel::QuantizedTiny => "ggml-tiny-q8_0.bin",
+            SupportedModel::QuantizedTinyEn => "ggml-tiny.en-q8_0.bin",
+            SupportedModel::QuantizedBase => "ggml-base-q8_0.bin",
+            SupportedModel::QuantizedBaseEn => "ggml-base.en-q8_0.bin",
+            SupportedModel::QuantizedSmall => "ggml-small-q8_0.bin",
+            SupportedModel::QuantizedSmallEn => "ggml-small.en-q8_0.bin",
+            SupportedModel::QuantizedLargeTurbo => "ggml-large-v3-turbo-q8_0.bin",
         }
     }
 

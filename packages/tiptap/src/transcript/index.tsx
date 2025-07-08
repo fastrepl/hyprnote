@@ -14,7 +14,8 @@ import { SpeakerNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
-export { SpeakerChangeRange, SpeakerViewInnerProps };
+export { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
+export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
@@ -165,9 +166,9 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       <div role="textbox" className="h-full flex-1 flex flex-col overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-4 scrollbar-none"
+          className="flex-1 overflow-y-auto px-4 pb-8"
         >
-          <EditorContent editor={editor} className="h-full" />
+          <EditorContent editor={editor} className="min-h-full pb-4" />
         </div>
       </div>
     );

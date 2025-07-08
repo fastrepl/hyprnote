@@ -32,6 +32,7 @@ export default function OtaNotification() {
       return null;
     },
     refetchInterval: 1000 * 60,
+    refetchIntervalInBackground: true,
   });
 
   useEffect(() => {

@@ -61,10 +61,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error> {
-        Ok(self
-            .connector_store()
-            .get(StoreKey::CustomEnabled)?
-            .unwrap_or(false))
+        let enabled = self.connector_store().get(StoreKey::CustomEnabled)?;
+        let api_base: Option<String> = self.connector_store().get(StoreKey::CustomApiBase)?;
+        let api_key: Option<String> = self.connector_store().get(StoreKey::CustomApiKey)?;
+
+        Ok(enabled.unwrap_or(false)
+            && api_key.map(|s| !s.is_empty()).unwrap_or(false)
+            && api_base.map(|s| !s.is_empty()).unwrap_or(false))
     }
 
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error> {

@@ -9,6 +9,10 @@ import { useHypr } from "@/contexts";
 import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
+  getSpeakerLabel,
+  SPEAKER_ID_ATTR,
+  SPEAKER_INDEX_ATTR,
+  SPEAKER_LABEL_ATTR,
   type SpeakerChangeRange,
   type SpeakerViewInnerProps,
   type TranscriptEditorRef,
@@ -157,7 +161,6 @@ export function TranscriptView() {
               </div>
             )}
             <div className="not-draggable flex items-center ">
-              {/* Search Icon Button */}
               {showActions && (
                 <Button
                   className="w-8 h-8"
@@ -218,11 +221,10 @@ function RenderEmpty({ sessionId, panelWidth }: {
     }
   };
 
-  // Determine layout based on panel width passed from parent
-  const isUltraCompact = panelWidth < 150; // Just icons
-  const isVeryNarrow = panelWidth < 200; // Short text
-  const isNarrow = panelWidth < 400; // No helper text
-  const showFullText = panelWidth >= 400; // Full text
+  const isUltraCompact = panelWidth < 150;
+  const isVeryNarrow = panelWidth < 200;
+  const isNarrow = panelWidth < 400;
+  const showFullText = panelWidth >= 400;
 
   return (
     <div className="h-full flex items-center justify-center">
@@ -312,6 +314,7 @@ const MemoizedSpeakerSelector = memo(({
   onSpeakerChange,
   speakerId,
   speakerIndex,
+  speakerLabel,
 }: SpeakerViewInnerProps) => {
   const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
@@ -332,15 +335,11 @@ const MemoizedSpeakerSelector = memo(({
     if (human) {
       onSpeakerChange(human, speakerRange);
     }
-  }, [human]);
+  }, [human, speakerRange]);
 
   useEffect(() => {
-    if (participants.length === 1 && participants[0]) {
-      setHuman(participants[0]);
-      return;
-    }
-
     const foundHuman = participants.find((s) => s.id === speakerId);
+
     if (foundHuman) {
       setHuman(foundHuman);
     }
@@ -360,13 +359,21 @@ const MemoizedSpeakerSelector = memo(({
   }
 
   const getDisplayName = (human: Human | null) => {
-    if (!human) {
-      return `Speaker ${speakerIndex ?? 0}`;
+    if (human) {
+      if (human.id === userId && !human.full_name) {
+        return "You";
+      }
+
+      if (human.full_name) {
+        return human.full_name;
+      }
     }
-    if (human.id === userId && !human.full_name) {
-      return "You";
-    }
-    return human.full_name ?? `Speaker ${speakerIndex ?? 0}`;
+
+    return getSpeakerLabel({
+      [SPEAKER_INDEX_ATTR]: speakerIndex,
+      [SPEAKER_ID_ATTR]: speakerId,
+      [SPEAKER_LABEL_ATTR]: speakerLabel ?? null,
+    });
   };
 
   return (
@@ -374,7 +381,6 @@ const MemoizedSpeakerSelector = memo(({
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           onMouseDown={(e) => {
-            // prevent cursor from moving to the end of the editor
             e.preventDefault();
           }}
         >
@@ -384,14 +390,12 @@ const MemoizedSpeakerSelector = memo(({
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
-            {!speakerId && (
-              <div className="border-b border-neutral-100 pb-3">
-                <SpeakerRangeSelector
-                  value={speakerRange}
-                  onChange={setSpeakerRange}
-                />
-              </div>
-            )}
+            <div className="border-b border-neutral-100 pb-3">
+              <SpeakerRangeSelector
+                value={speakerRange}
+                onChange={setSpeakerRange}
+              />
+            </div>
 
             <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
           </div>
@@ -420,7 +424,7 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
         {options.map((option) => (
           <label
             key={option.value}
-            className={`flex-1 ${option.value === "current" ? "cursor-pointer" : "cursor-not-allowed"}`}
+            className="flex-1 cursor-pointer"
           >
             <input
               type="radio"
@@ -429,14 +433,13 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
               className="sr-only"
               checked={value === option.value}
               onChange={() => onChange(option.value)}
-              disabled={option.value !== "current"}
             />
             <div
               className={`px-2 py-1 text-xs font-medium text-center rounded transition-colors ${
                 value === option.value
                   ? "bg-white text-neutral-900 shadow-sm"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/50"
-              } ${option.value !== "current" ? "opacity-50" : ""}`}
+              }`}
             >
               {option.label}
             </div>

@@ -3,6 +3,7 @@ description = "Default permissions for the plugin"
 permissions = [
     "allow-get-selected-microphone-device",
     "allow-set-selected-microphone-device",
+    "allow-list-microphone-devices",
     "allow-check-microphone-access",
     "allow-check-system-audio-access",
     "allow-request-microphone-access",

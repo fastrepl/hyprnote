@@ -57,8 +57,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     device_count += 1;
                     match device.name() {
                         Ok(name) => {
-                            tracing::info!("Found input device: '{}'", name);
-                            device_names.push(name);
+                            // Filter out internal tap devices
+                            if name != "hypr-audio-tap" {
+                                tracing::info!("Found input device: '{}'", name);
+                                device_names.push(name);
+                            } else {
+                                tracing::debug!("Skipping internal tap device: '{}'", name);
+                            }
                         }
                         Err(e) => {
                             tracing::warn!("Device {} has no accessible name: {}", device_count, e);
@@ -93,8 +98,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 match host.default_input_device() {
                     Some(default_device) => {
                         if let Ok(name) = default_device.name() {
-                            tracing::info!("Fallback: Using default input device: '{}'", name);
-                            Ok(vec![name])
+                            // Filter out internal tap devices even in fallback
+                            if name != "hypr-audio-tap" {
+                                tracing::info!("Fallback: Using default input device: '{}'", name);
+                                Ok(vec![name])
+                            } else {
+                                tracing::warn!(
+                                    "Default device is internal tap - no valid microphones"
+                                );
+                                Ok(vec![])
+                            }
                         } else {
                             tracing::warn!(
                                 "Default input device exists but has no accessible name"

@@ -10,9 +10,13 @@ hypr-data = { workspace = true }
 [dependencies]
 hypr-vad = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
-rodio = { workspace = true, features = ["wav"] }
+rodio = { workspace = true }
 
 futures-util = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[features]
+default = []
+load-dynamic = ["hypr-vad/load-dynamic"]

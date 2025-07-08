@@ -1,0 +1,155 @@
+on:
+  schedule:
+    - cron: "0 3 * * *" # daily at 03:00 UTC = 8 PM PT
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  pull-requests: write
+
+jobs:
+  auto-release-nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - id: get-remote
+        run: |
+          set -euo pipefail
+          response=$(curl -f -s "https://cdn.crabnebula.app/update/fastrepl/hyprnote/darwin-aarch64/latest?channel=stable")
+          remote_version=$(echo "$response" | jq -r '.version')
+          echo "remote_version=$remote_version" >> $GITHUB_OUTPUT
+          echo "Remote version: $remote_version"
+
+      - id: get-current
+        run: |
+          set -euo pipefail
+          current_version=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          echo "current_version=$current_version" >> $GITHUB_OUTPUT
+          echo "Current version: $current_version"
+
+      - id: compare-versions
+        uses: jackbilestech/semver-compare@1.0.4
+        continue-on-error: true
+        with:
+          head: ${{ steps.get-remote.outputs.remote_version }}
+          base: ${{ steps.get-current.outputs.current_version }}
+          operator: ">"
+
+      - id: should-bump
+        run: |
+          if [[ "${{ steps.compare-versions.outcome }}" == "success" ]]; then
+            echo "need_bump=true" >> $GITHUB_OUTPUT
+            echo "Remote version is newer - need to bump"
+          else
+            echo "need_bump=false" >> $GITHUB_OUTPUT
+            echo "Local version is up to date - no bump needed"
+          fi
+
+      - if: steps.should-bump.outputs.need_bump == 'true'
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - if: steps.should-bump.outputs.need_bump == 'true'
+        run: task bump
+
+      - if: steps.should-bump.outputs.need_bump == 'true'
+        id: get-new-version
+        run: |
+          new_version=$(jq -r '.version' apps/desktop/src-tauri/tauri.conf.json)
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "New version after bump: $new_version"
+
+      - if: steps.should-bump.outputs.need_bump == 'true'
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "apps/desktop/src-tauri/tauri.conf.json"
+          message: "chore: bump version to ${{ steps.get-new-version.outputs.new_version }}"
+          default_author: github_actor
+          push: true
+
+      - id: final-version
+        run: |
+          if [[ "${{ steps.should-bump.outputs.need_bump }}" == "true" ]]; then
+            version="${{ steps.get-new-version.outputs.new_version }}"
+          else
+            version="${{ steps.get-current.outputs.current_version }}"
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "tag=desktop_v$version" >> $GITHUB_OUTPUT
+          echo "Final version for release: $version"
+
+      - run: |
+          git push origin --delete ${{ steps.final-version.outputs.tag }} || echo "Remote tag does not exist or already removed"
+          git tag -d ${{ steps.final-version.outputs.tag }} || echo "Local tag does not exist or already removed"
+        continue-on-error: true
+
+      - uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const tag = '${{ steps.final-version.outputs.tag }}';
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag
+              });
+
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id
+              });
+              console.log(`Deleted existing release for tag: ${tag}`);
+            } catch (error) {
+              if (error.status === 404) {
+                console.log(`No existing release found for tag: ${tag}`);
+              } else {
+                throw error;
+              }
+            }
+
+      - run: |
+          git tag ${{ steps.final-version.outputs.tag }}
+          git push origin ${{ steps.final-version.outputs.tag }}
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ steps.final-version.outputs.tag }}';
+            const version = '${{ steps.final-version.outputs.version }}';
+            const versionParts = version.split('.');
+            const patchVersion = parseInt(versionParts[2]) - 1;
+            const previousVersion = `${versionParts[0]}.${versionParts[1]}.${patchVersion}`;
+
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `desktop_v${version}`,
+              body: `https://github.com/fastrepl/hyprnote/compare/desktop_v${previousVersion}...desktop_v${version}`,
+              draft: false,
+              prerelease: true
+            });
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ steps.final-version.outputs.tag }}';
+
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'desktop_cd.yaml',
+              ref: tag,
+              inputs: {
+                channel: 'nightly'
+              }
+            });

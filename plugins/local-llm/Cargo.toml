@@ -41,6 +41,7 @@ tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 async-openai = { workspace = true }
+async-stream = { workspace = true }
 axum = { workspace = true }
 
 futures-util = { workspace = true }

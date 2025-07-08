@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:275
+#: src/components/settings/views/general.tsx:305
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
@@ -371,11 +371,11 @@ msgstr "Ask questions about past meetings"
 msgid "Assistant:"
 msgstr "Assistant:"
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:204
 msgid "Auto-start recording"
 msgstr "Auto-start recording"
 
-#: src/components/settings/views/general.tsx:206
+#: src/components/settings/views/general.tsx:207
 msgid "Automatically start recording when an event-attached note's meeting begins."
 msgstr "Automatically start recording when an event-attached note's meeting begins."
 
@@ -421,11 +421,11 @@ msgstr "CEO"
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr "Choose the language you want to use for the speech-to-text model and language model"
 
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:181
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
-#: src/components/settings/views/general.tsx:230
+#: src/components/settings/views/general.tsx:260
 msgid "Choose your preferred language of use"
 msgstr "Choose your preferred language of use"
 
@@ -654,7 +654,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:233
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
@@ -697,7 +697,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings/views/general.tsx:263
+#: src/components/settings/views/general.tsx:293
 msgid "Jargons"
 msgstr "Jargons"
 
@@ -717,7 +717,7 @@ msgstr "Key decisions"
 msgid "Lab"
 msgstr "Lab"
 
-#: src/components/settings/views/general.tsx:227
+#: src/components/settings/views/general.tsx:257
 msgid "Language"
 msgstr "Language"
 
@@ -958,7 +958,7 @@ msgstr "Role"
 msgid "Save and close"
 msgstr "Save and close"
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/general.tsx:178
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1015,7 +1015,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:200
+#: src/components/settings/views/general.tsx:230
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1226,7 +1226,7 @@ msgstr "Works offline"
 #~ msgid "Yes, activate speaker"
 #~ msgstr "Yes, activate speaker"
 
-#: src/components/settings/views/general.tsx:266
+#: src/components/settings/views/general.tsx:296
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
 

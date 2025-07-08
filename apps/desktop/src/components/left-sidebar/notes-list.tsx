@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
+import { useMatch, useNavigate } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
@@ -24,7 +24,6 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
 import { format, formatDate, formatRelative } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 interface NotesListProps {
   filter: (session: Session) => boolean;
@@ -235,34 +234,16 @@ function NoteItem({
   };
 
   const handleOpenCalendar = () => {
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(currentSession.created_at, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
+    const date = new Date(currentSession.created_at);
+    const formattedDate = format(date, "yyyy-MM-dd");
+    const url = `/app/finder?view=calendar&date=${formattedDate}`;
 
-    const url = `${params.to}?date=${params.search.date}`;
-
-    safeNavigate({ type: "calendar" }, url);
+    windowsCommands.windowShow({ type: "main" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+    });
   };
 
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (!isActive || !buttonRef.current) {
-  //     return;
-  //   }
-
-  //   const height = window.innerHeight || document.documentElement.clientHeight;
-  //   const width = window.innerWidth || document.documentElement.clientWidth;
-
-  //   const { top, left, bottom, right } = buttonRef.current.getBoundingClientRect();
-  //   const isInView = top >= 0 && left >= 0 && bottom <= height && right <= width;
-
-  //   if (!isInView) {
-  //     buttonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-  //   }
-  // }, [isActive]);
 
   const handleClickDelete = () => {
     confirm(t`Are you sure you want to delete this note?`).then((yes) => {

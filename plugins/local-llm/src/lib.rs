@@ -1,16 +1,22 @@
+use std::collections::HashMap;
 use std::sync::Arc;
+
 use tauri::{Manager, Wry};
 use tokio::sync::Mutex;
 
 mod commands;
 mod error;
 mod ext;
-mod local;
+mod manager;
+mod model;
 mod server;
 mod store;
 
 pub use error::*;
 pub use ext::*;
+pub use manager::*;
+pub use model::*;
+pub use server::*;
 pub use store::*;
 
 const ONBOARDING_ENHANCED_MD: &str = include_str!("../assets/onboarding-enhanced.md");
@@ -19,22 +25,11 @@ const PLUGIN_NAME: &str = "local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
+#[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
-    pub model_path: std::path::PathBuf,
-    pub download_task: Option<tokio::task::JoinHandle<()>>,
-}
-
-impl State {
-    pub fn new(model_path: std::path::PathBuf) -> Self {
-        Self {
-            api_base: None,
-            server: None,
-            model_path,
-            download_task: None,
-        }
-    }
+    pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -50,6 +45,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
             commands::restart_server::<Wry>,
+            commands::get_current_model::<Wry>,
+            commands::set_current_model::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -79,8 +76,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
-                let model_path = models_dir.join("llm.gguf");
-                let state: SharedState = Arc::new(Mutex::new(State::new(model_path)));
+                let state: SharedState = Arc::new(Mutex::new(State::default()));
                 app.manage(state);
             }
 

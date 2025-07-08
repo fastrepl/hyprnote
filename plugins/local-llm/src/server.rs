@@ -19,7 +19,7 @@ use futures_util::StreamExt;
 use tokio::sync::mpsc;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::local::ModelManager;
+use crate::ModelManager;
 
 #[derive(Clone)]
 pub struct ServerHandle {

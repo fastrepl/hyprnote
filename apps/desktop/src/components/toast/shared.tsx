@@ -1,7 +1,7 @@
 import { Channel } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -81,11 +81,12 @@ export function showSttModelDownloadToast(model: SupportedModel, onComplete?: ()
   );
 }
 
-export function showLlmModelDownloadToast() {
+export function showLlmModelDownloadToast(model?: SupportedModelLLM, onComplete?: () => void) {
   const llmChannel = new Channel();
-  localLlmCommands.downloadModel(llmChannel);
+  const modelToDownload = model || "Llama3p2_3bQ4";
+  localLlmCommands.downloadModel(modelToDownload, llmChannel);
 
-  const id = "llm-model-download";
+  const id = `llm-model-download-${modelToDownload}`;
 
   toast(
     {
@@ -99,6 +100,9 @@ export function showLlmModelDownloadToast() {
             onComplete={() => {
               sonnerToast.dismiss(id);
               localLlmCommands.startServer();
+              if (onComplete) {
+                onComplete();
+              }
             }}
           />
         </div>

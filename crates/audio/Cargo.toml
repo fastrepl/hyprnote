@@ -17,7 +17,7 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 cpal = { workspace = true }
-rodio = { workspace = true, features = ["vorbis"] }
+rodio = { workspace = true }
 
 ebur128 = "0.1.10"
 kalosm-sound = { workspace = true, default-features = false }

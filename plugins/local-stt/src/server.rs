@@ -20,7 +20,6 @@ use tower_http::cors::{self, CorsLayer};
 
 use hypr_chunker::ChunkerExt;
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
-use hypr_ws_utils::WebSocketAudioSource;
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
 
@@ -124,40 +123,93 @@ async fn websocket_with_model(
 ) {
     let model_type = state.model_type;
     let model_cache_dir = state.model_cache_dir.clone();
-
     let model_path = model_cache_dir.join(model_type.file_name());
-    let language = params.language.try_into().unwrap_or_else(|e| {
-        tracing::error!("convert_to_whisper_language: {e:?}");
-        hypr_whisper::Language::En
-    });
 
     let model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
-        .language(language)
         .static_prompt(&params.static_prompt)
         .dynamic_prompt(&params.dynamic_prompt)
         .build();
 
-    websocket(socket, model, guard).await;
+    let (ws_sender, ws_receiver) = socket.split();
+
+    match params.audio_mode {
+        hypr_listener_interface::AudioMode::Single => {
+            websocket_single_channel(ws_sender, ws_receiver, model, guard).await;
+        }
+        hypr_listener_interface::AudioMode::Dual => {
+            websocket_dual_channel(ws_sender, ws_receiver, model, guard).await;
+        }
+    }
 }
 
-#[tracing::instrument(skip_all)]
-async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard: ConnectionGuard) {
-    let (mut ws_sender, ws_receiver) = socket.split();
-    let mut stream = {
-        let audio_source = WebSocketAudioSource::new(ws_receiver, 16 * 1000);
+async fn websocket_single_channel(
+    ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    ws_receiver: futures_util::stream::SplitStream<WebSocket>,
+    model: hypr_whisper_local::Whisper,
+    guard: ConnectionGuard,
+) {
+    let stream = {
+        let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
         let chunked =
             audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
 
         let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
             hypr_whisper_local::SimpleAudioChunk {
                 samples: chunk.convert_samples().collect(),
-                metadata: None,
+                meta: Some(serde_json::json!({ "source": "mixed" })),
             }
         }));
         hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
     };
 
+    process_transcription_stream(ws_sender, stream, guard).await;
+}
+
+async fn websocket_dual_channel(
+    ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    ws_receiver: futures_util::stream::SplitStream<WebSocket>,
+    model: hypr_whisper_local::Whisper,
+    guard: ConnectionGuard,
+) {
+    let (mic_source, speaker_source) =
+        hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
+
+    let mic_chunked =
+        mic_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+    let speaker_chunked =
+        speaker_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+
+    let mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
+        hypr_whisper_local::SimpleAudioChunk {
+            samples: chunk.convert_samples().collect(),
+            meta: Some(serde_json::json!({ "source": "mic" })),
+        }
+    }));
+
+    let speaker_chunked = hypr_whisper_local::AudioChunkStream(speaker_chunked.map(|chunk| {
+        hypr_whisper_local::SimpleAudioChunk {
+            samples: chunk.convert_samples().collect(),
+            meta: Some(serde_json::json!({ "source": "speaker" })),
+        }
+    }));
+
+    let merged_stream = hypr_whisper_local::AudioChunkStream(futures_util::stream::select(
+        mic_chunked.0,
+        speaker_chunked.0,
+    ));
+
+    let stream =
+        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(merged_stream, model);
+
+    process_transcription_stream(ws_sender, stream, guard).await;
+}
+
+async fn process_transcription_stream(
+    mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
+    mut stream: impl futures_util::Stream<Item = hypr_whisper_local::Segment> + Unpin,
+    guard: ConnectionGuard,
+) {
     loop {
         tokio::select! {
             _ = guard.cancelled() => {
@@ -166,6 +218,8 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
             }
             chunk_opt = stream.next() => {
                 let Some(chunk) = chunk_opt else { break };
+
+                let meta = chunk.meta();
                 let text = chunk.text().to_string();
                 let start = chunk.start() as u64;
                 let duration = chunk.duration() as u64;
@@ -176,13 +230,25 @@ async fn websocket(socket: WebSocket, model: hypr_whisper_local::Whisper, guard:
                     continue;
                 }
 
+                let source = meta.and_then(|meta|
+                    meta.get("source")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                );
+                let speaker = match source {
+                    Some(s) if s == "mic" => Some(hypr_listener_interface::SpeakerIdentity::Unassigned { index: 0 }),
+                    Some(s) if s == "speaker" => Some(hypr_listener_interface::SpeakerIdentity::Unassigned { index: 1 }),
+                    _ => None,
+                };
+
                 let data = ListenOutputChunk {
+                    meta: None,
                     words: text
                         .split_whitespace()
                         .filter(|w| !w.is_empty())
                         .map(|w| Word {
                             text: w.trim().to_string(),
-                            speaker: None,
+                            speaker: speaker.clone(),
                             start_ms: Some(start),
                             end_ms: Some(start + duration),
                             confidence: Some(confidence),

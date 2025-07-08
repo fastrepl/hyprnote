@@ -28,7 +28,6 @@ hypr-language = { workspace = true }
 
 tauri-plugin-listener = { workspace = true }
 
-kalosm-common = { workspace = true }
 tokio-tungstenite = { workspace = true }
 
 bytes = { workspace = true }
@@ -52,26 +51,18 @@ tauri-plugin-task = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 dirs = { workspace = true }
-rodio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
-axum = { workspace = true, features = ["ws"] }
+rodio = { workspace = true, features = ["symphonia", "symphonia-all"] }
+
+axum = { workspace = true, features = ["ws", "multipart"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
-
-[target.'cfg(not(target_os = "macos"))'.dependencies]
-kalosm-sound = { workspace = true, default-features = false }
-
-[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
-kalosm-sound = { workspace = true, default-features = false, features = ["metal"] }
-
-[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
-kalosm-sound = { workspace = true, default-features = false }

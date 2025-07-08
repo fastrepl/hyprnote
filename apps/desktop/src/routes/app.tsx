@@ -1,4 +1,5 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
@@ -51,7 +52,8 @@ function Component() {
           <LeftSidebarProvider>
             <RightPanelProvider>
               <AudioPermissions />
-              <RestartLlmServer />
+              <RestartTTT />
+              <RestartSTT />
               <MainWindowStateEventSupport />
               <SettingsProvider>
                 <NewNoteProvider>
@@ -94,8 +96,8 @@ function Component() {
   );
 }
 
-function RestartLlmServer() {
-  const watchLlm = async () => {
+function RestartTTT() {
+  const watcher = async () => {
     const llmPath = await localLlmCommands.modelsDir();
 
     return watch(llmPath, (_event) => {
@@ -106,7 +108,31 @@ function RestartLlmServer() {
   useEffect(() => {
     let unwatch: () => void;
 
-    watchLlm().then((f) => {
+    watcher().then((f) => {
+      unwatch = f;
+    });
+
+    return () => {
+      unwatch?.();
+    };
+  }, []);
+
+  return null;
+}
+
+function RestartSTT() {
+  const watcher = async () => {
+    const sttPath = await localSttCommands.modelsDir();
+
+    return watch(sttPath, (_event) => {
+      localSttCommands.restartServer();
+    }, { delayMs: 1000 });
+  };
+
+  useEffect(() => {
+    let unwatch: () => void;
+
+    watcher().then((f) => {
       unwatch = f;
     });
 

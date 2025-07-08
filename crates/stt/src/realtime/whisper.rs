@@ -30,6 +30,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
                     start_ms: None,
                     confidence: None,
                 }],
+                ..Default::default()
             })
         });
 

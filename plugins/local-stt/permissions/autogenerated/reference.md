@@ -14,6 +14,7 @@ Default permissions for the plugin
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
+- `allow-process-recorded`
 
 ## Permission Table
 
@@ -254,6 +255,32 @@ Enables the models_dir command without any pre-configured scope.
 <td>
 
 Denies the models_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-process-recorded`
+
+</td>
+<td>
+
+Enables the process_recorded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-process-recorded`
+
+</td>
+<td>
+
+Denies the process_recorded command without any pre-configured scope.
 
 </td>
 </tr>

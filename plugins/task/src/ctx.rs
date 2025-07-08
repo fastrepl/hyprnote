@@ -16,11 +16,11 @@ pub struct TaskCtx<R: Runtime> {
 }
 
 impl<R: Runtime> TaskCtx<R> {
-    pub fn new(id: String, total: u32, store: ScopedStore<R, StoreKey>) -> Self {
+    pub fn new(id: String, store: ScopedStore<R, StoreKey>) -> Self {
         Self {
             id,
             current: 0,
-            total,
+            total: 1,
             store,
             cancelled: Arc::new(AtomicBool::new(false)),
         }
@@ -58,6 +58,14 @@ impl<R: Runtime> TaskCtx<R> {
             current: self.current,
             total: self.total,
         })
+    }
+
+    pub fn complete(&self) -> Result<(), crate::Error> {
+        self.update_status(TaskStatus::Completed)
+    }
+
+    pub fn fail(&self, error: String) -> Result<(), crate::Error> {
+        self.update_status(TaskStatus::Failed { error })
     }
 
     fn update_status(&self, status: TaskStatus) -> Result<(), crate::Error> {

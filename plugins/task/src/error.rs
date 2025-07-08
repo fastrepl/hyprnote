@@ -4,6 +4,8 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error("Store operation failed")]
     StoreError,
+    #[error("Task not found")]
+    TaskNotFound,
 }
 
 impl Serialize for Error {

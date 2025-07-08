@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
@@ -11,10 +11,29 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import ShinyButton from "./shiny-button";
+
+const showConsentNotification = () => {
+  toast({
+    id: "recording-consent-reminder",
+    title: "🔴 Recording Started",
+    content: "Don't forget to notify others that you're recording this session for transparency and consent.",
+    buttons: [
+      {
+        label: "I've notified everyone",
+        onClick: () => {
+          sonnerToast.dismiss("recording-consent-reminder");
+        },
+        primary: true,
+      },
+    ],
+    dismissible: false,
+  });
+};
 
 export default function ListenButton({ sessionId }: { sessionId: string }) {
   const { onboardingSessionId } = useHypr();
@@ -39,6 +58,12 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     stop: s.stop,
     loading: s.loading,
   }));
+
+  useEffect(() => {
+    if (ongoingSessionStatus === "running_active" && sessionId === ongoingSessionId && !isOnboarding) {
+      showConsentNotification();
+    }
+  }, [ongoingSessionStatus, sessionId, ongoingSessionId, isOnboarding]);
 
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
@@ -193,10 +218,12 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive() {
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
     stop: s.stop,
   }));
+  const sessionWords = useSession(ongoingSessionId!, (s) => s.session.words);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const handlePauseSession = () => {
@@ -207,6 +234,10 @@ function WhenActive() {
   const handleStopSession = () => {
     ongoingSessionStore.stop();
     setIsPopoverOpen(false);
+
+    if (sessionWords.length === 0) {
+      sonnerToast.dismiss("recording-consent-reminder");
+    }
   };
 
   return (

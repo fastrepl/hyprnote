@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:151
-#: src/components/editor-area/note-header/listen-button.tsx:190
+#: src/components/editor-area/note-header/listen-button.tsx:176
+#: src/components/editor-area/note-header/listen-button.tsx:215
 msgid "{0}"
 msgstr "{0}"
 
@@ -921,8 +921,8 @@ msgid "Open calendar view"
 msgstr "Open calendar view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:316
-#: src/components/left-sidebar/search-list.tsx:392
+#: src/components/left-sidebar/search-list.tsx:319
+#: src/components/left-sidebar/search-list.tsx:396
 msgid "Open in new window"
 msgstr "Open in new window"
 
@@ -940,7 +940,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:277
+#: src/components/editor-area/note-header/listen-button.tsx:308
 msgid "Pause"
 msgstr "Pause"
 
@@ -952,7 +952,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:170
+#: src/components/editor-area/note-header/listen-button.tsx:195
 msgid "Play video"
 msgstr "Play video"
 
@@ -1042,7 +1042,7 @@ msgstr "Search names or emails"
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/search-bar.tsx:144
+#: src/components/search-bar.tsx:145
 msgid "Search..."
 msgstr "Search..."
 
@@ -1127,7 +1127,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:126
+#: src/components/editor-area/note-header/listen-button.tsx:151
 msgid "Start recording"
 msgstr "Start recording"
 

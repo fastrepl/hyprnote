@@ -1,13 +1,12 @@
 use std::{future::Future, path::PathBuf};
 
-use futures_util::StreamExt;
-use kalosm_sound::AsyncSource;
-
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
 use hypr_file::{download_file_with_callback, DownloadProgress};
 use hypr_listener_interface::Word;
+
+use crate::events::RecordedProcessingEvent;
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -24,7 +23,8 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
-    ) -> impl Future<Output = Result<Vec<Word>, crate::Error>>;
+        progress_fn: impl FnMut(RecordedProcessingEvent) + Send + 'static,
+    ) -> Result<Vec<Word>, crate::Error>;
 
     fn download_model(
         &self,
@@ -172,30 +172,38 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn process_recorded(
+    fn process_recorded(
         &self,
         model_path: impl AsRef<std::path::Path>,
         audio_path: impl AsRef<std::path::Path>,
+        mut progress_fn: impl FnMut(RecordedProcessingEvent) + Send + 'static,
     ) -> Result<Vec<Word>, crate::Error> {
-        let samples_f32: Vec<f32> = rodio::Decoder::new(std::io::BufReader::new(
+        use rodio::Source;
+
+        let decoder = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(audio_path.as_ref()).unwrap(),
         ))
-        .unwrap()
-        .resample(16000)
-        .collect::<Vec<f32>>()
-        .await;
+        .unwrap();
 
-        let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&samples_f32);
+        let original_sample_rate = decoder.sample_rate();
+
+        let resampled_samples = if original_sample_rate != 16000 {
+            hypr_audio_utils::resample_audio(decoder, 16000).unwrap()
+        } else {
+            decoder.convert_samples().collect()
+        };
+
+        let samples_i16 = hypr_audio_utils::f32_to_i16_samples(&resampled_samples);
 
         let mut model = hypr_whisper_local::Whisper::builder()
             .model_path(model_path.as_ref().to_str().unwrap())
-            .language(hypr_whisper::Language::En)
             .static_prompt("")
             .dynamic_prompt("")
             .build();
 
         let mut segmenter = hypr_pyannote_local::segmentation::Segmenter::new(16000).unwrap();
         let segments = segmenter.process(&samples_i16, 16000).unwrap();
+        let num_segments = segments.len();
 
         let mut words = Vec::new();
 
@@ -210,12 +218,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let start_ms = (start_sec * 1000.0) as u64;
                 let end_ms = (end_sec * 1000.0) as u64;
 
-                words.push(Word {
+                let word = Word {
                     text: whisper_segment.text().to_string(),
                     speaker: None,
                     confidence: Some(whisper_segment.confidence()),
                     start_ms: Some(start_ms),
                     end_ms: Some(end_ms),
+                };
+                words.push(word.clone());
+                progress_fn(RecordedProcessingEvent::Progress {
+                    current: words.len(),
+                    total: num_segments,
+                    word,
                 });
             }
         }

@@ -42,6 +42,9 @@ async stopServer() : Promise<null> {
 },
 async restartServer() : Promise<string> {
     return await TAURI_INVOKE("plugin:local-stt|restart_server");
+},
+async processRecorded(audioPath: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|process_recorded", { audioPath });
 }
 }
 
@@ -61,8 +64,10 @@ recordedProcessingEvent: "plugin:local-stt:recorded-processing-event"
 /** user-defined types **/
 
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type RecordedProcessingEvent = { type: "inactive"; current: number; total: number }
+export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word }
+export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type SupportedModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
+export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

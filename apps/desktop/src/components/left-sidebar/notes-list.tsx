@@ -247,21 +247,22 @@ function NoteItem({
 
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!isActive || !buttonRef.current) {
-      return;
-    }
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (!isActive || !buttonRef.current) {
+  //     return;
+  //   }
 
-    const height = window.innerHeight || document.documentElement.clientHeight;
-    const width = window.innerWidth || document.documentElement.clientWidth;
+  //   const height = window.innerHeight || document.documentElement.clientHeight;
+  //   const width = window.innerWidth || document.documentElement.clientWidth;
 
-    const { top, left, bottom, right } = buttonRef.current.getBoundingClientRect();
-    const isInView = top >= 0 && left >= 0 && bottom <= height && right <= width;
+  //   const { top, left, bottom, right } = buttonRef.current.getBoundingClientRect();
+  //   const isInView = top >= 0 && left >= 0 && bottom <= height && right <= width;
 
-    if (!isInView) {
-      buttonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [isActive]);
+  //   if (!isInView) {
+  //     buttonRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  //   }
+  // }, [isActive]);
 
   const handleClickDelete = () => {
     confirm(t`Are you sure you want to delete this note?`).then((yes) => {

@@ -10,6 +10,7 @@ const COMMANDS: &[&str] = &[
     "get_current_model",
     "set_current_model",
     "list_supported_models",
+    "process_recorded",
 ];
 
 fn main() {

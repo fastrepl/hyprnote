@@ -4,7 +4,7 @@ mod norm;
 mod speaker;
 mod stream;
 
-pub use errors::*;
+pub use errors::AudioError;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
@@ -79,13 +79,28 @@ impl AudioInput {
         }
     }
 
-    pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {
+    pub fn from_mic_device(device_name: Option<String>) -> Self {
+        let mic_input = if let Some(name) = device_name {
+            MicInput::with_device(&name)
+        } else {
+            MicInput::default()
+        };
+
         Self {
-            source: AudioSource::RealtimeSpeaker,
-            mic: None,
-            speaker: Some(SpeakerInput::new(sample_rate_override).unwrap()),
+            source: AudioSource::RealtimeMic,
+            mic: Some(mic_input),
+            speaker: None,
             data: None,
         }
+    }
+
+    pub fn from_speaker(sample_rate_override: Option<u32>) -> Result<Self, AudioError> {
+        Ok(Self {
+            source: AudioSource::RealtimeSpeaker,
+            mic: None,
+            speaker: Some(SpeakerInput::new(sample_rate_override)?),
+            data: None,
+        })
     }
 
     pub fn from_recording(data: Vec<u8>) -> Self {
@@ -97,18 +112,18 @@ impl AudioInput {
         }
     }
 
-    pub fn stream(&mut self) -> AudioStream {
+    pub fn stream(&mut self) -> Result<AudioStream, AudioError> {
         match &self.source {
-            AudioSource::RealtimeMic => AudioStream::RealtimeMic {
-                mic: self.mic.as_ref().unwrap().stream(),
-            },
-            AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
-                speaker: self.speaker.take().unwrap().stream().unwrap(),
-            },
-            AudioSource::Recorded => AudioStream::Recorded {
+            AudioSource::RealtimeMic => Ok(AudioStream::RealtimeMic {
+                mic: self.mic.as_ref().unwrap().stream()?,
+            }),
+            AudioSource::RealtimeSpeaker => Ok(AudioStream::RealtimeSpeaker {
+                speaker: self.speaker.take().unwrap().stream()?,
+            }),
+            AudioSource::Recorded => Ok(AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
-            },
+            }),
         }
     }
 }

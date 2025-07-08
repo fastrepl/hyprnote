@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:275
+#: src/components/settings/views/general.tsx:276
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:178
-#: src/components/editor-area/note-header/listen-button.tsx:217
+#: src/components/editor-area/note-header/listen-button.tsx:189
+#: src/components/editor-area/note-header/listen-button.tsx:228
 msgid "{0}"
 msgstr ""
 
@@ -299,7 +299,7 @@ msgstr ""
 msgid "Access granted"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:39
+#: src/components/settings/views/sound.tsx:41
 msgid "Access Granted"
 msgstr ""
 
@@ -417,11 +417,11 @@ msgstr ""
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:178
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
-#: src/components/settings/views/general.tsx:230
+#: src/components/settings/views/general.tsx:231
 msgid "Choose your preferred language of use"
 msgstr ""
 
@@ -556,7 +556,7 @@ msgstr ""
 msgid "Emoji"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:59
+#: src/components/settings/views/sound.tsx:61
 msgid "Enable"
 msgstr ""
 
@@ -598,6 +598,14 @@ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:43
 msgid "Extract action items"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:543
+msgid "Failed to load microphone devices. Please check permissions."
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:467
+msgid "Failed to switch to {displayName}"
 msgstr ""
 
 #: src/routes/app.settings.tsx:93
@@ -650,7 +658,7 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:204
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr ""
 
@@ -693,7 +701,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:263
+#: src/components/settings/views/general.tsx:264
 msgid "Jargons"
 msgstr ""
 
@@ -713,7 +721,7 @@ msgstr ""
 msgid "Lab"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:227
+#: src/components/settings/views/general.tsx:228
 msgid "Language"
 msgstr ""
 
@@ -729,8 +737,16 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
+#: src/components/settings/views/sound.tsx:187
+msgid "Loading available devices..."
+msgstr ""
+
 #: src/components/settings/components/ai/llm-view.tsx:263
 msgid "Loading available models..."
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:537
+msgid "Loading devices..."
 msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:289
@@ -771,8 +787,20 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:97
+#: src/components/editor-area/note-header/listen-button.tsx:530
+msgid "Microphone"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:131
 msgid "Microphone Access"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:156
+msgid "Microphone Device"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:455
+msgid "Microphone switched to {displayName}"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:251
@@ -836,7 +864,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:341
+#: src/components/editor-area/note-header/listen-button.tsx:352
 msgid "No Template (Default)"
 msgstr ""
 
@@ -893,7 +921,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:359
+#: src/components/editor-area/note-header/listen-button.tsx:370
 msgid "Pause"
 msgstr ""
 
@@ -905,8 +933,12 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:197
+#: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "Play video"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:468
+msgid "Please try again or check your microphone permissions."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:33
@@ -937,19 +969,19 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
-#: src/components/settings/views/sound.tsx:56
+#: src/components/settings/views/sound.tsx:58
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:107
+#: src/components/settings/views/sound.tsx:141
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:98
+#: src/components/settings/views/sound.tsx:132
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:106
+#: src/components/editor-area/note-header/listen-button.tsx:117
 msgid "Resume"
 msgstr ""
 
@@ -962,7 +994,7 @@ msgstr ""
 msgid "Save and close"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/general.tsx:175
 msgid "Save recordings"
 msgstr ""
 
@@ -1007,9 +1039,17 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
+#: src/components/settings/views/sound.tsx:171
+msgid "Select microphone device"
+msgstr ""
+
 #: src/components/settings/components/ai/llm-view.tsx:253
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
+
+#: src/components/settings/views/sound.tsx:159
+msgid "Select which microphone to use for recording"
+msgstr ""
 
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
@@ -1019,7 +1059,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:200
+#: src/components/settings/views/general.tsx:201
 msgid "Share usage data"
 msgstr ""
 
@@ -1047,11 +1087,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:153
+#: src/components/editor-area/note-header/listen-button.tsx:164
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:367
+#: src/components/editor-area/note-header/listen-button.tsx:378
 msgid "Stop"
 msgstr ""
 
@@ -1067,8 +1107,15 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:106
+#: src/components/settings/views/sound.tsx:140
 msgid "System Audio Access"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:175
+#: src/components/editor-area/note-header/listen-button.tsx:453
+#: src/components/editor-area/note-header/listen-button.tsx:465
+#: src/components/editor-area/note-header/listen-button.tsx:497
+msgid "System Default"
 msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:114
@@ -1230,7 +1277,7 @@ msgstr ""
 #~ msgid "Yes, activate speaker"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:266
+#: src/components/settings/views/general.tsx:267
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr ""
 

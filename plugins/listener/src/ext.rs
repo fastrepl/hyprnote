@@ -11,6 +11,14 @@ use {
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn get_selected_microphone_device(
+        &self,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn set_selected_microphone_device(
+        &self,
+        device_name: Option<String>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn change_microphone_device(&self, device_name: Option<String>) -> impl Future<Output = ()>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -34,13 +42,151 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
-        let host = hypr_audio::cpal::default_host();
-        let devices = host.input_devices()?;
+        tracing::info!("Starting microphone device enumeration");
 
-        Ok(devices
-            .filter_map(|d| d.name().ok())
-            .filter(|d| d != "hypr-audio-tap")
-            .collect())
+        let host = hypr_audio::cpal::default_host();
+        tracing::debug!("Got audio host: {:?}", std::any::type_name_of_val(&host));
+
+        // Try to get input devices, but handle errors gracefully
+        match host.input_devices() {
+            Ok(devices) => {
+                let mut device_names = Vec::new();
+                let mut device_count = 0;
+
+                for device in devices {
+                    device_count += 1;
+                    match device.name() {
+                        Ok(name) => {
+                            // Filter out internal tap devices
+                            if name != "hypr-audio-tap" {
+                                tracing::info!("Found input device: '{}'", name);
+                                device_names.push(name);
+                            } else {
+                                tracing::debug!("Skipping internal tap device: '{}'", name);
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!("Device {} has no accessible name: {}", device_count, e);
+                        }
+                    }
+                }
+
+                tracing::info!(
+                    "Successfully enumerated {} microphone devices out of {} total devices",
+                    device_names.len(),
+                    device_count
+                );
+
+                // Also log the default device for comparison
+                if let Some(default_device) = host.default_input_device() {
+                    if let Ok(default_name) = default_device.name() {
+                        tracing::info!("Default input device: '{}'", default_name);
+                    }
+                }
+
+                Ok(device_names)
+            }
+            Err(e) => {
+                // Log the error but don't fail completely
+                tracing::error!(
+                    "Failed to enumerate input devices: {} ({})",
+                    e,
+                    std::any::type_name_of_val(&e)
+                );
+
+                // Try to get at least the default device
+                match host.default_input_device() {
+                    Some(default_device) => {
+                        if let Ok(name) = default_device.name() {
+                            // Filter out internal tap devices even in fallback
+                            if name != "hypr-audio-tap" {
+                                tracing::info!("Fallback: Using default input device: '{}'", name);
+                                Ok(vec![name])
+                            } else {
+                                tracing::warn!(
+                                    "Default device is internal tap - no valid microphones"
+                                );
+                                Ok(vec![])
+                            }
+                        } else {
+                            tracing::warn!(
+                                "Default input device exists but has no accessible name"
+                            );
+                            Ok(vec![])
+                        }
+                    }
+                    None => {
+                        tracing::error!(
+                            "No default input device available - no microphones detected"
+                        );
+                        Ok(vec![])
+                    }
+                }
+            }
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn get_selected_microphone_device(&self) -> Result<Option<String>, crate::Error> {
+        use tauri_plugin_db::DatabasePluginExt;
+
+        let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
+        let config = self.db_get_config(&user_id).await?;
+
+        match config {
+            Some(config) => Ok(config.general.selected_microphone_device),
+            None => Ok(None),
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn set_selected_microphone_device(
+        &self,
+        device_name: Option<String>,
+    ) -> Result<(), crate::Error> {
+        use tauri_plugin_db::DatabasePluginExt;
+
+        // Check if a session is currently running
+        let current_state = self.get_state().await;
+        match current_state {
+            crate::fsm::State::RunningActive { .. } | crate::fsm::State::RunningPaused { .. } => {
+                // For active sessions, use the seamless device switching
+                tracing::info!("Switching microphone device during active session");
+                self.change_microphone_device(device_name).await;
+                Ok(())
+            }
+            _ => {
+                // For inactive sessions, just update the config
+                let user_id = self.db_user_id().await?.ok_or(crate::Error::NoneUser)?;
+                let config = match self.db_get_config(&user_id).await? {
+                    Some(mut config) => {
+                        config.general.selected_microphone_device = device_name;
+                        config
+                    }
+                    None => {
+                        // Create default config with the selected device
+                        hypr_db_user::Config {
+                            id: uuid::Uuid::new_v4().to_string(),
+                            user_id: user_id.clone(),
+                            general: hypr_db_user::ConfigGeneral {
+                                selected_microphone_device: device_name,
+                                ..Default::default()
+                            },
+                            notification: hypr_db_user::ConfigNotification::default(),
+                            ai: hypr_db_user::ConfigAI::default(),
+                        }
+                    }
+                };
+
+                // Use the database plugin abstraction
+                self.db_set_config(config)
+                    .await
+                    .map_err(|e| crate::Error::DatabaseError(e))?;
+
+                tracing::info!("Updated microphone device config for inactive session");
+                Ok(())
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -61,7 +207,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            // Use selected device for permission check
+            let selected_device = self.get_selected_microphone_device().await.ok().flatten();
+            let mut mic_sample_stream =
+                hypr_audio::AudioInput::from_mic_device(selected_device).stream()?;
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
         }
@@ -91,7 +240,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            // Use selected device for permission request
+            let selected_device = self.get_selected_microphone_device().await.ok().flatten();
+            let mut mic_sample_stream =
+                hypr_audio::AudioInput::from_mic_device(selected_device).stream()?;
             mic_sample_stream.next().await;
         }
 
@@ -102,7 +254,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn request_system_audio_access(&self) -> Result<(), crate::Error> {
         let stop = hypr_audio::AudioOutput::silence();
 
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None)?.stream()?;
         speaker_sample_stream.next().await;
 
         let _ = stop.send(());
@@ -216,6 +368,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         {
             let mut guard = state.lock().await;
             let event = crate::fsm::StateEvent::Resume;
+            guard.fsm.handle(&event).await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn change_microphone_device(&self, device_name: Option<String>) {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::StateEvent::MicrophoneDeviceChanged(device_name);
             guard.fsm.handle(&event).await;
         }
     }

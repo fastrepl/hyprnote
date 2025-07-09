@@ -12,8 +12,11 @@
     }
   },
   "bundle": {
-    "resources": [
-      "dlls/*"
-    ]
+    "resources": {
+      "dlls/msvcp140.dll": "./",
+      "dlls/msvcp140_1.dll": "./",
+      "dlls/vcruntime140.dll": "./",
+      "dlls/vcruntime140_1.dll": "./"
+    }
   }
 }

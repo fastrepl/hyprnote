@@ -10,5 +10,10 @@
         "https://cdn.crabnebula.app/update/fastrepl/hyprnote/{{target}}-{{arch}}/{{current_version}}?channel=stable"
       ]
     }
+  },
+  "bundle": {
+    "resources": [
+      "dlls/*"
+    ]
   }
 }

@@ -28,6 +28,7 @@ import { Route as PathlessLayoutNestedLayoutRouteARouteImport } from './routes/_
 import { ServerRoute as CustomScriptDotjsServerRouteImport } from './routes/customScript[.]js'
 import { ServerRoute as ApiUsersServerRouteImport } from './routes/api/users'
 import { ServerRoute as ApiUsersUserIdServerRouteImport } from './routes/api/users.$userId'
+import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -116,6 +117,11 @@ const ApiUsersUserIdServerRoute = ApiUsersUserIdServerRouteImport.update({
   id: '/$userId',
   path: '/$userId',
   getParentRoute: () => ApiUsersServerRoute,
+} as any)
+const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootServerRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -218,30 +224,43 @@ export interface RootRouteChildren {
 export interface FileServerRoutesByFullPath {
   '/customScript.js': typeof CustomScriptDotjsServerRoute
   '/api/users': typeof ApiUsersServerRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/users/$userId': typeof ApiUsersUserIdServerRoute
 }
 export interface FileServerRoutesByTo {
   '/customScript.js': typeof CustomScriptDotjsServerRoute
   '/api/users': typeof ApiUsersServerRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/users/$userId': typeof ApiUsersUserIdServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/customScript.js': typeof CustomScriptDotjsServerRoute
   '/api/users': typeof ApiUsersServerRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/users/$userId': typeof ApiUsersUserIdServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/customScript.js' | '/api/users' | '/api/users/$userId'
+  fullPaths:
+    | '/customScript.js'
+    | '/api/users'
+    | '/api/auth/$'
+    | '/api/users/$userId'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/customScript.js' | '/api/users' | '/api/users/$userId'
-  id: '__root__' | '/customScript.js' | '/api/users' | '/api/users/$userId'
+  to: '/customScript.js' | '/api/users' | '/api/auth/$' | '/api/users/$userId'
+  id:
+    | '__root__'
+    | '/customScript.js'
+    | '/api/users'
+    | '/api/auth/$'
+    | '/api/users/$userId'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   CustomScriptDotjsServerRoute: typeof CustomScriptDotjsServerRoute
   ApiUsersServerRoute: typeof ApiUsersServerRouteWithChildren
+  ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -369,6 +388,13 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiUsersUserIdServerRouteImport
       parentRoute: typeof ApiUsersServerRoute
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
@@ -453,6 +479,7 @@ export const routeTree = rootRouteImport
 const rootServerRouteChildren: RootServerRouteChildren = {
   CustomScriptDotjsServerRoute: CustomScriptDotjsServerRoute,
   ApiUsersServerRoute: ApiUsersServerRouteWithChildren,
+  ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
   ._addFileChildren(rootServerRouteChildren)

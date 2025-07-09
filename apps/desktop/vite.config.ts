@@ -1,7 +1,7 @@
 import path from "path";
 
 import { lingui } from "@lingui/vite-plugin";
-import tanstackRouter, { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
 import { DynamicPublicDirectory } from "vite-multiple-assets";

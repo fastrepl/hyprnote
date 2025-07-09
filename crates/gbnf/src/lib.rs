@@ -1,24 +1,67 @@
-pub const ENHANCE_OTHER: &str = include_str!("../assets/enhance-other.gbnf");
-pub const ENHANCE_HYPR: &str = include_str!("../assets/enhance-hypr.gbnf");
-pub const TITLE: &str = include_str!("../assets/title.gbnf");
-pub const TAGS: &str = include_str!("../assets/tags.gbnf");
-
-pub enum GBNF {
-    EnhanceOther,
-    EnhanceHypr,
+#[derive(specta::Type, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "task")]
+pub enum Grammar {
+    #[serde(rename = "enhance")]
+    Enhance { sections: Option<Vec<String>> },
+    #[serde(rename = "title")]
     Title,
+    #[serde(rename = "tags")]
     Tags,
 }
 
-impl GBNF {
+impl Grammar {
     pub fn build(&self) -> String {
         match self {
-            GBNF::EnhanceOther => ENHANCE_OTHER.to_string(),
-            GBNF::EnhanceHypr => ENHANCE_HYPR.to_string(),
-            GBNF::Title => TITLE.to_string(),
-            GBNF::Tags => TAGS.to_string(),
+            Grammar::Enhance { sections } => build_enhance_other_grammar(sections),
+            Grammar::Title => build_title_grammar(),
+            Grammar::Tags => build_tags_grammar(),
         }
     }
+}
+
+#[allow(dead_code)]
+fn build_enhance_hypr_grammar(_s: &Option<Vec<String>>) -> String {
+    vec![
+        r##"root ::= think content"##,
+        r##"line ::= "- " [A-Z] [^*.\n[(]+ ".\n""##,
+        r##"think ::= "<think>\n" line line? line? line? "</think>""##,
+        r##"content ::= .*"##,
+    ]
+    .join("\n")
+}
+
+fn build_enhance_other_grammar(_s: &Option<Vec<String>>) -> String {
+    vec![
+        r##"root ::= thinking sectionf section section section? section?"##,
+        r##"sectionf ::= "# Objective\n\n" line line? line? "\n""##,
+        r##"section ::= header "\n\n" bline bline bline? bline? bline? "\n""##,
+        r##"header ::= "# " [^*.\n]+"##,
+        r##"line ::= "- " [A-Z] [^*.\n[(]+ ".\n""##,
+        r##"bline ::= "- **" [A-Z] [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n""##,
+        r##"hsf ::= "- Objective\n""##,
+        r##"hd ::= "- " [A-Z] [^[(*\n]+ "\n""##,
+        r##"thinking ::= "<thinking>\n" hsf hd hd? hd? hd? "</thinking>""##,
+        r##"link ::= "[" [^\]]+ "]" "(" [^)]+ ")""##,
+    ]
+    .join("\n")
+}
+
+fn build_title_grammar() -> String {
+    vec![
+        r##"char ::= [A-Za-z0-9]"##,
+        r##"start ::= [A-Z0-9]"##,
+        r##"root ::= start char* (" " char+)*"##,
+    ]
+    .join("\n")
+}
+
+fn build_tags_grammar() -> String {
+    vec![
+        r##"root ::= \"[\" \"\" word \"\" (\",\" ws \"\" word \"\")* \"]\""##,
+        r##"word ::= [a-zA-Z0-9_-]+"##,
+        r##"ws ::= \" \"*"##,
+    ]
+    .join("\n")
 }
 
 #[cfg(test)]
@@ -40,7 +83,7 @@ mod tests {
             ("Meeting-Summary", false),
             ("", false),
         ] {
-            let result = gbnf.validate(TITLE, input).unwrap();
+            let result = gbnf.validate(&build_title_grammar(), input).unwrap();
             assert_eq!(result, expected, "failed: {}", input);
         }
     }
@@ -53,7 +96,7 @@ mod tests {
             ("[\"meeting\", \"summary\"]", true),
             ("[\"meeting\", \"summary\", \"\"]", false),
         ] {
-            let result = gbnf.validate(TAGS, input).unwrap();
+            let result = gbnf.validate(&build_tags_grammar(), input).unwrap();
             assert_eq!(result, expected, "failed: {}", input);
         }
     }

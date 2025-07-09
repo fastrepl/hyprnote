@@ -25,6 +25,7 @@ async registerTemplate(name: string, template: string) : Promise<null> {
 
 /** user-defined types **/
 
+export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 
 /** tauri-specta globals **/

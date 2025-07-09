@@ -12,7 +12,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
@@ -282,48 +282,27 @@ export function useEnhanceMutation({
         return;
       }
 
-      // Get current config for default template
-      const config = await dbCommands.getConfig();
+      const getTemplate = async () => {
+        const config = await dbCommands.getConfig();
+        const effectiveTemplateId = templateId !== undefined
+          ? templateId
+          : config.general?.selected_template_id;
 
-      // Use provided templateId or fall back to config
-      const effectiveTemplateId = templateId !== undefined
-        ? templateId
-        : config.general?.selected_template_id;
-
-      let templateInfo = "";
-      let customGrammar: string | null = null;
-
-      if (effectiveTemplateId) {
-        const templates = await dbCommands.listTemplates();
-        const selectedTemplate = templates.find(t => t.id === effectiveTemplateId);
-
-        if (selectedTemplate) {
-          if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
-            customGrammar = generateCustomGBNF(selectedTemplate.sections);
-          }
-
-          templateInfo = `
-SELECTED TEMPLATE:
-Template Title: ${selectedTemplate.title || "Untitled"}
-Template Description: ${selectedTemplate.description || "No description"}
-
-Sections:`;
-
-          selectedTemplate.sections?.forEach((section, index) => {
-            templateInfo += `
-  ${index + 1}. ${section.title || "Untitled Section"}
-     └─ ${section.description || "No description"}`;
-          });
+        if (!effectiveTemplateId) {
+          return null;
         }
-      } else {
-        console.log("Using default template (no custom template selected)");
-      }
+
+        const templates = await dbCommands.listTemplates();
+        return templates.find(t => t.id === effectiveTemplateId) || null;
+      };
+
+      const selectedTemplate = await getTemplate();
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo },
+        { template: selectedTemplate, type },
       );
 
       const userMessage = await templateCommands.render(
@@ -375,14 +354,12 @@ Sections:`;
         ...(freshIsLocalLlm && {
           providerOptions: {
             [localProviderName]: {
-              metadata: customGrammar
-                ? {
-                  grammar: "custom",
-                  customGrammar: customGrammar,
-                }
-                : {
-                  grammar: "enhance",
-                },
+              metadata: {
+                grammar: {
+                  task: "enhance",
+                  sections: selectedTemplate?.sections.map(s => s.title) || null,
+                } satisfies Grammar,
+              },
             },
           },
         }),
@@ -478,7 +455,9 @@ function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
         providerOptions: {
           [localProviderName]: {
             metadata: {
-              grammar: "title",
+              grammar: {
+                task: "title",
+              } satisfies Grammar,
             },
           },
         },
@@ -535,56 +514,4 @@ function useAutoEnhance({
     setAutoEnhanceTemplate,
     prevOngoingSessionStatus,
   ]);
-}
-
-// function to dynamically generate the grammar for the custom template
-function generateCustomGBNF(templateSections: any[]): string {
-  if (!templateSections || templateSections.length === 0) {
-    return "";
-  }
-
-  function escapeForGBNF(text: string): string {
-    return text
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, "\\\"")
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      .replace(/\t/g, "\\t");
-  }
-
-  const validatedSections = templateSections.map((section, index) => {
-    let title = section.title || `Section ${index + 1}`;
-
-    title = title
-      .trim()
-      .replace(/[\x00-\x1F\x7F]/g, "")
-      .substring(0, 100);
-
-    return {
-      ...section,
-      safeTitle: title || `Section ${index + 1}`,
-    };
-  });
-
-  const sectionRules = validatedSections.map((section, index) => {
-    const sectionName = `section${index + 1}`;
-    const escapedHeader = escapeForGBNF(section.safeTitle);
-    return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
-  }).join("\n");
-
-  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
-
-  const grammar = `root ::= thinking ${sectionNames}
-
-${sectionRules}
-
-bline ::= "- **" [^*\\n:]+ "**: " ([^*;,[.\\n] | link)+ ".\\n"
-
-hsf ::= "- Objective\\n"
-hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
-thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
-
-link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
-
-  return grammar;
 }

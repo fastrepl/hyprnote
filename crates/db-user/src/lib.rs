@@ -129,7 +129,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 18] = [
+const MIGRATIONS: [&str; 19] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -148,6 +148,7 @@ const MIGRATIONS: [&str; 18] = [
     include_str!("./sessions_migration_2.sql"),
     include_str!("./sessions_migration_3.sql"),
     include_str!("./sessions_migration_4.sql"),
+    include_str!("./templates_migration_1.sql"),
 ];
 
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {

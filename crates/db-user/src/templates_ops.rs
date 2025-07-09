@@ -6,11 +6,13 @@ impl UserDatabase {
         user_id: impl Into<String>,
     ) -> Result<Vec<Template>, crate::Error> {
         let conn = self.conn()?;
+        
+        let _user_id = user_id.into();
 
         let mut rows = conn
             .query(
-                "SELECT * FROM templates WHERE user_id = ?",
-                vec![user_id.into()],
+                "SELECT * FROM templates",
+                (),
             )
             .await?;
 
@@ -89,7 +91,7 @@ mod tests {
             .unwrap();
 
         let templates = db.list_templates(&human.id).await.unwrap();
-        assert_eq!(templates.len(), 0);
+        assert_eq!(templates.len(), 2);
 
         let _template = db
             .upsert_template(Template {

@@ -1,12 +1,20 @@
 /// <reference types="vite/client" />
 
-import { createRootRoute, HeadContent, Link, Scripts } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import * as React from "react";
+import { QueryClient } from "@tanstack/react-query";
+import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
+
+import { authQueries } from "@/services/queries";
 
 import appCss from "@/styles/app.css?url";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
+  beforeLoad: ({ context }) => {
+    const userSession = context.queryClient.ensureQueryData(authQueries.user());
+    return { userSession };
+  },
   head: () => ({
     meta: [
       {
@@ -39,12 +47,6 @@ export const Route = createRootRoute({
       { rel: "manifest", href: "/site.webmanifest", color: "#fffff" },
       { rel: "icon", href: "/favicon.ico" },
     ],
-    scripts: [
-      {
-        src: "/customScript.js",
-        type: "text/javascript",
-      },
-    ],
   }),
   shellComponent: RootDocument,
 });
@@ -57,9 +59,36 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackRouterDevtools position="bottom-right" />
         <Scripts />
+        <Suspense>
+          <TanStackRouterDevtools position={"bottom-right"} initialIsOpen={false} />
+          <TanStackQueryDevtools
+            buttonPosition={"bottom-right"}
+            position="bottom"
+            initialIsOpen={false}
+          />
+        </Suspense>
       </body>
     </html>
   );
 }
+
+const TanStackRouterDevtools = process.env.NODE_ENV === "production"
+  ? () => null
+  : lazy(() =>
+    import("@tanstack/react-router-devtools").then((res) => ({
+      default: (
+        props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
+      ) => <res.TanStackRouterDevtools {...props} />,
+    }))
+  );
+
+const TanStackQueryDevtools = process.env.NODE_ENV === "production"
+  ? () => null
+  : lazy(() =>
+    import("@tanstack/react-query-devtools").then((res) => ({
+      default: (
+        props: React.ComponentProps<typeof res.ReactQueryDevtools>,
+      ) => <res.ReactQueryDevtools {...props} />,
+    }))
+  );

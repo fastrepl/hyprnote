@@ -383,13 +383,13 @@ msgstr ""
 msgid "Assistant:"
 msgstr ""
 
-#: src/components/welcome-modal/calendar-linking-view.tsx:81
-msgid "Automatically label meetings and keep everything organized."
-msgstr ""
-
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr ""
+
+#: src/components/welcome-modal/calendar-linking-view.tsx:81
+msgid "Automatically label meetings and keep everything organized."
+msgstr ""
 
 #: src/routes/app.settings.tsx:58
 msgid "Billing"

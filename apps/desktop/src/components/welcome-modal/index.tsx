@@ -210,7 +210,6 @@ export function WelcomeModal({ isOpen, onClose, shouldShowSurvey = true, surveyO
         skipped_at_page: step,
         skipped_at: new Date().toISOString(),
       }),
-    onError: (e) => console.error(e),
     onSettled: () => {
       if (surveyOnly) {
         commands.setIndividualizationNeeded(false);

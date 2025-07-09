@@ -325,11 +325,25 @@ const MemoizedSpeakerSelector = memo(({
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
 
+  const { data: participants = [] } = useQuery({
+    enabled: !!sessionId,
+    queryKey: ["participants", sessionId!, "selector"],
+    queryFn: () => dbCommands.sessionListParticipants(sessionId!),
+  });
+
   useEffect(() => {
     if (human) {
       onSpeakerChange(human, speakerRange);
     }
   }, [human, speakerRange]);
+
+  useEffect(() => {
+    const foundHuman = participants.find((s) => s.id === speakerId);
+
+    if (foundHuman) {
+      setHuman(foundHuman);
+    }
+  }, [participants, speakerId]);
 
   const handleClickHuman = (human: Human) => {
     setHuman(human);
@@ -350,7 +364,9 @@ const MemoizedSpeakerSelector = memo(({
         return "You";
       }
 
-      return human.full_name ?? human.id;
+      if (human.full_name) {
+        return human.full_name;
+      }
     }
 
     return getSpeakerLabel({

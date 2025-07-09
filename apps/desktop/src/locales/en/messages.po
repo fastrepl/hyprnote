@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:176
-#: src/components/editor-area/note-header/listen-button.tsx:215
+#: src/components/editor-area/note-header/listen-button.tsx:178
+#: src/components/editor-area/note-header/listen-button.tsx:217
 msgid "{0}"
 msgstr "{0}"
 
@@ -386,6 +386,10 @@ msgstr "Assistant:"
 #: src/components/welcome-modal/calendar-linking-view.tsx:81
 msgid "Automatically label meetings and keep everything organized."
 msgstr "Automatically label meetings and keep everything organized."
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "Auto (Default)"
+#~ msgstr "Auto (Default)"
 
 #: src/routes/app.settings.tsx:58
 msgid "Billing"
@@ -910,6 +914,14 @@ msgstr "No recent notes for this organization"
 msgid "No speech-to-text models available or failed to load."
 msgstr "No speech-to-text models available or failed to load."
 
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "No Template"
+#~ msgstr "No Template"
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+msgid "No Template (Default)"
+msgstr "No Template (Default)"
+
 #: src/components/settings/views/templates.tsx:265
 msgid "No templates yet"
 msgstr "No templates yet"
@@ -967,7 +979,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:308
+#: src/components/editor-area/note-header/listen-button.tsx:359
 msgid "Pause"
 msgstr "Pause"
 
@@ -979,7 +991,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:195
+#: src/components/editor-area/note-header/listen-button.tsx:197
 msgid "Play video"
 msgstr "Play video"
 
@@ -1043,7 +1055,7 @@ msgstr "Reset Onboarding"
 msgid "Resetting..."
 msgstr "Resetting..."
 
-#: src/components/editor-area/note-header/listen-button.tsx:104
+#: src/components/editor-area/note-header/listen-button.tsx:106
 msgid "Resume"
 msgstr "Resume"
 
@@ -1187,7 +1199,7 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:151
+#: src/components/editor-area/note-header/listen-button.tsx:153
 msgid "Start recording"
 msgstr "Start recording"
 
@@ -1199,7 +1211,7 @@ msgstr "Start Setup"
 msgid "Start Using Hyprnote"
 msgstr "Start Using Hyprnote"
 
-#: src/components/editor-area/note-header/listen-button.tsx:316
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Stop"
 msgstr "Stop"
 

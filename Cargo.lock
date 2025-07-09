@@ -3615,7 +3615,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.51"
+version = "0.0.52"
 dependencies = [
  "anyhow",
  "bytes",
@@ -7499,6 +7499,16 @@ dependencies = [
  "bitflags 2.9.1",
  "serde",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "keygen"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.15",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]

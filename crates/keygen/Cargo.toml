@@ -1,0 +1,10 @@
+[package]
+name = "keygen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+url = { workspace = true }

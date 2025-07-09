@@ -423,10 +423,10 @@ Sections:`;
       }
     },
     onError: (error) => {
+      console.error(error);
       if (actualIsLocalLlm) {
         setProgress(0);
       }
-      console.error(error);
 
       if (!(error as unknown as string).includes("cancel")) {
         enhanceFailedToast();

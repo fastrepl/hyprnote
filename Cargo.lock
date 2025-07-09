@@ -7502,6 +7502,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "keygen"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.15",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
 name = "keygen-rs"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

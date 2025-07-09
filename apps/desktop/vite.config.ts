@@ -31,7 +31,7 @@ export default defineConfig(async () => ({
       },
     ),
     lingui(),
-    tanstackRouter(),
+    TanStackRouterVite({ target: "react", autoCodeSplitting: false }),
     react({
       babel: {
         plugins: ["@lingui/babel-plugin-lingui-macro"],

@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "auth:generate": "npx @better-auth/cli@latest generate --output src/services/auth.schema.ts -y",
+    "auth:generate": "npx @better-auth/cli@latest generate --output src/lib/db/schema/auth.ts -y",
     "drizzle:generate": "npx drizzle-kit generate",
     "drizzle:push": "npx drizzle-kit push",
     "drizzle:migrate": "npx drizzle-kit migrate",

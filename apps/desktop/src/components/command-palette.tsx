@@ -89,6 +89,116 @@ const sortSessionMatches = (matches: (SearchMatch & { type: "session" })[], sort
   });
 };
 
+const extractParticipantSnippet = async (sessionId: string, query: string) => {
+  try {
+    const participants = await dbCommands.sessionListParticipants(sessionId);
+    const matchingParticipants = participants.filter(p => 
+      (p.full_name && p.full_name.toLowerCase().includes(query.toLowerCase())) ||
+      (p.email && p.email.toLowerCase().includes(query.toLowerCase()))
+    );
+    
+    if (matchingParticipants.length > 0) {
+      const names = matchingParticipants
+        .map(p => p.full_name || p.email)
+        .filter(Boolean)
+        .slice(0, 3); // Limit to 3 names
+      
+      const nameText = names.join(', ');
+      const extraCount = matchingParticipants.length - names.length;
+      
+      return extraCount > 0 
+        ? `Meeting with ${nameText} and ${extraCount} other${extraCount > 1 ? 's' : ''}`
+        : `Meeting with ${nameText}`;
+    }
+  } catch (error) {
+    console.error('Error fetching participants:', error);
+  }
+  return null;
+};
+
+// Create a separate component for session items
+function SessionItem({ match, query, onSelect }: {
+  match: SearchMatch & { type: "session" };
+  query: string;
+  onSelect: () => void;
+}) {
+  const [participantSnippet, setParticipantSnippet] = useState<string | null>(null);
+  const titleMatches = (match.item.title || "").toLowerCase().includes(query.toLowerCase());
+
+  // Try content snippets first
+  const contentSnippet = !titleMatches
+    ? (() => {
+        if (match.item.enhanced_memo_html) {
+          const enhancedSnippet = extractContentSnippet(match.item.enhanced_memo_html, query);
+          if (enhancedSnippet) return enhancedSnippet;
+        }
+        
+        if (match.item.raw_memo_html) {
+          return extractContentSnippet(match.item.raw_memo_html, query);
+        }
+        
+        return null;
+      })()
+    : null;
+
+  // Fetch participant snippet only if no content snippet
+  useEffect(() => {
+    if (!titleMatches && !contentSnippet) {
+      extractParticipantSnippet(match.item.id, query).then(setParticipantSnippet);
+    } else {
+      setParticipantSnippet(null);
+    }
+  }, [match.item.id, query, titleMatches, contentSnippet]);
+
+  const snippet = contentSnippet 
+    ? { type: 'content' as const, text: contentSnippet }
+    : participantSnippet 
+    ? { type: 'participants' as const, text: participantSnippet }
+    : null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  return (
+    <CommandItem
+      key={`session-${match.item.id}`}
+      value={`session-${match.item.id}`}
+      className="flex items-start gap-3 py-3"
+      onSelect={onSelect}
+    >
+      <FileTextIcon className="h-4 w-4 text-neutral-500 mt-1" />
+      <div className="flex flex-col items-start flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">
+            {highlightText(match.item.title || "Untitled Note", query)}
+          </span>
+        </div>
+        <span className="text-xs text-neutral-500 mt-1">
+          {formatDate(match.item.created_at)}
+        </span>
+        {snippet && (
+          <div className={`text-xs mt-2 flex items-center gap-1 ${
+            snippet.type === 'participants' 
+              ? 'text-neutral-900'
+              : 'text-neutral-600'
+          }`}>
+            {snippet.type === 'participants' && (
+              <UserIcon className="h-3 w-3 flex-shrink-0" />
+            )}
+            <span className={snippet.type === 'participants' ? '' : ''}>
+              {snippet.type === 'participants' 
+                ? snippet.text 
+                : highlightText(snippet.text, query)
+              }
+            </span>
+          </div>
+        )}
+      </div>
+    </CommandItem>
+  );
+}
+
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { userId } = useHypr();
@@ -262,41 +372,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           {/* Notes Section with content snippets */}
           {sessionMatches.length > 0 && (
             <CommandGroup heading="Notes">
-              {sortSessionMatches(sessionMatches, sortBy).map((match) => {
-                const titleMatches = (match.item.title || "").toLowerCase().includes(query.toLowerCase());
-                const snippet = !titleMatches
-                  ? extractContentSnippet(
-                    match.item.enhanced_memo_html || match.item.raw_memo_html || "",
-                    query,
-                  )
-                  : null;
-
-                return (
-                  <CommandItem
-                    key={`session-${match.item.id}`}
-                    value={`session-${match.item.id}`}
-                    className="flex items-start gap-3 py-3"
-                    onSelect={() => handleSelectItem(match)}
-                  >
-                    <FileTextIcon className="h-4 w-4 text-neutral-500 mt-1" />
-                    <div className="flex flex-col items-start flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {highlightText(match.item.title || "Untitled Note", query)}
-                        </span>
-                      </div>
-                      <span className="text-xs text-neutral-500 mt-1">
-                        {formatDate(match.item.created_at)}
-                      </span>
-                      {snippet && (
-                        <div className="text-xs text-neutral-600 mt-2">
-                          {highlightText(snippet, query)}
-                        </div>
-                      )}
-                    </div>
-                  </CommandItem>
-                );
-              })}
+              {sortSessionMatches(sessionMatches, sortBy).map((match) => (
+                <SessionItem
+                  key={`session-${match.item.id}`}
+                  match={match}
+                  query={query}
+                  onSelect={() => handleSelectItem(match)}
+                />
+              ))}
             </CommandGroup>
           )}
 

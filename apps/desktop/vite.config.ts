@@ -1,7 +1,7 @@
 import path from "path";
 
 import { lingui } from "@lingui/vite-plugin";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tanstackRouter, { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
 import { DynamicPublicDirectory } from "vite-multiple-assets";
@@ -31,7 +31,7 @@ export default defineConfig(async () => ({
       },
     ),
     lingui(),
-    TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
+    tanstackRouter(),
     react({
       babel: {
         plugins: ["@lingui/babel-plugin-lingui-macro"],

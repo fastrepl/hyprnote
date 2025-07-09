@@ -11,8 +11,8 @@ import appCss from "@/styles/app.css?url";
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  beforeLoad: ({ context }) => {
-    const userSession = context.queryClient.ensureQueryData(authQueries.user());
+  beforeLoad: async ({ context }) => {
+    const userSession = await context.queryClient.ensureQueryData(authQueries.user());
     return { userSession };
   },
   head: () => ({

@@ -1,0 +1,15 @@
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+      - prereleased
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'admin_') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4

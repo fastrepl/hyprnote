@@ -12,6 +12,7 @@
     "@tanstack/react-router": "^1.125.6",
     "@tanstack/react-router-devtools": "^1.125.6",
     "@tanstack/react-start": "^1.125.6",
+    "openid-client": "^6.6.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwind-merge": "^2.6.0",

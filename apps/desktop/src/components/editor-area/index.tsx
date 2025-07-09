@@ -282,8 +282,9 @@ export function useEnhanceMutation({
         return;
       }
 
+      const config = await dbCommands.getConfig();
+
       const getTemplate = async () => {
-        const config = await dbCommands.getConfig();
         const effectiveTemplateId = templateId !== undefined
           ? templateId
           : config.general?.selected_template_id;
@@ -302,7 +303,7 @@ export function useEnhanceMutation({
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { template: selectedTemplate, type },
+        { config, type, templateInfo: selectedTemplate },
       );
 
       const userMessage = await templateCommands.render(

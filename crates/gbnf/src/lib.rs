@@ -80,9 +80,10 @@ fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
 
 fn build_title_grammar() -> String {
     vec![
-        r##"char ::= [A-Za-z0-9]"##,
-        r##"start ::= [A-Z0-9]"##,
-        r##"root ::= start char* (" " char+)*"##,
+        r##"lowercase ::= [a-z0-9]"##,
+        r##"uppercase ::= [A-Z]"##,
+        r##"word ::= uppercase lowercase*"##,
+        r##"root ::= word (" " word)*"##,
     ]
     .join("\n")
 }

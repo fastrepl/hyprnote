@@ -110,7 +110,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [isOpen]);
 
   const handleStartLocal = () => {
-    setCurrentStep("model-selection");
+    setCurrentStep("survey-story");
   };
 
   const handleModelSelected = (model: SupportedModel) => {
@@ -123,11 +123,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleCalendarLinkingComplete = () => {
-    setCurrentStep("survey-story");
+    setCurrentStep("permissions-validation");
   };
 
   const handleCalendarLinkingSkip = () => {
-    setCurrentStep("survey-story");
+    setCurrentStep("permissions-validation");
   };
 
   const handleSurveyStoryComplete = () => {
@@ -178,7 +178,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleSurveyThankYouContinue = () => {
-    setCurrentStep("permissions-validation");
+    setCurrentStep("model-selection");
   };
 
   const handlePermissionsComplete = () => {
@@ -200,19 +200,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         skipped_at: new Date().toISOString(),
       }),
     onError: (e) => console.error(e),
-    onSettled: () => setCurrentStep("permissions-validation"),
+    onSettled: () => setCurrentStep("model-selection"),
   });
 
   const handleBack = () => {
     switch (currentStep) {
-      case "model-selection":
-        setCurrentStep("welcome");
-        break;
-      case "calendar-linking":
-        setCurrentStep("model-selection");
-        break;
       case "survey-story":
-        setCurrentStep("calendar-linking");
+        setCurrentStep("welcome");
         break;
       case "survey-industry":
         setCurrentStep("survey-story");
@@ -230,8 +224,14 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           setCurrentStep("survey-orgsize");
         }
         break;
-      case "permissions-validation":
+      case "model-selection":
         setCurrentStep("survey-thankyou");
+        break;
+      case "calendar-linking":
+        setCurrentStep("model-selection");
+        break;
+      case "permissions-validation":
+        setCurrentStep("calendar-linking");
         break;
       case "setup-complete":
         setCurrentStep("permissions-validation");

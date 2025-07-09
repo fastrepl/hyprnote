@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "better-auth:generate": "npx @better-auth/cli@latest generate --output src/utils/auth-schema.ts",
+    "auth:generate": "npx @better-auth/cli@latest generate --output src/utils/auth-schema.ts",
     "drizzle:generate": "npx drizzle-kit generate",
     "drizzle:push": "npx drizzle-kit push",
     "drizzle:migrate": "npx drizzle-kit migrate",
@@ -13,6 +13,8 @@
     "start": "node .output/server/index.mjs"
   },
   "dependencies": {
+    "@cerbos/grpc": "^0.22.1",
+    "@tanstack/react-form": "^1.14.1",
     "@tanstack/react-router": "^1.125.6",
     "@tanstack/react-router-devtools": "^1.125.6",
     "@tanstack/react-start": "^1.125.6",

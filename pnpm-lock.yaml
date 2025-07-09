@@ -14,6 +14,12 @@ importers:
 
   apps/admin:
     dependencies:
+      '@cerbos/grpc':
+        specifier: ^0.22.1
+        version: 0.22.1
+      '@tanstack/react-form':
+        specifier: ^1.14.1
+        version: 1.14.1(@tanstack/react-start@1.125.6(@libsql/client@0.15.9)(@tanstack/react-router@1.125.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@vitejs/plugin-react@4.5.0(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(kysely@0.28.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.125.6
         version: 1.125.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1304,6 +1310,9 @@ packages:
   '@better-fetch/fetch@1.1.18':
     resolution: {integrity: sha512-rEFOE1MYIsBmoMJtQbl32PGHHXuG2hDxvEd7rUHE0vCBoFQVSDqaVs9hkZEtHCxRoY+CljXKFCOuJ8uxqw1LcA==}
 
+  '@bufbuild/protobuf@2.6.0':
+    resolution: {integrity: sha512-6cuonJVNOIL7lTj5zgo/Rc2bKAo4/GvN+rKCrUj7GdEHRzCk8zKOfFwUsL9nAVk5rSIsRmlgcpLzTRysopEeeg==}
+
   '@bundled-es-modules/cookie@2.0.1':
     resolution: {integrity: sha512-8o+5fRPLNbjbdGRRmJj3h6Hh1AQJf2dk3qQ/5ZFb+PXkRNiSoMGGUKlsgLfrxneb72axVJyIYji64E2+nNfYyw==}
 
@@ -1312,6 +1321,14 @@ packages:
 
   '@bundled-es-modules/tough-cookie@0.1.6':
     resolution: {integrity: sha512-dvMHbL464C0zI+Yqxbz6kZ5TOEp7GLW+pry/RWndAR8MJQAXZ2rPmIs8tziTZjeIyhSNZgZbCePtfSbdWqStJw==}
+
+  '@cerbos/core@0.23.0':
+    resolution: {integrity: sha512-Y9VJnYwZvyO+X+bwqMNYNUX7ziXFse0nrhqXIALA3+fYjLPFgsGdaJaONP3OBm0KJ4YCqwuue2IURVDEL2Fd0g==}
+    engines: {node: '>= 20'}
+
+  '@cerbos/grpc@0.22.1':
+    resolution: {integrity: sha512-FVOCtjDW7vAEHYXtaJsChr8JrMjTLhSfzoWltwlLgxl5OhgEhwQhezTAv2sOGfA4A5lMv1kZ8ynZnolFuyJtRg==}
+    engines: {node: '>= 20'}
 
   '@clack/core@0.3.5':
     resolution: {integrity: sha512-5cfhQNH+1VQ2xLQlmzXMqUoiaH0lRBq9/CLW9lTyMbuKLC3+xEK01tHVvyut++mLOn5urSHmkm6I0Lg9MaJSTQ==}
@@ -2070,6 +2087,15 @@ packages:
   '@gerrit0/mini-shiki@1.27.2':
     resolution: {integrity: sha512-GeWyHz8ao2gBiUW4OJnQDxXQnFgZQwwQk05t/CVVgNBN7/rK8XZ7xY6YhLVv9tH3VppWWmr9DCl3MwemB/i+Og==}
 
+  '@grpc/grpc-js@1.13.4':
+    resolution: {integrity: sha512-GsFaMXCkMqkKIvwCQjCrwH+GHbPKBjhwo/8ZuUkWHqbI73Kky9I+pQltrlT0+MWpedCoosda53lgjYfyEPgxBg==}
+    engines: {node: '>=12.10.0'}
+
+  '@grpc/proto-loader@0.7.15':
+    resolution: {integrity: sha512-tMXdRCfYVixjuFK+Hk0Q1s38gV9zDiDJfWL3h1rv4Qc39oILCu1TRTDt7+fGUI8K4G1Fj125Hx/ru3azECWTyQ==}
+    engines: {node: '>=6'}
+    hasBin: true
+
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
 
@@ -2206,6 +2232,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
+
+  '@js-sdsl/ordered-map@4.4.2':
+    resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
@@ -2716,6 +2745,36 @@ packages:
 
   '@promptbook/utils@0.69.5':
     resolution: {integrity: sha512-xm5Ti/Hp3o4xHrsK9Yy3MS6KbDxYbq485hDsFvxqaNA7equHLPdo8H8faTitTeb14QCDfLW4iwCxdVYu5sn6YQ==}
+
+  '@protobufjs/aspromise@1.1.2':
+    resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
+
+  '@protobufjs/base64@1.1.2':
+    resolution: {integrity: sha512-AZkcAA5vnN/v4PDqKyMR5lx7hZttPDgClv83E//FMNhR2TMcLUhfRUBHCmSl0oi9zMgDDqRUJkSxO3wm85+XLg==}
+
+  '@protobufjs/codegen@2.0.4':
+    resolution: {integrity: sha512-YyFaikqM5sH0ziFZCN3xDC7zeGaB/d0IUb9CATugHWbd1FRFwWwt4ld4OYMPWu5a3Xe01mGAULCdqhMlPl29Jg==}
+
+  '@protobufjs/eventemitter@1.1.0':
+    resolution: {integrity: sha512-j9ednRT81vYJ9OfVuXG6ERSTdEL1xVsNgqpkxMsbIabzSo3goCjDIveeGv5d03om39ML71RdmrGNjG5SReBP/Q==}
+
+  '@protobufjs/fetch@1.1.0':
+    resolution: {integrity: sha512-lljVXpqXebpsijW71PZaCYeIcE5on1w5DlQy5WH6GLbFryLUrBD4932W/E2BSpfRJWseIL4v/KPgBFxDOIdKpQ==}
+
+  '@protobufjs/float@1.0.2':
+    resolution: {integrity: sha512-Ddb+kVXlXst9d+R9PfTIxh1EdNkgoRe5tOX6t01f1lYWOvJnSPDBlG241QLzcyPdoNTsblLUdujGSE4RzrTZGQ==}
+
+  '@protobufjs/inquire@1.1.0':
+    resolution: {integrity: sha512-kdSefcPdruJiFMVSbn801t4vFK7KB/5gd2fYvrxhuJYg8ILrmn9SKSX2tZdV6V+ksulWqS7aXjBcRXl3wHoD9Q==}
+
+  '@protobufjs/path@1.1.2':
+    resolution: {integrity: sha512-6JOcJ5Tm08dOHAbdR3GrvP+yUUfkjG5ePsHYczMFLq3ZmMkAD98cDgcT2iA1lJ9NVwFd4tH/iSSoe44YWkltEA==}
+
+  '@protobufjs/pool@1.1.0':
+    resolution: {integrity: sha512-0kELaGSIDBKvcgS4zkjz1PeddatrjYcmMWOlAuAPwAeccUrPHdUqo/J6LiymHHEiJT5NrF1UVwxY14f+fy4WQw==}
+
+  '@protobufjs/utf8@1.1.0':
+    resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
   '@puppeteer/browsers@1.9.1':
     resolution: {integrity: sha512-PuvK6xZzGhKPvlx3fpfdM2kYY3P/hB1URtK8wA7XUJ6prn6pp22zvJHu48th0SGcHL9SutbPHrFuQgfXTFobWA==}
@@ -3660,6 +3719,9 @@ packages:
     peerDependencies:
       vite: '>=6.0.0'
 
+  '@tanstack/form-core@1.14.0':
+    resolution: {integrity: sha512-uAOW3IxkT/Cmy8JlznK8S/LSpvtHjpUQi2wyuPqVfJ04y95WuV90SO+VKtb9TrNp51QLrrTFBR8tMEuzqp5wmA==}
+
   '@tanstack/history@1.121.34':
     resolution: {integrity: sha512-YL8dGi5ZU+xvtav2boRlw4zrRghkY6hvdcmHhA0RGSJ/CBgzv+cbADW9eYJLx74XMZvIQ1pp6VMbrpXnnM5gHA==}
     engines: {node: '>=12'}
@@ -3669,6 +3731,18 @@ packages:
 
   '@tanstack/query-devtools@5.76.0':
     resolution: {integrity: sha512-1p92nqOBPYVqVDU0Ua5nzHenC6EGZNrLnB2OZphYw8CNA1exuvI97FVgIKON7Uug3uQqvH/QY8suUKpQo8qHNQ==}
+
+  '@tanstack/react-form@1.14.1':
+    resolution: {integrity: sha512-Ioja3zcLZj082OdCH6pFNv15fD4UTfnJgKIXxY7Iumio8EcYLXSuxzanqNWewFvftshUFHknSEa7QtyOAkFs0Q==}
+    peerDependencies:
+      '@tanstack/react-start': ^1.112.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      vinxi: ^0.5.0
+    peerDependenciesMeta:
+      '@tanstack/react-start':
+        optional: true
+      vinxi:
+        optional: true
 
   '@tanstack/react-query-devtools@5.79.0':
     resolution: {integrity: sha512-YVRWxjxsWycWChjKxvaIAPdNC5LX0zpiHoNyTB8teDZpQstM1b7mCuAp3x60cjX1MhLoO3vbaeY29EKst4D4ug==}
@@ -5623,6 +5697,9 @@ packages:
   decimal.js@10.6.0:
     resolution: {integrity: sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg==}
 
+  decode-formdata@0.9.0:
+    resolution: {integrity: sha512-q5uwOjR3Um5YD+ZWPOF/1sGHVW9A5rCrRwITQChRXlmPkxDFBqCm4jNTIVdGHNH9OnR+V9MoZVgRhsFb+ARbUw==}
+
   decompress-response@6.0.0:
     resolution: {integrity: sha512-aW35yZM6Bb/4oJlZncMH2LCoZtJXTRxES17vE3hoRiowU2kWHaJKFkSBDnDR+cm9J+9QhXmREyIfv0pji9ejCQ==}
     engines: {node: '>=10'}
@@ -5745,6 +5822,9 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       typescript: ^5.4.4
+
+  devalue@5.1.1:
+    resolution: {integrity: sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw==}
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -7327,6 +7407,9 @@ packages:
   lodash-es@4.17.21:
     resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
 
+  lodash.camelcase@4.3.0:
+    resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
+
   lodash.castarray@4.4.0:
     resolution: {integrity: sha512-aVx8ztPv7/2ULbArGJ2Y42bG1mEQ5mGjpdvrbJcJFU3TbYybe+QlLS4pst9zV52ymy2in1KpFPiZnAOATxD4+Q==}
 
@@ -7387,6 +7470,9 @@ packages:
   loglevel@1.9.2:
     resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
     engines: {node: '>= 0.6.0'}
+
+  long@5.3.2:
+    resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
 
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
@@ -8365,6 +8451,10 @@ packages:
 
   prosemirror-view@1.39.3:
     resolution: {integrity: sha512-bY/7kg0LzRE7ytR0zRdSMWX3sknEjw68l836ffLPMh0OG3OYnNuBDUSF3v0vjvnzgYjgY9ZH/RypbARURlcMFA==}
+
+  protobufjs@7.5.3:
+    resolution: {integrity: sha512-sildjKwVqOI2kmFDiXQ6aEB0fjYTafpEvIBs8tOR8qI4spuL9OPROLVu2qZqi/xgCfsHIwVqlaF8JBjWFHnKbw==}
+    engines: {node: '>=12.0.0'}
 
   proxy-agent@6.3.1:
     resolution: {integrity: sha512-Rb5RVBy1iyqOtNl15Cw/llpeLH8bsb37gM1FUfKQ+Wck6xHlbAhWGUFiTRHtkjqGTA5pSHz6+0hrPW/oECihPQ==}
@@ -10616,6 +10706,8 @@ snapshots:
 
   '@better-fetch/fetch@1.1.18': {}
 
+  '@bufbuild/protobuf@2.6.0': {}
+
   '@bundled-es-modules/cookie@2.0.1':
     dependencies:
       cookie: 0.7.2
@@ -10628,6 +10720,16 @@ snapshots:
     dependencies:
       '@types/tough-cookie': 4.0.5
       tough-cookie: 4.1.4
+
+  '@cerbos/core@0.23.0':
+    dependencies:
+      uuid: 11.1.0
+
+  '@cerbos/grpc@0.22.1':
+    dependencies:
+      '@bufbuild/protobuf': 2.6.0
+      '@cerbos/core': 0.23.0
+      '@grpc/grpc-js': 1.13.4
 
   '@clack/core@0.3.5':
     dependencies:
@@ -11121,6 +11223,18 @@ snapshots:
       '@shikijs/types': 1.29.2
       '@shikijs/vscode-textmate': 10.0.2
 
+  '@grpc/grpc-js@1.13.4':
+    dependencies:
+      '@grpc/proto-loader': 0.7.15
+      '@js-sdsl/ordered-map': 4.4.2
+
+  '@grpc/proto-loader@0.7.15':
+    dependencies:
+      lodash.camelcase: 4.3.0
+      long: 5.3.2
+      protobufjs: 7.5.3
+      yargs: 17.7.2
+
   '@hexagon/base64@1.1.28': {}
 
   '@hey-api/client-fetch@0.10.2(@hey-api/openapi-ts@0.64.15(magicast@0.3.5)(typescript@5.8.3))':
@@ -11269,6 +11383,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
     optional: true
+
+  '@js-sdsl/ordered-map@4.4.2': {}
 
   '@jsdevtools/ono@7.1.3': {}
 
@@ -11935,6 +12051,29 @@ snapshots:
   '@promptbook/utils@0.69.5':
     dependencies:
       spacetrim: 0.11.59
+
+  '@protobufjs/aspromise@1.1.2': {}
+
+  '@protobufjs/base64@1.1.2': {}
+
+  '@protobufjs/codegen@2.0.4': {}
+
+  '@protobufjs/eventemitter@1.1.0': {}
+
+  '@protobufjs/fetch@1.1.0':
+    dependencies:
+      '@protobufjs/aspromise': 1.1.2
+      '@protobufjs/inquire': 1.1.0
+
+  '@protobufjs/float@1.0.2': {}
+
+  '@protobufjs/inquire@1.1.0': {}
+
+  '@protobufjs/path@1.1.2': {}
+
+  '@protobufjs/pool@1.1.0': {}
+
+  '@protobufjs/utf8@1.1.0': {}
 
   '@puppeteer/browsers@1.9.1':
     dependencies:
@@ -12926,11 +13065,27 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@tanstack/form-core@1.14.0':
+    dependencies:
+      '@tanstack/store': 0.7.2
+
   '@tanstack/history@1.121.34': {}
 
   '@tanstack/query-core@5.79.0': {}
 
   '@tanstack/query-devtools@5.76.0': {}
+
+  '@tanstack/react-form@1.14.1(@tanstack/react-start@1.125.6(@libsql/client@0.15.9)(@tanstack/react-router@1.125.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@vitejs/plugin-react@4.5.0(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(kysely@0.28.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@tanstack/form-core': 1.14.0
+      '@tanstack/react-store': 0.7.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      decode-formdata: 0.9.0
+      devalue: 5.1.1
+      react: 18.3.1
+    optionalDependencies:
+      '@tanstack/react-start': 1.125.6(@libsql/client@0.15.9)(@tanstack/react-router@1.125.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@vitejs/plugin-react@4.5.0(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(kysely@0.28.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0))
+    transitivePeerDependencies:
+      - react-dom
 
   '@tanstack/react-query-devtools@5.79.0(@tanstack/react-query@5.79.0(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -15420,6 +15575,8 @@ snapshots:
   decimal.js@10.6.0:
     optional: true
 
+  decode-formdata@0.9.0: {}
+
   decompress-response@6.0.0:
     dependencies:
       mimic-response: 3.1.0
@@ -15534,6 +15691,8 @@ snapshots:
       typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
+
+  devalue@5.1.1: {}
 
   devlop@1.1.0:
     dependencies:
@@ -17405,6 +17564,8 @@ snapshots:
 
   lodash-es@4.17.21: {}
 
+  lodash.camelcase@4.3.0: {}
+
   lodash.castarray@4.4.0: {}
 
   lodash.clonedeep@4.5.0: {}
@@ -17452,6 +17613,8 @@ snapshots:
   loglevel-plugin-prefix@0.8.4: {}
 
   loglevel@1.9.2: {}
+
+  long@5.3.2: {}
 
   loose-envify@1.4.0:
     dependencies:
@@ -18564,6 +18727,21 @@ snapshots:
       prosemirror-model: 1.25.1
       prosemirror-state: 1.4.3
       prosemirror-transform: 1.10.4
+
+  protobufjs@7.5.3:
+    dependencies:
+      '@protobufjs/aspromise': 1.1.2
+      '@protobufjs/base64': 1.1.2
+      '@protobufjs/codegen': 2.0.4
+      '@protobufjs/eventemitter': 1.1.0
+      '@protobufjs/fetch': 1.1.0
+      '@protobufjs/float': 1.0.2
+      '@protobufjs/inquire': 1.1.0
+      '@protobufjs/path': 1.1.2
+      '@protobufjs/pool': 1.1.0
+      '@protobufjs/utf8': 1.1.0
+      '@types/node': 22.16.2
+      long: 5.3.2
 
   proxy-agent@6.3.1:
     dependencies:

@@ -8,8 +8,6 @@ export const user = sqliteTable("user", {
   image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
-  username: text("username").unique(),
-  displayUsername: text("display_username"),
 });
 
 export const session = sqliteTable("session", {
@@ -46,4 +44,15 @@ export const verification = sqliteTable("verification", {
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => /* @__PURE__ */ new Date()),
+});
+
+export const ssoProvider = sqliteTable("sso_provider", {
+  id: text("id").primaryKey(),
+  issuer: text("issuer").notNull(),
+  oidcConfig: text("oidc_config"),
+  samlConfig: text("saml_config"),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+  providerId: text("provider_id").notNull().unique(),
+  organizationId: text("organization_id"),
+  domain: text("domain").notNull(),
 });

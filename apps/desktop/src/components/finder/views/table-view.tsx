@@ -2,6 +2,8 @@ import { format, isToday } from "date-fns";
 import { Archive, Calendar, ChevronDown, ChevronUp, FileText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
@@ -59,7 +61,7 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
 
       items.push({
         id: event.id,
-        title: event.title || "Untitled Event",
+        title: event.name || "Untitled Event",
         date: startDate,
         type: "event",
         original: event,
@@ -116,17 +118,38 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
   };
 
   // Handle row click
-  const handleRowClick = (item: TableItem) => {
+  const handleRowClick = async (item: TableItem) => {
     if (item.type === "session") {
-      // Navigate to session
-      window.location.href = `/app/transcript/${item.id}`;
-    } else if (item.type === "event") {
-      // Navigate to date on calendar view
-      onNavigate({
-        date: format(item.date, "yyyy-MM-dd"),
+      // Navigate to session note
+      const url = `/app/note/${item.id}`;
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, url);
       });
-      // Update the view to calendar
-      window.location.href = `/app/finder?view=calendar&date=${format(item.date, "yyyy-MM-dd")}`;
+    } else if (item.type === "event") {
+      // Check if there's an existing session for this event
+      try {
+        const session = await dbCommands.getSession({ calendarEventId: item.id });
+
+        if (session) {
+          // Navigate to existing session
+          const url = `/app/note/${session.id}`;
+          windowsCommands.windowShow({ type: "main" }).then(() => {
+            windowsCommands.windowEmitNavigate({ type: "main" }, url);
+          });
+        } else {
+          // Create new note with event ID
+          const url = `/app/new?calendarEventId=${item.id}`;
+          windowsCommands.windowShow({ type: "main" }).then(() => {
+            windowsCommands.windowEmitNavigate({ type: "main" }, url);
+          });
+        }
+      } catch (error) {
+        // If session lookup fails, create new note
+        const url = `/app/new?calendarEventId=${item.id}`;
+        windowsCommands.windowShow({ type: "main" }).then(() => {
+          windowsCommands.windowEmitNavigate({ type: "main" }, url);
+        });
+      }
     }
   };
 

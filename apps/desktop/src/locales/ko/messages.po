@@ -270,11 +270,11 @@ msgstr ""
 msgid "{category}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:147
+#: src/components/settings/views/lab.tsx:209
 msgid "{description}"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:144
+#: src/components/settings/views/lab.tsx:206
 msgid "{title}"
 msgstr ""
 
@@ -1031,15 +1031,15 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:114
+#: src/components/settings/views/lab.tsx:117
 msgid "Reset"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:100
+#: src/components/settings/views/lab.tsx:103
 msgid "Reset Onboarding"
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:114
+#: src/components/settings/views/lab.tsx:117
 msgid "Resetting..."
 msgstr ""
 
@@ -1129,6 +1129,10 @@ msgstr ""
 msgid "Share usage data"
 msgstr ""
 
+#: src/components/settings/views/lab.tsx:176
+msgid "Show"
+msgstr ""
+
 #: src/components/settings/views/notifications.tsx:135
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr ""
@@ -1137,8 +1141,20 @@ msgstr ""
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
-#: src/components/settings/views/lab.tsx:103
+#: src/components/settings/views/lab.tsx:162
+msgid "Show Survey"
+msgstr ""
+
+#: src/components/settings/views/lab.tsx:165
+msgid "Show the individualization survey again"
+msgstr ""
+
+#: src/components/settings/views/lab.tsx:106
 msgid "Show the welcome flow and setup validator again"
+msgstr ""
+
+#: src/components/settings/views/lab.tsx:176
+msgid "Showing..."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:53

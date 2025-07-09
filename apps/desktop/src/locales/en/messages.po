@@ -270,11 +270,11 @@ msgstr "{0} calendars selected"
 msgid "{category}"
 msgstr "{category}"
 
-#: src/components/settings/views/lab.tsx:147
+#: src/components/settings/views/lab.tsx:209
 msgid "{description}"
 msgstr "{description}"
 
-#: src/components/settings/views/lab.tsx:144
+#: src/components/settings/views/lab.tsx:206
 msgid "{title}"
 msgstr "{title}"
 
@@ -1031,15 +1031,15 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/settings/views/lab.tsx:114
+#: src/components/settings/views/lab.tsx:117
 msgid "Reset"
 msgstr "Reset"
 
-#: src/components/settings/views/lab.tsx:100
+#: src/components/settings/views/lab.tsx:103
 msgid "Reset Onboarding"
 msgstr "Reset Onboarding"
 
-#: src/components/settings/views/lab.tsx:114
+#: src/components/settings/views/lab.tsx:117
 msgid "Resetting..."
 msgstr "Resetting..."
 
@@ -1129,6 +1129,10 @@ msgstr "Settings"
 msgid "Share usage data"
 msgstr "Share usage data"
 
+#: src/components/settings/views/lab.tsx:176
+msgid "Show"
+msgstr "Show"
+
 #: src/components/settings/views/notifications.tsx:135
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr "Show notifications when you have meetings starting soon in your calendar."
@@ -1137,9 +1141,21 @@ msgstr "Show notifications when you have meetings starting soon in your calendar
 msgid "Show notifications when you join a meeting."
 msgstr "Show notifications when you join a meeting."
 
-#: src/components/settings/views/lab.tsx:103
+#: src/components/settings/views/lab.tsx:162
+msgid "Show Survey"
+msgstr "Show Survey"
+
+#: src/components/settings/views/lab.tsx:165
+msgid "Show the individualization survey again"
+msgstr "Show the individualization survey again"
+
+#: src/components/settings/views/lab.tsx:106
 msgid "Show the welcome flow and setup validator again"
 msgstr "Show the welcome flow and setup validator again"
+
+#: src/components/settings/views/lab.tsx:176
+msgid "Showing..."
+msgstr "Showing..."
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"

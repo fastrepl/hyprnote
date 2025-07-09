@@ -29,6 +29,8 @@ import { WelcomeView } from "./welcome-view";
 interface WelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  shouldShowSurvey?: boolean;
+  surveyOnly?: boolean;
 }
 
 type OnboardingStep =
@@ -51,7 +53,7 @@ type UserProfile = {
   howDidYouHear?: string;
 };
 
-export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
+export function WelcomeModal({ isOpen, onClose, shouldShowSurvey = true, surveyOnly = false }: WelcomeModalProps) {
   const navigate = useNavigate();
   const { userId } = useHypr();
   const [port, setPort] = useState<number | null>(null);
@@ -102,15 +104,19 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     if (isOpen) {
       commands.setOnboardingNeeded(false);
       sfxCommands.play("BGM");
-      setCurrentStep("welcome");
+      setCurrentStep(surveyOnly ? "survey-story" : "welcome");
       setUserProfile({});
     } else {
       sfxCommands.stop("BGM");
     }
-  }, [isOpen]);
+  }, [isOpen, surveyOnly]);
 
   const handleStartLocal = () => {
-    setCurrentStep("survey-story");
+    if (shouldShowSurvey) {
+      setCurrentStep("survey-story");
+    } else {
+      setCurrentStep("model-selection");
+    }
   };
 
   const handleModelSelected = (model: SupportedModel) => {
@@ -178,7 +184,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleSurveyThankYouContinue = () => {
-    setCurrentStep("model-selection");
+    if (surveyOnly) {
+      commands.setIndividualizationNeeded(false);
+      onClose();
+    } else {
+      setCurrentStep("model-selection");
+    }
   };
 
   const handlePermissionsComplete = () => {
@@ -200,13 +211,24 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         skipped_at: new Date().toISOString(),
       }),
     onError: (e) => console.error(e),
-    onSettled: () => setCurrentStep("model-selection"),
+    onSettled: () => {
+      if (surveyOnly) {
+        commands.setIndividualizationNeeded(false);
+        onClose();
+      } else {
+        setCurrentStep("model-selection");
+      }
+    },
   });
 
   const handleBack = () => {
     switch (currentStep) {
       case "survey-story":
-        setCurrentStep("welcome");
+        if (surveyOnly) {
+          onClose();
+        } else {
+          setCurrentStep("welcome");
+        }
         break;
       case "survey-industry":
         setCurrentStep("survey-story");
@@ -225,7 +247,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         }
         break;
       case "model-selection":
-        setCurrentStep("survey-thankyou");
+        if (shouldShowSurvey) {
+          setCurrentStep("survey-thankyou");
+        } else {
+          setCurrentStep("welcome");
+        }
         break;
       case "calendar-linking":
         setCurrentStep("model-selection");
@@ -247,9 +273,9 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     }
   };
 
-  const showBackButton = currentStep !== "welcome" && currentStep !== "survey-story"
+  const showBackButton = !surveyOnly && currentStep !== "welcome" && currentStep !== "survey-story"
     && currentStep !== "survey-thankyou";
-  const showCloseButton = currentStep !== "welcome" && currentStep !== "survey-story"
+  const showCloseButton = !surveyOnly && currentStep !== "welcome" && currentStep !== "survey-story"
     && currentStep !== "survey-thankyou";
 
   return (
@@ -258,7 +284,9 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       onClose={handleClose}
       size="full"
       className="bg-background"
-      preventClose={currentStep === "welcome" || currentStep === "survey-story" || currentStep === "survey-thankyou"}
+      preventClose={(!surveyOnly
+        && (currentStep === "welcome" || currentStep === "survey-story" || currentStep === "survey-thankyou"))
+        || (surveyOnly && (currentStep === "survey-story" || currentStep === "survey-thankyou"))}
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         {showBackButton && (

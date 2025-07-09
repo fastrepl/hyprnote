@@ -29,15 +29,30 @@ import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
 export const Route = createFileRoute("/app")({
   component: Component,
   loader: async ({ context: { sessionsStore, ongoingSessionStore } }) => {
+    const currentOpenCount = await commands.incrementAppOpenCount();
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
-    const isIndividualizationNeeded = await commands.isIndividualizationNeeded();
-    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded };
+    let isIndividualizationNeeded = await commands.isIndividualizationNeeded();
+
+    // Survey only shows on second opening
+    if (currentOpenCount === 2 && isIndividualizationNeeded) {
+      // Second opening: show only survey, onboarding should be complete
+      isIndividualizationNeeded = true;
+    } else if (currentOpenCount < 2) {
+      // First opening: no survey
+      isIndividualizationNeeded = false;
+    } else if (currentOpenCount > 2) {
+      // Third+ opening: no survey (should be completed)
+      isIndividualizationNeeded = false;
+    }
+
+    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded, currentOpenCount };
   },
 });
 
 function Component() {
   const router = useRouter();
-  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
+  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route
+    .useLoaderData();
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const isMain = windowLabel === "main";
@@ -79,6 +94,8 @@ function Component() {
                       </div>
                       <WelcomeModal
                         isOpen={shouldShowWelcomeModal}
+                        shouldShowSurvey={isIndividualizationNeeded}
+                        surveyOnly={!isOnboardingNeeded && isIndividualizationNeeded}
                         onClose={() => {
                           router.invalidate();
                         }}

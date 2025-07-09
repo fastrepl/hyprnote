@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CloudLightningIcon, RotateCcwIcon } from "lucide-react";
+import { ClipboardListIcon, CloudLightningIcon, RotateCcwIcon } from "lucide-react";
 
 import { commands } from "@/types";
 import { commands as flagsCommands } from "@hypr/plugin-flags";
@@ -18,7 +18,10 @@ export default function Lab() {
           <h3 className="text-sm font-medium mb-4 text-muted-foreground">
             <Trans>Debug</Trans>
           </h3>
-          <ResetOnboarding />
+          <div className="space-y-4">
+            <ResetOnboarding />
+            <ShowSurvey />
+          </div>
         </div>
       </div>
     </div>
@@ -112,6 +115,65 @@ function ResetOnboarding() {
             disabled={resetMutation.isPending}
           >
             {resetMutation.isPending ? <Trans>Resetting...</Trans> : <Trans>Reset</Trans>}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShowSurvey() {
+  const showSurveyMutation = useMutation({
+    mutationFn: async () => {
+      await commands.setIndividualizationNeeded(true);
+    },
+    onSuccess: async () => {
+      try {
+        // Close the settings window
+        const currentWindow = getCurrentWebviewWindow();
+        await currentWindow.close();
+
+        // Show the main window which should trigger survey
+        windowsCommands.windowShow({ type: "main" });
+      } catch (error) {
+        console.error("Failed to reload main window:", error);
+        // Fallback: just reload current window
+        window.location.reload();
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to show survey:", error);
+    },
+  });
+
+  const handleShow = () => {
+    showSurveyMutation.mutate();
+  };
+
+  return (
+    <div className="flex flex-col rounded-lg border p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-6 items-center justify-center">
+            <ClipboardListIcon className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-sm font-medium">
+              <Trans>Show Survey</Trans>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <Trans>Show the individualization survey again</Trans>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShow}
+            disabled={showSurveyMutation.isPending}
+          >
+            {showSurveyMutation.isPending ? <Trans>Showing...</Trans> : <Trans>Show</Trans>}
           </Button>
         </div>
       </div>

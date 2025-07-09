@@ -30,8 +30,34 @@ fn build_enhance_hypr_grammar(_s: &Option<Vec<String>>) -> String {
     .join("\n")
 }
 
-fn build_enhance_other_grammar(_s: &Option<Vec<String>>) -> String {
-    vec![
+fn build_known_sections_grammar(sections: &[String]) -> String {
+    let mut rules = vec![];
+
+    let mut root_parts = vec![];
+    for i in 0..sections.len() {
+        root_parts.push(format!("section{}", i));
+    }
+
+    let root_rule = format!("root ::= {}", root_parts.join(" "));
+    rules.push(root_rule);
+
+    for (i, section) in sections.iter().enumerate() {
+        let section_rule = format!(
+            r##"section{} ::= "# {}\n\n" bline bline bline? bline? bline? "\n""##,
+            i, section
+        );
+        rules.push(section_rule);
+    }
+
+    rules
+        .push(r##"bline ::= "- **" [A-Z] [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n""##.to_string());
+    rules.push(r##"link ::= "[" [^\]]+ "]" "(" [^)]+ ")""##.to_string());
+
+    rules.join("\n")
+}
+
+fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
+    let auto = vec![
         r##"root ::= thinking sectionf section section section? section?"##,
         r##"sectionf ::= "# Objective\n\n" line line? line? "\n""##,
         r##"section ::= header "\n\n" bline bline bline? bline? bline? "\n""##,
@@ -43,7 +69,13 @@ fn build_enhance_other_grammar(_s: &Option<Vec<String>>) -> String {
         r##"thinking ::= "<thinking>\n" hsf hd hd? hd? hd? "</thinking>""##,
         r##"link ::= "[" [^\]]+ "]" "(" [^)]+ ")""##,
     ]
-    .join("\n")
+    .join("\n");
+
+    match s {
+        None => auto,
+        Some(v) if v.is_empty() => auto,
+        Some(v) => build_known_sections_grammar(v),
+    }
 }
 
 fn build_title_grammar() -> String {

@@ -33,7 +33,7 @@
     "**/generated/**",
     "**/permissions/**",
     "**/*.swift",
-    "**/drizzle/**"
+    "**/migrations/**"
   ],
   "exec": {
     "cwd": "${configDir}",

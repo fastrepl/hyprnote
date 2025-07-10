@@ -280,7 +280,7 @@ export function FloatingButton({
               onClick={() => handleTemplateSelect("auto")}
             >
               <span className="text-sm">⚡</span>
-              <span className="truncate">Hyprnote Default</span>
+              <span className="truncate">No Template (Default)</span>
             </div>
 
             {/* Show separator and custom templates only if custom templates exist */}

@@ -3,6 +3,10 @@ name = "gbnf"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
+
 [dev-dependencies]
 gbnf-validator = { workspace = true }
 

@@ -3615,7 +3615,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.52"
+version = "0.0.54"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4634,6 +4634,8 @@ dependencies = [
  "gbnf-validator",
  "indoc",
  "insta",
+ "serde",
+ "specta",
 ]
 
 [[package]]
@@ -7499,6 +7501,16 @@ dependencies = [
  "bitflags 2.9.1",
  "serde",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "keygen"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.15",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]
@@ -14365,6 +14377,7 @@ dependencies = [
 name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
+ "gbnf",
  "insta",
  "serde_json",
  "specta",

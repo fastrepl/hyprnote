@@ -15,7 +15,9 @@ insta = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]
+hypr-gbnf = { workspace = true }
 hypr-template = { workspace = true }
+
 serde_json = { workspace = true }
 tracing = { workspace = true }
 

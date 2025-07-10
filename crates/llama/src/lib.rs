@@ -391,7 +391,7 @@ mod tests {
         let llama = get_model();
 
         let request = LlamaRequest {
-            grammar: Some(hypr_gbnf::GBNF::EnhanceOther.build()),
+            grammar: Some(hypr_gbnf::Grammar::Enhance { sections: None }.build()),
             messages: vec![
                 LlamaChatMessage::new(
                     "system".into(),

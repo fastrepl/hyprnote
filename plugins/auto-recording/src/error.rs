@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri_plugin_store2::StoreKey as StoreKeyTrait;
+use tauri_plugin_store2::ScopedStoreKey;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -22,7 +22,7 @@ impl serde::Serialize for Error {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, specta::Type)]
 pub enum StoreKey {
     AutoRecordingEnabled,
     AutoRecordOnScheduled,
@@ -34,17 +34,19 @@ pub enum StoreKey {
     DetectionConfidenceThreshold,
 }
 
-impl StoreKeyTrait for StoreKey {
-    fn key(&self) -> &'static str {
+impl std::fmt::Display for StoreKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StoreKey::AutoRecordingEnabled => "auto_recording_enabled",
-            StoreKey::AutoRecordOnScheduled => "auto_record_on_scheduled",
-            StoreKey::AutoRecordOnAdHoc => "auto_record_on_ad_hoc",
-            StoreKey::NotifyBeforeMeeting => "notify_before_meeting",
-            StoreKey::RequireWindowFocus => "require_window_focus",
-            StoreKey::MinutesBeforeNotification => "minutes_before_notification",
-            StoreKey::AutoStopOnMeetingEnd => "auto_stop_on_meeting_end",
-            StoreKey::DetectionConfidenceThreshold => "detection_confidence_threshold",
+            StoreKey::AutoRecordingEnabled => write!(f, "auto_recording_enabled"),
+            StoreKey::AutoRecordOnScheduled => write!(f, "auto_record_on_scheduled"),
+            StoreKey::AutoRecordOnAdHoc => write!(f, "auto_record_on_ad_hoc"),
+            StoreKey::NotifyBeforeMeeting => write!(f, "notify_before_meeting"),
+            StoreKey::RequireWindowFocus => write!(f, "require_window_focus"),
+            StoreKey::MinutesBeforeNotification => write!(f, "minutes_before_notification"),
+            StoreKey::AutoStopOnMeetingEnd => write!(f, "auto_stop_on_meeting_end"),
+            StoreKey::DetectionConfidenceThreshold => write!(f, "detection_confidence_threshold"),
         }
     }
 }
+
+impl ScopedStoreKey for StoreKey {}

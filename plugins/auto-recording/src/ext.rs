@@ -52,6 +52,11 @@ pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
         &self,
         meeting_id: String,
     ) -> impl Future<Output = Result<(), Error>>;
+    
+    fn is_meeting_window_focused(
+        &self,
+        meeting_id: &str,
+    ) -> impl Future<Output = Result<bool, Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
@@ -202,14 +207,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     async fn start_auto_recording_monitor(&self) -> Result<(), Error> {
-        let state = self.state::<crate::SharedState>();
-        let mut guard = state
-            .lock()
-            .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
-
-        if guard.detector.is_some() {
-            return Ok(());
-        }
+        let state = self.state::<crate::ManagedState>();
+        
+        // Check if detector already exists
+        {
+            let guard = state
+                .lock()
+                .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
+            if guard.detector.is_some() {
+                return Ok(());
+            }
+        } // guard is dropped here
 
         let mut detector = hypr_meeting_detector::MeetingDetector::new();
 
@@ -251,13 +259,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
             .await
             .map_err(Error::Detection)?;
 
-        guard.detector = Some(detector);
+        // Store the detector
+        {
+            let mut guard = state
+                .lock()
+                .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
+            guard.detector = Some(detector);
+        } // guard is dropped here
+        
         Ok(())
     }
 
     #[tracing::instrument(skip(self))]
     fn stop_auto_recording_monitor(&self) -> Result<(), Error> {
-        let state = self.state::<crate::SharedState>();
+        let state = self.state::<crate::ManagedState>();
         let mut guard = state
             .lock()
             .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
@@ -290,24 +305,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
             }
         }
 
-        if let Err(e) = self.listener_start_session(meeting_id.clone()).await {
-            tracing::error!(
-                "Failed to start recording session for meeting {}: {}",
-                meeting_id,
-                e
-            );
-
-            let notification = hypr_notification2::Notification {
-                title: "Auto-recording failed".to_string(),
-                message: "Could not start recording automatically. Please start manually."
-                    .to_string(),
-                url: Some("hypr://app/new?record=true".to_string()),
-                timeout: Some(std::time::Duration::from_secs(10)),
-            };
-            hypr_notification2::show(notification);
-
-            return Err(Error::Detection(e.into()));
-        }
+        self.start_session(meeting_id.clone()).await;
 
         tracing::info!("Auto-started recording for meeting: {}", meeting_id);
         Ok(())
@@ -346,8 +344,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 .output()
                 .map_err(|e| Error::Io(e))?;
 
-            let result = String::from_utf8_lossy(&output.stdout).trim();
-            Ok(result == "true")
+            let result = String::from_utf8_lossy(&output.stdout);
+            Ok(result.trim() == "true")
         }
 
         #[cfg(not(target_os = "macos"))]
@@ -361,15 +359,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     async fn stop_recording_for_meeting(&self, meeting_id: String) -> Result<(), Error> {
         use tauri_plugin_listener::ListenerPluginExt;
 
-        if let Err(e) = self.listener_stop_session().await {
-            tracing::warn!(
-                "Failed to stop recording session for meeting {}: {}",
-                meeting_id,
-                e
-            );
-        } else {
-            tracing::info!("Auto-stopped recording for meeting: {}", meeting_id);
-        }
+        self.stop_session().await;
+        tracing::info!("Auto-stopped recording for meeting: {}", meeting_id);
 
         Ok(())
     }

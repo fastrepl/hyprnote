@@ -11,6 +11,7 @@ interface AutoRecordingSettings {
   notifyBeforeMeeting: boolean;
   requireWindowFocus: boolean;
   minutesBeforeNotification: number;
+  autoStopOnMeetingEnd: boolean;
 }
 
 interface MeetingDetected {
@@ -32,6 +33,7 @@ export const AutoRecordingSettings: React.FC = () => {
     notifyBeforeMeeting: true,
     requireWindowFocus: false,
     minutesBeforeNotification: 5,
+    autoStopOnMeetingEnd: true,
   });
 
   const [activeMeetings, setActiveMeetings] = useState<MeetingDetected[]>([]);
@@ -58,6 +60,7 @@ export const AutoRecordingSettings: React.FC = () => {
         notifyBeforeMeeting,
         requireWindowFocus,
         minutesBeforeNotification,
+        autoStopOnMeetingEnd,
       ] = await Promise.all([
         invoke<boolean>("plugin:auto-recording|get_auto_recording_enabled"),
         invoke<boolean>("plugin:auto-recording|get_auto_record_on_scheduled"),
@@ -65,6 +68,7 @@ export const AutoRecordingSettings: React.FC = () => {
         invoke<boolean>("plugin:auto-recording|get_notify_before_meeting"),
         invoke<boolean>("plugin:auto-recording|get_require_window_focus"),
         invoke<number>("plugin:auto-recording|get_minutes_before_notification"),
+        invoke<boolean>("plugin:auto-recording|get_auto_stop_on_meeting_end"),
       ]);
 
       setSettings({
@@ -74,6 +78,7 @@ export const AutoRecordingSettings: React.FC = () => {
         notifyBeforeMeeting,
         requireWindowFocus,
         minutesBeforeNotification,
+        autoStopOnMeetingEnd,
       });
     } catch (error) {
       console.error("Failed to load auto-recording settings:", error);
@@ -103,6 +108,7 @@ export const AutoRecordingSettings: React.FC = () => {
         notifyBeforeMeeting: "set_notify_before_meeting",
         requireWindowFocus: "set_require_window_focus",
         minutesBeforeNotification: "set_minutes_before_notification",
+        autoStopOnMeetingEnd: "set_auto_stop_on_meeting_end",
       };
 
       const params = key === "minutesBeforeNotification"
@@ -241,6 +247,27 @@ export const AutoRecordingSettings: React.FC = () => {
                   className="sr-only peer"
                   checked={settings.requireWindowFocus}
                   onChange={(e) => updateSetting("requireWindowFocus", e.target.checked)}
+                />
+                <div className={TOGGLE_SWITCH_STYLES}>
+                </div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-900 dark:text-white">
+                  Auto-Stop Recording
+                </label>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Automatically stop recording when meetings end
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={settings.autoStopOnMeetingEnd}
+                  onChange={(e) => updateSetting("autoStopOnMeetingEnd", e.target.checked)}
                 />
                 <div className={TOGGLE_SWITCH_STYLES}>
                 </div>

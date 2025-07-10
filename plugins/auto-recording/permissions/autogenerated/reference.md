@@ -114,6 +114,58 @@ Denies the get_auto_recording_enabled command without any pre-configured scope.
 <tr>
 <td>
 
+`auto-recording:allow-get-auto-stop-on-meeting-end`
+
+</td>
+<td>
+
+Enables the get_auto_stop_on_meeting_end command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:deny-get-auto-stop-on-meeting-end`
+
+</td>
+<td>
+
+Denies the get_auto_stop_on_meeting_end command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:allow-get-detection-confidence-threshold`
+
+</td>
+<td>
+
+Enables the get_detection_confidence_threshold command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:deny-get-detection-confidence-threshold`
+
+</td>
+<td>
+
+Denies the get_detection_confidence_threshold command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `auto-recording:allow-get-minutes-before-notification`
 
 </td>
@@ -263,6 +315,58 @@ Enables the set_auto_recording_enabled command without any pre-configured scope.
 <td>
 
 Denies the set_auto_recording_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:allow-set-auto-stop-on-meeting-end`
+
+</td>
+<td>
+
+Enables the set_auto_stop_on_meeting_end command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:deny-set-auto-stop-on-meeting-end`
+
+</td>
+<td>
+
+Denies the set_auto_stop_on_meeting_end command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:allow-set-detection-confidence-threshold`
+
+</td>
+<td>
+
+Enables the set_detection_confidence_threshold command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`auto-recording:deny-set-detection-confidence-threshold`
+
+</td>
+<td>
+
+Denies the set_detection_confidence_threshold command without any pre-configured scope.
 
 </td>
 </tr>

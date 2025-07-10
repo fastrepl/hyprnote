@@ -52,12 +52,13 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .setup(|app, _api| {
             app.manage(ManagedState::default());
 
+            let app_handle = app.app_handle().clone();
             tauri::async_runtime::spawn(async move {
                 // Wait for app initialization to complete before starting auto-recording monitor
                 tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
-                if app.get_auto_recording_enabled().unwrap_or(false) {
-                    if let Err(e) = app.start_auto_recording_monitor().await {
+                if app_handle.get_auto_recording_enabled().unwrap_or(false) {
+                    if let Err(e) = app_handle.start_auto_recording_monitor().await {
                         tracing::error!("Failed to start auto-recording monitor on startup: {}", e);
                     }
                 }
@@ -175,7 +176,7 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
 }
 
 pub async fn get_upcoming_meetings(
-    db: &hypr_db_user::Db,
+    db: &hypr_db_user::UserDatabase,
     user_id: &str,
 ) -> Result<Vec<hypr_meeting_detector::ScheduledMeeting>, Error> {
     use chrono::{Duration, Utc};
@@ -183,13 +184,23 @@ pub async fn get_upcoming_meetings(
     let now = Utc::now();
     let end_time = now + Duration::hours(24);
 
-    let events = db
-        .list_events_between(user_id, now, end_time, Some(100))
-        .await?;
+    let filter = hypr_db_user::ListEventFilter {
+        common: hypr_db_user::ListEventFilterCommon {
+            user_id: user_id.to_string(),
+            limit: Some(100),
+        },
+        specific: hypr_db_user::ListEventFilterSpecific::DateRange {
+            start: now,
+            end: end_time,
+        },
+    };
+    let events = db.list_events(Some(filter)).await?;
 
     let mut meetings = Vec::new();
     for event in events {
-        let participants = event.participants.into_iter().map(|p| p.name).collect();
+        // Note: Event participants are stored separately in session_participants table
+        // For now, using empty list until we implement participant fetching
+        let participants: Vec<String> = Vec::new();
 
         meetings.push(hypr_meeting_detector::ScheduledMeeting {
             id: event.id,

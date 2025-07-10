@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-auto-stop-on-meeting-end"
+description = "Enables the set_auto_stop_on_meeting_end command without any pre-configured scope."
+commands.allow = ["set_auto_stop_on_meeting_end"]
+
+[[permission]]
+identifier = "deny-set-auto-stop-on-meeting-end"
+description = "Denies the set_auto_stop_on_meeting_end command without any pre-configured scope."
+commands.deny = ["set_auto_stop_on_meeting_end"]

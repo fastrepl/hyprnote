@@ -343,6 +343,30 @@
           "markdownDescription": "Denies the get_auto_recording_enabled command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_auto_stop_on_meeting_end command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-auto-stop-on-meeting-end",
+          "markdownDescription": "Enables the get_auto_stop_on_meeting_end command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_auto_stop_on_meeting_end command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-auto-stop-on-meeting-end",
+          "markdownDescription": "Denies the get_auto_stop_on_meeting_end command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_detection_confidence_threshold command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-detection-confidence-threshold",
+          "markdownDescription": "Enables the get_detection_confidence_threshold command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_detection_confidence_threshold command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-detection-confidence-threshold",
+          "markdownDescription": "Denies the get_detection_confidence_threshold command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_minutes_before_notification command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-minutes-before-notification",
@@ -413,6 +437,30 @@
           "type": "string",
           "const": "deny-set-auto-recording-enabled",
           "markdownDescription": "Denies the set_auto_recording_enabled command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_auto_stop_on_meeting_end command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-auto-stop-on-meeting-end",
+          "markdownDescription": "Enables the set_auto_stop_on_meeting_end command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_auto_stop_on_meeting_end command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-auto-stop-on-meeting-end",
+          "markdownDescription": "Denies the set_auto_stop_on_meeting_end command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_detection_confidence_threshold command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-detection-confidence-threshold",
+          "markdownDescription": "Enables the set_detection_confidence_threshold command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_detection_confidence_threshold command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-detection-confidence-threshold",
+          "markdownDescription": "Denies the set_detection_confidence_threshold command without any pre-configured scope."
         },
         {
           "description": "Enables the set_minutes_before_notification command without any pre-configured scope.",

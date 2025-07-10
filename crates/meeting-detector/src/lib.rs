@@ -1,17 +1,18 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use specta::Type;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct MeetingApp {
     pub name: String,
     pub bundle_id: String,
     pub window_patterns: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct MeetingDetected {
     pub app: MeetingApp,
     pub window_title: Option<String>,
@@ -19,7 +20,7 @@ pub struct MeetingDetected {
     pub confidence: f32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct ScheduledMeeting {
     pub id: String,
     pub title: String,

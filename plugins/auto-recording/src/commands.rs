@@ -169,7 +169,7 @@ pub(crate) fn stop_auto_recording_monitor<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_active_meetings<R: tauri::Runtime>(
+pub(crate) fn get_active_meetings<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<hypr_meeting_detector::MeetingDetected>, String> {
     let state = app.state::<crate::ManagedState>();

@@ -22,25 +22,25 @@ type ManagedState = Mutex<SharedState>;
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new().commands(tauri_specta::collect_commands![
-        commands::get_auto_recording_enabled,
-        commands::set_auto_recording_enabled,
-        commands::get_auto_record_on_scheduled,
-        commands::set_auto_record_on_scheduled,
-        commands::get_auto_record_on_ad_hoc,
-        commands::set_auto_record_on_ad_hoc,
-        commands::get_notify_before_meeting,
-        commands::set_notify_before_meeting,
-        commands::get_require_window_focus,
-        commands::set_require_window_focus,
-        commands::get_minutes_before_notification,
-        commands::set_minutes_before_notification,
-        commands::get_auto_stop_on_meeting_end,
-        commands::set_auto_stop_on_meeting_end,
-        commands::get_detection_confidence_threshold,
-        commands::set_detection_confidence_threshold,
-        commands::start_auto_recording_monitor,
-        commands::stop_auto_recording_monitor,
-        commands::get_active_meetings,
+        commands::get_auto_recording_enabled<tauri::Wry>,
+        commands::set_auto_recording_enabled<tauri::Wry>,
+        commands::get_auto_record_on_scheduled<tauri::Wry>,
+        commands::set_auto_record_on_scheduled<tauri::Wry>,
+        commands::get_auto_record_on_ad_hoc<tauri::Wry>,
+        commands::set_auto_record_on_ad_hoc<tauri::Wry>,
+        commands::get_notify_before_meeting<tauri::Wry>,
+        commands::set_notify_before_meeting<tauri::Wry>,
+        commands::get_require_window_focus<tauri::Wry>,
+        commands::set_require_window_focus<tauri::Wry>,
+        commands::get_minutes_before_notification<tauri::Wry>,
+        commands::set_minutes_before_notification<tauri::Wry>,
+        commands::get_auto_stop_on_meeting_end<tauri::Wry>,
+        commands::set_auto_stop_on_meeting_end<tauri::Wry>,
+        commands::get_detection_confidence_threshold<tauri::Wry>,
+        commands::set_detection_confidence_threshold<tauri::Wry>,
+        commands::start_auto_recording_monitor<tauri::Wry>,
+        commands::stop_auto_recording_monitor<tauri::Wry>,
+        commands::get_active_meetings<tauri::Wry>,
     ])
 }
 
@@ -71,7 +71,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 
 #[cfg(debug_assertions)]
 pub fn export_types() -> tauri_specta::Builder<tauri::Wry> {
-    make_specta_builder()
+    make_specta_builder::<tauri::Wry>()
 }
 
 pub async fn handle_meeting_event<R: tauri::Runtime>(

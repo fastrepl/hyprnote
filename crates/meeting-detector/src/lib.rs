@@ -121,6 +121,19 @@ pub struct MeetingDetector {
     started_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
 }
 
+impl Clone for MeetingDetector {
+    fn clone(&self) -> Self {
+        Self {
+            active_meetings: Arc::clone(&self.active_meetings),
+            scheduled_meetings: Arc::clone(&self.scheduled_meetings),
+            callbacks: Arc::clone(&self.callbacks),
+            stop_signal: self.stop_signal.clone(),
+            notified_meetings: Arc::clone(&self.notified_meetings),
+            started_meetings: Arc::clone(&self.started_meetings),
+        }
+    }
+}
+
 impl Default for MeetingDetector {
     fn default() -> Self {
         Self::new()

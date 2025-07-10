@@ -169,33 +169,22 @@ pub(crate) fn stop_auto_recording_monitor<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) fn get_active_meetings<R: tauri::Runtime>(
+pub(crate) async fn get_active_meetings<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<hypr_meeting_detector::MeetingDetected>, String> {
     let state = app.state::<crate::ManagedState>();
 
-    // Check if detector exists and get a reference to it
-    let has_detector = {
+    // Get detector to call async method
+    let detector = {
         let guard = state
             .lock()
             .map_err(|_| "Failed to lock shared state".to_string())?;
-        guard.detector.is_some()
+        guard.detector.clone()
     }; // guard is dropped here
 
-    if has_detector {
-        // Get detector again to call async method
-        let guard = state
-            .lock()
-            .map_err(|_| "Failed to lock shared state".to_string())?;
-        if let Some(_detector) = &guard.detector {
-            // Clone or take what we need before the await
-            // For now, return empty vec since we can't easily work around this
-            drop(guard); // explicitly drop guard
-                         // TODO: Refactor MeetingDetector to not require holding guard across await
-            Ok(Vec::new())
-        } else {
-            Ok(Vec::new())
-        }
+    if let Some(detector) = detector {
+        let meetings = detector.get_active_meetings().await;
+        Ok(meetings)
     } else {
         Ok(Vec::new())
     }

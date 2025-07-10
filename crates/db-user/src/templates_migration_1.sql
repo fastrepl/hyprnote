@@ -6,7 +6,7 @@ VALUES
 (
     'default-meeting-notes',
     'placeholder',
-    '📝 Meeting Notes',
+    '📝 General Meeting',
     'Comprehensive template for meeting notes with agenda, discussion points, and action items',
     '[
         {"title": "Meeting Details", "description": "Date, time, attendees, and meeting purpose"},
@@ -20,7 +20,7 @@ VALUES
 (
     'default-standup',
     'placeholder', 
-    '🚀 Daily Standup',
+    '🌞 Daily Standup',
     'Template for daily standup meetings with progress updates and blockers',
     '[
         {"title": "Yesterday", "description": "What was accomplished yesterday"},
@@ -138,7 +138,7 @@ VALUES
 (
     'default-client-meeting-legal',
     'placeholder',
-    '⚖️ Client Meeting (Legal)',
+    '🏛️ Client Meeting (Legal)',
     'Template for legal client meetings and case discussions',
     '[
         {"title": "Client Details", "description": "Name, contact info, and case reference"},

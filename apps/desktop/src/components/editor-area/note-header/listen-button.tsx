@@ -336,15 +336,20 @@ function RecordingControls({
           <SelectTrigger className="w-full text-sm">
             <SelectValue placeholder="Select template..." />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-44 overflow-y-auto w-[var(--radix-select-trigger-width)]">
             <SelectItem value="auto">
               <Trans>No Template (Default)</Trans>
             </SelectItem>
-            {templatesQuery.data?.map((template) => (
-              <SelectItem key={template.id} value={template.id}>
-                {template.title || "Untitled"}
-              </SelectItem>
-            ))}
+            {templatesQuery.data?.map((template) => {
+              const title = template.title || "Untitled";
+              const truncatedTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
+              
+              return (
+                <SelectItem key={template.id} value={template.id} className="whitespace-nowrap">
+                  {truncatedTitle}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

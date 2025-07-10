@@ -199,7 +199,7 @@ impl MeetingDetector {
 
         for meeting_app in &known_apps {
             if Self::is_app_running(&meeting_app.bundle_id) {
-                let window_title = Self::get_active_window_title(&meeting_app.bundle_id);
+                let window_title = Self::get_active_window_title(&meeting_app.bundle_id).await;
                 let confidence = Self::calculate_meeting_confidence(&meeting_app, &window_title);
 
                 // Use a reasonable minimum threshold for detection (0.5)
@@ -264,44 +264,48 @@ impl MeetingDetector {
     }
 
     #[cfg(target_os = "macos")]
-    fn get_active_window_title(bundle_id: &str) -> Option<String> {
-        use std::process::Command;
+    async fn get_active_window_title(bundle_id: &str) -> Option<String> {
+        let bundle_id = bundle_id.to_string();
 
-        let script = format!(
-            r#"
-            tell application "System Events"
-                set appName to name of application process whose bundle identifier is "{}"
-                if exists appName then
-                    try
-                        set frontmostApp to name of first application process whose frontmost is true
-                        if frontmostApp = appName then
-                            return name of front window of application process appName
-                        else
-                            return name of front window of application process appName
-                        end if
-                    on error
+        tokio::task::spawn_blocking(move || {
+            use std::process::Command;
+
+            let script = format!(
+                r#"
+                tell application "System Events"
+                    set appName to name of application process whose bundle identifier is "{}"
+                    if exists appName then
+                        try
+                            set frontmostApp to name of first application process whose frontmost is true
+                            if frontmostApp = appName then
+                                return name of front window of application process appName
+                            else
+                                return name of front window of application process appName
+                            end if
+                        on error
+                            return ""
+                        end try
+                    else
                         return ""
-                    end try
-                else
-                    return ""
-                end if
-            end tell
-            "#,
-            bundle_id
-        );
+                    end if
+                end tell
+                "#,
+                bundle_id
+            );
 
-        let output = Command::new("osascript").arg("-e").arg(&script).output();
+            let output = Command::new("osascript").arg("-e").arg(&script).output();
 
-        if let Ok(output) = output {
-            let title = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !title.is_empty() && title != "missing value" {
-                Some(title)
+            if let Ok(output) = output {
+                let title = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !title.is_empty() && title != "missing value" {
+                    Some(title)
+                } else {
+                    None
+                }
             } else {
                 None
             }
-        } else {
-            None
-        }
+        }).await.unwrap_or(None)
     }
 
     fn calculate_meeting_confidence(app: &MeetingApp, window_title: &Option<String>) -> f32 {

@@ -53,6 +53,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             app.manage(ManagedState::default());
 
             tauri::async_runtime::spawn(async move {
+                // Wait for app initialization to complete before starting auto-recording monitor
                 tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
                 if app.get_auto_recording_enabled().unwrap_or(false) {
@@ -113,8 +114,8 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
                 };
                 hypr_notification2::show(notification);
 
-                // Brief delay to show notification before auto-starting
-                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                // Give users time to react to the notification (5 seconds)
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             }
 
             app.trigger_recording_for_meeting(meeting.app.bundle_id)

@@ -1,6 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import React, { useEffect, useState } from "react";
 
+const TOGGLE_SWITCH_STYLES =
+  "w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600";
+
 interface AutoRecordingSettings {
   autoRecordingEnabled: boolean;
   autoRecordOnScheduled: boolean;
@@ -37,7 +40,12 @@ export const AutoRecordingSettings: React.FC = () => {
   useEffect(() => {
     loadSettings();
     loadActiveMeetings();
-    const interval = setInterval(loadActiveMeetings, 5000);
+    const POLLING_INTERVAL = 10000; // 10 seconds
+    const interval = setInterval(() => {
+      loadActiveMeetings().catch(error => {
+        console.error("Polling failed:", error);
+      });
+    }, POLLING_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
@@ -97,9 +105,10 @@ export const AutoRecordingSettings: React.FC = () => {
         minutesBeforeNotification: "set_minutes_before_notification",
       };
 
-      await invoke(`plugin:auto-recording|${commandMap[key]}`, {
-        [key === "minutesBeforeNotification" ? "minutes" : "enabled"]: value,
-      });
+      const params = key === "minutesBeforeNotification"
+        ? { minutes: value }
+        : { enabled: value };
+      await invoke(`plugin:auto-recording|${commandMap[key]}`, params);
 
       setSettings(prev => ({ ...prev, [key]: value }));
 
@@ -147,7 +156,7 @@ export const AutoRecordingSettings: React.FC = () => {
               checked={settings.autoRecordingEnabled}
               onChange={(e) => updateSetting("autoRecordingEnabled", e.target.checked)}
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+            <div className={TOGGLE_SWITCH_STYLES}>
             </div>
           </label>
         </div>
@@ -170,7 +179,7 @@ export const AutoRecordingSettings: React.FC = () => {
                   checked={settings.autoRecordOnScheduled}
                   onChange={(e) => updateSetting("autoRecordOnScheduled", e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                <div className={TOGGLE_SWITCH_STYLES}>
                 </div>
               </label>
             </div>
@@ -191,7 +200,7 @@ export const AutoRecordingSettings: React.FC = () => {
                   checked={settings.autoRecordOnAdHoc}
                   onChange={(e) => updateSetting("autoRecordOnAdHoc", e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                <div className={TOGGLE_SWITCH_STYLES}>
                 </div>
               </label>
             </div>
@@ -212,7 +221,7 @@ export const AutoRecordingSettings: React.FC = () => {
                   checked={settings.notifyBeforeMeeting}
                   onChange={(e) => updateSetting("notifyBeforeMeeting", e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                <div className={TOGGLE_SWITCH_STYLES}>
                 </div>
               </label>
             </div>
@@ -233,7 +242,7 @@ export const AutoRecordingSettings: React.FC = () => {
                   checked={settings.requireWindowFocus}
                   onChange={(e) => updateSetting("requireWindowFocus", e.target.checked)}
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                <div className={TOGGLE_SWITCH_STYLES}>
                 </div>
               </label>
             </div>

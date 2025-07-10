@@ -3,7 +3,7 @@ use crate::ext::AutoRecordingPluginExt;
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_auto_recording_enabled<R: tauri::Runtime>(
+pub(crate) fn get_auto_recording_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_auto_recording_enabled().map_err(|e| e.to_string())
@@ -11,7 +11,7 @@ pub(crate) async fn get_auto_recording_enabled<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_auto_recording_enabled<R: tauri::Runtime>(
+pub(crate) fn set_auto_recording_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -21,7 +21,7 @@ pub(crate) async fn set_auto_recording_enabled<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_auto_record_on_scheduled<R: tauri::Runtime>(
+pub(crate) fn get_auto_record_on_scheduled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_auto_record_on_scheduled()
@@ -30,7 +30,7 @@ pub(crate) async fn get_auto_record_on_scheduled<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_auto_record_on_scheduled<R: tauri::Runtime>(
+pub(crate) fn set_auto_record_on_scheduled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -40,7 +40,7 @@ pub(crate) async fn set_auto_record_on_scheduled<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_auto_record_on_ad_hoc<R: tauri::Runtime>(
+pub(crate) fn get_auto_record_on_ad_hoc<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_auto_record_on_ad_hoc().map_err(|e| e.to_string())
@@ -48,7 +48,7 @@ pub(crate) async fn get_auto_record_on_ad_hoc<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_auto_record_on_ad_hoc<R: tauri::Runtime>(
+pub(crate) fn set_auto_record_on_ad_hoc<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -58,7 +58,7 @@ pub(crate) async fn set_auto_record_on_ad_hoc<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_notify_before_meeting<R: tauri::Runtime>(
+pub(crate) fn get_notify_before_meeting<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_notify_before_meeting().map_err(|e| e.to_string())
@@ -66,7 +66,7 @@ pub(crate) async fn get_notify_before_meeting<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_notify_before_meeting<R: tauri::Runtime>(
+pub(crate) fn set_notify_before_meeting<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -76,7 +76,7 @@ pub(crate) async fn set_notify_before_meeting<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_require_window_focus<R: tauri::Runtime>(
+pub(crate) fn get_require_window_focus<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_require_window_focus().map_err(|e| e.to_string())
@@ -84,7 +84,7 @@ pub(crate) async fn get_require_window_focus<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_require_window_focus<R: tauri::Runtime>(
+pub(crate) fn set_require_window_focus<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -94,7 +94,7 @@ pub(crate) async fn set_require_window_focus<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_minutes_before_notification<R: tauri::Runtime>(
+pub(crate) fn get_minutes_before_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<u32, String> {
     app.get_minutes_before_notification()
@@ -103,7 +103,7 @@ pub(crate) async fn get_minutes_before_notification<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_minutes_before_notification<R: tauri::Runtime>(
+pub(crate) fn set_minutes_before_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     minutes: u32,
 ) -> Result<(), String> {
@@ -113,7 +113,7 @@ pub(crate) async fn set_minutes_before_notification<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_auto_stop_on_meeting_end<R: tauri::Runtime>(
+pub(crate) fn get_auto_stop_on_meeting_end<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
     app.get_auto_stop_on_meeting_end()
@@ -122,7 +122,7 @@ pub(crate) async fn get_auto_stop_on_meeting_end<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_auto_stop_on_meeting_end<R: tauri::Runtime>(
+pub(crate) fn set_auto_stop_on_meeting_end<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
@@ -132,7 +132,7 @@ pub(crate) async fn set_auto_stop_on_meeting_end<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn get_detection_confidence_threshold<R: tauri::Runtime>(
+pub(crate) fn get_detection_confidence_threshold<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<f32, String> {
     app.get_detection_confidence_threshold()
@@ -141,7 +141,7 @@ pub(crate) async fn get_detection_confidence_threshold<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn set_detection_confidence_threshold<R: tauri::Runtime>(
+pub(crate) fn set_detection_confidence_threshold<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     threshold: f32,
 ) -> Result<(), String> {
@@ -161,7 +161,7 @@ pub(crate) async fn start_auto_recording_monitor<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn stop_auto_recording_monitor<R: tauri::Runtime>(
+pub(crate) fn stop_auto_recording_monitor<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
     app.stop_auto_recording_monitor().map_err(|e| e.to_string())

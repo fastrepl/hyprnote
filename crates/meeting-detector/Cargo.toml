@@ -16,4 +16,4 @@ objc2-foundation = { workspace = true }
 objc2-app-kit = { workspace = true }
 
 [dev-dependencies]
-tokio-test = "0.4"
+tokio-test = { workspace = true }

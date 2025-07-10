@@ -209,6 +209,11 @@ msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
 #. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:276
+#~ msgid "Type jargon (e.g., Blitz Meeting, PaC Squad)"
+#~ msgstr "Type jargon (e.g., Blitz Meeting, PaC Squad)"
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:168
 #~ msgid "just now"
 #~ msgstr "just now"
@@ -692,6 +697,10 @@ msgstr "Invite"
 #: src/components/settings/views/team.tsx:189
 msgid "Invite members"
 msgstr "Invite members"
+
+#: src/components/settings/views/general.tsx:264
+#~ msgid "Jargon"
+#~ msgstr "Jargon"
 
 #: src/components/settings/views/general.tsx:264
 msgid "Jargons"
@@ -1229,6 +1238,10 @@ msgstr "Works offline"
 #: src/components/editor-area/note-header/listen-button.tsx:358
 #~ msgid "Yes, activate speaker"
 #~ msgstr "Yes, activate speaker"
+
+#: src/components/settings/views/general.tsx:267
+#~ msgid "You can make Hyprnote take these words into account when transcribing"
+#~ msgstr "You can make Hyprnote take these words into account when transcribing"
 
 #: src/components/settings/views/general.tsx:267
 msgid "You can make Hyprnote takes these words into account when transcribing"

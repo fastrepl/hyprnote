@@ -49,8 +49,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         }
 
         {
-            use tauri_plugin_local_llm::LocalLlmPluginExt;
-            if let Ok(true) = self.is_model_downloaded().await {
+            use tauri_plugin_local_llm::{LocalLlmPluginExt, SupportedModel};
+
+            let current_model = self
+                .get_current_model()
+                .unwrap_or(SupportedModel::Llama3p2_3bQ4);
+
+            if let Ok(true) = self.is_model_downloaded(&current_model).await {
                 if let Err(e) = self.start_server().await {
                     tracing::error!("start_local_llm_server: {}", e);
                 }

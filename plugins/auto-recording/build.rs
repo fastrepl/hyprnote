@@ -40,7 +40,10 @@ fn main() {
     let commands_path = Path::new("src/commands.rs");
     let commands = extract_commands_from_file(commands_path);
 
-    let commands_refs: Vec<&str> = commands.iter().map(|s| s.as_str()).collect();
+    let static_commands: Vec<&'static str> = commands
+        .into_iter()
+        .map(|s| Box::leak(s.into_boxed_str()) as &'static str)
+        .collect();
 
-    tauri_plugin::Builder::new(&commands_refs).build();
+    tauri_plugin::Builder::new(&static_commands).build();
 }

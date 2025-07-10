@@ -7,7 +7,7 @@ links = "tauri-plugin-auto-recording"
 [dependencies]
 anyhow = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
-serde = { version = "1.0", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true }
 tauri = { workspace = true, features = ["macos-private-api"] }
 tauri-specta = { workspace = true, features = ["derive"] }

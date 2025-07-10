@@ -254,10 +254,27 @@ impl MeetingDetector {
     fn is_app_running(bundle_id: &str) -> bool {
         use std::process::Command;
 
-        let output = Command::new("pgrep").arg("-f").arg(bundle_id).output();
+        let script = format!(
+            r#"
+            tell application "System Events"
+                set appList to name of every application process
+                set bundleList to bundle identifier of every application process
+                repeat with i from 1 to count of bundleList
+                    if item i of bundleList is "{}" then
+                        return true
+                    end if
+                end repeat
+                return false
+            end tell
+            "#,
+            bundle_id
+        );
+
+        let output = Command::new("osascript").arg("-e").arg(&script).output();
 
         if let Ok(output) = output {
-            !output.stdout.is_empty()
+            let result = String::from_utf8_lossy(&output.stdout).trim();
+            result == "true"
         } else {
             false
         }
@@ -356,7 +373,7 @@ impl MeetingDetector {
         confidence.min(1.0)
     }
 
-    async fn start_scheduled_monitoring(&self) {
+    async fn start_scheduled_monitoring(&self, minutes_before_notification: u32) {
         let scheduled_meetings = self.scheduled_meetings.clone();
         let callbacks = self.callbacks.clone();
         let notified_meetings = self.notified_meetings.clone();
@@ -377,7 +394,10 @@ impl MeetingDetector {
                     let time_since_end = now.signed_duration_since(meeting.end_time);
 
                     // Pre-meeting notification (configurable, default 5 minutes)
-                    if time_until_start.num_minutes() <= 5 && time_until_start.num_minutes() >= 4 {
+                    if time_until_start.num_minutes() <= minutes_before_notification as i64
+                        && time_until_start.num_minutes()
+                            >= (minutes_before_notification as i64 - 1)
+                    {
                         let mut notified = notified_meetings.write().await;
                         if !notified.contains_key(&meeting.id) {
                             notified.insert(meeting.id.clone(), now);

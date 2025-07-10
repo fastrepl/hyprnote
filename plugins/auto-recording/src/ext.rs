@@ -2,8 +2,20 @@ use crate::error::Error;
 use std::future::Future;
 use tauri_plugin_store2::StorePluginExt;
 
+const MEETING_APPS: &[&str] = &[
+    "Zoom",
+    "Microsoft Teams",
+    "Google Chrome",
+    "Slack",
+    "Discord",
+    "FaceTime",
+    "Cisco Webex Meeting",
+];
+
 pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
-    fn auto_recording_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::error::StoreKey>;
+    fn auto_recording_store(
+        &self,
+    ) -> Result<tauri_plugin_store2::ScopedStore<R, crate::error::StoreKey>, Error>;
 
     fn get_auto_recording_enabled(&self) -> Result<bool, Error>;
     fn set_auto_recording_enabled(&self, enabled: bool) -> Result<(), Error>;
@@ -43,13 +55,15 @@ pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
-    fn auto_recording_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::error::StoreKey> {
-        self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    fn auto_recording_store(
+        &self,
+    ) -> Result<tauri_plugin_store2::ScopedStore<R, crate::error::StoreKey>, Error> {
+        self.scoped_store(crate::PLUGIN_NAME).map_err(Error::Store)
     }
 
     #[tracing::instrument(skip(self))]
     fn get_auto_recording_enabled(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::AutoRecordingEnabled)
             .map_err(Error::Store)
@@ -58,7 +72,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_auto_recording_enabled(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::AutoRecordingEnabled, enabled)
             .map_err(Error::Store)
@@ -66,7 +80,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_auto_record_on_scheduled(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::AutoRecordOnScheduled)
             .map_err(Error::Store)
@@ -75,7 +89,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_auto_record_on_scheduled(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::AutoRecordOnScheduled, enabled)
             .map_err(Error::Store)
@@ -83,7 +97,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_auto_record_on_ad_hoc(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::AutoRecordOnAdHoc)
             .map_err(Error::Store)
@@ -92,7 +106,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_auto_record_on_ad_hoc(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::AutoRecordOnAdHoc, enabled)
             .map_err(Error::Store)
@@ -100,7 +114,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_notify_before_meeting(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::NotifyBeforeMeeting)
             .map_err(Error::Store)
@@ -109,7 +123,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_notify_before_meeting(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::NotifyBeforeMeeting, enabled)
             .map_err(Error::Store)
@@ -117,7 +131,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_require_window_focus(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::RequireWindowFocus)
             .map_err(Error::Store)
@@ -126,7 +140,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_require_window_focus(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::RequireWindowFocus, enabled)
             .map_err(Error::Store)
@@ -134,7 +148,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_minutes_before_notification(&self) -> Result<u32, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::MinutesBeforeNotification)
             .map_err(Error::Store)
@@ -143,7 +157,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_minutes_before_notification(&self, minutes: u32) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::MinutesBeforeNotification, minutes)
             .map_err(Error::Store)
@@ -151,7 +165,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_auto_stop_on_meeting_end(&self) -> Result<bool, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::AutoStopOnMeetingEnd)
             .map_err(Error::Store)
@@ -160,7 +174,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_auto_stop_on_meeting_end(&self, enabled: bool) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(crate::error::StoreKey::AutoStopOnMeetingEnd, enabled)
             .map_err(Error::Store)
@@ -168,7 +182,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn get_detection_confidence_threshold(&self) -> Result<f32, Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .get(crate::error::StoreKey::DetectionConfidenceThreshold)
             .map_err(Error::Store)
@@ -177,7 +191,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn set_detection_confidence_threshold(&self, threshold: f32) -> Result<(), Error> {
-        let store = self.auto_recording_store();
+        let store = self.auto_recording_store()?;
         store
             .set(
                 crate::error::StoreKey::DetectionConfidenceThreshold,
@@ -189,7 +203,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     async fn start_auto_recording_monitor(&self) -> Result<(), Error> {
         let state = self.state::<crate::SharedState>();
-        let mut guard = state.lock().unwrap();
+        let mut guard = state
+            .lock()
+            .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
 
         if guard.detector.is_some() {
             return Ok(());
@@ -213,8 +229,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
         let (db, user_id) = {
             let guard = db_state.lock().await;
             (
-                guard.db.clone().expect("db"),
-                guard.user_id.clone().expect("user_id"),
+                guard
+                    .db
+                    .clone()
+                    .ok_or_else(|| Error::Detection(anyhow::anyhow!("Database not initialized")))?,
+                guard
+                    .user_id
+                    .clone()
+                    .ok_or_else(|| Error::Detection(anyhow::anyhow!("User ID not set")))?,
             )
         };
 
@@ -236,7 +258,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     fn stop_auto_recording_monitor(&self) -> Result<(), Error> {
         let state = self.state::<crate::SharedState>();
-        let mut guard = state.lock().unwrap();
+        let mut guard = state
+            .lock()
+            .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
 
         if let Some(mut detector) = guard.detector.take() {
             tokio::spawn(async move {
@@ -294,10 +318,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
         {
             use std::process::Command;
 
-            let script = r#"
+            let meeting_apps_list = MEETING_APPS
+                .iter()
+                .map(|app| format!("\"{}\"", app))
+                .collect::<Vec<_>>()
+                .join(", ");
+
+            let script = format!(
+                r#"
             tell application "System Events"
                 set frontmostApp to name of first application process whose frontmost is true
-                set meetingApps to {"Zoom", "Microsoft Teams", "Google Chrome", "Slack", "Discord", "FaceTime", "Cisco Webex Meeting"}
+                set meetingApps to {{{}}}
                 repeat with appName in meetingApps
                     if frontmostApp contains appName then
                         return true
@@ -305,11 +336,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 end repeat
                 return false
             end tell
-            "#;
+            "#,
+                meeting_apps_list
+            );
 
             let output = Command::new("osascript")
                 .arg("-e")
-                .arg(script)
+                .arg(&script)
                 .output()
                 .map_err(|e| Error::Io(e))?;
 

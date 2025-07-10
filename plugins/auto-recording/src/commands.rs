@@ -173,7 +173,9 @@ pub(crate) async fn get_active_meetings<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<hypr_meeting_detector::MeetingDetected>, String> {
     let state = app.state::<crate::SharedState>();
-    let guard = state.lock().unwrap();
+    let guard = state
+        .lock()
+        .map_err(|_| "Failed to lock shared state".to_string())?;
 
     if let Some(detector) = &guard.detector {
         Ok(detector.get_active_meetings().await)

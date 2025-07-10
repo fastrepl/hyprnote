@@ -1,9 +1,9 @@
 -- templates_migration_1.sql
 -- Insert default templates
-
-INSERT OR IGNORE INTO templates (id, user_id, title, description, sections, tags)
-VALUES 
-(
+INSERT
+  OR IGNORE INTO templates (id, user_id, title, description, sections, tags)
+VALUES
+  (
     'default-meeting-notes',
     'placeholder',
     '📝 General Meeting',
@@ -15,11 +15,11 @@ VALUES
         {"title": "Action Items", "description": "Tasks assigned with owners and deadlines"},
         {"title": "Next Steps", "description": "Follow-up actions and next meeting details"}
     ]',
-    '["meeting", "agenda", "action-items", "builtin"]'
-),
-(
+    '["general", "meeting", "agenda", "action-items", "builtin"]'
+  ),
+  (
     'default-standup',
-    'placeholder', 
+    'placeholder',
     '🌞 Daily Standup',
     'Template for daily standup meetings with progress updates and blockers',
     '[
@@ -29,9 +29,9 @@ VALUES
         {"title": "Goals", "description": "Key objectives for the day/sprint"},
         {"title": "Notes", "description": "Additional updates or important information"}
     ]',
-    '["standup", "daily", "progress", "blockers", "builtin"]'
-),
-(
+    '["general","standup", "daily", "progress", "blockers", "builtin"]'
+  ),
+  (
     'default-weekly-review',
     'placeholder',
     '📅 Weekly Review',
@@ -43,9 +43,9 @@ VALUES
         {"title": "Next Week Goals", "description": "Priorities and objectives for next week"},
         {"title": "Improvements", "description": "Areas for personal or process improvement"}
     ]',
-    '["weekly", "review", "reflection", "planning", "builtin"]'
-),
-(
+    '["general","weekly", "review", "reflection", "planning", "builtin"]'
+  ),
+  (
     'default-one-on-one',
     'placeholder',
     '👥 1-on-1 Meeting',
@@ -58,9 +58,9 @@ VALUES
         {"title": "Team Feedback", "description": "Thoughts on team dynamics and processes"},
         {"title": "Action Items", "description": "Follow-up tasks and commitments"}
     ]',
-    '["one-on-one", "1-on-1", "management", "feedback", "builtin"]'
-),
-(
+    '["general","one-on-one", "1-on-1", "management", "feedback", "builtin"]'
+  ),
+  (
     'default-user-interview',
     'placeholder',
     '👤 User Interview',
@@ -73,9 +73,9 @@ VALUES
         {"title": "Feature Feedback", "description": "Reactions to proposed solutions"},
         {"title": "Key Insights", "description": "Important learnings and next steps"}
     ]',
-    '["user-interview", "research", "feedback", "ux", "builtin"]'
-),
-(
+    '["startup", "user-interview", "research", "feedback", "ux", "builtin"]'
+  ),
+  (
     'default-b2b-discovery',
     'placeholder',
     '🔍 B2B Customer: Discovery',
@@ -88,9 +88,9 @@ VALUES
         {"title": "Requirements", "description": "Must-have features and success criteria"},
         {"title": "Next Steps", "description": "Follow-up actions and timeline"}
     ]',
-    '["b2b", "discovery", "sales", "customer", "builtin"]'
-),
-(
+    '["startup", "b2b", "discovery", "sales", "customer", "builtin"]'
+  ),
+  (
     'default-b2b-pilot',
     'placeholder',
     '🚀 B2B Customer: Pilot',
@@ -103,9 +103,9 @@ VALUES
         {"title": "Value Delivered", "description": "Benefits and ROI demonstrated"},
         {"title": "Next Phase", "description": "Plans for expansion or full deployment"}
     ]',
-    '["b2b", "pilot", "customer", "progress", "builtin"]'
-),
-(
+    '["startup", "b2b", "pilot", "customer", "progress", "builtin"]'
+  ),
+  (
     'default-job-interview',
     'placeholder',
     '💼 Job Interview',
@@ -118,9 +118,9 @@ VALUES
         {"title": "Questions & Answers", "description": "Candidate questions and responses"},
         {"title": "Overall Evaluation", "description": "Recommendation and hiring decision"}
     ]',
-    '["job-interview", "hiring", "candidate", "assessment", "builtin"]'
-),
-(
+    '["general","job-interview", "hiring", "candidate", "assessment", "builtin"]'
+  ),
+  (
     'default-patient-visit',
     'placeholder',
     '🏥 Patient Visit',
@@ -134,8 +134,8 @@ VALUES
         {"title": "Follow-up", "description": "Next appointment and monitoring plan"}
     ]',
     '["patient", "medical", "healthcare", "consultation", "builtin"]'
-),
-(
+  ),
+  (
     'default-client-meeting-legal',
     'placeholder',
     '🏛️ Client Meeting (Legal)',
@@ -149,8 +149,8 @@ VALUES
         {"title": "Next Steps", "description": "Action items and follow-up tasks"}
     ]',
     '["legal", "client", "case", "consultation", "builtin"]'
-),
-(
+  ),
+  (
     'default-therapy-session',
     'placeholder',
     '💚 Therapy Session',
@@ -163,9 +163,9 @@ VALUES
         {"title": "Coping Strategies", "description": "Tools and techniques practiced"},
         {"title": "Homework", "description": "Tasks and exercises for next session"}
     ]',
-    '["therapy", "counseling", "mental-health", "session", "builtin"]'
-),
-(
+    '["healthcare", "therapy", "counseling", "mental-health", "session", "builtin"]'
+  ),
+  (
     'default-brainstorming',
     'placeholder',
     '💡 Brainstorming Session',
@@ -178,9 +178,9 @@ VALUES
         {"title": "Next Steps", "description": "How to develop selected ideas"},
         {"title": "Action Items", "description": "Who does what and when"}
     ]',
-    '["brainstorming", "creative", "ideation", "innovation", "builtin"]'
-),
-(
+    '["startup","brainstorming", "creative", "ideation", "innovation", "builtin"]'
+  ),
+  (
     'default-coffee-chat',
     'placeholder',
     '☕ Coffee Chat',
@@ -193,5 +193,5 @@ VALUES
         {"title": "Potential Collaboration", "description": "Ways to work together"},
         {"title": "Follow-up", "description": "How to stay in touch and next steps"}
     ]',
-    '["coffee-chat", "networking", "relationship", "informal", "builtin"]'
-);
+    '["casual","coffee-chat", "networking", "relationship", "informal", "builtin"]'
+  );

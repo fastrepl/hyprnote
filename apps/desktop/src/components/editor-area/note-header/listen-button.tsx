@@ -343,7 +343,7 @@ function RecordingControls({
             {templatesQuery.data?.map((template) => {
               const title = template.title || "Untitled";
               const truncatedTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
-              
+
               return (
                 <SelectItem key={template.id} value={template.id} className="whitespace-nowrap">
                   {truncatedTitle}

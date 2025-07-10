@@ -6,15 +6,10 @@ impl UserDatabase {
         user_id: impl Into<String>,
     ) -> Result<Vec<Template>, crate::Error> {
         let conn = self.conn()?;
-        
+
         let _user_id = user_id.into();
 
-        let mut rows = conn
-            .query(
-                "SELECT * FROM templates",
-                (),
-            )
-            .await?;
+        let mut rows = conn.query("SELECT * FROM templates", ()).await?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {

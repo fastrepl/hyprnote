@@ -28,6 +28,12 @@
       "icons/stable/icon.icns",
       "icons/stable/icon.ico"
     ],
+    "resources": {
+      "dlls/msvcp140.dll": "./",
+      "dlls/msvcp140_1.dll": "./",
+      "dlls/vcruntime140.dll": "./",
+      "dlls/vcruntime140_1.dll": "./"
+    },
     "macOS": {
       "minimumSystemVersion": "14.2",
       "entitlements": "./Entitlements.plist",

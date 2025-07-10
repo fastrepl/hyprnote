@@ -893,7 +893,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:359
+#: src/components/editor-area/note-header/listen-button.tsx:364
 msgid "Pause"
 msgstr "Pause"
 
@@ -1051,7 +1051,7 @@ msgstr "Start Monthly Plan"
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:367
+#: src/components/editor-area/note-header/listen-button.tsx:372
 msgid "Stop"
 msgstr "Stop"
 

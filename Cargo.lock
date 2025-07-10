@@ -3615,7 +3615,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.52"
+version = "0.0.53"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4634,6 +4634,8 @@ dependencies = [
  "gbnf-validator",
  "indoc",
  "insta",
+ "serde",
+ "specta",
 ]
 
 [[package]]
@@ -14375,6 +14377,7 @@ dependencies = [
 name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
+ "gbnf",
  "insta",
  "serde_json",
  "specta",

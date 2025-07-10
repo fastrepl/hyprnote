@@ -4,6 +4,7 @@ use tauri_plugin_store2::ScopedStoreKey;
 pub enum StoreKey {
     OnboardingNeeded,
     IndividualizationNeeded,
+    AppOpenCount,
 }
 
 impl ScopedStoreKey for StoreKey {}

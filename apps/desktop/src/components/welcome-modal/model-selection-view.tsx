@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
+import { Channel } from "@tauri-apps/api/core";
 import { BrainIcon, Zap as SpeedIcon } from "lucide-react";
 import React, { useState } from "react";
 
@@ -12,7 +13,8 @@ import {
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
 
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
+import { DownloadProgress } from "@/components/toast/shared";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
@@ -50,10 +52,20 @@ const RatingDisplay = (
 
 export const ModelSelectionView = ({
   onContinue,
+  onModelSelected,
 }: {
   onContinue: (model: SupportedModel) => void;
+  onModelSelected?: (model: SupportedModel) => void;
 }) => {
   const [selectedModel, setSelectedModel] = useState<SupportedModel>("QuantizedSmall");
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [sttChannel, setSttChannel] = useState<Channel<number> | null>(null);
+  const [llmChannel, setLlmChannel] = useState<Channel<number> | null>(null);
+  const [sttComplete, setSttComplete] = useState(false);
+  const [llmComplete, setLlmComplete] = useState(false);
+  const [modelsAlreadyInstalled, setModelsAlreadyInstalled] = useState(false);
+  const [sttAlreadyInstalled, setSttAlreadyInstalled] = useState(false);
+  const [llmAlreadyInstalled, setLlmAlreadyInstalled] = useState(false);
 
   const supportedSTTModels = useQuery<ModelInfo[]>({
     queryKey: ["local-stt", "supported-models"],
@@ -69,17 +81,153 @@ export const ModelSelectionView = ({
     },
   });
 
-  const handleContinue = () => {
-    showSttModelDownloadToast(selectedModel);
-    showLlmModelDownloadToast();
-    onContinue(selectedModel);
+  const handleContinue = async () => {
+    // Notify parent about model selection for mutation
+    onModelSelected?.(selectedModel);
+
+    setIsDownloading(true);
+
+    // Check if models are already downloaded
+    const [sttDownloaded, llmDownloaded] = await Promise.all([
+      localSttCommands.isModelDownloaded(selectedModel),
+      localLlmCommands.isModelDownloaded(),
+    ]);
+
+    if (sttDownloaded && llmDownloaded) {
+      // Both models already downloaded, show feedback then proceed
+      setModelsAlreadyInstalled(true);
+      setSttAlreadyInstalled(true);
+      setLlmAlreadyInstalled(true);
+      setSttComplete(true);
+      setLlmComplete(true);
+
+      // Show the "already installed" message for 2 seconds then proceed
+      setTimeout(() => {
+        onContinue(selectedModel);
+      }, 2000);
+      return;
+    }
+
+    if (sttDownloaded) {
+      // STT already downloaded, mark as complete
+      setSttAlreadyInstalled(true);
+      setSttComplete(true);
+    } else {
+      // Start STT model download
+      const sttDownloadChannel = new Channel<number>();
+      setSttChannel(sttDownloadChannel);
+      localSttCommands.downloadModel(selectedModel, sttDownloadChannel);
+    }
+
+    if (llmDownloaded) {
+      // LLM already downloaded, mark as complete
+      setLlmAlreadyInstalled(true);
+      setLlmComplete(true);
+    } else {
+      // Start LLM model download
+      const llmDownloadChannel = new Channel<number>();
+      setLlmChannel(llmDownloadChannel);
+      localLlmCommands.downloadModel(llmDownloadChannel);
+    }
   };
+
+  const handleSttComplete = () => {
+    setSttComplete(true);
+    localSttCommands.startServer();
+  };
+
+  const handleLlmComplete = () => {
+    setLlmComplete(true);
+    localLlmCommands.startServer();
+  };
+
+  // Proceed to next step when both downloads are complete (but not when already installed)
+  React.useEffect(() => {
+    if (sttComplete && llmComplete && !modelsAlreadyInstalled) {
+      onContinue(selectedModel);
+    }
+  }, [sttComplete, llmComplete, selectedModel, onContinue, modelsAlreadyInstalled]);
+
+  if (isDownloading) {
+    return (
+      <div className="flex flex-col items-center max-w-md mx-auto">
+        <h2 className="text-xl font-semibold mb-2 text-center">
+          {modelsAlreadyInstalled ? <Trans>Your Private AI is Ready</Trans> : <Trans>Setting Up…</Trans>}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-8 text-center">
+          {modelsAlreadyInstalled
+            ? <Trans>Your secure, on-device AI is ready to keep your notes private.</Trans>
+            : <Trans>Downloading AI models (~2GB). This is a one-time setup.</Trans>}
+        </p>
+
+        <div className="w-full space-y-6">
+          {/* STT Model Download */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">HyperWhisper</span>
+                <span className="text-xs text-neutral-500">Transcribes locally</span>
+              </div>
+              {sttComplete && (
+                <span className="text-xs text-neutral-600">
+                  ✓ {sttAlreadyInstalled ? "Already Installed" : "Complete"}
+                </span>
+              )}
+            </div>
+            {sttChannel && (
+              <DownloadProgress
+                channel={sttChannel}
+                onComplete={handleSttComplete}
+              />
+            )}
+            {sttComplete && !sttChannel && (
+              <div className="w-full bg-neutral-200 rounded-full h-2">
+                <div className="bg-neutral-600 h-2 rounded-full w-full"></div>
+              </div>
+            )}
+          </div>
+
+          {/* LLM Model Download */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">HyperLLM</span>
+                <span className="text-xs text-neutral-500">Summarizes securely</span>
+              </div>
+              {llmComplete && (
+                <span className="text-xs text-neutral-600">
+                  ✓ {llmAlreadyInstalled ? "Already Installed" : "Complete"}
+                </span>
+              )}
+            </div>
+            {llmChannel && (
+              <DownloadProgress
+                channel={llmChannel}
+                onComplete={handleLlmComplete}
+              />
+            )}
+            {llmComplete && !llmChannel && (
+              <div className="w-full bg-neutral-200 rounded-full h-2">
+                <div className="bg-neutral-600 h-2 rounded-full w-full"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center">
-      <h2 className="text-xl font-semibold mb-4 flex items-center justify-center">
-        <Trans>Select a transcribing model</Trans>
+      <h2 className="text-xl font-semibold mb-2 text-center">
+        <Trans>Setting up your private AI</Trans>
       </h2>
+      <p className="text-sm text-muted-foreground mb-8 text-center max-w-md">
+        <Trans>
+          Choose your transcription model. All processing happens locally on your device to keep your conversations
+          private.
+        </Trans>
+      </p>
 
       <div className="w-full mb-8">
         <Carousel
@@ -148,7 +296,7 @@ export const ModelSelectionView = ({
         className="w-full max-w-sm"
         disabled={!selectedModel}
       >
-        <Trans>Continue</Trans>
+        <Trans>Start Setup</Trans>
       </PushableButton>
     </div>
   );

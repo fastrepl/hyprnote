@@ -27,6 +27,12 @@ async isIndividualizationNeeded() : Promise<boolean> {
 },
 async setIndividualizationNeeded(v: boolean) : Promise<null> {
     return await TAURI_INVOKE("set_individualization_needed", { v });
+},
+async getAppOpenCount() : Promise<number> {
+    return await TAURI_INVOKE("get_app_open_count");
+},
+async incrementAppOpenCount() : Promise<number> {
+    return await TAURI_INVOKE("increment_app_open_count");
 }
 }
 

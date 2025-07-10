@@ -3,9 +3,8 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
@@ -30,25 +29,36 @@ import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
 export const Route = createFileRoute("/app")({
   component: Component,
   loader: async ({ context: { sessionsStore, ongoingSessionStore } }) => {
+    const currentOpenCount = await commands.incrementAppOpenCount();
     const isOnboardingNeeded = await commands.isOnboardingNeeded();
-    const isIndividualizationNeeded = await commands.isIndividualizationNeeded();
-    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded };
+    let isIndividualizationNeeded = await commands.isIndividualizationNeeded();
+
+    // Survey only shows on second opening
+    if (currentOpenCount === 2 && isIndividualizationNeeded) {
+      // Second opening: show only survey, onboarding should be complete
+      isIndividualizationNeeded = true;
+    } else if (currentOpenCount < 2) {
+      // First opening: no survey
+      isIndividualizationNeeded = false;
+    } else if (currentOpenCount > 2) {
+      // Third+ opening: no survey (should be completed)
+      isIndividualizationNeeded = false;
+    }
+
+    return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded, currentOpenCount };
   },
 });
 
 function Component() {
   const router = useRouter();
-  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
-
-  const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
+  const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route
+    .useLoaderData();
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const isMain = windowLabel === "main";
   const showNotifications = isMain && !isOnboardingNeeded;
 
-  const shouldShowWelcomeModal = isMain && isOnboardingNeeded;
-  const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
-    && !onboardingCompletedThisSession;
+  const shouldShowWelcomeModal = isMain && (isOnboardingNeeded || isIndividualizationNeeded);
 
   return (
     <>
@@ -84,16 +94,9 @@ function Component() {
                       </div>
                       <WelcomeModal
                         isOpen={shouldShowWelcomeModal}
+                        shouldShowSurvey={isIndividualizationNeeded}
+                        surveyOnly={!isOnboardingNeeded && isIndividualizationNeeded}
                         onClose={() => {
-                          commands.setOnboardingNeeded(false);
-                          setOnboardingCompletedThisSession(true);
-                          router.invalidate();
-                        }}
-                      />
-                      <IndividualizationModal
-                        isOpen={shouldShowIndividualization}
-                        onClose={() => {
-                          commands.setIndividualizationNeeded(false);
                           router.invalidate();
                         }}
                       />

@@ -234,6 +234,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_autostart::<tauri::Wry>,
             commands::is_individualization_needed::<tauri::Wry>,
             commands::set_individualization_needed::<tauri::Wry>,
+            commands::get_app_open_count::<tauri::Wry>,
+            commands::increment_app_open_count::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

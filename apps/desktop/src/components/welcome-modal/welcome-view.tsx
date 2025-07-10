@@ -23,9 +23,18 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
         animation="slideUp"
         by="word"
         once
-        className="mb-20 text-center text-2xl font-medium text-neutral-600"
+        className="mb-4 text-center text-2xl font-medium text-neutral-600"
       >
-        {t`The AI Meeting Notepad`}
+        {t`Where Conversations Stay Yours`}
+      </TextAnimate>
+
+      <TextAnimate
+        animation="fadeIn"
+        by="line"
+        once
+        className="mb-20 text-center text-lg font-normal text-neutral-500"
+      >
+        {t`Private. Secure. On-device.`}
       </TextAnimate>
 
       <PushableButton

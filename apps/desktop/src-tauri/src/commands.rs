@@ -79,3 +79,32 @@ pub fn set_individualization_needed<R: tauri::Runtime>(
         .set(StoreKey::IndividualizationNeeded, v)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_app_open_count<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<u32, String> {
+    let store = app.desktop_store()?;
+    store
+        .get(StoreKey::AppOpenCount)
+        .map_err(|e| e.to_string())
+        .map(|v| v.unwrap_or(0))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn increment_app_open_count<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<u32, String> {
+    let store = app.desktop_store()?;
+    let current_count: u32 = store
+        .get(StoreKey::AppOpenCount)
+        .map_err(|e| e.to_string())?
+        .unwrap_or(0);
+
+    let new_count = current_count + 1;
+    store
+        .set(StoreKey::AppOpenCount, new_count)
+        .map_err(|e| e.to_string())?;
+
+    Ok(new_count)
+}

@@ -32,21 +32,6 @@ VALUES
     '["standup", "daily", "progress", "blockers", "builtin"]'
 ),
 (
-    'default-project-planning',
-    'placeholder',
-    '📊 Project Planning',
-    'Template for project planning and roadmap creation',
-    '[
-        {"title": "Project Overview", "description": "Goals, scope, and success criteria"},
-        {"title": "Requirements", "description": "Functional and non-functional requirements"},
-        {"title": "Timeline", "description": "Milestones, deadlines, and key dates"},
-        {"title": "Resources", "description": "Team members, budget, and tools needed"},
-        {"title": "Risks", "description": "Potential challenges and mitigation strategies"},
-        {"title": "Success Metrics", "description": "How success will be measured"}
-    ]',
-    '["project", "planning", "roadmap", "requirements", "builtin"]'
-),
-(
     'default-weekly-review',
     'placeholder',
     '📅 Weekly Review',
@@ -76,76 +61,137 @@ VALUES
     '["one-on-one", "1-on-1", "management", "feedback", "builtin"]'
 ),
 (
-    'default-interview-notes',
+    'default-user-interview',
     'placeholder',
-    '🎤 Interview Notes',
-    'Template for conducting and documenting interviews',
+    '👤 User Interview',
+    'Template for conducting user research and feedback sessions',
     '[
-        {"title": "Candidate Info", "description": "Name, role, and background summary"},
-        {"title": "Technical Skills", "description": "Assessment of technical capabilities"},
-        {"title": "Experience", "description": "Relevant work history and projects"},
-        {"title": "Cultural Fit", "description": "Team dynamics and company culture alignment"},
-        {"title": "Questions Asked", "description": "Candidate questions and responses"},
-        {"title": "Overall Assessment", "description": "Recommendation and next steps"}
+        {"title": "Participant Info", "description": "Name, role, and background details"},
+        {"title": "Research Goals", "description": "What we want to learn from this session"},
+        {"title": "User Behavior", "description": "How they currently solve the problem"},
+        {"title": "Pain Points", "description": "Frustrations and challenges they face"},
+        {"title": "Feature Feedback", "description": "Reactions to proposed solutions"},
+        {"title": "Key Insights", "description": "Important learnings and next steps"}
     ]',
-    '["interview", "hiring", "candidate", "assessment", "builtin"]'
+    '["user-interview", "research", "feedback", "ux", "builtin"]'
 ),
 (
-    'default-research-notes',
+    'default-b2b-discovery',
     'placeholder',
-    '🔍 Research Notes',
-    'Template for organizing research findings and insights',
+    '🔍 B2B Customer: Discovery',
+    'Template for B2B sales discovery calls and needs assessment',
     '[
-        {"title": "Research Question", "description": "What are you trying to find out?"},
-        {"title": "Sources", "description": "Books, articles, websites, and references"},
-        {"title": "Key Findings", "description": "Important discoveries and insights"},
-        {"title": "Quotes & Citations", "description": "Relevant quotes with proper attribution"},
-        {"title": "Analysis", "description": "Your interpretation and conclusions"},
-        {"title": "Next Steps", "description": "Further research needed or actions to take"}
+        {"title": "Company Background", "description": "Organization size, industry, and context"},
+        {"title": "Current Challenges", "description": "Problems they are trying to solve"},
+        {"title": "Existing Solutions", "description": "What they use now and limitations"},
+        {"title": "Decision Process", "description": "How decisions are made and key stakeholders"},
+        {"title": "Requirements", "description": "Must-have features and success criteria"},
+        {"title": "Next Steps", "description": "Follow-up actions and timeline"}
     ]',
-    '["research", "findings", "analysis", "sources", "builtin"]'
+    '["b2b", "discovery", "sales", "customer", "builtin"]'
 ),
 (
-    'default-retrospective',
+    'default-b2b-pilot',
     'placeholder',
-    '🔄 Retrospective',
-    'Template for team retrospectives and process improvement',
+    '🚀 B2B Customer: Pilot',
+    'Template for B2B pilot program meetings and progress reviews',
     '[
-        {"title": "What Went Well", "description": "Positive aspects and successes"},
-        {"title": "What Could Be Better", "description": "Areas for improvement"},
-        {"title": "Action Items", "description": "Specific improvements to implement"},
-        {"title": "Experiments", "description": "New approaches to try"},
-        {"title": "Appreciation", "description": "Recognition and thanks for team members"}
+        {"title": "Pilot Overview", "description": "Goals, scope, and success metrics"},
+        {"title": "Progress Update", "description": "Current status and milestones achieved"},
+        {"title": "User Feedback", "description": "How the team is using the solution"},
+        {"title": "Challenges", "description": "Issues encountered and resolution status"},
+        {"title": "Value Delivered", "description": "Benefits and ROI demonstrated"},
+        {"title": "Next Phase", "description": "Plans for expansion or full deployment"}
     ]',
-    '["retrospective", "improvement", "team", "process", "builtin"]'
+    '["b2b", "pilot", "customer", "progress", "builtin"]'
 ),
 (
-    'default-decision-log',
+    'default-job-interview',
     'placeholder',
-    '⚡ Decision Log',
-    'Template for documenting important decisions and their rationale',
+    '💼 Job Interview',
+    'Template for conducting job interviews and candidate assessment',
     '[
-        {"title": "Decision", "description": "What was decided?"},
-        {"title": "Context", "description": "Background and situation that led to this decision"},
-        {"title": "Options Considered", "description": "Alternative approaches that were evaluated"},
-        {"title": "Rationale", "description": "Why this decision was made"},
-        {"title": "Impact", "description": "Expected outcomes and consequences"},
-        {"title": "Review Date", "description": "When to revisit this decision"}
+        {"title": "Candidate Profile", "description": "Name, role, and resume highlights"},
+        {"title": "Technical Assessment", "description": "Skills evaluation and problem-solving"},
+        {"title": "Experience Review", "description": "Past projects and relevant background"},
+        {"title": "Cultural Fit", "description": "Values alignment and team dynamics"},
+        {"title": "Questions & Answers", "description": "Candidate questions and responses"},
+        {"title": "Overall Evaluation", "description": "Recommendation and hiring decision"}
     ]',
-    '["decision", "rationale", "documentation", "impact", "builtin"]'
+    '["job-interview", "hiring", "candidate", "assessment", "builtin"]'
 ),
 (
-    'default-book-summary',
+    'default-patient-visit',
     'placeholder',
-    '📚 Book Summary',
-    'Template for summarizing books and key takeaways',
+    '🏥 Patient Visit',
+    'Template for healthcare patient visits and medical consultations',
     '[
-        {"title": "Book Details", "description": "Title, author, and publication info"},
-        {"title": "Main Themes", "description": "Core concepts and central arguments"},
-        {"title": "Key Insights", "description": "Most important learnings and revelations"},
-        {"title": "Actionable Points", "description": "Practical applications and next steps"},
-        {"title": "Quotes", "description": "Notable quotes and passages"},
-        {"title": "Personal Reflection", "description": "Your thoughts and how it relates to your work/life"}
+        {"title": "Patient Information", "description": "Name, age, and basic demographics"},
+        {"title": "Chief Complaint", "description": "Primary reason for visit"},
+        {"title": "Symptoms", "description": "Current symptoms and duration"},
+        {"title": "Assessment", "description": "Clinical findings and observations"},
+        {"title": "Treatment Plan", "description": "Recommended treatments and medications"},
+        {"title": "Follow-up", "description": "Next appointment and monitoring plan"}
     ]',
-    '["book", "summary", "learning", "insights", "builtin"]'
+    '["patient", "medical", "healthcare", "consultation", "builtin"]'
+),
+(
+    'default-client-meeting-legal',
+    'placeholder',
+    '⚖️ Client Meeting (Legal)',
+    'Template for legal client meetings and case discussions',
+    '[
+        {"title": "Client Details", "description": "Name, contact info, and case reference"},
+        {"title": "Case Summary", "description": "Current status and key issues"},
+        {"title": "Legal Strategy", "description": "Approach and recommended actions"},
+        {"title": "Documents Needed", "description": "Required paperwork and evidence"},
+        {"title": "Timeline", "description": "Important dates and deadlines"},
+        {"title": "Next Steps", "description": "Action items and follow-up tasks"}
+    ]',
+    '["legal", "client", "case", "consultation", "builtin"]'
+),
+(
+    'default-therapy-session',
+    'placeholder',
+    '💚 Therapy Session',
+    'Template for therapy and counseling sessions',
+    '[
+        {"title": "Session Overview", "description": "Date, duration, and session goals"},
+        {"title": "Current State", "description": "How the client is feeling today"},
+        {"title": "Key Topics", "description": "Main issues and concerns discussed"},
+        {"title": "Insights", "description": "Breakthroughs and realizations"},
+        {"title": "Coping Strategies", "description": "Tools and techniques practiced"},
+        {"title": "Homework", "description": "Tasks and exercises for next session"}
+    ]',
+    '["therapy", "counseling", "mental-health", "session", "builtin"]'
+),
+(
+    'default-brainstorming',
+    'placeholder',
+    '💡 Brainstorming Session',
+    'Template for creative brainstorming and ideation sessions',
+    '[
+        {"title": "Challenge", "description": "Problem statement and objectives"},
+        {"title": "Ideas Generated", "description": "All concepts and suggestions"},
+        {"title": "Promising Concepts", "description": "Ideas worth exploring further"},
+        {"title": "Constraints", "description": "Limitations and considerations"},
+        {"title": "Next Steps", "description": "How to develop selected ideas"},
+        {"title": "Action Items", "description": "Who does what and when"}
+    ]',
+    '["brainstorming", "creative", "ideation", "innovation", "builtin"]'
+),
+(
+    'default-coffee-chat',
+    'placeholder',
+    '☕ Coffee Chat',
+    'Template for informal networking and relationship building meetings',
+    '[
+        {"title": "Person Info", "description": "Name, role, and how you connected"},
+        {"title": "Background", "description": "Their experience and current focus"},
+        {"title": "Common Interests", "description": "Shared topics and connections"},
+        {"title": "Insights Shared", "description": "Valuable information exchanged"},
+        {"title": "Potential Collaboration", "description": "Ways to work together"},
+        {"title": "Follow-up", "description": "How to stay in touch and next steps"}
+    ]',
+    '["coffee-chat", "networking", "relationship", "informal", "builtin"]'
 );

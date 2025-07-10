@@ -17,6 +17,9 @@ importers:
       '@cerbos/grpc':
         specifier: ^0.22.1
         version: 0.22.1
+      '@hypr/ui':
+        specifier: workspace:^
+        version: link:../../packages/ui
       '@tanstack/react-form':
         specifier: ^1.14.1
         version: 1.14.1(@tanstack/react-start@1.125.6(@libsql/client@0.15.9)(@tanstack/react-router@1.125.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@vitejs/plugin-react@4.5.0(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(kysely@0.28.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@6.3.5(@types/node@22.16.2)(jiti@2.4.2)(terser@5.43.1)(tsx@4.19.4)(yaml@2.8.0)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -50,6 +53,9 @@ importers:
       drizzle-zod:
         specifier: ^0.8.2
         version: 0.8.2(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@opentelemetry/api@1.9.0)(kysely@0.28.2))(zod@3.25.76)
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@18.3.1)
       openid-client:
         specifier: ^6.6.2
         version: 6.6.2

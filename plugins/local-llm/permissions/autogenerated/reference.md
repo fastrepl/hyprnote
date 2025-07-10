@@ -11,7 +11,6 @@ Default permissions for the plugin
 - `allow-download-model`
 - `allow-start-server`
 - `allow-stop-server`
-- `allow-list-ollama-models`
 - `allow-get-current-model`
 - `allow-set-current-model`
 

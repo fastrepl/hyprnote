@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { AutoRecordingSettings } from "@/components/AutoRecordingSettings";
 import { showModelSelectToast } from "@/components/toast/model-select";
 import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
@@ -284,6 +285,10 @@ export default function General() {
           />
         </form>
       </Form>
+
+      <div className="mt-8">
+        <AutoRecordingSettings />
+      </div>
     </div>
   );
 }

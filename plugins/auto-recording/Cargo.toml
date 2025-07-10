@@ -1,0 +1,27 @@
+[package]
+name = "tauri-plugin-auto-recording"
+version = "0.1.0"
+edition = "2021"
+links = "tauri-plugin-auto-recording"
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+specta = { workspace = true }
+tauri = { workspace = true, features = ["macos-private-api"] }
+tauri-specta = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["full"] }
+tracing = { workspace = true }
+
+hypr-calendar-interface = { workspace = true }
+hypr-db-user = { workspace = true }
+hypr-meeting-detector = { workspace = true }
+hypr-notification2 = { workspace = true }
+tauri-plugin-db = { path = "../db" }
+tauri-plugin-listener = { path = "../listener" }
+tauri-plugin-store2 = { path = "../store2" }
+thiserror = { workspace = true }
+
+[build-dependencies]
+tauri-plugin = { version = "2.0", features = ["build"] }

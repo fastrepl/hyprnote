@@ -45,6 +45,7 @@ hypr-host = { path = "crates/host", package = "host" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-loops = { path = "crates/loops", package = "loops" }
+hypr-meeting-detector = { path = "crates/meeting-detector", package = "meeting-detector" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
 hypr-notification = { path = "crates/notification", package = "notification" }
@@ -86,6 +87,7 @@ tauri-plugin-store = "2.3"
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
+tauri-plugin-auto-recording = { path = "plugins/auto-recording" }
 tauri-plugin-connector = { path = "plugins/connector" }
 tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-flags = { path = "plugins/flags" }

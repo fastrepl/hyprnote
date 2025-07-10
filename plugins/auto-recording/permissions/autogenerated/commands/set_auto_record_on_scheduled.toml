@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-auto-record-on-scheduled"
+description = "Enables the set_auto_record_on_scheduled command without any pre-configured scope."
+commands.allow = ["set_auto_record_on_scheduled"]
+
+[[permission]]
+identifier = "deny-set-auto-record-on-scheduled"
+description = "Denies the set_auto_record_on_scheduled command without any pre-configured scope."
+commands.deny = ["set_auto_record_on_scheduled"]

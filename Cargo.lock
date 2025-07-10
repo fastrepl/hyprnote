@@ -1756,7 +1756,7 @@ dependencies = [
  "bitflags 2.9.1",
  "cexpr",
  "clang-sys",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "lazycell",
  "log",
@@ -2676,7 +2676,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2685,7 +2685,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3639,6 +3639,7 @@ dependencies = [
  "tauri-plugin-analytics",
  "tauri-plugin-apple-calendar",
  "tauri-plugin-auth",
+ "tauri-plugin-auto-recording",
  "tauri-plugin-autostart",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-connector",
@@ -7739,7 +7740,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a793df0d7afeac54f95b471d3af7f0d4fb975699f972341a4b76988d49cdf0c"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.53.0",
 ]
 
 [[package]]
@@ -8216,6 +8217,21 @@ source = "git+https://github.com/wooorm/markdown-rs.git?rev=5c9eba146f06b2e0531a
 dependencies = [
  "markdown",
  "regex",
+]
+
+[[package]]
+name = "meeting-detector"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "objc2 0.6.1",
+ "objc2-app-kit 0.3.1",
+ "objc2-foundation 0.3.1",
+ "serde",
+ "tokio",
+ "tokio-test",
+ "tracing",
 ]
 
 [[package]]
@@ -10457,7 +10473,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -13766,6 +13782,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-auto-recording"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "calendar-interface",
+ "chrono",
+ "db-user",
+ "meeting-detector",
+ "notification2",
+ "serde",
+ "specta",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-db",
+ "tauri-plugin-listener",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "tauri-plugin-autostart"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14978,6 +15017,19 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "xattr",
+]
+
+[[package]]
+name = "tokio-test"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2468baabc3311435b55dd935f702f42cd1b8abb7e754fb7dfb16bd36aa88f9f7"
+dependencies = [
+ "async-stream",
+ "bytes",
+ "futures-core",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
@@ -16542,7 +16594,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

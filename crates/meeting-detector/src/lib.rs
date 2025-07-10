@@ -273,7 +273,8 @@ impl MeetingDetector {
         let output = Command::new("osascript").arg("-e").arg(&script).output();
 
         if let Ok(output) = output {
-            let result = String::from_utf8_lossy(&output.stdout).trim();
+            let result_str = String::from_utf8_lossy(&output.stdout);
+            let result = result_str.trim();
             result == "true"
         } else {
             false
@@ -326,7 +327,7 @@ impl MeetingDetector {
     }
 
     fn calculate_meeting_confidence(app: &MeetingApp, window_title: &Option<String>) -> f32 {
-        let mut confidence = 0.3; // Base confidence for app running
+        let mut confidence: f32 = 0.3; // Base confidence for app running
 
         if let Some(title) = window_title {
             // Check if window title matches meeting patterns

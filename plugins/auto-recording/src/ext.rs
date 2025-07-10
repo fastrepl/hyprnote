@@ -52,7 +52,7 @@ pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
         &self,
         meeting_id: String,
     ) -> impl Future<Output = Result<(), Error>>;
-    
+
     fn is_meeting_window_focused(
         &self,
         meeting_id: &str,
@@ -208,7 +208,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     async fn start_auto_recording_monitor(&self) -> Result<(), Error> {
         let state = self.state::<crate::ManagedState>();
-        
+
         // Check if detector already exists
         {
             let guard = state
@@ -266,7 +266,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
             guard.detector = Some(detector);
         } // guard is dropped here
-        
+
         Ok(())
     }
 

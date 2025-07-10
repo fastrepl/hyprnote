@@ -173,7 +173,7 @@ pub(crate) async fn get_active_meetings<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<hypr_meeting_detector::MeetingDetected>, String> {
     let state = app.state::<crate::ManagedState>();
-    
+
     // Check if detector exists and get a reference to it
     let has_detector = {
         let guard = state
@@ -191,7 +191,7 @@ pub(crate) async fn get_active_meetings<R: tauri::Runtime>(
             // Clone or take what we need before the await
             // For now, return empty vec since we can't easily work around this
             drop(guard); // explicitly drop guard
-            // TODO: Refactor MeetingDetector to not require holding guard across await
+                         // TODO: Refactor MeetingDetector to not require holding guard across await
             Ok(Vec::new())
         } else {
             Ok(Vec::new())

@@ -163,6 +163,23 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
             }
         }
 
+        MeetingEvent::ScheduledMeetingUpcoming(meeting) => {
+            // Handle upcoming meeting notifications
+            if app.get_notify_before_meeting()? {
+                let minutes_before = app.get_minutes_before_notification()?;
+                let notification = hypr_notification2::Notification {
+                    title: format!("Meeting in {} minutes", minutes_before),
+                    message: format!(
+                        "'{}' is scheduled to begin soon. Get ready!",
+                        meeting.title
+                    ),
+                    url: Some("hypr://app/new?record=true".to_string()),
+                    timeout: Some(std::time::Duration::from_secs(10)),
+                };
+                hypr_notification2::show(notification);
+            }
+        }
+
         MeetingEvent::MeetingAppClosed(bundle_id) => {
             tracing::info!("Meeting app closed: {}", bundle_id);
             // Check if auto-stop is enabled before stopping recording

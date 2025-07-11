@@ -1,5 +1,18 @@
-import { Button, Group, PasswordInput, TextInput } from "@mantine/core";
+import {
+  Button,
+  Center,
+  Divider,
+  Paper,
+  PasswordInput,
+  Stack,
+  Tabs,
+  Text,
+  TextInput,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { IconBrandGoogle, IconLock } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
@@ -55,40 +68,93 @@ function Component() {
   };
 
   return (
-    <div className="flex h-screen w-1/3 items-center justify-center flex-col">
-      <form
-        className="flex flex-col gap-2 w-full"
-        onSubmit={form.onSubmit(handleSubmit)}
-      >
-        <TextInput
-          withAsterisk
-          label="Email"
-          placeholder="your@email.com"
-          type="email"
-          key={form.key("email")}
-          {...form.getInputProps("email")}
-        />
+    <Center h="100vh">
+      <Paper shadow="md" p="xl" radius="md" w={400}>
+        <Stack gap="lg">
+          <Stack gap="xs" align="center">
+            <Title order={2} ta="center">Welcome Back</Title>
+            <Text c="dimmed" ta="center">Sign in to your admin account</Text>
+          </Stack>
 
-        <PasswordInput
-          withAsterisk
-          label="Password"
-          placeholder="Enter your password"
-          key={form.key("password")}
-          {...form.getInputProps("password")}
-        />
+          <Tabs defaultValue="password" variant="pills">
+            <Tabs.List grow>
+              <Tabs.Tab value="password" leftSection={<IconLock size={16} />}>
+                Password
+              </Tabs.Tab>
+              <Tooltip
+                label="Enterprise license required"
+                withArrow
+                position="top"
+              >
+                <Tabs.Tab
+                  value="sso"
+                  leftSection={<IconBrandGoogle size={16} />}
+                  disabled={process.env.NODE_ENV !== "development"}
+                >
+                  SSO
+                </Tabs.Tab>
+              </Tooltip>
+            </Tabs.List>
 
-        <Group justify="flex-end" mt="md">
-          <Button type="submit" loading={signInMutation.isPending}>
-            Sign In
-          </Button>
-        </Group>
-      </form>
+            <Tabs.Panel value="password" pt="md">
+              <form onSubmit={form.onSubmit(handleSubmit)}>
+                <Stack gap="md">
+                  <TextInput
+                    withAsterisk
+                    label="Email"
+                    placeholder="your@email.com"
+                    type="email"
+                    key={form.key("email")}
+                    {...form.getInputProps("email")}
+                  />
 
-      <small>
-        <Link to="/sign-up" className="group">
-          Don't have an account? <span className="underline group-hover:no-underline">Sign Up</span>
-        </Link>
-      </small>
-    </div>
+                  <PasswordInput
+                    withAsterisk
+                    label="Password"
+                    placeholder="Enter your password"
+                    key={form.key("password")}
+                    {...form.getInputProps("password")}
+                  />
+
+                  <Button
+                    type="submit"
+                    fullWidth
+                    loading={signInMutation.isPending}
+                    mt="md"
+                  >
+                    Sign In
+                  </Button>
+                </Stack>
+              </form>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="sso" pt="md">
+              <Stack gap="md">
+                <Text ta="center" c="dimmed" size="sm">
+                  Configure your Identity Provider (IDP) settings in the admin panel after signing in.
+                </Text>
+                <Button
+                  fullWidth
+                  variant="outline"
+                  leftSection={<IconBrandGoogle size={16} />}
+                  disabled
+                >
+                  Continue with SSO
+                </Button>
+              </Stack>
+            </Tabs.Panel>
+          </Tabs>
+
+          <Divider />
+
+          <Text ta="center" size="sm">
+            Don't have an account?{" "}
+            <Text component={Link} to="/sign-up" c="blue" td="underline">
+              Sign Up
+            </Text>
+          </Text>
+        </Stack>
+      </Paper>
+    </Center>
   );
 }

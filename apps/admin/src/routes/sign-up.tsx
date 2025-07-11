@@ -1,16 +1,21 @@
-import { Button, Group, PasswordInput, TextInput } from "@mantine/core";
+import { Alert, Button, Center, Divider, Paper, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { IconInfoCircle, IconShield } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
+import { envServerSchema } from "@/env";
 import { authClient } from "@/lib/auth/client";
 
 export const Route = createFileRoute("/sign-up")({
   component: Component,
+  loader: () => {
+    return { ADMIN_EMAIL: envServerSchema.ADMIN_EMAIL };
+  },
 });
 
 function Component() {
+  const { ADMIN_EMAIL } = Route.useLoaderData();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -48,13 +53,25 @@ function Component() {
         if (!value) {
           return "Email is required";
         }
-        return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "Please enter a valid email address" : null;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return "Please enter a valid email address";
+        }
+        if (value !== ADMIN_EMAIL) {
+          return "Only the admin email can create the first account. This is an invite-only system.";
+        }
+        return null;
       },
       password: (value) => {
         if (!value) {
           return "Password is required";
         }
-        return value.length < 8 ? "Password must be at least 8 characters" : null;
+        if (value.length < 8) {
+          return "Password must be at least 8 characters";
+        }
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+          return "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+        }
+        return null;
       },
       confirmPassword: (value, values) => {
         if (!value) {
@@ -74,56 +91,86 @@ function Component() {
   };
 
   return (
-    <div className="flex h-screen w-1/3 items-center justify-center flex-col">
-      <form
-        className="flex flex-col gap-2 w-full"
-        onSubmit={form.onSubmit(handleSubmit)}
-      >
-        <TextInput
-          withAsterisk
-          label="Full Name"
-          placeholder="Enter your full name"
-          key={form.key("name")}
-          {...form.getInputProps("name")}
-        />
+    <Center h="100vh">
+      <Paper shadow="md" p="xl" radius="md" w={420}>
+        <Stack gap="lg">
+          <Stack gap="xs" align="center">
+            <IconShield size={48} color="blue" />
+            <Title order={2} ta="center">Create Admin Account</Title>
+            <Text c="dimmed" ta="center" size="sm">
+              Set up the administrative account for your organization
+            </Text>
+          </Stack>
 
-        <TextInput
-          withAsterisk
-          label="Email"
-          placeholder="your@email.com"
-          type="email"
-          key={form.key("email")}
-          {...form.getInputProps("email")}
-        />
+          <Alert
+            icon={<IconInfoCircle size={16} />}
+            title="Admin Only Registration"
+            color="blue"
+            variant="light"
+          >
+            Only the configured admin email ({ADMIN_EMAIL}) can create the first account. This ensures secure
+            initialization of your admin panel.
+          </Alert>
 
-        <PasswordInput
-          withAsterisk
-          label="Password"
-          placeholder="Enter your password"
-          key={form.key("password")}
-          {...form.getInputProps("password")}
-        />
+          <form onSubmit={form.onSubmit(handleSubmit)}>
+            <Stack gap="md">
+              <TextInput
+                withAsterisk
+                label="Full Name"
+                placeholder="Enter your full name"
+                key={form.key("name")}
+                {...form.getInputProps("name")}
+              />
 
-        <PasswordInput
-          withAsterisk
-          label="Confirm Password"
-          placeholder="Confirm your password"
-          key={form.key("confirmPassword")}
-          {...form.getInputProps("confirmPassword")}
-        />
+              <TextInput
+                withAsterisk
+                label="Email"
+                placeholder={ADMIN_EMAIL}
+                type="email"
+                key={form.key("email")}
+                {...form.getInputProps("email")}
+                description="Must match the configured admin email"
+              />
 
-        <Group justify="flex-end" mt="md">
-          <Button type="submit" loading={signUpMutation.isPending}>
-            Sign Up
-          </Button>
-        </Group>
-      </form>
+              <PasswordInput
+                withAsterisk
+                label="Password"
+                placeholder="Enter your password"
+                key={form.key("password")}
+                {...form.getInputProps("password")}
+                description="At least 8 characters with uppercase, lowercase, and number"
+              />
 
-      <small>
-        <Link to="/sign-in" className="group">
-          Already have an account? <span className="underline group-hover:no-underline">Sign In</span>
-        </Link>
-      </small>
-    </div>
+              <PasswordInput
+                withAsterisk
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                key={form.key("confirmPassword")}
+                {...form.getInputProps("confirmPassword")}
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                loading={signUpMutation.isPending}
+                mt="md"
+                size="md"
+              >
+                Create Admin Account
+              </Button>
+            </Stack>
+          </form>
+
+          <Divider />
+
+          <Text ta="center" size="sm">
+            Already have an account?{" "}
+            <Text component={Link} to="/sign-in" c="blue" td="underline">
+              Sign In
+            </Text>
+          </Text>
+        </Stack>
+      </Paper>
+    </Center>
   );
 }

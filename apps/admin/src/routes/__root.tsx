@@ -73,7 +73,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider theme={theme}>
+        <MantineProvider theme={theme} forceColorScheme="dark">
           {children}
           <Scripts />
           {showDevtools.data && (
@@ -92,22 +92,18 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   );
 }
 
-const TanStackRouterDevtools = process.env.NODE_ENV === "production"
-  ? () => null
-  : lazy(() =>
-    import("@tanstack/react-router-devtools").then((res) => ({
-      default: (
-        props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
-      ) => <res.TanStackRouterDevtools {...props} />,
-    }))
-  );
+const TanStackRouterDevtools = lazy(() =>
+  import("@tanstack/react-router-devtools").then((res) => ({
+    default: (
+      props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
+    ) => <res.TanStackRouterDevtools {...props} />,
+  }))
+);
 
-const TanStackQueryDevtools = process.env.NODE_ENV === "production"
-  ? () => null
-  : lazy(() =>
-    import("@tanstack/react-query-devtools").then((res) => ({
-      default: (
-        props: React.ComponentProps<typeof res.ReactQueryDevtools>,
-      ) => <res.ReactQueryDevtools {...props} />,
-    }))
-  );
+const TanStackQueryDevtools = lazy(() =>
+  import("@tanstack/react-query-devtools").then((res) => ({
+    default: (
+      props: React.ComponentProps<typeof res.ReactQueryDevtools>,
+    ) => <res.ReactQueryDevtools {...props} />,
+  }))
+);

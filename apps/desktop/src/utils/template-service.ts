@@ -3,9 +3,7 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { DEFAULT_TEMPLATES, isDefaultTemplate } from "./default-templates";
 
 export class TemplateService {
-  /**
-   * Get all templates (hardcoded + database)
-   */
+  
   static async getAllTemplates(): Promise<Template[]> {
     try {
       const dbTemplates = await dbCommands.listTemplates();

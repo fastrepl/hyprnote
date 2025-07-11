@@ -99,7 +99,7 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
 
             if app.get_notify_before_meeting()? {
                 let notification = hypr_notification2::Notification {
-                    title: "Meeting detected".to_string(),
+                    title: "Are you in a meeting?".to_string(),
                     message: format!(
                         "Detected {} meeting{}. Start recording? (Confidence: {:.0}%)",
                         meeting.app.name,
@@ -129,11 +129,11 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
             }
 
             if app.get_notify_before_meeting()? {
-                let minutes_before = app.get_minutes_before_notification()?;
+                let _minutes_before = app.get_minutes_before_notification()?;
                 let notification = hypr_notification2::Notification {
-                    title: format!("Meeting starting in {} minutes", minutes_before),
+                    title: "Meeting is about to begin!".to_string(),
                     message: format!(
-                        "'{}' is about to begin. Preparing to start recording...",
+                        "'{}' is starting. Preparing to start recording...",
                         meeting.title
                     ),
                     url: Some("hypr://app/new?record=true".to_string()),
@@ -169,10 +169,7 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
                 let minutes_before = app.get_minutes_before_notification()?;
                 let notification = hypr_notification2::Notification {
                     title: format!("Meeting in {} minutes", minutes_before),
-                    message: format!(
-                        "'{}' is scheduled to begin soon. Get ready!",
-                        meeting.title
-                    ),
+                    message: format!("'{}' is scheduled to begin soon. Get ready!", meeting.title),
                     url: Some("hypr://app/new?record=true".to_string()),
                     timeout: Some(std::time::Duration::from_secs(10)),
                 };

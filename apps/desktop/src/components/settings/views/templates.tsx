@@ -64,7 +64,7 @@ export default function TemplatesView() {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      
+
       // Use TemplateService to get categorized templates
       const { custom, builtin } = await TemplateService.getTemplatesByCategory();
       console.log("loaded templates - custom:", custom, "builtin:", builtin);
@@ -408,11 +408,7 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
             onClick={handleEditClick}
             className="ml-2 rounded-lg border-neutral-300 hover:border-neutral-400"
           >
-            {isBuiltinTemplate ? (
-              <EyeIcon className="h-4 w-4" />
-            ) : (
-              <EditIcon className="h-4 w-4" />
-            )}
+            {isBuiltinTemplate ? <EyeIcon className="h-4 w-4" /> : <EditIcon className="h-4 w-4" />}
           </Button>
         )}
       </div>

@@ -1,5 +1,5 @@
-import { type Template } from "@hypr/plugin-db";
 import { TemplateService } from "@/utils/template-service";
+import { type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { CopyIcon, EditIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { CopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 
@@ -202,7 +202,7 @@ export default function TemplateEditor({
                   <CopyIcon className="mr-2 h-4 w-4" />
                   <Trans>Duplicate</Trans>
                 </DropdownMenuItem>
-                
+
                 {/* Only show separator and delete option for custom templates */}
                 {!isBuiltinTemplate && (
                   <>

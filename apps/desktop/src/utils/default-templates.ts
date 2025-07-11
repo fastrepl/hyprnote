@@ -11,9 +11,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Agenda", description: "Topics to be discussed and objectives" },
       { title: "Discussion Points", description: "Key points, decisions, and insights from the meeting" },
       { title: "Action Items", description: "Tasks assigned with owners and deadlines" },
-      { title: "Next Steps", description: "Follow-up actions and next meeting details" }
+      { title: "Next Steps", description: "Follow-up actions and next meeting details" },
     ],
-    tags: ["general", "meeting", "agenda", "action-items", "builtin"]
+    tags: ["general", "meeting", "agenda", "action-items", "builtin"],
   },
   {
     id: "default-standup",
@@ -25,9 +25,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Today", description: "What will be worked on today" },
       { title: "Blockers", description: "Any impediments or issues that need attention" },
       { title: "Goals", description: "Key objectives for the day/sprint" },
-      { title: "Notes", description: "Additional updates or important information" }
+      { title: "Notes", description: "Additional updates or important information" },
     ],
-    tags: ["general", "standup", "daily", "progress", "blockers", "builtin"]
+    tags: ["general", "standup", "daily", "progress", "blockers", "builtin"],
   },
   {
     id: "default-weekly-review",
@@ -39,9 +39,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Challenges", description: "Obstacles faced and how they were handled" },
       { title: "Lessons Learned", description: "Key insights and takeaways" },
       { title: "Next Week Goals", description: "Priorities and objectives for next week" },
-      { title: "Improvements", description: "Areas for personal or process improvement" }
+      { title: "Improvements", description: "Areas for personal or process improvement" },
     ],
-    tags: ["general", "weekly", "review", "reflection", "planning", "builtin"]
+    tags: ["general", "weekly", "review", "reflection", "planning", "builtin"],
   },
   {
     id: "default-one-on-one",
@@ -54,9 +54,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Challenges", description: "Any blockers or difficulties" },
       { title: "Career Development", description: "Growth opportunities and feedback" },
       { title: "Team Feedback", description: "Thoughts on team dynamics and processes" },
-      { title: "Action Items", description: "Follow-up tasks and commitments" }
+      { title: "Action Items", description: "Follow-up tasks and commitments" },
     ],
-    tags: ["general", "one-on-one", "1-on-1", "management", "feedback", "builtin"]
+    tags: ["general", "one-on-one", "1-on-1", "management", "feedback", "builtin"],
   },
   {
     id: "default-user-interview",
@@ -69,9 +69,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "User Behavior", description: "How they currently solve the problem" },
       { title: "Pain Points", description: "Frustrations and challenges they face" },
       { title: "Feature Feedback", description: "Reactions to proposed solutions" },
-      { title: "Key Insights", description: "Important learnings and next steps" }
+      { title: "Key Insights", description: "Important learnings and next steps" },
     ],
-    tags: ["startup", "user-interview", "research", "feedback", "ux", "builtin"]
+    tags: ["startup", "user-interview", "research", "feedback", "ux", "builtin"],
   },
   {
     id: "default-b2b-discovery",
@@ -84,9 +84,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Existing Solutions", description: "What they use now and limitations" },
       { title: "Decision Process", description: "How decisions are made and key stakeholders" },
       { title: "Requirements", description: "Must-have features and success criteria" },
-      { title: "Next Steps", description: "Follow-up actions and timeline" }
+      { title: "Next Steps", description: "Follow-up actions and timeline" },
     ],
-    tags: ["startup", "b2b", "discovery", "sales", "customer", "builtin"]
+    tags: ["startup", "b2b", "discovery", "sales", "customer", "builtin"],
   },
   {
     id: "default-b2b-pilot",
@@ -99,9 +99,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "User Feedback", description: "How the team is using the solution" },
       { title: "Challenges", description: "Issues encountered and resolution status" },
       { title: "Value Delivered", description: "Benefits and ROI demonstrated" },
-      { title: "Next Phase", description: "Plans for expansion or full deployment" }
+      { title: "Next Phase", description: "Plans for expansion or full deployment" },
     ],
-    tags: ["startup", "b2b", "pilot", "customer", "progress", "builtin"]
+    tags: ["startup", "b2b", "pilot", "customer", "progress", "builtin"],
   },
   {
     id: "default-job-interview",
@@ -114,9 +114,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Experience Review", description: "Past projects and relevant background" },
       { title: "Cultural Fit", description: "Values alignment and team dynamics" },
       { title: "Questions & Answers", description: "Candidate questions and responses" },
-      { title: "Overall Evaluation", description: "Recommendation and hiring decision" }
+      { title: "Overall Evaluation", description: "Recommendation and hiring decision" },
     ],
-    tags: ["general", "job-interview", "hiring", "candidate", "assessment", "builtin"]
+    tags: ["general", "job-interview", "hiring", "candidate", "assessment", "builtin"],
   },
   {
     id: "default-patient-visit",
@@ -129,9 +129,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Symptoms", description: "Current symptoms and duration" },
       { title: "Assessment", description: "Clinical findings and observations" },
       { title: "Treatment Plan", description: "Recommended treatments and medications" },
-      { title: "Follow-up", description: "Next appointment and monitoring plan" }
+      { title: "Follow-up", description: "Next appointment and monitoring plan" },
     ],
-    tags: ["patient", "medical", "healthcare", "consultation", "builtin"]
+    tags: ["patient", "medical", "healthcare", "consultation", "builtin"],
   },
   {
     id: "default-client-meeting-legal",
@@ -144,9 +144,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Legal Strategy", description: "Approach and recommended actions" },
       { title: "Documents Needed", description: "Required paperwork and evidence" },
       { title: "Timeline", description: "Important dates and deadlines" },
-      { title: "Next Steps", description: "Action items and follow-up tasks" }
+      { title: "Next Steps", description: "Action items and follow-up tasks" },
     ],
-    tags: ["legal", "client", "case", "consultation", "builtin"]
+    tags: ["legal", "client", "case", "consultation", "builtin"],
   },
   {
     id: "default-therapy-session",
@@ -159,9 +159,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Key Topics", description: "Main issues and concerns discussed" },
       { title: "Insights", description: "Breakthroughs and realizations" },
       { title: "Coping Strategies", description: "Tools and techniques practiced" },
-      { title: "Homework", description: "Tasks and exercises for next session" }
+      { title: "Homework", description: "Tasks and exercises for next session" },
     ],
-    tags: ["healthcare", "therapy", "counseling", "mental-health", "session", "builtin"]
+    tags: ["healthcare", "therapy", "counseling", "mental-health", "session", "builtin"],
   },
   {
     id: "default-brainstorming",
@@ -174,9 +174,9 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Promising Concepts", description: "Ideas worth exploring further" },
       { title: "Constraints", description: "Limitations and considerations" },
       { title: "Next Steps", description: "How to develop selected ideas" },
-      { title: "Action Items", description: "Who does what and when" }
+      { title: "Action Items", description: "Who does what and when" },
     ],
-    tags: ["startup", "brainstorming", "creative", "ideation", "innovation", "builtin"]
+    tags: ["startup", "brainstorming", "creative", "ideation", "innovation", "builtin"],
   },
   {
     id: "default-coffee-chat",
@@ -189,10 +189,10 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Common Interests", description: "Shared topics and connections" },
       { title: "Insights Shared", description: "Valuable information exchanged" },
       { title: "Potential Collaboration", description: "Ways to work together" },
-      { title: "Follow-up", description: "How to stay in touch and next steps" }
+      { title: "Follow-up", description: "How to stay in touch and next steps" },
     ],
-    tags: ["casual", "coffee-chat", "networking", "relationship", "informal", "builtin"]
-  }
+    tags: ["casual", "coffee-chat", "networking", "relationship", "informal", "builtin"],
+  },
 ];
 
 export const isDefaultTemplate = (templateId: string): boolean => {
@@ -201,4 +201,4 @@ export const isDefaultTemplate = (templateId: string): boolean => {
 
 export const getDefaultTemplate = (templateId: string): Template | undefined => {
   return DEFAULT_TEMPLATES.find(t => t.id === templateId);
-}; 
+};

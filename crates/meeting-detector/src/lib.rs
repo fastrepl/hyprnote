@@ -33,6 +33,7 @@ pub struct ScheduledMeeting {
 #[derive(Debug, Clone)]
 pub enum MeetingEvent {
     AdHocMeetingDetected(MeetingDetected),
+    ScheduledMeetingUpcoming(ScheduledMeeting),
     ScheduledMeetingStarting(ScheduledMeeting),
     ScheduledMeetingEnded(ScheduledMeeting),
     MeetingAppClosed(String),
@@ -214,7 +215,7 @@ impl MeetingDetector {
         for meeting_app in &known_apps {
             if Self::is_app_running(&meeting_app.bundle_id) {
                 let window_title = Self::get_active_window_title(&meeting_app.bundle_id).await;
-                let confidence = Self::calculate_meeting_confidence(&meeting_app, &window_title);
+                let confidence = Self::calculate_meeting_confidence(meeting_app, &window_title);
 
                 // Use a reasonable minimum threshold for detection (0.5)
                 // The actual recording decision will use the user's configured threshold
@@ -420,7 +421,7 @@ impl MeetingDetector {
 
                             let callbacks_guard = callbacks.read().await;
                             for callback in callbacks_guard.iter() {
-                                callback(MeetingEvent::ScheduledMeetingStarting(meeting.clone()));
+                                callback(MeetingEvent::ScheduledMeetingUpcoming(meeting.clone()));
                             }
                         }
                     }

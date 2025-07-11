@@ -1,4 +1,5 @@
 import { useHypr } from "@/contexts";
+import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -6,7 +7,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftIcon, EditIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, EditIcon, EyeIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import TemplateEditor from "./template";
 
@@ -63,13 +64,10 @@ export default function TemplatesView() {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const templates = await dbCommands.listTemplates();
-      console.log("loaded templates: ", templates);
-      console.log(templates);
-
-      // Separate custom and builtin templates
-      const custom = templates.filter(t => !t.tags?.includes("builtin"));
-      const builtin = templates.filter(t => t.tags?.includes("builtin"));
+      
+      // Use TemplateService to get categorized templates
+      const { custom, builtin } = await TemplateService.getTemplatesByCategory();
+      console.log("loaded templates - custom:", custom, "builtin:", builtin);
 
       setCustomTemplates(custom);
       setBuiltinTemplates(builtin);
@@ -97,7 +95,7 @@ export default function TemplatesView() {
     }
   };
 
-  // Handle template editing
+  // Handle template editing/viewing - now supports both custom and built-in templates
   const handleTemplateEdit = (template: Template) => {
     setSelectedTemplate(template);
     setViewState("editor");
@@ -123,7 +121,7 @@ export default function TemplatesView() {
 
   const handleTemplateUpdate = async (updatedTemplate: Template) => {
     try {
-      await dbCommands.upsertTemplate(updatedTemplate);
+      await TemplateService.saveTemplate(updatedTemplate);
       setSelectedTemplate(updatedTemplate);
 
       // Refresh the list
@@ -155,7 +153,7 @@ export default function TemplatesView() {
 
   const handleDeleteTemplate = async (template: Template) => {
     try {
-      await dbCommands.deleteTemplate(template.id);
+      await TemplateService.deleteTemplate(template.id);
       await loadTemplates();
     } catch (error) {
       console.error("Failed to delete template:", error);
@@ -178,6 +176,9 @@ export default function TemplatesView() {
     }
   };
 
+  // Check if current template is being viewed (read-only)
+  const isViewingTemplate = selectedTemplate && !TemplateService.canEditTemplate(selectedTemplate.id);
+
   // Show template editor
   if (viewState === "editor" || viewState === "new") {
     return (
@@ -190,7 +191,7 @@ export default function TemplatesView() {
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeftIcon className="h-4 w-4" />
-            <Trans>Save and close</Trans>
+            <Trans>{isViewingTemplate ? "Back" : "Save and close"}</Trans>
           </Button>
         </div>
 
@@ -368,6 +369,9 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
     return text.substring(0, maxLength).trim() + "...";
   };
 
+  // Check if this is a built-in template
+  const isBuiltinTemplate = !TemplateService.canEditTemplate(template.id);
+
   return (
     <div
       className={cn(
@@ -404,7 +408,11 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
             onClick={handleEditClick}
             className="ml-2 rounded-lg border-neutral-300 hover:border-neutral-400"
           >
-            <EditIcon className="h-4 w-4" />
+            {isBuiltinTemplate ? (
+              <EyeIcon className="h-4 w-4" />
+            ) : (
+              <EditIcon className="h-4 w-4" />
+            )}
           </Button>
         )}
       </div>

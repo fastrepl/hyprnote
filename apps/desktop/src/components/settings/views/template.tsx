@@ -1,4 +1,5 @@
 import { type Template } from "@hypr/plugin-db";
+import { TemplateService } from "@/utils/template-service";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -75,8 +76,13 @@ export default function TemplateEditor({
 }: TemplateEditorProps) {
   const { t } = useLingui();
 
+  // Check if this is a built-in template
+  const isBuiltinTemplate = !TemplateService.canEditTemplate(template.id);
+  const isReadOnly = disabled || isBuiltinTemplate;
+
   console.log("now in template editor");
   console.log("template: ", template);
+  console.log("isBuiltinTemplate: ", isBuiltinTemplate);
 
   // Extract emoji from title or use default
   const extractEmojiFromTitle = (title: string) => {
@@ -145,7 +151,7 @@ export default function TemplateEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  disabled={disabled}
+                  disabled={isReadOnly}
                   className="h-10 w-10 p-0 text-lg hover:bg-neutral-100"
                 >
                   {selectedEmoji}
@@ -175,7 +181,7 @@ export default function TemplateEditor({
 
             {/* Title Input */}
             <Input
-              disabled={disabled}
+              disabled={isReadOnly}
               value={getTitleWithoutEmoji(template.title || "")}
               onChange={handleChangeTitle}
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
@@ -183,39 +189,36 @@ export default function TemplateEditor({
             />
           </div>
 
-          {/* Menu Button */}
-          {isCreator
-            ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontalIcon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleDuplicate} className="cursor-pointer">
-                    <CopyIcon className="mr-2 h-4 w-4" />
-                    <Trans>Duplicate</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleDelete}
-                    className="text-destructive hover:bg-red-100 hover:text-red-600 cursor-pointer"
-                  >
-                    <TrashIcon className="mr-2 h-4 w-4" />
-                    <Trans>Delete</Trans>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )
-            : (
-              <button
-                onClick={handleDuplicate}
-                className="rounded-md p-2 hover:bg-neutral-100"
-              >
-                <EditIcon className="h-4 w-4" />
-              </button>
-            )}
+          {/* Menu Button - Show for all templates with different options */}
+          {isCreator && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontalIcon className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDuplicate} className="cursor-pointer">
+                  <CopyIcon className="mr-2 h-4 w-4" />
+                  <Trans>Duplicate</Trans>
+                </DropdownMenuItem>
+                
+                {/* Only show separator and delete option for custom templates */}
+                {!isBuiltinTemplate && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="text-destructive hover:bg-red-100 hover:text-red-600 cursor-pointer"
+                    >
+                      <TrashIcon className="mr-2 h-4 w-4" />
+                      <Trans>Delete</Trans>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
@@ -224,7 +227,7 @@ export default function TemplateEditor({
           <Trans>Description</Trans>
         </h2>
         <Textarea
-          disabled={disabled}
+          disabled={isReadOnly}
           value={template.description}
           onChange={handleChangeDescription}
           placeholder={t`Add a description...`}
@@ -237,7 +240,7 @@ export default function TemplateEditor({
           <Trans>Sections</Trans>
         </h2>
         <SectionsList
-          disabled={disabled}
+          disabled={isReadOnly}
           items={template.sections}
           onChange={handleChangeSections}
         />

@@ -55,17 +55,6 @@ function Component() {
             <p className="mb-12 text-center text-base font-medium text-neutral-600 md:text-lg lg:text-xl">
               Sign in to continue to Hyprnote
             </p>
-            <div className="mb-4 w-full">
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full min-h-11 text-lg"
-                onClick={() => signInWith("oauth_google")}
-              >
-                <img src="/google_icon.svg" alt="Google" className="size-5" />
-                Sign in with Google
-              </Button>
-            </div>
             <TOS />
           </SignedOut>
           <SignedIn>

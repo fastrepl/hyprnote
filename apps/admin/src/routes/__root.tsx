@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+import { ColorSchemeScript, createTheme, mantineHtmlProps, MantineProvider } from "@mantine/core";
 import { QueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
@@ -7,7 +8,9 @@ import { lazy, Suspense } from "react";
 
 import { authQueries } from "@/services/queries";
 
-import appCss from "@/styles/app.css?url";
+import css from "./__root.css?url";
+
+const theme = createTheme({});
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -27,7 +30,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: css },
       {
         rel: "apple-touch-icon",
         sizes: "180x180",
@@ -64,23 +67,26 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <html>
+    <html {...mantineHtmlProps}>
       <head>
         <HeadContent />
+        <ColorSchemeScript />
       </head>
       <body>
-        {children}
-        <Scripts />
-        {showDevtools.data && (
-          <Suspense>
-            <TanStackRouterDevtools position={"bottom-right"} initialIsOpen={false} />
-            <TanStackQueryDevtools
-              buttonPosition={"bottom-right"}
-              position="bottom"
-              initialIsOpen={false}
-            />
-          </Suspense>
-        )}
+        <MantineProvider theme={theme}>
+          {children}
+          <Scripts />
+          {showDevtools.data && (
+            <Suspense>
+              <TanStackRouterDevtools position={"bottom-right"} initialIsOpen={false} />
+              <TanStackQueryDevtools
+                buttonPosition={"bottom-right"}
+                position="bottom"
+                initialIsOpen={false}
+              />
+            </Suspense>
+          )}
+        </MantineProvider>
       </body>
     </html>
   );

@@ -9,7 +9,6 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 RUN pnpm fetch
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter="@hypr/ui" run build
 RUN pnpm --filter="@hypr/admin" run auth:migrate
 RUN pnpm --filter="@hypr/admin" run build
 

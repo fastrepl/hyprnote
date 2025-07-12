@@ -214,9 +214,51 @@ pub async fn get_upcoming_meetings(
 
     let mut meetings = Vec::new();
     for event in events {
-        // Note: Event participants are stored separately in session_participants table
-        // For now, using empty list until we implement participant fetching
-        let participants: Vec<String> = Vec::new();
+        // Fetch participants from the session associated with this event
+        let participants: Vec<String> = match db
+            .get_session(hypr_db_user::GetSessionFilter::CalendarEventId(
+                event.id.clone(),
+            ))
+            .await
+        {
+            Ok(Some(session)) => {
+                // Get participants for the session
+                let session_id = session.id.clone();
+                match db.session_list_participants(session.id).await {
+                    Ok(humans) => {
+                        // Convert Human objects to string representations
+                        humans
+                            .into_iter()
+                            .map(|human| {
+                                if let Some(name) = human.full_name {
+                                    name
+                                } else if let Some(email) = human.email {
+                                    email
+                                } else {
+                                    human.id
+                                }
+                            })
+                            .collect()
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "Failed to fetch participants for session {}: {}",
+                            session_id,
+                            e
+                        );
+                        Vec::new()
+                    }
+                }
+            }
+            Ok(None) => {
+                // No session found for this event
+                Vec::new()
+            }
+            Err(e) => {
+                tracing::warn!("Failed to fetch session for event {}: {}", event.id, e);
+                Vec::new()
+            }
+        };
 
         meetings.push(hypr_meeting_detector::ScheduledMeeting {
             id: event.id,

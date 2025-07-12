@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { getName, getVersion } from "@tauri-apps/api/app";
-import { CogIcon, CpuIcon, ExternalLinkIcon } from "lucide-react";
+import { CogIcon, CpuIcon } from "lucide-react";
 import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
@@ -47,7 +47,7 @@ export function SettingsButton() {
   const handleClickChangelog = async () => {
     setOpen(false);
     try {
-      await openURL("https://hyprnote.canny.io/changelog");
+      await openURL("https://hyprnote.com/changelog");
     } catch (error) {
       console.error("Failed to open changelog:", error);
     }
@@ -117,10 +117,7 @@ export function SettingsButton() {
             onClick={handleClickChangelog}
             className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
           >
-            <div className="flex items-center gap-1">
-              <span>{versionQuery.data ?? "..."}</span>
-              <ExternalLinkIcon className="h-2.5 w-2.5 scale-75" style={{ strokeWidth: 2 }} />
-            </div>
+            <span>{versionQuery.data ?? "..."}</span>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

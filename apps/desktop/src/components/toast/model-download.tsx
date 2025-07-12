@@ -66,21 +66,44 @@ export default function ModelDownloadNotification() {
       return;
     }
 
+    const needsSttModel = !checkForModelDownload.data?.sttModelDownloaded;
+    const needsLlmModel = !checkForModelDownload.data?.llmModelDownloaded;
+
+    let title: string;
+    let content: string;
+    let buttonLabel: string;
+
+    if (needsSttModel && needsLlmModel) {
+      title = "Transcribing & Enhancing AI Needed";
+      content = "Both STT models and LLMs are required for offline functionality.";
+      buttonLabel = "Download Both Models";
+    } else if (needsSttModel) {
+      title = "Transcribing Model Needed";
+      content = "The STT model is required for offline transcribing functionality.";
+      buttonLabel = "Download Transcribing Model";
+    } else if (needsLlmModel) {
+      title = "Enhancing AI Model Needed";
+      content = "The LLM model is required for offline enhancing functionality.";
+      buttonLabel = "Download HyprLLM v1";
+    } else {
+      return;
+    }
+
     toast({
       id: "model-download-needed",
-      title: "Model Download Needed",
-      content: "Local models are required for offline functionality.",
+      title,
+      content,
       buttons: [
         {
-          label: "Download Models",
+          label: buttonLabel,
           onClick: () => {
             sonnerToast.dismiss("model-download-needed");
 
-            if (!checkForModelDownload.data?.sttModelDownloaded && !sttModelDownloading.data) {
+            if (needsSttModel && !sttModelDownloading.data) {
               showSttModelDownloadToast(currentSttModel.data!);
             }
 
-            if (!checkForModelDownload.data?.llmModelDownloaded && !llmModelDownloading.data) {
+            if (needsLlmModel && !llmModelDownloading.data) {
               showLlmModelDownloadToast();
             }
           },

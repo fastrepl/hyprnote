@@ -101,9 +101,9 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
 
             if app.get_notify_before_meeting()? {
                 let notification = hypr_notification2::Notification {
-                    title: "Are you in a meeting?".to_string(),
+                    title: "Meeting detected - Click to start recording".to_string(),
                     message: format!(
-                        "Detected {} meeting{}. Start recording? (Confidence: {:.0}%)",
+                        "Detected {} meeting{}. (Confidence: {:.0}%)",
                         meeting.app.name,
                         if let Some(ref title) = meeting.window_title {
                             format!(" ({})", title)
@@ -112,13 +112,18 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
                         },
                         meeting.confidence * 100.0
                     ),
-                    url: Some("hypr://auto-recording/meeting-detected".to_string()),
-                    timeout: Some(std::time::Duration::from_secs(10)),
+                    url: Some(format!(
+                        "hypr://app/new?record=true&source=auto-detected&app={}",
+                        meeting.app.bundle_id
+                    )),
+                    timeout: Some(std::time::Duration::from_secs(15)),
                 };
                 hypr_notification2::show(notification);
 
-                // Give users time to react to the notification (5 seconds)
-                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                // Note: Current notification system doesn't support direct callbacks.
+                // Recording will only start if user clicks the notification.
+                // Consider implementing a state-based confirmation system in the future.
+                return Ok(()); // Don't auto-start recording - require user interaction
             }
 
             app.trigger_recording_for_meeting(meeting.app.bundle_id)
@@ -131,7 +136,6 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
             }
 
             if app.get_notify_before_meeting()? {
-                let _minutes_before = app.get_minutes_before_notification()?;
                 let notification = hypr_notification2::Notification {
                     title: "Meeting is about to begin!".to_string(),
                     message: format!(

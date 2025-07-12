@@ -675,7 +675,9 @@ impl Session {
         {
             use tauri_plugin_tray::TrayPluginExt;
             let _ = self.app.set_start_disabled(false);
-            let _ = self.app.stop_tray_blinking();
+            if let Err(e) = self.app.stop_tray_blinking() {
+                tracing::warn!("Failed to stop tray blinking: {:?}", e);
+            }
         }
 
         {
@@ -710,7 +712,9 @@ impl Session {
 
         {
             use tauri_plugin_tray::TrayPluginExt;
-            let _ = self.app.start_tray_blinking();
+            if let Err(e) = self.app.start_tray_blinking() {
+                tracing::warn!("Failed to start tray blinking: {:?}", e);
+            }
         }
 
         if let Some(session_id) = &self.session_id {

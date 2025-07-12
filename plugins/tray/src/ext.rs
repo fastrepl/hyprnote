@@ -238,6 +238,9 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false))
         };
 
+        let icon_default = Image::from_bytes(include_bytes!("../icons/tray_default.png"))?;
+        let icon_recording = Image::from_bytes(include_bytes!("../icons/tray_recording.png"))?;
+
         let handle = std::thread::spawn(move || {
             let mut is_recording_icon = true;
 
@@ -250,14 +253,11 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
                 if let Some(tray) = app_clone.tray_by_id(TRAY_ID) {
                     let icon = if is_recording_icon {
-                        Image::from_bytes(include_bytes!("../icons/tray_default.png"))
+                        icon_default.clone()
                     } else {
-                        Image::from_bytes(include_bytes!("../icons/tray_recording.png"))
+                        icon_recording.clone()
                     };
-
-                    if let Ok(icon) = icon {
-                        let _ = tray.set_icon(Some(icon));
-                    }
+                    let _ = tray.set_icon(Some(icon));
                 }
 
                 is_recording_icon = !is_recording_icon;

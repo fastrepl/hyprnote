@@ -1,3 +1,6 @@
+use tauri::image::Image;
+use tauri::Manager;
+
 mod ext;
 pub use ext::*;
 
@@ -15,6 +18,20 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            let icon_default = Image::from_bytes(include_bytes!("../icons/tray_default.png"))
+                .expect("Failed to load default tray icon");
+            let icon_recording = Image::from_bytes(include_bytes!("../icons/tray_recording.png"))
+                .expect("Failed to load recording tray icon");
+
+            app.manage(BlinkingState {
+                handle: std::sync::Mutex::new(None),
+                stop_flag: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+                icon_default,
+                icon_recording,
+            });
+            Ok(())
+        })
         .build()
 }
 

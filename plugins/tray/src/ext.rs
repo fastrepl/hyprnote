@@ -14,6 +14,8 @@ use tauri_plugin_misc::MiscPluginExt;
 pub struct BlinkingState {
     pub handle: std::sync::Mutex<Option<std::thread::JoinHandle<()>>>,
     pub stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    pub icon_default: Image<'static>,
+    pub icon_recording: Image<'static>,
 }
 
 const TRAY_ID: &str = "hypr-tray";
@@ -212,44 +214,34 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     fn start_tray_blinking(&self) -> Result<()> {
         let app_handle = self.app_handle();
 
-        // Cancel any existing blinking task
-        if let Some(state) = app_handle.try_state::<BlinkingState>() {
-            state
-                .stop_flag
-                .store(true, std::sync::atomic::Ordering::Relaxed);
-            if let Some(handle) = state.handle.lock().unwrap().take() {
-                let _ = handle.join();
-            }
-        } else {
-            app_handle.manage(BlinkingState {
-                handle: std::sync::Mutex::new(None),
-                stop_flag: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
-            });
+        let state = app_handle.state::<BlinkingState>();
+        state
+            .stop_flag
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        if let Some(handle) = state.handle.lock().unwrap().take() {
+            let _ = handle.join();
         }
 
         // Start new blinking task
         let app_clone = app_handle.clone();
-        let stop_flag = if let Some(state) = app_handle.try_state::<BlinkingState>() {
-            state
-                .stop_flag
-                .store(false, std::sync::atomic::Ordering::Relaxed);
-            state.stop_flag.clone()
-        } else {
-            std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false))
-        };
+        let state = app_handle.state::<BlinkingState>();
+        state
+            .stop_flag
+            .store(false, std::sync::atomic::Ordering::Relaxed);
+        let stop_flag = state.stop_flag.clone();
 
-        let icon_default = Image::from_bytes(include_bytes!("../icons/tray_default.png"))?;
-        let icon_recording = Image::from_bytes(include_bytes!("../icons/tray_recording.png"))?;
+        let icon_default = state.icon_default.clone();
+        let icon_recording = state.icon_recording.clone();
 
         let handle = std::thread::spawn(move || {
             let mut is_recording_icon = true;
 
-            while !stop_flag.load(std::sync::atomic::Ordering::Relaxed) {
-                std::thread::sleep(std::time::Duration::from_millis(500));
-
+            loop {
                 if stop_flag.load(std::sync::atomic::Ordering::Relaxed) {
                     break;
                 }
+
+                std::thread::sleep(std::time::Duration::from_millis(500));
 
                 if let Some(tray) = app_clone.tray_by_id(TRAY_ID) {
                     let icon = if is_recording_icon {
@@ -264,10 +256,9 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             }
         });
 
-        if let Some(state) = app_handle.try_state::<BlinkingState>() {
-            let mut guard = state.handle.lock().unwrap();
-            *guard = Some(handle);
-        }
+        let state = app_handle.state::<BlinkingState>();
+        let mut guard = state.handle.lock().unwrap();
+        *guard = Some(handle);
 
         Ok(())
     }

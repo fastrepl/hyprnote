@@ -36,7 +36,7 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 ### Hypercharge your notes
 Casually jot stuff down and Hyprnote will craft a meeting note based on your memos.
 
-<img src="https://github.com/user-attachments/assets/1615a9f0-7a30-44c1-b142-0d1774a84e89" width="720" />
+![Screen Recording 2025-07-11 at 5 01 40 PM](https://github.com/user-attachments/assets/4f502a3b-1b78-4ce5-9fa9-b5e5e09ef859)
 
 ### Offline & Privacy
 Hyprnote is local-first which means you can be off the grid and it's perfectly fine.

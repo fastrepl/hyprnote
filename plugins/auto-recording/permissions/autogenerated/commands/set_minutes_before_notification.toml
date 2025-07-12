@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-minutes-before-notification"
+description = "Enables the set_minutes_before_notification command without any pre-configured scope."
+commands.allow = ["set_minutes_before_notification"]
+
+[[permission]]
+identifier = "deny-set-minutes-before-notification"
+description = "Denies the set_minutes_before_notification command without any pre-configured scope."
+commands.deny = ["set_minutes_before_notification"]

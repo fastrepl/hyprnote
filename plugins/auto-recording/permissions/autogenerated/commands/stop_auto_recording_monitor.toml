@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-stop-auto-recording-monitor"
+description = "Enables the stop_auto_recording_monitor command without any pre-configured scope."
+commands.allow = ["stop_auto_recording_monitor"]
+
+[[permission]]
+identifier = "deny-stop-auto-recording-monitor"
+description = "Denies the stop_auto_recording_monitor command without any pre-configured scope."
+commands.deny = ["stop_auto_recording_monitor"]

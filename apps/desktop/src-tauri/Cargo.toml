@@ -30,6 +30,7 @@ hypr-turso = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
+tauri-plugin-auto-recording = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }

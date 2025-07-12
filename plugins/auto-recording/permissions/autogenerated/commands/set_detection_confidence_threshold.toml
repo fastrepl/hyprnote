@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-detection-confidence-threshold"
+description = "Enables the set_detection_confidence_threshold command without any pre-configured scope."
+commands.allow = ["set_detection_confidence_threshold"]
+
+[[permission]]
+identifier = "deny-set-detection-confidence-threshold"
+description = "Denies the set_detection_confidence_threshold command without any pre-configured scope."
+commands.deny = ["set_detection_confidence_threshold"]

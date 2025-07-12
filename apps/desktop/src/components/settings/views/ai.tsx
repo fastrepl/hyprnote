@@ -5,7 +5,7 @@ import { DownloadIcon, FolderIcon, InfoIcon, MicIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { showSttModelDownloadToast, showLlmModelDownloadToast } from "../../toast/shared";
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 
@@ -162,9 +162,7 @@ export default function LocalAI() {
     // Update UI when download finishes via callback after toast dismiss.
     // We'll poll every second until local llm download status indicates completion.
     // For now, assume completion immediately after toast onComplete.
-    setLlmModels((prev) =>
-      prev.map((m) => (m.key === modelKey ? { ...m, downloaded: true } : m)),
-    );
+    setLlmModels((prev) => prev.map((m) => (m.key === modelKey ? { ...m, downloaded: true } : m)));
 
     setDownloadingModels((prev) => {
       const s = new Set(prev);
@@ -262,16 +260,13 @@ export default function LocalAI() {
     <div className="space-y-8">
       {/* Transcribing Section */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <MicIcon className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">
-              <Trans>Transcribing</Trans>
-            </h2>
-          </div>
+        <div className="flex items-center gap-2 mb-6">
+          <h2 className="text-lg font-semibold">
+            <Trans>Transcribing</Trans>
+          </h2>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button size="icon" variant="outline" onClick={() => setIsWerModalOpen(true)}>
+              <Button size="icon" variant="ghost" onClick={() => setIsWerModalOpen(true)}>
                 <InfoIcon className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
@@ -281,90 +276,92 @@ export default function LocalAI() {
           </Tooltip>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sttModels.map((model) => (
-            <div
-              key={model.key}
-              className={cn(
-                "p-4 rounded-lg border-2 transition-all cursor-pointer",
-                selectedSTTModel === model.key && model.downloaded
-                  ? "border-solid border-blue-500 bg-blue-50"
-                  : model.downloaded
-                    ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
-                    : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
-              )}
-              onClick={() => {
-                if (model.downloaded) {
-                  setSelectedSTTModel(model.key);
-                }
-              }}
-            >
-              {/* Header */}
-              <div className="mb-3">
-                <h3
-                  className={cn(
-                    "font-semibold text-lg mb-1",
-                    model.downloaded ? "text-gray-900" : "text-gray-400",
-                  )}
-                >
-                  {model.name}
-                </h3>
-              </div>
+        <div className="max-w-2xl">
+          <div className="space-y-2">
+            {sttModels.map((model) => (
+              <div
+                key={model.key}
+                className={cn(
+                  "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
+                  selectedSTTModel === model.key && model.downloaded
+                    ? "border-solid border-blue-500 bg-blue-50"
+                    : model.downloaded
+                      ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
+                      : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+                )}
+                onClick={() => {
+                  if (model.downloaded) {
+                    setSelectedSTTModel(model.key);
+                  }
+                }}
+              >
+                {/* Left side: Name and metrics */}
+                <div className="flex items-center gap-6 flex-1">
+                  <div className="min-w-0">
+                    <h3
+                      className={cn(
+                        "font-semibold text-base",
+                        model.downloaded ? "text-gray-900" : "text-gray-400",
+                      )}
+                    >
+                      {model.name}
+                    </h3>
+                  </div>
 
-              {/* Performance metrics */}
-              <div className="space-y-3 mb-4">
-                <div className="flex justify-between items-center">
-                  <span
-                    className={cn(
-                      "text-sm font-medium",
-                      model.downloaded ? "text-gray-700" : "text-gray-400",
-                    )}
-                  >
-                    Accuracy
-                  </span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3].map((step) => (
-                      <div
-                        key={step}
+                  {/* Performance metrics - inline */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span
                         className={cn(
-                          "w-3 h-3 rounded-full",
-                          model.downloaded && model.accuracy >= step
-                            ? "bg-green-500"
-                            : "bg-gray-200",
+                          "text-xs font-medium",
+                          model.downloaded ? "text-gray-700" : "text-gray-400",
                         )}
-                      />
-                    ))}
+                      >
+                        Accuracy
+                      </span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3].map((step) => (
+                          <div
+                            key={step}
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              model.downloaded && model.accuracy >= step
+                                ? "bg-green-500"
+                                : "bg-gray-200",
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          model.downloaded ? "text-gray-700" : "text-gray-400",
+                        )}
+                      >
+                        Speed
+                      </span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3].map((step) => (
+                          <div
+                            key={step}
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              model.downloaded && model.speed >= step
+                                ? "bg-blue-500"
+                                : "bg-gray-200",
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span
-                    className={cn(
-                      "text-sm font-medium",
-                      model.downloaded ? "text-gray-700" : "text-gray-400",
-                    )}
-                  >
-                    Speed
-                  </span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3].map((step) => (
-                      <div
-                        key={step}
-                        className={cn(
-                          "w-3 h-3 rounded-full",
-                          model.downloaded && model.speed >= step
-                            ? "bg-blue-500"
-                            : "bg-gray-200",
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Download/Show buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                {/* Right side: Action button */}
+                <div className="flex items-center">
                   {model.downloaded
                     ? (
                       <Button
@@ -398,8 +395,8 @@ export default function LocalAI() {
                       )}
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
@@ -411,54 +408,56 @@ export default function LocalAI() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-          {llmModelsState.map((model) => (
-            <div
-              key={model.key}
-              className={cn(
-                "group relative p-4 rounded-lg border-2 transition-all",
-                selectedLLMModel === model.key && model.available && model.downloaded && !customLLMEnabled.data
-                  ? "border-solid border-blue-500 bg-blue-50 cursor-pointer"
-                  : model.available && model.downloaded
-                    ? "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer"
-                    : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
-              )}
-              onClick={() => {
-                if (model.available && model.downloaded) {
-                  setSelectedLLMModel(model.key);
-                  // Disable custom LLM when selecting from grid
-                  setCustomLLMEnabledMutation.mutate(false);
-                }
-              }}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3
-                    className={cn(
-                      "font-semibold text-base mb-1",
-                      model.available && model.downloaded ? "text-gray-900" : "text-gray-400",
-                    )}
-                  >
-                    {model.name}
-                  </h3>
-                  <p
-                    className={cn(
-                      "text-sm",
-                      model.available && model.downloaded ? "text-gray-600" : "text-gray-400",
-                    )}
-                  >
-                    {model.description}
-                  </p>
+        <div className="max-w-2xl">
+          <div className="space-y-2 mb-8">
+            {llmModelsState.map((model) => (
+              <div
+                key={model.key}
+                className={cn(
+                  "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
+                  selectedLLMModel === model.key && model.available && model.downloaded && !customLLMEnabled.data
+                    ? "border-solid border-blue-500 bg-blue-50 cursor-pointer"
+                    : model.available && model.downloaded
+                      ? "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer"
+                      : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+                )}
+                onClick={() => {
+                  if (model.available && model.downloaded) {
+                    setSelectedLLMModel(model.key);
+                    // Disable custom LLM when selecting from list
+                    setCustomLLMEnabledMutation.mutate(false);
+                  }
+                }}
+              >
+                {/* Left side: Name and description */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-4">
+                    <div className="min-w-0">
+                      <h3
+                        className={cn(
+                          "font-semibold text-base",
+                          model.available && model.downloaded ? "text-gray-900" : "text-gray-400",
+                        )}
+                      >
+                        {model.name}
+                      </h3>
+                      <p
+                        className={cn(
+                          "text-sm",
+                          model.available && model.downloaded ? "text-gray-600" : "text-gray-400",
+                        )}
+                      >
+                        {model.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Status and Download */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                {/* Right side: Status and action */}
+                <div className="flex items-center gap-3">
                   {!model.available
                     ? (
-                      <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                      <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full whitespace-nowrap">
                         Coming Soon
                       </span>
                     )
@@ -494,23 +493,23 @@ export default function LocalAI() {
                           </Button>
                         )}
                 </div>
-              </div>
 
-              {/* Hover overlay for unavailable models */}
-              {!model.available && (
-                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="text-center">
-                    <div className="text-base font-semibold text-gray-700 mb-1">Coming Soon</div>
-                    <div className="text-sm text-gray-500">Feature in development</div>
+                {/* Hover overlay for unavailable models */}
+                {!model.available && (
+                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="text-center">
+                      <div className="text-base font-semibold text-gray-700 mb-1">Coming Soon</div>
+                      <div className="text-sm text-gray-500">Feature in development</div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Custom API Endpoint Configuration */}
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl">
           <div
             className={cn(
               "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out cursor-pointer",

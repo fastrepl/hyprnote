@@ -372,8 +372,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 .output()
                 .map_err(|e| Error::Io(e))?;
 
-            let result = String::from_utf8_lossy(&output.stdout);
-            Ok(result.trim() == "true")
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(Error::Detection(anyhow::anyhow!(
+                    "AppleScript execution failed: {}",
+                    stderr.trim()
+                )));
+            }
+
+            let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            match result.as_str() {
+                "true" => Ok(true),
+                "false" => Ok(false),
+                _ => Err(Error::Detection(anyhow::anyhow!(
+                    "Unexpected AppleScript output: expected 'true' or 'false', got '{}'",
+                    result
+                ))),
+            }
         }
 
         #[cfg(not(target_os = "macos"))]

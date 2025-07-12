@@ -2,6 +2,7 @@ mod commands;
 mod error;
 mod ext;
 
+use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{
     plugin::{Builder, TauriPlugin},
@@ -16,6 +17,7 @@ const PLUGIN_NAME: &str = "auto-recording";
 #[derive(Default)]
 pub struct SharedState {
     detector: Option<hypr_meeting_detector::MeetingDetector>,
+    active_sessions: HashMap<String, String>,
 }
 
 type ManagedState = Mutex<SharedState>;
@@ -181,7 +183,7 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
             tracing::info!("Meeting app closed: {}", bundle_id);
             // Check if auto-stop is enabled before stopping recording
             if app.get_auto_stop_on_meeting_end().unwrap_or(true) {
-                app.stop_recording_for_meeting(bundle_id).await?;
+                app.stop_recording_for_meeting_if_active(bundle_id).await?;
             }
         }
     }

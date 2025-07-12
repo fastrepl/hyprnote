@@ -12,13 +12,18 @@ export default function ModelDownloadNotification() {
     queryFn: () => localSttCommands.getCurrentModel(),
   });
 
+  const currentLlmModel = useQuery({
+    queryKey: ["current-llm-model"],
+    queryFn: () => localLlmCommands.getCurrentModel(),
+  });
+
   const checkForModelDownload = useQuery({
     enabled: !!currentSttModel.data,
     queryKey: ["check-model-downloaded"],
     queryFn: async () => {
       const [stt, llm] = await Promise.all([
         localSttCommands.isModelDownloaded(currentSttModel.data!),
-        localLlmCommands.isModelDownloaded(),
+        localLlmCommands.isModelDownloaded(currentLlmModel.data!),
       ]);
 
       return {
@@ -43,7 +48,7 @@ export default function ModelDownloadNotification() {
     enabled: !checkForModelDownload.data?.llmModelDownloaded,
     queryKey: ["llm-model-downloading"],
     queryFn: async () => {
-      return localLlmCommands.isModelDownloading();
+      return localLlmCommands.isModelDownloading(currentLlmModel.data!);
     },
     refetchInterval: 3000,
   });

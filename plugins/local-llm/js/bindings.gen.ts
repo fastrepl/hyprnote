@@ -16,14 +16,14 @@ async listSupportedModels() : Promise<SupportedModel[]> {
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_server_running");
 },
-async isModelDownloaded() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded");
+async isModelDownloaded(model: SupportedModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded", { model });
 },
-async isModelDownloading() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-llm|is_model_downloading");
+async isModelDownloading(model: SupportedModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloading", { model });
 },
-async downloadModel(channel: TAURI_CHANNEL<number>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-llm|download_model", { channel });
+async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|download_model", { model, channel });
 },
 async startServer() : Promise<string> {
     return await TAURI_INVOKE("plugin:local-llm|start_server");
@@ -33,6 +33,12 @@ async stopServer() : Promise<null> {
 },
 async restartServer() : Promise<string> {
     return await TAURI_INVOKE("plugin:local-llm|restart_server");
+},
+async getCurrentModel() : Promise<SupportedModel> {
+    return await TAURI_INVOKE("plugin:local-llm|get_current_model");
+},
+async setCurrentModel(model: SupportedModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|set_current_model", { model });
 }
 }
 

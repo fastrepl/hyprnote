@@ -1,8 +1,9 @@
 use std::fs;
+use std::io;
 use std::path::Path;
 
-fn extract_commands_from_file(path: &Path) -> Vec<String> {
-    let content = fs::read_to_string(path).expect("Failed to read commands.rs");
+fn extract_commands_from_file(path: &Path) -> Result<Vec<String>, io::Error> {
+    let content = fs::read_to_string(path)?;
     let mut commands = Vec::new();
     let mut in_tauri_command = false;
 
@@ -17,7 +18,7 @@ fn extract_commands_from_file(path: &Path) -> Vec<String> {
         }
     }
 
-    commands
+    Ok(commands)
 }
 
 fn extract_function_name(line: &str) -> Option<String> {
@@ -38,7 +39,8 @@ fn extract_function_name(line: &str) -> Option<String> {
 
 fn main() {
     let commands_path = Path::new("src/commands.rs");
-    let commands = extract_commands_from_file(commands_path);
+    let commands = extract_commands_from_file(commands_path)
+        .unwrap_or_else(|e| panic!("Failed to read commands.rs: {}", e));
 
     let static_commands: Vec<&'static str> = commands
         .into_iter()

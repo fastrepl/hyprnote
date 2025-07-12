@@ -118,6 +118,7 @@ pub struct MeetingDetector {
     scheduled_meetings: Arc<RwLock<Vec<ScheduledMeeting>>>,
     callbacks: Arc<RwLock<Vec<MeetingCallback>>>,
     stop_signal: Option<mpsc::Sender<()>>,
+    scheduled_stop_signal: Option<mpsc::Sender<()>>,
     notified_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
     started_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
 }
@@ -129,6 +130,7 @@ impl Clone for MeetingDetector {
             scheduled_meetings: Arc::clone(&self.scheduled_meetings),
             callbacks: Arc::clone(&self.callbacks),
             stop_signal: self.stop_signal.clone(),
+            scheduled_stop_signal: self.scheduled_stop_signal.clone(),
             notified_meetings: Arc::clone(&self.notified_meetings),
             started_meetings: Arc::clone(&self.started_meetings),
         }
@@ -148,6 +150,7 @@ impl MeetingDetector {
             scheduled_meetings: Arc::new(RwLock::new(Vec::new())),
             callbacks: Arc::new(RwLock::new(Vec::new())),
             stop_signal: None,
+            scheduled_stop_signal: None,
             notified_meetings: Arc::new(RwLock::new(HashMap::new())),
             started_meetings: Arc::new(RwLock::new(HashMap::new())),
         }
@@ -168,7 +171,9 @@ impl MeetingDetector {
         minutes_before_notification: Option<u32>,
     ) -> Result<(), anyhow::Error> {
         let (stop_tx, mut stop_rx) = mpsc::channel::<()>(1);
+        let (scheduled_stop_tx, scheduled_stop_rx) = mpsc::channel::<()>(1);
         self.stop_signal = Some(stop_tx);
+        self.scheduled_stop_signal = Some(scheduled_stop_tx);
 
         let active_meetings = self.active_meetings.clone();
         let callbacks = self.callbacks.clone();
@@ -193,14 +198,20 @@ impl MeetingDetector {
             }
         });
 
-        self.start_scheduled_monitoring(minutes_before_notification.unwrap_or(5))
-            .await;
+        self.start_scheduled_monitoring(
+            minutes_before_notification.unwrap_or(5),
+            scheduled_stop_rx,
+        )
+        .await;
         Ok(())
     }
 
     pub async fn stop_detection(&mut self) {
         if let Some(stop_tx) = self.stop_signal.take() {
             let _ = stop_tx.send(()).await;
+        }
+        if let Some(scheduled_stop_tx) = self.scheduled_stop_signal.take() {
+            let _ = scheduled_stop_tx.send(()).await;
         }
     }
 
@@ -292,6 +303,11 @@ impl MeetingDetector {
             let result = result_str.trim();
             result == "true"
         } else {
+            tracing::warn!(
+                "Failed to execute AppleScript for bundle_id {}: {:?}",
+                bundle_id,
+                output
+            );
             false
         }
     }
@@ -389,7 +405,11 @@ impl MeetingDetector {
         confidence.min(1.0)
     }
 
-    async fn start_scheduled_monitoring(&self, minutes_before_notification: u32) {
+    async fn start_scheduled_monitoring(
+        &self,
+        minutes_before_notification: u32,
+        mut stop_rx: mpsc::Receiver<()>,
+    ) {
         let scheduled_meetings = self.scheduled_meetings.clone();
         let callbacks = self.callbacks.clone();
         let notified_meetings = self.notified_meetings.clone();
@@ -399,64 +419,70 @@ impl MeetingDetector {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(30));
 
             loop {
-                interval.tick().await;
+                tokio::select! {
+                    _ = interval.tick() => {
+                        let meetings = scheduled_meetings.read().await;
+                        let now = Utc::now();
 
-                let meetings = scheduled_meetings.read().await;
-                let now = Utc::now();
+                        for meeting in meetings.iter() {
+                            let time_until_start = meeting.start_time.signed_duration_since(now);
+                            let time_since_start = now.signed_duration_since(meeting.start_time);
+                            let time_since_end = now.signed_duration_since(meeting.end_time);
 
-                for meeting in meetings.iter() {
-                    let time_until_start = meeting.start_time.signed_duration_since(now);
-                    let time_since_start = now.signed_duration_since(meeting.start_time);
-                    let time_since_end = now.signed_duration_since(meeting.end_time);
+                            // Pre-meeting notification (configurable, default 5 minutes)
+                            if time_until_start.num_minutes() <= minutes_before_notification as i64
+                                && time_until_start.num_minutes()
+                                    >= (minutes_before_notification as i64 - 1)
+                            {
+                                let mut notified = notified_meetings.write().await;
+                                if !notified.contains_key(&meeting.id) {
+                                    notified.insert(meeting.id.clone(), now);
+                                    drop(notified); // Release lock early
 
-                    // Pre-meeting notification (configurable, default 5 minutes)
-                    if time_until_start.num_minutes() <= minutes_before_notification as i64
-                        && time_until_start.num_minutes()
-                            >= (minutes_before_notification as i64 - 1)
-                    {
-                        let mut notified = notified_meetings.write().await;
-                        if !notified.contains_key(&meeting.id) {
-                            notified.insert(meeting.id.clone(), now);
-                            drop(notified); // Release lock early
+                                    let callbacks_guard = callbacks.read().await;
+                                    for callback in callbacks_guard.iter() {
+                                        callback(MeetingEvent::ScheduledMeetingUpcoming(meeting.clone()));
+                                    }
+                                }
+                            }
 
-                            let callbacks_guard = callbacks.read().await;
-                            for callback in callbacks_guard.iter() {
-                                callback(MeetingEvent::ScheduledMeetingUpcoming(meeting.clone()));
+                            // Meeting start detection (within first minute)
+                            if time_since_start.num_seconds() >= 0 && time_since_start.num_minutes() < 1 {
+                                let mut started = started_meetings.write().await;
+                                if !started.contains_key(&meeting.id) {
+                                    started.insert(meeting.id.clone(), now);
+                                    drop(started); // Release lock early
+
+                                    let callbacks_guard = callbacks.read().await;
+                                    for callback in callbacks_guard.iter() {
+                                        callback(MeetingEvent::ScheduledMeetingStarting(meeting.clone()));
+                                    }
+                                }
+                            }
+
+                            // Meeting end detection
+                            if time_since_end.num_seconds() >= 0 && time_since_end.num_minutes() < 1 {
+                                let mut started = started_meetings.write().await;
+                                if started.remove(&meeting.id).is_some() {
+                                    drop(started); // Release lock early
+
+                                    let callbacks_guard = callbacks.read().await;
+                                    for callback in callbacks_guard.iter() {
+                                        callback(MeetingEvent::ScheduledMeetingEnded(meeting.clone()));
+                                    }
+                                }
+                            }
+
+                            // Clean up old notifications (older than 1 hour)
+                            if time_since_end.num_hours() >= 1 {
+                                let mut notified = notified_meetings.write().await;
+                                notified.remove(&meeting.id);
                             }
                         }
                     }
-
-                    // Meeting start detection (within first minute)
-                    if time_since_start.num_seconds() >= 0 && time_since_start.num_minutes() < 1 {
-                        let mut started = started_meetings.write().await;
-                        if !started.contains_key(&meeting.id) {
-                            started.insert(meeting.id.clone(), now);
-                            drop(started); // Release lock early
-
-                            let callbacks_guard = callbacks.read().await;
-                            for callback in callbacks_guard.iter() {
-                                callback(MeetingEvent::ScheduledMeetingStarting(meeting.clone()));
-                            }
-                        }
-                    }
-
-                    // Meeting end detection
-                    if time_since_end.num_seconds() >= 0 && time_since_end.num_minutes() < 1 {
-                        let mut started = started_meetings.write().await;
-                        if started.remove(&meeting.id).is_some() {
-                            drop(started); // Release lock early
-
-                            let callbacks_guard = callbacks.read().await;
-                            for callback in callbacks_guard.iter() {
-                                callback(MeetingEvent::ScheduledMeetingEnded(meeting.clone()));
-                            }
-                        }
-                    }
-
-                    // Clean up old notifications (older than 1 hour)
-                    if time_since_end.num_hours() >= 1 {
-                        let mut notified = notified_meetings.write().await;
-                        notified.remove(&meeting.id);
+                    _ = stop_rx.recv() => {
+                        tracing::info!("Stopping scheduled meeting monitoring");
+                        break;
                     }
                 }
             }

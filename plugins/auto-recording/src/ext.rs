@@ -324,7 +324,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 .insert(meeting_id.clone(), session_id.clone());
         }
 
-        self.start_session(session_id.clone()).await;
+        self.start_session(session_id.clone())
+            .await
+            .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to start session: {}", e)))?;
 
         tracing::info!(
             "Auto-started recording for meeting: {} with session: {}",
@@ -334,6 +336,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
         Ok(())
     }
 
+    /// Check if any meeting app window is currently focused.
+    /// Note: meeting_id parameter is currently unused as we check focus for any meeting app
+    /// rather than a specific meeting instance.
     async fn is_meeting_window_focused(&self, _meeting_id: &str) -> Result<bool, Error> {
         #[cfg(target_os = "macos")]
         {
@@ -391,7 +396,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
             guard.active_sessions.remove(&meeting_id);
         }
 
-        self.stop_session().await;
+        self.stop_session()
+            .await
+            .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to stop session: {}", e)))?;
         tracing::info!("Auto-stopped recording for meeting: {}", meeting_id);
 
         Ok(())
@@ -420,7 +427,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 guard.active_sessions.remove(&bundle_id);
             }
 
-            self.stop_session().await;
+            self.stop_session()
+                .await
+                .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to stop session: {}", e)))?;
             tracing::info!("Auto-stopped recording for bundle_id: {}", bundle_id);
         } else {
             tracing::info!(

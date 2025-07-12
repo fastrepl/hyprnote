@@ -76,6 +76,134 @@ pub fn export_types() -> tauri_specta::Builder<tauri::Wry> {
     make_specta_builder::<tauri::Wry>()
 }
 
+async fn handle_ad_hoc_meeting_detected<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    meeting: hypr_meeting_detector::MeetingDetected,
+) -> Result<(), Error> {
+    if !app.get_auto_record_on_ad_hoc()? {
+        return Ok(());
+    }
+
+    // Check confidence threshold
+    let threshold = app.get_detection_confidence_threshold().unwrap_or(0.7);
+    if meeting.confidence < threshold {
+        tracing::info!(
+            "Meeting confidence ({:.2}) below threshold ({:.2}), skipping auto-recording",
+            meeting.confidence,
+            threshold
+        );
+        return Ok(());
+    }
+
+    if app.get_notify_before_meeting()? {
+        let notification = hypr_notification2::Notification {
+            title: "Meeting detected - Click to start recording".to_string(),
+            message: format!(
+                "Detected {} meeting{}. (Confidence: {:.0}%)",
+                meeting.app.name,
+                if let Some(ref title) = meeting.window_title {
+                    format!(" ({})", title)
+                } else {
+                    String::new()
+                },
+                meeting.confidence * 100.0
+            ),
+            url: Some(format!(
+                "hypr://app/new?record=true&source=auto-detected&app={}",
+                meeting.app.bundle_id
+            )),
+            timeout: Some(std::time::Duration::from_secs(15)),
+        };
+        hypr_notification2::show(notification);
+
+        // Note: Current notification system doesn't support direct callbacks.
+        // Recording will only start if user clicks the notification.
+        // Consider implementing a state-based confirmation system in the future.
+        return Ok(()); // Don't auto-start recording - require user interaction
+    }
+
+    app.trigger_recording_for_meeting(meeting.app.bundle_id)
+        .await?;
+    Ok(())
+}
+
+async fn handle_scheduled_meeting_starting<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    meeting: hypr_meeting_detector::ScheduledMeeting,
+) -> Result<(), Error> {
+    if !app.get_auto_record_on_scheduled()? {
+        return Ok(());
+    }
+
+    if app.get_notify_before_meeting()? {
+        let notification = hypr_notification2::Notification {
+            title: "Meeting is about to begin!".to_string(),
+            message: format!(
+                "'{}' is starting. Preparing to start recording...",
+                meeting.title
+            ),
+            url: Some("hypr://app/new?record=true".to_string()),
+            timeout: Some(std::time::Duration::from_secs(15)),
+        };
+        hypr_notification2::show(notification);
+    }
+
+    // Start recording immediately for scheduled meetings
+    app.trigger_recording_for_meeting(meeting.id).await?;
+    Ok(())
+}
+
+async fn handle_scheduled_meeting_ended<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    meeting: hypr_meeting_detector::ScheduledMeeting,
+) -> Result<(), Error> {
+    // Check if auto-stop is enabled
+    if app.get_auto_stop_on_meeting_end().unwrap_or(true) {
+        app.stop_recording_for_meeting(meeting.id.clone()).await?;
+
+        let notification = hypr_notification2::Notification {
+            title: "Meeting ended".to_string(),
+            message: format!("'{}' has ended. Recording stopped.", meeting.title),
+            url: Some("hypr://app".to_string()),
+            timeout: Some(std::time::Duration::from_secs(8)),
+        };
+        hypr_notification2::show(notification);
+    } else {
+        tracing::info!("Meeting ended but auto-stop disabled: {}", meeting.title);
+    }
+    Ok(())
+}
+
+async fn handle_scheduled_meeting_upcoming<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    meeting: hypr_meeting_detector::ScheduledMeeting,
+) -> Result<(), Error> {
+    // Handle upcoming meeting notifications
+    if app.get_notify_before_meeting()? {
+        let minutes_before = app.get_minutes_before_notification()?;
+        let notification = hypr_notification2::Notification {
+            title: format!("Meeting in {} minutes", minutes_before),
+            message: format!("'{}' is scheduled to begin soon. Get ready!", meeting.title),
+            url: Some("hypr://app/new?record=true".to_string()),
+            timeout: Some(std::time::Duration::from_secs(10)),
+        };
+        hypr_notification2::show(notification);
+    }
+    Ok(())
+}
+
+async fn handle_meeting_app_closed<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    bundle_id: String,
+) -> Result<(), Error> {
+    tracing::info!("Meeting app closed: {}", bundle_id);
+    // Check if auto-stop is enabled before stopping recording
+    if app.get_auto_stop_on_meeting_end().unwrap_or(true) {
+        app.stop_recording_for_meeting_if_active(bundle_id).await?;
+    }
+    Ok(())
+}
+
 pub async fn handle_meeting_event<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     event: hypr_meeting_detector::MeetingEvent,
@@ -84,115 +212,21 @@ pub async fn handle_meeting_event<R: tauri::Runtime>(
 
     match event {
         MeetingEvent::AdHocMeetingDetected(meeting) => {
-            if !app.get_auto_record_on_ad_hoc()? {
-                return Ok(());
-            }
-
-            // Check confidence threshold
-            let threshold = app.get_detection_confidence_threshold().unwrap_or(0.7);
-            if meeting.confidence < threshold {
-                tracing::info!(
-                    "Meeting confidence ({:.2}) below threshold ({:.2}), skipping auto-recording",
-                    meeting.confidence,
-                    threshold
-                );
-                return Ok(());
-            }
-
-            if app.get_notify_before_meeting()? {
-                let notification = hypr_notification2::Notification {
-                    title: "Meeting detected - Click to start recording".to_string(),
-                    message: format!(
-                        "Detected {} meeting{}. (Confidence: {:.0}%)",
-                        meeting.app.name,
-                        if let Some(ref title) = meeting.window_title {
-                            format!(" ({})", title)
-                        } else {
-                            String::new()
-                        },
-                        meeting.confidence * 100.0
-                    ),
-                    url: Some(format!(
-                        "hypr://app/new?record=true&source=auto-detected&app={}",
-                        meeting.app.bundle_id
-                    )),
-                    timeout: Some(std::time::Duration::from_secs(15)),
-                };
-                hypr_notification2::show(notification);
-
-                // Note: Current notification system doesn't support direct callbacks.
-                // Recording will only start if user clicks the notification.
-                // Consider implementing a state-based confirmation system in the future.
-                return Ok(()); // Don't auto-start recording - require user interaction
-            }
-
-            app.trigger_recording_for_meeting(meeting.app.bundle_id)
-                .await?;
+            handle_ad_hoc_meeting_detected(app, meeting).await
         }
-
         MeetingEvent::ScheduledMeetingStarting(meeting) => {
-            if !app.get_auto_record_on_scheduled()? {
-                return Ok(());
-            }
-
-            if app.get_notify_before_meeting()? {
-                let notification = hypr_notification2::Notification {
-                    title: "Meeting is about to begin!".to_string(),
-                    message: format!(
-                        "'{}' is starting. Preparing to start recording...",
-                        meeting.title
-                    ),
-                    url: Some("hypr://app/new?record=true".to_string()),
-                    timeout: Some(std::time::Duration::from_secs(15)),
-                };
-                hypr_notification2::show(notification);
-            }
-
-            // Start recording immediately for scheduled meetings
-            app.trigger_recording_for_meeting(meeting.id).await?;
+            handle_scheduled_meeting_starting(app, meeting).await
         }
-
         MeetingEvent::ScheduledMeetingEnded(meeting) => {
-            // Check if auto-stop is enabled
-            if app.get_auto_stop_on_meeting_end().unwrap_or(true) {
-                app.stop_recording_for_meeting(meeting.id.clone()).await?;
-
-                let notification = hypr_notification2::Notification {
-                    title: "Meeting ended".to_string(),
-                    message: format!("'{}' has ended. Recording stopped.", meeting.title),
-                    url: Some("hypr://app".to_string()),
-                    timeout: Some(std::time::Duration::from_secs(8)),
-                };
-                hypr_notification2::show(notification);
-            } else {
-                tracing::info!("Meeting ended but auto-stop disabled: {}", meeting.title);
-            }
+            handle_scheduled_meeting_ended(app, meeting).await
         }
-
         MeetingEvent::ScheduledMeetingUpcoming(meeting) => {
-            // Handle upcoming meeting notifications
-            if app.get_notify_before_meeting()? {
-                let minutes_before = app.get_minutes_before_notification()?;
-                let notification = hypr_notification2::Notification {
-                    title: format!("Meeting in {} minutes", minutes_before),
-                    message: format!("'{}' is scheduled to begin soon. Get ready!", meeting.title),
-                    url: Some("hypr://app/new?record=true".to_string()),
-                    timeout: Some(std::time::Duration::from_secs(10)),
-                };
-                hypr_notification2::show(notification);
-            }
+            handle_scheduled_meeting_upcoming(app, meeting).await
         }
-
         MeetingEvent::MeetingAppClosed(bundle_id) => {
-            tracing::info!("Meeting app closed: {}", bundle_id);
-            // Check if auto-stop is enabled before stopping recording
-            if app.get_auto_stop_on_meeting_end().unwrap_or(true) {
-                app.stop_recording_for_meeting_if_active(bundle_id).await?;
-            }
+            handle_meeting_app_closed(app, bundle_id).await
         }
     }
-
-    Ok(())
 }
 
 pub async fn get_upcoming_meetings(

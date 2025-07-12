@@ -324,9 +324,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 .insert(meeting_id.clone(), session_id.clone());
         }
 
-        self.start_session(session_id.clone())
-            .await
-            .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to start session: {}", e)))?;
+        self.start_session(session_id.clone()).await;
 
         tracing::info!(
             "Auto-started recording for meeting: {} with session: {}",
@@ -411,9 +409,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
             guard.active_sessions.remove(&meeting_id);
         }
 
-        self.stop_session()
-            .await
-            .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to stop session: {}", e)))?;
+        self.stop_session().await;
         tracing::info!("Auto-stopped recording for meeting: {}", meeting_id);
 
         Ok(())
@@ -442,9 +438,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
                 guard.active_sessions.remove(&bundle_id);
             }
 
-            self.stop_session()
-                .await
-                .map_err(|e| Error::Detection(anyhow::anyhow!("Failed to stop session: {}", e)))?;
+            self.stop_session().await;
             tracing::info!("Auto-stopped recording for bundle_id: {}", bundle_id);
         } else {
             tracing::info!(

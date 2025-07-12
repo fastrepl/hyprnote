@@ -419,25 +419,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     async fn stop_recording_for_meeting_if_active(&self, bundle_id: String) -> Result<(), Error> {
         use tauri_plugin_listener::ListenerPluginExt;
 
-        // Check if there's an active session for this bundle_id
+        // Atomically check and remove active session to avoid race condition
         let should_stop = {
             let state = self.state::<crate::ManagedState>();
-            let guard = state
+            let mut guard = state
                 .lock()
                 .map_err(|_| Error::Detection(anyhow::anyhow!("Failed to lock shared state")))?;
-            guard.active_sessions.contains_key(&bundle_id)
+            guard.active_sessions.remove(&bundle_id).is_some()
         };
 
         if should_stop {
-            // Remove the session mapping and stop the session
-            {
-                let state = self.state::<crate::ManagedState>();
-                let mut guard = state.lock().map_err(|_| {
-                    Error::Detection(anyhow::anyhow!("Failed to lock shared state"))
-                })?;
-                guard.active_sessions.remove(&bundle_id);
-            }
-
             self.stop_session().await;
             tracing::info!("Auto-stopped recording for bundle_id: {}", bundle_id);
         } else {

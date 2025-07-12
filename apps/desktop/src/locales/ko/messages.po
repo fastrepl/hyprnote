@@ -251,13 +251,14 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
+#. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: lang.language
-#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
+#: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:178
-#: src/components/editor-area/note-header/listen-button.tsx:217
+#: src/components/editor-area/note-header/listen-button.tsx:179
+#: src/components/editor-area/note-header/listen-button.tsx:218
 msgid "{0}"
 msgstr ""
 
@@ -303,7 +304,7 @@ msgstr ""
 msgid "Access Granted"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:230
+#: src/components/settings/views/template.tsx:233
 msgid "Add a description..."
 msgstr ""
 
@@ -383,7 +384,7 @@ msgstr ""
 msgid "Billing features are currently under development and will be available in a future update."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:278
+#: src/components/settings/views/templates.tsx:279
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -493,7 +494,7 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:268
+#: src/components/settings/views/templates.tsx:269
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -509,7 +510,7 @@ msgstr ""
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:206
+#: src/components/settings/views/template.tsx:215
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:335
 msgid "Delete"
@@ -523,7 +524,7 @@ msgstr ""
 msgid "Describe the issue"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:224
+#: src/components/settings/views/template.tsx:227
 msgid "Description"
 msgstr ""
 
@@ -536,7 +537,7 @@ msgstr ""
 msgid "Download {0}"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:198
+#: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
 msgstr ""
 
@@ -552,7 +553,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:157
+#: src/components/settings/views/template.tsx:163
 msgid "Emoji"
 msgstr ""
 
@@ -737,7 +738,7 @@ msgstr ""
 msgid "Loading events..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:216
+#: src/components/settings/views/templates.tsx:217
 msgid "Loading templates..."
 msgstr ""
 
@@ -836,11 +837,11 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:341
+#: src/components/editor-area/note-header/listen-button.tsx:342
 msgid "No Template (Default)"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:265
+#: src/components/settings/views/templates.tsx:266
 msgid "No templates yet"
 msgstr ""
 
@@ -893,7 +894,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:364
+#: src/components/editor-area/note-header/listen-button.tsx:365
 msgid "Pause"
 msgstr ""
 
@@ -905,7 +906,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:197
+#: src/components/editor-area/note-header/listen-button.tsx:198
 msgid "Play video"
 msgstr ""
 
@@ -949,7 +950,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:106
+#: src/components/editor-area/note-header/listen-button.tsx:107
 msgid "Resume"
 msgstr ""
 
@@ -959,8 +960,8 @@ msgid "Role"
 msgstr ""
 
 #: src/components/settings/views/templates.tsx:193
-msgid "Save and close"
-msgstr ""
+#~ msgid "Save and close"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:174
 msgid "Save recordings"
@@ -987,7 +988,7 @@ msgstr ""
 #~ msgid "Searching..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:237
+#: src/components/settings/views/template.tsx:240
 msgid "Sections"
 msgstr ""
 
@@ -995,7 +996,7 @@ msgstr ""
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:233
+#: src/components/settings/views/templates.tsx:234
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1047,11 +1048,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:153
+#: src/components/editor-area/note-header/listen-button.tsx:154
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:372
+#: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Stop"
 msgstr ""
 
@@ -1145,7 +1146,7 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:182
+#: src/components/settings/views/template.tsx:188
 msgid "Untitled Template"
 msgstr ""
 
@@ -1242,7 +1243,7 @@ msgstr ""
 msgid "Your Name"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:230
+#: src/components/settings/views/templates.tsx:231
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr ""

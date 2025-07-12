@@ -632,7 +632,7 @@ impl Session {
         }
     }
 
-    #[state(superstate = "common")]
+    #[state(superstate = "common", entry_action = "enter_running_paused")]
     async fn running_paused(&mut self, event: &StateEvent) -> Response<State> {
         match event {
             StateEvent::Start(incoming_session_id) => match &self.session_id {
@@ -675,6 +675,7 @@ impl Session {
         {
             use tauri_plugin_tray::TrayPluginExt;
             let _ = self.app.set_start_disabled(false);
+            let _ = self.app.stop_tray_blinking();
         }
 
         {
@@ -707,6 +708,11 @@ impl Session {
         //     let _ = self.app.window_show(HyprWindow::Control);
         // }
 
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = self.app.start_tray_blinking();
+        }
+
         if let Some(session_id) = &self.session_id {
             use tauri_plugin_db::DatabasePluginExt;
 
@@ -714,6 +720,15 @@ impl Session {
                 session.record_start = Some(chrono::Utc::now());
                 let _ = self.app.db_upsert_session(session).await;
             }
+        }
+    }
+
+    #[action]
+    async fn enter_running_paused(&mut self) {
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = self.app.stop_tray_blinking();
+            let _ = self.app.set_tray_icon_recording(true);
         }
     }
 

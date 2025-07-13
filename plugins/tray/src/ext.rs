@@ -357,13 +357,12 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let app = self.app_handle();
 
         // Stop the blinking task
-        if let Some(state) = app.try_state::<BlinkingState>() {
-            state
-                .stop_flag()
-                .store(true, std::sync::atomic::Ordering::Relaxed);
-            if let Some(handle) = state.handle().lock().unwrap().take() {
-                let _ = handle.join();
-            }
+        let state = app.state::<BlinkingState>();
+        state
+            .stop_flag()
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        if let Some(handle) = state.handle().lock().unwrap().take() {
+            let _ = handle.join();
         }
 
         // Set to default icon

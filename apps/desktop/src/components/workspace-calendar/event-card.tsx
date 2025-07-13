@@ -8,9 +8,9 @@ import { useMemo, useState } from "react";
 import { useHypr } from "@/contexts";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 export function EventCard({
   event,
@@ -72,7 +72,9 @@ export function EventCard({
 
       const url = props.to.replace("$id", props.params.id);
 
-      safeNavigate({ type: "main" }, url);
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      });
     } else {
       const props = {
         to: "/app/new",
@@ -83,7 +85,9 @@ export function EventCard({
         `?calendarEventId=${props.search.calendarEventId}`,
       );
 
-      safeNavigate({ type: "main" }, url);
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      });
     }
   };
 

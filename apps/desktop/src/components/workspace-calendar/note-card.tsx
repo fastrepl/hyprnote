@@ -8,9 +8,9 @@ import { useMemo, useState } from "react";
 import { useHypr } from "@/contexts";
 import { type Session } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 export function NoteCard({
   session,
@@ -62,7 +62,9 @@ export function NoteCard({
 
     const url = props.to.replace("$id", props.params.id);
 
-    safeNavigate({ type: "main" }, url);
+    windowsCommands.windowShow({ type: "main" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+    });
   };
 
   const getStartDate = () => {

@@ -19,7 +19,6 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 type EventWithSession = Event & { session: Session | null };
 
@@ -128,14 +127,12 @@ function EventItem({
 
   const handleOpenCalendar = () => {
     const date = new Date(event.start_date);
+    const formattedDate = format(date, "yyyy-MM-dd");
+    const url = `/app/finder?view=calendar&date=${formattedDate}`;
 
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(date, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
-
-    const url = `${params.to}?date=${params.search.date}`;
-    safeNavigate({ type: "calendar" }, url);
+    windowsCommands.windowShow({ type: "main" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+    });
   };
 
   const isActive = activeSessionId

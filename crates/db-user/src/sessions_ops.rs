@@ -93,12 +93,18 @@ impl UserDatabase {
 
     pub async fn visit_session(&self, id: impl Into<String>) -> Result<(), crate::Error> {
         let conn = self.conn()?;
+        let session_id = id.into();
 
+        // Update visited_at timestamp
         conn.execute(
             "UPDATE sessions SET visited_at = ? WHERE id = ?",
-            (chrono::Utc::now().to_rfc3339(), id.into()),
+            (chrono::Utc::now().to_rfc3339(), session_id.clone()),
         )
         .await?;
+
+        // Note: Calendar event participants are now handled separately
+        // via the sync_session_participants function in the apple-calendar plugin
+
         Ok(())
     }
 

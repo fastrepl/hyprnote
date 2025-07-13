@@ -110,4 +110,61 @@ impl CalendarSource for Handle {
 
         Ok(events)
     }
+
+    async fn get_event_participants(
+        &self,
+        event_tracking_id: String,
+    ) -> Result<Vec<Participant>, Error> {
+        // Get all calendars to search for the event
+        let calendars = self.list_calendars().await?;
+
+        // Search for the event across all calendars
+        for calendar in calendars {
+            match self
+                .client
+                .events()
+                .get(&calendar.id, &event_tracking_id, 0, "")
+                .await
+            {
+                Ok(response) => {
+                    let event = response.body;
+                    let participants = event
+                        .attendees
+                        .iter()
+                        .map(|a| Participant {
+                            name: a.display_name.clone(),
+                            email: Some(a.email.clone()),
+                        })
+                        .collect::<Vec<Participant>>();
+                    return Ok(participants);
+                }
+                Err(err) => {
+                    let error_string = err.to_string().to_lowercase();
+
+                    // Check if this is a "not found" error (HTTP 404 or similar)
+                    if error_string.contains("404")
+                        || error_string.contains("not found")
+                        || error_string.contains("notfound")
+                        || error_string.contains("event not found")
+                    {
+                        // Event not found in this calendar, continue searching
+                        continue;
+                    } else {
+                        // This is a more serious error (network, API limits, auth, etc.)
+                        // Log it and continue, but the error is now visible
+                        tracing::warn!(
+                            "Error accessing calendar '{}' while searching for event '{}': {}",
+                            calendar.id,
+                            event_tracking_id,
+                            err
+                        );
+                        continue;
+                    }
+                }
+            }
+        }
+
+        // Event not found in any calendar
+        Ok(vec![])
+    }
 }

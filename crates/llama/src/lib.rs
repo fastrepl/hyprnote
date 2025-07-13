@@ -29,6 +29,16 @@ pub enum ModelName {
     Other(Option<String>),
 }
 
+impl std::fmt::Display for ModelName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ModelName::HyprLLM => write!(f, "HyprLLM"),
+            ModelName::Other(Some(name)) => write!(f, "{}", name),
+            ModelName::Other(None) => write!(f, "Unknown"),
+        }
+    }
+}
+
 pub struct Llama {
     pub name: ModelName,
     task_sender: tokio::sync::mpsc::UnboundedSender<Task>,

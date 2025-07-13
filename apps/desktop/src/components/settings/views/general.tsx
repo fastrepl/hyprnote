@@ -9,6 +9,9 @@ import { z } from "zod";
 import { showModelSelectToast } from "@/components/toast/model-select";
 import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
+import { Badge } from "@hypr/ui/components/ui/badge";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import {
   Form,
   FormControl,

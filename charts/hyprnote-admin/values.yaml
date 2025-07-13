@@ -1,0 +1,25 @@
+image:
+  repository: ghcr.io/hyprnote/admin
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  host: admin.hyprnote.local
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    memory: 256Mi
+
+replicas: 1

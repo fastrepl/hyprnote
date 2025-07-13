@@ -5,6 +5,8 @@ import { Node as ProseNode } from "prosemirror-model";
 import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
 import { createSpeakerView, SpeakerViewInnerComponent } from "./views";
 
+export const SPEAKER_NODE_NAME = "speaker";
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     speaker: {
@@ -26,16 +28,22 @@ declare module "@tiptap/core" {
         newSpeakerLabel?: string,
       ) => ReturnType;
 
-      replaceSpeakerIdsBefore: (
+      replaceSpeakerIdsAfter: (
         position: number,
         oldSpeakerId: string,
         newSpeakerId: string,
         newSpeakerLabel?: string,
       ) => ReturnType;
 
-      replaceSpeakerIdsAfter: (
+      replaceAllSpeakerIndices: (
+        oldSpeakerIndex: number,
+        newSpeakerId: string,
+        newSpeakerLabel?: string,
+      ) => ReturnType;
+
+      replaceSpeakerIndicesAfter: (
         position: number,
-        oldSpeakerId: string,
+        oldSpeakerIndex: number,
         newSpeakerId: string,
         newSpeakerLabel?: string,
       ) => ReturnType;
@@ -51,7 +59,7 @@ const implementCommands = {
       }
       let updated = false;
       tr.doc.descendants((node: ProseNode, pos: number) => {
-        if (node.type.name === "speaker" && node.attrs[SPEAKER_INDEX_ATTR] === speakerIndex) {
+        if (node.type.name === SPEAKER_NODE_NAME && node.attrs[SPEAKER_INDEX_ATTR] === speakerIndex) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
             [SPEAKER_INDEX_ATTR]: null,
@@ -76,7 +84,7 @@ const implementCommands = {
         return false;
       }
       const node = tr.doc.nodeAt(position);
-      if (!node || node.type.name !== "speaker") {
+      if (!node || node.type.name !== SPEAKER_NODE_NAME) {
         return false;
       }
       tr.setNodeMarkup(position, undefined, {
@@ -95,35 +103,7 @@ const implementCommands = {
       }
       let updated = false;
       tr.doc.descendants((node: ProseNode, pos: number) => {
-        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
-          tr.setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            [SPEAKER_ID_ATTR]: newSpeakerId,
-            [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
-          });
-          updated = true;
-        }
-        return true;
-      });
-      if (updated) {
-        dispatch(tr);
-        return true;
-      }
-      return false;
-    },
-
-  replaceSpeakerIdsBefore:
-    (position: number, oldSpeakerId: string, newSpeakerId: string, newSpeakerLabel: string = "") =>
-    ({ tr, dispatch }: CommandProps) => {
-      if (!dispatch) {
-        return false;
-      }
-      let updated = false;
-      tr.doc.descendants((node: ProseNode, pos: number) => {
-        if (pos >= position) {
-          return false;
-        }
-        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
+        if (node.type.name === SPEAKER_NODE_NAME && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
             [SPEAKER_ID_ATTR]: newSpeakerId,
@@ -151,9 +131,65 @@ const implementCommands = {
         if (pos < position) {
           return true;
         }
-        if (node.type.name === "speaker" && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
+        if (node.type.name === SPEAKER_NODE_NAME && node.attrs[SPEAKER_ID_ATTR] === oldSpeakerId) {
           tr.setNodeMarkup(pos, undefined, {
             ...node.attrs,
+            [SPEAKER_ID_ATTR]: newSpeakerId,
+            [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
+          });
+          updated = true;
+        }
+        return true;
+      });
+      if (updated) {
+        dispatch(tr);
+        return true;
+      }
+      return false;
+    },
+
+  replaceAllSpeakerIndices: (oldSpeakerIndex: number, newSpeakerId: string, newSpeakerLabel: string = "") =>
+  (
+    { tr, dispatch }: CommandProps,
+  ) => {
+    if (!dispatch) {
+      return false;
+    }
+    let updated = false;
+    tr.doc.descendants((node: ProseNode, pos: number) => {
+      if (node.type.name === SPEAKER_NODE_NAME && node.attrs[SPEAKER_INDEX_ATTR] === oldSpeakerIndex) {
+        tr.setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          [SPEAKER_INDEX_ATTR]: null,
+          [SPEAKER_ID_ATTR]: newSpeakerId,
+          [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
+        });
+        updated = true;
+      }
+      return true;
+    });
+    if (updated) {
+      dispatch(tr);
+      return true;
+    }
+    return false;
+  },
+
+  replaceSpeakerIndicesAfter:
+    (position: number, oldSpeakerIndex: number, newSpeakerId: string, newSpeakerLabel: string = "") =>
+    ({ tr, dispatch }: CommandProps) => {
+      if (!dispatch) {
+        return false;
+      }
+      let updated = false;
+      tr.doc.descendants((node: ProseNode, pos: number) => {
+        if (pos < position) {
+          return true;
+        }
+        if (node.type.name === SPEAKER_NODE_NAME && node.attrs[SPEAKER_INDEX_ATTR] === oldSpeakerIndex) {
+          tr.setNodeMarkup(pos, undefined, {
+            ...node.attrs,
+            [SPEAKER_INDEX_ATTR]: null,
             [SPEAKER_ID_ATTR]: newSpeakerId,
             [SPEAKER_LABEL_ATTR]: newSpeakerLabel,
           });
@@ -171,7 +207,7 @@ const implementCommands = {
 
 export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
   return Node.create({
-    name: "speaker",
+    name: SPEAKER_NODE_NAME,
     group: "block",
     content: "inline*",
     addAttributes() {

@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:176
-#: src/components/editor-area/note-header/listen-button.tsx:215
+#: src/components/editor-area/note-header/listen-button.tsx:178
+#: src/components/editor-area/note-header/listen-button.tsx:217
 msgid "{0}"
 msgstr "{0}"
 
@@ -370,6 +370,10 @@ msgstr "Ask questions about past meetings"
 #: src/components/right-panel/components/chat/chat-message.tsx:18
 msgid "Assistant:"
 msgstr "Assistant:"
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "Auto (Default)"
+#~ msgstr "Auto (Default)"
 
 #: src/routes/app.settings.tsx:49
 msgid "Billing"
@@ -507,7 +511,7 @@ msgstr "Custom Endpoint"
 
 #: src/components/settings/views/template.tsx:206
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:336
+#: src/components/left-sidebar/notes-list.tsx:335
 msgid "Delete"
 msgstr "Delete"
 
@@ -795,8 +799,8 @@ msgstr "My Templates"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:313
-#: src/components/left-sidebar/events-list.tsx:182
+#: src/components/left-sidebar/notes-list.tsx:312
+#: src/components/left-sidebar/events-list.tsx:181
 msgid "New window"
 msgstr "New window"
 
@@ -827,6 +831,14 @@ msgstr "No recent notes for this organization"
 #: src/components/settings/components/ai/stt-view.tsx:284
 msgid "No speech-to-text models available or failed to load."
 msgstr "No speech-to-text models available or failed to load."
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+#~ msgid "No Template"
+#~ msgstr "No Template"
+
+#: src/components/editor-area/note-header/listen-button.tsx:341
+msgid "No Template (Default)"
+msgstr "No Template (Default)"
 
 #: src/components/settings/views/templates.tsx:265
 msgid "No templates yet"
@@ -881,7 +893,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:308
+#: src/components/editor-area/note-header/listen-button.tsx:364
 msgid "Pause"
 msgstr "Pause"
 
@@ -893,7 +905,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:195
+#: src/components/editor-area/note-header/listen-button.tsx:197
 msgid "Play video"
 msgstr "Play video"
 
@@ -937,7 +949,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:104
+#: src/components/editor-area/note-header/listen-button.tsx:106
 msgid "Resume"
 msgstr "Resume"
 
@@ -1035,11 +1047,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:151
+#: src/components/editor-area/note-header/listen-button.tsx:153
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:316
+#: src/components/editor-area/note-header/listen-button.tsx:372
 msgid "Stop"
 msgstr "Stop"
 
@@ -1165,7 +1177,8 @@ msgstr "User:"
 msgid "username"
 msgstr "username"
 
-#: src/components/left-sidebar/notes-list.tsx:324
+
+#: src/components/left-sidebar/notes-list.tsx:323
 msgid "View calendar"
 msgstr "View calendar"
 

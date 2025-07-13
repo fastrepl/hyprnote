@@ -5,6 +5,8 @@ use kalosm_sound::AsyncSource;
 mod error;
 pub use error::*;
 
+const I16_SCALE: f32 = 32768.0;
+
 impl<T: AsyncSource> AudioFormatExt for T {}
 
 pub trait AudioFormatExt: AsyncSource {
@@ -21,7 +23,7 @@ pub trait AudioFormatExt: AsyncSource {
 
             let mut buf = BytesMut::with_capacity(n);
             for sample in chunk {
-                let scaled = (sample * 32768.0).clamp(-32768.0, 32768.0);
+                let scaled = (sample * I16_SCALE).clamp(-I16_SCALE, I16_SCALE);
                 buf.put_i16_le(scaled as i16);
             }
             buf.freeze()
@@ -32,7 +34,7 @@ pub trait AudioFormatExt: AsyncSource {
 pub fn i16_to_f32_samples(samples: &[i16]) -> Vec<f32> {
     samples
         .iter()
-        .map(|&sample| sample as f32 / 32768.0)
+        .map(|&sample| sample as f32 / I16_SCALE)
         .collect()
 }
 
@@ -40,8 +42,26 @@ pub fn f32_to_i16_samples(samples: &[f32]) -> Vec<i16> {
     samples
         .iter()
         .map(|&sample| {
-            let scaled = (sample * 32768.0).clamp(-32768.0, 32768.0);
+            let scaled = (sample * I16_SCALE).clamp(-I16_SCALE, I16_SCALE);
             scaled as i16
+        })
+        .collect()
+}
+
+pub fn f32_to_i16_bytes(chunk: Vec<f32>) -> bytes::Bytes {
+    let mut bytes = Vec::with_capacity(chunk.len() * 2);
+    for sample in chunk {
+        let i16_sample = (sample * I16_SCALE) as i16;
+        bytes.extend_from_slice(&i16_sample.to_le_bytes());
+    }
+    bytes::Bytes::from(bytes)
+}
+
+pub fn bytes_to_f32_samples(data: &[u8]) -> Vec<f32> {
+    data.chunks_exact(2)
+        .map(|chunk| {
+            let sample = i16::from_le_bytes([chunk[0], chunk[1]]);
+            sample as f32 / I16_SCALE
         })
         .collect()
 }

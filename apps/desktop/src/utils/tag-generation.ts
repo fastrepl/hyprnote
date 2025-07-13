@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import { generateText, localProviderName, modelProvider } from "@hypr/utils/ai";
 
 export async function generateTagsForSession(sessionId: string): Promise<string[]> {
@@ -53,7 +53,9 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
       providerOptions: {
         [localProviderName]: {
           metadata: {
-            grammar: "tags",
+            grammar: {
+              task: "tags",
+            } satisfies Grammar,
           },
         },
       },

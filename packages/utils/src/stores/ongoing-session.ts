@@ -13,12 +13,14 @@ type State = {
   enhanceController: AbortController | null;
   micMuted: boolean;
   speakerMuted: boolean;
+  autoEnhanceTemplate: string | null;
 };
 
 type Actions = {
   get: () => State & Actions;
   cancelEnhance: () => void;
   setEnhanceController: (controller: AbortController | null) => void;
+  setAutoEnhanceTemplate: (templateId: string | null) => void;
   start: (sessionId: string) => void;
   stop: () => void;
   pause: () => void;
@@ -33,11 +35,19 @@ const initialState: State = {
   enhanceController: null,
   micMuted: false,
   speakerMuted: false,
+  autoEnhanceTemplate: null,
 };
 
 export type OngoingSessionStore = ReturnType<typeof createOngoingSessionStore>;
 
-export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof createSessionsStore>) => {
+type OngoingSessionCallbacks = {
+  onRecordingStartFailed?: (error: any) => void;
+};
+
+export const createOngoingSessionStore = (
+  sessionsStore: ReturnType<typeof createSessionsStore>,
+  callbacks?: OngoingSessionCallbacks,
+) => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
@@ -51,6 +61,13 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       set((state) =>
         mutate(state, (draft) => {
           draft.enhanceController = controller;
+        })
+      );
+    },
+    setAutoEnhanceTemplate: (templateId: string | null) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.autoEnhanceTemplate = templateId;
         })
       );
     },
@@ -130,6 +147,11 @@ export const createOngoingSessionStore = (sessionsStore: ReturnType<typeof creat
       }).catch((error) => {
         console.error(error);
         set(initialState);
+
+        // Notify user about recording failure
+        if (callbacks?.onRecordingStartFailed) {
+          callbacks.onRecordingStartFailed(error);
+        }
       });
     },
     stop: () => {

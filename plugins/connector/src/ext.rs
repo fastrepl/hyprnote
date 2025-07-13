@@ -153,7 +153,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             let api_base = store
                 .get::<Option<String>>(StoreKey::CustomApiBase)?
                 .flatten()
-                .unwrap();
+                .unwrap_or_default();
             let api_key = store
                 .get::<Option<String>>(StoreKey::CustomApiKey)?
                 .flatten();

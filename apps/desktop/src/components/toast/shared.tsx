@@ -131,3 +131,27 @@ export function enhanceFailedToast() {
     duration: 3000,
   });
 }
+
+export function recordingStartFailedToast() {
+  const id = "recording-start-failed";
+
+  const handleClick = () => {
+    windowsCommands.windowShow({ type: "settings" });
+    sonnerToast.dismiss(id);
+  };
+
+  toast({
+    id,
+    title: "Failed to start recording",
+    content: (
+      <div className="space-y-1">
+        <div>Recording could not be started. Check your audio settings.</div>
+        <Button variant="default" onClick={handleClick}>
+          Open Settings
+        </Button>
+      </div>
+    ),
+    dismissible: true,
+    duration: 5000,
+  });
+}

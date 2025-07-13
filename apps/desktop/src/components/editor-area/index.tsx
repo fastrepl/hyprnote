@@ -8,11 +8,12 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
+import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
@@ -27,10 +28,43 @@ import {
   streamText,
   tool,
 } from "@hypr/utils/ai";
-import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
+
+async function generateTitleDirect(enhancedContent: string, targetSessionId: string, sessions: Record<string, any>) {
+  const [config, { type }, provider] = await Promise.all([
+    dbCommands.getConfig(),
+    connectorCommands.getLlmConnection(),
+    modelProvider(),
+  ]);
+
+  const [systemMessage, userMessage] = await Promise.all([
+    templateCommands.render("create_title.system", { config, type }),
+    templateCommands.render("create_title.user", { type, enhanced_note: enhancedContent }),
+  ]);
+
+  const model = provider.languageModel("defaultModel");
+  const abortSignal = AbortSignal.timeout(30_000);
+
+  const { text } = await generateText({
+    abortSignal,
+    model,
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: userMessage },
+    ],
+    providerOptions: {
+      [localProviderName]: { metadata: { grammar: "title" } },
+    },
+  });
+
+  const session = await dbCommands.getSession({ id: targetSessionId });
+  if (!session?.title && sessions[targetSessionId]?.getState) {
+    sessions[targetSessionId].getState().updateTitle(text);
+  }
+}
 
 export default function EditorArea({
   editable,
@@ -63,62 +97,30 @@ export default function EditorArea({
     [sessionId, showRaw],
   );
 
-  const [needsRestoration, setNeedsRestoration] = useState(false);
-  const [originalTemplateId, setOriginalTemplateId] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-
-  const configQuery = useQuery({
-    queryKey: ["config", "general"],
-    queryFn: async () => {
-      const result = await dbCommands.getConfig();
-      return result;
-    },
-  });
-
-  const setConfigMutation = useMutation({
-    mutationFn: async (configData: any) => {
-      await dbCommands.setConfig(configData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["config", "general"] });
-    },
-    onError: (error) => {
-      console.error("Failed to set template config:", error);
-    },
-  });
-
   const templatesQuery = useQuery({
     queryKey: ["templates"],
-    queryFn: () => dbCommands.listTemplates(),
+    queryFn: () => TemplateService.getAllTemplates(),
     refetchOnWindowFocus: true,
   });
 
-  const generateTitle = useGenerateTitleMutation({ sessionId });
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
+
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+  });
+
+  const sessionsStore = useSessions((s) => s.sessions);
 
   const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
+    isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
-      generateTitle.mutate({ enhancedContent: content });
-
-      if (needsRestoration && configQuery.data) {
-        const restoreConfig = {
-          ...configQuery.data,
-          general: {
-            ...configQuery.data.general,
-            selected_template_id: originalTemplateId,
-          },
-        };
-        setConfigMutation.mutate(restoreConfig);
-        setNeedsRestoration(false);
-        setOriginalTemplateId(null);
-      }
-
       if (hasTranscriptWords) {
-        generateTitle.mutate({ enhancedContent: content });
+        generateTitleDirect(content, sessionId, sessionsStore).catch(console.error);
       }
     },
   });
@@ -145,46 +147,13 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
-  const handleEnhanceWithTemplate = useCallback(async (templateId: string) => {
-    if (configQuery.data) {
-      const currentTemplateId = configQuery.data.general?.selected_template_id || null;
-      setOriginalTemplateId(currentTemplateId);
-      setNeedsRestoration(true);
-
-      const targetTemplateId = templateId === "auto" ? null : templateId;
-
-      const updatedConfig = {
-        ...configQuery.data,
-        general: {
-          ...configQuery.data.general,
-          selected_template_id: targetTemplateId,
-        },
-      };
-
-      try {
-        await setConfigMutation.mutateAsync(updatedConfig);
-
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        const verifyConfig = await dbCommands.getConfig();
-
-        if (verifyConfig.general?.selected_template_id !== targetTemplateId) {
-          setOriginalTemplateId(null);
-          setNeedsRestoration(false);
-          return;
-        }
-      } catch (error) {
-        setOriginalTemplateId(null);
-        setNeedsRestoration(false);
-        return;
-      }
-    }
-
-    enhance.mutate();
-  }, [enhance, configQuery.data, setConfigMutation]);
+  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
+    const targetTemplateId = templateId === "auto" ? null : templateId;
+    enhance.mutate({ templateId: targetTemplateId, triggerType: "template" });
+  }, [enhance]);
 
   const handleClickEnhance = useCallback(() => {
-    enhance.mutate();
+    enhance.mutate({ triggerType: "manual" });
   }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
@@ -204,11 +173,6 @@ export default function EditorArea({
       label: s.title,
     }));
   };
-
-  const llmConnectionQuery = useQuery({
-    queryKey: ["llm-connection"],
-    queryFn: () => connectorCommands.getLlmConnection(),
-  });
 
   return (
     <div className="relative flex h-full flex-col w-full">
@@ -280,29 +244,27 @@ export function useEnhanceMutation({
   sessionId,
   preMeetingNote,
   rawContent,
+  isLocalLlm,
   onSuccess,
 }: {
   sessionId: string;
   preMeetingNote: string;
   rawContent: string;
+  isLocalLlm: boolean;
   onSuccess: (enhancedContent: string) => void;
 }) {
   const { userId, onboardingSessionId } = useHypr();
   const [progress, setProgress] = useState(0);
+  const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
+  const queryClient = useQueryClient();
 
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
-  // finalInput is the text that will be used to enhance the note
-  let finalInput = "";
-  const wordDiff = diffWords(preMeetingText, rawText);
-  if (wordDiff && wordDiff.length > 0) {
-    for (const diff of wordDiff) {
-      if (diff.added && diff.removed == false) {
-        finalInput += " " + diff.value;
-      }
-    }
-  }
+  const finalInput = diffWords(preMeetingText, rawText)
+    ?.filter(diff => diff.added && !diff.removed)
+    .map(diff => diff.value)
+    .join(" ") || "";
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -312,13 +274,29 @@ export function useEnhanceMutation({
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
-    mutationFn: async () => {
-      setProgress(0); // Reset progress when starting
-      const fn = sessionId === onboardingSessionId
-        ? dbCommands.getWordsOnboarding
-        : dbCommands.getWords;
+    mutationFn: async ({
+      triggerType,
+      templateId,
+    }: {
+      triggerType: "manual" | "template" | "auto";
+      templateId?: string | null;
+    } = { triggerType: "manual" }) => {
+      await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      const words = await fn(sessionId);
+      const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
+      const [{ type }, config, words] = await Promise.all([
+        connectorCommands.getLlmConnection(),
+        dbCommands.getConfig(),
+        getWordsFunc(sessionId),
+      ]);
+
+      const freshIsLocalLlm = type === "HyprLocal";
+      setActualIsLocalLlm(freshIsLocalLlm);
+
+      if (freshIsLocalLlm) {
+        setProgress(0);
+      }
 
       if (!words.length) {
         toast({
@@ -328,49 +306,20 @@ export function useEnhanceMutation({
           dismissible: true,
           duration: 5000,
         });
-
         return;
       }
 
-      const { type } = await connectorCommands.getLlmConnection();
+      const effectiveTemplateId = templateId !== undefined
+        ? templateId
+        : config.general?.selected_template_id;
 
-      const config = await dbCommands.getConfig();
-
-      let templateInfo = "";
-      let customGrammar: string | null = null;
-      const selectedTemplateId = config.general.selected_template_id;
-
-      if (selectedTemplateId) {
-        const templates = await dbCommands.listTemplates();
-        const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
-
-        if (selectedTemplate) {
-          if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
-            customGrammar = generateCustomGBNF(selectedTemplate.sections);
-          }
-
-          templateInfo = `
-SELECTED TEMPLATE:
-Template Title: ${selectedTemplate.title || "Untitled"}
-Template Description: ${selectedTemplate.description || "No description"}
-
-Sections:`;
-
-          selectedTemplate.sections?.forEach((section, index) => {
-            templateInfo += `
-  ${index + 1}. ${section.title || "Untitled Section"}
-     └─ ${section.description || "No description"}`;
-          });
-        }
-      } else {
-        console.log("Using default template (no custom template selected)");
-      }
+      const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo },
+        { config, type, templateInfo: selectedTemplate },
       );
 
       const userMessage = await templateCommands.render(
@@ -393,8 +342,6 @@ Sections:`;
         : provider.languageModel("defaultModel");
 
       if (sessionId !== onboardingSessionId) {
-        const { type } = await connectorCommands.getLlmConnection();
-
         analyticsCommands.event({
           event: "normal_enhance_start",
           distinct_id: userId,
@@ -406,9 +353,11 @@ Sections:`;
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        tools: {
-          update_progress: tool({ parameters: z.any() }),
-        },
+        ...(freshIsLocalLlm && {
+          tools: {
+            update_progress: tool({ parameters: z.any() }),
+          },
+        }),
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
@@ -417,18 +366,18 @@ Sections:`;
           markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
-        providerOptions: {
-          [localProviderName]: {
-            metadata: customGrammar
-              ? {
-                grammar: "custom",
-                customGrammar: customGrammar,
-              }
-              : {
-                grammar: "enhance",
+        ...(freshIsLocalLlm && {
+          providerOptions: {
+            [localProviderName]: {
+              metadata: {
+                grammar: {
+                  task: "enhance",
+                  sections: selectedTemplate?.sections.map(s => s.title) || null,
+                } satisfies Grammar,
               },
+            },
           },
-        },
+        }),
       });
 
       let acc = "";
@@ -436,7 +385,7 @@ Sections:`;
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
         }
-        if (chunk.type === "tool-call") {
+        if (chunk.type === "tool-call" && freshIsLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;
           setProgress(chunkProgress);
         }
@@ -459,11 +408,16 @@ Sections:`;
       });
 
       persistSession();
-      setProgress(0);
+
+      if (actualIsLocalLlm) {
+        setProgress(0);
+      }
     },
     onError: (error) => {
-      setProgress(0);
       console.error(error);
+      if (actualIsLocalLlm) {
+        setProgress(0);
+      }
 
       if (!(error as unknown as string).includes("cancel")) {
         enhanceFailedToast();
@@ -471,63 +425,7 @@ Sections:`;
     },
   });
 
-  return { enhance, progress };
-}
-
-function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
-  const { title, updateTitle } = useSession(sessionId, (s) => ({
-    title: s.session.title,
-    updateTitle: s.updateTitle,
-  }));
-
-  const generateTitle = useMutation({
-    mutationKey: ["generateTitle", sessionId],
-    mutationFn: async ({ enhancedContent }: { enhancedContent: string }) => {
-      const config = await dbCommands.getConfig();
-      const { type } = await connectorCommands.getLlmConnection();
-
-      const systemMessage = await templateCommands.render(
-        "create_title.system",
-        { config, type },
-      );
-
-      const userMessage = await templateCommands.render(
-        "create_title.user",
-        {
-          type,
-          enhanced_note: enhancedContent,
-        },
-      );
-
-      const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(30 * 1000)]);
-
-      const provider = await modelProvider();
-      const model = provider.languageModel("defaultModel");
-
-      const newTitle = await generateText({
-        abortSignal,
-        model,
-        messages: [
-          { role: "system", content: systemMessage },
-          { role: "user", content: userMessage },
-        ],
-        providerOptions: {
-          [localProviderName]: {
-            metadata: {
-              grammar: "title",
-            },
-          },
-        },
-      });
-
-      if (!title) {
-        updateTitle(newTitle.text);
-      }
-    },
-  });
-
-  return generateTitle;
+  return { enhance, progress: actualIsLocalLlm ? progress : undefined };
 }
 
 function useAutoEnhance({
@@ -537,9 +435,11 @@ function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: () => void;
+  enhanceMutate: (params: { triggerType: "auto"; templateId?: string | null }) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const autoEnhanceTemplate = useOngoingSession((s) => s.autoEnhanceTemplate);
+  const setAutoEnhanceTemplate = useOngoingSession((s) => s.setAutoEnhanceTemplate);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
 
@@ -550,7 +450,15 @@ function useAutoEnhance({
       && enhanceStatus !== "pending"
     ) {
       setShowRaw(false);
-      enhanceMutate();
+
+      // Use the selected template and then clear it
+      enhanceMutate({
+        triggerType: "auto",
+        templateId: autoEnhanceTemplate,
+      });
+
+      // Clear the template after using it (one-time use)
+      setAutoEnhanceTemplate(null);
     }
   }, [
     ongoingSessionStatus,
@@ -558,57 +466,8 @@ function useAutoEnhance({
     sessionId,
     enhanceMutate,
     setShowRaw,
+    autoEnhanceTemplate,
+    setAutoEnhanceTemplate,
+    prevOngoingSessionStatus,
   ]);
-}
-
-// function to dynamically generate the grammar for the custom template
-function generateCustomGBNF(templateSections: any[]): string {
-  if (!templateSections || templateSections.length === 0) {
-    return "";
-  }
-
-  function escapeForGBNF(text: string): string {
-    return text
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, "\\\"")
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      .replace(/\t/g, "\\t");
-  }
-
-  const validatedSections = templateSections.map((section, index) => {
-    let title = section.title || `Section ${index + 1}`;
-
-    title = title
-      .trim()
-      .replace(/[\x00-\x1F\x7F]/g, "")
-      .substring(0, 100);
-
-    return {
-      ...section,
-      safeTitle: title || `Section ${index + 1}`,
-    };
-  });
-
-  const sectionRules = validatedSections.map((section, index) => {
-    const sectionName = `section${index + 1}`;
-    const escapedHeader = escapeForGBNF(section.safeTitle);
-    return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
-  }).join("\n");
-
-  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
-
-  const grammar = `root ::= thinking ${sectionNames}
-
-${sectionRules}
-
-bline ::= "- **" [^*\\n:]+ "**: " ([^*;,[.\\n] | link)+ ".\\n"
-
-hsf ::= "- Objective\\n"
-hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
-thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
-
-link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
-
-  return grammar;
 }

@@ -5,14 +5,8 @@
     border-radius: 0.5rem;
     color: #ffffff;
     font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      "Liberation Mono",
-      "Courier New",
-      monospace;
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
     margin: 0 0 0.25rem 0;
     padding: 0.75rem 1rem;
     caret-color: white;
@@ -36,13 +30,7 @@
     padding: 0.25em 0.3em;
     border: 1px solid #e5e5e5;
     font-family:
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      "Liberation Mono",
-      "Courier New",
-      monospace;
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
   }
 }

@@ -267,25 +267,12 @@ fn build_response(
         .map(hypr_llama::FromOpenAI::from_openai)
         .collect();
 
-    let grammar = match request
+    let grammar = request
         .metadata
         .as_ref()
-        .unwrap_or(&serde_json::Value::Object(Default::default()))
-        .get("grammar")
-        .and_then(|v| v.as_str())
-    {
-        Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
-        Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
-        Some("custom") => request
-            .metadata
-            .as_ref()
-            .unwrap_or(&serde_json::Value::Object(Default::default()))
-            .get("customGrammar")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string()),
-        Some("none") => None,
-        _ => Some(hypr_gbnf::GBNF::Enhance.build()),
-    };
+        .and_then(|v| v.get("grammar"))
+        .and_then(|v| serde_json::from_value::<hypr_gbnf::Grammar>(v.clone()).ok())
+        .map(|g| g.build());
 
     let request = hypr_llama::LlamaRequest { messages, grammar };
 

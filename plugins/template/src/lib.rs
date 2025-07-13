@@ -29,6 +29,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::render::<Wry>,
             commands::register_template::<Wry>,
         ])
+        .typ::<hypr_gbnf::Grammar>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

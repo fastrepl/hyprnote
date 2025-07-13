@@ -125,6 +125,9 @@ export const getSpeakerLabel = (attrs: Partial<SpeakerAttributes>): string => {
   } else if (attrs[SPEAKER_ID_ATTR]) {
     return attrs[SPEAKER_ID_ATTR];
   } else if (typeof attrs[SPEAKER_INDEX_ATTR] === "number") {
+    if (attrs[SPEAKER_INDEX_ATTR] === 0) {
+      return "You";
+    }
     return `Speaker ${attrs[SPEAKER_INDEX_ATTR]}`;
   } else {
     return "Unknown Speaker";

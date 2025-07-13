@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hyprnote-admin.fullname" . }}
+  labels:
+    app: {{ include "hyprnote-admin.name" . }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "hyprnote-admin.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "hyprnote-admin.name" . }}
+    spec:
+      containers:
+        - name: admin
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: "file:/app/data/db.sqlite"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "hyprnote-admin.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

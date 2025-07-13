@@ -34,6 +34,10 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
   const { type, connection: { api_base, api_key } } = await getter();
 
+  if (!api_base) {
+    throw new Error("no_api_base");
+  }
+
   const openai = createOpenAICompatible({
     name: type === "HyprLocal" ? localProviderName : remoteProviderName,
     baseURL: api_base,

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
-import { addDays } from "date-fns";
+import { addDays, subHours } from "date-fns";
 import { AnimatePresence, LayoutGroup } from "motion/react";
 
 import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
@@ -41,58 +41,36 @@ export default function LeftSidebar() {
 
   const events = useQuery({
     refetchInterval: 5000,
-    queryKey: ["events", ongoingSessionId, activeSessionId],
+    queryKey: ["events", ongoingSessionId],
     queryFn: async () => {
       const now = new Date();
-
+      // Fetch events that started up to 12 hours ago.
+      // This is to include events that are currently ongoing but might have started earlier.
+      // These are then filtered by end_date to ensure we only show active or upcoming events.
       const rawEvents = await dbCommands.listEvents({
         type: "dateRange",
         user_id: userId,
-        limit: 20,
-        start: now.toISOString(),
-        end: addDays(now, 60).toISOString(),
+        limit: 3,
+        start: subHours(now, 12).toISOString(),
+        end: addDays(now, 28).toISOString(),
       });
 
-      const upcomingEvents = rawEvents
-        .filter((event) => new Date(event.start_date) > now)
-        .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+      const ongoingOrUpcomingEvents = rawEvents.filter(
+        (event) => new Date(event.end_date) > now,
+      );
 
-      let eventsToShow = upcomingEvents.slice(0, 3);
-      let sessions: (any | null)[] = [];
-
-      if (eventsToShow.length > 0) {
-        const firstThreeSessions = await Promise.all(
-          eventsToShow.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
-        );
-        sessions = [...firstThreeSessions];
-
-        if (activeSessionId) {
-          const hasActiveSession = firstThreeSessions.some(
-            (session) => session?.id === activeSessionId,
-          );
-
-          if (!hasActiveSession) {
-            const remainingEvents = upcomingEvents.slice(3);
-            for (const event of remainingEvents) {
-              const session = await dbCommands.getSession({ calendarEventId: event.id });
-              if (session?.id === activeSessionId) {
-                eventsToShow.push(event);
-                sessions.push(session);
-                break;
-              }
-            }
-          }
-        }
-      }
-
-      if (eventsToShow.length === 0) {
+      if (ongoingOrUpcomingEvents.length === 0) {
         return [];
       }
+
+      const sessions = await Promise.all(
+        ongoingOrUpcomingEvents.map((event) => dbCommands.getSession({ calendarEventId: event.id })),
+      );
       sessions
         .filter((s) => s !== null)
         .forEach((s) => insertSession(s!));
 
-      return eventsToShow.map((event, index) => ({
+      return ongoingOrUpcomingEvents.map((event, index) => ({
         ...event,
         session: sessions[index],
       }));

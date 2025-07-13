@@ -1,0 +1,74 @@
+# https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: false
+        description: "Tag to use for the release"
+        default: "latest"
+  release:
+    types:
+      - published
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: hyprnote/admin
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'admin_') }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+
+      - uses: Warpbuilds/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          profile-name: "hyprnote-admin-builder"
+          api-key: ${{ secrets.WARPBUILD_API_KEY }}
+          timeout: 600000
+
+      - id: scan
+        uses: anchore/scan-action@v6
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          fail-build: false
+
+      # Invalid SARIF. JSON syntax error: Unexpected end of JSON input
+      # - uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: ${{ steps.scan.outputs.sarif }}
+
+      - uses: Warpbuilds/build-push-action@v6
+        with:
+          context: .
+          file: apps/admin/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          profile-name: "hyprnote-admin-builder"
+          api-key: ${{ secrets.WARPBUILD_API_KEY }}
+          timeout: 600000

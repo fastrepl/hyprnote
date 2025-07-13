@@ -56,7 +56,7 @@ export function SettingsButton() {
   const handleClickTalkToFounders = async () => {
     setOpen(false);
     try {
-      await openURL("https://hyprnote.canny.io/others-general-feedback/p/talk-to-founders");
+      await openURL("https://cal.com/team/hyprnote/intro");
     } catch (error) {
       console.error("Failed to open talk to founders:", error);
     }

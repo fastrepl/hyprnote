@@ -29,12 +29,13 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 hypr-data = { workspace = true }
 hypr-language = { workspace = true }
-
 tauri-plugin-listener = { workspace = true }
 
 dirs = { workspace = true }
 inventory = { workspace = true }
 reqwest = { workspace = true }
+rodio = { workspace = true }
+similar = { workspace = true }
 specta-typescript = { workspace = true }
 tokio-tungstenite = { workspace = true }
 

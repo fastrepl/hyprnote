@@ -8,7 +8,7 @@ pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder
 
 pub trait WebSocketIO: Send + 'static {
     type Data: Send;
-    type Input: Send + Default;
+    type Input: Send;
     type Output: DeserializeOwned;
 
     fn to_input(data: Self::Data) -> Self::Input;
@@ -55,8 +55,10 @@ impl WebSocketClient {
                 }
             }
 
-            // We shouldn't send a 'Close' message, as it would prevent receiving remaining transcripts from the server.
-            let _ = ws_sender.send(T::to_message(T::Input::default())).await;
+            // Wait 5 seconds before closing the connection
+            // TODO: This might not be enough to ensure receiving remaining transcripts from the server.
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+            let _ = ws_sender.close().await;
         });
 
         let output_stream = async_stream::stream! {

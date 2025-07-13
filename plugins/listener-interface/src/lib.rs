@@ -64,12 +64,6 @@ common_derives! {
     }
 }
 
-impl Default for ListenInputChunk {
-    fn default() -> Self {
-        ListenInputChunk::End
-    }
-}
-
 common_derives! {
     #[derive(strum::AsRefStr)]
     pub enum AudioMode {

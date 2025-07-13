@@ -24,13 +24,7 @@ impl CustomBenchmark {
 }
 
 fn bench_english_1() -> CustomBenchmarkResult {
-    CustomBenchmarkResult {
-        latency: 0.0,
-        accuracy: 0.0,
-    }
-}
-
-fn bench_english_2() -> CustomBenchmarkResult {
+    use futures_util::StreamExt;
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     rt.block_on(async {
@@ -39,9 +33,76 @@ fn bench_english_2() -> CustomBenchmarkResult {
             .model_type(tauri_plugin_local_stt::SupportedModel::QuantizedTinyEn)
             .build();
 
-        let _handle = tauri_plugin_local_stt::run_server(server_state)
+        let server = tauri_plugin_local_stt::run_server(server_state)
             .await
             .unwrap();
+
+        let api_base = format!("http://{}", &server.addr);
+
+        let client = tauri_plugin_listener::ListenClient::builder()
+            .api_base(api_base)
+            .api_key("")
+            .params(hypr_listener_interface::ListenParams::default())
+            .build_single();
+
+        let audio_stream = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let stream = client.from_realtime_audio(audio_stream).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        let actual = stream
+            .map(|result| {
+                result
+                    .words
+                    .into_iter()
+                    .map(|word| word.text)
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<Vec<String>>>()
+            .await
+            .into_iter()
+            .flatten()
+            .map(|w| w.trim().to_lowercase())
+            .collect::<Vec<_>>()
+            .join(" ");
+
+        let expected: String = serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
+            hypr_data::english_1::TRANSCRIPTION_JSON,
+        )
+        .unwrap()
+        .into_iter()
+        .map(|w| w.text.trim().to_lowercase())
+        .collect::<Vec<_>>()
+        .join(" ");
+
+        println!("expected: {}\n\nactual: {}", expected, actual);
+
+        let output = std::process::Command::new("poetry")
+            .arg("run")
+            .arg("python")
+            .arg("../../scripts/eval_stt.py")
+            .arg("--reference")
+            .arg(&expected)
+            .arg("--hypothesis")
+            .arg(&actual)
+            .output()
+            .expect("Failed to execute Python script");
+
+        println!("\nMetrics:");
+        if !output.stdout.is_empty() {
+            println!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+        if !output.stderr.is_empty() {
+            println!("Error: {}", String::from_utf8_lossy(&output.stderr));
+        }
+        if !output.status.success() {
+            println!("Python script exited with code: {:?}", output.status.code());
+        }
+
+        server.shutdown.send(()).unwrap();
 
         CustomBenchmarkResult {
             latency: 0.0,
@@ -55,10 +116,6 @@ inventory::collect!(CustomBenchmark);
 inventory::submit!(CustomBenchmark {
     name: "bench_english_1",
     benchmark_fn: bench_english_1
-});
-inventory::submit!(CustomBenchmark {
-    name: "bench_english_2",
-    benchmark_fn: bench_english_2
 });
 
 fn main() {

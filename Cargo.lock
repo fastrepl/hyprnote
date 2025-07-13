@@ -11306,8 +11306,8 @@ dependencies = [
 
 [[package]]
 name = "restate-sdk"
-version = "0.3.2"
-source = "git+https://github.com/restatedev/sdk-rust?rev=85c6c71#85c6c71df1ce14b8a2f156ec26272e6a35720ca5"
+version = "0.6.0"
+source = "git+https://github.com/restatedev/sdk-rust?tag=v0.6.0#24c829d06427b421c6def794d88318b98a27858a"
 dependencies = [
  "bytes",
  "futures",
@@ -11318,16 +11318,15 @@ dependencies = [
  "jsonptr 0.5.1",
  "pin-project-lite",
  "prettyplease",
- "rand 0.8.5",
+ "rand 0.9.1",
  "regress 0.10.3",
  "restate-sdk-macros",
  "restate-sdk-shared-core",
  "serde",
  "serde_json",
  "syn 2.0.104",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "tokio",
- "tower-service",
  "tracing",
  "tracing-subscriber",
  "typify",
@@ -11336,8 +11335,8 @@ dependencies = [
 
 [[package]]
 name = "restate-sdk-macros"
-version = "0.3.2"
-source = "git+https://github.com/restatedev/sdk-rust?rev=85c6c71#85c6c71df1ce14b8a2f156ec26272e6a35720ca5"
+version = "0.6.0"
+source = "git+https://github.com/restatedev/sdk-rust?tag=v0.6.0#24c829d06427b421c6def794d88318b98a27858a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11347,7 +11346,8 @@ dependencies = [
 [[package]]
 name = "restate-sdk-shared-core"
 version = "0.4.0"
-source = "git+https://github.com/restatedev/sdk-shared-core.git?branch=main#30a567d3d922125215e1dcc7f2bde1fe127e023c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f424311f9250ef7274efe7257472b1bec604d895d7c1e7a9b8671697fac74c9"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -14138,6 +14138,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "similar",
  "specta",
  "specta-typescript",
  "strum 0.26.3",

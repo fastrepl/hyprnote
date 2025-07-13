@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-restate-sdk = { git = "https://github.com/restatedev/sdk-rust", rev = "85c6c71" }
+restate-sdk = { git = "https://github.com/restatedev/sdk-rust", tag = "v0.6.0" }
 
 hypr-db-admin = { workspace = true }
 hypr-db-core = { workspace = true }

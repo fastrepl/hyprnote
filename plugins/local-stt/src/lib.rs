@@ -11,12 +11,11 @@ mod store;
 
 pub mod server;
 
-use server::*;
-use store::*;
-
 pub use error::*;
 pub use ext::*;
 pub use model::*;
+pub use server::*;
+pub use store::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 

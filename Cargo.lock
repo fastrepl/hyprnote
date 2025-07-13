@@ -7185,6 +7185,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inventory"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab08d7cd2c5897f2c949e5383ea7c7db03fb19130ffcfbf7eda795137ae3cb83"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "io-uring"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14116,12 +14125,12 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "axum 0.8.4",
- "bytes",
  "chunker",
  "data",
  "dirs 6.0.0",
  "file",
  "futures-util",
+ "inventory",
  "language",
  "listener-interface",
  "pyannote-local",

@@ -136,6 +136,7 @@ pub struct MeetingDetector {
     scheduled_stop_signal: Option<mpsc::Sender<()>>,
     notified_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
     started_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
+    detection_threshold: f32,
 }
 
 impl Clone for MeetingDetector {
@@ -149,18 +150,19 @@ impl Clone for MeetingDetector {
             scheduled_stop_signal: self.scheduled_stop_signal.clone(),
             notified_meetings: Arc::clone(&self.notified_meetings),
             started_meetings: Arc::clone(&self.started_meetings),
+            detection_threshold: self.detection_threshold,
         }
     }
 }
 
 impl Default for MeetingDetector {
     fn default() -> Self {
-        Self::new()
+        Self::new(0.5)
     }
 }
 
 impl MeetingDetector {
-    pub fn new() -> Self {
+    pub fn new(detection_threshold: f32) -> Self {
         Self {
             active_meetings: Arc::new(RwLock::new(HashMap::new())),
             scheduled_meetings: Arc::new(RwLock::new(Vec::new())),
@@ -170,6 +172,7 @@ impl MeetingDetector {
             scheduled_stop_signal: None,
             notified_meetings: Arc::new(RwLock::new(HashMap::new())),
             started_meetings: Arc::new(RwLock::new(HashMap::new())),
+            detection_threshold,
         }
     }
 
@@ -200,6 +203,7 @@ impl MeetingDetector {
         let active_meetings = self.active_meetings.clone();
         let callbacks = self.callbacks.clone();
         let error_callbacks = self.error_callbacks.clone();
+        let detection_threshold = self.detection_threshold;
 
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
@@ -209,7 +213,7 @@ impl MeetingDetector {
                     _ = interval.tick() => {
                         #[cfg(target_os = "macos")]
                         {
-                            if let Err(e) = Self::check_running_apps_macos(&active_meetings, &callbacks, &error_callbacks).await {
+                            if let Err(e) = Self::check_running_apps_macos(&active_meetings, &callbacks, &error_callbacks, detection_threshold).await {
                                 tracing::error!("Error checking running apps: {}", e);
                             }
                         }
@@ -243,9 +247,11 @@ impl MeetingDetector {
         active_meetings: &Arc<RwLock<HashMap<String, MeetingDetected>>>,
         callbacks: &Arc<RwLock<Vec<MeetingCallback>>>,
         error_callbacks: &Arc<RwLock<Vec<ErrorCallback>>>,
+        detection_threshold: f32,
     ) -> Result<(), anyhow::Error> {
         let known_apps = get_known_meeting_apps();
         let mut current_meeting_apps = Vec::new();
+        let mut new_meetings = Vec::new();
 
         for meeting_app in &known_apps {
             if Self::is_app_running(&meeting_app.bundle_id, error_callbacks).await {
@@ -253,9 +259,7 @@ impl MeetingDetector {
                     Self::get_active_window_title(&meeting_app.bundle_id, error_callbacks).await;
                 let confidence = Self::calculate_meeting_confidence(meeting_app, &window_title);
 
-                // Use a reasonable minimum threshold for detection (0.5)
-                // The actual recording decision will use the user's configured threshold
-                if confidence > 0.5 {
+                if confidence > detection_threshold {
                     current_meeting_apps.push(meeting_app.clone());
 
                     let meeting_detected = MeetingDetected {
@@ -265,36 +269,51 @@ impl MeetingDetector {
                         confidence,
                     };
 
-                    let mut active = active_meetings.write().await;
-                    if !active.contains_key(&meeting_app.bundle_id) {
-                        active.insert(meeting_app.bundle_id.clone(), meeting_detected.clone());
-
-                        let callbacks_guard = callbacks.read().await;
-                        for callback in callbacks_guard.iter() {
-                            callback(MeetingEvent::AdHocMeetingDetected(meeting_detected.clone()));
-                        }
-                    }
+                    new_meetings.push((meeting_app.bundle_id.clone(), meeting_detected));
                 }
             }
         }
 
-        let mut active = active_meetings.write().await;
-        let mut to_remove = Vec::new();
+        // Collect all changes and events that need to be triggered
+        let mut events_to_trigger = Vec::new();
+        let mut meetings_to_remove = Vec::new();
 
-        for (bundle_id, _) in active.iter() {
-            if !current_meeting_apps
-                .iter()
-                .any(|app| &app.bundle_id == bundle_id)
-            {
-                to_remove.push(bundle_id.clone());
+        // Single write lock scope for all active_meetings modifications
+        {
+            let mut active = active_meetings.write().await;
+
+            // Add new meetings that don't already exist
+            for (bundle_id, meeting_detected) in new_meetings {
+                if !active.contains_key(&bundle_id) {
+                    active.insert(bundle_id.clone(), meeting_detected.clone());
+                    events_to_trigger.push(MeetingEvent::AdHocMeetingDetected(meeting_detected));
+                }
+            }
+
+            // Determine which meetings to remove
+            for (bundle_id, _) in active.iter() {
+                if !current_meeting_apps
+                    .iter()
+                    .any(|app| &app.bundle_id == bundle_id)
+                {
+                    meetings_to_remove.push(bundle_id.clone());
+                }
+            }
+
+            // Remove meetings that are no longer active
+            for bundle_id in &meetings_to_remove {
+                active.remove(bundle_id);
+                events_to_trigger.push(MeetingEvent::MeetingAppClosed(bundle_id.clone()));
             }
         }
 
-        for bundle_id in to_remove {
-            active.remove(&bundle_id);
+        // Single read lock scope for all callback invocations
+        if !events_to_trigger.is_empty() {
             let callbacks_guard = callbacks.read().await;
-            for callback in callbacks_guard.iter() {
-                callback(MeetingEvent::MeetingAppClosed(bundle_id.clone()));
+            for event in events_to_trigger {
+                for callback in callbacks_guard.iter() {
+                    callback(event.clone());
+                }
             }
         }
 
@@ -528,6 +547,10 @@ impl MeetingDetector {
                             if time_since_end.num_hours() >= 1 {
                                 let mut notified = notified_meetings.write().await;
                                 notified.remove(&meeting.id);
+                                drop(notified); // Release lock early
+                                
+                                let mut started = started_meetings.write().await;
+                                started.remove(&meeting.id);
                             }
                         }
                     }

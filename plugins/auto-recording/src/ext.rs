@@ -211,7 +211,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
             }
         } // guard is dropped here
 
-        let mut detector = hypr_meeting_detector::MeetingDetector::new();
+        let mut detector = hypr_meeting_detector::MeetingDetector::new(0.5);
 
         let app_handle = self.app_handle().clone();
         let callback = std::sync::Arc::new(move |event: hypr_meeting_detector::MeetingEvent| {

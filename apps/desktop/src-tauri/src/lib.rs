@@ -64,6 +64,7 @@ pub async fn main() {
     }
 
     builder = builder
+        .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_sse::init())
         .plugin(tauri_plugin_misc::init())
@@ -91,7 +92,6 @@ pub async fn main() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_machine_uid::init())
         .plugin(tauri_plugin_analytics::init())
-        .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_membership::init())
@@ -171,10 +171,25 @@ pub async fn main() {
                 });
             }
 
+            // Move tray creation to after app is fully ready
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app.create_tray_menu().unwrap();
-                app.create_app_menu().unwrap();
+                tracing::info!("Setting up app menu first...");
+                match app.create_app_menu() {
+                    Ok(_) => tracing::info!("App menu setup completed successfully"),
+                    Err(e) => tracing::error!("Failed to create app menu: {:?}", e),
+                }
+
+                // Delay tray creation
+                let app_clone = app.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(1000));
+                    tracing::info!("Creating tray menu after delay...");
+                    match app_clone.create_tray_menu() {
+                        Ok(_) => tracing::info!("Delayed tray menu setup completed successfully"),
+                        Err(e) => tracing::error!("Failed to create delayed tray menu: {:?}", e),
+                    }
+                });
             }
 
             {

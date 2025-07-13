@@ -14477,6 +14477,7 @@ dependencies = [
  "tauri-plugin-misc",
  "tauri-plugin-windows",
  "tauri-specta",
+ "tracing",
 ]
 
 [[package]]

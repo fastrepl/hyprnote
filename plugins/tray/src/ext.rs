@@ -16,9 +16,10 @@ pub struct BlinkingState {
     pub stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
     pub icon_default: Image<'static>,
     pub icon_recording: Image<'static>,
+    pub blink_interval: std::time::Duration,
 }
 
-const TRAY_ID: &str = "hypr-tray";
+const TRAY_ID: &str = "com.hyprnote.dev.tray";
 
 pub enum HyprMenuItem {
     TrayOpen,
@@ -98,6 +99,11 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     fn create_tray_menu(&self) -> Result<()> {
         let app = self.app_handle();
 
+        tracing::info!("Creating tray menu...");
+
+        // Add a small delay to ensure app is fully initialized
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
         let menu = Menu::with_items(
             app,
             &[
@@ -108,12 +114,34 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             ],
         )?;
 
-        TrayIconBuilder::with_id(TRAY_ID)
+        tracing::info!("Loading tray icon...");
+        let icon_result = Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"));
+
+        match &icon_result {
+            Ok(_) => tracing::info!("Tray icon loaded successfully"),
+            Err(e) => tracing::error!("Failed to load tray icon: {:?}", e),
+        }
+
+        tracing::info!("Building tray icon with ID: {}", TRAY_ID);
+
+        // Try creating minimal tray first
+        let minimal_tray_result = TrayIconBuilder::with_id("test-tray")
             .icon(Image::from_bytes(include_bytes!(
-                "../icons/tray_default.png"
+                "../icons/tray_default_noalpha.png"
             ))?)
+            .tooltip("Test Tray")
+            .build(app);
+
+        match minimal_tray_result {
+            Ok(_) => tracing::info!("Minimal test tray created successfully!"),
+            Err(e) => tracing::error!("Minimal test tray failed: {:?}", e),
+        }
+
+        let tray_result = TrayIconBuilder::with_id(TRAY_ID)
+            .icon(icon_result?)
             .icon_as_template(false)
-            .tooltip("Hyprnote")
+            .tooltip("Hyprnote Recording Tool")
+            .title("Hyprnote")
             .menu(&menu)
             .show_menu_on_left_click(true)
             .on_menu_event({
@@ -170,9 +198,32 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                     }
                 }
             })
-            .build(app)?;
+            .build(app);
 
-        Ok(())
+        match tray_result {
+            Ok(tray_icon) => {
+                tracing::info!("Tray icon created successfully with ID: {}", TRAY_ID);
+                // Verify the tray was actually created
+                if let Some(existing_tray) = app.tray_by_id(TRAY_ID) {
+                    tracing::info!("Tray icon verification: found tray with ID {}", TRAY_ID);
+                    // Try to force visibility
+                    tracing::info!("Attempting to force tray icon visibility...");
+                } else {
+                    tracing::error!(
+                        "Tray icon verification: could not find tray with ID {}",
+                        TRAY_ID
+                    );
+                }
+
+                // Log some additional info
+                tracing::info!("Tray icon object created successfully");
+                Ok(())
+            }
+            Err(e) => {
+                tracing::error!("Failed to create tray icon: {:?}", e);
+                Err(e.into())
+            }
+        }
     }
 
     fn set_start_disabled(&self, disabled: bool) -> Result<()> {
@@ -199,13 +250,26 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let app = self.app_handle();
 
         if let Some(tray) = app.tray_by_id(TRAY_ID) {
-            let icon = if recording {
-                Image::from_bytes(include_bytes!("../icons/tray_recording.png"))?
-            } else {
-                Image::from_bytes(include_bytes!("../icons/tray_default.png"))?
-            };
+            if let Some(state) = app.try_state::<BlinkingState>() {
+                let icon = if recording {
+                    &state.icon_recording
+                } else {
+                    &state.icon_default
+                };
 
-            tray.set_icon(Some(icon))?;
+                tray.set_icon(Some(icon.clone()))?;
+                // tray.set_icon_as_template(false)?; // Disabled for debugging
+            } else {
+                // Fallback to loading icons directly if state not available
+                let icon = if recording {
+                    Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))?
+                } else {
+                    Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))?
+                };
+
+                tray.set_icon(Some(icon))?;
+                // tray.set_icon_as_template(false)?; // Disabled for debugging
+            }
         }
 
         Ok(())
@@ -214,7 +278,11 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     fn start_tray_blinking(&self) -> Result<()> {
         let app_handle = self.app_handle();
 
-        let state = app_handle.state::<BlinkingState>();
+        let Some(state) = app_handle.try_state::<BlinkingState>() else {
+            tracing::warn!("BlinkingState not available, cannot start tray blinking");
+            return Ok(());
+        };
+
         state
             .stop_flag
             .store(true, std::sync::atomic::Ordering::Relaxed);
@@ -224,7 +292,6 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
         // Start new blinking task
         let app_clone = app_handle.clone();
-        let state = app_handle.state::<BlinkingState>();
         state
             .stop_flag
             .store(false, std::sync::atomic::Ordering::Relaxed);
@@ -232,31 +299,37 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
         let icon_default = state.icon_default.clone();
         let icon_recording = state.icon_recording.clone();
+        let blink_interval = state.blink_interval;
 
         let handle = std::thread::spawn(move || {
             let mut is_recording_icon = true;
+            let mut last_blink = std::time::Instant::now();
 
             loop {
                 if stop_flag.load(std::sync::atomic::Ordering::Relaxed) {
                     break;
                 }
 
-                std::thread::sleep(std::time::Duration::from_millis(500));
-
-                if let Some(tray) = app_clone.tray_by_id(TRAY_ID) {
-                    let icon = if is_recording_icon {
-                        icon_default.clone()
-                    } else {
-                        icon_recording.clone()
-                    };
-                    let _ = tray.set_icon(Some(icon));
+                let now = std::time::Instant::now();
+                if now.duration_since(last_blink) >= blink_interval {
+                    if let Some(tray) = app_clone.tray_by_id(TRAY_ID) {
+                        let icon = if is_recording_icon {
+                            &icon_default
+                        } else {
+                            &icon_recording
+                        };
+                        let _ = tray.set_icon(Some(icon.clone()));
+                        // let _ = tray.set_icon_as_template(false); // Disabled for debugging
+                    }
+                    is_recording_icon = !is_recording_icon;
+                    last_blink = now;
                 }
 
-                is_recording_icon = !is_recording_icon;
+                // Short sleep to prevent busy waiting
+                std::thread::sleep(std::time::Duration::from_millis(10));
             }
         });
 
-        let state = app_handle.state::<BlinkingState>();
         let mut guard = state.handle.lock().unwrap();
         *guard = Some(handle);
 

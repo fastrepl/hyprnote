@@ -180,14 +180,13 @@ pub async fn main() {
                     Err(e) => tracing::error!("Failed to create app menu: {:?}", e),
                 }
 
-                // Delay tray creation
                 let app_clone = app.clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(1000));
-                    tracing::info!("Creating tray menu after delay...");
+                tokio::spawn(async move {
+                    tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+                    tracing::info!("Creating tray menu after initialization...");
                     match app_clone.create_tray_menu() {
-                        Ok(_) => tracing::info!("Delayed tray menu setup completed successfully"),
-                        Err(e) => tracing::error!("Failed to create delayed tray menu: {:?}", e),
+                        Ok(_) => tracing::info!("Tray menu setup completed successfully"),
+                        Err(e) => tracing::error!("Failed to create tray menu: {:?}", e),
                     }
                 });
             }

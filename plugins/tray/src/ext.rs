@@ -12,11 +12,47 @@ use tauri_plugin_misc::MiscPluginExt;
 
 // State for managing the blinking task
 pub struct BlinkingState {
-    pub handle: std::sync::Mutex<Option<std::thread::JoinHandle<()>>>,
-    pub stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
-    pub icon_default: Image<'static>,
-    pub icon_recording: Image<'static>,
-    pub blink_interval: std::time::Duration,
+    handle: std::sync::Mutex<Option<std::thread::JoinHandle<()>>>,
+    stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    icon_default: Image<'static>,
+    icon_recording: Image<'static>,
+    blink_interval: std::time::Duration,
+}
+
+impl BlinkingState {
+    pub fn new(
+        icon_default: Image<'static>,
+        icon_recording: Image<'static>,
+        blink_interval: std::time::Duration,
+    ) -> Self {
+        Self {
+            handle: std::sync::Mutex::new(None),
+            stop_flag: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            icon_default,
+            icon_recording,
+            blink_interval,
+        }
+    }
+
+    pub fn icon_default(&self) -> &Image<'static> {
+        &self.icon_default
+    }
+
+    pub fn icon_recording(&self) -> &Image<'static> {
+        &self.icon_recording
+    }
+
+    pub fn blink_interval(&self) -> std::time::Duration {
+        self.blink_interval
+    }
+
+    pub fn handle(&self) -> &std::sync::Mutex<Option<std::thread::JoinHandle<()>>> {
+        &self.handle
+    }
+
+    pub fn stop_flag(&self) -> &std::sync::Arc<std::sync::atomic::AtomicBool> {
+        &self.stop_flag
+    }
 }
 
 const TRAY_ID: &str = "com.hyprnote.dev.tray";
@@ -101,9 +137,6 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
         tracing::info!("Creating tray menu...");
 
-        // Add a small delay to ensure app is fully initialized
-        std::thread::sleep(std::time::Duration::from_millis(100));
-
         let menu = Menu::with_items(
             app,
             &[
@@ -123,19 +156,6 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         }
 
         tracing::info!("Building tray icon with ID: {}", TRAY_ID);
-
-        // Try creating minimal tray first
-        let minimal_tray_result = TrayIconBuilder::with_id("test-tray")
-            .icon(Image::from_bytes(include_bytes!(
-                "../icons/tray_default_noalpha.png"
-            ))?)
-            .tooltip("Test Tray")
-            .build(app);
-
-        match minimal_tray_result {
-            Ok(_) => tracing::info!("Minimal test tray created successfully!"),
-            Err(e) => tracing::error!("Minimal test tray failed: {:?}", e),
-        }
 
         let tray_result = TrayIconBuilder::with_id(TRAY_ID)
             .icon(icon_result?)
@@ -252,9 +272,9 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         if let Some(tray) = app.tray_by_id(TRAY_ID) {
             if let Some(state) = app.try_state::<BlinkingState>() {
                 let icon = if recording {
-                    &state.icon_recording
+                    state.icon_recording()
                 } else {
-                    &state.icon_default
+                    state.icon_default()
                 };
 
                 tray.set_icon(Some(icon.clone()))?;
@@ -262,7 +282,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             } else {
                 // Fallback to loading icons directly if state not available
                 let icon = if recording {
-                    Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))?
+                    Image::from_bytes(include_bytes!("../icons/tray_recording.png"))?
                 } else {
                     Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))?
                 };
@@ -278,28 +298,25 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     fn start_tray_blinking(&self) -> Result<()> {
         let app_handle = self.app_handle();
 
-        let Some(state) = app_handle.try_state::<BlinkingState>() else {
-            tracing::warn!("BlinkingState not available, cannot start tray blinking");
-            return Ok(());
-        };
+        let state = app_handle.state::<BlinkingState>();
 
         state
-            .stop_flag
+            .stop_flag()
             .store(true, std::sync::atomic::Ordering::Relaxed);
-        if let Some(handle) = state.handle.lock().unwrap().take() {
+        if let Some(handle) = state.handle().lock().unwrap().take() {
             let _ = handle.join();
         }
 
         // Start new blinking task
         let app_clone = app_handle.clone();
         state
-            .stop_flag
+            .stop_flag()
             .store(false, std::sync::atomic::Ordering::Relaxed);
-        let stop_flag = state.stop_flag.clone();
+        let stop_flag = state.stop_flag().clone();
 
-        let icon_default = state.icon_default.clone();
-        let icon_recording = state.icon_recording.clone();
-        let blink_interval = state.blink_interval;
+        let icon_default = state.icon_default().clone();
+        let icon_recording = state.icon_recording().clone();
+        let blink_interval = state.blink_interval();
 
         let handle = std::thread::spawn(move || {
             let mut is_recording_icon = true;
@@ -330,7 +347,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             }
         });
 
-        let mut guard = state.handle.lock().unwrap();
+        let mut guard = state.handle().lock().unwrap();
         *guard = Some(handle);
 
         Ok(())
@@ -342,9 +359,9 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         // Stop the blinking task
         if let Some(state) = app.try_state::<BlinkingState>() {
             state
-                .stop_flag
+                .stop_flag()
                 .store(true, std::sync::atomic::Ordering::Relaxed);
-            if let Some(handle) = state.handle.lock().unwrap().take() {
+            if let Some(handle) = state.handle().lock().unwrap().take() {
                 let _ = handle.join();
             }
         }

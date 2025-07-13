@@ -22,17 +22,14 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let icon_default =
                 Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))
                     .expect("Failed to load default tray icon");
-            let icon_recording =
-                Image::from_bytes(include_bytes!("../icons/tray_default_noalpha.png"))
-                    .expect("Failed to load recording tray icon");
+            let icon_recording = Image::from_bytes(include_bytes!("../icons/tray_recording.png"))
+                .expect("Failed to load recording tray icon");
 
-            app.manage(BlinkingState {
-                handle: std::sync::Mutex::new(None),
-                stop_flag: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            app.manage(BlinkingState::new(
                 icon_default,
                 icon_recording,
-                blink_interval: std::time::Duration::from_millis(500),
-            });
+                std::time::Duration::from_millis(500),
+            ));
             Ok(())
         })
         .build()

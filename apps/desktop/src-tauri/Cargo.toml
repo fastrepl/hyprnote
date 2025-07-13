@@ -30,7 +30,7 @@ hypr-turso = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
-tauri-plugin-auto-recording = { workspace = true }
+tauri-plugin-auto-recording = { workspace = true, optional = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }
@@ -100,6 +100,8 @@ macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
 windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas", "stt-directml"]
 
 load-dynamic = ["tauri-plugin-local-stt/load-dynamic", "tauri-plugin-listener/load-dynamic"]
+
+auto-recording = ["tauri-plugin-auto-recording"]
 
 llm-metal = ["tauri-plugin-local-llm/metal"]
 llm-cuda = ["tauri-plugin-local-llm/cuda"]

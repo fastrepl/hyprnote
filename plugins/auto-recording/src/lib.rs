@@ -55,15 +55,20 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             app.manage(ManagedState::default());
 
             let app_handle = app.app_handle().clone();
-            tauri::async_runtime::spawn(async move {
-                // Wait for app initialization to complete before starting auto-recording monitor
-                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
-                if app_handle.get_auto_recording_enabled().unwrap_or(false) {
-                    if let Err(e) = app_handle.start_auto_recording_monitor().await {
-                        tracing::error!("Failed to start auto-recording monitor on startup: {}", e);
+            // Listen for app initialization complete event
+            let _listener = app.listen("app-initialization-complete", move |_event| {
+                let app_handle = app_handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    if app_handle.get_auto_recording_enabled().unwrap_or(false) {
+                        if let Err(e) = app_handle.start_auto_recording_monitor().await {
+                            tracing::error!(
+                                "Failed to start auto-recording monitor on startup: {}",
+                                e
+                            );
+                        }
                     }
-                }
+                });
             });
 
             Ok(())

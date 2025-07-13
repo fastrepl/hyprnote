@@ -2,16 +2,6 @@ use crate::error::Error;
 use std::future::Future;
 use tauri_plugin_store2::StorePluginExt;
 
-const MEETING_APPS: &[&str] = &[
-    "Zoom",
-    "Microsoft Teams",
-    "Google Chrome",
-    "Slack",
-    "Discord",
-    "FaceTime",
-    "Cisco Webex Meeting",
-];
-
 pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
     fn auto_recording_store(
         &self,
@@ -58,10 +48,7 @@ pub trait AutoRecordingPluginExt<R: tauri::Runtime> {
         bundle_id: String,
     ) -> impl Future<Output = Result<(), Error>>;
 
-    fn is_meeting_window_focused(
-        &self,
-        meeting_id: &str,
-    ) -> impl Future<Output = Result<bool, Error>>;
+    fn is_meeting_window_focused(&self) -> impl Future<Output = Result<bool, Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
@@ -301,7 +288,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
 
         // Check if window focus is required and if meeting window is focused
         if self.get_require_window_focus()? {
-            if !self.is_meeting_window_focused(&meeting_id).await? {
+            if !self.is_meeting_window_focused().await? {
                 tracing::info!(
                     "Meeting window not focused, skipping auto-recording for: {}",
                     meeting_id
@@ -335,14 +322,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AutoRecordingPluginExt<R> for T {
     }
 
     /// Check if any meeting app window is currently focused.
-    /// Note: meeting_id parameter is currently unused as we check focus for any meeting app
-    /// rather than a specific meeting instance.
-    async fn is_meeting_window_focused(&self, _meeting_id: &str) -> Result<bool, Error> {
+    async fn is_meeting_window_focused(&self) -> Result<bool, Error> {
         #[cfg(target_os = "macos")]
         {
             use std::process::Command;
 
-            let meeting_apps_list = MEETING_APPS
+            let meeting_apps_list = hypr_meeting_detector::get_known_meeting_app_names()
                 .iter()
                 .map(|app| format!("\"{}\"", app))
                 .collect::<Vec<_>>()

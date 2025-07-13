@@ -90,8 +90,14 @@ pub async fn main() {
         .plugin(tauri_plugin_task::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_machine_uid::init())
-        .plugin(tauri_plugin_analytics::init())
-        .plugin(tauri_plugin_auto_recording::init())
+        .plugin(tauri_plugin_analytics::init());
+
+    #[cfg(feature = "auto-recording")]
+    {
+        builder = builder.plugin(tauri_plugin_auto_recording::init());
+    }
+
+    builder = builder
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
@@ -206,6 +212,9 @@ pub async fn main() {
 
                 tokio::spawn(async move {
                     app_clone.setup_local_ai().await.unwrap();
+
+                    // Emit app initialization complete event
+                    let _ = app_clone.emit("app-initialization-complete", ());
                 });
             });
 

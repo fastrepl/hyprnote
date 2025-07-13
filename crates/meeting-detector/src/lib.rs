@@ -39,9 +39,16 @@ pub enum MeetingEvent {
     MeetingAppClosed(String),
 }
 
-pub type MeetingCallback = Arc<dyn Fn(MeetingEvent) + Send + Sync + 'static>;
+#[derive(Debug, Clone)]
+pub enum DetectionError {
+    AppleScriptFailed { bundle_id: String, error: String },
+    SystemError(String),
+}
 
-fn get_known_meeting_apps() -> Vec<MeetingApp> {
+pub type MeetingCallback = Arc<dyn Fn(MeetingEvent) + Send + Sync + 'static>;
+pub type ErrorCallback = Arc<dyn Fn(DetectionError) + Send + Sync + 'static>;
+
+pub fn get_known_meeting_apps() -> Vec<MeetingApp> {
     vec![
         MeetingApp {
             name: "Zoom".to_string(),
@@ -111,6 +118,13 @@ fn get_known_meeting_apps() -> Vec<MeetingApp> {
             window_patterns: vec!["Skype".to_string(), "Call with".to_string()],
         },
     ]
+}
+
+pub fn get_known_meeting_app_names() -> Vec<String> {
+    get_known_meeting_apps()
+        .into_iter()
+        .map(|app| app.name)
+        .collect()
 }
 
 pub struct MeetingDetector {

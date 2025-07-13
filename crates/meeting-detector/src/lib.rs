@@ -131,6 +131,7 @@ pub struct MeetingDetector {
     active_meetings: Arc<RwLock<HashMap<String, MeetingDetected>>>,
     scheduled_meetings: Arc<RwLock<Vec<ScheduledMeeting>>>,
     callbacks: Arc<RwLock<Vec<MeetingCallback>>>,
+    error_callbacks: Arc<RwLock<Vec<ErrorCallback>>>,
     stop_signal: Option<mpsc::Sender<()>>,
     scheduled_stop_signal: Option<mpsc::Sender<()>>,
     notified_meetings: Arc<RwLock<HashMap<String, DateTime<Utc>>>>,
@@ -143,6 +144,7 @@ impl Clone for MeetingDetector {
             active_meetings: Arc::clone(&self.active_meetings),
             scheduled_meetings: Arc::clone(&self.scheduled_meetings),
             callbacks: Arc::clone(&self.callbacks),
+            error_callbacks: Arc::clone(&self.error_callbacks),
             stop_signal: self.stop_signal.clone(),
             scheduled_stop_signal: self.scheduled_stop_signal.clone(),
             notified_meetings: Arc::clone(&self.notified_meetings),
@@ -163,6 +165,7 @@ impl MeetingDetector {
             active_meetings: Arc::new(RwLock::new(HashMap::new())),
             scheduled_meetings: Arc::new(RwLock::new(Vec::new())),
             callbacks: Arc::new(RwLock::new(Vec::new())),
+            error_callbacks: Arc::new(RwLock::new(Vec::new())),
             stop_signal: None,
             scheduled_stop_signal: None,
             notified_meetings: Arc::new(RwLock::new(HashMap::new())),
@@ -173,6 +176,11 @@ impl MeetingDetector {
     pub async fn add_callback(&self, callback: MeetingCallback) {
         let mut callbacks = self.callbacks.write().await;
         callbacks.push(callback);
+    }
+
+    pub async fn add_error_callback(&self, callback: ErrorCallback) {
+        let mut error_callbacks = self.error_callbacks.write().await;
+        error_callbacks.push(callback);
     }
 
     pub async fn set_scheduled_meetings(&self, meetings: Vec<ScheduledMeeting>) {
@@ -191,6 +199,7 @@ impl MeetingDetector {
 
         let active_meetings = self.active_meetings.clone();
         let callbacks = self.callbacks.clone();
+        let error_callbacks = self.error_callbacks.clone();
 
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
@@ -200,7 +209,7 @@ impl MeetingDetector {
                     _ = interval.tick() => {
                         #[cfg(target_os = "macos")]
                         {
-                            if let Err(e) = Self::check_running_apps_macos(&active_meetings, &callbacks).await {
+                            if let Err(e) = Self::check_running_apps_macos(&active_meetings, &callbacks, &error_callbacks).await {
                                 tracing::error!("Error checking running apps: {}", e);
                             }
                         }
@@ -233,13 +242,15 @@ impl MeetingDetector {
     async fn check_running_apps_macos(
         active_meetings: &Arc<RwLock<HashMap<String, MeetingDetected>>>,
         callbacks: &Arc<RwLock<Vec<MeetingCallback>>>,
+        error_callbacks: &Arc<RwLock<Vec<ErrorCallback>>>,
     ) -> Result<(), anyhow::Error> {
         let known_apps = get_known_meeting_apps();
         let mut current_meeting_apps = Vec::new();
 
         for meeting_app in &known_apps {
-            if Self::is_app_running(&meeting_app.bundle_id) {
-                let window_title = Self::get_active_window_title(&meeting_app.bundle_id).await;
+            if Self::is_app_running(&meeting_app.bundle_id, error_callbacks).await {
+                let window_title =
+                    Self::get_active_window_title(&meeting_app.bundle_id, error_callbacks).await;
                 let confidence = Self::calculate_meeting_confidence(meeting_app, &window_title);
 
                 // Use a reasonable minimum threshold for detection (0.5)
@@ -291,7 +302,10 @@ impl MeetingDetector {
     }
 
     #[cfg(target_os = "macos")]
-    fn is_app_running(bundle_id: &str) -> bool {
+    async fn is_app_running(
+        bundle_id: &str,
+        error_callbacks: &Arc<RwLock<Vec<ErrorCallback>>>,
+    ) -> bool {
         use std::process::Command;
 
         let script = format!(
@@ -312,45 +326,52 @@ impl MeetingDetector {
 
         let output = Command::new("osascript").arg("-e").arg(&script).output();
 
-        if let Ok(output) = output {
-            let result_str = String::from_utf8_lossy(&output.stdout);
-            let result = result_str.trim();
-            result == "true"
-        } else {
-            tracing::warn!(
-                "Failed to execute AppleScript for bundle_id {}: {:?}",
-                bundle_id,
-                output
-            );
-            false
+        match output {
+            Ok(output) => {
+                let result_str = String::from_utf8_lossy(&output.stdout);
+                let result = result_str.trim();
+                result == "true"
+            }
+            Err(error) => {
+                let detection_error = DetectionError::AppleScriptFailed {
+                    bundle_id: bundle_id.to_string(),
+                    error: error.to_string(),
+                };
+
+                let error_callbacks_guard = error_callbacks.read().await;
+                for callback in error_callbacks_guard.iter() {
+                    callback(detection_error.clone());
+                }
+
+                tracing::warn!(
+                    "Failed to execute AppleScript for bundle_id {}: {}",
+                    bundle_id,
+                    error
+                );
+                false
+            }
         }
     }
 
     #[cfg(target_os = "macos")]
-    async fn get_active_window_title(bundle_id: &str) -> Option<String> {
+    async fn get_active_window_title(
+        bundle_id: &str,
+        error_callbacks: &Arc<RwLock<Vec<ErrorCallback>>>,
+    ) -> Option<String> {
         let bundle_id = bundle_id.to_string();
+        let error_callbacks = error_callbacks.clone();
 
-        tokio::task::spawn_blocking(move || {
+        let result = tokio::task::spawn_blocking(move || {
             use std::process::Command;
 
             let script = format!(
                 r#"
                 tell application "System Events"
-                    set appName to name of application process whose bundle identifier is "{}"
-                    if exists appName then
-                        try
-                            set frontmostApp to name of first application process whose frontmost is true
-                            if frontmostApp = appName then
-                                return name of front window of application process appName
-                            else
-                                return name of front window of application process appName
-                            end if
-                        on error
-                            return ""
-                        end try
-                    else
+                    try
+                        return name of front window of application process whose bundle identifier is "{}"
+                    on error
                         return ""
-                    end if
+                    end try
                 end tell
                 "#,
                 bundle_id
@@ -358,17 +379,34 @@ impl MeetingDetector {
 
             let output = Command::new("osascript").arg("-e").arg(&script).output();
 
-            if let Ok(output) = output {
-                let title = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !title.is_empty() && title != "missing value" {
-                    Some(title)
-                } else {
-                    None
+            match output {
+                Ok(output) => {
+                    let title = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !title.is_empty() && title != "missing value" {
+                        Ok(Some(title))
+                    } else {
+                        Ok(None)
+                    }
                 }
-            } else {
+                Err(error) => Err(DetectionError::AppleScriptFailed {
+                    bundle_id: bundle_id.clone(),
+                    error: error.to_string(),
+                }),
+            }
+        })
+        .await
+        .unwrap_or(Ok(None));
+
+        match result {
+            Ok(title) => title,
+            Err(detection_error) => {
+                let error_callbacks_guard = error_callbacks.read().await;
+                for callback in error_callbacks_guard.iter() {
+                    callback(detection_error.clone());
+                }
                 None
             }
-        }).await.unwrap_or(None)
+        }
     }
 
     fn calculate_meeting_confidence(app: &MeetingApp, window_title: &Option<String>) -> f32 {
@@ -445,8 +483,7 @@ impl MeetingDetector {
 
                             // Pre-meeting notification (configurable, default 5 minutes)
                             if time_until_start.num_minutes() <= minutes_before_notification as i64
-                                && time_until_start.num_minutes()
-                                    >= (minutes_before_notification as i64 - 1)
+                                && time_until_start.num_seconds() >= 0
                             {
                                 let mut notified = notified_meetings.write().await;
                                 if !notified.contains_key(&meeting.id) {

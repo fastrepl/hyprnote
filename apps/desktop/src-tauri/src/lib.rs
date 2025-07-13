@@ -5,6 +5,7 @@ mod store;
 use ext::*;
 use store::*;
 
+use tauri::Emitter;
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
 use tracing_subscriber::{

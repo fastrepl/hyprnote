@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
+    Listener, Manager, Runtime,
 };
 
 pub use error::Error;

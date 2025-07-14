@@ -355,10 +355,10 @@
           "markdownDescription": "Denies the set_base_url command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`"
         }
       ]
     }

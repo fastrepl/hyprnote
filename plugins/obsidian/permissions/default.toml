@@ -1,3 +1,3 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-ping"]
+permissions = ["allow-get-api-key", "allow-get-base-url", "allow-is-configured", "allow-set-api-key", "allow-set-base-url"]

@@ -41,21 +41,21 @@ function ShareButtonInNote() {
       title: "PDF",
       icon: <FileText size={20} />,
       description: "Save as PDF document",
-      docsUrl: "https://docs.hyprnote.com/export/pdf",
+      docsUrl: "https://docs.hyprnote.com/share/pdf",
     },
     {
       id: "email",
       title: "Email",
       icon: <Mail size={20} />,
       description: "Share via email",
-      docsUrl: "https://docs.hyprnote.com/export/email",
+      docsUrl: "https://docs.hyprnote.com/share/email",
     },
     {
       id: "obsidian",
       title: "Obsidian",
       icon: <BookText size={20} />,
       description: "Export to Obsidian",
-      docsUrl: "https://docs.hyprnote.com/export/obsidian",
+      docsUrl: "https://docs.hyprnote.com/share/obsidian",
     },
   ];
 
@@ -191,7 +191,7 @@ function ShareButtonInNote() {
                       >
                         {exportMutation.isPending
                           ? "Pending..."
-                          : option.title.includes("Email")
+                          : option.id === "email"
                           ? "Send"
                           : "Export"}
                       </button>

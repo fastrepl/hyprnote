@@ -4,7 +4,11 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-get-api-key`
+- `allow-get-base-url`
+- `allow-is-configured`
+- `allow-set-api-key`
+- `allow-set-base-url`
 
 ## Permission Table
 

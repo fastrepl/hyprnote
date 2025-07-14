@@ -33,7 +33,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     fn models_dir(&self) -> PathBuf {
-        self.path().app_data_dir().unwrap().join("llm")
+        self.path().app_data_dir().unwrap().join("ttt")
     }
 
     #[tracing::instrument(skip_all)]

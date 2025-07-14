@@ -384,7 +384,7 @@ mod tests {
         let model_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.dev")
-            .join("ttt/llm.gguf");
+            .join("ttt/hypr-llm.gguf");
 
         Llama::new(model_path).unwrap()
     }

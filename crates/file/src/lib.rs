@@ -92,7 +92,7 @@ mod tests {
             base.join("ggml-tiny-q8_0.bin"),
             base.join("ggml-base-q8_0.bin"),
             base.join("ggml-small-q8_0.bin"),
-            base.join("llm.gguf"),
+            base.join("hypr-llm.gguf"),
         ];
 
         for file in files {
@@ -114,7 +114,7 @@ mod tests {
             base.join("ggml-tiny-q8_0.bin"),
             base.join("ggml-base-q8_0.bin"),
             base.join("ggml-small-q8_0.bin"),
-            base.join("llm.gguf"),
+            base.join("hypr-llm.gguf"),
         ];
 
         for file in files {

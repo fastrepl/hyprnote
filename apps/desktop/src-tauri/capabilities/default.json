@@ -51,7 +51,7 @@
     "membership:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://**" }]
+      "allow": [{ "url": "https://**" }, { "url": "mailto:*" }]
     },
     {
       "identifier": "opener:allow-open-path",

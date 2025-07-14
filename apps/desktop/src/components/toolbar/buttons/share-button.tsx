@@ -10,7 +10,8 @@ import { useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Session } from "@hypr/plugin-db";
-import { client, commands as obsidianCommands, putVaultByFilename } from "@hypr/plugin-obsidian";
+import { client, commands as obsidianCommands, patchVaultByFilename, putVaultByFilename } from "@hypr/plugin-obsidian";
+import { html2md } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { useSession } from "@hypr/utils/contexts";
@@ -119,26 +120,40 @@ function ShareButtonInNote() {
         ]);
         client.setConfig({
           fetch: tauriFetch,
-          auth: () => apiKey!,
+          auth: apiKey!,
           baseUrl: baseUrl!,
         });
 
         const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
         const filePath = baseFolder ? await join(baseFolder!, filename) : filename;
-
-        const content = `---
-title: ${session.title}
-date: ${new Date().toISOString()}
----
-
-${session.enhanced_memo_html}
-`;
+        const convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
 
         await putVaultByFilename({
           client,
           path: { filename: filePath },
-          body: content,
+          body: convertedMarkdown,
+          bodySerializer: null,
+          headers: {
+            "Content-Type": "text/markdown",
+          },
         });
+
+        const targets = [
+          { target: "date", value: new Date().toISOString() },
+        ];
+        for (const { target, value } of targets) {
+          await patchVaultByFilename({
+            client,
+            path: { filename: filePath },
+            headers: {
+              "Operation": "replace",
+              "Target-Type": "frontmatter",
+              "Target": target,
+              "Create-Target-If-Missing": "true",
+            },
+            body: value,
+          });
+        }
 
         const url = await obsidianCommands.getDeepLinkUrl(filePath);
         result = { type: "obsidian", url };
@@ -171,7 +186,8 @@ ${session.enhanced_memo_html}
       setOpen(false);
     },
     onError: (error) => {
-      message(error.message, { title: "Error", kind: "error" });
+      console.error(error);
+      message(JSON.stringify(error), { title: "Error", kind: "error" });
     },
   });
 

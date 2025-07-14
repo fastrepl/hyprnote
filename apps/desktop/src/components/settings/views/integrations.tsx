@@ -1,12 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { client, commands as obsidianCommands, getCommands } from "@hypr/plugin-obsidian";
+import { commands as obsidianCommands } from "@hypr/plugin-obsidian";
 import {
   Form,
   FormControl,
@@ -25,6 +24,7 @@ const schema = z.object({
     message: "URL must start with http://, not https://",
   }),
   apiKey: z.string().min(1, "API key is required"),
+  vaultName: z.string().min(1, "Vault name is required"),
   baseFolder: z.string().optional(),
 });
 
@@ -51,25 +51,9 @@ export default function IntegrationsComponent() {
     queryFn: () => obsidianCommands.getBaseFolder?.() || Promise.resolve(""),
   });
 
-  const connected = useQuery({
-    enabled: !!getEnabled.data && !!getApiKey.data && !!getBaseUrl.data,
-    queryKey: ["obsidian-connected"],
-    queryFn: async () => {
-      client.setConfig({
-        fetch: tauriFetch,
-        auth: () => getApiKey.data!,
-        baseUrl: getBaseUrl.data!,
-      });
-
-      try {
-        const { data } = await getCommands({ client });
-        const num = data?.commands?.length ?? 0;
-        return num > 0;
-      } catch (e) {
-        return false;
-      }
-    },
-    refetchInterval: 3000,
+  const getVaultName = useQuery({
+    queryKey: ["obsidian-vault-name"],
+    queryFn: () => obsidianCommands.getVaultName(),
   });
 
   const form = useForm<FormValues>({
@@ -79,6 +63,7 @@ export default function IntegrationsComponent() {
       enabled: false,
       baseUrl: "",
       apiKey: "",
+      vaultName: "",
       baseFolder: "",
     },
   });
@@ -86,8 +71,9 @@ export default function IntegrationsComponent() {
   useEffect(() => {
     form.reset({
       enabled: getEnabled.data || false,
-      baseUrl: getBaseUrl.data || "",
+      baseUrl: getBaseUrl.data || "http://127.0.0.1:27123",
       apiKey: getApiKey.data || "",
+      vaultName: getVaultName.data || "",
       baseFolder: getBaseFolder.data || "",
     });
   }, [
@@ -95,6 +81,7 @@ export default function IntegrationsComponent() {
     getEnabled.data,
     getBaseUrl.data,
     getApiKey.data,
+    getVaultName.data,
     getBaseFolder.data,
   ]);
 
@@ -110,6 +97,10 @@ export default function IntegrationsComponent() {
 
       if (name === "apiKey") {
         obsidianCommands.setApiKey(value.apiKey ?? "");
+      }
+
+      if (name === "vaultName") {
+        obsidianCommands.setVaultName(value.vaultName ?? "");
       }
 
       if (name === "baseFolder") {
@@ -139,11 +130,8 @@ export default function IntegrationsComponent() {
                 <Trans>Obsidian</Trans>
               </h4>
               <p className="text-sm text-muted-foreground">
-                <Trans>Connect your Obsidian vault to sync notes and data</Trans>
+                <Trans>Connect your Obsidian vault to export notes</Trans>
               </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              {connected.data ? "Connected" : "Disconnected"}
             </div>
           </div>
 
@@ -160,8 +148,7 @@ export default function IntegrationsComponent() {
                       </FormLabel>
                       <FormDescription>
                         <Trans>
-                          Turn on Obsidian integration to sync notes and access vault data. When enabled, you can search
-                          and reference your Obsidian notes directly.
+                          Turn on Obsidian integration to export notes to Obsidian vault.
                         </Trans>
                       </FormDescription>
                     </div>
@@ -193,8 +180,7 @@ export default function IntegrationsComponent() {
                         </FormControl>
                         <FormDescription>
                           <Trans>
-                            The base URL of your Obsidian server. This is typically http://localhost:27123 for local
-                            installations. Must use HTTP, not HTTPS.
+                            The base URL of your Obsidian server. This is typically http://127.0.0.1:27123.
                           </Trans>
                         </FormDescription>
                         <FormMessage />
@@ -219,8 +205,31 @@ export default function IntegrationsComponent() {
                         </FormControl>
                         <FormDescription>
                           <Trans>
-                            Your Obsidian API key for authentication. You can find this in your Obsidian settings under
-                            Community Plugins &gt; Obsidian Web plugin.
+                            Your API key for Obsidian local-rest-api plugin.
+                          </Trans>
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vaultName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <Trans>Vault Name</Trans>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter your Obsidian vault name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          <Trans>
+                            The name of your Obsidian vault.
                           </Trans>
                         </FormDescription>
                         <FormMessage />
@@ -244,8 +253,7 @@ export default function IntegrationsComponent() {
                         </FormControl>
                         <FormDescription>
                           <Trans>
-                            Optional base folder path within your Obsidian vault. If specified, only notes within this
-                            folder will be accessible. Leave empty to access the entire vault.
+                            Optional base folder path within your Obsidian vault.
                           </Trans>
                         </FormDescription>
                         <FormMessage />

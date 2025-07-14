@@ -59,7 +59,8 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
             self.start_window_detection()?;
         }
 
-        self.is_running.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.is_running
+            .store(true, std::sync::atomic::Ordering::SeqCst);
         Ok(())
     }
 
@@ -78,7 +79,8 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
             handle.abort();
         }
 
-        self.is_running.store(false, std::sync::atomic::Ordering::SeqCst);
+        self.is_running
+            .store(false, std::sync::atomic::Ordering::SeqCst);
         Ok(())
     }
 
@@ -109,10 +111,10 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         let config = self.config.clone();
         let app_handle = self.app_handle.clone();
-        
+
         let callback = new_callback(move |event_data: String| {
             debug!("Detection event: {}", event_data);
-            
+
             if event_data.starts_with("app_launched:") {
                 let bundle_id = event_data.replace("app_launched:", "");
                 if config.auto_start_on_app_detection && config.is_supported_app(&bundle_id) {
@@ -149,7 +151,13 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         let handle = tokio::spawn(async move {
             while is_running.load(std::sync::atomic::Ordering::SeqCst) {
                 let now = Utc::now();
-                match Self::get_upcoming_events_from_db(&app_handle, now, pre_meeting_minutes as i64).await {
+                match Self::get_upcoming_events_from_db(
+                    &app_handle,
+                    now,
+                    pre_meeting_minutes as i64,
+                )
+                .await
+                {
                     Ok(upcoming_events) => {
                         for event in upcoming_events {
                             let time_until_meeting = event.start_time - now;
@@ -159,7 +167,10 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
                                 Self::show_notification(
                                     &app_handle,
                                     "Meeting Starting Soon",
-                                    &format!("'{}' starts in {} minutes", event.title, minutes_until),
+                                    &format!(
+                                        "'{}' starts in {} minutes",
+                                        event.title, minutes_until
+                                    ),
                                 );
                             } else if minutes_until <= 0 && minutes_until > -5 {
                                 Self::start_recording_for_scheduled(&app_handle, &event).await;
@@ -220,25 +231,41 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         self.start_recording(&app_name, Some(bundle_id.to_string()));
     }
 
-    fn handle_app_launch_async(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
+    fn handle_app_launch_async(
+        app_handle: &AppHandle<R>,
+        config: &AutomationConfig,
+        bundle_id: &str,
+    ) {
         let app_name = config.get_app_name(bundle_id);
         let app_handle = app_handle.clone();
         let bundle_id = bundle_id.to_string();
-        
+
         tokio::spawn(async move {
             info!("Meeting app launched: {}", app_name);
-            Self::show_notification(&app_handle, "Meeting Detected", &format!("Are you in a meeting with {}?", app_name));
+            Self::show_notification(
+                &app_handle,
+                "Meeting Detected",
+                &format!("Are you in a meeting with {}?", app_name),
+            );
             Self::start_recording_async(&app_handle, &app_name, Some(bundle_id)).await;
         });
     }
 
-    fn handle_app_terminate_async(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
+    fn handle_app_terminate_async(
+        app_handle: &AppHandle<R>,
+        config: &AutomationConfig,
+        bundle_id: &str,
+    ) {
         let app_name = config.get_app_name(bundle_id);
         let app_handle = app_handle.clone();
-        
+
         tokio::spawn(async move {
             info!("Meeting app terminated: {}", app_name);
-            Self::show_notification(&app_handle, "Meeting Ended", &format!("{} was closed. Stop recording?", app_name));
+            Self::show_notification(
+                &app_handle,
+                "Meeting Ended",
+                &format!("{} was closed. Stop recording?", app_name),
+            );
             Self::stop_recording_async(&app_handle).await;
         });
     }
@@ -247,7 +274,11 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         let app_handle = app_handle.clone();
         tokio::spawn(async move {
             info!("Microphone activity detected");
-            Self::show_notification(&app_handle, "Microphone Activity", "Microphone activity detected. Start recording?");
+            Self::show_notification(
+                &app_handle,
+                "Microphone Activity",
+                "Microphone activity detected. Start recording?",
+            );
             Self::start_recording_async(&app_handle, "System Microphone", None).await;
         });
     }
@@ -256,25 +287,40 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         let app_handle = app_handle.clone();
         tokio::spawn(async move {
             info!("Microphone activity stopped");
-            Self::show_notification(&app_handle, "Microphone Inactive", "Meeting might be ending. Continue recording?");
+            Self::show_notification(
+                &app_handle,
+                "Microphone Inactive",
+                "Meeting might be ending. Continue recording?",
+            );
         });
     }
 
     fn start_recording(&self, app_name: &str, bundle_id: Option<String>) {
         let app_handle = self.app_handle.clone();
         let app_name = app_name.to_string();
-        
+
         tokio::spawn(async move {
             Self::start_recording_async(&app_handle, &app_name, bundle_id).await;
         });
     }
 
-    async fn start_recording_async(app_handle: &AppHandle<R>, app_name: &str, bundle_id: Option<String>) {
+    async fn start_recording_async(
+        app_handle: &AppHandle<R>,
+        app_name: &str,
+        bundle_id: Option<String>,
+    ) {
         info!("Starting recording for: {}", app_name);
 
         let session_id = match bundle_id {
-            Some(bundle_id) => format!("meeting-{}-{}", bundle_id.replace(".", "-"), Uuid::new_v4().to_string()[..8].to_string()),
-            None => format!("meeting-mic-{}", Uuid::new_v4().to_string()[..8].to_string()),
+            Some(bundle_id) => format!(
+                "meeting-{}-{}",
+                bundle_id.replace(".", "-"),
+                Uuid::new_v4().to_string()[..8].to_string()
+            ),
+            None => format!(
+                "meeting-mic-{}",
+                Uuid::new_v4().to_string()[..8].to_string()
+            ),
         };
 
         app_handle.start_session(session_id.clone()).await;
@@ -294,10 +340,17 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     async fn start_recording_for_scheduled(app_handle: &AppHandle<R>, event: &ScheduledEvent) {
         info!("Starting recording for scheduled meeting: {}", event.title);
 
-        let session_id = format!("scheduled-{}-{}", event.id, Uuid::new_v4().to_string()[..8].to_string());
+        let session_id = format!(
+            "scheduled-{}-{}",
+            event.id,
+            Uuid::new_v4().to_string()[..8].to_string()
+        );
 
         app_handle.start_session(session_id.clone()).await;
-        info!("Successfully started recording session for scheduled meeting: {}", session_id);
+        info!(
+            "Successfully started recording session for scheduled meeting: {}",
+            session_id
+        );
 
         let event_data = serde_json::json!({
             "event_title": event.title,
@@ -401,13 +454,17 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
                 let bundle_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 Ok(bundle_id)
             } else {
-                Err(crate::Error::DetectionError("Failed to get focused app".to_string()))
+                Err(crate::Error::DetectionError(
+                    "Failed to get focused app".to_string(),
+                ))
             }
         }
 
         #[cfg(not(target_os = "macos"))]
         {
-            Err(crate::Error::DetectionError("Window focus detection not implemented for this platform".to_string()))
+            Err(crate::Error::DetectionError(
+                "Window focus detection not implemented for this platform".to_string(),
+            ))
         }
     }
 }

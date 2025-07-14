@@ -989,6 +989,15 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
 
+  plugins/obsidian:
+    dependencies:
+      '@hypr/obsidian':
+        specifier: workspace:^
+        version: link:../../packages/obsidian
+      '@tauri-apps/api':
+        specifier: ^2.6.0
+        version: 2.6.0
+
   plugins/sfx:
     dependencies:
       '@tauri-apps/api':

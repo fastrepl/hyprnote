@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the get_api_key command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_base_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-base-folder",
+          "markdownDescription": "Enables the get_base_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_base_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-base-folder",
+          "markdownDescription": "Denies the get_base_folder command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_base_url command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-base-url",
@@ -367,6 +379,18 @@
           "markdownDescription": "Denies the set_api_key command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_base_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-base-folder",
+          "markdownDescription": "Enables the set_base_folder command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_base_folder command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-base-folder",
+          "markdownDescription": "Denies the set_base_folder command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_base_url command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-base-url",
@@ -403,10 +427,10 @@
           "markdownDescription": "Denies the set_vault_name command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`\n- `allow-get-enabled`\n- `allow-set-enabled`\n- `allow-get-deep-link-url`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`\n- `allow-get-enabled`\n- `allow-set-enabled`\n- `allow-get-deep-link-url`\n- `allow-get-base-folder`\n- `allow-set-base-folder`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`\n- `allow-get-enabled`\n- `allow-set-enabled`\n- `allow-get-deep-link-url`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`\n- `allow-get-enabled`\n- `allow-set-enabled`\n- `allow-get-deep-link-url`\n- `allow-get-base-folder`\n- `allow-set-base-folder`"
         }
       ]
     }

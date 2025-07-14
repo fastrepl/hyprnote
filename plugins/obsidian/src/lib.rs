@@ -30,6 +30,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_enabled::<tauri::Wry>,
             commands::set_enabled::<tauri::Wry>,
             commands::get_deep_link_url::<tauri::Wry>,
+            commands::get_base_folder::<tauri::Wry>,
+            commands::set_base_folder::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

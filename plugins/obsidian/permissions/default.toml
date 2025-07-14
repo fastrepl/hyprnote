@@ -10,4 +10,6 @@ permissions = [
     "allow-get-enabled",
     "allow-set-enabled",
     "allow-get-deep-link-url",
+    "allow-get-base-folder",
+    "allow-set-base-folder",
 ]

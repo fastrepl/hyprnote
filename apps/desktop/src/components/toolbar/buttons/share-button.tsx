@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
+import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { BookText, ChevronDown, ChevronUp, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
@@ -8,7 +9,7 @@ import { useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Session } from "@hypr/plugin-db";
-import { commands as obsidianCommands } from "@hypr/plugin-obsidian";
+import { client, commands as obsidianCommands, putVaultByFilename } from "@hypr/plugin-obsidian";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { useSession } from "@hypr/utils/contexts";
@@ -38,7 +39,14 @@ function ShareButtonInNote() {
 
   const isObsidianConfigured = useQuery({
     queryKey: ["integration", "obsidian", "enabled"],
-    queryFn: () => obsidianCommands.getEnabled(),
+    queryFn: async () => {
+      const [enabled, apiKey, baseUrl] = await Promise.all([
+        obsidianCommands.getEnabled(),
+        obsidianCommands.getApiKey(),
+        obsidianCommands.getBaseUrl(),
+      ]);
+      return enabled && apiKey && baseUrl;
+    },
   });
 
   const exportOptions: ExportCard[] = [
@@ -103,7 +111,23 @@ function ShareButtonInNote() {
       } else if (optionId === "email") {
         result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
       } else if (optionId === "obsidian") {
-        const url = await obsidianCommands.getDeepLinkUrl(session.title);
+        const [baseFolder, apiKey, baseUrl] = await Promise.all([
+          obsidianCommands.getBaseFolder(),
+          obsidianCommands.getApiKey(),
+          obsidianCommands.getBaseUrl(),
+        ]);
+        client.setConfig({ auth: () => apiKey!, baseUrl: baseUrl! });
+
+        const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
+        const filePath = baseFolder ? await join(baseFolder!, filename) : filename;
+
+        await putVaultByFilename({
+          client,
+          path: { filename: filePath },
+          body: session.enhanced_memo_html ?? "",
+        });
+
+        const url = await obsidianCommands.getDeepLinkUrl(filePath);
         result = { type: "obsidian", url };
       }
 
@@ -127,7 +151,7 @@ function ShareButtonInNote() {
       } else if (result?.type === "email") {
         openUrl(result.url);
       } else if (result?.type === "obsidian") {
-        message("Obsidian export is not yet supported", { title: "Error", kind: "error" });
+        openUrl(result.url);
       }
     },
     onSettled: () => {

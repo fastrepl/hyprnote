@@ -13,6 +13,8 @@ Default permissions for the plugin
 - `allow-get-enabled`
 - `allow-set-enabled`
 - `allow-get-deep-link-url`
+- `allow-get-base-folder`
+- `allow-set-base-folder`
 
 ## Permission Table
 
@@ -45,6 +47,32 @@ Enables the get_api_key command without any pre-configured scope.
 <td>
 
 Denies the get_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-get-base-folder`
+
+</td>
+<td>
+
+Enables the get_base_folder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-get-base-folder`
+
+</td>
+<td>
+
+Denies the get_base_folder command without any pre-configured scope.
 
 </td>
 </tr>
@@ -175,6 +203,32 @@ Enables the set_api_key command without any pre-configured scope.
 <td>
 
 Denies the set_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-set-base-folder`
+
+</td>
+<td>
+
+Enables the set_base_folder command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-set-base-folder`
+
+</td>
+<td>
+
+Denies the set_base_folder command without any pre-configured scope.
 
 </td>
 </tr>

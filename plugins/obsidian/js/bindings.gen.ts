@@ -33,6 +33,12 @@ async setEnabled(enabled: boolean) : Promise<null> {
 },
 async getDeepLinkUrl(noteName: string) : Promise<string> {
     return await TAURI_INVOKE("plugin:obsidian|get_deep_link_url", { noteName });
+},
+async getBaseFolder() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:obsidian|get_base_folder");
+},
+async setBaseFolder(baseFolder: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:obsidian|set_base_folder", { baseFolder });
 }
 }
 

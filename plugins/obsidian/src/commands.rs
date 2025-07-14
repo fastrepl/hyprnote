@@ -53,6 +53,23 @@ pub(crate) async fn set_vault_name<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn get_base_folder<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_base_folder().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_base_folder<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    base_folder: String,
+) -> Result<(), String> {
+    app.set_base_folder(base_folder).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn get_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {

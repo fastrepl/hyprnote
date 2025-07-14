@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { commands as obsidianCommands } from "@hypr/plugin-obsidian";
+import { client, commands as obsidianCommands, getCommands } from "@hypr/plugin-obsidian";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Switch } from "@hypr/ui/components/ui/switch";
@@ -33,6 +33,15 @@ export default function IntegrationsComponent() {
     queryKey: ["obsidian-base-url"],
     queryFn: () => obsidianCommands.getBaseUrl(),
   });
+
+  const _listObsidianCommands = async () => {
+    client.setConfig({
+      auth: () => getApiKey.data!,
+      baseUrl: getBaseUrl.data!,
+    });
+    const commands = await getCommands({ client });
+    return commands;
+  };
 
   const setApiKey = useMutation({
     mutationFn: (apiKey: string) => obsidianCommands.setApiKey(apiKey),

@@ -8,6 +8,8 @@ const COMMANDS: &[&str] = &[
     "get_enabled",
     "set_enabled",
     "get_deep_link_url",
+    "get_base_folder",
+    "set_base_folder",
 ];
 
 fn main() {

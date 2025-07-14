@@ -13,6 +13,9 @@ pub trait ObsidianPluginExt<R: tauri::Runtime> {
     fn get_vault_name(&self) -> Result<Option<String>, crate::Error>;
     fn set_vault_name(&self, vault_name: String) -> Result<(), crate::Error>;
 
+    fn get_base_folder(&self) -> Result<Option<String>, crate::Error>;
+    fn set_base_folder(&self, base_folder: String) -> Result<(), crate::Error>;
+
     fn get_enabled(&self) -> Result<bool, crate::Error>;
     fn set_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
 
@@ -66,6 +69,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ObsidianPluginExt<R> for T {
     fn set_vault_name(&self, vault_name: String) -> Result<(), crate::Error> {
         let store = self.obsidian_store();
         store.set(crate::StoreKey::VaultName, vault_name)?;
+        store.save()?;
+        Ok(())
+    }
+
+    fn get_base_folder(&self) -> Result<Option<String>, crate::Error> {
+        let store = self.obsidian_store();
+        let v = store.get::<String>(crate::StoreKey::BaseFolder)?;
+        Ok(v)
+    }
+
+    fn set_base_folder(&self, base_folder: String) -> Result<(), crate::Error> {
+        let store = self.obsidian_store();
+        store.set(crate::StoreKey::BaseFolder, base_folder)?;
         store.save()?;
         Ok(())
     }

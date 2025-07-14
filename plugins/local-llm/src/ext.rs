@@ -162,7 +162,32 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error> {
         let store = self.local_llm_store();
         let model = store.get(crate::StoreKey::Model)?;
-        Ok(model.unwrap_or(crate::SupportedModel::Llama3p2_3bQ4))
+
+        match model {
+            Some(existing_model) => Ok(existing_model),
+            None => {
+                let is_migrated: Option<bool> = store.get(crate::StoreKey::DefaultModelMigrated)?;
+
+                if is_migrated.unwrap_or(false) {
+                    Ok(crate::SupportedModel::HyprLLM)
+                } else {
+                    // Preserve existing users' workflow by keeping their downloaded model
+                    let old_model_path = self
+                        .models_dir()
+                        .join(crate::SupportedModel::Llama3p2_3bQ4.file_name());
+
+                    if old_model_path.exists() {
+                        let _ =
+                            store.set(crate::StoreKey::Model, crate::SupportedModel::Llama3p2_3bQ4);
+                        let _ = store.set(crate::StoreKey::DefaultModelMigrated, true);
+                        Ok(crate::SupportedModel::Llama3p2_3bQ4)
+                    } else {
+                        let _ = store.set(crate::StoreKey::DefaultModelMigrated, true);
+                        Ok(crate::SupportedModel::HyprLLM)
+                    }
+                }
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]

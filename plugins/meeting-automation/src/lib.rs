@@ -15,14 +15,14 @@ pub use storage::ConfigManager;
 pub type ManagedState<R> = Mutex<State<R>>;
 
 pub struct State<R: tauri::Runtime> {
-    pub automation_handle: Option<tokio::task::JoinHandle<()>>,
+    pub automation: Option<crate::automation::MeetingAutomation<R>>,
     pub config_manager: Option<ConfigManager<R>>,
 }
 
 impl<R: tauri::Runtime> Default for State<R> {
     fn default() -> Self {
         Self {
-            automation_handle: None,
+            automation: None,
             config_manager: None,
         }
     }

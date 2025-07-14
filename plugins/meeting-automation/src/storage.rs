@@ -1,23 +1,11 @@
 use crate::config::AutomationConfig;
 use crate::Result;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, info};
 
 const CONFIG_FILE_NAME: &str = "meeting-automation-config.json";
 
-#[derive(Debug, Serialize, Deserialize)]
-struct StoredConfig {
-    config: AutomationConfig,
-    version: u32,
-}
-
-impl StoredConfig {
-    fn new(config: AutomationConfig) -> Self {
-        Self { config, version: 1 }
-    }
-}
 
 pub struct ConfigStorage<R: Runtime> {
     app_handle: AppHandle<R>,
@@ -61,7 +49,7 @@ impl<R: Runtime> ConfigStorage<R> {
             crate::Error::ConfigurationError(format!("Failed to read config file: {}", e))
         })?;
 
-        let stored_config: StoredConfig = serde_json::from_str(&config_content).map_err(|e| {
+        let config: AutomationConfig = serde_json::from_str(&config_content).map_err(|e| {
             crate::Error::ConfigurationError(format!("Failed to parse config file: {}", e))
         })?;
 
@@ -69,13 +57,11 @@ impl<R: Runtime> ConfigStorage<R> {
             "Loaded meeting automation config from {}",
             self.config_path.display()
         );
-        Ok(stored_config.config)
+        Ok(config)
     }
 
     pub fn save_config(&self, config: &AutomationConfig) -> Result<()> {
-        let stored_config = StoredConfig::new(config.clone());
-
-        let config_content = serde_json::to_string_pretty(&stored_config).map_err(|e| {
+        let config_content = serde_json::to_string_pretty(config).map_err(|e| {
             crate::Error::ConfigurationError(format!("Failed to serialize config: {}", e))
         })?;
 
@@ -96,9 +82,6 @@ impl<R: Runtime> ConfigStorage<R> {
         Ok(())
     }
 
-    pub fn config_exists(&self) -> bool {
-        self.config_path.exists()
-    }
 
     pub fn get_config_path(&self) -> &PathBuf {
         &self.config_path

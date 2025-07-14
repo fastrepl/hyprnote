@@ -18,7 +18,7 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
             let state = self.state::<ManagedState<R>>();
             let state = state.lock().unwrap();
 
-            if state.automation_handle.is_some() {
+            if state.automation.is_some() {
                 return Err(crate::Error::AutomationAlreadyRunning);
             }
 
@@ -35,19 +35,10 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
         let mut automation = MeetingAutomation::new(config, self.clone())?;
         automation.start()?;
 
-        let handle = tokio::spawn(async move {
-            loop {
-                if !automation.is_running() {
-                    break;
-                }
-                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-            }
-        });
-
         {
             let state = self.state::<ManagedState<R>>();
             let mut state = state.lock().unwrap();
-            state.automation_handle = Some(handle);
+            state.automation = Some(automation);
         }
 
         Ok(())
@@ -57,8 +48,8 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
         let state = self.state::<ManagedState<R>>();
         let mut state = state.lock().unwrap();
 
-        if let Some(handle) = state.automation_handle.take() {
-            handle.abort();
+        if let Some(mut automation) = state.automation.take() {
+            automation.stop()?;
         } else {
             return Err(crate::Error::AutomationNotRunning);
         }
@@ -70,7 +61,7 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
         let state = self.state::<ManagedState<R>>();
         let state = state.lock().unwrap();
 
-        Ok(state.automation_handle.is_some())
+        Ok(state.automation.as_ref().map_or(false, |a| a.is_running()))
     }
 
     fn configure_automation(&self, config: AutomationConfig) -> Result<()> {
@@ -119,7 +110,7 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
         let is_running = {
             let state = self.state::<ManagedState<R>>();
             let state = state.lock().unwrap();
-            state.automation_handle.is_some()
+            state.automation.as_ref().map_or(false, |a| a.is_running())
         };
 
         if !is_running {

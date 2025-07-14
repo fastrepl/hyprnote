@@ -277,6 +277,9 @@ importers:
       '@hypr/plugin-notification':
         specifier: workspace:^
         version: link:../../plugins/notification
+      '@hypr/plugin-obsidian':
+        specifier: workspace:^
+        version: link:../../plugins/obsidian
       '@hypr/plugin-sfx':
         specifier: workspace:^
         version: link:../../plugins/sfx

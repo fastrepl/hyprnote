@@ -49,6 +49,7 @@
     "fs:default",
     "task:default",
     "membership:default",
+    "obsidian:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [{ "url": "https://**" }, { "url": "mailto:*" }]

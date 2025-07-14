@@ -3687,6 +3687,7 @@ dependencies = [
  "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
+ "tauri-plugin-obsidian",
  "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-prevent-default",

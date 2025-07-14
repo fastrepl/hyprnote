@@ -31,6 +31,7 @@
     "@hypr/plugin-membership": "workspace:^",
     "@hypr/plugin-misc": "workspace:^",
     "@hypr/plugin-notification": "workspace:^",
+    "@hypr/plugin-obsidian": "workspace:^",
     "@hypr/plugin-sfx": "workspace:^",
     "@hypr/plugin-task": "workspace:^",
     "@hypr/plugin-template": "workspace:^",

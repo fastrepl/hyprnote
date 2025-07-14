@@ -1,8 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
-import { openPath } from "@tauri-apps/plugin-opener";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { BookText, ChevronDown, ChevronUp, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
 import { useState } from "react";
 
@@ -191,7 +190,7 @@ function ShareButtonInNote() {
                         className="w-full py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50"
                       >
                         {exportMutation.isPending
-                          ? "Exporting..."
+                          ? "Pending..."
                           : option.title.includes("Email")
                           ? "Send"
                           : "Export"}

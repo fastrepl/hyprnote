@@ -1,0 +1,38 @@
+[package]
+name = "tauri-plugin-meeting-automation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+tauri = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+hypr-db-user = { workspace = true }
+hypr-detect = { workspace = true }
+hypr-notification2 = { workspace = true }
+
+# Calendar integration
+reqwest = { version = "0.11", features = ["json"] }
+url = "2.4"
+
+# Microphone detection
+cpal = "0.15"
+hound = "3.5"
+
+# Configuration persistence
+dirs = "5.0"
+toml = "0.8"
+
+# Audio processing
+ringbuf = "0.4"
+
+[dev-dependencies]
+specta-typescript = { workspace = true }

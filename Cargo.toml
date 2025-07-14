@@ -102,6 +102,7 @@ tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-windows = { path = "plugins/windows" }
+tauri-plugin-meeting-automation = { path = "plugins/meeting-automation" }
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"

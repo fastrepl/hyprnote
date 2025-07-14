@@ -17,6 +17,7 @@ pub struct AutomationConfig {
     pub auto_start_scheduled_meetings: bool,
     pub require_window_focus: bool,
     pub pre_meeting_notification_minutes: u32,
+    pub post_meeting_start_window_minutes: i64,
     pub supported_apps: Vec<SupportedApp>,
     pub notification_settings: NotificationSettings,
 }
@@ -40,6 +41,7 @@ impl Default for AutomationConfig {
             auto_start_scheduled_meetings: true,
             require_window_focus: false,
             pre_meeting_notification_minutes: 5,
+            post_meeting_start_window_minutes: 5,
             supported_apps: Self::default_supported_apps(),
             notification_settings: NotificationSettings::default(),
         }

@@ -181,29 +181,36 @@ impl UserDatabase {
         }
         Ok(items)
     }
-}
 
-pub async fn get_events_in_range(
-    db: &UserDatabase,
-    start: chrono::DateTime<chrono::Utc>,
-    end: chrono::DateTime<chrono::Utc>,
-) -> Result<Vec<Event>, crate::Error> {
-    let conn = db.conn()?;
+    pub async fn get_events_in_range(
+        &self,
+        user_id: impl Into<String>,
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>,
+        limit: Option<u32>,
+    ) -> Result<Vec<Event>, crate::Error> {
+        let conn = self.conn()?;
 
-    let mut rows = conn
-        .query(
-            "SELECT * FROM events WHERE start_date BETWEEN ? AND ? ORDER BY start_date ASC",
-            vec![start.to_rfc3339(), end.to_rfc3339()],
-        )
-        .await?;
+        let mut rows = conn
+            .query(
+                "SELECT * FROM events WHERE user_id = :user_id AND start_date BETWEEN :start_date AND :end_date ORDER BY start_date ASC LIMIT :limit",
+                libsql::named_params! {
+                    ":user_id": user_id.into(),
+                    ":start_date": start.to_rfc3339(),
+                    ":end_date": end.to_rfc3339(),
+                    ":limit": limit.unwrap_or(1000),
+                },
+            )
+            .await?;
 
-    let mut events = Vec::new();
-    while let Some(row) = rows.next().await? {
-        let event: Event = libsql::de::from_row(&row)?;
-        events.push(event);
+        let mut events = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let event: Event = libsql::de::from_row(&row)?;
+            events.push(event);
+        }
+
+        Ok(events)
     }
-
-    Ok(events)
 }
 
 #[cfg(test)]

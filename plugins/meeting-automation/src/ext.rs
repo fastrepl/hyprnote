@@ -14,7 +14,7 @@ pub trait MeetingAutomationPluginExt<R: Runtime> {
 
 impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
     fn start_meeting_automation(&self) -> Result<()> {
-        let config = {
+        let config_manager = {
             let state = self.state::<ManagedState<R>>();
             let state = state.lock().unwrap();
 
@@ -22,15 +22,18 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
                 return Err(crate::Error::AutomationAlreadyRunning);
             }
 
-            let config_manager = state.config_manager.as_ref().ok_or_else(|| {
-                crate::Error::ConfigurationError("Config manager not initialized".to_string())
-            })?;
-
-            tokio::task::block_in_place(|| {
-                tokio::runtime::Handle::current()
-                    .block_on(async { config_manager.get_config().await })
-            })?
+            state
+                .config_manager
+                .as_ref()
+                .ok_or_else(|| {
+                    crate::Error::ConfigurationError("Config manager not initialized".to_string())
+                })?
+                .clone()
         };
+
+        let config = tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(async { config_manager.get_config().await })
+        })?;
 
         let mut automation = MeetingAutomation::new(config, self.clone())?;
         automation.start()?;
@@ -78,11 +81,11 @@ impl<R: Runtime> MeetingAutomationPluginExt<R> for AppHandle<R> {
                 .clone()
         };
 
-        tokio::spawn(async move {
-            if let Err(e) = config_manager.save_config(config).await {
-                tracing::error!("Failed to save automation config: {}", e);
-            }
-        });
+        tokio::runtime::Handle::current()
+            .block_on(config_manager.save_config(config))
+            .map_err(|e| {
+                crate::Error::ConfigurationError(format!("Failed to save automation config: {}", e))
+            })?;
 
         Ok(())
     }

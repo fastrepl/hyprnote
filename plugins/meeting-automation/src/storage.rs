@@ -28,6 +28,12 @@ impl<R: Runtime> ConfigStorage<R> {
 
         let config_path = app_data_dir.join(CONFIG_FILE_NAME);
 
+        if app_data_dir.exists() && !app_data_dir.is_dir() {
+            return Err(crate::Error::ConfigurationError(format!(
+                "Config path exists but is not a directory: {}",
+                app_data_dir.display()
+            )));
+        }
         std::fs::create_dir_all(&app_data_dir).map_err(|e| {
             crate::Error::ConfigurationError(format!("Failed to create config directory: {}", e))
         })?;
@@ -120,6 +126,8 @@ impl<R: Runtime> ConfigManager<R> {
 
         drop(cached);
 
+        // Note: Multiple tasks might load config simultaneously here.
+        // This is acceptable as they'll all load the same data.
         let config = self.storage.load_config()?;
         let mut cached = self.cached_config.write().await;
         *cached = Some(config.clone());

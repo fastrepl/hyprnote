@@ -3,6 +3,20 @@ use tokio::time::{sleep, Duration};
 
 use crate::BackgroundTask;
 
+enum AppEvent {
+    Launched(String),
+    Terminated(String),
+}
+
+impl AppEvent {
+    fn to_string(&self) -> String {
+        match self {
+            AppEvent::Launched(bundle_id) => format!("app_launched:{}", bundle_id),
+            AppEvent::Terminated(bundle_id) => format!("app_terminated:{}", bundle_id),
+        }
+    }
+}
+
 // `defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleIdentifier`
 const MEETING_APP_LIST: [&str; 20] = [
     "us.zoom.xos",                                            // Zoom - tested
@@ -57,12 +71,14 @@ impl crate::Observer for Detector {
                         let bundle_id = app.bundle_id().unwrap().to_string();
                         let detected = MEETING_APP_LIST.contains(&bundle_id.as_str());
                         if detected {
-                            // Distinguish between launch and terminate events
-                            if notification_name.contains("DidLaunch") {
-                                f_clone(format!("app_launched:{}", bundle_id));
+                            let event = if notification_name.contains("DidLaunch") {
+                                AppEvent::Launched(bundle_id)
                             } else if notification_name.contains("DidTerminate") {
-                                f_clone(format!("app_terminated:{}", bundle_id));
-                            }
+                                AppEvent::Terminated(bundle_id)
+                            } else {
+                                return;
+                            };
+                            f_clone(event.to_string());
                         }
                     }
                 }

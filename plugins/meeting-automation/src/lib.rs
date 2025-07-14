@@ -30,22 +30,18 @@ impl<R: tauri::Runtime> Default for State<R> {
 
 const PLUGIN_NAME: &str = "meeting-automation";
 
-fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
-    tauri_specta::Builder::<R>::new()
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    let specta_builder = tauri_specta::Builder::<tauri::Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::start_meeting_automation::<tauri::Wry>,
-            commands::stop_meeting_automation::<tauri::Wry>,
-            commands::get_automation_status::<tauri::Wry>,
-            commands::configure_automation::<tauri::Wry>,
-            commands::get_automation_config::<tauri::Wry>,
-            commands::test_meeting_detection::<tauri::Wry>,
+            commands::start_meeting_automation,
+            commands::stop_meeting_automation,
+            commands::get_automation_status,
+            commands::configure_automation,
+            commands::get_automation_config,
+            commands::test_meeting_detection,
         ])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
-}
-
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
-    let specta_builder = make_specta_builder();
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw);
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
@@ -68,14 +64,25 @@ mod test {
 
     #[test]
     fn export_types() {
-        make_specta_builder::<tauri::Wry>()
-            .export(
-                specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
-                    .formatter(specta_typescript::formatter::prettier)
-                    .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
-            )
-            .unwrap()
+        let specta_builder = tauri_specta::Builder::<tauri::Wry>::new()
+            .plugin_name(PLUGIN_NAME)
+            .commands(tauri_specta::collect_commands![
+                commands::start_meeting_automation,
+                commands::stop_meeting_automation,
+                commands::get_automation_status,
+                commands::configure_automation,
+                commands::get_automation_config,
+                commands::test_meeting_detection,
+            ])
+            .error_handling(tauri_specta::ErrorHandlingMode::Throw);
+
+        let result = specta_builder.export(
+            specta_typescript::Typescript::default()
+                .header("// @ts-nocheck\n\n")
+                .formatter(specta_typescript::formatter::prettier)
+                .bigint(specta_typescript::BigIntExportBehavior::Number),
+            "./js/bindings.gen.ts",
+        );
+        assert!(result.is_ok(), "Failed to export TypeScript types");
     }
 }

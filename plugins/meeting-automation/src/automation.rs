@@ -1,7 +1,6 @@
 use crate::config::AutomationConfig;
 use crate::Result;
 use chrono::{DateTime, Duration, Utc};
-use hypr_db_user::get_events_in_range;
 use hypr_detect::{new_callback, Detector};
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager};
@@ -27,6 +26,15 @@ pub struct MeetingAutomation<R: tauri::Runtime> {
 }
 
 impl<R: tauri::Runtime> MeetingAutomation<R> {
+    fn generate_session_id(prefix: &str, identifier: &str) -> String {
+        format!(
+            "{}-{}-{}",
+            prefix,
+            identifier.replace(".", "-"),
+            Uuid::new_v4().to_string()[..8].to_string()
+        )
+    }
+
     pub fn new(config: AutomationConfig, app_handle: AppHandle<R>) -> Result<Self> {
         Ok(Self {
             config,
@@ -45,7 +53,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         info!("Starting meeting automation");
 
         if self.config.auto_start_on_app_detection || self.config.auto_start_on_mic_activity {
-            self.start_detect_detection()?;
+            self.start_detection()?;
         }
 
         if self.config.auto_start_scheduled_meetings {
@@ -85,7 +93,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         Ok(())
     }
 
-    fn start_detect_detection(&mut self) -> Result<()> {
+    fn start_detection(&mut self) -> Result<()> {
         info!("Starting app and microphone detection");
 
         let config = self.config.clone();
@@ -125,6 +133,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         let is_running = self.is_running.clone();
         let pre_meeting_minutes = self.config.pre_meeting_notification_minutes;
+        let post_meeting_window = self.config.post_meeting_start_window_minutes;
         let app_handle = self.app_handle.clone();
 
         let handle = tokio::spawn(async move {
@@ -151,7 +160,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
                                         event.title, minutes_until
                                     ),
                                 );
-                            } else if minutes_until <= 0 && minutes_until > -5 {
+                            } else if minutes_until <= 0 && minutes_until > -post_meeting_window {
                                 Self::start_recording_for_scheduled(&app_handle, &event).await;
                             }
                         }
@@ -253,15 +262,8 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         info!("Starting recording for: {}", app_name);
 
         let session_id = match bundle_id {
-            Some(bundle_id) => format!(
-                "meeting-{}-{}",
-                bundle_id.replace(".", "-"),
-                Uuid::new_v4().to_string()[..8].to_string()
-            ),
-            None => format!(
-                "meeting-mic-{}",
-                Uuid::new_v4().to_string()[..8].to_string()
-            ),
+            Some(bundle_id) => Self::generate_session_id("meeting", &bundle_id),
+            None => Self::generate_session_id("meeting", "mic"),
         };
 
         app_handle.start_session(session_id.clone()).await;
@@ -281,11 +283,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     async fn start_recording_for_scheduled(app_handle: &AppHandle<R>, event: &ScheduledEvent) {
         info!("Starting recording for scheduled meeting: {}", event.title);
 
-        let session_id = format!(
-            "scheduled-{}-{}",
-            event.id,
-            Uuid::new_v4().to_string()[..8].to_string()
-        );
+        let session_id = Self::generate_session_id("scheduled", &event.id);
 
         app_handle.start_session(session_id.clone()).await;
         info!(
@@ -349,16 +347,16 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         let db_state = app_handle.state::<ManagedState>();
         let db_guard = db_state.lock().await;
-        let db = match &db_guard.db {
-            Some(db) => db.clone(),
-            None => {
-                debug!("Database not available");
+        let (db, user_id) = match (&db_guard.db, &db_guard.user_id) {
+            (Some(db), Some(user_id)) => (db.clone(), user_id.clone()),
+            _ => {
+                debug!("Database or user_id not available");
                 return Ok(vec![]);
             }
         };
         drop(db_guard);
 
-        match get_events_in_range(&db, now, end_time).await {
+        match db.get_events_in_range(user_id, now, end_time, None).await {
             Ok(db_events) => {
                 let mut events = Vec::new();
                 for db_event in db_events {
@@ -379,6 +377,11 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         }
     }
 
+    /// Gets the bundle identifier of the currently focused application.
+    ///
+    /// # Platform Support
+    /// - macOS: Fully supported using AppleScript
+    /// - Windows/Linux: Not implemented, returns an error
     async fn get_focused_app() -> Result<String> {
         #[cfg(target_os = "macos")]
         {

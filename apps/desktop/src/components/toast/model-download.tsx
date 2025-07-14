@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
@@ -7,6 +7,7 @@ import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "./shared";
 
 export default function ModelDownloadNotification() {
+  const queryClient = useQueryClient();
   const currentSttModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -100,11 +101,11 @@ export default function ModelDownloadNotification() {
             sonnerToast.dismiss("model-download-needed");
 
             if (needsSttModel && !sttModelDownloading.data) {
-              showSttModelDownloadToast(currentSttModel.data!);
+              showSttModelDownloadToast(currentSttModel.data!, undefined, queryClient);
             }
 
             if (needsLlmModel && !llmModelDownloading.data) {
-              showLlmModelDownloadToast();
+              showLlmModelDownloadToast(undefined, undefined, queryClient);
             }
           },
           primary: true,

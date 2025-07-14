@@ -128,7 +128,6 @@ export default function LocalAI() {
   const [sttModels, setSttModels] = useState(initialSttModels);
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
 
-  // STT download handler
   const handleModelDownload = async (modelKey: string) => {
     // If the key does not start with "Quantized", treat it as an LLM download.
     if (!modelKey.startsWith("Quantized")) {
@@ -153,12 +152,10 @@ export default function LocalAI() {
     });
   };
 
-  // LLM download handler
   const handleLlmModelDownload = async (modelKey: string) => {
     setDownloadingModels((prev) => new Set([...prev, modelKey]));
 
     showLlmModelDownloadToast(modelKey as SupportedModel, () => {
-      // This callback runs when download actually completes
       setLlmModels((prev) => prev.map((m) => (m.key === modelKey ? { ...m, downloaded: true } : m)));
 
       setDownloadingModels((prev) => {
@@ -216,7 +213,7 @@ export default function LocalAI() {
         "HyprLLM": statusChecks[1],
       } as Record<string, boolean>;
     },
-    refetchInterval: 3000, // Check every 3 seconds
+    refetchInterval: 3000,
   });
 
   useEffect(() => {
@@ -283,7 +280,6 @@ export default function LocalAI() {
 
   return (
     <div className="space-y-8">
-      {/* Transcribing Section */}
       <div>
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-lg font-semibold">
@@ -311,8 +307,8 @@ export default function LocalAI() {
                   selectedSTTModel === model.key && model.downloaded
                     ? "border-solid border-blue-500 bg-blue-50"
                     : model.downloaded
-                      ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
-                      : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+                    ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
+                    : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
                 )}
                 onClick={() => {
                   if (model.downloaded) {
@@ -320,7 +316,6 @@ export default function LocalAI() {
                   }
                 }}
               >
-                {/* Left side: Name and metrics */}
                 <div className="flex items-center gap-6 flex-1">
                   <div className="min-w-0">
                     <h3
@@ -333,7 +328,6 @@ export default function LocalAI() {
                     </h3>
                   </div>
 
-                  {/* Performance metrics - inline */}
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <span
@@ -385,7 +379,6 @@ export default function LocalAI() {
                   </div>
                 </div>
 
-                {/* Right side: Action button */}
                 <div className="flex items-center">
                   {model.downloaded
                     ? (
@@ -403,30 +396,30 @@ export default function LocalAI() {
                       </Button>
                     )
                     : downloadingModels.has(model.key)
-                      ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled
-                          className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
-                        >
-                          Downloading...
-                        </Button>
-                      )
-                      : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleModelDownload(model.key);
-                          }}
-                          className="text-xs h-7 px-2 flex items-center gap-1"
-                        >
-                          <DownloadIcon className="w-3 h-3" />
-                          {model.size}
-                        </Button>
-                      )}
+                    ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled
+                        className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
+                      >
+                        Downloading...
+                      </Button>
+                    )
+                    : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleModelDownload(model.key);
+                        }}
+                        className="text-xs h-7 px-2 flex items-center gap-1"
+                      >
+                        <DownloadIcon className="w-3 h-3" />
+                        {model.size}
+                      </Button>
+                    )}
                 </div>
               </div>
             ))}
@@ -434,7 +427,6 @@ export default function LocalAI() {
         </div>
       </div>
 
-      {/* Enhancing Section */}
       <div>
         <div className="flex items-center gap-2 mb-6">
           <h2 className="text-lg font-semibold">
@@ -452,18 +444,16 @@ export default function LocalAI() {
                   selectedLLMModel === model.key && model.available && model.downloaded && !customLLMEnabled.data
                     ? "border-solid border-blue-500 bg-blue-50 cursor-pointer"
                     : model.available && model.downloaded
-                      ? "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer"
-                      : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+                    ? "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer"
+                    : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
                 )}
                 onClick={() => {
                   if (model.available && model.downloaded) {
                     setSelectedLLMModel(model.key);
-                    // Disable custom LLM when selecting from list
                     setCustomLLMEnabledMutation.mutate(false);
                   }
                 }}
               >
-                {/* Left side: Name and description */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-4">
                     <div className="min-w-0">
@@ -487,7 +477,6 @@ export default function LocalAI() {
                   </div>
                 </div>
 
-                {/* Right side: Status and action */}
                 <div className="flex items-center gap-3">
                   {!model.available
                     ? (
@@ -496,48 +485,47 @@ export default function LocalAI() {
                       </span>
                     )
                     : model.downloaded
-                      ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShowFileLocation(model.key);
-                          }}
-                          className="text-xs h-7 px-2 flex items-center gap-1"
-                        >
-                          <FolderIcon className="w-3 h-3" />
-                          Show in Finder
-                        </Button>
-                      )
-                      : downloadingModels.has(model.key)
-                        ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled
-                            className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
-                          >
-                            Downloading...
-                          </Button>
-                        )
-                        : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleModelDownload(model.key);
-                            }}
-                            className="text-xs h-7 px-2 flex items-center gap-1"
-                          >
-                            <DownloadIcon className="w-3 h-3" />
-                            {model.size}
-                          </Button>
-                        )}
+                    ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowFileLocation(model.key);
+                        }}
+                        className="text-xs h-7 px-2 flex items-center gap-1"
+                      >
+                        <FolderIcon className="w-3 h-3" />
+                        Show in Finder
+                      </Button>
+                    )
+                    : downloadingModels.has(model.key)
+                    ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled
+                        className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
+                      >
+                        Downloading...
+                      </Button>
+                    )
+                    : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleModelDownload(model.key);
+                        }}
+                        className="text-xs h-7 px-2 flex items-center gap-1"
+                      >
+                        <DownloadIcon className="w-3 h-3" />
+                        {model.size}
+                      </Button>
+                    )}
                 </div>
 
-                {/* Hover overlay for unavailable models */}
                 {!model.available && (
                   <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <div className="text-center">
@@ -551,7 +539,6 @@ export default function LocalAI() {
           </div>
         </div>
 
-        {/* Custom API Endpoint Configuration */}
         <div className="max-w-2xl">
           <div
             className={cn(
@@ -562,7 +549,6 @@ export default function LocalAI() {
             )}
             onClick={() => {
               setCustomLLMEnabledMutation.mutate(true);
-              // Clear carousel selection when enabling custom endpoint
               setSelectedLLMModel("");
             }}
           >
@@ -660,34 +646,34 @@ export default function LocalAI() {
                               </div>
                             )
                             : availableLLMModels.data && availableLLMModels.data.length > 0
-                              ? (
-                                <Select
-                                  defaultValue={field.value}
-                                  onValueChange={(value: string) => {
-                                    field.onChange(value);
-                                    setCustomLLMModel.mutate(value);
-                                  }}
-                                  disabled={!customLLMEnabled.data}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select model" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {availableLLMModels.data.map((model) => (
-                                      <SelectItem key={model} value={model}>
-                                        {model}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              )
-                              : (
-                                <Input
-                                  {...field}
-                                  placeholder="Enter model name (e.g., gpt-4, llama3.2:3b)"
-                                  disabled={!customLLMEnabled.data}
-                                />
-                              )}
+                            ? (
+                              <Select
+                                defaultValue={field.value}
+                                onValueChange={(value: string) => {
+                                  field.onChange(value);
+                                  setCustomLLMModel.mutate(value);
+                                }}
+                                disabled={!customLLMEnabled.data}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select model" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableLLMModels.data.map((model) => (
+                                    <SelectItem key={model} value={model}>
+                                      {model}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )
+                            : (
+                              <Input
+                                {...field}
+                                placeholder="Enter model name (e.g., gpt-4, llama3.2:3b)"
+                                disabled={!customLLMEnabled.data}
+                              />
+                            )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>

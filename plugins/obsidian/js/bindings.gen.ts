@@ -7,8 +7,20 @@
 
 
 export const commands = {
-async ping() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:obsidian|ping");
+async isConfigured() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:obsidian|is_configured");
+},
+async setApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:obsidian|set_api_key", { apiKey });
+},
+async setBaseUrl(baseUrl: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:obsidian|set_base_url", { baseUrl });
+},
+async getApiKey() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:obsidian|get_api_key");
+},
+async getBaseUrl() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:obsidian|get_base_url");
 }
 }
 

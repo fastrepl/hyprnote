@@ -295,16 +295,64 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ping command without any pre-configured scope.",
+          "description": "Enables the get_api_key command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
+          "const": "allow-get-api-key",
+          "markdownDescription": "Enables the get_api_key command without any pre-configured scope."
         },
         {
-          "description": "Denies the ping command without any pre-configured scope.",
+          "description": "Denies the get_api_key command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
+          "const": "deny-get-api-key",
+          "markdownDescription": "Denies the get_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_base_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-base-url",
+          "markdownDescription": "Enables the get_base_url command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_base_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-base-url",
+          "markdownDescription": "Denies the get_base_url command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the is_configured command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-configured",
+          "markdownDescription": "Enables the is_configured command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the is_configured command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-configured",
+          "markdownDescription": "Denies the is_configured command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-api-key",
+          "markdownDescription": "Enables the set_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-api-key",
+          "markdownDescription": "Denies the set_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_base_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-base-url",
+          "markdownDescription": "Enables the set_base_url command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_base_url command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-base-url",
+          "markdownDescription": "Denies the set_base_url command without any pre-configured scope."
         },
         {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",

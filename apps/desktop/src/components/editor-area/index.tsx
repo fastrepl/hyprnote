@@ -62,7 +62,8 @@ async function generateTitleDirect(enhancedContent: string, targetSessionId: str
 
   const session = await dbCommands.getSession({ id: targetSessionId });
   if (!session?.title && sessions[targetSessionId]?.getState) {
-    sessions[targetSessionId].getState().updateTitle(text);
+    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
   }
 }
 

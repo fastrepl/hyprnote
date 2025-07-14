@@ -65,6 +65,8 @@ function ShareButtonInNote() {
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
+    setExpandedId(null);
+
     if (newOpen) {
       analyticsCommands.event({
         event: "share_option_expanded",
@@ -150,7 +152,14 @@ function ShareButtonInNote() {
         <div className="space-y-3">
           <div>
             <h3 className="text-sm font-medium text-gray-900">Share Enhanced Note</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Share your AI-enhanced meeting notes</p>
+            <p className="text-xs text-gray-500">
+              <button
+                onClick={() => openUrl("https://hyprnote.canny.io")}
+                className="text-gray-400 hover:text-gray-600 transition-colors underline"
+              >
+                Let us know if you want other ways to share!
+              </button>
+            </p>
           </div>
           <div className="space-y-2">
             {exportOptions.map((option) => {
@@ -187,7 +196,7 @@ function ShareButtonInNote() {
                       <button
                         onClick={() => handleExport(option.id)}
                         disabled={exportMutation.isPending}
-                        className="w-full py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50"
+                        className="w-full py-1.5 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-xs font-medium disabled:opacity-50"
                       >
                         {exportMutation.isPending
                           ? "Pending..."

@@ -5,7 +5,16 @@ import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
-import { Calendar, Feedback, General, LocalAI, Notifications, Sound, TemplatesView } from "@/components/settings/views";
+import {
+  Calendar,
+  Feedback,
+  General,
+  Integrations,
+  LocalAI,
+  Notifications,
+  Sound,
+  TemplatesView,
+} from "@/components/settings/views";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -47,6 +56,8 @@ function Component() {
         return t`Team`;
       case "billing":
         return t`Billing`;
+      case "integrations":
+        return t`Integrations`;
       default:
         return tab;
     }
@@ -93,6 +104,8 @@ function Component() {
                           ? <Trans>Feedback</Trans>
                           : tab.name === "templates"
                           ? <Trans>Templates</Trans>
+                          : tab.name === "integrations"
+                          ? <Trans>Integrations</Trans>
                           : null}
                       </span>
                     </button>
@@ -125,6 +138,7 @@ function Component() {
               {/* {search.tab === "lab" && <Lab />} */}
               {search.tab === "feedback" && <Feedback />}
               {search.tab === "templates" && <TemplatesView />}
+              {search.tab === "integrations" && <Integrations />}
             </div>
           </div>
         </div>

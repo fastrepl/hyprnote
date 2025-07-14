@@ -18,21 +18,9 @@ uuid = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-detect = { workspace = true }
 hypr-notification2 = { workspace = true }
-
-# Calendar integration
-reqwest = { version = "0.11", features = ["json"] }
-url = "2.4"
-
-# Microphone detection
-cpal = "0.15"
-hound = "3.5"
-
-# Configuration persistence
-dirs = "5.0"
-toml = "0.8"
-
-# Audio processing
-ringbuf = "0.4"
+tauri-plugin-db = { path = "../db" }
+tauri-plugin-listener = { path = "../listener" }
+tauri-plugin-notification = { path = "../notification" }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }

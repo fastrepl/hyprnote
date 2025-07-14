@@ -14181,25 +14181,21 @@ name = "tauri-plugin-meeting-automation"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "cpal",
  "db-user",
  "detect",
- "dirs 5.0.1",
- "hound",
  "notification2",
- "reqwest 0.11.27",
- "ringbuf",
  "serde",
  "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
+ "tauri-plugin-db",
+ "tauri-plugin-listener",
+ "tauri-plugin-notification",
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",
- "toml 0.8.23",
  "tracing",
- "url",
  "uuid",
 ]
 

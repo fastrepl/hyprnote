@@ -92,6 +92,7 @@ tauri-plugin-flags = { path = "plugins/flags" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
+tauri-plugin-meeting-automation = { path = "plugins/meeting-automation" }
 tauri-plugin-membership = { path = "plugins/membership" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
@@ -102,7 +103,6 @@ tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-windows = { path = "plugins/windows" }
-tauri-plugin-meeting-automation = { path = "plugins/meeting-automation" }
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"

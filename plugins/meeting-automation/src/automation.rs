@@ -2,21 +2,25 @@ use crate::config::{AutomationConfig, MeetingDetectionEvent, MeetingEventType};
 use crate::detector::{MeetingEventReceiver, UnifiedDetector};
 use crate::Result;
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Listener};
+use tauri_plugin_listener::ListenerPluginExt;
+use tauri_plugin_notification::NotificationPluginExt;
 use tokio::sync::Mutex;
 use tracing::{debug, error, info, warn};
+use uuid::Uuid;
 
 pub struct MeetingAutomation<R: tauri::Runtime> {
-    detector: UnifiedDetector,
+    detector: UnifiedDetector<R>,
     app_handle: AppHandle<R>,
     event_receiver: Arc<Mutex<MeetingEventReceiver>>,
     is_running: Arc<std::sync::atomic::AtomicBool>,
     event_handler: Option<tokio::task::JoinHandle<()>>,
+    pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
 }
 
 impl<R: tauri::Runtime> MeetingAutomation<R> {
     pub fn new(config: AutomationConfig, app_handle: AppHandle<R>) -> Result<Self> {
-        let (detector, event_receiver) = UnifiedDetector::new(config)?;
+        let (detector, event_receiver) = UnifiedDetector::new(config, app_handle.clone())?;
 
         Ok(Self {
             detector,
@@ -24,6 +28,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
             event_receiver: Arc::new(Mutex::new(event_receiver)),
             is_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
             event_handler: None,
+            pending_notifications: Arc::new(Mutex::new(std::collections::HashMap::new())),
         })
     }
 
@@ -36,12 +41,30 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         self.detector.start()?;
 
+        // Set up notification action listener
+        let pending_notifications = self.pending_notifications.clone();
+        let notification_app_handle = self.app_handle.clone();
+        self.app_handle.listen("notification_action", move |event| {
+            let pending_notifications = pending_notifications.clone();
+            let app_handle = notification_app_handle.clone();
+            tokio::spawn(async move {
+                Self::handle_notification_action(event, pending_notifications, app_handle).await;
+            });
+        });
+
         let event_receiver = self.event_receiver.clone();
         let app_handle = self.app_handle.clone();
         let is_running = self.is_running.clone();
+        let pending_notifications = self.pending_notifications.clone();
 
         let handle = tokio::spawn(async move {
-            Self::handle_events(event_receiver, app_handle, is_running).await;
+            Self::handle_events(
+                event_receiver,
+                app_handle,
+                is_running,
+                pending_notifications,
+            )
+            .await;
         });
 
         self.event_handler = Some(handle);
@@ -90,6 +113,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         event_receiver: Arc<Mutex<MeetingEventReceiver>>,
         app_handle: AppHandle<R>,
         is_running: Arc<std::sync::atomic::AtomicBool>,
+        pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
     ) {
         let mut receiver = event_receiver.lock().await;
 
@@ -97,7 +121,9 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
             if let Some(event) = receiver.recv().await {
                 debug!("Processing meeting event: {:?}", event);
 
-                if let Err(e) = Self::process_meeting_event(&app_handle, event).await {
+                if let Err(e) =
+                    Self::process_meeting_event(&app_handle, event, &pending_notifications).await
+                {
                     error!("Error processing meeting event: {}", e);
                 }
             }
@@ -107,13 +133,25 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     async fn process_meeting_event(
         app_handle: &AppHandle<R>,
         event: MeetingDetectionEvent,
+        pending_notifications: &Arc<
+            Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>,
+        >,
     ) -> Result<()> {
         match event.event_type {
             MeetingEventType::AppLaunched => {
                 info!("Meeting app launched: {}", event.app_name);
 
-                Self::show_notification(
+                let notification_id = format!("app_launched_{}", Uuid::new_v4());
+
+                // Store the event for later action handling
+                {
+                    let mut pending = pending_notifications.lock().await;
+                    pending.insert(notification_id.clone(), event.clone());
+                }
+
+                Self::show_notification_with_id(
                     app_handle,
+                    &notification_id,
                     "Meeting Detected",
                     &format!("Are you in a meeting with {}?", event.app_name),
                     vec![
@@ -123,7 +161,8 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
                 )
                 .await?;
 
-                Self::start_recording(app_handle, &event).await?;
+                // Only auto-start if specifically configured to do so
+                // Removed automatic start - let user decide via notification
             }
 
             MeetingEventType::AppTerminated => {
@@ -133,7 +172,40 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
             MeetingEventType::MicActivityDetected => {
                 info!("Microphone activity detected");
-                Self::start_recording(app_handle, &event).await?;
+
+                let notification_id = format!("mic_activity_{}", Uuid::new_v4());
+
+                // Store the event for later action handling
+                {
+                    let mut pending = pending_notifications.lock().await;
+                    pending.insert(notification_id.clone(), event.clone());
+                }
+
+                Self::show_notification_with_id(
+                    app_handle,
+                    &notification_id,
+                    "Microphone Activity",
+                    "Microphone activity detected. Start recording?",
+                    vec![
+                        ("Start Recording".to_string(), "start_recording".to_string()),
+                        ("Ignore".to_string(), "ignore".to_string()),
+                    ],
+                )
+                .await?;
+            }
+
+            MeetingEventType::MicActivityStopped => {
+                info!("Microphone activity stopped");
+                Self::show_notification(
+                    app_handle,
+                    "Microphone Inactive",
+                    "Meeting might be ending. Continue recording?",
+                    vec![
+                        ("Continue".to_string(), "continue_recording".to_string()),
+                        ("Stop Recording".to_string(), "stop_recording".to_string()),
+                    ],
+                )
+                .await?;
             }
 
             MeetingEventType::ScheduledMeetingStarting => {
@@ -187,6 +259,22 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
                 debug!("Meeting app window unfocused: {}", event.app_name);
             }
 
+            MeetingEventType::ScheduledMeetingEnding => {
+                let title = event.metadata.get("event_title").unwrap_or(&event.app_name);
+                info!("Scheduled meeting ending: {}", title);
+
+                Self::show_notification(
+                    app_handle,
+                    "Meeting Ending",
+                    &format!("'{}' is ending. Stop recording?", title),
+                    vec![
+                        ("Stop Recording".to_string(), "stop_recording".to_string()),
+                        ("Continue".to_string(), "continue_recording".to_string()),
+                    ],
+                )
+                .await?;
+            }
+
             _ => {
                 debug!("Unhandled meeting event type: {:?}", event.event_type);
             }
@@ -201,9 +289,30 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     ) -> Result<()> {
         info!("Starting recording for meeting: {}", event.app_name);
 
-        if let Err(e) = app_handle.emit("recording_auto_started", &event) {
-            error!("Failed to emit recording_auto_started event: {}", e);
-        }
+        let session_id = format!(
+            "meeting-{}-{}",
+            event.app_bundle_id.replace(".", "-"),
+            Uuid::new_v4().to_string()[..8].to_string()
+        );
+
+        let app_handle_clone = app_handle.clone();
+        let session_id_clone = session_id.clone();
+        let event_clone = event.clone();
+
+        tokio::spawn(async move {
+            // Use proper ListenerPluginExt API to start recording
+            app_handle_clone
+                .start_session(session_id_clone.clone())
+                .await;
+            info!(
+                "Successfully started recording session: {}",
+                session_id_clone
+            );
+
+            if let Err(e) = app_handle_clone.emit("recording_auto_started", &event_clone) {
+                error!("Failed to emit recording_auto_started event: {}", e);
+            }
+        });
 
         Ok(())
     }
@@ -214,9 +323,18 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     ) -> Result<()> {
         info!("Stopping recording for meeting: {}", event.app_name);
 
-        if let Err(e) = app_handle.emit("recording_auto_stopped", &event) {
-            error!("Failed to emit recording_auto_stopped event: {}", e);
-        }
+        let app_handle_clone = app_handle.clone();
+        let event_clone = event.clone();
+
+        tokio::spawn(async move {
+            // Use proper ListenerPluginExt API to stop recording
+            app_handle_clone.stop_session().await;
+            info!("Successfully stopped recording session");
+
+            if let Err(e) = app_handle_clone.emit("recording_auto_stopped", &event_clone) {
+                error!("Failed to emit recording_auto_stopped event: {}", e);
+            }
+        });
 
         Ok(())
     }
@@ -229,6 +347,17 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     ) -> Result<()> {
         info!("Showing notification: {} - {}", title, message);
 
+        // Use existing notification plugin for proper native notifications
+        let notification = hypr_notification2::Notification {
+            title: title.to_string(),
+            message: message.to_string(),
+            url: Some("hyprnote://meeting-automation".to_string()),
+            timeout: Some(std::time::Duration::from_secs(10)),
+        };
+
+        hypr_notification2::show(notification);
+
+        // Also emit event for UI handling
         let notification_data = serde_json::json!({
             "title": title,
             "message": message,
@@ -240,5 +369,103 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         }
 
         Ok(())
+    }
+
+    async fn show_notification_with_id(
+        app_handle: &AppHandle<R>,
+        notification_id: &str,
+        title: &str,
+        message: &str,
+        actions: Vec<(String, String)>,
+    ) -> Result<()> {
+        info!("Showing notification: {} - {}", title, message);
+
+        // Use existing notification plugin for proper native notifications
+        let notification = hypr_notification2::Notification {
+            title: title.to_string(),
+            message: message.to_string(),
+            url: Some("hyprnote://meeting-automation".to_string()),
+            timeout: Some(std::time::Duration::from_secs(10)),
+        };
+
+        hypr_notification2::show(notification);
+
+        // Also emit event for UI handling with notification ID
+        let notification_data = serde_json::json!({
+            "id": notification_id,
+            "title": title,
+            "message": message,
+            "actions": actions,
+        });
+
+        if let Err(e) = app_handle.emit("meeting_notification", &notification_data) {
+            error!("Failed to emit meeting_notification event: {}", e);
+        }
+
+        Ok(())
+    }
+
+    async fn handle_notification_action(
+        event: tauri::Event,
+        pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
+        app_handle: AppHandle<R>,
+    ) {
+        if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&event.payload()) {
+            let notification_id = payload.get("notification_id").and_then(|v| v.as_str());
+            let action = payload.get("action").and_then(|v| v.as_str());
+
+            if let (Some(notification_id), Some(action)) = (notification_id, action) {
+                info!(
+                    "Processing notification action: {} for {}",
+                    action, notification_id
+                );
+
+                // Get the original event from pending notifications
+                let original_event = {
+                    let mut pending = pending_notifications.lock().await;
+                    pending.remove(notification_id)
+                };
+
+                if let Some(event) = original_event {
+                    match action {
+                        "start_recording" => {
+                            info!("User chose to start recording for: {}", event.app_name);
+                            if let Err(e) = Self::start_recording(&app_handle, &event).await {
+                                error!("Failed to start recording: {}", e);
+                            }
+                        }
+                        "stop_recording" => {
+                            info!("User chose to stop recording for: {}", event.app_name);
+                            if let Err(e) = Self::stop_recording(&app_handle, &event).await {
+                                error!("Failed to stop recording: {}", e);
+                            }
+                        }
+                        "ignore" => {
+                            info!("User chose to ignore notification for: {}", event.app_name);
+                        }
+                        "continue_recording" => {
+                            info!("User chose to continue recording for: {}", event.app_name);
+                            // Do nothing - just keep recording
+                        }
+                        "remind_later" => {
+                            info!("User chose to be reminded later for: {}", event.app_name);
+                            // Could implement a reminder system here
+                        }
+                        _ => {
+                            warn!("Unknown notification action: {}", action);
+                        }
+                    }
+                } else {
+                    warn!("No pending notification found for ID: {}", notification_id);
+                }
+            } else {
+                error!("Invalid notification action payload: {}", event.payload());
+            }
+        } else {
+            error!(
+                "Failed to parse notification action payload: {}",
+                event.payload()
+            );
+        }
     }
 }

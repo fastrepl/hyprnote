@@ -28,9 +28,11 @@ impl crate::Observer for Detector {
             std::thread::spawn(move || {
                 let callback = std::sync::Arc::new(std::sync::Mutex::new(f));
                 let current_device = std::sync::Arc::new(std::sync::Mutex::new(None::<ca::Device>));
+                let mic_state = std::sync::Arc::new(std::sync::Mutex::new(false)); // Track mic usage state
 
                 let callback_for_device = callback.clone();
                 let current_device_for_device = current_device.clone();
+                let mic_state_for_device = mic_state.clone();
 
                 extern "C-unwind" fn device_listener(
                     _obj_id: ca::Obj,
@@ -43,9 +45,11 @@ impl crate::Observer for Detector {
                             as *const (
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
+                                std::sync::Arc<std::sync::Mutex<bool>>,
                             ))
                     };
                     let callback = &data.0;
+                    let mic_state = &data.2;
 
                     let addresses =
                         unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
@@ -56,10 +60,25 @@ impl crate::Observer for Detector {
                                 if let Ok(is_running) =
                                     device.prop::<u32>(&DEVICE_IS_RUNNING_SOMEWHERE)
                                 {
-                                    if is_running != 0 {
-                                        if let Ok(guard) = callback.lock() {
-                                            (*guard)("microphone_in_use".to_string());
+                                    let currently_running = is_running != 0;
+
+                                    if let Ok(mut state_guard) = mic_state.lock() {
+                                        let was_running = *state_guard;
+
+                                        // Detect state transitions
+                                        if currently_running && !was_running {
+                                            // Mic started
+                                            if let Ok(guard) = callback.lock() {
+                                                (*guard)("microphone_in_use".to_string());
+                                            }
+                                        } else if !currently_running && was_running {
+                                            // Mic stopped
+                                            if let Ok(guard) = callback.lock() {
+                                                (*guard)("microphone_stopped".to_string());
+                                            }
                                         }
+
+                                        *state_guard = currently_running;
                                     }
                                 }
                             }
@@ -122,6 +141,7 @@ impl crate::Observer for Detector {
                 let device_listener_data = Box::new((
                     callback_for_device.clone(),
                     current_device_for_device.clone(),
+                    mic_state_for_device.clone(),
                 ));
                 let device_listener_ptr = Box::into_raw(device_listener_data) as *mut ();
 
@@ -189,6 +209,7 @@ impl crate::Observer for Detector {
                             as *mut (
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
+                                std::sync::Arc<std::sync::Mutex<bool>>,
                             ),
                     );
                 }

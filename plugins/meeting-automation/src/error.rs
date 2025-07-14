@@ -21,6 +21,8 @@ pub enum Error {
     NotificationError(String),
     #[error("Detection error: {0}")]
     DetectionError(String),
+    #[error("Calendar error: {0}")]
+    CalendarError(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

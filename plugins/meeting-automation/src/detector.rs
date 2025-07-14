@@ -1,9 +1,14 @@
 use crate::config::{AutomationConfig, MeetingDetectionEvent, MeetingEventType};
 use crate::Result;
 use chrono::{DateTime, Duration, Utc};
+use hypr_db_user::{
+    get_events_in_range, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
+};
 use hypr_detect::{new_callback, Detector};
 use std::collections::HashMap;
 use std::sync::Arc;
+use tauri::Manager;
+use tauri_plugin_db::ManagedState;
 use tokio::sync::mpsc;
 use tokio::time::{sleep, Duration as TokioDuration};
 use tracing::{debug, error, info};
@@ -11,16 +16,20 @@ use tracing::{debug, error, info};
 pub type MeetingEventSender = mpsc::UnboundedSender<MeetingDetectionEvent>;
 pub type MeetingEventReceiver = mpsc::UnboundedReceiver<MeetingDetectionEvent>;
 
-pub struct UnifiedDetector {
+pub struct UnifiedDetector<R: tauri::Runtime> {
     config: AutomationConfig,
     pub event_sender: MeetingEventSender,
     is_running: Arc<std::sync::atomic::AtomicBool>,
     detection_handles: Vec<tokio::task::JoinHandle<()>>,
     app_detector: Option<Detector>,
+    app_handle: tauri::AppHandle<R>,
 }
 
-impl UnifiedDetector {
-    pub fn new(config: AutomationConfig) -> Result<(Self, MeetingEventReceiver)> {
+impl<R: tauri::Runtime> UnifiedDetector<R> {
+    pub fn new(
+        config: AutomationConfig,
+        app_handle: tauri::AppHandle<R>,
+    ) -> Result<(Self, MeetingEventReceiver)> {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let detector = Self {
@@ -29,6 +38,7 @@ impl UnifiedDetector {
             is_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
             detection_handles: Vec::new(),
             app_detector: None,
+            app_handle,
         };
 
         Ok((detector, event_receiver))
@@ -103,21 +113,40 @@ impl UnifiedDetector {
         let event_sender = self.event_sender.clone();
         let supported_apps = self.config.supported_apps.clone();
 
-        let callback = new_callback(move |bundle_id: String| {
-            debug!("Detected app event: {}", bundle_id);
+        let callback = new_callback(move |event_data: String| {
+            debug!("Detected app event: {}", event_data);
 
-            if supported_apps.contains(&bundle_id) {
-                let app_name = Self::get_app_name_from_bundle_id(&bundle_id);
-                let event = MeetingDetectionEvent {
-                    event_type: MeetingEventType::AppLaunched,
-                    app_bundle_id: bundle_id.clone(),
-                    app_name,
-                    timestamp: Utc::now(),
-                    metadata: HashMap::new(),
-                };
+            if event_data.starts_with("app_launched:") {
+                let bundle_id = event_data.replace("app_launched:", "");
+                if supported_apps.contains(&bundle_id) {
+                    let app_name = Self::get_app_name_from_bundle_id(&bundle_id);
+                    let event = MeetingDetectionEvent {
+                        event_type: MeetingEventType::AppLaunched,
+                        app_bundle_id: bundle_id.clone(),
+                        app_name,
+                        timestamp: Utc::now(),
+                        metadata: HashMap::new(),
+                    };
 
-                if let Err(e) = event_sender.send(event) {
-                    error!("Failed to send app detection event: {}", e);
+                    if let Err(e) = event_sender.send(event) {
+                        error!("Failed to send app launch event: {}", e);
+                    }
+                }
+            } else if event_data.starts_with("app_terminated:") {
+                let bundle_id = event_data.replace("app_terminated:", "");
+                if supported_apps.contains(&bundle_id) {
+                    let app_name = Self::get_app_name_from_bundle_id(&bundle_id);
+                    let event = MeetingDetectionEvent {
+                        event_type: MeetingEventType::AppTerminated,
+                        app_bundle_id: bundle_id.clone(),
+                        app_name,
+                        timestamp: Utc::now(),
+                        metadata: HashMap::new(),
+                    };
+
+                    if let Err(e) = event_sender.send(event) {
+                        error!("Failed to send app termination event: {}", e);
+                    }
                 }
             }
         });
@@ -138,8 +167,9 @@ impl UnifiedDetector {
         let handle = tokio::spawn(async move {
             let mut mic_detector = Detector::default();
 
-            let mic_callback = new_callback(move |event_type: String| {
-                if event_type == "microphone_in_use" {
+            let callback_sender = event_sender.clone();
+            let mic_callback = new_callback(move |event_type: String| match event_type.as_str() {
+                "microphone_in_use" => {
                     debug!("Microphone activity detected");
 
                     let event = MeetingDetectionEvent {
@@ -150,16 +180,34 @@ impl UnifiedDetector {
                         metadata: HashMap::new(),
                     };
 
-                    if let Err(e) = event_sender.send(event) {
+                    if let Err(e) = callback_sender.send(event) {
                         error!("Failed to send microphone activity event: {}", e);
                     }
                 }
+                "microphone_stopped" => {
+                    debug!("Microphone activity stopped");
+
+                    let event = MeetingDetectionEvent {
+                        event_type: MeetingEventType::MicActivityStopped,
+                        app_bundle_id: "system".to_string(),
+                        app_name: "System Microphone".to_string(),
+                        timestamp: Utc::now(),
+                        metadata: HashMap::new(),
+                    };
+
+                    if let Err(e) = callback_sender.send(event) {
+                        error!("Failed to send microphone stopped event: {}", e);
+                    }
+                }
+                _ => {}
             });
 
             mic_detector.start(mic_callback);
 
+            // The existing mic detector already handles real-time detection
+            // No need for additional polling or shell commands
             while is_running.load(std::sync::atomic::Ordering::SeqCst) {
-                sleep(TokioDuration::from_millis(100)).await;
+                sleep(TokioDuration::from_secs(1)).await;
             }
 
             mic_detector.stop();
@@ -175,13 +223,61 @@ impl UnifiedDetector {
         let event_sender = self.event_sender.clone();
         let is_running = self.is_running.clone();
         let pre_meeting_minutes = self.config.pre_meeting_notification_minutes;
+        let app_handle = self.app_handle.clone();
 
         let handle = tokio::spawn(async move {
             while is_running.load(std::sync::atomic::Ordering::SeqCst) {
-                if let Err(e) =
-                    Self::check_upcoming_meetings(&event_sender, pre_meeting_minutes).await
+                // Check for upcoming meetings and send notifications
+                let now = Utc::now();
+                match Self::get_upcoming_events_from_db(
+                    &app_handle,
+                    now,
+                    pre_meeting_minutes as i64,
+                )
+                .await
                 {
-                    error!("Error checking upcoming meetings: {}", e);
+                    Ok(upcoming_events) => {
+                        for event in upcoming_events {
+                            let time_until_meeting = event.start_time - now;
+                            let minutes_until = time_until_meeting.num_minutes();
+
+                            if minutes_until <= pre_meeting_minutes as i64 && minutes_until > 0 {
+                                debug!(
+                                    "Meeting '{}' starts in {} minutes",
+                                    event.title, minutes_until
+                                );
+
+                                let detection_event = MeetingDetectionEvent {
+                                    event_type: MeetingEventType::ScheduledMeetingStarting,
+                                    app_bundle_id: "calendar".to_string(),
+                                    app_name: "Calendar".to_string(),
+                                    timestamp: now,
+                                    metadata: {
+                                        let mut metadata = HashMap::new();
+                                        metadata.insert("event_id".to_string(), event.id.clone());
+                                        metadata
+                                            .insert("event_title".to_string(), event.title.clone());
+                                        metadata.insert(
+                                            "minutes_until".to_string(),
+                                            minutes_until.to_string(),
+                                        );
+                                        metadata.insert(
+                                            "start_time".to_string(),
+                                            event.start_time.to_rfc3339(),
+                                        );
+                                        metadata
+                                    },
+                                };
+
+                                if let Err(e) = event_sender.send(detection_event) {
+                                    error!("Failed to send scheduled meeting event: {}", e);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        error!("Error getting upcoming events: {}", e);
+                    }
                 }
                 sleep(TokioDuration::from_secs(30)).await;
             }
@@ -223,98 +319,54 @@ impl UnifiedDetector {
         Ok(())
     }
 
-    async fn check_upcoming_meetings(
-        event_sender: &MeetingEventSender,
-        pre_meeting_minutes: u32,
-    ) -> Result<()> {
-        let now = Utc::now();
-        let upcoming_events = Self::get_upcoming_events(now, pre_meeting_minutes as i64).await?;
-
-        for event in upcoming_events {
-            let time_until_meeting = event.start_time - now;
-            let minutes_until = time_until_meeting.num_minutes();
-
-            if minutes_until <= pre_meeting_minutes as i64 && minutes_until > 0 {
-                debug!(
-                    "Meeting '{}' starts in {} minutes",
-                    event.title, minutes_until
-                );
-
-                let detection_event = MeetingDetectionEvent {
-                    event_type: MeetingEventType::ScheduledMeetingStarting,
-                    app_bundle_id: "calendar".to_string(),
-                    app_name: "Calendar".to_string(),
-                    timestamp: now,
-                    metadata: {
-                        let mut metadata = HashMap::new();
-                        metadata.insert("event_id".to_string(), event.id.clone());
-                        metadata.insert("event_title".to_string(), event.title.clone());
-                        metadata.insert("minutes_until".to_string(), minutes_until.to_string());
-                        metadata.insert("start_time".to_string(), event.start_time.to_rfc3339());
-                        metadata
-                    },
-                };
-
-                if let Err(e) = event_sender.send(detection_event) {
-                    error!("Failed to send scheduled meeting event: {}", e);
-                }
-            } else if minutes_until == 0 {
-                debug!("Meeting '{}' is starting now", event.title);
-
-                let detection_event = MeetingDetectionEvent {
-                    event_type: MeetingEventType::ScheduledMeetingStarting,
-                    app_bundle_id: "calendar".to_string(),
-                    app_name: "Calendar".to_string(),
-                    timestamp: now,
-                    metadata: {
-                        let mut metadata = HashMap::new();
-                        metadata.insert("event_id".to_string(), event.id.clone());
-                        metadata.insert("event_title".to_string(), event.title.clone());
-                        metadata.insert("minutes_until".to_string(), "0".to_string());
-                        metadata.insert("start_time".to_string(), event.start_time.to_rfc3339());
-                        metadata.insert("action".to_string(), "start_recording".to_string());
-                        metadata
-                    },
-                };
-
-                if let Err(e) = event_sender.send(detection_event) {
-                    error!("Failed to send meeting start event: {}", e);
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    async fn get_upcoming_events(
+    async fn get_upcoming_events_from_db(
+        app_handle: &tauri::AppHandle<R>,
         now: DateTime<Utc>,
         minutes_ahead: i64,
     ) -> Result<Vec<ScheduledEvent>> {
-        let _end_time = now + Duration::minutes(minutes_ahead);
+        let end_time = now + Duration::minutes(minutes_ahead);
 
-        let sample_events = vec![
-            ScheduledEvent {
-                id: "scheduled-meeting-1".to_string(),
-                title: "Daily Standup".to_string(),
-                start_time: now + Duration::minutes(5),
-                end_time: now + Duration::minutes(30),
-                description: Some("Daily team standup meeting".to_string()),
-                location: Some("Zoom".to_string()),
-                attendees: vec!["team@company.com".to_string()],
-            },
-            ScheduledEvent {
-                id: "scheduled-meeting-2".to_string(),
-                title: "Weekly Planning".to_string(),
-                start_time: now + Duration::minutes(45),
-                end_time: now + Duration::minutes(105),
-                description: Some("Weekly planning session".to_string()),
-                location: Some("Conference Room A".to_string()),
-                attendees: vec!["planning@company.com".to_string()],
-            },
-        ];
+        // Get database connection
+        let db_state = app_handle.state::<ManagedState>();
+        let db_guard = db_state.lock().await;
+        let db = match &db_guard.db {
+            Some(db) => db.clone(),
+            None => {
+                debug!("Database not available");
+                return Ok(vec![]);
+            }
+        };
+        drop(db_guard);
 
-        debug!("Returning {} sample upcoming events", sample_events.len());
-        Ok(sample_events)
+        // Query events from database
+        match get_events_in_range(&db, now, end_time).await {
+            Ok(db_events) => {
+                let mut events = Vec::new();
+
+                for db_event in db_events {
+                    // Convert database event to ScheduledEvent
+                    events.push(ScheduledEvent {
+                        id: db_event.id,
+                        title: db_event.title,
+                        start_time: db_event.start_date,
+                        end_time: db_event.end_date,
+                        description: Some(db_event.note),
+                        location: None,    // Database doesn't store location currently
+                        attendees: vec![], // Could be extracted from participants if needed
+                    });
+                }
+
+                // Sort events by start time
+                events.sort_by(|a, b| a.start_time.cmp(&b.start_time));
+
+                debug!("Returning {} upcoming events from database", events.len());
+                Ok(events)
+            }
+            Err(e) => {
+                error!("Failed to get events from database: {}", e);
+                Ok(vec![]) // Return empty vec instead of failing
+            }
+        }
     }
 
     async fn get_focused_app() -> Result<String> {
@@ -351,9 +403,23 @@ impl UnifiedDetector {
             "us.zoom.xos" => "Zoom".to_string(),
             "Cisco-Systems.Spark" => "Cisco Webex".to_string(),
             "com.microsoft.teams" => "Microsoft Teams".to_string(),
+            "com.microsoft.teams2" => "Microsoft Teams (New)".to_string(),
             "com.google.Chrome" => "Google Chrome".to_string(),
             "com.apple.Safari" => "Safari".to_string(),
             "com.microsoft.VSCode" => "Visual Studio Code".to_string(),
+            "com.skype.skype" => "Skype".to_string(),
+            "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan" => "Google Meet".to_string(),
+            "com.apple.FaceTime" => "FaceTime".to_string(),
+            "com.discord.Discord" => "Discord".to_string(),
+            "com.slack.Slack" => "Slack".to_string(),
+            "com.facebook.Messenger" => "Facebook Messenger".to_string(),
+            "com.whatsapp.WhatsApp" => "WhatsApp".to_string(),
+            "com.gotomeeting.GoToMeeting" => "GoToMeeting".to_string(),
+            "com.logmein.GoToWebinar" => "GoToWebinar".to_string(),
+            "com.ringcentral.RingCentral" => "RingCentral".to_string(),
+            "com.bluejeans.bluejeans" => "BlueJeans".to_string(),
+            "com.8x8.meet" => "8x8 Meet".to_string(),
+            "com.jitsi.meet" => "Jitsi Meet".to_string(),
             _ => bundle_id.to_string(),
         }
     }

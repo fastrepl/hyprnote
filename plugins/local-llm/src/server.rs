@@ -89,7 +89,7 @@ async fn chat_completions(
             .await
             .map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, e.to_string()))?;
 
-        tracing::info!("Model being used: {}", model.name);
+        tracing::info!("loaded_model: {:?}", model.name);
 
         inference_without_mock(&model, &request).await
     };

@@ -24,19 +24,10 @@ const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
+#[derive(Debug)]
 pub enum ModelName {
     HyprLLM,
     Other(Option<String>),
-}
-
-impl std::fmt::Display for ModelName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ModelName::HyprLLM => write!(f, "HyprLLM"),
-            ModelName::Other(Some(name)) => write!(f, "{}", name),
-            ModelName::Other(None) => write!(f, "Unknown"),
-        }
-    }
 }
 
 pub struct Llama {

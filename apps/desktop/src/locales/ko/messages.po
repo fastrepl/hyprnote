@@ -321,8 +321,8 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: src/routes/app.settings.tsx:37
-#: src/routes/app.settings.tsx:89
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:100
 msgid "AI"
 msgstr ""
 
@@ -377,7 +377,15 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:49
+#: src/components/settings/views/integrations.tsx:246
+msgid "Base Folder"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:173
+msgid "Base URL"
+msgstr ""
+
+#: src/routes/app.settings.tsx:58
 msgid "Billing"
 msgstr ""
 
@@ -390,8 +398,8 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:39
-#: src/routes/app.settings.tsx:83
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:94
 msgid "Calendar"
 msgstr ""
 
@@ -470,6 +478,10 @@ msgstr ""
 msgid "Connect your calendar and track events"
 msgstr ""
 
+#: src/components/settings/views/integrations.tsx:133
+msgid "Connect your Obsidian vault to export notes"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:397
 #~ msgid "Consent settings"
 #~ msgstr ""
@@ -478,7 +490,7 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:151
+#: src/components/welcome-modal/model-selection-view.tsx:152
 msgid "Continue"
 msgstr ""
 
@@ -606,7 +618,7 @@ msgstr ""
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:54
 msgid "Extensions"
 msgstr ""
 
@@ -646,8 +658,8 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:33
-#: src/routes/app.settings.tsx:81
+#: src/routes/app.settings.tsx:42
+#: src/routes/app.settings.tsx:92
 msgid "General"
 msgstr ""
 
@@ -699,6 +711,12 @@ msgstr ""
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr ""
 
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:108
+#: src/components/settings/views/integrations.tsx:118
+msgid "Integrations"
+msgstr ""
+
 #: src/components/share-and-permission/invite-list.tsx:30
 msgid "Invite"
 msgstr ""
@@ -723,7 +741,7 @@ msgstr ""
 msgid "Key decisions"
 msgstr ""
 
-#: src/routes/app.settings.tsx:91
+#: src/routes/app.settings.tsx:102
 msgid "Lab"
 msgstr ""
 
@@ -874,9 +892,13 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:41
-#: src/routes/app.settings.tsx:85
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:96
 msgid "Notifications"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:130
+msgid "Obsidian"
 msgstr ""
 
 #: src/components/settings/components/template-list.tsx:91
@@ -888,12 +910,12 @@ msgid "Ooh! Suggestion!"
 msgstr ""
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
-#~ msgid "Open calendar view"
-#~ msgstr ""
+msgid "Open calendar view"
+msgstr ""
 
 #: src/components/left-sidebar/top-area/finder-button.tsx:26
-msgid "Open finder view"
-msgstr ""
+#~ msgid "Open finder view"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:319
@@ -904,6 +926,10 @@ msgstr ""
 #: src/components/workspace-calendar/note-card.tsx:123
 #: src/components/workspace-calendar/event-card.tsx:153
 msgid "Open Note"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:255
+msgid "Optional base folder path within your Obsidian vault."
 msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
@@ -935,7 +961,7 @@ msgstr ""
 msgid "Pro"
 msgstr ""
 
-#: src/routes/app.settings.tsx:35
+#: src/routes/app.settings.tsx:44
 msgid "Profile"
 msgstr ""
 
@@ -1021,7 +1047,7 @@ msgstr ""
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:81
+#: src/components/welcome-modal/model-selection-view.tsx:82
 msgid "Select a transcribing model"
 msgstr ""
 
@@ -1057,7 +1083,7 @@ msgstr ""
 msgid "Single sign-on for all users"
 msgstr ""
 
-#: src/routes/app.settings.tsx:87
+#: src/routes/app.settings.tsx:98
 msgid "Sound"
 msgstr ""
 
@@ -1097,7 +1123,7 @@ msgstr ""
 msgid "Talk to Founders"
 msgstr ""
 
-#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:56
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr ""
@@ -1110,13 +1136,21 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/routes/app.settings.tsx:43
-#: src/routes/app.settings.tsx:95
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:106
 msgid "Templates"
 msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:28
 msgid "The AI Meeting Notepad"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:182
+msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:231
+msgid "The name of your Obsidian vault."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:113
@@ -1131,7 +1165,7 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
-#: src/components/finder/views/calendar-view.tsx:64
+#: src/components/toolbar/bars/calendar-toolbar.tsx:67
 msgid "Today"
 msgstr ""
 
@@ -1203,6 +1237,10 @@ msgstr ""
 msgid "username"
 msgstr ""
 
+#: src/components/settings/views/integrations.tsx:222
+msgid "Vault Name"
+msgstr ""
+
 #: src/components/left-sidebar/notes-list.tsx:323
 msgid "View calendar"
 msgstr ""
@@ -1222,6 +1260,10 @@ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:102
 msgid "We'll only use this to follow up if needed."
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:275
+msgid "We're working on adding more tools and services to connect with your workflow"
 msgstr ""
 
 #: src/components/individualization-modal/industry-view.tsx:68
@@ -1258,6 +1300,10 @@ msgstr ""
 
 #: src/components/settings/views/general.tsx:266
 msgid "You can make Hyprnote takes these words into account when transcribing"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:207
+msgid "Your API key for Obsidian local-rest-api plugin."
 msgstr ""
 
 #: src/components/settings/views/profile.tsx:213

@@ -321,8 +321,8 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/app.settings.tsx:37
-#: src/routes/app.settings.tsx:89
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:100
 msgid "AI"
 msgstr "AI"
 
@@ -377,7 +377,15 @@ msgstr "Assistant:"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
-#: src/routes/app.settings.tsx:49
+#: src/components/settings/views/integrations.tsx:246
+msgid "Base Folder"
+msgstr "Base Folder"
+
+#: src/components/settings/views/integrations.tsx:173
+msgid "Base URL"
+msgstr "Base URL"
+
+#: src/routes/app.settings.tsx:58
 msgid "Billing"
 msgstr "Billing"
 
@@ -390,8 +398,8 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:39
-#: src/routes/app.settings.tsx:83
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:94
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -470,6 +478,10 @@ msgstr "Connect your {0} calendar to track upcoming events"
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
+#: src/components/settings/views/integrations.tsx:133
+msgid "Connect your Obsidian vault to export notes"
+msgstr "Connect your Obsidian vault to export notes"
+
 #: src/components/editor-area/note-header/listen-button.tsx:397
 #~ msgid "Consent settings"
 #~ msgstr "Consent settings"
@@ -478,7 +490,7 @@ msgstr "Connect your calendar and track events"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:151
+#: src/components/welcome-modal/model-selection-view.tsx:152
 msgid "Continue"
 msgstr "Continue"
 
@@ -606,7 +618,7 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr "Enter the exact model name required by your endpoint (if applicable)."
 
-#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:54
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -646,8 +658,8 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:33
-#: src/routes/app.settings.tsx:81
+#: src/routes/app.settings.tsx:42
+#: src/routes/app.settings.tsx:92
 msgid "General"
 msgstr "General"
 
@@ -699,6 +711,12 @@ msgstr "How did you hear about Hyprnote?"
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
 
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:108
+#: src/components/settings/views/integrations.tsx:118
+msgid "Integrations"
+msgstr "Integrations"
+
 #: src/components/share-and-permission/invite-list.tsx:30
 msgid "Invite"
 msgstr "Invite"
@@ -723,7 +741,7 @@ msgstr "Join meeting"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/routes/app.settings.tsx:91
+#: src/routes/app.settings.tsx:102
 msgid "Lab"
 msgstr "Lab"
 
@@ -796,6 +814,10 @@ msgstr "Model Name"
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
 msgstr "Monthly"
+
+#: src/components/settings/views/integrations.tsx:272
+msgid "More integrations coming soon..."
+msgstr "More integrations coming soon..."
 
 #: src/components/settings/views/billing.tsx:40
 msgid "Much better AI performance"
@@ -870,10 +892,14 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:41
-#: src/routes/app.settings.tsx:85
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:96
 msgid "Notifications"
 msgstr "Notifications"
+
+#: src/components/settings/views/integrations.tsx:130
+msgid "Obsidian"
+msgstr "Obsidian"
 
 #: src/components/settings/components/template-list.tsx:91
 msgid "Official Templates"
@@ -884,12 +910,12 @@ msgid "Ooh! Suggestion!"
 msgstr "Ooh! Suggestion!"
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
-#~ msgid "Open calendar view"
-#~ msgstr "Open calendar view"
+msgid "Open calendar view"
+msgstr "Open calendar view"
 
 #: src/components/left-sidebar/top-area/finder-button.tsx:26
-msgid "Open finder view"
-msgstr "Open finder view"
+#~ msgid "Open finder view"
+#~ msgstr "Open finder view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:319
@@ -901,6 +927,10 @@ msgstr "Open in new window"
 #: src/components/workspace-calendar/event-card.tsx:153
 msgid "Open Note"
 msgstr "Open Note"
+
+#: src/components/settings/views/integrations.tsx:255
+msgid "Optional base folder path within your Obsidian vault."
+msgstr "Optional base folder path within your Obsidian vault."
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
@@ -931,7 +961,7 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/routes/app.settings.tsx:35
+#: src/routes/app.settings.tsx:44
 msgid "Profile"
 msgstr "Profile"
 
@@ -1017,7 +1047,7 @@ msgstr "Select a model from the dropdown (if available) or manually enter the mo
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
-#: src/components/welcome-modal/model-selection-view.tsx:81
+#: src/components/welcome-modal/model-selection-view.tsx:82
 msgid "Select a transcribing model"
 msgstr "Select a transcribing model"
 
@@ -1053,7 +1083,7 @@ msgstr "Show notifications when you join a meeting."
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/routes/app.settings.tsx:87
+#: src/routes/app.settings.tsx:98
 msgid "Sound"
 msgstr "Sound"
 
@@ -1093,7 +1123,7 @@ msgstr "System Audio Access"
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
-#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:56
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"
@@ -1106,14 +1136,22 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:43
-#: src/routes/app.settings.tsx:95
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:106
 msgid "Templates"
 msgstr "Templates"
 
 #: src/components/welcome-modal/welcome-view.tsx:28
 msgid "The AI Meeting Notepad"
 msgstr "The AI Meeting Notepad"
+
+#: src/components/settings/views/integrations.tsx:182
+msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+msgstr "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+
+#: src/components/settings/views/integrations.tsx:231
+msgid "The name of your Obsidian vault."
+msgstr "The name of your Obsidian vault."
 
 #: src/components/settings/views/billing.tsx:113
 msgid "There's a plan for everyone"
@@ -1127,7 +1165,7 @@ msgstr "This is a short description of your company."
 msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
 
-#: src/components/finder/views/calendar-view.tsx:64
+#: src/components/toolbar/bars/calendar-toolbar.tsx:67
 msgid "Today"
 msgstr "Today"
 
@@ -1199,6 +1237,10 @@ msgstr "User:"
 msgid "username"
 msgstr "username"
 
+#: src/components/settings/views/integrations.tsx:222
+msgid "Vault Name"
+msgstr "Vault Name"
+
 #: src/components/left-sidebar/notes-list.tsx:323
 msgid "View calendar"
 msgstr "View calendar"
@@ -1219,6 +1261,10 @@ msgstr "We think different."
 #: src/components/settings/views/feedback.tsx:102
 msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
+
+#: src/components/settings/views/integrations.tsx:275
+msgid "We're working on adding more tools and services to connect with your workflow"
+msgstr "We're working on adding more tools and services to connect with your workflow"
 
 #: src/components/individualization-modal/industry-view.tsx:68
 msgid "What industry are you in?"
@@ -1255,6 +1301,10 @@ msgstr "Works offline"
 #: src/components/settings/views/general.tsx:266
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
+
+#: src/components/settings/views/integrations.tsx:207
+msgid "Your API key for Obsidian local-rest-api plugin."
+msgstr "Your API key for Obsidian local-rest-api plugin."
 
 #: src/components/settings/views/profile.tsx:213
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"

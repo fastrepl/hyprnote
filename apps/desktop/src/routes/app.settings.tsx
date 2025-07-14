@@ -1,20 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { ExternalLinkIcon } from "lucide-react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
-import {
-  Calendar,
-  Feedback,
-  General,
-  Integrations,
-  LocalAI,
-  Notifications,
-  Sound,
-  TemplatesView,
-} from "@/components/settings/views";
+import { Calendar, Feedback, General, Integrations, LocalAI, Notifications, Sound, TemplatesView } from "@/components/settings/views";
+import { openURL } from "@/utils/shell";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -32,7 +25,15 @@ function Component() {
   const search = useSearch({ from: PATH });
   const { t } = useLingui();
 
-  const handleClickTab = (tab: Tab) => {
+  const handleClickTab = async (tab: Tab) => {
+    if (tab === "feedback") {
+      try {
+        await openURL("https://hyprnote.canny.io/feature-requests");
+      } catch (error) {
+        console.error("Failed to open feedback URL:", error);
+      }
+      return;
+    }
     navigate({ to: PATH, search: { ...search, tab } });
   };
 
@@ -87,27 +88,30 @@ function Component() {
                       onClick={() => handleClickTab(tab.name)}
                     >
                       <TabIcon tab={tab.name} />
-                      <span>
-                        {tab.name === "general"
-                          ? <Trans>General</Trans>
-                          : tab.name === "calendar"
-                          ? <Trans>Calendar</Trans>
-                          : tab.name === "notifications"
-                          ? <Trans>Notifications</Trans>
-                          : tab.name === "sound"
-                          ? <Trans>Sound</Trans>
-                          : tab.name === "ai"
-                          ? <Trans>AI</Trans>
-                          : tab.name === "lab"
-                          ? <Trans>Lab</Trans>
-                          : tab.name === "feedback"
-                          ? <Trans>Feedback</Trans>
-                          : tab.name === "templates"
-                          ? <Trans>Templates</Trans>
-                          : tab.name === "integrations"
-                          ? <Trans>Integrations</Trans>
-                          : null}
-                      </span>
+                      {tab.name === "feedback"
+                        ? (
+                          <div className="flex items-center justify-between flex-1">
+                            <Trans>Feedback</Trans>
+                            <ExternalLinkIcon className="h-3 w-3" />
+                          </div>
+                        )
+                        : (
+                          tab.name === "general"
+                            ? <Trans>General</Trans>
+                            : tab.name === "calendar"
+                              ? <Trans>Calendar</Trans>
+                              : tab.name === "notifications"
+                                ? <Trans>Notifications</Trans>
+                                : tab.name === "sound"
+                                  ? <Trans>Sound</Trans>
+                                  : tab.name === "ai"
+                                    ? <Trans>AI</Trans>
+                                    : tab.name === "lab"
+                                      ? <Trans>Lab</Trans>
+                                      : tab.name === "templates"
+                                        ? <Trans>Templates</Trans>
+                                        : null
+                        )}
                     </button>
                   ))}
                 </div>

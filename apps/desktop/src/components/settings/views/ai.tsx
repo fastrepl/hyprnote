@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -121,6 +121,7 @@ const initialLlmModels = [
 ];
 
 export default function LocalAI() {
+  const queryClient = useQueryClient();
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
@@ -149,7 +150,7 @@ export default function LocalAI() {
         newSet.delete(modelKey);
         return newSet;
       });
-    });
+    }, queryClient);
   };
 
   const handleLlmModelDownload = async (modelKey: string) => {
@@ -165,7 +166,7 @@ export default function LocalAI() {
       });
 
       setSelectedLLMModel(modelKey);
-    });
+    }, queryClient);
   };
 
   const handleShowFileLocation = async (modelKey: string) => {

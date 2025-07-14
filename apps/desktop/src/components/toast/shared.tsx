@@ -83,7 +83,7 @@ export function showSttModelDownloadToast(model: SupportedModel, onComplete?: ()
 
 export function showLlmModelDownloadToast(model?: SupportedModelLLM, onComplete?: () => void) {
   const llmChannel = new Channel();
-  const modelToDownload = model || "Llama3p2_3bQ4";
+  const modelToDownload = model || "HyprLLM";
   localLlmCommands.downloadModel(modelToDownload, llmChannel);
 
   const id = `llm-model-download-${modelToDownload}`;

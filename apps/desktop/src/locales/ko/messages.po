@@ -347,11 +347,12 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:582
+#: src/components/settings/views/ai.tsx:583
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:608
+#: src/components/settings/views/integrations.tsx:197
+#: src/components/settings/views/ai.tsx:609
 msgid "API Key"
 msgstr ""
 
@@ -452,8 +453,12 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:562
+#: src/components/settings/views/ai.tsx:563
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:121
+msgid "Connect with external tools and services to enhance your workflow"
 msgstr ""
 
 #. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
@@ -502,7 +507,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:559
+#: src/components/settings/views/ai.tsx:560
 msgid "Custom Endpoint"
 msgstr ""
 
@@ -561,7 +566,11 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:433
+#: src/components/settings/views/integrations.tsx:147
+msgid "Enable Integration"
+msgstr ""
+
+#: src/components/settings/views/ai.tsx:434
 msgid "Enhancing"
 msgstr ""
 
@@ -573,11 +582,11 @@ msgstr ""
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:611
+#: src/components/settings/views/ai.tsx:612
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:585
+#: src/components/settings/views/ai.tsx:586
 msgid "Enter the base URL for your custom LLM endpoint"
 msgstr ""
 
@@ -605,7 +614,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:92
+#: src/routes/app.settings.tsx:104
 msgid "Feedback"
 msgstr ""
 
@@ -734,7 +743,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:645
+#: src/components/settings/views/ai.tsx:646
 msgid "Loading available models..."
 msgstr ""
 
@@ -780,12 +789,16 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:633
+#: src/components/settings/views/ai.tsx:634
 msgid "Model Name"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:272
+msgid "More integrations coming soon..."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:40
@@ -910,7 +923,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:295
+#: src/components/settings/views/ai.tsx:296
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1000,7 +1013,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:636
+#: src/components/settings/views/ai.tsx:637
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
@@ -1134,8 +1147,12 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:286
+#: src/components/settings/views/ai.tsx:287
 msgid "Transcribing"
+msgstr ""
+
+#: src/components/settings/views/integrations.tsx:150
+msgid "Turn on Obsidian integration to export notes to Obsidian vault."
 msgstr ""
 
 #: src/components/settings/views/team.tsx:192

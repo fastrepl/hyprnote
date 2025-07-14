@@ -8,6 +8,7 @@ import { z } from "zod";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
+import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -78,15 +79,15 @@ const initialSttModels = [
 
 const initialLlmModels = [
   {
-    key: "llama-3b-q4",
+    key: "Llama3p2_3bQ4",
     name: "Llama 3 (3B, Q4)",
     description: "Basic",
     available: true,
-    downloaded: true,
+    downloaded: false,
     size: "2.0 GB",
   },
   {
-    key: "hypr-v1",
+    key: "HyprLLM",
     name: "HyprLLM v1",
     description: "English only",
     available: true,
@@ -94,7 +95,7 @@ const initialLlmModels = [
     size: "1.1 GB",
   },
   {
-    key: "hypr-v2",
+    key: "HyprLLMv2",
     name: "HyprLLM v2",
     description: "Multilingual support",
     available: false,
@@ -102,7 +103,7 @@ const initialLlmModels = [
     size: "1.1 GB",
   },
   {
-    key: "hypr-v3",
+    key: "HyprLLMv3",
     name: "HyprLLM v3",
     description: "Cross-language support",
     available: false,
@@ -110,7 +111,7 @@ const initialLlmModels = [
     size: "1.1 GB",
   },
   {
-    key: "hypr-v4",
+    key: "HyprLLMv4",
     name: "HyprLLM v4",
     description: "Professional domains",
     available: false,
@@ -122,7 +123,7 @@ const initialLlmModels = [
 export default function LocalAI() {
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
-  const [selectedLLMModel, setSelectedLLMModel] = useState("hypr-v1");
+  const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [sttModels, setSttModels] = useState(initialSttModels);
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
@@ -156,7 +157,7 @@ export default function LocalAI() {
   const handleLlmModelDownload = async (modelKey: string) => {
     setDownloadingModels((prev) => new Set([...prev, modelKey]));
 
-    showLlmModelDownloadToast();
+    showLlmModelDownloadToast(modelKey as SupportedModel);
 
     // Note: the download toast triggers startServer on complete.
     // Update UI when download finishes via callback after toast dismiss.
@@ -201,9 +202,36 @@ export default function LocalAI() {
 
   const availableLLMModels = useQuery({
     queryKey: ["available-llm-models"],
-    queryFn: () => connectorCommands.listCustomLlmModels(),
-    enabled: !!customLLMConnection.data?.api_base,
+    queryFn: async () => {
+      return []; // TODO: Implement this method
+    },
   });
+
+  const modelDownloadStatus = useQuery({
+    queryKey: ["llm-model-download-status"],
+    queryFn: async () => {
+      const statusChecks = await Promise.all([
+        localLlmCommands.isModelDownloaded("Llama3p2_3bQ4" as SupportedModel),
+        localLlmCommands.isModelDownloaded("HyprLLM" as SupportedModel),
+      ]);
+      return {
+        "Llama3p2_3bQ4": statusChecks[0],
+        "HyprLLM": statusChecks[1],
+      } as Record<string, boolean>;
+    },
+    refetchInterval: 3000, // Check every 3 seconds
+  });
+
+  useEffect(() => {
+    if (modelDownloadStatus.data) {
+      setLlmModels(prev =>
+        prev.map(model => ({
+          ...model,
+          downloaded: modelDownloadStatus.data[model.key] || false,
+        }))
+      );
+    }
+  }, [modelDownloadStatus.data]);
 
   const setCustomLLMModel = useMutation({
     mutationFn: (model: string) => connectorCommands.setCustomLlmModel(model),

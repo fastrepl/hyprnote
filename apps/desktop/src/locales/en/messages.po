@@ -361,7 +361,7 @@ msgid "Apple"
 msgstr "Apple"
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:268
+#: src/components/left-sidebar/notes-list.tsx:249
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -529,7 +529,7 @@ msgstr "Custom Endpoint"
 
 #: src/components/settings/views/template.tsx:215
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:335
+#: src/components/left-sidebar/notes-list.tsx:316
 msgid "Delete"
 msgstr "Delete"
 
@@ -691,9 +691,9 @@ msgstr "Help us improve the Hyprnote experience by providing feedback."
 msgid "Help us tailor your Hyprnote experience"
 msgstr "Help us tailor your Hyprnote experience"
 
-#: src/components/left-sidebar/events-list.tsx:305
-#~ msgid "Hide Event"
-#~ msgstr "Hide Event"
+#: src/components/left-sidebar/events-list.tsx:302
+msgid "Hide Event"
+msgstr "Hide Event"
 
 #: src/components/settings/views/feedback.tsx:19
 msgid "Hmm... this is off..."
@@ -710,6 +710,12 @@ msgstr "How did you hear about Hyprnote?"
 #: src/components/settings/views/billing.tsx:38
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
+
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:108
+#: src/components/settings/views/integrations.tsx:118
+msgid "Integrations"
+msgstr "Integrations"
 
 #: src/routes/app.settings.tsx:60
 #: src/routes/app.settings.tsx:108
@@ -835,8 +841,8 @@ msgstr "My Templates"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:312
-#: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/notes-list.tsx:293
+#: src/components/left-sidebar/events-list.tsx:279
 msgid "New window"
 msgstr "New window"
 
@@ -880,7 +886,7 @@ msgstr "No Template (Default)"
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/components/left-sidebar/events-list.tsx:95
+#: src/components/left-sidebar/events-list.tsx:163
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -896,6 +902,10 @@ msgstr "No upcoming events with this contact"
 #: src/routes/app.settings.tsx:96
 msgid "Notifications"
 msgstr "Notifications"
+
+#: src/components/settings/views/integrations.tsx:130
+msgid "Obsidian"
+msgstr "Obsidian"
 
 #: src/components/settings/views/integrations.tsx:130
 msgid "Obsidian"
@@ -918,8 +928,8 @@ msgstr "Open calendar view"
 #~ msgstr "Open finder view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:319
-#: src/components/left-sidebar/search-list.tsx:396
+#: src/components/left-sidebar/search-list.tsx:298
+#: src/components/left-sidebar/search-list.tsx:368
 msgid "Open in new window"
 msgstr "Open in new window"
 
@@ -927,6 +937,10 @@ msgstr "Open in new window"
 #: src/components/workspace-calendar/event-card.tsx:153
 msgid "Open Note"
 msgstr "Open Note"
+
+#: src/components/settings/views/integrations.tsx:255
+msgid "Optional base folder path within your Obsidian vault."
+msgstr "Optional base folder path within your Obsidian vault."
 
 #: src/components/settings/views/integrations.tsx:255
 msgid "Optional base folder path within your Obsidian vault."
@@ -1209,7 +1223,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:62
+#: src/components/left-sidebar/events-list.tsx:97
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1241,11 +1255,15 @@ msgstr "username"
 msgid "Vault Name"
 msgstr "Vault Name"
 
-#: src/components/left-sidebar/notes-list.tsx:323
+#: src/components/settings/views/integrations.tsx:222
+msgid "Vault Name"
+msgstr "Vault Name"
+
+#: src/components/left-sidebar/notes-list.tsx:304
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:193
+#: src/components/left-sidebar/events-list.tsx:291
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr "View in calendar"

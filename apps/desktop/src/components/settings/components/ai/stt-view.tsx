@@ -225,7 +225,7 @@ export function STTView() {
                                 .finally(() => {
                                   setDownloadingModelName(null);
                                 });
-                            });
+                            }, queryClient);
                           } catch (error) {
                             console.error(`Error initiating STT model download for ${model.model}:`, error);
                             setDownloadingModelName(null);

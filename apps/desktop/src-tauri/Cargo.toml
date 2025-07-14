@@ -81,6 +81,7 @@ thiserror = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_qs = { workspace = true }
 
 bytes = { workspace = true }
 chrono = { workspace = true }

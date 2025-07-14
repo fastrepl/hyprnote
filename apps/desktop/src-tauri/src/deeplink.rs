@@ -1,0 +1,80 @@
+use tauri_plugin_windows::HyprWindow;
+
+pub struct Destination {
+    pub window: HyprWindow,
+    pub url: String,
+}
+
+impl Default for Destination {
+    fn default() -> Self {
+        Self {
+            window: HyprWindow::Main,
+            url: "/app/new?record=false".to_string(),
+        }
+    }
+}
+
+pub fn parse(url: String) -> Destination {
+    let parsed_url = match url::Url::parse(&url) {
+        Ok(url) => url,
+        Err(_) => {
+            return Destination::default();
+        }
+    };
+
+    match parsed_url.path() {
+        "/notification" => parse_notification_query(&parsed_url),
+        "/register" => parse_register_query(&parsed_url),
+        _ => Destination::default(),
+    }
+}
+
+fn parse_notification_query(parsed_url: &url::Url) -> Destination {
+    let url = match parsed_url.query() {
+        Some(query) => match serde_qs::from_str::<NotificationQuery>(query) {
+            Ok(params) => {
+                if let Some(event_id) = params.event_id {
+                    format!("/app/note/event/{}", event_id)
+                } else {
+                    "/app/new?record=true".to_string()
+                }
+            }
+            Err(_) => "/app/new?record=true".to_string(),
+        },
+        None => "/app/new?record=false".to_string(),
+    };
+
+    Destination {
+        window: HyprWindow::Main,
+        url,
+    }
+}
+
+fn parse_register_query(parsed_url: &url::Url) -> Destination {
+    let url = match parsed_url.query() {
+        Some(query) => match serde_qs::from_str::<RegisterQuery>(query) {
+            Ok(params) => format!(
+                "/app/register?base_url={}&api_key={}",
+                params.base_url, params.api_key
+            ),
+            Err(_) => "/app/register".to_string(),
+        },
+        None => "/app/register".to_string(),
+    };
+
+    Destination {
+        window: HyprWindow::Main,
+        url,
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct NotificationQuery {
+    event_id: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct RegisterQuery {
+    base_url: String,
+    api_key: String,
+}

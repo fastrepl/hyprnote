@@ -6,6 +6,8 @@ pub enum StoreKey {
     CustomApiBase,
     CustomApiKey,
     CustomModel,
+    AdminApiBase,
+    AdminApiKey,
 }
 
 impl ScopedStoreKey for StoreKey {}

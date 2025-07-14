@@ -133,7 +133,7 @@ schemars = "0.8.21"
 serde = "1"
 serde_bytes = "0.11.15"
 serde_json = "1"
-serde_qs = "0.14.0"
+serde_qs = "1.0.0-rc.3"
 similar = "2.7.0"
 statig = { version = "0.3.0" }
 strum = "0.26"

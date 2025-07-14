@@ -1,4 +1,5 @@
 mod commands;
+mod deeplink;
 mod ext;
 mod store;
 
@@ -133,6 +134,7 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
+                // hypr://
                 app.deep_link().on_open_url(move |event| {
                     let url = if let Some(url) = event.urls().first() {
                         url.to_string()
@@ -140,34 +142,10 @@ pub async fn main() {
                         return;
                     };
 
-                    tracing::info!("deeplink: {:?}", url::Url::parse(&url));
+                    let dest = deeplink::parse(url);
 
-                    let dest = if let Ok(parsed_url) = url::Url::parse(&url) {
-                        match parsed_url.path() {
-                            "/notification" => {
-                                if let Some(query) = parsed_url.query() {
-                                    let params: std::collections::HashMap<String, String> =
-                                        url::form_urlencoded::parse(query.as_bytes())
-                                            .into_owned()
-                                            .collect();
-
-                                    if let Some(event_id) = params.get("event_id") {
-                                        format!("/app/note/event/{}", event_id)
-                                    } else {
-                                        "/app/new?record=true".to_string()
-                                    }
-                                } else {
-                                    "/app/new?record=false".to_string()
-                                }
-                            }
-                            _ => "/app/new?record=false".to_string(),
-                        }
-                    } else {
-                        "/app/new?record=false".to_string()
-                    };
-
-                    if app_clone.window_show(HyprWindow::Main).is_ok() {
-                        let _ = app_clone.window_navigate(HyprWindow::Main, &dest);
+                    if app_clone.window_show(dest.window.clone()).is_ok() {
+                        let _ = app_clone.window_navigate(dest.window, &dest.url);
                     }
                 });
             }

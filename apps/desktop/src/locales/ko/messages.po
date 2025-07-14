@@ -580,7 +580,7 @@ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:147
 msgid "Enable Integration"
-msgstr ""
+msgstr "<<<<<<< HEAD"
 
 #: src/components/settings/views/ai.tsx:434
 msgid "Enhancing"

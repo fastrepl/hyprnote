@@ -61,7 +61,6 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         Ok(())
     }
 
-
     pub fn is_running(&self) -> bool {
         self.is_running.load(std::sync::atomic::Ordering::SeqCst)
     }
@@ -81,10 +80,10 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
             handle.abort();
         }
 
-        self.is_running.store(false, std::sync::atomic::Ordering::SeqCst);
+        self.is_running
+            .store(false, std::sync::atomic::Ordering::SeqCst);
         Ok(())
     }
-
 
     fn start_detect_detection(&mut self) -> Result<()> {
         info!("Starting app and microphone detection");
@@ -194,12 +193,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         Ok(())
     }
 
-
-    fn handle_app_launch(
-        app_handle: &AppHandle<R>,
-        config: &AutomationConfig,
-        bundle_id: &str,
-    ) {
+    fn handle_app_launch(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
         let app_name = config.get_app_name(bundle_id);
         let app_handle = app_handle.clone();
         let bundle_id = bundle_id.to_string();
@@ -215,11 +209,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         });
     }
 
-    fn handle_app_terminate(
-        app_handle: &AppHandle<R>,
-        config: &AutomationConfig,
-        bundle_id: &str,
-    ) {
+    fn handle_app_terminate(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
         let app_name = config.get_app_name(bundle_id);
         let app_handle = app_handle.clone();
 
@@ -259,12 +249,7 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
         });
     }
 
-
-    async fn start_recording(
-        app_handle: &AppHandle<R>,
-        app_name: &str,
-        bundle_id: Option<String>,
-    ) {
+    async fn start_recording(app_handle: &AppHandle<R>, app_name: &str, bundle_id: Option<String>) {
         info!("Starting recording for: {}", app_name);
 
         let session_id = match bundle_id {

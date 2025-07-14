@@ -6,7 +6,6 @@ use tracing::{debug, info};
 
 const CONFIG_FILE_NAME: &str = "meeting-automation-config.json";
 
-
 pub struct ConfigStorage<R: Runtime> {
     app_handle: AppHandle<R>,
     config_path: PathBuf,
@@ -81,7 +80,6 @@ impl<R: Runtime> ConfigStorage<R> {
         self.save_config(&default_config)?;
         Ok(())
     }
-
 
     pub fn get_config_path(&self) -> &PathBuf {
         &self.config_path

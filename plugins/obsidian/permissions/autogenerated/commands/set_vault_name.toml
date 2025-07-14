@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-vault-name"
+description = "Enables the set_vault_name command without any pre-configured scope."
+commands.allow = ["set_vault_name"]
+
+[[permission]]
+identifier = "deny-set-vault-name"
+description = "Denies the set_vault_name command without any pre-configured scope."
+commands.deny = ["set_vault_name"]

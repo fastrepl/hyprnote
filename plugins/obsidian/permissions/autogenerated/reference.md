@@ -6,9 +6,11 @@ Default permissions for the plugin
 
 - `allow-get-api-key`
 - `allow-get-base-url`
+- `allow-get-vault-name`
 - `allow-is-configured`
 - `allow-set-api-key`
 - `allow-set-base-url`
+- `allow-set-vault-name`
 
 ## Permission Table
 
@@ -74,12 +76,12 @@ Denies the get_base_url command without any pre-configured scope.
 <tr>
 <td>
 
-`obsidian:allow-is-configured`
+`obsidian:allow-get-enabled`
 
 </td>
 <td>
 
-Enables the is_configured command without any pre-configured scope.
+Enables the get_enabled command without any pre-configured scope.
 
 </td>
 </tr>
@@ -87,12 +89,38 @@ Enables the is_configured command without any pre-configured scope.
 <tr>
 <td>
 
-`obsidian:deny-is-configured`
+`obsidian:deny-get-enabled`
 
 </td>
 <td>
 
-Denies the is_configured command without any pre-configured scope.
+Denies the get_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-get-vault-name`
+
+</td>
+<td>
+
+Enables the get_vault_name command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-get-vault-name`
+
+</td>
+<td>
+
+Denies the get_vault_name command without any pre-configured scope.
 
 </td>
 </tr>
@@ -145,6 +173,58 @@ Enables the set_base_url command without any pre-configured scope.
 <td>
 
 Denies the set_base_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-set-enabled`
+
+</td>
+<td>
+
+Enables the set_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-set-enabled`
+
+</td>
+<td>
+
+Denies the set_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-set-vault-name`
+
+</td>
+<td>
+
+Enables the set_vault_name command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-set-vault-name`
+
+</td>
+<td>
+
+Denies the set_vault_name command without any pre-configured scope.
 
 </td>
 </tr>

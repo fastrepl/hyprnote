@@ -7,9 +7,6 @@
 
 
 export const commands = {
-async isConfigured() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:obsidian|is_configured");
-},
 async setApiKey(apiKey: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:obsidian|set_api_key", { apiKey });
 },
@@ -21,6 +18,18 @@ async getApiKey() : Promise<string | null> {
 },
 async getBaseUrl() : Promise<string | null> {
     return await TAURI_INVOKE("plugin:obsidian|get_base_url");
+},
+async getVaultName() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:obsidian|get_vault_name");
+},
+async setVaultName(vaultName: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:obsidian|set_vault_name", { vaultName });
+},
+async getEnabled() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:obsidian|get_enabled");
+},
+async setEnabled(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:obsidian|set_enabled", { enabled });
 }
 }
 

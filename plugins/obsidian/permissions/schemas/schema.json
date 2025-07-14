@@ -319,16 +319,28 @@
           "markdownDescription": "Denies the get_base_url command without any pre-configured scope."
         },
         {
-          "description": "Enables the is_configured command without any pre-configured scope.",
+          "description": "Enables the get_enabled command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-is-configured",
-          "markdownDescription": "Enables the is_configured command without any pre-configured scope."
+          "const": "allow-get-enabled",
+          "markdownDescription": "Enables the get_enabled command without any pre-configured scope."
         },
         {
-          "description": "Denies the is_configured command without any pre-configured scope.",
+          "description": "Denies the get_enabled command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-is-configured",
-          "markdownDescription": "Denies the is_configured command without any pre-configured scope."
+          "const": "deny-get-enabled",
+          "markdownDescription": "Denies the get_enabled command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_vault_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-vault-name",
+          "markdownDescription": "Enables the get_vault_name command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_vault_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-vault-name",
+          "markdownDescription": "Denies the get_vault_name command without any pre-configured scope."
         },
         {
           "description": "Enables the set_api_key command without any pre-configured scope.",
@@ -355,10 +367,34 @@
           "markdownDescription": "Denies the set_base_url command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`",
+          "description": "Enables the set_enabled command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-enabled",
+          "markdownDescription": "Enables the set_enabled command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_enabled command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-enabled",
+          "markdownDescription": "Denies the set_enabled command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_vault_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-vault-name",
+          "markdownDescription": "Enables the set_vault_name command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_vault_name command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-vault-name",
+          "markdownDescription": "Denies the set_vault_name command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-api-key`\n- `allow-get-base-url`\n- `allow-get-vault-name`\n- `allow-is-configured`\n- `allow-set-api-key`\n- `allow-set-base-url`\n- `allow-set-vault-name`"
         }
       ]
     }

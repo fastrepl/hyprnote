@@ -18,7 +18,7 @@ export function CalendarView({ date, sessions, events, onNavigate }: CalendarVie
   const { i18n } = useLingui();
   const [currentDate, setCurrentDate] = useState(date);
 
-  // Calendar toolbar component embedded directly to handle navigation
+  // Embedded directly to handle navigation
   const handlePreviousMonth = () => {
     const prevMonth = subMonths(currentDate, 1);
     setCurrentDate(prevMonth);

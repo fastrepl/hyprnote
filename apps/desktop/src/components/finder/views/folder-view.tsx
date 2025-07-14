@@ -1,18 +1,9 @@
-import { useEffect } from "react";
-
 interface FolderViewProps {
   date: Date;
   onNavigate: (params: { date: string }) => void;
 }
 
 export function FolderView({ date, onNavigate }: FolderViewProps) {
-  // Component will be expanded in the future with folder-based functionality
-
-  useEffect(() => {
-    // Any initialization logic for the folder view
-    // This will be useful for loading folder data in the future
-  }, []);
-
   return (
     <div className="p-4">
       <div className="flex flex-col items-center justify-center h-full">

@@ -24,7 +24,7 @@ interface TableItem {
   type: "session" | "event";
   original: any;
   tags?: string[];
-  duration?: number; // in minutes
+  duration?: number;
 }
 
 type SortField = "title" | "date" | "type";
@@ -36,11 +36,9 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
   const [sortField, setSortField] = useState<SortField>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
-  // Convert sessions and events to a unified list of items
   const tableItems = useMemo(() => {
     const items: TableItem[] = [];
 
-    // Process sessions
     sessions.forEach(session => {
       items.push({
         id: session.id,
@@ -53,7 +51,6 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
       });
     });
 
-    // Process events
     events.forEach(event => {
       const startDate = event.start_date ? new Date(event.start_date) : new Date();
       const endDate = event.end_date ? new Date(event.end_date) : startDate;
@@ -72,16 +69,13 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
     return items;
   }, [sessions, events]);
 
-  // Filter and sort items
   const filteredItems = useMemo(() => {
     return tableItems
       .filter(item => {
-        // Filter by search term
         if (searchTerm && !item.title.toLowerCase().includes(searchTerm.toLowerCase())) {
           return false;
         }
 
-        // Filter by tab
         if (activeTab !== "all" && item.type !== activeTab) {
           return false;
         }
@@ -91,7 +85,6 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
       .sort((a, b) => {
         let comparison = 0;
 
-        // Sort by the selected field
         if (sortField === "title") {
           comparison = a.title.localeCompare(b.title);
         } else if (sortField === "date") {
@@ -100,33 +93,26 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
           comparison = a.type.localeCompare(b.type);
         }
 
-        // Apply sort order
         return sortOrder === "asc" ? comparison : -comparison;
       });
   }, [tableItems, searchTerm, activeTab, sortField, sortOrder]);
 
-  // Toggle sort order for a field
   const handleSortClick = (field: SortField) => {
     if (sortField === field) {
-      // Toggle between asc and desc
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      // Set new field and default to desc
       setSortField(field);
       setSortOrder("desc");
     }
   };
 
-  // Handle row click
   const handleRowClick = async (item: TableItem) => {
     if (item.type === "session") {
-      // Navigate to session note
       const url = `/app/note/${item.id}`;
       windowsCommands.windowShow({ type: "main" }).then(() => {
         windowsCommands.windowEmitNavigate({ type: "main" }, url);
       });
     } else if (item.type === "event") {
-      // Check if there's an existing session for this event
       try {
         const session = await dbCommands.getSession({ calendarEventId: item.id });
 
@@ -153,8 +139,7 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
     }
   };
 
-  // Format duration in minutes to readable format
-  const formatDuration = (minutes: number) => {
+  const formatDuration = (minutes: number): string => {
     if (!minutes || minutes === 0) {
       return "N/A";
     }
@@ -168,8 +153,7 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
     }
   };
 
-  // Get a friendly display format for date
-  const formatDisplayDate = (dateObj: Date) => {
+  const formatDisplayDate = (dateObj: Date): string => {
     if (isToday(dateObj)) {
       return "Today, " + format(dateObj, "h:mm a");
     }

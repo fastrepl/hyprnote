@@ -17,7 +17,7 @@ lazy_static! {
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
-    language: Option<Language>,
+    languages: Option<Vec<Language>>,
     static_prompt: Option<String>,
     dynamic_prompt: Option<String>,
 }
@@ -28,8 +28,8 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn language(mut self, language: Language) -> Self {
-        self.language = Some(language);
+    pub fn languages(mut self, languages: impl Into<Vec<Language>>) -> Self {
+        self.languages = Some(languages.into());
         self
     }
 
@@ -59,14 +59,16 @@ impl WhisperBuilder {
 
         let ctx = WhisperContext::new_with_params(&model_path, context_param).unwrap();
         let state = ctx.create_state().unwrap();
+        let token_sot = ctx.token_sot();
         let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();
 
         Whisper {
-            language: self.language,
+            languages: self.languages,
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
+            token_sot,
             token_eot,
             token_beg,
         }
@@ -84,10 +86,11 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: Option<Language>,
+    languages: Option<Vec<Language>>,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
+    token_sot: WhisperToken,
     token_eot: WhisperToken,
     token_beg: WhisperToken,
 }
@@ -107,13 +110,13 @@ impl Whisper {
 
             tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
 
-            p.set_translate(false);
-            p.set_language(self.language.as_ref().map(|l| l.as_ref()));
-            p.set_initial_prompt(&initial_prompt);
-
             unsafe {
-                Self::suppress_beg(&mut p, &self.token_beg);
+                Self::set_logits_filter_callback(&mut p, &self.token_beg);
             }
+
+            p.set_language(None);
+            p.set_translate(false);
+            p.set_initial_prompt(&initial_prompt);
 
             p.set_no_timestamps(true);
             p.set_token_timestamps(false);
@@ -122,7 +125,6 @@ impl Whisper {
             p.set_temperature(0.0);
             p.set_temperature_inc(0.2);
 
-            p.set_detect_language(false);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);
@@ -204,7 +206,7 @@ impl Whisper {
         total_confidence / valid_tokens as f32
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
+    unsafe fn set_logits_filter_callback(params: &mut FullParams, token_beg: &WhisperToken) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,

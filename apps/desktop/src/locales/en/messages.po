@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:275
+#: src/components/settings/views/general.tsx:367
 msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
 
@@ -320,8 +320,8 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/app.settings.tsx:37
-#: src/routes/app.settings.tsx:89
+#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:106
 msgid "AI"
 msgstr "AI"
 
@@ -359,7 +359,7 @@ msgid "Apple"
 msgstr "Apple"
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:268
+#: src/components/left-sidebar/notes-list.tsx:265
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -375,7 +375,7 @@ msgstr "Assistant:"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
-#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:59
 msgid "Billing"
 msgstr "Billing"
 
@@ -388,8 +388,8 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:39
-#: src/routes/app.settings.tsx:83
+#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:100
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -417,11 +417,11 @@ msgstr "CEO"
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr "Choose the language you want to use for the speech-to-text model and language model"
 
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:186
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
-#: src/components/settings/views/general.tsx:230
+#: src/components/settings/views/general.tsx:239
 msgid "Choose your preferred language of use"
 msgstr "Choose your preferred language of use"
 
@@ -489,7 +489,7 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/workspace-calendar/event-card.tsx:166
+#: src/components/workspace-calendar/event-card.tsx:170
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -511,7 +511,7 @@ msgstr "Custom Endpoint"
 
 #: src/components/settings/views/template.tsx:206
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:335
+#: src/components/left-sidebar/notes-list.tsx:332
 msgid "Delete"
 msgstr "Delete"
 
@@ -592,7 +592,7 @@ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr "Enter the exact model name required by your endpoint (if applicable)."
 
-#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:55
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -632,8 +632,8 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:33
-#: src/routes/app.settings.tsx:81
+#: src/routes/app.settings.tsx:43
+#: src/routes/app.settings.tsx:98
 msgid "General"
 msgstr "General"
 
@@ -650,7 +650,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:212
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
@@ -693,7 +693,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/settings/views/general.tsx:263
+#: src/components/settings/views/general.tsx:355
 msgid "Jargons"
 msgstr "Jargons"
 
@@ -709,11 +709,11 @@ msgstr "Join meeting"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/routes/app.settings.tsx:91
+#: src/routes/app.settings.tsx:108
 msgid "Lab"
 msgstr "Lab"
 
-#: src/components/settings/views/general.tsx:227
+#: src/components/settings/views/general.tsx:236
 msgid "Language"
 msgstr "Language"
 
@@ -741,7 +741,7 @@ msgstr "Loading events..."
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
-#: src/components/workspace-calendar/event-card.tsx:163
+#: src/components/workspace-calendar/event-card.tsx:167
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr "Loading..."
@@ -799,8 +799,8 @@ msgstr "My Templates"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:312
-#: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/notes-list.tsx:309
+#: src/components/left-sidebar/events-list.tsx:178
 msgid "New window"
 msgstr "New window"
 
@@ -844,7 +844,7 @@ msgstr "No Template (Default)"
 msgid "No templates yet"
 msgstr "No templates yet"
 
-#: src/components/left-sidebar/events-list.tsx:95
+#: src/components/left-sidebar/events-list.tsx:94
 msgid "No upcoming events"
 msgstr "No upcoming events"
 
@@ -856,8 +856,8 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:41
-#: src/routes/app.settings.tsx:85
+#: src/routes/app.settings.tsx:51
+#: src/routes/app.settings.tsx:102
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -879,8 +879,8 @@ msgstr "Open calendar view"
 msgid "Open in new window"
 msgstr "Open in new window"
 
-#: src/components/workspace-calendar/note-card.tsx:123
-#: src/components/workspace-calendar/event-card.tsx:153
+#: src/components/workspace-calendar/note-card.tsx:125
+#: src/components/workspace-calendar/event-card.tsx:157
 msgid "Open Note"
 msgstr "Open Note"
 
@@ -913,7 +913,7 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/routes/app.settings.tsx:35
+#: src/routes/app.settings.tsx:45
 msgid "Profile"
 msgstr "Profile"
 
@@ -962,7 +962,7 @@ msgstr "Role"
 msgid "Save and close"
 msgstr "Save and close"
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/general.tsx:183
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1011,6 +1011,10 @@ msgstr "Select Calendars"
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr "Select or enter the model name required by your endpoint."
 
+#: src/components/settings/views/general.tsx:275
+msgid "Select the languages you speak for better transcription"
+msgstr "Select the languages you speak for better transcription"
+
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
 msgstr "Send invite"
@@ -1019,7 +1023,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:200
+#: src/components/settings/views/general.tsx:209
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1035,9 +1039,13 @@ msgstr "Show notifications when you join a meeting."
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/routes/app.settings.tsx:87
+#: src/routes/app.settings.tsx:104
 msgid "Sound"
 msgstr "Sound"
+
+#: src/components/settings/views/general.tsx:272
+msgid "Spoken Languages"
+msgstr "Spoken Languages"
 
 #: src/components/settings/views/billing.tsx:76
 msgid "Start Annual Plan"
@@ -1075,7 +1083,7 @@ msgstr "System Audio Access"
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
-#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:57
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"
@@ -1088,8 +1096,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:43
-#: src/routes/app.settings.tsx:95
+#: src/routes/app.settings.tsx:53
+#: src/routes/app.settings.tsx:110
 msgid "Templates"
 msgstr "Templates"
 
@@ -1149,7 +1157,7 @@ msgstr "Untitled"
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
-#: src/components/left-sidebar/events-list.tsx:62
+#: src/components/left-sidebar/events-list.tsx:61
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -1177,11 +1185,11 @@ msgstr "User:"
 msgid "username"
 msgstr "username"
 
-#: src/components/left-sidebar/notes-list.tsx:323
+#: src/components/left-sidebar/notes-list.tsx:320
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:193
+#: src/components/left-sidebar/events-list.tsx:190
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr "View in calendar"
@@ -1230,7 +1238,7 @@ msgstr "Works offline"
 #~ msgid "Yes, activate speaker"
 #~ msgstr "Yes, activate speaker"
 
-#: src/components/settings/views/general.tsx:266
+#: src/components/settings/views/general.tsx:358
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
 

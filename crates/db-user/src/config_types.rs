@@ -41,6 +41,13 @@ user_common_derives! {
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         #[serde(serialize_with = "serialize_language", deserialize_with = "deserialize_language")]
         pub display_language: hypr_language::Language,
+        #[specta(type = Vec<String>)]
+        #[serde(
+            serialize_with = "serialize_languages",
+            deserialize_with = "deserialize_languages"
+        )]
+        #[schemars(with = "Vec<String>")]
+        pub spoken_languages: Vec<hypr_language::Language>,
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,
@@ -53,6 +60,7 @@ impl Default for ConfigGeneral {
         Self {
             autostart: false,
             display_language: hypr_language::ISO639::En.into(),
+            spoken_languages: vec![hypr_language::ISO639::En.into()],
             jargons: vec![],
             telemetry_consent: true,
             save_recordings: Some(true),
@@ -102,4 +110,27 @@ fn deserialize_language<'de, D: serde::Deserializer<'de>>(
     let str = String::deserialize(deserializer)?;
     let iso639 = hypr_language::ISO639::from_str(&str).map_err(serde::de::Error::custom)?;
     Ok(iso639.into())
+}
+
+fn serialize_languages<S: serde::Serializer>(
+    langs: &Vec<hypr_language::Language>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    use serde::Serialize;
+    let codes: Vec<&str> = langs.iter().map(|lang| lang.iso639().code()).collect();
+    codes.serialize(serializer)
+}
+
+fn deserialize_languages<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<hypr_language::Language>, D::Error> {
+    let strings: Vec<String> = Vec::deserialize(deserializer)?;
+    let mut languages = Vec::new();
+
+    for str in strings {
+        let iso639 = hypr_language::ISO639::from_str(&str).map_err(serde::de::Error::custom)?;
+        languages.push(iso639.into());
+    }
+
+    Ok(languages)
 }

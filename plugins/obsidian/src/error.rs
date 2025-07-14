@@ -6,6 +6,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     StoreError(#[from] tauri_plugin_store2::Error),
+    #[error("Vault name is not configured")]
+    VaultNameNotConfigured,
 }
 
 impl Serialize for Error {

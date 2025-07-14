@@ -7,10 +7,12 @@ Default permissions for the plugin
 - `allow-get-api-key`
 - `allow-get-base-url`
 - `allow-get-vault-name`
-- `allow-is-configured`
 - `allow-set-api-key`
 - `allow-set-base-url`
 - `allow-set-vault-name`
+- `allow-get-enabled`
+- `allow-set-enabled`
+- `allow-get-deep-link-url`
 
 ## Permission Table
 
@@ -69,6 +71,32 @@ Enables the get_base_url command without any pre-configured scope.
 <td>
 
 Denies the get_base_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:allow-get-deep-link-url`
+
+</td>
+<td>
+
+Enables the get_deep_link_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`obsidian:deny-get-deep-link-url`
+
+</td>
+<td>
+
+Denies the get_deep_link_url command without any pre-configured scope.
 
 </td>
 </tr>

@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "set_vault_name",
     "get_enabled",
     "set_enabled",
+    "get_deep_link_url",
 ];
 
 fn main() {

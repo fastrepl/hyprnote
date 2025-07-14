@@ -30,6 +30,9 @@ async getEnabled() : Promise<boolean> {
 },
 async setEnabled(enabled: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:obsidian|set_enabled", { enabled });
+},
+async getDeepLinkUrl(noteName: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:obsidian|get_deep_link_url", { noteName });
 }
 }
 

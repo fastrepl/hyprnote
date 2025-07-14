@@ -592,7 +592,7 @@ importers:
         specifier: ^0.8.4
         version: 0.8.4
       '@tanstack/react-query':
-        specifier: ^5.79.0
+        specifier: ^5.83.0
         version: 5.83.0(react@19.1.0)
     devDependencies:
       '@hey-api/openapi-ts':

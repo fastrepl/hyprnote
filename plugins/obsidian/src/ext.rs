@@ -15,6 +15,8 @@ pub trait ObsidianPluginExt<R: tauri::Runtime> {
 
     fn get_enabled(&self) -> Result<bool, crate::Error>;
     fn set_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
+
+    fn get_deep_link_url(&self, note_name: String) -> Result<String, crate::Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ObsidianPluginExt<R> for T {
@@ -79,5 +81,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ObsidianPluginExt<R> for T {
         store.set(crate::StoreKey::Enabled, enabled)?;
         store.save()?;
         Ok(())
+    }
+
+    fn get_deep_link_url(&self, note_name: String) -> Result<String, crate::Error> {
+        let store = self.obsidian_store();
+        let vault_name = store
+            .get::<String>(crate::StoreKey::VaultName)?
+            .ok_or(crate::Error::VaultNameNotConfigured)?;
+
+        Ok(format!(
+            "obsidian://open?vault={}&file={}",
+            vault_name, note_name
+        ))
     }
 }

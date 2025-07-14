@@ -67,3 +67,12 @@ pub(crate) async fn set_enabled<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.set_enabled(enabled).map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_deep_link_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    note_name: String,
+) -> Result<String, String> {
+    app.get_deep_link_url(note_name).map_err(|e| e.to_string())
+}

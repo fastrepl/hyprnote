@@ -295,6 +295,20 @@ export type PostCommandsByCommandIdResponses = {
 
 export type PostCommandsByCommandIdResponse = PostCommandsByCommandIdResponses[keyof PostCommandsByCommandIdResponses];
 
+export type GetObsidianLocalRestApiCrtData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/obsidian-local-rest-api.crt';
+};
+
+export type GetObsidianLocalRestApiCrtResponses = {
+    /**
+     * Success
+     */
+    200: unknown;
+};
+
 export type PostOpenByFilenameData = {
     body?: never;
     path: {
@@ -320,11 +334,25 @@ export type PostOpenByFilenameResponses = {
     200: unknown;
 };
 
+export type GetOpenapiYamlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/openapi.yaml';
+};
+
+export type GetOpenapiYamlResponses = {
+    /**
+     * Success
+     */
+    200: unknown;
+};
+
 export type DeletePeriodicByPeriodData = {
     body?: never;
     path: {
         /**
-         * The name of the period for which you would like to grab the current note.
+         * The name of the period for which you would like to grab a periodic note.
          */
         period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
     };
@@ -359,7 +387,7 @@ export type GetPeriodicByPeriodData = {
     body?: never;
     path: {
         /**
-         * The name of the period for which you would like to grab the current note.
+         * The name of the period for which you would like to grab a periodic note.
          */
         period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
     };
@@ -414,7 +442,7 @@ export type PatchPeriodicByPeriodData = {
     };
     path: {
         /**
-         * The name of the period for which you would like to grab the current note.
+         * The name of the period for which you would like to grab a periodic note.
          */
         period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
     };
@@ -454,7 +482,7 @@ export type PostPeriodicByPeriodData = {
     body: string;
     path: {
         /**
-         * The name of the period for which you would like to grab the current note.
+         * The name of the period for which you would like to grab a periodic note.
          */
         period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
     };
@@ -492,7 +520,7 @@ export type PutPeriodicByPeriodData = {
     body: string;
     path: {
         /**
-         * The name of the period for which you would like to grab the current note.
+         * The name of the period for which you would like to grab a periodic note.
          */
         period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
     };
@@ -523,6 +551,270 @@ export type PutPeriodicByPeriodResponses = {
 };
 
 export type PutPeriodicByPeriodResponse = PutPeriodicByPeriodResponses[keyof PutPeriodicByPeriodResponses];
+
+export type DeletePeriodicByPeriodByYearByMonthByDayData = {
+    body?: never;
+    path: {
+        /**
+         * The year of the date for which you would like to grab a periodic note.
+         */
+        year: number;
+        /**
+         * The month (1-12) of the date for which you would like to grab a periodic note.
+         */
+        month: number;
+        /**
+         * The day (1-31) of the date for which you would like to grab a periodic note.
+         */
+        day: number;
+        /**
+         * The name of the period for which you would like to grab a periodic note.
+         */
+        period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    };
+    query?: never;
+    url: '/periodic/{period}/{year}/{month}/{day}/';
+};
+
+export type DeletePeriodicByPeriodByYearByMonthByDayErrors = {
+    /**
+     * File does not exist.
+     */
+    404: _Error;
+    /**
+     * Your path references a directory instead of a file; this request method is valid only for updating files.
+     *
+     */
+    405: _Error;
+};
+
+export type DeletePeriodicByPeriodByYearByMonthByDayError = DeletePeriodicByPeriodByYearByMonthByDayErrors[keyof DeletePeriodicByPeriodByYearByMonthByDayErrors];
+
+export type DeletePeriodicByPeriodByYearByMonthByDayResponses = {
+    /**
+     * Success
+     */
+    204: void;
+};
+
+export type DeletePeriodicByPeriodByYearByMonthByDayResponse = DeletePeriodicByPeriodByYearByMonthByDayResponses[keyof DeletePeriodicByPeriodByYearByMonthByDayResponses];
+
+export type GetPeriodicByPeriodByYearByMonthByDayData = {
+    body?: never;
+    path: {
+        /**
+         * The year of the date for which you would like to grab a periodic note.
+         */
+        year: number;
+        /**
+         * The month (1-12) of the date for which you would like to grab a periodic note.
+         */
+        month: number;
+        /**
+         * The day (1-31) of the date for which you would like to grab a periodic note.
+         */
+        day: number;
+        /**
+         * The name of the period for which you would like to grab a periodic note.
+         */
+        period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    };
+    query?: never;
+    url: '/periodic/{period}/{year}/{month}/{day}/';
+};
+
+export type GetPeriodicByPeriodByYearByMonthByDayErrors = {
+    /**
+     * File does not exist
+     */
+    404: unknown;
+};
+
+export type GetPeriodicByPeriodByYearByMonthByDayResponses = {
+    /**
+     * Success
+     */
+    200: NoteJson;
+};
+
+export type GetPeriodicByPeriodByYearByMonthByDayResponse = GetPeriodicByPeriodByYearByMonthByDayResponses[keyof GetPeriodicByPeriodByYearByMonthByDayResponses];
+
+export type PatchPeriodicByPeriodByYearByMonthByDayData = {
+    /**
+     * Content you would like to insert.
+     */
+    body: string;
+    headers: {
+        /**
+         * Patch operation to perform
+         */
+        Operation: 'append' | 'prepend' | 'replace';
+        /**
+         * Type of target to patch
+         */
+        'Target-Type': 'heading' | 'block' | 'frontmatter';
+        /**
+         * Delimiter to use for nested targets (i.e. Headings)
+         */
+        'Target-Delimiter'?: string;
+        /**
+         * Target to patch; this value can be URL-Encoded and *must*
+         * be URL-Encoded if it includes non-ASCII characters.
+         *
+         */
+        Target: string;
+        /**
+         * Trim whitespace from Target before applying patch?
+         */
+        'Trim-Target-Whitespace'?: 'true' | 'false';
+    };
+    path: {
+        /**
+         * The year of the date for which you would like to grab a periodic note.
+         */
+        year: number;
+        /**
+         * The month (1-12) of the date for which you would like to grab a periodic note.
+         */
+        month: number;
+        /**
+         * The day (1-31) of the date for which you would like to grab a periodic note.
+         */
+        day: number;
+        /**
+         * The name of the period for which you would like to grab a periodic note.
+         */
+        period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    };
+    query?: never;
+    url: '/periodic/{period}/{year}/{month}/{day}/';
+};
+
+export type PatchPeriodicByPeriodByYearByMonthByDayErrors = {
+    /**
+     * Bad Request; see response message for details.
+     */
+    400: _Error;
+    /**
+     * Does not exist
+     */
+    404: _Error;
+    /**
+     * Your path references a directory instead of a file; this request method is valid only for updating files.
+     *
+     */
+    405: _Error;
+};
+
+export type PatchPeriodicByPeriodByYearByMonthByDayError = PatchPeriodicByPeriodByYearByMonthByDayErrors[keyof PatchPeriodicByPeriodByYearByMonthByDayErrors];
+
+export type PatchPeriodicByPeriodByYearByMonthByDayResponses = {
+    /**
+     * Success
+     */
+    200: unknown;
+};
+
+export type PostPeriodicByPeriodByYearByMonthByDayData = {
+    /**
+     * Content you would like to append.
+     */
+    body: string;
+    path: {
+        /**
+         * The year of the date for which you would like to grab a periodic note.
+         */
+        year: number;
+        /**
+         * The month (1-12) of the date for which you would like to grab a periodic note.
+         */
+        month: number;
+        /**
+         * The day (1-31) of the date for which you would like to grab a periodic note.
+         */
+        day: number;
+        /**
+         * The name of the period for which you would like to grab a periodic note.
+         */
+        period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    };
+    query?: never;
+    url: '/periodic/{period}/{year}/{month}/{day}/';
+};
+
+export type PostPeriodicByPeriodByYearByMonthByDayErrors = {
+    /**
+     * Bad Request
+     */
+    400: _Error;
+    /**
+     * Your path references a directory instead of a file; this request method is valid only for updating files.
+     *
+     */
+    405: _Error;
+};
+
+export type PostPeriodicByPeriodByYearByMonthByDayError = PostPeriodicByPeriodByYearByMonthByDayErrors[keyof PostPeriodicByPeriodByYearByMonthByDayErrors];
+
+export type PostPeriodicByPeriodByYearByMonthByDayResponses = {
+    /**
+     * Success
+     */
+    204: void;
+};
+
+export type PostPeriodicByPeriodByYearByMonthByDayResponse = PostPeriodicByPeriodByYearByMonthByDayResponses[keyof PostPeriodicByPeriodByYearByMonthByDayResponses];
+
+export type PutPeriodicByPeriodByYearByMonthByDayData = {
+    /**
+     * Content of the file you would like to upload.
+     */
+    body: string;
+    path: {
+        /**
+         * The year of the date for which you would like to grab a periodic note.
+         */
+        year: number;
+        /**
+         * The month (1-12) of the date for which you would like to grab a periodic note.
+         */
+        month: number;
+        /**
+         * The day (1-31) of the date for which you would like to grab a periodic note.
+         */
+        day: number;
+        /**
+         * The name of the period for which you would like to grab a periodic note.
+         */
+        period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    };
+    query?: never;
+    url: '/periodic/{period}/{year}/{month}/{day}/';
+};
+
+export type PutPeriodicByPeriodByYearByMonthByDayErrors = {
+    /**
+     * Incoming file could not be processed.  Make sure you have specified a reasonable file name, and make sure you have set a reasonable 'Content-Type' header; if you are uploading a note, 'text/markdown' is likely the right choice.
+     *
+     */
+    400: _Error;
+    /**
+     * Your path references a directory instead of a file; this request method is valid only for updating files.
+     *
+     */
+    405: _Error;
+};
+
+export type PutPeriodicByPeriodByYearByMonthByDayError = PutPeriodicByPeriodByYearByMonthByDayErrors[keyof PutPeriodicByPeriodByYearByMonthByDayErrors];
+
+export type PutPeriodicByPeriodByYearByMonthByDayResponses = {
+    /**
+     * Success
+     */
+    204: void;
+};
+
+export type PutPeriodicByPeriodByYearByMonthByDayResponse = PutPeriodicByPeriodByYearByMonthByDayResponses[keyof PutPeriodicByPeriodByYearByMonthByDayResponses];
 
 export type PostSearchData = {
     body: {

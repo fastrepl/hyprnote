@@ -29,6 +29,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_vault_name::<tauri::Wry>,
             commands::get_enabled::<tauri::Wry>,
             commands::set_enabled::<tauri::Wry>,
+            commands::get_deep_link_url::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

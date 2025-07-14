@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Session } from "@hypr/plugin-db";
+import { commands as obsidianCommands } from "@hypr/plugin-obsidian";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { useSession } from "@hypr/utils/contexts";
@@ -35,29 +36,36 @@ function ShareButtonInNote() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
+  const isObsidianConfigured = useQuery({
+    queryKey: ["integration", "obsidian", "enabled"],
+    queryFn: () => obsidianCommands.getEnabled(),
+  });
+
   const exportOptions: ExportCard[] = [
     {
       id: "pdf",
       title: "PDF",
       icon: <FileText size={20} />,
       description: "Save as PDF document",
-      docsUrl: "https://docs.hyprnote.com/share/pdf",
+      docsUrl: "https://docs.hyprnote.com/sharing#pdf",
     },
     {
       id: "email",
       title: "Email",
       icon: <Mail size={20} />,
       description: "Share via email",
-      docsUrl: "https://docs.hyprnote.com/share/email",
+      docsUrl: "https://docs.hyprnote.com/sharing#email",
     },
-    {
-      id: "obsidian",
-      title: "Obsidian",
-      icon: <BookText size={20} />,
-      description: "Export to Obsidian",
-      docsUrl: "https://docs.hyprnote.com/share/obsidian",
-    },
-  ];
+    isObsidianConfigured.data
+      ? {
+        id: "obsidian",
+        title: "Obsidian",
+        icon: <BookText size={20} />,
+        description: "Export to Obsidian",
+        docsUrl: "https://docs.hyprnote.com/sharing#obsidian",
+      }
+      : null,
+  ].filter(Boolean) as ExportCard[];
 
   const toggleExpanded = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -86,6 +94,7 @@ function ShareButtonInNote() {
         url: string;
       } | {
         type: "obsidian";
+        url: string;
       } | null = null;
 
       if (optionId === "pdf") {
@@ -94,7 +103,8 @@ function ShareButtonInNote() {
       } else if (optionId === "email") {
         result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
       } else if (optionId === "obsidian") {
-        result = { type: "obsidian" };
+        const url = await obsidianCommands.getDeepLinkUrl(session.title);
+        result = { type: "obsidian", url };
       }
 
       const elapsed = performance.now() - start;

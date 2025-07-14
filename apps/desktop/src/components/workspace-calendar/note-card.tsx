@@ -1,14 +1,12 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { Pen } from "lucide-react";
+import { File, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import { type Session } from "@hypr/plugin-db";
+import type { Session } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
@@ -21,6 +19,18 @@ export function NoteCard({
 }) {
   const { userId } = useHypr();
   const [open, setOpen] = useState(false);
+
+  // Fetch linked event if this session is connected to a calendar event
+  const linkedEvent = useQuery({
+    queryKey: ["session-linked-event", session.calendar_event_id],
+    queryFn: async () => {
+      if (!session.calendar_event_id) {
+        return null;
+      }
+      return await dbCommands.getEvent(session.calendar_event_id);
+    },
+    enabled: !!session.calendar_event_id,
+  });
 
   const participants = useQuery({
     queryKey: ["participants", session.id],
@@ -66,46 +76,73 @@ export function NoteCard({
   };
 
   const getStartDate = () => {
-    return session.calendar_event_id
-      ? new Date(session.created_at)
-      : new Date();
+    // If recorded, use record_start; otherwise use created_at
+    if (session.record_start) {
+      return new Date(session.record_start);
+    }
+    return new Date(session.created_at);
   };
 
   const getEndDate = () => {
-    return session.calendar_event_id
-      ? new Date(session.created_at)
-      : new Date();
+    // Only return end date if this is a recorded session
+    if (session.record_start && session.record_end) {
+      return new Date(session.record_end);
+    }
+    // For unrecorded notes, return same as start (single point in time)
+    return getStartDate();
   };
+
+  const isRecordedSession = session.record_start && session.record_end;
+  const shouldShowRange = isRecordedSession;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-600"></div>
+          {isRecordedSession
+            ? <FileText className="w-2.5 h-2.5 mt-0.5 text-neutral-500 flex-shrink-0" />
+            : <File className="w-2.5 h-2.5 mt-0.5 text-neutral-500 flex-shrink-0" />}
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
-            {session.title || "Untitled"}
+            {linkedEvent.data?.name || session.title || "Untitled"}
           </div>
 
           {showTime && (
             <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
+              {shouldShowRange
+                ? `${format(getStartDate(), "h:mm a")} - ${format(getEndDate(), "h:mm a")}`
+                : format(getStartDate(), "h:mm a")}
             </div>
           )}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="font-semibold text-lg mb-2 text-neutral-800">
-          {session.title || "Untitled"}
+        <div className="font-semibold text-lg mb-2 text-neutral-800 flex items-center gap-2">
+          {isRecordedSession
+            ? <FileText className="w-5 h-5 text-neutral-600" />
+            : <File className="w-5 h-5 text-neutral-600" />}
+          {linkedEvent.data?.name || session.title || "Untitled"}
         </div>
 
         <p className="text-sm mb-2 text-neutral-600">
-          {format(getStartDate(), "MMM d, h:mm a")}
-          {" - "}
-          {format(getStartDate(), "yyyy-MM-dd")
-              !== format(getEndDate(), "yyyy-MM-dd")
-            ? format(getEndDate(), "MMM d, h:mm a")
-            : format(getEndDate(), "h:mm a")}
+          {shouldShowRange
+            ? (
+              // Recorded session: show record range
+              <>
+                {format(getStartDate(), "MMM d, h:mm a")}
+                {" - "}
+                {format(getStartDate(), "yyyy-MM-dd")
+                    !== format(getEndDate(), "yyyy-MM-dd")
+                  ? format(getEndDate(), "MMM d, h:mm a")
+                  : format(getEndDate(), "h:mm a")}
+              </>
+            )
+            : (
+              // Unrecorded note: show just creation time
+              <>
+                Created: {format(getStartDate(), "MMM d, h:mm a")}
+              </>
+            )}
         </p>
 
         {participantsPreview && participantsPreview.length > 0 && (
@@ -114,14 +151,22 @@ export function NoteCard({
           </div>
         )}
 
-        <Button
-          className="w-full inline-flex gap-2"
-          size="md"
+        <div
+          className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
           onClick={() => handleClick(session.id)}
         >
-          <Pen className="size-4" />
-          <Trans>Open Note</Trans>
-        </Button>
+          {isRecordedSession
+            ? <FileText className="w-4 h-4 text-neutral-600" />
+            : <File className="w-4 h-4 text-neutral-600" />}
+          <div className="flex-1">
+            <div className="text-sm font-medium text-neutral-800">
+              {linkedEvent.data?.name || session.title || "Untitled"}
+            </div>
+            <div className="text-xs text-neutral-500">
+              {isRecordedSession ? "Recorded note" : "Note"} · Click to open
+            </div>
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );

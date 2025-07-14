@@ -68,10 +68,21 @@ export const Route = createFileRoute("/app/finder")({
           }),
       });
 
-      const [sessions, events] = await Promise.all([
+      const [sessions, rawEvents] = await Promise.all([
         sessionsPromise,
         eventsPromise,
       ]);
+
+      // Deduplicate events by tracking_id to handle any sync issues
+      // Keep the most recent event (by database id) for each tracking_id
+      const eventsByTrackingId = new Map<string, typeof rawEvents[0]>();
+      rawEvents.forEach(event => {
+        const existing = eventsByTrackingId.get(event.tracking_id);
+        if (!existing || event.id > existing.id) {
+          eventsByTrackingId.set(event.tracking_id, event);
+        }
+      });
+      const events = Array.from(eventsByTrackingId.values());
 
       return {
         ...baseData,
@@ -109,10 +120,21 @@ export const Route = createFileRoute("/app/finder")({
           }),
       });
 
-      const [sessions, events] = await Promise.all([
+      const [sessions, rawEvents] = await Promise.all([
         sessionsPromise,
         eventsPromise,
       ]);
+
+      // Deduplicate events by tracking_id to handle any sync issues
+      // Keep the most recent event (by database id) for each tracking_id
+      const eventsByTrackingId = new Map<string, typeof rawEvents[0]>();
+      rawEvents.forEach(event => {
+        const existing = eventsByTrackingId.get(event.tracking_id);
+        if (!existing || event.id > existing.id) {
+          eventsByTrackingId.set(event.tracking_id, event);
+        }
+      });
+      const events = Array.from(eventsByTrackingId.values());
 
       return {
         ...baseData,

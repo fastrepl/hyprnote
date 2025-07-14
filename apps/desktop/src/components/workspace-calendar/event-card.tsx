@@ -2,13 +2,13 @@ import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { ExternalLinkIcon, Pen } from "lucide-react";
+import { Calendar, FileText, Pen } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
+import { openURL } from "@/utils/shell";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { safeNavigate } from "@hypr/utils/navigation";
 
@@ -99,7 +99,7 @@ export function EventCard({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-400"></div>
+          <Calendar className="w-2.5 h-2.5 mt-0.5 text-neutral-500 flex-shrink-0" />
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
             {event.name || "Untitled Event"}
@@ -113,25 +113,27 @@ export function EventCard({
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="flex mb-2 items-center justify-between">
-          <div className="font-semibold text-lg text-neutral-800">
-            {event.name || "Untitled Event"}
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(event.google_event_url as string, "_blank")}
-          >
-            <ExternalLinkIcon size={14} />
-          </Button>
+        <div
+          className="font-semibold text-lg text-neutral-800 flex items-center gap-2 mb-2 cursor-pointer hover:text-neutral-600 transition-colors"
+          onClick={async () => {
+            if (event.google_event_url) {
+              try {
+                await openURL(event.google_event_url as string);
+              } catch (error) {
+                console.error("Failed to open event URL:", error);
+              }
+            }
+          }}
+        >
+          <Calendar className="w-5 h-5 text-neutral-600" />
+          {event.name || "Untitled Event"}
         </div>
 
         <p className="text-sm text-neutral-600 mb-2">
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
           {format(getStartDate(), "yyyy-MM-dd")
-              !== format(getEndDate(), "yyyy-MM-dd")
+            !== format(getEndDate(), "yyyy-MM-dd")
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
@@ -144,29 +146,32 @@ export function EventCard({
 
         {session.data
           ? (
-            <Button
-              className="w-full inline-flex gap-2"
-              size="md"
+            <div
+              className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              <Pen className="size-4" />
-              <Trans>Open Note</Trans>
-            </Button>
+              <FileText className="w-4 h-4 text-neutral-600" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-neutral-800">
+                  {session.data.title || "Untitled Note"}
+                </div>
+                <div className="text-xs text-neutral-500">Click to open note</div>
+              </div>
+            </div>
           )
           : (
-            <Button
-              className="w-full inline-flex gap-2"
-              size="md"
-              disabled={session.isLoading}
+            <div
+              className="flex items-center gap-2 p-2 bg-neutral-50 border border-dashed border-neutral-300 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              {session.isLoading ? <Trans>Loading...</Trans> : (
-                <>
-                  <Pen className="size-4" />
-                  <Trans>Create Note</Trans>
-                </>
-              )}
-            </Button>
+              <Pen className="w-4 h-4 text-neutral-400" />
+              <div className="flex-1">
+                <div className="text-sm text-neutral-600">
+                  {session.isLoading ? <Trans>Loading...</Trans> : <Trans>Create Note</Trans>}
+                </div>
+                <div className="text-xs text-neutral-400">Click to add a note</div>
+              </div>
+            </div>
           )}
       </PopoverContent>
     </Popover>

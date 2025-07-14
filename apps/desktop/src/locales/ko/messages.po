@@ -251,13 +251,14 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
-#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
-#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
+#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#: src/components/settings/views/templates.tsx:194
+#: src/components/settings/components/wer-modal.tsx:116
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/settings/components/ai/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:178
-#: src/components/editor-area/note-header/listen-button.tsx:217
+#: src/components/editor-area/note-header/listen-button.tsx:179
+#: src/components/editor-area/note-header/listen-button.tsx:218
 msgid "{0}"
 msgstr ""
 
@@ -266,7 +267,7 @@ msgstr ""
 msgid "{0} calendars selected"
 msgstr ""
 
-#: src/components/settings/components/ai/wer-modal.tsx:103
+#: src/components/settings/components/wer-modal.tsx:103
 msgid "{category}"
 msgstr ""
 
@@ -303,7 +304,7 @@ msgstr ""
 msgid "Access Granted"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:230
+#: src/components/settings/views/template.tsx:233
 msgid "Add a description..."
 msgstr ""
 
@@ -346,11 +347,11 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:200
+#: src/components/settings/views/ai.tsx:582
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:226
+#: src/components/settings/views/ai.tsx:608
 msgid "API Key"
 msgstr ""
 
@@ -383,7 +384,7 @@ msgstr ""
 msgid "Billing features are currently under development and will be available in a future update."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:278
+#: src/components/settings/views/templates.tsx:279
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -425,7 +426,7 @@ msgstr ""
 msgid "Choose your preferred language of use"
 msgstr ""
 
-#: src/components/settings/components/ai/wer-modal.tsx:126
+#: src/components/settings/components/wer-modal.tsx:126
 msgid "Close"
 msgstr ""
 
@@ -451,7 +452,7 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:180
+#: src/components/settings/views/ai.tsx:562
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr ""
 
@@ -493,7 +494,7 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:268
+#: src/components/settings/views/templates.tsx:269
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -501,7 +502,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:177
+#: src/components/settings/views/ai.tsx:559
 msgid "Custom Endpoint"
 msgstr ""
 
@@ -509,7 +510,7 @@ msgstr ""
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:206
+#: src/components/settings/views/template.tsx:215
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:335
 msgid "Delete"
@@ -523,7 +524,7 @@ msgstr ""
 msgid "Describe the issue"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:224
+#: src/components/settings/views/template.tsx:227
 msgid "Description"
 msgstr ""
 
@@ -532,11 +533,11 @@ msgstr ""
 #~ msgstr ""
 
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
-#: src/components/settings/components/ai/stt-view.tsx:273
+#: src/components/settings/components/ai/stt-view.tsx:237
 msgid "Download {0}"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:198
+#: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
 msgstr ""
 
@@ -552,7 +553,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:157
+#: src/components/settings/views/template.tsx:163
 msgid "Emoji"
 msgstr ""
 
@@ -560,7 +561,7 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:102
+#: src/components/settings/views/ai.tsx:433
 msgid "Enhancing"
 msgstr ""
 
@@ -569,11 +570,15 @@ msgid "Enter a section title"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:291
-msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
+#~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
+#~ msgstr ""
+
+#: src/components/settings/views/ai.tsx:611
+msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:229
-msgid "Enter the API key for your custom LLM endpoint"
+#: src/components/settings/views/ai.tsx:585
+msgid "Enter the base URL for your custom LLM endpoint"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
@@ -581,8 +586,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
-msgstr ""
+#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:203
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
@@ -600,7 +605,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:93
+#: src/routes/app.settings.tsx:92
 msgid "Feedback"
 msgstr ""
 
@@ -729,7 +734,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:263
+#: src/components/settings/views/ai.tsx:645
 msgid "Loading available models..."
 msgstr ""
 
@@ -737,7 +742,7 @@ msgstr ""
 msgid "Loading events..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:216
+#: src/components/settings/views/templates.tsx:217
 msgid "Loading templates..."
 msgstr ""
 
@@ -775,7 +780,7 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:251
+#: src/components/settings/views/ai.tsx:633
 msgid "Model Name"
 msgstr ""
 
@@ -828,7 +833,7 @@ msgstr ""
 msgid "No recent notes for this organization"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:284
+#: src/components/settings/components/ai/stt-view.tsx:248
 msgid "No speech-to-text models available or failed to load."
 msgstr ""
 
@@ -836,11 +841,11 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:341
+#: src/components/editor-area/note-header/listen-button.tsx:342
 msgid "No Template (Default)"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:265
+#: src/components/settings/views/templates.tsx:266
 msgid "No templates yet"
 msgstr ""
 
@@ -870,7 +875,11 @@ msgid "Ooh! Suggestion!"
 msgstr ""
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
-msgid "Open calendar view"
+#~ msgid "Open calendar view"
+#~ msgstr ""
+
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
+msgid "Open finder view"
 msgstr ""
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
@@ -893,7 +902,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:364
+#: src/components/editor-area/note-header/listen-button.tsx:365
 msgid "Pause"
 msgstr ""
 
@@ -901,11 +910,11 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:114
+#: src/components/settings/views/ai.tsx:295
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:197
+#: src/components/editor-area/note-header/listen-button.tsx:198
 msgid "Play video"
 msgstr ""
 
@@ -949,7 +958,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:106
+#: src/components/editor-area/note-header/listen-button.tsx:107
 msgid "Resume"
 msgstr ""
 
@@ -959,8 +968,8 @@ msgid "Role"
 msgstr ""
 
 #: src/components/settings/views/templates.tsx:193
-msgid "Save and close"
-msgstr ""
+#~ msgid "Save and close"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:174
 msgid "Save recordings"
@@ -987,15 +996,15 @@ msgstr ""
 #~ msgid "Searching..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:237
+#: src/components/settings/views/template.tsx:240
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-view.tsx:254
+#: src/components/settings/views/ai.tsx:636
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:233
+#: src/components/settings/views/templates.tsx:234
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1047,11 +1056,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:153
+#: src/components/editor-area/note-header/listen-button.tsx:154
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:372
+#: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Stop"
 msgstr ""
 
@@ -1109,7 +1118,7 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
-#: src/components/toolbar/bars/calendar-toolbar.tsx:67
+#: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
 msgstr ""
 
@@ -1125,7 +1134,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:98
+#: src/components/settings/views/ai.tsx:286
 msgid "Transcribing"
 msgstr ""
 
@@ -1145,7 +1154,7 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:182
+#: src/components/settings/views/template.tsx:188
 msgid "Untitled Template"
 msgstr ""
 
@@ -1162,8 +1171,8 @@ msgid "Upgrade"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:155
-msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
-msgstr ""
+#~ msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:101
 msgid "User"
@@ -1210,11 +1219,11 @@ msgstr ""
 msgid "What's your role?"
 msgstr ""
 
-#: src/components/settings/components/ai/wer-modal.tsx:69
+#: src/components/settings/components/wer-modal.tsx:69
 msgid "Whisper Model Language Performance (WER)"
 msgstr ""
 
-#: src/components/settings/components/ai/wer-modal.tsx:72
+#: src/components/settings/components/wer-modal.tsx:72
 msgid "Word Error Rate (WER) indicates transcription accuracy (lower is better). Data based on the FLEURS dataset, measured with OpenAI's Whisper <0>large-v3-turbo</0> model. <1>More info</1>"
 msgstr ""
 
@@ -1242,7 +1251,7 @@ msgstr ""
 msgid "Your Name"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:230
+#: src/components/settings/views/templates.tsx:231
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr ""

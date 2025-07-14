@@ -2,12 +2,5 @@
   "name": "@hypr/plugin-meeting-automation",
   "version": "0.1.0",
   "main": "js/index.ts",
-  "types": "js/index.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0"
-  }
+  "types": "js/index.ts"
 }

@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { BookText, ChevronDown, ChevronUp, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
 import { useState } from "react";
@@ -116,15 +117,27 @@ function ShareButtonInNote() {
           obsidianCommands.getApiKey(),
           obsidianCommands.getBaseUrl(),
         ]);
-        client.setConfig({ auth: () => apiKey!, baseUrl: baseUrl! });
+        client.setConfig({
+          fetch: tauriFetch,
+          auth: () => apiKey!,
+          baseUrl: baseUrl!,
+        });
 
         const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
         const filePath = baseFolder ? await join(baseFolder!, filename) : filename;
 
+        const content = `---
+title: ${session.title}
+date: ${new Date().toISOString()}
+---
+
+${session.enhanced_memo_html}
+`;
+
         await putVaultByFilename({
           client,
           path: { filename: filePath },
-          body: session.enhanced_memo_html ?? "",
+          body: content,
         });
 
         const url = await obsidianCommands.getDeepLinkUrl(filePath);

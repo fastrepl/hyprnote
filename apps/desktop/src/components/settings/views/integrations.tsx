@@ -1,19 +1,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { client, commands as obsidianCommands, getCommands } from "@hypr/plugin-obsidian";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 const schema = z.object({
   enabled: z.boolean(),
-  baseUrl: z.string().url().optional(),
-  apiKey: z.string().optional(),
+  baseUrl: z.string().url().refine((url) => url.startsWith("http://") && !url.startsWith("https://"), {
+    message: "URL must start with http://, not https://",
+  }),
+  apiKey: z.string().min(1, "API key is required"),
+  baseFolder: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -34,29 +46,30 @@ export default function IntegrationsComponent() {
     queryFn: () => obsidianCommands.getBaseUrl(),
   });
 
-  const _listObsidianCommands = async () => {
-    client.setConfig({
-      auth: () => getApiKey.data!,
-      baseUrl: getBaseUrl.data!,
-    });
-    const commands = await getCommands({ client });
-    return commands;
-  };
-
-  const setApiKey = useMutation({
-    mutationFn: (apiKey: string) => obsidianCommands.setApiKey(apiKey),
-    onSuccess: () => {
-      getApiKey.refetch();
-      getEnabled.refetch();
-    },
+  const getBaseFolder = useQuery({
+    queryKey: ["obsidian-base-folder"],
+    queryFn: () => obsidianCommands.getBaseFolder?.() || Promise.resolve(""),
   });
 
-  const setBaseUrl = useMutation({
-    mutationFn: (baseUrl: string) => obsidianCommands.setBaseUrl(baseUrl),
-    onSuccess: () => {
-      getBaseUrl.refetch();
-      getEnabled.refetch();
+  const connected = useQuery({
+    enabled: !!getEnabled.data && !!getApiKey.data && !!getBaseUrl.data,
+    queryKey: ["obsidian-connected"],
+    queryFn: async () => {
+      client.setConfig({
+        fetch: tauriFetch,
+        auth: () => getApiKey.data!,
+        baseUrl: getBaseUrl.data!,
+      });
+
+      try {
+        const { data } = await getCommands({ client });
+        const num = data?.commands?.length ?? 0;
+        return num > 0;
+      } catch (e) {
+        return false;
+      }
     },
+    refetchInterval: 3000,
   });
 
   const form = useForm<FormValues>({
@@ -66,26 +79,41 @@ export default function IntegrationsComponent() {
       enabled: false,
       baseUrl: "",
       apiKey: "",
+      baseFolder: "",
     },
   });
 
   useEffect(() => {
-    if (getApiKey.data !== undefined && getBaseUrl.data !== undefined) {
-      form.reset({
-        enabled: getEnabled.data || false,
-        baseUrl: getBaseUrl.data || "",
-        apiKey: getApiKey.data || "",
-      });
-    }
-  }, [getApiKey.data, getBaseUrl.data, getEnabled.data]);
+    form.reset({
+      enabled: getEnabled.data || false,
+      baseUrl: getBaseUrl.data || "",
+      apiKey: getApiKey.data || "",
+      baseFolder: getBaseFolder.data || "",
+    });
+  }, [
+    form,
+    getEnabled.data,
+    getBaseUrl.data,
+    getApiKey.data,
+    getBaseFolder.data,
+  ]);
 
   useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (!form.formState.errors.baseUrl && value.baseUrl && value.enabled) {
-        setBaseUrl.mutate(value.baseUrl);
+    const subscription = form.watch((value, { name }) => {
+      if (name === "enabled") {
+        obsidianCommands.setEnabled(value.enabled ?? false);
       }
-      if (!form.formState.errors.apiKey && value.apiKey && value.enabled) {
-        setApiKey.mutate(value.apiKey);
+
+      if (name === "baseUrl") {
+        obsidianCommands.setBaseUrl(value.baseUrl ?? "");
+      }
+
+      if (name === "apiKey") {
+        obsidianCommands.setApiKey(value.apiKey ?? "");
+      }
+
+      if (name === "baseFolder") {
+        obsidianCommands.setBaseFolder(value.baseFolder ?? "");
       }
     });
 
@@ -104,7 +132,6 @@ export default function IntegrationsComponent() {
       </div>
 
       <div className="space-y-4">
-        {/* Obsidian Integration Card */}
         <div className="rounded-lg border p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -116,18 +143,12 @@ export default function IntegrationsComponent() {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  getEnabled.data ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {getEnabled.data ? <Trans>Connected</Trans> : <Trans>Not Connected</Trans>}
-              </span>
+              {connected.data ? "Connected" : "Disconnected"}
             </div>
           </div>
 
           <Form {...form}>
-            <div className="space-y-4">
+            <form className="space-y-4">
               <FormField
                 control={form.control}
                 name="enabled"
@@ -138,7 +159,10 @@ export default function IntegrationsComponent() {
                         <Trans>Enable Integration</Trans>
                       </FormLabel>
                       <FormDescription>
-                        <Trans>Turn on Obsidian integration</Trans>
+                        <Trans>
+                          Turn on Obsidian integration to sync notes and access vault data. When enabled, you can search
+                          and reference your Obsidian notes directly.
+                        </Trans>
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -163,13 +187,17 @@ export default function IntegrationsComponent() {
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="https://your-obsidian-server.com"
+                            placeholder="http://localhost:27123"
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>The base URL of your Obsidian server</Trans>
+                          <Trans>
+                            The base URL of your Obsidian server. This is typically http://localhost:27123 for local
+                            installations. Must use HTTP, not HTTPS.
+                          </Trans>
                         </FormDescription>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -185,23 +213,51 @@ export default function IntegrationsComponent() {
                         <FormControl>
                           <Input
                             type="password"
-                            placeholder="Enter your API key"
+                            placeholder="Enter your Obsidian API key"
                             {...field}
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>Your Obsidian API key for authentication</Trans>
+                          <Trans>
+                            Your Obsidian API key for authentication. You can find this in your Obsidian settings under
+                            Community Plugins &gt; Obsidian Web plugin.
+                          </Trans>
                         </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="baseFolder"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <Trans>Base Folder</Trans>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Notes, Journal, or leave empty for root"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          <Trans>
+                            Optional base folder path within your Obsidian vault. If specified, only notes within this
+                            folder will be accessible. Leave empty to access the entire vault.
+                          </Trans>
+                        </FormDescription>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
               )}
-            </div>
+            </form>
           </Form>
         </div>
 
-        {/* Placeholder for future integrations */}
         <div className="rounded-lg border border-dashed p-6 text-center">
           <div className="text-muted-foreground">
             <p className="text-sm">

@@ -1,34 +1,42 @@
-use crate::config::{AutomationConfig, MeetingDetectionEvent, MeetingEventType};
-use crate::detector::{MeetingEventReceiver, UnifiedDetector};
+use crate::config::AutomationConfig;
 use crate::Result;
+use chrono::{DateTime, Duration, Utc};
+use hypr_db_user::get_events_in_range;
+use hypr_detect::{new_callback, Detector};
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, Listener};
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_db::ManagedState;
 use tauri_plugin_listener::ListenerPluginExt;
-use tauri_plugin_notification::NotificationPluginExt;
-use tokio::sync::Mutex;
-use tracing::{debug, error, info, warn};
+use tokio::time::{sleep, Duration as TokioDuration};
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
+#[derive(Debug, Clone)]
+struct ScheduledEvent {
+    id: String,
+    title: String,
+    start_time: DateTime<Utc>,
+    end_time: DateTime<Utc>,
+}
+
 pub struct MeetingAutomation<R: tauri::Runtime> {
-    detector: UnifiedDetector<R>,
+    config: AutomationConfig,
     app_handle: AppHandle<R>,
-    event_receiver: Arc<Mutex<MeetingEventReceiver>>,
+    detector: Option<Detector>,
     is_running: Arc<std::sync::atomic::AtomicBool>,
-    event_handler: Option<tokio::task::JoinHandle<()>>,
-    pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
+    detection_handles: Vec<tokio::task::JoinHandle<()>>,
+    current_session_id: Option<String>,
 }
 
 impl<R: tauri::Runtime> MeetingAutomation<R> {
     pub fn new(config: AutomationConfig, app_handle: AppHandle<R>) -> Result<Self> {
-        let (detector, event_receiver) = UnifiedDetector::new(config, app_handle.clone())?;
-
         Ok(Self {
-            detector,
+            config,
             app_handle,
-            event_receiver: Arc::new(Mutex::new(event_receiver)),
+            detector: None,
             is_running: Arc::new(std::sync::atomic::AtomicBool::new(false)),
-            event_handler: None,
-            pending_notifications: Arc::new(Mutex::new(std::collections::HashMap::new())),
+            detection_handles: Vec::new(),
+            current_session_id: None,
         })
     }
 
@@ -39,38 +47,19 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         info!("Starting meeting automation");
 
-        self.detector.start()?;
+        if self.config.auto_start_on_app_detection || self.config.auto_start_on_mic_activity {
+            self.start_detect_detection()?;
+        }
 
-        // Set up notification action listener
-        let pending_notifications = self.pending_notifications.clone();
-        let notification_app_handle = self.app_handle.clone();
-        self.app_handle.listen("notification_action", move |event| {
-            let pending_notifications = pending_notifications.clone();
-            let app_handle = notification_app_handle.clone();
-            tokio::spawn(async move {
-                Self::handle_notification_action(event, pending_notifications, app_handle).await;
-            });
-        });
+        if self.config.auto_start_scheduled_meetings {
+            self.start_scheduled_detection()?;
+        }
 
-        let event_receiver = self.event_receiver.clone();
-        let app_handle = self.app_handle.clone();
-        let is_running = self.is_running.clone();
-        let pending_notifications = self.pending_notifications.clone();
+        if self.config.require_window_focus {
+            self.start_window_detection()?;
+        }
 
-        let handle = tokio::spawn(async move {
-            Self::handle_events(
-                event_receiver,
-                app_handle,
-                is_running,
-                pending_notifications,
-            )
-            .await;
-        });
-
-        self.event_handler = Some(handle);
-        self.is_running
-            .store(true, std::sync::atomic::Ordering::SeqCst);
-
+        self.is_running.store(true, std::sync::atomic::Ordering::SeqCst);
         Ok(())
     }
 
@@ -81,17 +70,15 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
 
         info!("Stopping meeting automation");
 
-        if let Err(e) = self.detector.stop() {
-            warn!("Error stopping detector: {}", e);
+        if let Some(mut detector) = self.detector.take() {
+            detector.stop();
         }
 
-        if let Some(handle) = self.event_handler.take() {
+        for handle in self.detection_handles.drain(..) {
             handle.abort();
         }
 
-        self.is_running
-            .store(false, std::sync::atomic::Ordering::SeqCst);
-
+        self.is_running.store(false, std::sync::atomic::Ordering::SeqCst);
         Ok(())
     }
 
@@ -100,372 +87,327 @@ impl<R: tauri::Runtime> MeetingAutomation<R> {
     }
 
     pub fn update_config(&mut self, config: AutomationConfig) -> Result<()> {
-        self.detector.update_config(config)?;
+        self.config = config;
+        if self.is_running() {
+            self.stop()?;
+            self.start()?;
+        }
         Ok(())
     }
 
     pub fn test_detection(&self) -> Result<()> {
-        self.detector.simulate_mic_activity()?;
+        if !self.is_running() {
+            return Err(crate::Error::AutomationNotRunning);
+        }
+
+        self.handle_app_launch("us.zoom.xos");
         Ok(())
     }
 
-    async fn handle_events(
-        event_receiver: Arc<Mutex<MeetingEventReceiver>>,
-        app_handle: AppHandle<R>,
-        is_running: Arc<std::sync::atomic::AtomicBool>,
-        pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
-    ) {
-        let mut receiver = event_receiver.lock().await;
+    fn start_detect_detection(&mut self) -> Result<()> {
+        info!("Starting app and microphone detection");
 
-        while is_running.load(std::sync::atomic::Ordering::SeqCst) {
-            if let Some(event) = receiver.recv().await {
-                debug!("Processing meeting event: {:?}", event);
-
-                if let Err(e) =
-                    Self::process_meeting_event(&app_handle, event, &pending_notifications).await
-                {
-                    error!("Error processing meeting event: {}", e);
+        let config = self.config.clone();
+        let app_handle = self.app_handle.clone();
+        
+        let callback = new_callback(move |event_data: String| {
+            debug!("Detection event: {}", event_data);
+            
+            if event_data.starts_with("app_launched:") {
+                let bundle_id = event_data.replace("app_launched:", "");
+                if config.auto_start_on_app_detection && config.is_supported_app(&bundle_id) {
+                    Self::handle_app_launch_async(&app_handle, &config, &bundle_id);
                 }
-            }
-        }
-    }
-
-    async fn process_meeting_event(
-        app_handle: &AppHandle<R>,
-        event: MeetingDetectionEvent,
-        pending_notifications: &Arc<
-            Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>,
-        >,
-    ) -> Result<()> {
-        match event.event_type {
-            MeetingEventType::AppLaunched => {
-                info!("Meeting app launched: {}", event.app_name);
-
-                let notification_id = format!("app_launched_{}", Uuid::new_v4());
-
-                // Store the event for later action handling
-                {
-                    let mut pending = pending_notifications.lock().await;
-                    pending.insert(notification_id.clone(), event.clone());
+            } else if event_data.starts_with("app_terminated:") {
+                let bundle_id = event_data.replace("app_terminated:", "");
+                if config.auto_stop_on_app_exit && config.is_supported_app(&bundle_id) {
+                    Self::handle_app_terminate_async(&app_handle, &config, &bundle_id);
                 }
-
-                Self::show_notification_with_id(
-                    app_handle,
-                    &notification_id,
-                    "Meeting Detected",
-                    &format!("Are you in a meeting with {}?", event.app_name),
-                    vec![
-                        ("Start Recording".to_string(), "start_recording".to_string()),
-                        ("Ignore".to_string(), "ignore".to_string()),
-                    ],
-                )
-                .await?;
-
-                // Only auto-start if specifically configured to do so
-                // Removed automatic start - let user decide via notification
-            }
-
-            MeetingEventType::AppTerminated => {
-                info!("Meeting app terminated: {}", event.app_name);
-                Self::stop_recording(app_handle, &event).await?;
-            }
-
-            MeetingEventType::MicActivityDetected => {
-                info!("Microphone activity detected");
-
-                let notification_id = format!("mic_activity_{}", Uuid::new_v4());
-
-                // Store the event for later action handling
-                {
-                    let mut pending = pending_notifications.lock().await;
-                    pending.insert(notification_id.clone(), event.clone());
+            } else if event_data == "microphone_in_use" {
+                if config.auto_start_on_mic_activity {
+                    Self::handle_mic_activity_async(&app_handle);
                 }
-
-                Self::show_notification_with_id(
-                    app_handle,
-                    &notification_id,
-                    "Microphone Activity",
-                    "Microphone activity detected. Start recording?",
-                    vec![
-                        ("Start Recording".to_string(), "start_recording".to_string()),
-                        ("Ignore".to_string(), "ignore".to_string()),
-                    ],
-                )
-                .await?;
-            }
-
-            MeetingEventType::MicActivityStopped => {
-                info!("Microphone activity stopped");
-                Self::show_notification(
-                    app_handle,
-                    "Microphone Inactive",
-                    "Meeting might be ending. Continue recording?",
-                    vec![
-                        ("Continue".to_string(), "continue_recording".to_string()),
-                        ("Stop Recording".to_string(), "stop_recording".to_string()),
-                    ],
-                )
-                .await?;
-            }
-
-            MeetingEventType::ScheduledMeetingStarting => {
-                let title = event.metadata.get("event_title").unwrap_or(&event.app_name);
-                let default_minutes = "0".to_string();
-                let minutes_until = event
-                    .metadata
-                    .get("minutes_until")
-                    .unwrap_or(&default_minutes);
-
-                if minutes_until == "0" {
-                    info!("Scheduled meeting starting now: {}", title);
-                    Self::start_recording(app_handle, &event).await?;
-                } else {
-                    info!(
-                        "Scheduled meeting '{}' starting in {} minutes",
-                        title, minutes_until
-                    );
-
-                    Self::show_notification(
-                        app_handle,
-                        "Meeting Starting Soon",
-                        &format!("'{}' starts in {} minutes", title, minutes_until),
-                        vec![
-                            ("Start Recording".to_string(), "start_recording".to_string()),
-                            ("Remind Me Later".to_string(), "remind_later".to_string()),
-                        ],
-                    )
-                    .await?;
-                }
-            }
-
-            MeetingEventType::WindowFocused => {
-                debug!("Meeting app window focused: {}", event.app_name);
-
-                info!("Window focus detected for meeting app: {}", event.app_name);
-
-                Self::show_notification(
-                    app_handle,
-                    "Meeting Window Active",
-                    &format!("Meeting window is now focused: {}", event.app_name),
-                    vec![
-                        ("Start Recording".to_string(), "start_recording".to_string()),
-                        ("Ignore".to_string(), "ignore".to_string()),
-                    ],
-                )
-                .await?;
-            }
-
-            MeetingEventType::WindowUnfocused => {
-                debug!("Meeting app window unfocused: {}", event.app_name);
-            }
-
-            MeetingEventType::ScheduledMeetingEnding => {
-                let title = event.metadata.get("event_title").unwrap_or(&event.app_name);
-                info!("Scheduled meeting ending: {}", title);
-
-                Self::show_notification(
-                    app_handle,
-                    "Meeting Ending",
-                    &format!("'{}' is ending. Stop recording?", title),
-                    vec![
-                        ("Stop Recording".to_string(), "stop_recording".to_string()),
-                        ("Continue".to_string(), "continue_recording".to_string()),
-                    ],
-                )
-                .await?;
-            }
-
-            _ => {
-                debug!("Unhandled meeting event type: {:?}", event.event_type);
-            }
-        }
-
-        Ok(())
-    }
-
-    async fn start_recording(
-        app_handle: &AppHandle<R>,
-        event: &MeetingDetectionEvent,
-    ) -> Result<()> {
-        info!("Starting recording for meeting: {}", event.app_name);
-
-        let session_id = format!(
-            "meeting-{}-{}",
-            event.app_bundle_id.replace(".", "-"),
-            Uuid::new_v4().to_string()[..8].to_string()
-        );
-
-        let app_handle_clone = app_handle.clone();
-        let session_id_clone = session_id.clone();
-        let event_clone = event.clone();
-
-        tokio::spawn(async move {
-            // Use proper ListenerPluginExt API to start recording
-            app_handle_clone
-                .start_session(session_id_clone.clone())
-                .await;
-            info!(
-                "Successfully started recording session: {}",
-                session_id_clone
-            );
-
-            if let Err(e) = app_handle_clone.emit("recording_auto_started", &event_clone) {
-                error!("Failed to emit recording_auto_started event: {}", e);
+            } else if event_data == "microphone_stopped" {
+                Self::handle_mic_stopped_async(&app_handle);
             }
         });
 
-        Ok(())
-    }
-
-    async fn stop_recording(
-        app_handle: &AppHandle<R>,
-        event: &MeetingDetectionEvent,
-    ) -> Result<()> {
-        info!("Stopping recording for meeting: {}", event.app_name);
-
-        let app_handle_clone = app_handle.clone();
-        let event_clone = event.clone();
-
-        tokio::spawn(async move {
-            // Use proper ListenerPluginExt API to stop recording
-            app_handle_clone.stop_session().await;
-            info!("Successfully stopped recording session");
-
-            if let Err(e) = app_handle_clone.emit("recording_auto_stopped", &event_clone) {
-                error!("Failed to emit recording_auto_stopped event: {}", e);
-            }
-        });
+        let mut detector = Detector::default();
+        detector.start(callback);
+        self.detector = Some(detector);
 
         Ok(())
     }
 
-    async fn show_notification(
-        app_handle: &AppHandle<R>,
-        title: &str,
-        message: &str,
-        actions: Vec<(String, String)>,
-    ) -> Result<()> {
-        info!("Showing notification: {} - {}", title, message);
+    fn start_scheduled_detection(&mut self) -> Result<()> {
+        info!("Starting scheduled meeting detection");
 
-        // Use existing notification plugin for proper native notifications
-        let notification = hypr_notification2::Notification {
-            title: title.to_string(),
-            message: message.to_string(),
-            url: Some("hyprnote://meeting-automation".to_string()),
-            timeout: Some(std::time::Duration::from_secs(10)),
-        };
+        let is_running = self.is_running.clone();
+        let pre_meeting_minutes = self.config.pre_meeting_notification_minutes;
+        let app_handle = self.app_handle.clone();
 
-        hypr_notification2::show(notification);
+        let handle = tokio::spawn(async move {
+            while is_running.load(std::sync::atomic::Ordering::SeqCst) {
+                let now = Utc::now();
+                match Self::get_upcoming_events_from_db(&app_handle, now, pre_meeting_minutes as i64).await {
+                    Ok(upcoming_events) => {
+                        for event in upcoming_events {
+                            let time_until_meeting = event.start_time - now;
+                            let minutes_until = time_until_meeting.num_minutes();
 
-        // Also emit event for UI handling
-        let notification_data = serde_json::json!({
-            "title": title,
-            "message": message,
-            "actions": actions,
-        });
-
-        if let Err(e) = app_handle.emit("meeting_notification", &notification_data) {
-            error!("Failed to emit meeting_notification event: {}", e);
-        }
-
-        Ok(())
-    }
-
-    async fn show_notification_with_id(
-        app_handle: &AppHandle<R>,
-        notification_id: &str,
-        title: &str,
-        message: &str,
-        actions: Vec<(String, String)>,
-    ) -> Result<()> {
-        info!("Showing notification: {} - {}", title, message);
-
-        // Use existing notification plugin for proper native notifications
-        let notification = hypr_notification2::Notification {
-            title: title.to_string(),
-            message: message.to_string(),
-            url: Some("hyprnote://meeting-automation".to_string()),
-            timeout: Some(std::time::Duration::from_secs(10)),
-        };
-
-        hypr_notification2::show(notification);
-
-        // Also emit event for UI handling with notification ID
-        let notification_data = serde_json::json!({
-            "id": notification_id,
-            "title": title,
-            "message": message,
-            "actions": actions,
-        });
-
-        if let Err(e) = app_handle.emit("meeting_notification", &notification_data) {
-            error!("Failed to emit meeting_notification event: {}", e);
-        }
-
-        Ok(())
-    }
-
-    async fn handle_notification_action(
-        event: tauri::Event,
-        pending_notifications: Arc<Mutex<std::collections::HashMap<String, MeetingDetectionEvent>>>,
-        app_handle: AppHandle<R>,
-    ) {
-        if let Ok(payload) = serde_json::from_str::<serde_json::Value>(&event.payload()) {
-            let notification_id = payload.get("notification_id").and_then(|v| v.as_str());
-            let action = payload.get("action").and_then(|v| v.as_str());
-
-            if let (Some(notification_id), Some(action)) = (notification_id, action) {
-                info!(
-                    "Processing notification action: {} for {}",
-                    action, notification_id
-                );
-
-                // Get the original event from pending notifications
-                let original_event = {
-                    let mut pending = pending_notifications.lock().await;
-                    pending.remove(notification_id)
-                };
-
-                if let Some(event) = original_event {
-                    match action {
-                        "start_recording" => {
-                            info!("User chose to start recording for: {}", event.app_name);
-                            if let Err(e) = Self::start_recording(&app_handle, &event).await {
-                                error!("Failed to start recording: {}", e);
+                            if minutes_until <= pre_meeting_minutes as i64 && minutes_until > 0 {
+                                Self::show_notification(
+                                    &app_handle,
+                                    "Meeting Starting Soon",
+                                    &format!("'{}' starts in {} minutes", event.title, minutes_until),
+                                );
+                            } else if minutes_until <= 0 && minutes_until > -5 {
+                                Self::start_recording_for_scheduled(&app_handle, &event).await;
                             }
-                        }
-                        "stop_recording" => {
-                            info!("User chose to stop recording for: {}", event.app_name);
-                            if let Err(e) = Self::stop_recording(&app_handle, &event).await {
-                                error!("Failed to stop recording: {}", e);
-                            }
-                        }
-                        "ignore" => {
-                            info!("User chose to ignore notification for: {}", event.app_name);
-                        }
-                        "continue_recording" => {
-                            info!("User chose to continue recording for: {}", event.app_name);
-                            // Do nothing - just keep recording
-                        }
-                        "remind_later" => {
-                            info!("User chose to be reminded later for: {}", event.app_name);
-                            // Could implement a reminder system here
-                        }
-                        _ => {
-                            warn!("Unknown notification action: {}", action);
                         }
                     }
-                } else {
-                    warn!("No pending notification found for ID: {}", notification_id);
+                    Err(e) => error!("Error getting upcoming events: {}", e),
                 }
-            } else {
-                error!("Invalid notification action payload: {}", event.payload());
+                sleep(TokioDuration::from_secs(30)).await;
             }
-        } else {
-            error!(
-                "Failed to parse notification action payload: {}",
-                event.payload()
-            );
+        });
+
+        self.detection_handles.push(handle);
+        Ok(())
+    }
+
+    fn start_window_detection(&mut self) -> Result<()> {
+        info!("Starting window focus detection");
+
+        let config = self.config.clone();
+        let app_handle = self.app_handle.clone();
+        let is_running = self.is_running.clone();
+
+        let handle = tokio::spawn(async move {
+            while is_running.load(std::sync::atomic::Ordering::SeqCst) {
+                if let Ok(focused_app) = Self::get_focused_app().await {
+                    if config.is_supported_app(&focused_app) {
+                        let app_name = config.get_app_name(&focused_app);
+                        Self::show_notification(
+                            &app_handle,
+                            "Meeting Window Active",
+                            &format!("Meeting window is now focused: {}", app_name),
+                        );
+                    }
+                }
+                sleep(TokioDuration::from_secs(2)).await;
+            }
+        });
+
+        self.detection_handles.push(handle);
+        Ok(())
+    }
+
+    fn handle_app_launch(&self, bundle_id: &str) {
+        if !self.config.is_supported_app(bundle_id) {
+            return;
+        }
+
+        let app_name = self.config.get_app_name(bundle_id);
+        info!("Meeting app launched: {}", app_name);
+
+        Self::show_notification(
+            &self.app_handle,
+            "Meeting Detected",
+            &format!("Are you in a meeting with {}?", app_name),
+        );
+
+        self.start_recording(&app_name, Some(bundle_id.to_string()));
+    }
+
+    fn handle_app_launch_async(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
+        let app_name = config.get_app_name(bundle_id);
+        let app_handle = app_handle.clone();
+        let bundle_id = bundle_id.to_string();
+        
+        tokio::spawn(async move {
+            info!("Meeting app launched: {}", app_name);
+            Self::show_notification(&app_handle, "Meeting Detected", &format!("Are you in a meeting with {}?", app_name));
+            Self::start_recording_async(&app_handle, &app_name, Some(bundle_id)).await;
+        });
+    }
+
+    fn handle_app_terminate_async(app_handle: &AppHandle<R>, config: &AutomationConfig, bundle_id: &str) {
+        let app_name = config.get_app_name(bundle_id);
+        let app_handle = app_handle.clone();
+        
+        tokio::spawn(async move {
+            info!("Meeting app terminated: {}", app_name);
+            Self::show_notification(&app_handle, "Meeting Ended", &format!("{} was closed. Stop recording?", app_name));
+            Self::stop_recording_async(&app_handle).await;
+        });
+    }
+
+    fn handle_mic_activity_async(app_handle: &AppHandle<R>) {
+        let app_handle = app_handle.clone();
+        tokio::spawn(async move {
+            info!("Microphone activity detected");
+            Self::show_notification(&app_handle, "Microphone Activity", "Microphone activity detected. Start recording?");
+            Self::start_recording_async(&app_handle, "System Microphone", None).await;
+        });
+    }
+
+    fn handle_mic_stopped_async(app_handle: &AppHandle<R>) {
+        let app_handle = app_handle.clone();
+        tokio::spawn(async move {
+            info!("Microphone activity stopped");
+            Self::show_notification(&app_handle, "Microphone Inactive", "Meeting might be ending. Continue recording?");
+        });
+    }
+
+    fn start_recording(&self, app_name: &str, bundle_id: Option<String>) {
+        let app_handle = self.app_handle.clone();
+        let app_name = app_name.to_string();
+        
+        tokio::spawn(async move {
+            Self::start_recording_async(&app_handle, &app_name, bundle_id).await;
+        });
+    }
+
+    async fn start_recording_async(app_handle: &AppHandle<R>, app_name: &str, bundle_id: Option<String>) {
+        info!("Starting recording for: {}", app_name);
+
+        let session_id = match bundle_id {
+            Some(bundle_id) => format!("meeting-{}-{}", bundle_id.replace(".", "-"), Uuid::new_v4().to_string()[..8].to_string()),
+            None => format!("meeting-mic-{}", Uuid::new_v4().to_string()[..8].to_string()),
+        };
+
+        app_handle.start_session(session_id.clone()).await;
+        info!("Successfully started recording session: {}", session_id);
+
+        let event_data = serde_json::json!({
+            "app_name": app_name,
+            "session_id": session_id,
+            "timestamp": Utc::now().to_rfc3339()
+        });
+
+        if let Err(e) = app_handle.emit("recording_auto_started", &event_data) {
+            error!("Failed to emit recording_auto_started event: {}", e);
+        }
+    }
+
+    async fn start_recording_for_scheduled(app_handle: &AppHandle<R>, event: &ScheduledEvent) {
+        info!("Starting recording for scheduled meeting: {}", event.title);
+
+        let session_id = format!("scheduled-{}-{}", event.id, Uuid::new_v4().to_string()[..8].to_string());
+
+        app_handle.start_session(session_id.clone()).await;
+        info!("Successfully started recording session for scheduled meeting: {}", session_id);
+
+        let event_data = serde_json::json!({
+            "event_title": event.title,
+            "session_id": session_id,
+            "timestamp": Utc::now().to_rfc3339()
+        });
+
+        if let Err(e) = app_handle.emit("recording_auto_started", &event_data) {
+            error!("Failed to emit recording_auto_started event: {}", e);
+        }
+    }
+
+    async fn stop_recording_async(app_handle: &AppHandle<R>) {
+        info!("Stopping recording session");
+        app_handle.stop_session().await;
+
+        let event_data = serde_json::json!({
+            "timestamp": Utc::now().to_rfc3339()
+        });
+
+        if let Err(e) = app_handle.emit("recording_auto_stopped", &event_data) {
+            error!("Failed to emit recording_auto_stopped event: {}", e);
+        }
+    }
+
+    fn show_notification(app_handle: &AppHandle<R>, title: &str, message: &str) {
+        info!("Showing notification: {} - {}", title, message);
+
+        let notification = hypr_notification2::Notification {
+            title: title.to_string(),
+            message: message.to_string(),
+            url: Some("hyprnote://meeting-automation".to_string()),
+            timeout: Some(std::time::Duration::from_secs(10)),
+        };
+
+        hypr_notification2::show(notification);
+
+        let notification_data = serde_json::json!({
+            "title": title,
+            "message": message,
+            "timestamp": Utc::now().to_rfc3339()
+        });
+
+        if let Err(e) = app_handle.emit("meeting_notification", &notification_data) {
+            error!("Failed to emit meeting_notification event: {}", e);
+        }
+    }
+
+    async fn get_upcoming_events_from_db(
+        app_handle: &AppHandle<R>,
+        now: DateTime<Utc>,
+        minutes_ahead: i64,
+    ) -> Result<Vec<ScheduledEvent>> {
+        let end_time = now + Duration::minutes(minutes_ahead);
+
+        let db_state = app_handle.state::<ManagedState>();
+        let db_guard = db_state.lock().await;
+        let db = match &db_guard.db {
+            Some(db) => db.clone(),
+            None => {
+                debug!("Database not available");
+                return Ok(vec![]);
+            }
+        };
+        drop(db_guard);
+
+        match get_events_in_range(&db, now, end_time).await {
+            Ok(db_events) => {
+                let mut events = Vec::new();
+                for db_event in db_events {
+                    events.push(ScheduledEvent {
+                        id: db_event.id,
+                        title: db_event.name,
+                        start_time: db_event.start_date,
+                        end_time: db_event.end_date,
+                    });
+                }
+                events.sort_by(|a, b| a.start_time.cmp(&b.start_time));
+                debug!("Returning {} upcoming events from database", events.len());
+                Ok(events)
+            }
+            Err(e) => {
+                error!("Failed to get events from database: {}", e);
+                Ok(vec![])
+            }
+        }
+    }
+
+    async fn get_focused_app() -> Result<String> {
+        #[cfg(target_os = "macos")]
+        {
+            use std::process::Command;
+
+            let output = Command::new("osascript")
+                .arg("-e")
+                .arg("tell application \"System Events\" to get bundle identifier of first application process whose frontmost is true")
+                .output()
+                .map_err(|e| crate::Error::DetectionError(e.to_string()))?;
+
+            if output.status.success() {
+                let bundle_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                Ok(bundle_id)
+            } else {
+                Err(crate::Error::DetectionError("Failed to get focused app".to_string()))
+            }
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Err(crate::Error::DetectionError("Window focus detection not implemented for this platform".to_string()))
         }
     }
 }

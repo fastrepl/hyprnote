@@ -4,7 +4,6 @@ use tauri::Manager;
 mod automation;
 mod commands;
 mod config;
-mod detector;
 mod error;
 mod ext;
 mod storage;

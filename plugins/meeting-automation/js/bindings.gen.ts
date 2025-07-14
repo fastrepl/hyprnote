@@ -52,7 +52,7 @@ export type AutomationConfig = {
   auto_start_scheduled_meetings: boolean;
   require_window_focus: boolean;
   pre_meeting_notification_minutes: number;
-  supported_apps: string[];
+  supported_apps: SupportedApp[];
   notification_settings: NotificationSettings;
 };
 export type NotificationSettings = {
@@ -62,6 +62,7 @@ export type NotificationSettings = {
   show_recording_started: boolean;
   show_recording_stopped: boolean;
 };
+export type SupportedApp = { bundle_id: string; name: string };
 
 /** tauri-specta globals **/
 

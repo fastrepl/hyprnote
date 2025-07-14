@@ -3,6 +3,12 @@ use specta::Type;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct SupportedApp {
+    pub bundle_id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct AutomationConfig {
     pub enabled: bool,
     pub auto_start_on_app_detection: bool,
@@ -11,7 +17,7 @@ pub struct AutomationConfig {
     pub auto_start_scheduled_meetings: bool,
     pub require_window_focus: bool,
     pub pre_meeting_notification_minutes: u32,
-    pub supported_apps: Vec<String>,
+    pub supported_apps: Vec<SupportedApp>,
     pub notification_settings: NotificationSettings,
 }
 
@@ -34,30 +40,52 @@ impl Default for AutomationConfig {
             auto_start_scheduled_meetings: true,
             require_window_focus: false,
             pre_meeting_notification_minutes: 5,
-            supported_apps: vec![
-                "us.zoom.xos".to_string(),
-                "Cisco-Systems.Spark".to_string(),
-                "com.microsoft.teams".to_string(),
-                "com.google.Chrome".to_string(),
-                "com.apple.Safari".to_string(),
-                "com.microsoft.VSCode".to_string(),
-                "com.skype.skype".to_string(),
-                "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan".to_string(), // Google Meet
-                "com.apple.FaceTime".to_string(),
-                "com.discord.Discord".to_string(),
-                "com.slack.Slack".to_string(),
-                "com.microsoft.teams2".to_string(),
-                "com.facebook.Messenger".to_string(),
-                "com.whatsapp.WhatsApp".to_string(),
-                "com.gotomeeting.GoToMeeting".to_string(),
-                "com.logmein.GoToWebinar".to_string(),
-                "com.ringcentral.RingCentral".to_string(),
-                "com.bluejeans.bluejeans".to_string(),
-                "com.8x8.meet".to_string(),
-                "com.jitsi.meet".to_string(),
-            ],
+            supported_apps: Self::default_supported_apps(),
             notification_settings: NotificationSettings::default(),
         }
+    }
+}
+
+impl AutomationConfig {
+    pub fn default_supported_apps() -> Vec<SupportedApp> {
+        vec![
+            SupportedApp { bundle_id: "us.zoom.xos".to_string(), name: "Zoom".to_string() },
+            SupportedApp { bundle_id: "Cisco-Systems.Spark".to_string(), name: "Cisco Webex".to_string() },
+            SupportedApp { bundle_id: "com.microsoft.teams".to_string(), name: "Microsoft Teams".to_string() },
+            SupportedApp { bundle_id: "com.microsoft.teams2".to_string(), name: "Microsoft Teams (New)".to_string() },
+            SupportedApp { bundle_id: "com.google.Chrome".to_string(), name: "Google Chrome".to_string() },
+            SupportedApp { bundle_id: "com.apple.Safari".to_string(), name: "Safari".to_string() },
+            SupportedApp { bundle_id: "com.microsoft.VSCode".to_string(), name: "Visual Studio Code".to_string() },
+            SupportedApp { bundle_id: "com.skype.skype".to_string(), name: "Skype".to_string() },
+            SupportedApp { bundle_id: "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan".to_string(), name: "Google Meet".to_string() },
+            SupportedApp { bundle_id: "com.apple.FaceTime".to_string(), name: "FaceTime".to_string() },
+            SupportedApp { bundle_id: "com.discord.Discord".to_string(), name: "Discord".to_string() },
+            SupportedApp { bundle_id: "com.slack.Slack".to_string(), name: "Slack".to_string() },
+            SupportedApp { bundle_id: "com.facebook.Messenger".to_string(), name: "Facebook Messenger".to_string() },
+            SupportedApp { bundle_id: "com.whatsapp.WhatsApp".to_string(), name: "WhatsApp".to_string() },
+            SupportedApp { bundle_id: "com.gotomeeting.GoToMeeting".to_string(), name: "GoToMeeting".to_string() },
+            SupportedApp { bundle_id: "com.logmein.GoToWebinar".to_string(), name: "GoToWebinar".to_string() },
+            SupportedApp { bundle_id: "com.ringcentral.RingCentral".to_string(), name: "RingCentral".to_string() },
+            SupportedApp { bundle_id: "com.bluejeans.bluejeans".to_string(), name: "BlueJeans".to_string() },
+            SupportedApp { bundle_id: "com.8x8.meet".to_string(), name: "8x8 Meet".to_string() },
+            SupportedApp { bundle_id: "com.jitsi.meet".to_string(), name: "Jitsi Meet".to_string() },
+        ]
+    }
+
+    pub fn get_app_name(&self, bundle_id: &str) -> String {
+        self.supported_apps
+            .iter()
+            .find(|app| app.bundle_id == bundle_id)
+            .map(|app| app.name.clone())
+            .unwrap_or_else(|| bundle_id.to_string())
+    }
+
+    pub fn is_supported_app(&self, bundle_id: &str) -> bool {
+        self.supported_apps.iter().any(|app| app.bundle_id == bundle_id)
+    }
+
+    pub fn supported_bundle_ids(&self) -> Vec<&str> {
+        self.supported_apps.iter().map(|app| app.bundle_id.as_str()).collect()
     }
 }
 

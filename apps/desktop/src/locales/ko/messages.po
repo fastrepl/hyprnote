@@ -925,12 +925,8 @@ msgstr ""
 
 #: src/components/workspace-calendar/note-card.tsx:123
 #: src/components/workspace-calendar/event-card.tsx:153
-msgid "Open Note"
-msgstr ""
-
-#: src/components/settings/views/integrations.tsx:255
-msgid "Optional base folder path within your Obsidian vault."
-msgstr ""
+#~ msgid "Open Note"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:255
 msgid "Optional base folder path within your Obsidian vault."
@@ -1239,10 +1235,6 @@ msgstr ""
 
 #: src/components/settings/views/profile.tsx:225
 msgid "username"
-msgstr ""
-
-#: src/components/settings/views/integrations.tsx:222
-msgid "Vault Name"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:222

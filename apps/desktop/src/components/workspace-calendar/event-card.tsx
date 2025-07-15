@@ -88,18 +88,12 @@ export function EventCard({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <Calendar className="w-2.5 h-2.5 mt-0.5 text-neutral-500 flex-shrink-0" />
+        <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
+          <Calendar className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
             {event.name || "Untitled Event"}
           </div>
-
-          {showTime && (
-            <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
-            </div>
-          )}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">

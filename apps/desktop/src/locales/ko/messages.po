@@ -244,12 +244,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:105
-msgid "(Beta) Detect meetings automatically"
-msgstr ""
+#~ msgid "(Beta) Detect meetings automatically"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:132
-msgid "(Beta) Upcoming meeting notifications"
-msgstr ""
+#~ msgid "(Beta) Upcoming meeting notifications"
+#~ msgstr ""
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
@@ -375,6 +375,38 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr ""
+
+#: src/components/settings/views/notifications.tsx:224
+msgid "Auto-start recording for scheduled meetings"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:140
+msgid "Auto-start recording on app detection"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:168
+msgid "Auto-start recording on microphone activity"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:196
+msgid "Auto-stop recording when meeting ends"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:143
+msgid "Automatically start recording when meeting apps are detected."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:171
+msgid "Automatically start recording when microphone activity is detected."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:227
+msgid "Automatically start recording when scheduled meetings begin."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:199
+msgid "Automatically stop recording when meeting applications are closed."
+msgstr ""
 
 #: src/routes/app.settings.tsx:49
 msgid "Billing"
@@ -559,6 +591,10 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:59
 msgid "Enable"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:113
+msgid "Enable automatic meeting detection and recording."
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:102
@@ -759,6 +795,10 @@ msgstr ""
 msgid "Make it public"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:110
+msgid "Meeting Automation"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:41
 msgid "Meeting note sharing via links"
 msgstr ""
@@ -866,6 +906,10 @@ msgstr ""
 msgid "Official Templates"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:255
+msgid "Only start recording when the meeting window is in focus."
+msgstr ""
+
 #: src/components/settings/views/feedback.tsx:18
 msgid "Ooh! Suggestion!"
 msgstr ""
@@ -940,6 +984,10 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:56
 msgid "Requesting..."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:252
+msgid "Require window focus"
 msgstr ""
 
 #: src/components/settings/views/sound.tsx:107
@@ -1025,12 +1073,12 @@ msgid "Share usage data"
 msgstr ""
 
 #: src/components/settings/views/notifications.tsx:135
-msgid "Show notifications when you have meetings starting soon in your calendar."
-msgstr ""
+#~ msgid "Show notifications when you have meetings starting soon in your calendar."
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:108
-msgid "Show notifications when you join a meeting."
-msgstr ""
+#~ msgid "Show notifications when you join a meeting."
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"

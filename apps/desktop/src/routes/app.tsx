@@ -1,6 +1,8 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
@@ -60,6 +62,7 @@ function Component() {
               <RestartTTT />
               <RestartSTT />
               <MainWindowStateEventSupport />
+              <MeetingAutomationEventListeners />
               <SettingsProvider>
                 <NewNoteProvider>
                   <SearchProvider>
@@ -171,6 +174,43 @@ function AudioPermissions() {
         listenerCommands.requestSystemAudioAccess();
       }
     });
+  }, []);
+
+  return null;
+}
+
+function MeetingAutomationEventListeners() {
+  useEffect(() => {
+    const unsubscribePromises = [
+      listen("recording_auto_started", (event) => {
+        const data = event.payload as { app_name: string; session_id: string; timestamp: string };
+        sonnerToast.success("Recording started automatically", {
+          description: `Started recording for ${data.app_name}`,
+          duration: 3000,
+        });
+      }),
+
+      listen("recording_auto_stopped", (event) => {
+        sonnerToast.info("Recording stopped automatically", {
+          description: "Meeting automation stopped the recording",
+          duration: 3000,
+        });
+      }),
+
+      listen("meeting_notification", (event) => {
+        const data = event.payload as { title: string; message: string; timestamp: string };
+        sonnerToast.info(data.title, {
+          description: data.message,
+          duration: 5000,
+        });
+      }),
+    ];
+
+    return () => {
+      Promise.all(unsubscribePromises).then(unsubscribeFns => {
+        unsubscribeFns.forEach(fn => fn());
+      });
+    };
   }, []);
 
   return null;

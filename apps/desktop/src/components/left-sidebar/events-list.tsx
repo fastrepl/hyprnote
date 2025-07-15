@@ -231,8 +231,8 @@ function EventItem({
     const formattedDate = format(date, "yyyy-MM-dd");
     const url = `/app/finder?view=calendar&date=${formattedDate}`;
 
-    windowsCommands.windowShow({ type: "main" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "finder" }, url);
     });
   };
 

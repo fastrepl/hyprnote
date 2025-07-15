@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { LinkProps } from "@tanstack/react-router";
+
 import { format } from "date-fns";
 import { File, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -7,8 +7,8 @@ import { useMemo, useState } from "react";
 import { useHypr } from "@/contexts";
 import type { Session } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 export function NoteCard({
   session,
@@ -65,14 +65,10 @@ export function NoteCard({
   const handleClick = (id: string) => {
     setOpen(false);
 
-    const props = {
-      to: "/app/note/$id",
-      params: { id },
-    } as const satisfies LinkProps;
-
-    const url = props.to.replace("$id", props.params.id);
-
-    safeNavigate({ type: "main" }, url);
+    const url = `/app/note/${id}`;
+    windowsCommands.windowShow({ type: "main" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+    });
   };
 
   const getStartDate = () => {
@@ -117,12 +113,9 @@ export function NoteCard({
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="font-semibold text-lg mb-2 text-neutral-800 flex items-center gap-2">
-          {isRecordedSession
-            ? <FileText className="w-5 h-5 text-neutral-600" />
-            : <File className="w-5 h-5 text-neutral-600" />}
+        <h3 className="font-semibold text-lg mb-2">
           {linkedEvent.data?.name || session.title || "Untitled"}
-        </div>
+        </h3>
 
         <p className="text-sm mb-2 text-neutral-600">
           {shouldShowRange
@@ -146,25 +139,20 @@ export function NoteCard({
         </p>
 
         {participantsPreview && participantsPreview.length > 0 && (
-          <div className="text-xs text-neutral-600 mb-4 truncate">
+          <div className="text-xs text-neutral-600 mb-4">
             {participantsPreview.join(", ")}
           </div>
         )}
 
         <div
-          className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
+          className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
           onClick={() => handleClick(session.id)}
         >
           {isRecordedSession
-            ? <FileText className="w-4 h-4 text-neutral-600" />
-            : <File className="w-4 h-4 text-neutral-600" />}
-          <div className="flex-1">
-            <div className="text-sm font-medium text-neutral-800">
-              {linkedEvent.data?.name || session.title || "Untitled"}
-            </div>
-            <div className="text-xs text-neutral-500">
-              {isRecordedSession ? "Recorded note" : "Note"} · Click to open
-            </div>
+            ? <FileText className="size-3 text-neutral-600 flex-shrink-0" />
+            : <File className="size-3 text-neutral-600 flex-shrink-0" />}
+          <div className="text-xs font-medium text-neutral-800 truncate">
+            {linkedEvent.data?.name || session.title || "Untitled"}
           </div>
         </div>
       </PopoverContent>

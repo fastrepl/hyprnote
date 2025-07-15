@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import type { LinkProps } from "@tanstack/react-router";
+
 import { format } from "date-fns";
 import { Calendar, FileText, Pen } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -9,8 +9,8 @@ import { useHypr } from "@/contexts";
 import { openURL } from "@/utils/shell";
 import type { Event } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 export function EventCard({
   event,
@@ -65,25 +65,15 @@ export function EventCard({
     setOpen(false);
 
     if (session.data) {
-      const props = {
-        to: "/app/note/$id",
-        params: { id: session.data.id },
-      } as const satisfies LinkProps;
-
-      const url = props.to.replace("$id", props.params.id);
-
-      safeNavigate({ type: "main" }, url);
+      const url = `/app/note/${session.data.id}`;
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      });
     } else {
-      const props = {
-        to: "/app/new",
-        search: { calendarEventId: event.id },
-      } as const satisfies LinkProps;
-
-      const url = props.to.concat(
-        `?calendarEventId=${props.search.calendarEventId}`,
-      );
-
-      safeNavigate({ type: "main" }, url);
+      const url = `/app/new?calendarEventId=${event.id}`;
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      });
     }
   };
 
@@ -114,18 +104,12 @@ export function EventCard({
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
         <div
-          className="font-semibold text-lg text-neutral-800 flex items-center gap-2 mb-2 cursor-pointer hover:text-neutral-600 transition-colors"
-          onClick={async () => {
-            if (event.google_event_url) {
-              try {
-                await openURL(event.google_event_url as string);
-              } catch (error) {
-                console.error("Failed to open event URL:", error);
-              }
-            }
-          }}
+          className="font-semibold text-lg text-neutral-800 flex items-center gap-2 mb-2 cursor-pointer hover:text-orange-600 transition-all decoration-dotted underline hover:decoration-solid"
+          onClick={() =>
+            event.google_event_url && openURL(event.google_event_url as string).catch(error =>
+              console.error("Failed to open event URL:", error)
+            )}
         >
-          <Calendar className="w-5 h-5 text-neutral-600" />
           {event.name || "Untitled Event"}
         </div>
 
@@ -133,13 +117,13 @@ export function EventCard({
           {format(getStartDate(), "MMM d, h:mm a")}
           {" - "}
           {format(getStartDate(), "yyyy-MM-dd")
-            !== format(getEndDate(), "yyyy-MM-dd")
+              !== format(getEndDate(), "yyyy-MM-dd")
             ? format(getEndDate(), "MMM d, h:mm a")
             : format(getEndDate(), "h:mm a")}
         </p>
 
         {participantsPreview && participantsPreview.length > 0 && (
-          <div className="text-xs text-neutral-600 mb-4 truncate">
+          <div className="text-xs text-neutral-600 mb-4">
             {participantsPreview.join(", ")}
           </div>
         )}
@@ -147,29 +131,23 @@ export function EventCard({
         {session.data
           ? (
             <div
-              className="flex items-center gap-2 p-2 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
+              className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              <FileText className="w-4 h-4 text-neutral-600" />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-neutral-800">
-                  {session.data.title || "Untitled Note"}
-                </div>
-                <div className="text-xs text-neutral-500">Click to open note</div>
+              <FileText className="size-3 text-neutral-600 flex-shrink-0" />
+              <div className="text-xs font-medium text-neutral-800 truncate">
+                {session.data.title || "Untitled Note"}
               </div>
             </div>
           )
           : (
             <div
-              className="flex items-center gap-2 p-2 bg-neutral-50 border border-dashed border-neutral-300 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
+              className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              <Pen className="w-4 h-4 text-neutral-400" />
-              <div className="flex-1">
-                <div className="text-sm text-neutral-600">
-                  {session.isLoading ? <Trans>Loading...</Trans> : <Trans>Create Note</Trans>}
-                </div>
-                <div className="text-xs text-neutral-400">Click to add a note</div>
+              <Pen className="size-3 text-neutral-600 flex-shrink-0" />
+              <div className="text-xs font-medium text-neutral-800 truncate">
+                <Trans>Create Note</Trans>
               </div>
             </div>
           )}

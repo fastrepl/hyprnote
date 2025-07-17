@@ -9,7 +9,7 @@ import { useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { Session } from "@hypr/plugin-db";
+import { Session, Tag } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import {
   client,
@@ -48,18 +48,13 @@ function ShareButtonInNote() {
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
-  // Function to determine default folder selection
-  const getDefaultSelectedFolder = (folders: Array<{ value: string; label: string }>, sessionTags: any[]) => {
-    console.log("folders", folders);
-    console.log("sessionTags", sessionTags);
-
+  const getDefaultSelectedFolder = (folders: Array<{ value: string; label: string }>, sessionTags: Tag[]) => {
     if (!sessionTags || sessionTags.length === 0) {
       return "default";
     }
 
-    const tagNames = sessionTags.map((tag: any) => tag.name.toLowerCase());
+    const tagNames = sessionTags.map((tag: Tag) => tag.name.toLowerCase());
 
-    // Exact matches first
     for (const tagName of tagNames) {
       const exactMatch = folders.find(folder => folder.value.toLowerCase() === tagName);
       if (exactMatch) {
@@ -67,7 +62,6 @@ function ShareButtonInNote() {
       }
     }
 
-    // Partial matches second
     for (const tagName of tagNames) {
       const partialMatch = folders.find(folder => folder.value.toLowerCase().includes(tagName));
       if (partialMatch) {
@@ -155,18 +149,15 @@ function ShareButtonInNote() {
     setExpandedId(expandedId === id ? null : id);
 
     if (id === "obsidian" && expandedId !== id && isObsidianConfigured.data) {
-      // Fetch all needed data in parallel with caching
-      console.log("obsidian modal expanded");
       Promise.all([
         obsidianFolders.refetch(),
         sessionTags.refetch(),
-        sessionParticipants.refetch(),
-      ]).then(([foldersResult, tagsResult, participantsResult]) => {
+      ]).then(([foldersResult, tagsResult]) => {
         const freshFolders = foldersResult.data;
         const freshTags = tagsResult.data;
 
         if (freshFolders && freshFolders.length > 0) {
-          const defaultFolder = getDefaultSelectedFolder(freshFolders, freshTags || []);
+          const defaultFolder = getDefaultSelectedFolder(freshFolders, freshTags ?? []);
           setSelectedObsidianFolder(defaultFolder);
         }
       }).catch((error) => {

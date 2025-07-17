@@ -140,3 +140,5 @@ CREATE TABLE `llm_provider` (
 	`api_key` text NOT NULL,
 	FOREIGN KEY (`organization_id`) REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE cascade
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `llm_provider_name_organization_id_unique` ON `llm_provider` (`name`,`organization_id`);

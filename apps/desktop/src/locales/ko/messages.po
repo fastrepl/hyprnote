@@ -253,10 +253,9 @@ msgstr ""
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
-#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/editor-area/note-header/listen-button.tsx:179
 #: src/components/editor-area/note-header/listen-button.tsx:218
 msgid "{0}"
@@ -321,8 +320,8 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: src/routes/app.settings.tsx:46
-#: src/routes/app.settings.tsx:100
+#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:118
 msgid "AI"
 msgstr ""
 
@@ -385,7 +384,7 @@ msgstr ""
 msgid "Base URL"
 msgstr ""
 
-#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:76
 msgid "Billing"
 msgstr ""
 
@@ -398,8 +397,8 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:48
-#: src/routes/app.settings.tsx:94
+#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:112
 msgid "Calendar"
 msgstr ""
 
@@ -408,8 +407,8 @@ msgid "Calendar Access"
 msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
-msgid "Calendar connected"
-msgstr ""
+#~ msgid "Calendar connected"
+#~ msgstr ""
 
 #: src/components/individualization-modal/industry-view.tsx:128
 msgid "Cancel"
@@ -458,8 +457,8 @@ msgid "Company name"
 msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
-msgid "Connect"
-msgstr ""
+#~ msgid "Connect"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:563
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
@@ -469,10 +468,9 @@ msgstr ""
 msgid "Connect with external tools and services to enhance your workflow"
 msgstr ""
 
-#. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
-msgid "Connect your {0} calendar to track upcoming events"
-msgstr ""
+#~ msgid "Connect your {0} calendar to track upcoming events"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
 msgid "Connect your calendar and track events"
@@ -618,7 +616,7 @@ msgstr ""
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:72
 msgid "Extensions"
 msgstr ""
 
@@ -626,7 +624,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:104
+#: src/routes/app.settings.tsx:122
 msgid "Feedback"
 msgstr ""
 
@@ -658,8 +656,8 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:42
-#: src/routes/app.settings.tsx:92
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:110
 msgid "General"
 msgstr ""
 
@@ -711,8 +709,8 @@ msgstr ""
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr ""
 
-#: src/routes/app.settings.tsx:60
-#: src/routes/app.settings.tsx:108
+#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:126
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr ""
@@ -741,7 +739,7 @@ msgstr ""
 msgid "Key decisions"
 msgstr ""
 
-#: src/routes/app.settings.tsx:102
+#: src/routes/app.settings.tsx:120
 msgid "Lab"
 msgstr ""
 
@@ -892,8 +890,8 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:50
-#: src/routes/app.settings.tsx:96
+#: src/routes/app.settings.tsx:68
+#: src/routes/app.settings.tsx:114
 msgid "Notifications"
 msgstr ""
 
@@ -961,7 +959,7 @@ msgstr ""
 msgid "Pro"
 msgstr ""
 
-#: src/routes/app.settings.tsx:44
+#: src/routes/app.settings.tsx:62
 msgid "Profile"
 msgstr ""
 
@@ -1083,7 +1081,7 @@ msgstr ""
 msgid "Single sign-on for all users"
 msgstr ""
 
-#: src/routes/app.settings.tsx:98
+#: src/routes/app.settings.tsx:116
 msgid "Sound"
 msgstr ""
 
@@ -1123,7 +1121,7 @@ msgstr ""
 msgid "Talk to Founders"
 msgstr ""
 
-#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:74
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr ""
@@ -1136,8 +1134,8 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/routes/app.settings.tsx:52
-#: src/routes/app.settings.tsx:106
+#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:124
 msgid "Templates"
 msgstr ""
 

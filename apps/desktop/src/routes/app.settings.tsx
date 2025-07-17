@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { useEffect } from "react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
@@ -15,10 +16,14 @@ import {
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
+  // TODO: not ideal. should match deeplink.rs
+  baseUrl: z.string().optional(),
+  apiKey: z.string().optional(),
 });
 
 const PATH = "/app/settings";
@@ -28,9 +33,22 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
+  const { t } = useLingui();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
-  const { t } = useLingui();
+
+  // TODO: this is a hack
+  useEffect(() => {
+    if (search.baseUrl && search.apiKey) {
+      connectorCommands.setCustomLlmConnection({
+        api_base: search.baseUrl,
+        api_key: search.apiKey,
+      }).then(() => {
+        connectorCommands.setCustomLlmEnabled(true);
+        navigate({ to: PATH, search: { tab: "ai" } });
+      });
+    }
+  }, [search.baseUrl, search.apiKey]);
 
   const handleClickTab = (tab: Tab) => {
     navigate({ to: PATH, search: { ...search, tab } });

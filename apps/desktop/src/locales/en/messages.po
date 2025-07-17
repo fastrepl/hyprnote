@@ -253,10 +253,9 @@ msgstr "(Beta) Upcoming meeting notifications"
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
-#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
+#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
 #: src/components/editor-area/note-header/listen-button.tsx:179
 #: src/components/editor-area/note-header/listen-button.tsx:218
 msgid "{0}"
@@ -321,8 +320,8 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/app.settings.tsx:46
-#: src/routes/app.settings.tsx:100
+#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:118
 msgid "AI"
 msgstr "AI"
 
@@ -385,7 +384,7 @@ msgstr "Base Folder"
 msgid "Base URL"
 msgstr "Base URL"
 
-#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:76
 msgid "Billing"
 msgstr "Billing"
 
@@ -398,8 +397,8 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:48
-#: src/routes/app.settings.tsx:94
+#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:112
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -408,8 +407,8 @@ msgid "Calendar Access"
 msgstr "Calendar Access"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
-msgid "Calendar connected"
-msgstr "Calendar connected"
+#~ msgid "Calendar connected"
+#~ msgstr "Calendar connected"
 
 #: src/components/individualization-modal/industry-view.tsx:128
 msgid "Cancel"
@@ -458,8 +457,8 @@ msgid "Company name"
 msgstr "Company name"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
-msgid "Connect"
-msgstr "Connect"
+#~ msgid "Connect"
+#~ msgstr "Connect"
 
 #: src/components/settings/views/ai.tsx:563
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
@@ -469,10 +468,9 @@ msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compati
 msgid "Connect with external tools and services to enhance your workflow"
 msgstr "Connect with external tools and services to enhance your workflow"
 
-#. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
-msgid "Connect your {0} calendar to track upcoming events"
-msgstr "Connect your {0} calendar to track upcoming events"
+#~ msgid "Connect your {0} calendar to track upcoming events"
+#~ msgstr "Connect your {0} calendar to track upcoming events"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
 msgid "Connect your calendar and track events"
@@ -618,7 +616,7 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr "Enter the exact model name required by your endpoint (if applicable)."
 
-#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:72
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -626,7 +624,7 @@ msgstr "Extensions"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/routes/app.settings.tsx:104
+#: src/routes/app.settings.tsx:122
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -658,8 +656,8 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:42
-#: src/routes/app.settings.tsx:92
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:110
 msgid "General"
 msgstr "General"
 
@@ -711,8 +709,8 @@ msgstr "How did you hear about Hyprnote?"
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
 
-#: src/routes/app.settings.tsx:60
-#: src/routes/app.settings.tsx:108
+#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:126
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr "Integrations"
@@ -741,7 +739,7 @@ msgstr "Join meeting"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/routes/app.settings.tsx:102
+#: src/routes/app.settings.tsx:120
 msgid "Lab"
 msgstr "Lab"
 
@@ -892,8 +890,8 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:50
-#: src/routes/app.settings.tsx:96
+#: src/routes/app.settings.tsx:68
+#: src/routes/app.settings.tsx:114
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -961,7 +959,7 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/routes/app.settings.tsx:44
+#: src/routes/app.settings.tsx:62
 msgid "Profile"
 msgstr "Profile"
 
@@ -1083,7 +1081,7 @@ msgstr "Show notifications when you join a meeting."
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/routes/app.settings.tsx:98
+#: src/routes/app.settings.tsx:116
 msgid "Sound"
 msgstr "Sound"
 
@@ -1123,7 +1121,7 @@ msgstr "System Audio Access"
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
-#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:74
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"
@@ -1136,8 +1134,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:52
-#: src/routes/app.settings.tsx:106
+#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:124
 msgid "Templates"
 msgstr "Templates"
 

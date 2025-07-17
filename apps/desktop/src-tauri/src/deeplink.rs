@@ -51,18 +51,18 @@ fn parse_notification_query(parsed_url: &url::Url) -> Vec<Destination> {
 }
 
 fn parse_register_query(parsed_url: &url::Url) -> Vec<Destination> {
-    let main_url = match parsed_url.query() {
+    let main_url = "/app".to_string();
+
+    let settings_url = match parsed_url.query() {
         Some(query) => match serde_qs::from_str::<RegisterQuery>(query) {
             Ok(params) => format!(
-                "/app/register?base_url={}&api_key={}",
+                "/app/settings?baseUrl={}&apiKey={}",
                 params.base_url, params.api_key
             ),
-            Err(_) => "/app/register".to_string(),
+            Err(_) => "/app/settings".to_string(),
         },
-        None => "/app/register".to_string(),
+        None => "/app/settings".to_string(),
     };
-
-    let settings_url = "/app/settings".to_string();
 
     vec![
         Destination {

@@ -3,6 +3,7 @@ import {
   Badge,
   Box,
   Button,
+  Card,
   Center,
   Group,
   LoadingOverlay,
@@ -89,7 +90,9 @@ function Component() {
           </Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="personal" className="mt-6">
-          <SettingsSection type="personal" />
+          <Card withBorder p="lg" radius="md">
+            There's no personal-level integrations yet
+          </Card>
         </Tabs.Panel>
         <Tabs.Panel value="organization" className="mt-6">
           <SettingsSection type="organization" />
@@ -262,7 +265,9 @@ function NewProviderModal({ type, variant }: { type: "personal" | "organization"
       }, duration);
     },
     onError: (error) => {
-      console.error("Failed to add provider:", error);
+      if (error.message) {
+        form.setFieldError("name", error.message);
+      }
     },
   });
 

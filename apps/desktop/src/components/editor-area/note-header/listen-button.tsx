@@ -17,9 +17,12 @@ import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { TemplateService } from "@/utils/template-service";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
@@ -245,7 +248,7 @@ function WhenActive() {
     setIsPopoverOpen(false);
   };
 
-  const handleStopSession = (templateId?: string | null) => {
+  const handleStopSession = async (templateId?: string | null) => {
     if (templateId !== undefined) {
       ongoingSessionStore.setAutoEnhanceTemplate(templateId);
     }
@@ -255,6 +258,50 @@ function WhenActive() {
 
     if (sessionWords.length === 0) {
       sonnerToast.dismiss("recording-consent-reminder");
+    }
+
+    try {
+      const isCustomLlmEnabled = await connectorCommands.getCustomLlmEnabled();
+
+      // User is using local LLM
+      if (!isCustomLlmEnabled) {
+        // Check if model is downloaded
+        const currentModel = await localLlmCommands.getCurrentModel();
+        const isModelDownloaded = await localLlmCommands.isModelDownloaded(currentModel);
+
+        if (!isModelDownloaded) {
+          toast({
+            id: "llm-model-not-downloaded",
+            title: "AI Model Required",
+            content: "To use AI features, download the large language model from Settings > AI.",
+            buttons: [
+              {
+                label: "Open Settings",
+                onClick: async () => {
+                  sonnerToast.dismiss("llm-model-not-downloaded");
+                  try {
+                    await windowsCommands.windowShow({ type: "settings" });
+                    await windowsCommands.windowEmitNavigate({ type: "settings" }, "/app/settings?tab=ai");
+                  } catch (error) {
+                    console.error("Failed to open AI settings:", error);
+                  }
+                },
+                primary: true,
+              },
+              {
+                label: "Dismiss",
+                onClick: () => {
+                  sonnerToast.dismiss("llm-model-not-downloaded");
+                },
+                primary: false,
+              },
+            ],
+            dismissible: false,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error checking LLM model status:", error);
     }
   };
 

@@ -16,6 +16,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { useSession } from "@hypr/utils/contexts";
 import { exportToPDF } from "../utils/pdf-export";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 export function ShareButton() {
   const param = useParams({ from: "/app/note/$id", shouldThrow: false });
@@ -113,11 +114,15 @@ function ShareButtonInNote() {
       } else if (optionId === "email") {
         result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
       } else if (optionId === "obsidian") {
-        const [baseFolder, apiKey, baseUrl] = await Promise.all([
+        const [baseFolder, apiKey, baseUrl, sessionTags, sessionParticipants] = await Promise.all([
           obsidianCommands.getBaseFolder(),
           obsidianCommands.getApiKey(),
           obsidianCommands.getBaseUrl(),
+          dbCommands.listSessionTags(param.id),  // Get tags for this session
+          dbCommands.sessionListParticipants(param.id),  // Get participants for this session
         ]);
+
+
         client.setConfig({
           fetch: tauriFetch,
           auth: apiKey!,
@@ -140,6 +145,14 @@ function ShareButtonInNote() {
 
         const targets = [
           { target: "date", value: new Date().toISOString() },
+          { 
+            target: "tags", 
+            value: sessionTags.map(tag => tag.name) 
+          },
+          { 
+            target: "attendees", 
+            value: sessionParticipants.map(participant => participant.full_name).filter(Boolean)
+          },
         ];
         for (const { target, value } of targets) {
           await patchVaultByFilename({

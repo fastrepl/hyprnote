@@ -45,43 +45,36 @@ function ShareButtonInNote() {
 
   // Function to determine default folder selection
   const getDefaultSelectedFolder = (folders: Array<{value: string, label: string}>, sessionTags: any[]) => {
-    console.log("session tags for default folder selection:", sessionTags);
-    
+
+    console.log("folders", folders);
+    console.log("sessionTags", sessionTags);
+
     if (!sessionTags || sessionTags.length === 0) {
-      console.log("No tags found, returning default");
       return "default";
     }
 
-    // Get tag names
     const tagNames = sessionTags.map((tag: any) => tag.name.toLowerCase());
-    console.log("tagnames for setting default folder:", tagNames);
-
-    console.log("folders for default folder selection:", folders);
     
-    // First, look for exact matches
+    // Exact matches first
     for (const tagName of tagNames) {
       const exactMatch = folders.find(folder => 
         folder.value.toLowerCase() === tagName
       );
       if (exactMatch) {
-        console.log("Found exact match:", exactMatch.value);
         return exactMatch.value;
       }
     }
     
-    // Second, look for folders that include any tag in their name
+    // Partial matches second
     for (const tagName of tagNames) {
       const partialMatch = folders.find(folder => 
         folder.value.toLowerCase().includes(tagName)
       );
       if (partialMatch) {
-        console.log("Found partial match:", partialMatch.value);
         return partialMatch.value;
       }
     }
     
-    // If no matches found, return default
-    console.log("No folder matches found, returning default");
     return "default";
   };
 
@@ -97,7 +90,6 @@ function ShareButtonInNote() {
     },
   });
 
-  // Fetch actual Obsidian folders
   const obsidianFolders = useQuery({
     queryKey: ["obsidian", "folders"],
     queryFn: async () => {
@@ -117,30 +109,90 @@ function ShareButtonInNote() {
 
         const response = await getVault({ client });
         
-        console.log("=== OBSIDIAN API DEBUG ===");
-        console.log("Full response:", response);
-        console.log("Files array:", response.data?.files);
-        
-        // Filter for directories only (items ending with "/") and remove trailing slash
         const folders = response.data?.files
           ?.filter(item => item.endsWith("/"))
           ?.map(folder => ({
-            value: folder.slice(0, -1), // Remove trailing slash
-            label: folder.slice(0, -1)  // Remove trailing slash
+            value: folder.slice(0, -1),
+            label: folder.slice(0, -1)
           })) || [];
 
-        // Add default option at the beginning
         return [
           { value: "default", label: "Default (Root)" },
           ...folders
         ];
       } catch (error) {
         console.error("Failed to fetch Obsidian folders:", error);
+
+        obsidianCommands.getDeepLinkUrl("").then((url) => {
+          openUrl(url);
+        }).catch((error) => {
+          console.error("Failed to open Obsidian:", error);
+        });
+
         return [{ value: "default", label: "Default (Root)" }];
       }
     },
-    enabled: false, // Disable automatic fetching
+    enabled: false,
   });
+
+  const sessionTags = useQuery({
+    queryKey: ["session", "tags", param.id],
+    queryFn: () => dbCommands.listSessionTags(param.id),
+    enabled: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const sessionParticipants = useQuery({
+    queryKey: ["session", "participants", param.id],
+    queryFn: () => dbCommands.sessionListParticipants(param.id),
+    enabled: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const toggleExpanded = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
+    
+    if (id === "obsidian" && expandedId !== id && isObsidianConfigured.data) {
+      // Fetch all needed data in parallel with caching
+      console.log("obsidian modal expanded");
+      Promise.all([
+        obsidianFolders.refetch(),
+        sessionTags.refetch(),
+        sessionParticipants.refetch()
+      ]).then(([foldersResult, tagsResult, participantsResult]) => {
+        
+        const freshFolders = foldersResult.data;
+        const freshTags = tagsResult.data;
+        
+        
+        if (freshFolders && freshFolders.length > 0) {
+          const defaultFolder = getDefaultSelectedFolder(freshFolders, freshTags || []);
+          setSelectedObsidianFolder(defaultFolder);
+        }
+      }).catch((error) => {
+        console.error("Error fetching Obsidian data:", error);
+        setSelectedObsidianFolder("default");
+      });
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    setExpandedId(null);
+
+    if (newOpen) {
+      isObsidianConfigured.refetch().then((configResult) => {
+        if (configResult.data) {
+          obsidianFolders.refetch(); 
+        }
+      });
+      
+      analyticsCommands.event({
+        event: "share_option_expanded",
+        distinct_id: userId,
+      });
+    }
+  };
 
   const exportOptions: ExportCard[] = [
     {
@@ -168,43 +220,6 @@ function ShareButtonInNote() {
       : null,
   ].filter(Boolean) as ExportCard[];
 
-  const toggleExpanded = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
-    
-    // Fetch folders when Obsidian option is expanded
-    if (id === "obsidian" && expandedId !== id && isObsidianConfigured.data) {
-      // Fetch both folders and tags in parallel, just like in exportMutation
-      Promise.all([
-        obsidianFolders.refetch(),
-        dbCommands.listSessionTags(param.id)
-      ]).then(([foldersResult, sessionTags]) => {
-        // Set default folder after both fetches complete
-        if (obsidianFolders.data && obsidianFolders.data.length > 0) {
-          console.log("setting default folder");
-          console.log("fetched sessionTags:", sessionTags);
-          const defaultFolder = getDefaultSelectedFolder(obsidianFolders.data, sessionTags);
-          setSelectedObsidianFolder(defaultFolder);
-        }
-      }).catch((error) => {
-        console.error("Error fetching folders or tags:", error);
-        // Fallback to default if anything fails
-        setSelectedObsidianFolder("default");
-      });
-    }
-  };
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    setExpandedId(null);
-
-    if (newOpen) {
-      analyticsCommands.event({
-        event: "share_option_expanded",
-        distinct_id: userId,
-      });
-    }
-  };
-
   const exportMutation = useMutation({
     mutationFn: async ({ session, optionId }: { session: Session; optionId: string }) => {
       const start = performance.now();
@@ -225,12 +240,17 @@ function ShareButtonInNote() {
       } else if (optionId === "email") {
         result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
       } else if (optionId === "obsidian") {
-        const [baseFolder, apiKey, baseUrl, sessionTags, sessionParticipants] = await Promise.all([
+        //Get cached data first, fetch if missing
+        let sessionTagsData = sessionTags.data;
+        let sessionParticipantsData = sessionParticipants.data;
+        
+        const [baseFolder, apiKey, baseUrl] = await Promise.all([
           obsidianCommands.getBaseFolder(),
           obsidianCommands.getApiKey(),
           obsidianCommands.getBaseUrl(),
-          dbCommands.listSessionTags(param.id),  // Get tags for this session
-          dbCommands.sessionListParticipants(param.id),  // Get participants for this session
+          // Only fetch if not cached
+          ...(!sessionTagsData ? [sessionTags.refetch().then(r => { sessionTagsData = r.data; })] : []),
+          ...(!sessionParticipantsData ? [sessionParticipants.refetch().then(r => { sessionParticipantsData = r.data; })] : [])
         ]);
 
         client.setConfig({
@@ -241,13 +261,11 @@ function ShareButtonInNote() {
 
         const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
         
-        // Use selected folder or base folder
+        //Simplified path logic
         let finalPath: string;
         if (selectedObsidianFolder === "default") {
-          // Only use baseFolder when user selects "default"
           finalPath = baseFolder ? await join(baseFolder!, filename) : filename;
         } else {
-          // When user selects a specific folder, use it directly from vault root
           finalPath = await join(selectedObsidianFolder, filename);
         }
 
@@ -263,19 +281,19 @@ function ShareButtonInNote() {
           },
         });
 
+        //Use cached data
         const targets = [
           { target: "date", value: new Date().toISOString() },
-          // Only include tags if there are any
-          ...(sessionTags.length > 0 ? [{ 
+          ...(sessionTagsData && sessionTagsData.length > 0 ? [{ 
             target: "tags", 
-            value: sessionTags.map(tag => tag.name) 
+            value: sessionTagsData.map(tag => tag.name) 
           }] : []),
-          // Only include attendees if there are any with names
-          ...(sessionParticipants.filter(participant => participant.full_name).length > 0 ? [{ 
+          ...(sessionParticipantsData && sessionParticipantsData.filter(participant => participant.full_name).length > 0 ? [{ 
             target: "attendees", 
-            value: sessionParticipants.map(participant => participant.full_name).filter(Boolean)
+            value: sessionParticipantsData.map(participant => participant.full_name).filter(Boolean)
           }] : []),
         ];
+
         for (const { target, value } of targets) {
           await patchVaultByFilename({
             client,
@@ -286,7 +304,7 @@ function ShareButtonInNote() {
               "Target": target,
               "Create-Target-If-Missing": "true",
             },
-            body: Array.isArray(value) ? value : value, // Remove JSON.stringify for arrays
+            body: value,
           });
         }
 

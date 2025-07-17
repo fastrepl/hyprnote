@@ -10,15 +10,20 @@ import { useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Session } from "@hypr/plugin-db";
-import { client, commands as obsidianCommands, patchVaultByFilename, putVaultByFilename, getVault } from "@hypr/plugin-obsidian";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import {
+  client,
+  commands as obsidianCommands,
+  getVault,
+  patchVaultByFilename,
+  putVaultByFilename,
+} from "@hypr/plugin-obsidian";
 import { html2md } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { useSession } from "@hypr/utils/contexts";
 import { exportToPDF } from "../utils/pdf-export";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-
 
 export function ShareButton() {
   const param = useParams({ from: "/app/note/$id", shouldThrow: false });
@@ -44,8 +49,7 @@ function ShareButtonInNote() {
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
   // Function to determine default folder selection
-  const getDefaultSelectedFolder = (folders: Array<{value: string, label: string}>, sessionTags: any[]) => {
-
+  const getDefaultSelectedFolder = (folders: Array<{ value: string; label: string }>, sessionTags: any[]) => {
     console.log("folders", folders);
     console.log("sessionTags", sessionTags);
 
@@ -54,27 +58,23 @@ function ShareButtonInNote() {
     }
 
     const tagNames = sessionTags.map((tag: any) => tag.name.toLowerCase());
-    
+
     // Exact matches first
     for (const tagName of tagNames) {
-      const exactMatch = folders.find(folder => 
-        folder.value.toLowerCase() === tagName
-      );
+      const exactMatch = folders.find(folder => folder.value.toLowerCase() === tagName);
       if (exactMatch) {
         return exactMatch.value;
       }
     }
-    
+
     // Partial matches second
     for (const tagName of tagNames) {
-      const partialMatch = folders.find(folder => 
-        folder.value.toLowerCase().includes(tagName)
-      );
+      const partialMatch = folders.find(folder => folder.value.toLowerCase().includes(tagName));
       if (partialMatch) {
         return partialMatch.value;
       }
     }
-    
+
     return "default";
   };
 
@@ -93,8 +93,10 @@ function ShareButtonInNote() {
   const obsidianFolders = useQuery({
     queryKey: ["obsidian", "folders"],
     queryFn: async () => {
-      if (!isObsidianConfigured.data) return [];
-      
+      if (!isObsidianConfigured.data) {
+        return [];
+      }
+
       try {
         const [apiKey, baseUrl] = await Promise.all([
           obsidianCommands.getApiKey(),
@@ -108,17 +110,17 @@ function ShareButtonInNote() {
         });
 
         const response = await getVault({ client });
-        
+
         const folders = response.data?.files
           ?.filter(item => item.endsWith("/"))
           ?.map(folder => ({
             value: folder.slice(0, -1),
-            label: folder.slice(0, -1)
+            label: folder.slice(0, -1),
           })) || [];
 
         return [
           { value: "default", label: "Default (Root)" },
-          ...folders
+          ...folders,
         ];
       } catch (error) {
         console.error("Failed to fetch Obsidian folders:", error);
@@ -151,20 +153,18 @@ function ShareButtonInNote() {
 
   const toggleExpanded = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
-    
+
     if (id === "obsidian" && expandedId !== id && isObsidianConfigured.data) {
       // Fetch all needed data in parallel with caching
       console.log("obsidian modal expanded");
       Promise.all([
         obsidianFolders.refetch(),
         sessionTags.refetch(),
-        sessionParticipants.refetch()
+        sessionParticipants.refetch(),
       ]).then(([foldersResult, tagsResult, participantsResult]) => {
-        
         const freshFolders = foldersResult.data;
         const freshTags = tagsResult.data;
-        
-        
+
         if (freshFolders && freshFolders.length > 0) {
           const defaultFolder = getDefaultSelectedFolder(freshFolders, freshTags || []);
           setSelectedObsidianFolder(defaultFolder);
@@ -183,10 +183,10 @@ function ShareButtonInNote() {
     if (newOpen) {
       isObsidianConfigured.refetch().then((configResult) => {
         if (configResult.data) {
-          obsidianFolders.refetch(); 
+          obsidianFolders.refetch();
         }
       });
-      
+
       analyticsCommands.event({
         event: "share_option_expanded",
         distinct_id: userId,
@@ -240,17 +240,31 @@ function ShareButtonInNote() {
       } else if (optionId === "email") {
         result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
       } else if (optionId === "obsidian") {
-        //Get cached data first, fetch if missing
+        // Get cached data first, fetch if missing
+        sessionTags.refetch();
+        sessionParticipants.refetch();
         let sessionTagsData = sessionTags.data;
         let sessionParticipantsData = sessionParticipants.data;
-        
+
         const [baseFolder, apiKey, baseUrl] = await Promise.all([
           obsidianCommands.getBaseFolder(),
           obsidianCommands.getApiKey(),
           obsidianCommands.getBaseUrl(),
           // Only fetch if not cached
-          ...(!sessionTagsData ? [sessionTags.refetch().then(r => { sessionTagsData = r.data; })] : []),
-          ...(!sessionParticipantsData ? [sessionParticipants.refetch().then(r => { sessionParticipantsData = r.data; })] : [])
+          ...(!sessionTagsData
+            ? [
+              sessionTags.refetch().then(r => {
+                sessionTagsData = r.data;
+              }),
+            ]
+            : []),
+          ...(!sessionParticipantsData
+            ? [
+              sessionParticipants.refetch().then(r => {
+                sessionParticipantsData = r.data;
+              }),
+            ]
+            : []),
         ]);
 
         client.setConfig({
@@ -260,8 +274,8 @@ function ShareButtonInNote() {
         });
 
         const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
-        
-        //Simplified path logic
+
+        // Simplified path logic
         let finalPath: string;
         if (selectedObsidianFolder === "default") {
           finalPath = baseFolder ? await join(baseFolder!, filename) : filename;
@@ -281,17 +295,21 @@ function ShareButtonInNote() {
           },
         });
 
-        //Use cached data
+        // Use cached data
         const targets = [
           { target: "date", value: new Date().toISOString() },
-          ...(sessionTagsData && sessionTagsData.length > 0 ? [{ 
-            target: "tags", 
-            value: sessionTagsData.map(tag => tag.name) 
-          }] : []),
-          ...(sessionParticipantsData && sessionParticipantsData.filter(participant => participant.full_name).length > 0 ? [{ 
-            target: "attendees", 
-            value: sessionParticipantsData.map(participant => participant.full_name).filter(Boolean)
-          }] : []),
+          ...(sessionTagsData && sessionTagsData.length > 0
+            ? [{
+              target: "tags",
+              value: sessionTagsData.map(tag => tag.name),
+            }]
+            : []),
+          ...(sessionParticipantsData && sessionParticipantsData.filter(participant => participant.full_name).length > 0
+            ? [{
+              target: "attendees",
+              value: sessionParticipantsData.map(participant => participant.full_name).filter(Boolean),
+            }]
+            : []),
         ];
 
         for (const { target, value } of targets) {
@@ -304,7 +322,7 @@ function ShareButtonInNote() {
               "Target": target,
               "Create-Target-If-Missing": "true",
             },
-            body: value,
+            body: value as any,
           });
         }
 

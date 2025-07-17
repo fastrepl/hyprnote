@@ -1,13 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "./shared";
 
+const TOAST_DISMISSAL_KEY = "model-download-toast-dismissed";
+
 export default function ModelDownloadNotification() {
   const queryClient = useQueryClient();
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return sessionStorage.getItem(TOAST_DISMISSAL_KEY) === "true";
+  });
   const currentSttModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -67,6 +72,10 @@ export default function ModelDownloadNotification() {
       return;
     }
 
+    if (isDismissed) {
+      return;
+    }
+
     const needsSttModel = !checkForModelDownload.data?.sttModelDownloaded;
     const needsLlmModel = !checkForModelDownload.data?.llmModelDownloaded;
 
@@ -90,6 +99,12 @@ export default function ModelDownloadNotification() {
       return;
     }
 
+    const handleDismiss = () => {
+      setIsDismissed(true);
+      sessionStorage.setItem(TOAST_DISMISSAL_KEY, "true");
+      sonnerToast.dismiss("model-download-needed");
+    };
+
     toast({
       id: "model-download-needed",
       title,
@@ -110,10 +125,15 @@ export default function ModelDownloadNotification() {
           },
           primary: true,
         },
+        {
+          label: "Dismiss",
+          onClick: handleDismiss,
+          primary: false,
+        },
       ],
       dismissible: false,
     });
-  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data]);
+  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data, isDismissed]);
 
   return null;
 }

@@ -224,7 +224,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_download_resume() {
+    async fn test_download_file_with_callback_mock() {
         use tempfile::NamedTempFile;
         use wiremock::matchers::{header, method, path};
         use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -248,7 +248,6 @@ mod tests {
 
         let url = format!("{}/test-file", mock_server.uri());
 
-        // Test that request_with_range returns 206 for range requests
         let range_response = request_with_range(&url, Some(510)).await.unwrap();
         assert_eq!(
             range_response.status().as_u16(),
@@ -268,7 +267,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn test_s3_resume_download() {
+    async fn test_download_file_with_callback_s3() {
         use std::sync::{Arc, Mutex};
         use tempfile::NamedTempFile;
 
@@ -278,19 +277,13 @@ mod tests {
         let s3_url =
             "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
 
-        // First, download a partial file (simulate interruption)
-        let partial_content = b"PARTIAL_CONTENT".repeat(100); // 1500 bytes
+        let partial_content = b"PARTIAL_CONTENT".repeat(100);
         std::fs::write(temp_path, &partial_content).unwrap();
 
         let initial_size = std::fs::metadata(temp_path).unwrap().len();
         assert_eq!(initial_size, 1500);
 
-        // Verify that the server supports range requests for this file
-        let client = reqwest::Client::new();
-        let range_response = client
-            .get(s3_url)
-            .header("Range", format!("bytes={}-", initial_size))
-            .send()
+        let range_response = request_with_range(s3_url, Some(initial_size))
             .await
             .unwrap();
         assert_eq!(
@@ -299,11 +292,9 @@ mod tests {
             "Server should respond with 206 for range requests"
         );
 
-        // Track progress
         let progress_events = Arc::new(Mutex::new(Vec::new()));
         let progress_events_clone = Arc::clone(&progress_events);
 
-        // Resume download using our function
         let result = download_file_with_callback(s3_url, temp_path, |progress| {
             progress_events_clone.lock().unwrap().push(progress);
         })
@@ -317,7 +308,6 @@ mod tests {
             "File should have grown from resume"
         );
 
-        // Check that progress events were recorded
         let events = progress_events.lock().unwrap();
         assert!(
             !events.is_empty(),

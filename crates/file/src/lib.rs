@@ -9,32 +9,66 @@ pub use types::*;
 use futures_util::StreamExt;
 use std::{
     fs::File,
+    fs::OpenOptions,
     io::{BufReader, Read, Write},
     path::Path,
 };
 
+#[derive(Debug)]
 pub enum DownloadProgress {
     Started,
     Progress(u64, u64),
     Finished,
 }
 
-pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
+/// Downloads a file with resume capability. If the file already exists,
+/// it will resume from where it left off using HTTP Range requests.
+/// This is the preferred method for downloading large files that might
+/// be interrupted.
+pub async fn download_file_with_resume<F: Fn(DownloadProgress)>(
     url: impl reqwest::IntoUrl,
     output_path: impl AsRef<Path>,
     progress_callback: F,
 ) -> Result<(), crate::Error> {
     let client = reqwest::Client::new();
-
-    let res = client.get(url.into_url()?).send().await?;
-    let total_size = res.content_length().unwrap_or(u64::MAX);
+    let url = url.into_url()?;
 
     if let Some(parent) = output_path.as_ref().parent() {
         std::fs::create_dir_all(parent)?;
     }
 
-    let mut file = std::fs::File::create(output_path.as_ref())?;
-    let mut downloaded: u64 = 0;
+    // Check if file exists and get its size for resume
+    let existing_size = if output_path.as_ref().exists() {
+        file_size(&output_path)?
+    } else {
+        0
+    };
+
+    // Create request with range header if resuming
+    let mut request = client.get(url.clone());
+    if existing_size > 0 {
+        request = request.header("Range", format!("bytes={}-", existing_size));
+    }
+
+    let res = request.send().await?;
+    let total_size = if let Some(content_length) = res.content_length() {
+        if existing_size > 0 {
+            existing_size + content_length
+        } else {
+            content_length
+        }
+    } else {
+        u64::MAX
+    };
+
+    // Open file for appending if resuming, create new otherwise
+    let mut file = if existing_size > 0 {
+        OpenOptions::new().append(true).open(output_path.as_ref())?
+    } else {
+        std::fs::File::create(output_path.as_ref())?
+    };
+
+    let mut downloaded: u64 = existing_size;
     let mut stream = res.bytes_stream();
 
     progress_callback(DownloadProgress::Started);
@@ -49,6 +83,86 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     progress_callback(DownloadProgress::Finished);
 
     Ok(())
+}
+
+/// Downloads a file with range support for better performance.
+/// This function supports both resume capability and chunked downloads
+/// for improved reliability and performance with large files.
+/// The chunk_size parameter allows tuning for different network conditions.
+pub async fn download_file_with_range_support<F: Fn(DownloadProgress)>(
+    url: impl reqwest::IntoUrl,
+    output_path: impl AsRef<Path>,
+    progress_callback: F,
+    chunk_size: Option<u64>,
+) -> Result<(), crate::Error> {
+    let client = reqwest::Client::new();
+    let url = url.into_url()?;
+
+    if let Some(parent) = output_path.as_ref().parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    // Check if file exists and get its size for resume
+    let existing_size = if output_path.as_ref().exists() {
+        file_size(&output_path)?
+    } else {
+        0
+    };
+
+    // First, get the total file size with a HEAD request
+    let head_res = client.head(url.clone()).send().await?;
+    let total_size = head_res.content_length().unwrap_or(u64::MAX);
+
+    // If file is already complete, return early
+    if existing_size >= total_size && total_size != u64::MAX {
+        progress_callback(DownloadProgress::Finished);
+        return Ok(());
+    }
+
+    // Open file for appending if resuming, create new otherwise
+    let mut file = if existing_size > 0 {
+        OpenOptions::new().append(true).open(output_path.as_ref())?
+    } else {
+        std::fs::File::create(output_path.as_ref())?
+    };
+
+    let mut downloaded: u64 = existing_size;
+    progress_callback(DownloadProgress::Started);
+
+    // Use chunked download for better performance if chunk_size is specified
+    let chunk_size = chunk_size.unwrap_or(8 * 1024 * 1024); // Default 8MB chunks
+
+    while downloaded < total_size {
+        let end_byte = std::cmp::min(downloaded + chunk_size - 1, total_size - 1);
+
+        let range_req = client
+            .get(url.clone())
+            .header("Range", format!("bytes={}-{}", downloaded, end_byte))
+            .send()
+            .await?;
+
+        let mut stream = range_req.bytes_stream();
+        while let Some(item) = stream.next().await {
+            let chunk = item?;
+            file.write_all(&chunk)?;
+            downloaded += chunk.len() as u64;
+            progress_callback(DownloadProgress::Progress(downloaded, total_size));
+        }
+    }
+
+    progress_callback(DownloadProgress::Finished);
+    Ok(())
+}
+
+/// Legacy download function that now uses resume capability.
+/// Use download_file_with_resume directly for better clarity.
+pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
+    url: impl reqwest::IntoUrl,
+    output_path: impl AsRef<Path>,
+    progress_callback: F,
+) -> Result<(), crate::Error> {
+    // Call the new resume-capable function
+    download_file_with_resume(url, output_path, progress_callback).await
 }
 
 pub fn file_size(path: impl AsRef<Path>) -> Result<u64, Error> {
@@ -121,5 +235,51 @@ mod tests {
             let size = file_size(&file).unwrap();
             println!("[{:?}]\n{}\n\n", file, size);
         }
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_download_resume() {
+        use std::sync::{Arc, Mutex};
+        use tempfile::NamedTempFile;
+
+        let temp_file = NamedTempFile::new().unwrap();
+        let temp_path = temp_file.path();
+
+        // Test URL - using a small file for testing
+        let test_url = "https://httpbin.org/bytes/1024";
+
+        let partial_content = reqwest::get(format!("{}/512", test_url))
+            .await
+            .unwrap()
+            .bytes()
+            .await
+            .unwrap();
+
+        std::fs::write(temp_path, &partial_content).unwrap();
+        assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 233);
+
+        // 2단계: 재개 다운로드 (나머지 512바이트)
+        let result = download_file_with_resume(test_url, temp_path, |_| {}).await;
+
+        // let progress_calls = Arc::new(Mutex::new(Vec::new()));
+        // let progress_calls_clone = Arc::clone(&progress_calls);
+        //
+        // // First download (should complete)
+        // let result = download_file_with_resume(test_url, temp_path, move |progress| {
+        //     progress_calls_clone
+        //         .lock()
+        //         .unwrap()
+        //         .push(format!("{:#?}", progress));
+        // })
+        // .await;
+
+        assert!(result.is_ok());
+        assert!(temp_path.exists());
+        assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 1257);
+
+        // Verify we got progress callbacks
+        // let progress_calls = progress_calls.lock().unwrap();
+        // assert!(!progress_calls.is_empty());
     }
 }

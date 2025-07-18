@@ -3,7 +3,7 @@ use std::{future::Future, path::PathBuf};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
-use hypr_file::{download_file_with_callback, DownloadProgress};
+use hypr_file::{download_file_with_resume, DownloadProgress};
 use hypr_listener_interface::Word;
 
 use crate::events::RecordedProcessingEvent;
@@ -152,7 +152,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 }
             };
 
-            if let Err(e) = download_file_with_callback(m.model_url(), model_path, callback).await {
+            if let Err(e) = download_file_with_resume(m.model_url(), model_path, callback).await {
                 tracing::error!("model_download_error: {}", e);
                 let _ = channel.send(-1);
             }

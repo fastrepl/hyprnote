@@ -73,7 +73,7 @@ impl AudioInput {
     pub fn from_mic() -> Self {
         Self {
             source: AudioSource::RealtimeMic,
-            mic: Some(MicInput::default()),
+            mic: Some(MicInput::new().unwrap()),
             speaker: None,
             data: None,
         }

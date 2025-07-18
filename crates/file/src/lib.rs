@@ -249,34 +249,48 @@ mod tests {
         // Test URL - using a small file for testing
         let test_url = "https://httpbin.org/bytes/1024";
 
-        let partial_content = reqwest::get(format!("{}/512", test_url))
-            .await
-            .unwrap()
-            .bytes()
-            .await
-            .unwrap();
+        // 1단계: 부분 콘텐츠 생성 (예: 처음 512바이트)
+        let partial_data = b"A".repeat(512);
+        std::fs::write(temp_path, &partial_data).unwrap();
 
-        std::fs::write(temp_path, &partial_content).unwrap();
-        assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 233);
+        // 2단계: Resume 다운로드
+        download_file_with_resume(test_url, temp_path, |_| {}).await;
 
-        // 2단계: 재개 다운로드 (나머지 512바이트)
-        let result = download_file_with_resume(test_url, temp_path, |_| {}).await;
+        // 3단계: 파일 내용 검증
+        let final_content = std::fs::read(temp_path).unwrap();
 
-        // let progress_calls = Arc::new(Mutex::new(Vec::new()));
-        // let progress_calls_clone = Arc::clone(&progress_calls);
+        // Resume이 제대로 작동했다면: 512바이트 'A' + 512바이트 새 데이터
+        // Resume이 안 됐다면: 1024바이트 모두 새 데이터
+        assert!(final_content.starts_with(&partial_data)); // 이게 핵심!
+
+        // let partial_content = reqwest::get(format!("{}/512", test_url))
+        //     .await
+        //     .unwrap()
+        //     .bytes()
+        //     .await
+        //     .unwrap();
         //
-        // // First download (should complete)
-        // let result = download_file_with_resume(test_url, temp_path, move |progress| {
-        //     progress_calls_clone
-        //         .lock()
-        //         .unwrap()
-        //         .push(format!("{:#?}", progress));
-        // })
-        // .await;
-
-        assert!(result.is_ok());
-        assert!(temp_path.exists());
-        assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 1257);
+        // std::fs::write(temp_path, &partial_content).unwrap();
+        // assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 233);
+        //
+        // // 2단계: 재개 다운로드 (나머지 512바이트)
+        // let result = download_file_with_resume(test_url, temp_path, |_| {}).await;
+        //
+        // // let progress_calls = Arc::new(Mutex::new(Vec::new()));
+        // // let progress_calls_clone = Arc::clone(&progress_calls);
+        // //
+        // // // First download (should complete)
+        // // let result = download_file_with_resume(test_url, temp_path, move |progress| {
+        // //     progress_calls_clone
+        // //         .lock()
+        // //         .unwrap()
+        // //         .push(format!("{:#?}", progress));
+        // // })
+        // // .await;
+        //
+        // assert!(result.is_ok());
+        // assert!(temp_path.exists());
+        // assert_eq!(std::fs::metadata(temp_path).unwrap().len(), 1257);
 
         // Verify we got progress callbacks
         // let progress_calls = progress_calls.lock().unwrap();

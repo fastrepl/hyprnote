@@ -178,9 +178,19 @@ mod tests {
         std::fs::write(temp_path, b"FIRST_HALF".repeat(51)).unwrap();
 
         let url = format!("{}/test-file", mock_server.uri());
-        let result = download_file_with_callback(url, temp_path, |_| {}).await;
+        let result = download_file_with_callback(url.clone(), temp_path, |_| {}).await;
 
         assert!(result.is_ok());
+
+        let client = reqwest::Client::new();
+        let response = client
+            .get(&url)
+            .header("Range", "bytes=510-")
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status().as_u16(), 206);
+
         let content = std::fs::read(temp_path).unwrap();
         assert_eq!(content.len(), 1016);
         assert!(content.starts_with(b"FIRST_HALF"));

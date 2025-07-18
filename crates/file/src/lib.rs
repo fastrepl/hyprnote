@@ -238,7 +238,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_download_resume() {
         use tempfile::NamedTempFile;
         use wiremock::matchers::{header, method, path};

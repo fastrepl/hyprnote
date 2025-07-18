@@ -196,4 +196,35 @@ mod tests {
         assert!(content.starts_with(b"FIRST_HALF"));
         assert!(content.ends_with(b"SECOND_HALF"));
     }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_s3_partial_download() {
+        use tempfile::NamedTempFile;
+
+        let temp_file = NamedTempFile::new().unwrap();
+        let temp_path = temp_file.path();
+
+        let s3_url =
+            "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
+        let range_start = 0;
+
+        let client = reqwest::Client::new();
+        let response = client
+            .get(s3_url)
+            .header("Range", format!("bytes={}-", range_start))
+            .send()
+            .await
+            .unwrap();
+
+        assert_eq!(response.status().as_u16(), 206);
+
+        assert!(response.headers().get("Content-Range").is_some());
+
+        let bytes = response.bytes().await.unwrap();
+        std::fs::write(temp_path, &bytes).unwrap();
+
+        let file_size = std::fs::metadata(temp_path).unwrap().len();
+        assert!(file_size > 0);
+    }
 }

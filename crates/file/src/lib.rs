@@ -176,6 +176,54 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_request_with_range() {
+        use wiremock::matchers::{header, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/test-file"))
+            .and(header("Range", "bytes=5-"))
+            .respond_with(
+                ResponseTemplate::new(206)
+                    .set_body_bytes(b"CONTENT")
+                    .insert_header("Content-Range", "bytes 5-11/12"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/test-file"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_bytes(b"FULL_CONTENT")
+                    .insert_header("Content-Length", "12"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let url = format!("{}/test-file", mock_server.uri());
+
+        let full_response = request_with_range(&url, None).await.unwrap();
+        assert_eq!(
+            full_response.status().as_u16(),
+            200,
+            "Full request should return 200"
+        );
+
+        let range_response = request_with_range(&url, Some(5)).await.unwrap();
+        assert_eq!(
+            range_response.status().as_u16(),
+            206,
+            "Range request should return 206"
+        );
+
+        let content_range = range_response.headers().get("Content-Range").unwrap();
+        assert_eq!(content_range.to_str().unwrap(), "bytes 5-11/12");
+    }
+
+    #[tokio::test]
     async fn test_download_resume() {
         use tempfile::NamedTempFile;
         use wiremock::matchers::{header, method, path};
@@ -216,59 +264,6 @@ mod tests {
         assert_eq!(content.len(), 1016);
         assert!(content.starts_with(b"FIRST_HALF"));
         assert!(content.ends_with(b"SECOND_HALF"));
-    }
-
-    #[tokio::test]
-    async fn test_request_with_range() {
-        use wiremock::matchers::{header, method, path};
-        use wiremock::{Mock, MockServer, ResponseTemplate};
-
-        let mock_server = MockServer::start().await;
-
-        // Mock for full file request
-        Mock::given(method("GET"))
-            .and(path("/test-file"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_bytes(b"FULL_CONTENT")
-                    .insert_header("Content-Length", "12"),
-            )
-            .mount(&mock_server)
-            .await;
-
-        // Mock for range request
-        Mock::given(method("GET"))
-            .and(path("/test-file"))
-            .and(header("Range", "bytes=5-"))
-            .respond_with(
-                ResponseTemplate::new(206)
-                    .set_body_bytes(b"CONTENT")
-                    .insert_header("Content-Range", "bytes 5-11/12"),
-            )
-            .mount(&mock_server)
-            .await;
-
-        let url = format!("{}/test-file", mock_server.uri());
-
-        // Test full file request (no range)
-        let full_response = request_with_range(&url, None).await.unwrap();
-        assert_eq!(
-            full_response.status().as_u16(),
-            200,
-            "Full request should return 200"
-        );
-
-        // Test range request
-        let range_response = request_with_range(&url, Some(5)).await.unwrap();
-        assert_eq!(
-            range_response.status().as_u16(),
-            206,
-            "Range request should return 206"
-        );
-
-        // Verify Content-Range header
-        let content_range = range_response.headers().get("Content-Range").unwrap();
-        assert_eq!(content_range.to_str().unwrap(), "bytes 5-11/12");
     }
 
     #[tokio::test]

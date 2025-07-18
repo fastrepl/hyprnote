@@ -233,22 +233,32 @@ impl<'a> UserClient<'a> {
         Ok(urls)
     }
 
-    pub async fn presigned_url_for_download(&self, file_name: &str) -> Result<String, ApiError> {
+    pub async fn presigned_url_for_download(
+        &self,
+        file_name: &str,
+        range: Option<(u64, Option<u64>)>,
+    ) -> Result<String, ApiError> {
         let config = PresigningConfig::builder()
             .expires_in(std::time::Duration::from_secs(60 * 30))
             .build()
             .unwrap();
 
-        let url = self
-            .s3
-            .get_object()
-            .bucket(&self.bucket)
-            .key(format!("{}/{}", self.folder(), file_name))
-            .presigned(config)
-            .await?
-            .uri()
-            .to_string();
+        let mut request = self.s3.get_object().bucket(&self.bucket).key(format!(
+            "{}/{}",
+            self.folder(),
+            file_name
+        ));
 
+        if let Some((start_byte, end_byte)) = range {
+            let range_str = if let Some(end) = end_byte {
+                format!("bytes={}-{}", start_byte, end)
+            } else {
+                format!("bytes={}-", start_byte)
+            };
+            request = request.range(range_str);
+        }
+
+        let url = request.presigned(config).await?.uri().to_string();
         Ok(url)
     }
 

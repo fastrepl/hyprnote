@@ -17,3 +17,4 @@ dirs = { workspace = true }
 hypr-s3 = { path = "../../crates/s3", package = "s3" }
 tempfile = { workspace = true }
 testcontainers-modules = { workspace = true, features = ["minio"] }
+wiremock = "0.5"

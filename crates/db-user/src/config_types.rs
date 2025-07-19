@@ -81,10 +81,20 @@ impl Default for ConfigNotification {
 }
 
 user_common_derives! {
-    #[derive(Default)]
     pub struct ConfigAI {
         pub api_base: Option<String>,
         pub api_key: Option<String>,
+        pub ai_specificity: Option<u8>,
+    }
+}
+
+impl Default for ConfigAI {
+    fn default() -> Self {
+        Self {
+            api_base: None,
+            api_key: None,
+            ai_specificity: Some(3),
+        }
     }
 }
 

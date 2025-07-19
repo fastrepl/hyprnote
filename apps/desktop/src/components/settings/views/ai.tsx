@@ -9,6 +9,7 @@ import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toas
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -26,6 +27,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { WERPerformanceModal } from "../components/wer-modal";
+import { Slider } from "@hypr/ui/components/ui/slider";
+import { Card, CardContent, CardHeader, CardTitle } from "@hypr/ui/components/ui/card";
 
 const endpointSchema = z.object({
   model: z.string().min(1),
@@ -119,6 +122,30 @@ const initialLlmModels = [
     size: "1.1 GB",
   },
 ];
+
+const aiConfigSchema = z.object({
+  aiSpecificity: z.number().int().min(1).max(4).optional(),
+});
+type AIConfigValues = z.infer<typeof aiConfigSchema>;
+
+const specificityLevels = {
+  1: {
+    title: "Minimal",
+    description: "High-level summaries only. Focuses on key points and main takeaways without detailed explanations."
+  },
+  2: {
+    title: "Moderate", 
+    description: "Balanced detail level. Includes important context and supporting information while staying concise."
+  },
+  3: {
+    title: "Detailed",
+    description: "Include specifics and examples. Provides comprehensive coverage with relevant details and explanations."
+  },
+  4: {
+    title: "Comprehensive",
+    description: "Maximum detail level. Captures all nuances, background context, and thorough analysis of the content."
+  }
+} as const;
 
 export default function LocalAI() {
   const queryClient = useQueryClient();
@@ -238,6 +265,47 @@ export default function LocalAI() {
     onSuccess: () => {
       customLLMConnection.refetch();
     },
+  });
+
+  const config = useQuery({
+    queryKey: ["config", "ai"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+  });
+
+  const aiConfigForm = useForm<AIConfigValues>({
+    resolver: zodResolver(aiConfigSchema),
+    defaultValues: {
+      aiSpecificity: 3,
+    },
+  });
+
+  useEffect(() => {
+    if (config.data) {
+      aiConfigForm.reset({
+        aiSpecificity: config.data.ai.ai_specificity ?? 3,
+      });
+    }
+  }, [config.data, aiConfigForm]);
+
+  const aiConfigMutation = useMutation({
+    mutationFn: async (values: AIConfigValues) => {
+      if (!config.data) return;
+
+      await dbCommands.setConfig({
+        ...config.data,
+        ai: {
+          ...config.data.ai,
+          ai_specificity: values.aiSpecificity,
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config", "ai"] });
+    },
+    onError: console.error,
   });
 
   const form = useForm<FormValues>({
@@ -680,6 +748,61 @@ export default function LocalAI() {
                       </FormItem>
                     )}
                   />
+
+                  {/* NEW: Detail Level Configuration */}
+                  <Form {...aiConfigForm}>
+                    <FormField
+                      control={aiConfigForm.control}
+                      name="aiSpecificity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Detail Level</Trans>
+                          </FormLabel>
+                          <FormDescription className="text-xs">
+                            <Trans>Control how detailed the AI enhancement should be</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <div className="space-y-3">
+                              {/* Button bar - matching form element width */}
+                              <div className="w-full">
+                                <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
+                                  {[1, 2, 3, 4].map((level) => (
+                                    <button
+                                      key={level}
+                                      type="button"
+                                      onClick={() => {
+                                        field.onChange(level);
+                                        aiConfigMutation.mutate({ aiSpecificity: level });
+                                      }}
+                                      disabled={!customLLMEnabled.data}
+                                      className={cn(
+                                        "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
+                                        field.value === level
+                                          ? "bg-white text-black shadow-sm"
+                                          : "text-white hover:bg-white/20",
+                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed"
+                                      )}
+                                    >
+                                      {specificityLevels[level as keyof typeof specificityLevels]?.title}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              {/* Current selection description in card */}
+                              <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                                <div className="text-xs text-muted-foreground">
+                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description || specificityLevels[3].description}
+                                </div>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Form>
                 </form>
               </Form>
             </div>

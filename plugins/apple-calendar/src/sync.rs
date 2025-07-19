@@ -113,6 +113,9 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
+    // Track system events that have been handled to prevent duplicates
+    let mut handled_system_event_ids = std::collections::HashSet::<String>::new();
+
     // Collect all system events for rescheduled event detection
     let all_system_events: Vec<&hypr_calendar_interface::Event> =
         system_events_per_selected_calendar
@@ -151,6 +154,9 @@ async fn _sync_events(
                         google_event_url: db_event.google_event_url.clone(), // Preserve any existing URL
                     };
                     state.to_update.push(updated_event);
+
+                    // Mark this system event as handled
+                    handled_system_event_ids.insert(matching_event.id.clone());
                     continue;
                 }
 
@@ -180,6 +186,9 @@ async fn _sync_events(
                         google_event_url: db_event.google_event_url.clone(),
                     };
                     state.to_update.push(updated_event);
+
+                    // Mark this rescheduled system event as handled to prevent duplicate creation
+                    handled_system_event_ids.insert(rescheduled_event.id.clone());
                     continue;
                 }
 
@@ -201,7 +210,12 @@ async fn _sync_events(
             .unwrap();
 
         for system_event in fresh_events {
-            // Skip if this event was already handled as an update
+            // Skip if this system event was already handled (as update or rescheduled event)
+            if handled_system_event_ids.contains(&system_event.id) {
+                continue;
+            }
+
+            // Skip if this event was already handled as an update (backup check)
             let already_handled = state
                 .to_update
                 .iter()

@@ -1,4 +1,3 @@
-export * from "./calendar-toolbar";
 export * from "./default-toolbar";
 export * from "./entity-toolbar";
 export * from "./main-toolbar";

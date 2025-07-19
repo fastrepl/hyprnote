@@ -258,33 +258,30 @@ export function useEnhanceMutation({
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
   const queryClient = useQueryClient();
 
-  // ✅ Extract H1 headers at component level (always available)
+  // Extract H1 headers at component level (always available)
   const extractH1Headers = useCallback((htmlContent: string): string[] => {
-    if (!htmlContent) return [];
-    
+    if (!htmlContent) {
+      return [];
+    }
+
     const h1Regex = /<h1[^>]*>(.*?)<\/h1>/gi;
     const headers: string[] = [];
     let match;
-    
+
     while ((match = h1Regex.exec(htmlContent)) !== null) {
-      const headerText = match[1].replace(/<[^>]*>/g, '').trim();
+      const headerText = match[1].replace(/<[^>]*>/g, "").trim();
       if (headerText) {
         headers.push(headerText);
       }
     }
-    
+
     return headers;
   }, []);
 
-  // ✅ Memoized h1Headers (recalculates when rawContent changes)
   const h1Headers = useMemo(() => extractH1Headers(rawContent), [rawContent, extractH1Headers]);
 
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
-
-  console.log("Extracted H1 headers:", h1Headers);
-
-  //i only want to extract headers from the rawContent (the ones that are cased in <h1> tags)
 
   const finalInput = diffWords(preMeetingText, rawText)
     ?.filter(diff => diff.added && !diff.removed)
@@ -343,19 +340,17 @@ export function useEnhanceMutation({
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
       const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
 
-
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { 
-          config, 
-          type, 
-          // ✅ Pass userHeaders when using H1 headers, templateInfo otherwise
-          ...(shouldUseH1Headers 
-            ? { userHeaders: h1Headers }           // ✅ Pass h1Headers array
-            : { templateInfo: selectedTemplate }   // ✅ Pass template only when not using headers
-          )
+        {
+          config,
+          type,
+          // Pass userHeaders when using H1 headers, templateInfo otherwise
+          ...(shouldUseH1Headers
+            ? { userHeaders: h1Headers }
+            : { templateInfo: selectedTemplate }),
         },
       );
 
@@ -409,7 +404,7 @@ export function useEnhanceMutation({
               metadata: {
                 grammar: {
                   task: "enhance",
-                  sections: grammarSections, 
+                  sections: grammarSections,
                 } satisfies Grammar,
               },
             },

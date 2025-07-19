@@ -8,8 +8,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
-import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -131,20 +131,24 @@ type AIConfigValues = z.infer<typeof aiConfigSchema>;
 const specificityLevels = {
   1: {
     title: "Conservative",
-    description: "Minimal creative changes. Preserves your original writing style and content while making only essential improvements to clarity and flow."
+    description:
+      "Minimal creative changes. Preserves your original writing style and content while making only essential improvements to clarity and flow.",
   },
   2: {
     title: "Balanced",
-    description: "Moderate creative input. Enhances your content with some stylistic improvements while maintaining the core message and tone."
+    description:
+      "Moderate creative input. Enhances your content with some stylistic improvements while maintaining the core message and tone.",
   },
   3: {
     title: "Creative",
-    description: "More creative freedom. Actively improves and expands content with additional context, examples, and engaging language."
+    description:
+      "More creative freedom. Actively improves and expands content with additional context, examples, and engaging language.",
   },
   4: {
     title: "Innovative",
-    description: "Maximum creativity. Transforms content with rich language, fresh perspectives, and creative restructuring while preserving key information."
-  }
+    description:
+      "Maximum creativity. Transforms content with rich language, fresh perspectives, and creative restructuring while preserving key information.",
+  },
 } as const;
 
 export default function LocalAI() {
@@ -293,13 +297,15 @@ export default function LocalAI() {
 
   const aiConfigMutation = useMutation({
     mutationFn: async (values: AIConfigValues) => {
-      if (!config.data) return;
+      if (!config.data) {
+        return;
+      }
 
       await dbCommands.setConfig({
         ...config.data,
         ai: {
           ...config.data.ai,
-          ai_specificity: values.aiSpecificity,
+          ai_specificity: values.aiSpecificity ?? 3,
         },
       });
     },
@@ -782,7 +788,7 @@ export default function LocalAI() {
                                         field.value === level
                                           ? "bg-white text-black shadow-sm"
                                           : "text-white hover:bg-white/20",
-                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed"
+                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
                                       )}
                                     >
                                       {specificityLevels[level as keyof typeof specificityLevels]?.title}
@@ -790,11 +796,12 @@ export default function LocalAI() {
                                   ))}
                                 </div>
                               </div>
-                              
+
                               {/* Current selection description in card */}
                               <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
                                 <div className="text-xs text-muted-foreground">
-                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description || specificityLevels[3].description}
+                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description
+                                    || specificityLevels[3].description}
                                 </div>
                               </div>
                             </div>

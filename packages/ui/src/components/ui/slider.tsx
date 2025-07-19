@@ -10,7 +10,7 @@ const sliderVariants = cva(
     variants: {
       size: {
         sm: "h-4",
-        default: "h-5", 
+        default: "h-5",
         lg: "h-6",
       },
     },
@@ -38,7 +38,7 @@ const trackVariants = cva(
 
 const rangeVariants = cva(
   "absolute h-full bg-primary",
-  {}
+  {},
 );
 
 const thumbVariants = cva(
@@ -58,8 +58,8 @@ const thumbVariants = cva(
 );
 
 export interface SliderProps
-  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>,
-    VariantProps<typeof sliderVariants> {}
+  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>, VariantProps<typeof sliderVariants>
+{}
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,

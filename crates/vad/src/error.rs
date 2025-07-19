@@ -3,9 +3,9 @@ use serde::{ser::Serializer, Serialize};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    OrtError(#[from] ort::Error),
+    OrtError(#[from] hypr_onnx::ort::Error),
     #[error(transparent)]
-    ShapeError(#[from] ndarray::ShapeError),
+    ShapeError(#[from] hypr_onnx::ndarray::ShapeError),
     #[error("Invalid or missing output from model")]
     InvalidOutput,
 }

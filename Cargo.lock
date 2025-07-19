@@ -966,6 +966,7 @@ dependencies = [
  "bytes",
  "cidre",
  "cpal",
+ "dasp",
  "data",
  "ebur128",
  "futures-channel",
@@ -16113,8 +16114,7 @@ name = "vad"
 version = "0.1.0"
 dependencies = [
  "data",
- "ndarray",
- "ort",
+ "onnx",
  "serde",
  "thiserror 2.0.12",
 ]

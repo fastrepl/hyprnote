@@ -1,10 +1,12 @@
 mod error;
 pub use error::*;
 
-use ndarray::{Array1, Array2, Array3, ArrayBase, Ix1, Ix3, OwnedRepr};
-use ort::{
-    session::{builder::GraphOptimizationLevel, Session},
-    value::TensorRef,
+use hypr_onnx::{
+    ndarray::{Array1, Array2, Array3, ArrayBase, Ix1, Ix3, OwnedRepr},
+    ort::{
+        session::{builder::GraphOptimizationLevel, Session},
+        value::TensorRef,
+    },
 };
 
 const MODEL_BYTES: &[u8] =
@@ -48,7 +50,7 @@ impl Vad {
         let samples = audio_chunk.len();
         let audio_tensor = Array2::from_shape_vec((1, samples), audio_chunk.to_vec())?;
 
-        let mut result = self.session.run(ort::inputs![
+        let mut result = self.session.run(hypr_onnx::ort::inputs![
             TensorRef::from_array_view(audio_tensor.view())?,
             TensorRef::from_array_view(self.sample_rate_tensor.view())?,
             TensorRef::from_array_view(self.h_tensor.view())?,

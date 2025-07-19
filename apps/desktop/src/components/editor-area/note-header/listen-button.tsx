@@ -1,6 +1,16 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MicIcon, MicOffIcon, PauseIcon, PlayIcon, StopCircleIcon, Volume2Icon, VolumeOffIcon } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  MicIcon,
+  MicOffIcon,
+  Pause,
+  PlayIcon,
+  Square,
+  Volume2Icon,
+  VolumeOffIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import SoundIndicator from "@/components/sound-indicator";
@@ -319,16 +329,14 @@ function RecordingControls({
 
   return (
     <>
-      <div className="flex w-full justify-between mb-3">
-        <AudioControlButton
+      <div className="flex w-full gap-2 mb-3">
+        <MicrophoneSelector
           isMuted={ongoingSessionMuted.micMuted}
-          onClick={() => toggleMicMuted.mutate()}
-          type="mic"
+          onToggleMuted={() => toggleMicMuted.mutate()}
         />
-        <AudioControlButton
+        <SpeakerButton
           isMuted={ongoingSessionMuted.speakerMuted}
           onClick={() => toggleSpeakerMuted.mutate()}
-          type="speaker"
         />
       </div>
 
@@ -361,7 +369,7 @@ function RecordingControls({
           onClick={onPause}
           className="w-full"
         >
-          <PauseIcon size={16} />
+          <Pause size={16} />
           <Trans>Pause</Trans>
         </Button>
         <Button
@@ -369,7 +377,7 @@ function RecordingControls({
           onClick={handleStopWithTemplate}
           className="w-full"
         >
-          <StopCircleIcon size={16} />
+          <Square size={16} />
           <Trans>Stop</Trans>
         </Button>
       </div>
@@ -377,35 +385,139 @@ function RecordingControls({
   );
 }
 
-function AudioControlButton({
-  type,
+function MicrophoneSelector({
+  isMuted,
+  onToggleMuted,
+  disabled,
+}: {
+  isMuted?: boolean;
+  onToggleMuted: () => void;
+  disabled?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<string>("");
+
+  const { data: devices = [], isLoading } = useQuery({
+    queryKey: ["microphone-devices"],
+    queryFn: () => listenerCommands.listMicrophoneDevices(),
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (!selectedDevice && devices.length > 0) {
+      setSelectedDevice(devices[0]);
+    }
+  }, [devices, selectedDevice]);
+
+  const Icon = isMuted ? MicOffIcon : MicIcon;
+
+  return (
+    <div className="flex-1 min-w-0">
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <div className="flex -space-x-px">
+          <Button
+            variant="outline"
+            className="rounded-r-none flex-1 min-w-0 h-10"
+            disabled={disabled}
+            onClick={onToggleMuted}
+          >
+            <Icon
+              className={cn(
+                "w-4 h-4 flex-shrink-0",
+                isMuted ? "text-neutral-500" : "",
+                disabled && "text-neutral-300",
+              )}
+            />
+            {!disabled && <SoundIndicator input="mic" size="long" />}
+          </Button>
+
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="rounded-l-none px-0.5 flex-shrink-0"
+              disabled={disabled}
+            >
+              <ChevronDown className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+        </div>
+
+        <PopoverContent className="w-64 p-0" align="end">
+          <div className="p-2">
+            <div className="mb-2 px-2">
+              <span className="text-sm font-medium">Microphone</span>
+            </div>
+
+            {isLoading
+              ? (
+                <div className="p-4 text-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-neutral-600 mx-auto"></div>
+                  <p className="text-sm text-neutral-500 mt-2">Loading devices...</p>
+                </div>
+              )
+              : devices.length === 0
+              ? (
+                <div className="p-4 text-center">
+                  <p className="text-sm text-neutral-500">No microphones found</p>
+                </div>
+              )
+              : (
+                <div className="space-y-1">
+                  {devices.map((device) => {
+                    const isSelected = device === selectedDevice;
+                    return (
+                      <Button
+                        key={device}
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start text-left h-8 px-2",
+                          isSelected && "bg-neutral-100",
+                        )}
+                        onClick={() => {
+                          setSelectedDevice(device);
+                          setIsOpen(false);
+                        }}
+                      >
+                        <Icon className="w-3 h-3 mr-2 flex-shrink-0" />
+                        <span className="text-sm truncate flex-1">{device}</span>
+                        {isSelected && <Check className="w-3 h-3 ml-auto flex-shrink-0 text-green-600" />}
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function SpeakerButton({
   isMuted,
   onClick,
   disabled,
 }: {
-  type: "mic" | "speaker";
   isMuted?: boolean;
   onClick: () => void;
   disabled?: boolean;
 }) {
-  const Icon = type === "mic"
-    ? isMuted
-      ? MicOffIcon
-      : MicIcon
-    : isMuted
-    ? VolumeOffIcon
-    : Volume2Icon;
+  const Icon = isMuted ? VolumeOffIcon : Volume2Icon;
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={onClick}
-      className="w-full"
-      disabled={disabled}
-    >
-      <Icon className={cn(isMuted ? "text-neutral-500" : "", disabled && "text-neutral-300")} size={20} />
-      {!disabled && <SoundIndicator input={type} size="long" />}
-    </Button>
+    <div className="flex-1 min-w-0">
+      <Button
+        variant="outline"
+        onClick={onClick}
+        className="w-full h-10"
+        disabled={disabled}
+      >
+        <Icon
+          className={cn("flex-shrink-0", isMuted ? "text-neutral-500" : "", disabled && "text-neutral-300")}
+          size={16}
+        />
+        {!disabled && <SoundIndicator input="speaker" size="long" />}
+      </Button>
+    </div>
   );
 }

@@ -52,6 +52,7 @@ export type AutomationConfig = {
   auto_start_scheduled_meetings: boolean;
   require_window_focus: boolean;
   pre_meeting_notification_minutes: number;
+  post_meeting_start_window_minutes: number;
   supported_apps: SupportedApp[];
   notification_settings: NotificationSettings;
 };

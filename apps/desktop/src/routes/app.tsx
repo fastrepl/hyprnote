@@ -179,11 +179,36 @@ function AudioPermissions() {
   return null;
 }
 
+// Helper functions for runtime validation
+function isRecordingPayload(payload: unknown): payload is { app_name: string; session_id: string; timestamp: string } {
+  return (
+    typeof payload === "object"
+    && payload !== null
+    && typeof (payload as any).app_name === "string"
+    && typeof (payload as any).session_id === "string"
+    && typeof (payload as any).timestamp === "string"
+  );
+}
+
+function isNotificationPayload(payload: unknown): payload is { title: string; message: string; timestamp: string } {
+  return (
+    typeof payload === "object"
+    && payload !== null
+    && typeof (payload as any).title === "string"
+    && typeof (payload as any).message === "string"
+    && typeof (payload as any).timestamp === "string"
+  );
+}
+
 function MeetingAutomationEventListeners() {
   useEffect(() => {
     const unsubscribePromises = [
       listen("recording_auto_started", (event) => {
-        const data = event.payload as { app_name: string; session_id: string; timestamp: string };
+        if (!isRecordingPayload(event.payload)) {
+          console.error("Invalid recording_auto_started payload:", event.payload);
+          return;
+        }
+        const data = event.payload;
         sonnerToast.success("Recording started automatically", {
           description: `Started recording for ${data.app_name}`,
           duration: 3000,
@@ -198,7 +223,11 @@ function MeetingAutomationEventListeners() {
       }),
 
       listen("meeting_notification", (event) => {
-        const data = event.payload as { title: string; message: string; timestamp: string };
+        if (!isNotificationPayload(event.payload)) {
+          console.error("Invalid meeting_notification payload:", event.payload);
+          return;
+        }
+        const data = event.payload;
         sonnerToast.info(data.title, {
           description: data.message,
           duration: 5000,

@@ -321,6 +321,10 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/components/settings/views/notifications.tsx:190
+msgid "Advanced settings"
+msgstr "Advanced settings"
+
 #: src/routes/app.settings.tsx:37
 #: src/routes/app.settings.tsx:89
 msgid "AI"
@@ -333,6 +337,10 @@ msgstr "AI"
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
 msgstr "All Participants"
+
+#: src/components/settings/views/notifications.tsx:201
+msgid "Also detect microphone activity"
+msgstr "Also detect microphone activity"
 
 #. placeholder {0}: members.length - 5
 #: src/components/organization-profile/members-list.tsx:102
@@ -376,37 +384,45 @@ msgstr "Assistant:"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
+#: src/components/settings/views/notifications.tsx:167
+msgid "Auto-record meetings"
+msgstr "Auto-record meetings"
+
 #: src/components/settings/views/notifications.tsx:224
-msgid "Auto-start recording for scheduled meetings"
-msgstr "Auto-start recording for scheduled meetings"
+#~ msgid "Auto-start recording for scheduled meetings"
+#~ msgstr "Auto-start recording for scheduled meetings"
 
 #: src/components/settings/views/notifications.tsx:140
-msgid "Auto-start recording on app detection"
-msgstr "Auto-start recording on app detection"
+#~ msgid "Auto-start recording on app detection"
+#~ msgstr "Auto-start recording on app detection"
 
 #: src/components/settings/views/notifications.tsx:168
-msgid "Auto-start recording on microphone activity"
-msgstr "Auto-start recording on microphone activity"
+#~ msgid "Auto-start recording on microphone activity"
+#~ msgstr "Auto-start recording on microphone activity"
 
 #: src/components/settings/views/notifications.tsx:196
-msgid "Auto-stop recording when meeting ends"
-msgstr "Auto-stop recording when meeting ends"
+#~ msgid "Auto-stop recording when meeting ends"
+#~ msgstr "Auto-stop recording when meeting ends"
+
+#: src/components/settings/views/notifications.tsx:170
+msgid "Automatically start and stop recording when meetings are detected."
+msgstr "Automatically start and stop recording when meetings are detected."
 
 #: src/components/settings/views/notifications.tsx:143
-msgid "Automatically start recording when meeting apps are detected."
-msgstr "Automatically start recording when meeting apps are detected."
+#~ msgid "Automatically start recording when meeting apps are detected."
+#~ msgstr "Automatically start recording when meeting apps are detected."
 
 #: src/components/settings/views/notifications.tsx:171
-msgid "Automatically start recording when microphone activity is detected."
-msgstr "Automatically start recording when microphone activity is detected."
+#~ msgid "Automatically start recording when microphone activity is detected."
+#~ msgstr "Automatically start recording when microphone activity is detected."
 
 #: src/components/settings/views/notifications.tsx:227
-msgid "Automatically start recording when scheduled meetings begin."
-msgstr "Automatically start recording when scheduled meetings begin."
+#~ msgid "Automatically start recording when scheduled meetings begin."
+#~ msgstr "Automatically start recording when scheduled meetings begin."
 
 #: src/components/settings/views/notifications.tsx:199
-msgid "Automatically stop recording when meeting applications are closed."
-msgstr "Automatically stop recording when meeting applications are closed."
+#~ msgid "Automatically stop recording when meeting applications are closed."
+#~ msgstr "Automatically stop recording when meeting applications are closed."
 
 #: src/routes/app.settings.tsx:49
 msgid "Billing"
@@ -594,8 +610,8 @@ msgid "Enable"
 msgstr "Enable"
 
 #: src/components/settings/views/notifications.tsx:113
-msgid "Enable automatic meeting detection and recording."
-msgstr "Enable automatic meeting detection and recording."
+#~ msgid "Enable automatic meeting detection and recording."
+#~ msgstr "Enable automatic meeting detection and recording."
 
 #: src/components/settings/views/ai.tsx:102
 msgid "Enhancing"
@@ -796,8 +812,8 @@ msgid "Make it public"
 msgstr "Make it public"
 
 #: src/components/settings/views/notifications.tsx:110
-msgid "Meeting Automation"
-msgstr "Meeting Automation"
+#~ msgid "Meeting Automation"
+#~ msgstr "Meeting Automation"
 
 #: src/components/settings/views/billing.tsx:41
 msgid "Meeting note sharing via links"
@@ -906,7 +922,7 @@ msgstr "Notifications"
 msgid "Official Templates"
 msgstr "Official Templates"
 
-#: src/components/settings/views/notifications.tsx:255
+#: src/components/settings/views/notifications.tsx:232
 msgid "Only start recording when the meeting window is in focus."
 msgstr "Only start recording when the meeting window is in focus."
 
@@ -986,7 +1002,7 @@ msgstr "Recent Notes"
 msgid "Requesting..."
 msgstr "Requesting..."
 
-#: src/components/settings/views/notifications.tsx:252
+#: src/components/settings/views/notifications.tsx:229
 msgid "Require window focus"
 msgstr "Require window focus"
 
@@ -1099,6 +1115,10 @@ msgstr "Start Monthly Plan"
 #: src/components/editor-area/note-header/listen-button.tsx:154
 msgid "Start recording"
 msgstr "Start recording"
+
+#: src/components/settings/views/notifications.tsx:204
+msgid "Start recording even when just microphone activity is detected."
+msgstr "Start recording even when just microphone activity is detected."
 
 #: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Stop"

@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { debounce } from "lodash-es";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,46 +18,83 @@ const schema = z.object({
 
 type Schema = z.infer<typeof schema>;
 
+const DEFAULT_AUTOMATION_CONFIG: AutomationConfig = {
+  enabled: false,
+  auto_start_on_app_detection: false,
+  auto_start_on_mic_activity: false,
+  auto_stop_on_app_exit: false,
+  auto_start_scheduled_meetings: false,
+  require_window_focus: false,
+  pre_meeting_notification_minutes: 5,
+  post_meeting_start_window_minutes: 5,
+  supported_apps: [],
+  notification_settings: {
+    show_meeting_started: true,
+    show_meeting_ending: true,
+    show_pre_meeting_reminder: true,
+    show_recording_started: true,
+    show_recording_stopped: true,
+  },
+};
+
 export default function NotificationsComponent() {
   const automationConfig = useQuery({
     queryKey: ["meeting-automation", "config"],
-    queryFn: () => meetingAutomationCommands.getAutomationConfig(),
-  });
+    queryFn: async () => {
+      try {
+        const result = await meetingAutomationCommands.getAutomationConfig();
+        return result;
+      } catch (error) {
+        // If plugin is not found, check localStorage for saved config
+        if (
+          typeof error === "string" && error.includes("meeting-automation.")
+          && error.includes("not allowed. Plugin not found")
+        ) {
+          const savedConfig = localStorage.getItem("meeting-automation-config");
 
-  const automationStatus = useQuery({
-    queryKey: ["meeting-automation", "status"],
-    queryFn: () => meetingAutomationCommands.getAutomationStatus(),
+          if (savedConfig) {
+            try {
+              return JSON.parse(savedConfig);
+            } catch (parseError) {
+              console.error("Error parsing saved config:", parseError);
+            }
+          }
+
+          // Return default config if no saved config found
+          return DEFAULT_AUTOMATION_CONFIG;
+        }
+        throw error;
+      }
+    },
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
-    values: {
-      enabled: automationConfig.data?.enabled ?? false,
-      auto_start_on_mic_activity: automationConfig.data?.auto_start_on_mic_activity ?? false,
-      require_window_focus: automationConfig.data?.require_window_focus ?? false,
+    defaultValues: {
+      enabled: false,
+      auto_start_on_mic_activity: false,
+      require_window_focus: false,
     },
   });
 
+  useEffect(() => {
+    if (automationConfig.data) {
+      form.reset({
+        enabled: automationConfig.data.enabled,
+        auto_start_on_mic_activity: automationConfig.data.auto_start_on_mic_activity,
+        require_window_focus: automationConfig.data.require_window_focus,
+      });
+    }
+  }, [automationConfig.data, form]);
+
   const configMutation = useMutation({
     mutationFn: async (v: Schema) => {
-      const currentConfig = automationConfig.data || {
-        enabled: false,
-        auto_start_on_app_detection: false,
-        auto_start_on_mic_activity: false,
-        auto_stop_on_app_exit: false,
-        auto_start_scheduled_meetings: false,
-        require_window_focus: false,
-        pre_meeting_notification_minutes: 5,
-        post_meeting_start_window_minutes: 5,
-        supported_apps: [],
-        notification_settings: {
-          show_meeting_started: true,
-          show_meeting_ending: true,
-          show_pre_meeting_reminder: true,
-          show_recording_started: true,
-          show_recording_stopped: true,
-        },
-      };
+      if (!automationConfig.data) {
+        console.error("cannot mutate config because it is not loaded");
+        return;
+      }
+
+      const currentConfig = automationConfig.data;
 
       const newConfig: AutomationConfig = {
         ...currentConfig,
@@ -67,29 +105,52 @@ export default function NotificationsComponent() {
         auto_start_scheduled_meetings: v.enabled ?? currentConfig.auto_start_scheduled_meetings,
       };
 
-      await meetingAutomationCommands.configureAutomation(newConfig);
+      try {
+        await meetingAutomationCommands.configureAutomation(newConfig);
 
-      if (newConfig.enabled) {
-        await meetingAutomationCommands.startMeetingAutomation();
-      } else {
-        await meetingAutomationCommands.stopMeetingAutomation();
+        if (newConfig.enabled) {
+          await meetingAutomationCommands.startMeetingAutomation();
+        } else {
+          await meetingAutomationCommands.stopMeetingAutomation();
+        }
+      } catch (error) {
+        // If plugin is not available, persist to localStorage as fallback
+        if (
+          typeof error === "string" && error.includes("meeting-automation.")
+          && error.includes("not allowed. Plugin not found")
+        ) {
+          localStorage.setItem("meeting-automation-config", JSON.stringify(newConfig));
+        } else {
+          throw error;
+        }
       }
-
-      return newConfig;
     },
     onSuccess: () => {
       automationConfig.refetch();
-      automationStatus.refetch();
     },
   });
 
-  useEffect(() => {
-    const subscription = form.watch((value) => {
+  const debouncedMutate = useCallback(
+    debounce((value: Schema) => {
       configMutation.mutate(value);
+    }, 500),
+    [configMutation],
+  );
+
+  useEffect(() => {
+    if (!automationConfig.data) {
+      return;
+    }
+
+    const subscription = form.watch((value) => {
+      debouncedMutate(value);
     });
 
-    return () => subscription.unsubscribe();
-  }, [configMutation]);
+    return () => {
+      subscription.unsubscribe();
+      debouncedMutate.cancel();
+    };
+  }, [configMutation, automationConfig.data, form, debouncedMutate]);
 
   return (
     <div>

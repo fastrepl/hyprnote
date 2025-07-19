@@ -7837,9 +7837,9 @@ dependencies = [
 
 [[package]]
 name = "libsql"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b187535f3bad97145ec605403f7e2a4ee5e716b4912263314f79a76e39718d4"
+checksum = "1d445da25d61b9413dae38d481799cfe5054502fb849c18f7a4a1ffeff39ef19"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -7877,9 +7877,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f33c522e2fa888cf0dda209fd9007992d333f96078da6e610c0393df07b44918"
+checksum = "c5a6c4c1d1ff03ed18f10ce9d1ee6b3820b0ef77e5656ccbfdb02388c025937d"
 dependencies = [
  "bindgen 0.66.1",
  "cc",
@@ -7889,9 +7889,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-hrana"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6487c3017fb9847f65ca76d98bc54c2cdec0e658bc95ee06768b984b7ed9d8b"
+checksum = "8a9d38212a209cbecb16dabd681afaa3cd4498c5ccef46d838ad7162aed9a86c"
 dependencies = [
  "base64 0.21.7",
  "bytes",
@@ -7901,9 +7901,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-rusqlite"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "812cf096e36358f2dd3743196e8fcfe7c47abf674db59e303df659b41cdb78d6"
+checksum = "310b02070aa2098e6706ccade6b6bbb3c696b207bf23cd20e9635c4a2dbabde0"
 dependencies = [
  "bitflags 2.9.1",
  "fallible-iterator 0.2.0",
@@ -7933,9 +7933,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b25ab72a80d81356e0061396c1315c42e2beb5fabb1288d90293b17e45aac559"
+checksum = "bec1127725da9cfb9fc473b281ee09c1a8a3e103785e663b2e8391f11f0c119f"
 dependencies = [
  "bytes",
  "libsql-ffi",
@@ -7947,9 +7947,9 @@ dependencies = [
 
 [[package]]
 name = "libsql_replication"
-version = "0.9.13"
+version = "0.9.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "393efb39d69fa576fb144217a51a0b65c7a13cbde57eb2b58137326dd39fa877"
+checksum = "ff72eb531eb84fa38d6683f5af31668ea59fd52ac1b461515e82bcf4b21ba98f"
 dependencies = [
  "aes 0.8.4",
  "async-stream",

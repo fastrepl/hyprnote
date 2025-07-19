@@ -340,20 +340,9 @@ export function useEnhanceMutation({
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
-      // ✅ SMART GRAMMAR: Use H1 headers when auto/default AND headers exist
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
-      const grammarSections = shouldUseH1Headers 
-        ? h1Headers 
-        : selectedTemplate?.sections.map(s => s.title) || null;
+      const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
 
-      /*
-        console.log("Enhancement strategy:", {
-        effectiveTemplateId,
-        h1HeadersCount: h1Headers.length,
-        shouldUseH1Headers,
-        grammarSections
-      });
-      */
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
@@ -420,7 +409,7 @@ export function useEnhanceMutation({
               metadata: {
                 grammar: {
                   task: "enhance",
-                  sections: grammarSections, // ✅ Dynamic sections
+                  sections: grammarSections, 
                 } satisfies Grammar,
               },
             },

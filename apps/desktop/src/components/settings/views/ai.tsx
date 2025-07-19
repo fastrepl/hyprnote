@@ -1,16 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 import { commands as dbCommands } from "@hypr/plugin-db";
 
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
@@ -22,13 +23,12 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { WERPerformanceModal } from "../components/wer-modal";
-import { Slider } from "@hypr/ui/components/ui/slider";
-import { Card, CardContent, CardHeader, CardTitle } from "@hypr/ui/components/ui/card";
 
 const endpointSchema = z.object({
   model: z.string().min(1),
@@ -130,20 +130,20 @@ type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
 const specificityLevels = {
   1: {
-    title: "Minimal",
-    description: "High-level summaries only. Focuses on key points and main takeaways without detailed explanations."
+    title: "Conservative",
+    description: "Minimal creative changes. Preserves your original writing style and content while making only essential improvements to clarity and flow."
   },
   2: {
-    title: "Moderate", 
-    description: "Balanced detail level. Includes important context and supporting information while staying concise."
+    title: "Balanced",
+    description: "Moderate creative input. Enhances your content with some stylistic improvements while maintaining the core message and tone."
   },
   3: {
-    title: "Detailed",
-    description: "Include specifics and examples. Provides comprehensive coverage with relevant details and explanations."
+    title: "Creative",
+    description: "More creative freedom. Actively improves and expands content with additional context, examples, and engaging language."
   },
   4: {
-    title: "Comprehensive",
-    description: "Maximum detail level. Captures all nuances, background context, and thorough analysis of the content."
+    title: "Innovative",
+    description: "Maximum creativity. Transforms content with rich language, fresh perspectives, and creative restructuring while preserving key information."
   }
 } as const;
 
@@ -196,8 +196,9 @@ export default function LocalAI() {
     }, queryClient);
   };
 
-  const handleShowFileLocation = async (modelKey: string) => {
-    // TODO: Implement opening models in finder functionality
+  const handleShowFileLocation = async (modelType: "stt" | "llm") => {
+    const path = await (modelType === "stt" ? localSttCommands.modelsDir() : localLlmCommands.modelsDir());
+    await openPath(path);
   };
 
   const customLLMEnabled = useQuery({
@@ -456,7 +457,7 @@ export default function LocalAI() {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowFileLocation(model.key);
+                          handleShowFileLocation("stt");
                         }}
                         className="text-xs h-7 px-2 flex items-center gap-1"
                       >
@@ -560,7 +561,7 @@ export default function LocalAI() {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowFileLocation(model.key);
+                          handleShowFileLocation("llm");
                         }}
                         className="text-xs h-7 px-2 flex items-center gap-1"
                       >
@@ -757,10 +758,10 @@ export default function LocalAI() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Detail Level</Trans>
+                            <Trans>Creativity Level</Trans>
                           </FormLabel>
                           <FormDescription className="text-xs">
-                            <Trans>Control how detailed the AI enhancement should be</Trans>
+                            <Trans>Control how creative the AI enhancement should be</Trans>
                           </FormDescription>
                           <FormControl>
                             <div className="space-y-3">

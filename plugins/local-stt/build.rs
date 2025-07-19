@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "download_model",
     "start_server",
     "stop_server",
+    "restart_server",
     "get_current_model",
     "set_current_model",
     "list_supported_models",

@@ -22,6 +22,9 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
 
     fn get_llm_connection(&self) -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
     fn get_stt_connection(&self) -> impl Future<Output = Result<ConnectionSTT, crate::Error>>;
+
+    fn get_admin_connection(&self) -> Result<Option<Connection>, crate::Error>;
+    fn set_admin_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
@@ -225,6 +228,25 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             });
             Ok(conn)
         }
+    }
+
+    fn get_admin_connection(&self) -> Result<Option<Connection>, crate::Error> {
+        let api_base = self.connector_store().get(StoreKey::AdminApiBase)?;
+        let api_key = self.connector_store().get(StoreKey::AdminApiKey)?;
+
+        match (api_base, api_key) {
+            (Some(api_base), Some(api_key)) => Ok(Some(Connection { api_base, api_key })),
+            _ => Ok(None),
+        }
+    }
+
+    fn set_admin_connection(&self, connection: Connection) -> Result<(), crate::Error> {
+        self.connector_store()
+            .set(StoreKey::AdminApiBase, connection.api_base)?;
+        self.connector_store()
+            .set(StoreKey::AdminApiKey, connection.api_key)?;
+
+        Ok(())
     }
 }
 

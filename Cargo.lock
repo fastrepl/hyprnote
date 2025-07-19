@@ -3646,7 +3646,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.54"
+version = "0.0.55"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3661,6 +3661,7 @@ dependencies = [
  "reqwest 0.12.22",
  "serde",
  "serde_json",
+ "serde_qs 1.0.0-rc.3",
  "specta",
  "specta-typescript",
  "strum 0.26.3",
@@ -3688,6 +3689,7 @@ dependencies = [
  "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
+ "tauri-plugin-obsidian",
  "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-prevent-default",
@@ -4062,6 +4064,16 @@ dependencies = [
  "sec1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "email"
+version = "0.1.0"
+dependencies = [
+ "objc2 0.6.1",
+ "objc2-app-kit 0.3.1",
+ "objc2-foundation 0.3.1",
+ "url",
 ]
 
 [[package]]
@@ -12420,6 +12432,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_qs"
+version = "1.0.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cb0b9062a400c31442e67d1f2b1e7746bebd691110ebee1b7d0c7293b04fab1"
+dependencies = [
+ "itoa",
+ "percent-encoding",
+ "ryu",
+ "serde",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "serde_repr"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13847,7 +13872,7 @@ dependencies = [
  "minijinja",
  "serde",
  "serde_json",
- "serde_qs 0.14.0",
+ "serde_qs 1.0.0-rc.3",
  "specta",
  "specta-typescript",
  "strum 0.26.3",
@@ -14274,6 +14299,24 @@ dependencies = [
  "tauri-plugin",
  "thiserror 1.0.69",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-obsidian"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

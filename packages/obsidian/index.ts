@@ -1,1 +1,2 @@
-export * from "@hey-api/client-fetch";
+export * from "./generated";
+export * from "./generated/client.gen";

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "03ce1861-625b-437e-b70f-147bd546e8f8",
+  "id": "e75f92db-114c-47b0-9e89-6028ecc18b39",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account": {
@@ -816,6 +816,73 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "organization_config": {
+      "name": "organization_config",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "base_url": {
+          "name": "base_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "organization_config_organization_id_unique": {
+          "name": "organization_config_organization_id_unique",
+          "columns": [
+            "organization_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "organization_config_organization_id_organization_id_fk": {
+          "name": "organization_config_organization_id_organization_id_fk",
+          "tableFrom": "organization_config",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "llm_provider": {
       "name": "llm_provider",
       "columns": {
@@ -876,7 +943,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "llm_provider_name_organization_id_unique": {
+          "name": "llm_provider_name_organization_id_unique",
+          "columns": [
+            "name",
+            "organization_id"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "llm_provider_organization_id_organization_id_fk": {
           "name": "llm_provider_organization_id_organization_id_fk",

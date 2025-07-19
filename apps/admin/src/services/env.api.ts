@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { ENV_KEYS, envServerSchema } from "@/env";
+import { envServerKeys, envServerSchema } from "@/envServer";
 import { z } from "zod";
 
 export const getEnv = createServerFn({ method: "GET" })
-  .validator(z.object({ key: z.enum(ENV_KEYS) }))
+  .validator(z.object({ key: z.enum(envServerKeys) }))
   .handler(
     async ({ data }) => {
       return envServerSchema[data.key];

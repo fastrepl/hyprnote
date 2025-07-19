@@ -2,6 +2,7 @@ import { Alert, Button, Card, Group, SimpleGrid, Stack, Text, Title } from "@man
 import { IconBook, IconBrandGithub, IconExternalLink, IconMessageCircle, IconUsers } from "@tabler/icons-react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
+import { getOrganizationConfig } from "@/services/config.api";
 import { listApiKey } from "@/services/key.api";
 
 export const Route = createFileRoute("/app/home")({
@@ -13,12 +14,13 @@ export const Route = createFileRoute("/app/home")({
   },
   loader: async () => {
     const apiKeys = await listApiKey();
-    return { apiKeys };
+    const config = await getOrganizationConfig();
+    return { apiKeys, baseUrl: config?.baseUrl };
   },
 });
 
 function Component() {
-  const { apiKeys } = Route.useLoaderData();
+  const { apiKeys, baseUrl } = Route.useLoaderData();
 
   return (
     <Stack gap="xl">
@@ -31,18 +33,10 @@ function Component() {
         </Text>
       </div>
 
-      {!apiKeys?.length && (
-        <Alert title="Hyprnote client not connected" color="blue">
-          Go to{" "}
-          <Link
-            className="underline"
-            to="/app/settings"
-          >
-            Settings
-          </Link>{" "}
-          to connect.
-        </Alert>
-      )}
+      <Stack gap="md">
+        {(baseUrl && !apiKeys?.length) && <PersonalConfigurationAlert />}
+        {!baseUrl && <OrganizationConfigurationAlert />}
+      </Stack>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 2 }} spacing="md">
         {dashboardCards.map((card, index) => (
@@ -82,6 +76,38 @@ function Component() {
         ))}
       </SimpleGrid>
     </Stack>
+  );
+}
+
+function PersonalConfigurationAlert() {
+  return (
+    <Alert title="Hyprnote client not connected" color="red">
+      Go to{" "}
+      <Link
+        className="underline"
+        to="/app/settings"
+        search={{ tab: "personal" }}
+      >
+        Settings
+      </Link>{" "}
+      to connect.
+    </Alert>
+  );
+}
+
+function OrganizationConfigurationAlert() {
+  return (
+    <Alert title="Base URL not configured" color="red">
+      Go to{" "}
+      <Link
+        className="underline"
+        to="/app/settings"
+        search={{ tab: "organization" }}
+      >
+        Settings
+      </Link>{" "}
+      to configure.
+    </Alert>
   );
 }
 

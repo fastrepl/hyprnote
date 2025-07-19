@@ -1,6 +1,7 @@
 import {
   AudioLinesIcon,
   BellIcon,
+  BlocksIcon,
   CalendarIcon,
   FlaskConicalIcon,
   LayoutTemplateIcon,
@@ -29,6 +30,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <CalendarIcon className="h-4 w-4" />;
     case "templates":
       return <LayoutTemplateIcon className="h-4 w-4" />;
+    case "integrations":
+      return <BlocksIcon className="h-4 w-4" />;
     default:
       return null;
   }

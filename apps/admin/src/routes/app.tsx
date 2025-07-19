@@ -1,18 +1,31 @@
-import { NavLink } from "@/components/NavLink";
 import { AppShell, Burger, Button, Group, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconHome, IconMist, IconSettings } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import { NavLink } from "@/components/NavLink";
 import { authClient } from "@/lib/auth/client";
+import { getActiveOrganizationFull } from "@/services/auth.api";
 
 export const Route = createFileRoute("/app")({
   component: Component,
+  loader: async ({ context: { userSession } }) => {
+    if (!userSession || !userSession.session.activeOrganizationId) {
+      throw redirect({ to: "/login" });
+    }
+
+    const org = await getActiveOrganizationFull();
+    if (!org?.slug) {
+      throw redirect({ to: "/login" });
+    }
+
+    return { slug: org.slug };
+  },
 });
 
 function Component() {
-  const { data: activeOrganization } = authClient.useActiveOrganization();
+  const { slug } = Route.useLoaderData();
 
   const [opened, { toggle }] = useDisclosure();
 
@@ -54,8 +67,8 @@ function Component() {
               hiddenFrom="sm"
               size="sm"
             />
-            <Text size="xl" fw={700}>Hyprnote Admin</Text>
-            <Text size="md" c="dimmed" fw={500}>{activeOrganization?.slug}</Text>
+            <Text size="xl" fw={700}>Hyprnote</Text>
+            <Text size="md" c="dimmed" fw={500}>{slug}</Text>
           </Group>
           <Button variant="light" size="sm" onClick={() => logout.mutate()}>
             Logout
@@ -70,8 +83,8 @@ function Component() {
           leftSection={<IconHome size={16} stroke={1.5} />}
         />
         <NavLink
-          label="Providers"
-          to="/app/providers"
+          label="Integrations"
+          to="/app/integrations"
           leftSection={<IconMist size={16} stroke={1.5} />}
         />
         <NavLink

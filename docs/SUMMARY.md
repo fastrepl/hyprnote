@@ -1,13 +1,17 @@
 # Table of contents
 
-## Common
+## Hyprnote Desktop
 
 * [Quickstart](README.md)
-* [Template](common/template.md)
+* [Template](hyprnote-desktop/template.md)
 
-## Enterprise
+***
 
-* [Overview](enterprise/overview.md)
-* [Deployment](enterprise/deployment/README.md)
-  * [Overview](enterprise/deployment/overview.md)
-* [Security](enterprise/security.md)
+* [Sharing](sharing.md)
+* [Development](development.md)
+
+## Hyprnote Admin Server
+
+* [Overview](hyprnote-admin-server/overview.md)
+* [Deployment](hyprnote-admin-server/deployment.md)
+* [Security](hyprnote-admin-server/security.md)

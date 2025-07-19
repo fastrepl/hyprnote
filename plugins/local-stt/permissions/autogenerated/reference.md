@@ -11,6 +11,7 @@ Default permissions for the plugin
 - `allow-download-model`
 - `allow-start-server`
 - `allow-stop-server`
+- `allow-restart-server`
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
@@ -281,6 +282,32 @@ Enables the process_recorded command without any pre-configured scope.
 <td>
 
 Denies the process_recorded command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-restart-server`
+
+</td>
+<td>
+
+Enables the restart_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-restart-server`
+
+</td>
+<td>
+
+Denies the restart_server command without any pre-configured scope.
 
 </td>
 </tr>

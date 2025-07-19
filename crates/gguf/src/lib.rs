@@ -141,7 +141,7 @@ mod tests {
         let test_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.stable")
-            .join("llm.gguf");
+            .join("hypr-llm.gguf");
 
         assert!(test_path.exists());
         test_path.gguf_chat_format().unwrap().unwrap();

@@ -24,6 +24,7 @@ const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
+#[derive(Debug)]
 pub enum ModelName {
     HyprLLM,
     Other(Option<String>),
@@ -374,7 +375,7 @@ mod tests {
         let model_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.dev")
-            .join("ttt/llm.gguf");
+            .join("ttt/hypr-llm.gguf");
 
         Llama::new(model_path).unwrap()
     }

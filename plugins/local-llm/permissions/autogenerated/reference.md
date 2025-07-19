@@ -11,7 +11,9 @@ Default permissions for the plugin
 - `allow-download-model`
 - `allow-start-server`
 - `allow-stop-server`
-- `allow-list-ollama-models`
+- `allow-restart-server`
+- `allow-get-current-model`
+- `allow-set-current-model`
 
 ## Permission Table
 
@@ -44,6 +46,32 @@ Enables the download_model command without any pre-configured scope.
 <td>
 
 Denies the download_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-get-current-model`
+
+</td>
+<td>
+
+Enables the get_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-get-current-model`
+
+</td>
+<td>
+
+Denies the get_current_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -155,32 +183,6 @@ Denies the is_server_running command without any pre-configured scope.
 <tr>
 <td>
 
-`local-llm:allow-list-ollama-models`
-
-</td>
-<td>
-
-Enables the list_ollama_models command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-list-ollama-models`
-
-</td>
-<td>
-
-Denies the list_ollama_models command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `local-llm:allow-models-dir`
 
 </td>
@@ -200,6 +202,58 @@ Enables the models_dir command without any pre-configured scope.
 <td>
 
 Denies the models_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-restart-server`
+
+</td>
+<td>
+
+Enables the restart_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-restart-server`
+
+</td>
+<td>
+
+Denies the restart_server command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-set-current-model`
+
+</td>
+<td>
+
+Enables the set_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-set-current-model`
+
+</td>
+<td>
+
+Denies the set_current_model command without any pre-configured scope.
 
 </td>
 </tr>

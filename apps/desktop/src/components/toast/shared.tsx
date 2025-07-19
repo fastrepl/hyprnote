@@ -1,7 +1,8 @@
+import { QueryClient } from "@tanstack/react-query";
 import { Channel } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -51,9 +52,16 @@ export const DownloadProgress = ({
   );
 };
 
-export function showSttModelDownloadToast(model: SupportedModel, onComplete?: () => void) {
+export function showSttModelDownloadToast(model: SupportedModel, onComplete?: () => void, queryClient?: QueryClient) {
   const sttChannel = new Channel();
+
   localSttCommands.downloadModel(model, sttChannel);
+
+  // Invalidate React Query caches to prevent duplicate download toasts
+  if (queryClient) {
+    queryClient.invalidateQueries({ queryKey: ["stt-model-downloading"] });
+    queryClient.invalidateQueries({ queryKey: ["check-model-downloaded"] });
+  }
 
   const id = `stt-model-download-${model}`;
 
@@ -81,11 +89,23 @@ export function showSttModelDownloadToast(model: SupportedModel, onComplete?: ()
   );
 }
 
-export function showLlmModelDownloadToast() {
+export function showLlmModelDownloadToast(
+  model?: SupportedModelLLM,
+  onComplete?: () => void,
+  queryClient?: QueryClient,
+) {
   const llmChannel = new Channel();
-  localLlmCommands.downloadModel(llmChannel);
+  const modelToDownload = model || "HyprLLM";
 
-  const id = "llm-model-download";
+  localLlmCommands.downloadModel(modelToDownload, llmChannel);
+
+  // Invalidate React Query caches to prevent duplicate download toasts
+  if (queryClient) {
+    queryClient.invalidateQueries({ queryKey: ["llm-model-downloading"] });
+    queryClient.invalidateQueries({ queryKey: ["check-model-downloaded"] });
+  }
+
+  const id = `llm-model-download-${modelToDownload}`;
 
   toast(
     {
@@ -99,6 +119,9 @@ export function showLlmModelDownloadToast() {
             onComplete={() => {
               sonnerToast.dismiss(id);
               localLlmCommands.startServer();
+              if (onComplete) {
+                onComplete();
+              }
             }}
           />
         </div>

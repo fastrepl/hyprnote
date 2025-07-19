@@ -252,11 +252,10 @@ msgstr "{weeks} weeks later"
 #~ msgstr "(Beta) Upcoming meeting notifications"
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
-#. placeholder {0}: type === "google-calendar" ? "Google Calendar" : "Outlook Calendar"
 #. placeholder {0}: lang.language
+#. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
-#: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:36
-#: src/components/settings/components/ai/wer-modal.tsx:116
+#: src/components/settings/components/wer-modal.tsx:116
 #: src/components/editor-area/note-header/listen-button.tsx:179
 #: src/components/editor-area/note-header/listen-button.tsx:218
 msgid "{0}"
@@ -267,7 +266,7 @@ msgstr "{0}"
 msgid "{0} calendars selected"
 msgstr "{0} calendars selected"
 
-#: src/components/settings/components/ai/wer-modal.tsx:103
+#: src/components/settings/components/wer-modal.tsx:103
 msgid "{category}"
 msgstr "{category}"
 
@@ -325,8 +324,8 @@ msgstr "Admin"
 msgid "Advanced settings"
 msgstr "Advanced settings"
 
-#: src/routes/app.settings.tsx:37
-#: src/routes/app.settings.tsx:89
+#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:118
 msgid "AI"
 msgstr "AI"
 
@@ -355,11 +354,12 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/settings/components/ai/llm-view.tsx:200
+#: src/components/settings/views/ai.tsx:583
 msgid "API Base URL"
 msgstr "API Base URL"
 
-#: src/components/settings/components/ai/llm-view.tsx:226
+#: src/components/settings/views/integrations.tsx:197
+#: src/components/settings/views/ai.tsx:609
 msgid "API Key"
 msgstr "API Key"
 
@@ -388,43 +388,19 @@ msgstr "Assistant:"
 msgid "Auto-record meetings"
 msgstr "Auto-record meetings"
 
-#: src/components/settings/views/notifications.tsx:224
-#~ msgid "Auto-start recording for scheduled meetings"
-#~ msgstr "Auto-start recording for scheduled meetings"
-
-#: src/components/settings/views/notifications.tsx:140
-#~ msgid "Auto-start recording on app detection"
-#~ msgstr "Auto-start recording on app detection"
-
-#: src/components/settings/views/notifications.tsx:168
-#~ msgid "Auto-start recording on microphone activity"
-#~ msgstr "Auto-start recording on microphone activity"
-
-#: src/components/settings/views/notifications.tsx:196
-#~ msgid "Auto-stop recording when meeting ends"
-#~ msgstr "Auto-stop recording when meeting ends"
-
 #: src/components/settings/views/notifications.tsx:170
 msgid "Automatically start and stop recording when meetings are detected."
 msgstr "Automatically start and stop recording when meetings are detected."
 
-#: src/components/settings/views/notifications.tsx:143
-#~ msgid "Automatically start recording when meeting apps are detected."
-#~ msgstr "Automatically start recording when meeting apps are detected."
+#: src/components/settings/views/integrations.tsx:246
+msgid "Base Folder"
+msgstr "Base Folder"
 
-#: src/components/settings/views/notifications.tsx:171
-#~ msgid "Automatically start recording when microphone activity is detected."
-#~ msgstr "Automatically start recording when microphone activity is detected."
+#: src/components/settings/views/integrations.tsx:173
+msgid "Base URL"
+msgstr "Base URL"
 
-#: src/components/settings/views/notifications.tsx:227
-#~ msgid "Automatically start recording when scheduled meetings begin."
-#~ msgstr "Automatically start recording when scheduled meetings begin."
-
-#: src/components/settings/views/notifications.tsx:199
-#~ msgid "Automatically stop recording when meeting applications are closed."
-#~ msgstr "Automatically stop recording when meeting applications are closed."
-
-#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:76
 msgid "Billing"
 msgstr "Billing"
 
@@ -437,8 +413,8 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:39
-#: src/routes/app.settings.tsx:83
+#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:112
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -447,8 +423,8 @@ msgid "Calendar Access"
 msgstr "Calendar Access"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:43
-msgid "Calendar connected"
-msgstr "Calendar connected"
+#~ msgid "Calendar connected"
+#~ msgstr "Calendar connected"
 
 #: src/components/individualization-modal/industry-view.tsx:128
 msgid "Cancel"
@@ -474,7 +450,7 @@ msgstr "Choose whether to save your recordings locally."
 msgid "Choose your preferred language of use"
 msgstr "Choose your preferred language of use"
 
-#: src/components/settings/components/ai/wer-modal.tsx:126
+#: src/components/settings/components/wer-modal.tsx:126
 msgid "Close"
 msgstr "Close"
 
@@ -497,21 +473,28 @@ msgid "Company name"
 msgstr "Company name"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
-msgid "Connect"
-msgstr "Connect"
+#~ msgid "Connect"
+#~ msgstr "Connect"
 
-#: src/components/settings/components/ai/llm-view.tsx:180
+#: src/components/settings/views/ai.tsx:563
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 
-#. placeholder {0}: type === "google-calendar" ? "Google" : "Outlook"
+#: src/components/settings/views/integrations.tsx:121
+msgid "Connect with external tools and services to enhance your workflow"
+msgstr "Connect with external tools and services to enhance your workflow"
+
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:44
-msgid "Connect your {0} calendar to track upcoming events"
-msgstr "Connect your {0} calendar to track upcoming events"
+#~ msgid "Connect your {0} calendar to track upcoming events"
+#~ msgstr "Connect your {0} calendar to track upcoming events"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
+
+#: src/components/settings/views/integrations.tsx:133
+msgid "Connect your Obsidian vault to export notes"
+msgstr "Connect your Obsidian vault to export notes"
 
 #: src/components/editor-area/note-header/listen-button.tsx:397
 #~ msgid "Consent settings"
@@ -521,7 +504,7 @@ msgstr "Connect your calendar and track events"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:151
+#: src/components/welcome-modal/model-selection-view.tsx:152
 msgid "Continue"
 msgstr "Continue"
 
@@ -550,7 +533,7 @@ msgstr "Create your first template to get started"
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/settings/components/ai/llm-view.tsx:177
+#: src/components/settings/views/ai.tsx:560
 msgid "Custom Endpoint"
 msgstr "Custom Endpoint"
 
@@ -581,7 +564,7 @@ msgstr "Description"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
-#: src/components/settings/components/ai/stt-view.tsx:273
+#: src/components/settings/components/ai/stt-view.tsx:237
 msgid "Download {0}"
 msgstr "Download {0}"
 
@@ -609,11 +592,11 @@ msgstr "Emoji"
 msgid "Enable"
 msgstr "Enable"
 
-#: src/components/settings/views/notifications.tsx:113
-#~ msgid "Enable automatic meeting detection and recording."
-#~ msgstr "Enable automatic meeting detection and recording."
+#: src/components/settings/views/integrations.tsx:147
+msgid "Enable Integration"
+msgstr "Enable Integration"
 
-#: src/components/settings/views/ai.tsx:102
+#: src/components/settings/views/ai.tsx:434
 msgid "Enhancing"
 msgstr "Enhancing"
 
@@ -622,20 +605,24 @@ msgid "Enter a section title"
 msgstr "Enter a section title"
 
 #: src/components/settings/components/ai/llm-view.tsx:291
-msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
-msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)"
+#~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
+#~ msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)"
 
-#: src/components/settings/components/ai/llm-view.tsx:229
+#: src/components/settings/views/ai.tsx:612
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr "Enter the API key for your custom LLM endpoint"
+
+#: src/components/settings/views/ai.tsx:586
+msgid "Enter the base URL for your custom LLM endpoint"
+msgstr "Enter the base URL for your custom LLM endpoint"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
 #~ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434)"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
-msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
-msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+#~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
+#~ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:11434/v1)"
 
 #: src/components/settings/components/ai/llm-view.tsx:203
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
@@ -645,7 +632,7 @@ msgstr "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr "Enter the exact model name required by your endpoint (if applicable)."
 
-#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:72
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -653,7 +640,7 @@ msgstr "Extensions"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/routes/app.settings.tsx:93
+#: src/routes/app.settings.tsx:122
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -685,8 +672,8 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:33
-#: src/routes/app.settings.tsx:81
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:110
 msgid "General"
 msgstr "General"
 
@@ -738,6 +725,12 @@ msgstr "How did you hear about Hyprnote?"
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
 
+#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:126
+#: src/components/settings/views/integrations.tsx:118
+msgid "Integrations"
+msgstr "Integrations"
+
 #: src/components/share-and-permission/invite-list.tsx:30
 msgid "Invite"
 msgstr "Invite"
@@ -762,7 +755,7 @@ msgstr "Join meeting"
 msgid "Key decisions"
 msgstr "Key decisions"
 
-#: src/routes/app.settings.tsx:91
+#: src/routes/app.settings.tsx:120
 msgid "Lab"
 msgstr "Lab"
 
@@ -782,7 +775,7 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/components/ai/llm-view.tsx:263
+#: src/components/settings/views/ai.tsx:646
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
@@ -832,13 +825,17 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/components/ai/llm-view.tsx:251
+#: src/components/settings/views/ai.tsx:634
 msgid "Model Name"
 msgstr "Model Name"
 
 #: src/components/settings/views/billing.tsx:125
 msgid "Monthly"
 msgstr "Monthly"
+
+#: src/components/settings/views/integrations.tsx:272
+msgid "More integrations coming soon..."
+msgstr "More integrations coming soon..."
 
 #: src/components/settings/views/billing.tsx:40
 msgid "Much better AI performance"
@@ -885,7 +882,7 @@ msgstr "No past notes with this contact"
 msgid "No recent notes for this organization"
 msgstr "No recent notes for this organization"
 
-#: src/components/settings/components/ai/stt-view.tsx:284
+#: src/components/settings/components/ai/stt-view.tsx:248
 msgid "No speech-to-text models available or failed to load."
 msgstr "No speech-to-text models available or failed to load."
 
@@ -913,10 +910,14 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:41
-#: src/routes/app.settings.tsx:85
+#: src/routes/app.settings.tsx:68
+#: src/routes/app.settings.tsx:114
 msgid "Notifications"
 msgstr "Notifications"
+
+#: src/components/settings/views/integrations.tsx:130
+msgid "Obsidian"
+msgstr "Obsidian"
 
 #: src/components/settings/components/template-list.tsx:91
 msgid "Official Templates"
@@ -934,6 +935,10 @@ msgstr "Ooh! Suggestion!"
 msgid "Open calendar view"
 msgstr "Open calendar view"
 
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
+#~ msgid "Open finder view"
+#~ msgstr "Open finder view"
+
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:319
 #: src/components/left-sidebar/search-list.tsx:396
@@ -944,6 +949,10 @@ msgstr "Open in new window"
 #: src/components/workspace-calendar/event-card.tsx:153
 msgid "Open Note"
 msgstr "Open Note"
+
+#: src/components/settings/views/integrations.tsx:255
+msgid "Optional base folder path within your Obsidian vault."
+msgstr "Optional base folder path within your Obsidian vault."
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
 msgid "Optional for participant suggestions"
@@ -962,7 +971,7 @@ msgstr "Pause"
 msgid "people"
 msgstr "people"
 
-#: src/components/settings/views/ai.tsx:114
+#: src/components/settings/views/ai.tsx:296
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
@@ -974,7 +983,7 @@ msgstr "Play video"
 msgid "Pro"
 msgstr "Pro"
 
-#: src/routes/app.settings.tsx:35
+#: src/routes/app.settings.tsx:62
 msgid "Profile"
 msgstr "Profile"
 
@@ -1056,7 +1065,7 @@ msgstr "Search..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings/components/ai/llm-view.tsx:254
+#: src/components/settings/views/ai.tsx:637
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 
@@ -1064,7 +1073,7 @@ msgstr "Select a model from the dropdown (if available) or manually enter the mo
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
-#: src/components/welcome-modal/model-selection-view.tsx:81
+#: src/components/welcome-modal/model-selection-view.tsx:82
 msgid "Select a transcribing model"
 msgstr "Select a transcribing model"
 
@@ -1100,7 +1109,7 @@ msgstr "Share usage data"
 msgid "Single sign-on for all users"
 msgstr "Single sign-on for all users"
 
-#: src/routes/app.settings.tsx:87
+#: src/routes/app.settings.tsx:116
 msgid "Sound"
 msgstr "Sound"
 
@@ -1144,7 +1153,7 @@ msgstr "System Audio Access"
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
-#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:74
 #: src/components/settings/views/billing.tsx:46
 msgid "Team"
 msgstr "Team"
@@ -1157,14 +1166,22 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:43
-#: src/routes/app.settings.tsx:95
+#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:124
 msgid "Templates"
 msgstr "Templates"
 
 #: src/components/welcome-modal/welcome-view.tsx:28
 msgid "The AI Meeting Notepad"
 msgstr "The AI Meeting Notepad"
+
+#: src/components/settings/views/integrations.tsx:182
+msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+msgstr "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+
+#: src/components/settings/views/integrations.tsx:231
+msgid "The name of your Obsidian vault."
+msgstr "The name of your Obsidian vault."
 
 #: src/components/settings/views/billing.tsx:113
 msgid "There's a plan for everyone"
@@ -1194,9 +1211,13 @@ msgstr "Toggle left sidebar"
 msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
-#: src/components/settings/views/ai.tsx:98
+#: src/components/settings/views/ai.tsx:287
 msgid "Transcribing"
 msgstr "Transcribing"
+
+#: src/components/settings/views/integrations.tsx:150
+msgid "Turn on Obsidian integration to export notes to Obsidian vault."
+msgstr "Turn on Obsidian integration to export notes to Obsidian vault."
 
 #: src/components/settings/views/team.tsx:192
 msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
@@ -1231,8 +1252,8 @@ msgid "Upgrade"
 msgstr "Upgrade"
 
 #: src/components/settings/components/ai/llm-view.tsx:155
-msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
-msgstr "Use the local Llama 3.2 model for enhanced privacy and offline capability."
+#~ msgid "Use the local Llama 3.2 model for enhanced privacy and offline capability."
+#~ msgstr "Use the local Llama 3.2 model for enhanced privacy and offline capability."
 
 #: src/components/settings/views/team.tsx:101
 msgid "User"
@@ -1245,6 +1266,10 @@ msgstr "User:"
 #: src/components/settings/views/profile.tsx:225
 msgid "username"
 msgstr "username"
+
+#: src/components/settings/views/integrations.tsx:222
+msgid "Vault Name"
+msgstr "Vault Name"
 
 #: src/components/left-sidebar/notes-list.tsx:323
 msgid "View calendar"
@@ -1267,6 +1292,10 @@ msgstr "We think different."
 msgid "We'll only use this to follow up if needed."
 msgstr "We'll only use this to follow up if needed."
 
+#: src/components/settings/views/integrations.tsx:275
+msgid "We're working on adding more tools and services to connect with your workflow"
+msgstr "We're working on adding more tools and services to connect with your workflow"
+
 #: src/components/individualization-modal/industry-view.tsx:68
 msgid "What industry are you in?"
 msgstr "What industry are you in?"
@@ -1279,11 +1308,11 @@ msgstr "What's your organization size?"
 msgid "What's your role?"
 msgstr "What's your role?"
 
-#: src/components/settings/components/ai/wer-modal.tsx:69
+#: src/components/settings/components/wer-modal.tsx:69
 msgid "Whisper Model Language Performance (WER)"
 msgstr "Whisper Model Language Performance (WER)"
 
-#: src/components/settings/components/ai/wer-modal.tsx:72
+#: src/components/settings/components/wer-modal.tsx:72
 msgid "Word Error Rate (WER) indicates transcription accuracy (lower is better). Data based on the FLEURS dataset, measured with OpenAI's Whisper <0>large-v3-turbo</0> model. <1>More info</1>"
 msgstr "Word Error Rate (WER) indicates transcription accuracy (lower is better). Data based on the FLEURS dataset, measured with OpenAI's Whisper <0>large-v3-turbo</0> model. <1>More info</1>"
 
@@ -1302,6 +1331,10 @@ msgstr "Works offline"
 #: src/components/settings/views/general.tsx:266
 msgid "You can make Hyprnote takes these words into account when transcribing"
 msgstr "You can make Hyprnote takes these words into account when transcribing"
+
+#: src/components/settings/views/integrations.tsx:207
+msgid "Your API key for Obsidian local-rest-api plugin."
+msgstr "Your API key for Obsidian local-rest-api plugin."
 
 #: src/components/settings/views/profile.tsx:213
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"

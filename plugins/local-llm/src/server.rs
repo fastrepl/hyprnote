@@ -19,7 +19,7 @@ use futures_util::StreamExt;
 use tokio::sync::mpsc;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::local::ModelManager;
+use crate::ModelManager;
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -88,6 +88,8 @@ async fn chat_completions(
             .get_model()
             .await
             .map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, e.to_string()))?;
+
+        tracing::info!("loaded_model: {:?}", model.name);
 
         inference_without_mock(&model, &request).await
     };

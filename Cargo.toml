@@ -96,6 +96,7 @@ tauri-plugin-meeting-automation = { path = "plugins/meeting-automation" }
 tauri-plugin-membership = { path = "plugins/membership" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
+tauri-plugin-obsidian = { path = "plugins/obsidian" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
@@ -133,7 +134,7 @@ schemars = "0.8.21"
 serde = "1"
 serde_bytes = "0.11.15"
 serde_json = "1"
-serde_qs = "0.14.0"
+serde_qs = "1.0.0-rc.3"
 similar = "2.7.0"
 statig = { version = "0.3.0" }
 strum = "0.26"

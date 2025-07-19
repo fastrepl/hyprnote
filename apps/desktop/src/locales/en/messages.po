@@ -244,12 +244,12 @@ msgstr "{weeks} weeks later"
 #~ msgstr "in {hours} hours"
 
 #: src/components/settings/views/notifications.tsx:105
-msgid "(Beta) Detect meetings automatically"
-msgstr "(Beta) Detect meetings automatically"
+#~ msgid "(Beta) Detect meetings automatically"
+#~ msgstr "(Beta) Detect meetings automatically"
 
 #: src/components/settings/views/notifications.tsx:132
-msgid "(Beta) Upcoming meeting notifications"
-msgstr "(Beta) Upcoming meeting notifications"
+#~ msgid "(Beta) Upcoming meeting notifications"
+#~ msgstr "(Beta) Upcoming meeting notifications"
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
@@ -320,6 +320,10 @@ msgstr "Add participant"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/components/settings/views/notifications.tsx:190
+msgid "Advanced settings"
+msgstr "Advanced settings"
+
 #: src/routes/app.settings.tsx:64
 #: src/routes/app.settings.tsx:118
 msgid "AI"
@@ -332,6 +336,10 @@ msgstr "AI"
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
 msgstr "All Participants"
+
+#: src/components/settings/views/notifications.tsx:201
+msgid "Also detect microphone activity"
+msgstr "Also detect microphone activity"
 
 #. placeholder {0}: members.length - 5
 #: src/components/organization-profile/members-list.tsx:102
@@ -375,6 +383,14 @@ msgstr "Assistant:"
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
+
+#: src/components/settings/views/notifications.tsx:167
+msgid "Auto-record meetings"
+msgstr "Auto-record meetings"
+
+#: src/components/settings/views/notifications.tsx:170
+msgid "Automatically start and stop recording when meetings are detected."
+msgstr "Automatically start and stop recording when meetings are detected."
 
 #: src/components/settings/views/integrations.tsx:246
 msgid "Base Folder"
@@ -788,6 +804,10 @@ msgstr "Long-term memory for past meetings and attendees"
 msgid "Make it public"
 msgstr "Make it public"
 
+#: src/components/settings/views/notifications.tsx:110
+#~ msgid "Meeting Automation"
+#~ msgstr "Meeting Automation"
+
 #: src/components/settings/views/billing.tsx:41
 msgid "Meeting note sharing via links"
 msgstr "Meeting note sharing via links"
@@ -903,6 +923,10 @@ msgstr "Obsidian"
 msgid "Official Templates"
 msgstr "Official Templates"
 
+#: src/components/settings/views/notifications.tsx:232
+msgid "Only start recording when the meeting window is in focus."
+msgstr "Only start recording when the meeting window is in focus."
+
 #: src/components/settings/views/feedback.tsx:18
 msgid "Ooh! Suggestion!"
 msgstr "Ooh! Suggestion!"
@@ -987,6 +1011,10 @@ msgstr "Recent Notes"
 msgid "Requesting..."
 msgstr "Requesting..."
 
+#: src/components/settings/views/notifications.tsx:229
+msgid "Require window focus"
+msgstr "Require window focus"
+
 #: src/components/settings/views/sound.tsx:107
 msgid "Required to transcribe other people's voice during meetings"
 msgstr "Required to transcribe other people's voice during meetings"
@@ -1070,12 +1098,12 @@ msgid "Share usage data"
 msgstr "Share usage data"
 
 #: src/components/settings/views/notifications.tsx:135
-msgid "Show notifications when you have meetings starting soon in your calendar."
-msgstr "Show notifications when you have meetings starting soon in your calendar."
+#~ msgid "Show notifications when you have meetings starting soon in your calendar."
+#~ msgstr "Show notifications when you have meetings starting soon in your calendar."
 
 #: src/components/settings/views/notifications.tsx:108
-msgid "Show notifications when you join a meeting."
-msgstr "Show notifications when you join a meeting."
+#~ msgid "Show notifications when you join a meeting."
+#~ msgstr "Show notifications when you join a meeting."
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
@@ -1096,6 +1124,10 @@ msgstr "Start Monthly Plan"
 #: src/components/editor-area/note-header/listen-button.tsx:154
 msgid "Start recording"
 msgstr "Start recording"
+
+#: src/components/settings/views/notifications.tsx:204
+msgid "Start recording even when just microphone activity is detected."
+msgstr "Start recording even when just microphone activity is detected."
 
 #: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Stop"

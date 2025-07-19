@@ -297,8 +297,175 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now + chrono::Duration::days(14) + chrono::Duration::hours(1),
             google_event_url: None,
         },
+        // Event 7: In 4 hours - Video Call with session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Design Review - Mobile App".to_string(),
+            note: indoc::indoc! {r#"|
+                Design review session for the new mobile app interface.
+                
+                Join Zoom Meeting
+                https://zoom.us/j/123456789?pwd=abc123
+                Meeting ID: 123 456 789
+                Passcode: design123
+                
+                Attendees:
+                - Sarah Johnson (Design Lead)
+                - Mike Chen (Product Manager)
+                - Alex Rivera (Developer)
+            "#}.to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::hours(4),
+            end_date: now + chrono::Duration::hours(5),
+            google_event_url: Some("https://zoom.us/j/123456789?pwd=abc123".to_string()),
+        },
+        // Event 8: In 6 hours - Quick sync without session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Quick Sync - Project Alpha".to_string(),
+            note: "Brief sync on Project Alpha progress and blockers".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::hours(6),
+            end_date: now + chrono::Duration::hours(6) + chrono::Duration::minutes(15),
+            google_event_url: None,
+        },
+        // Event 9: Later today - Team retro with session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Sprint Retrospective".to_string(),
+            note: indoc::indoc! {r#"|
+                Sprint 23 Retrospective Meeting
+                
+                Agenda:
+                - What went well?
+                - What could be improved?
+                - Action items for next sprint
+                
+                Microsoft Teams Meeting
+                https://teams.microsoft.com/l/meetup-join/meeting123
+            "#}.to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::hours(8),
+            end_date: now + chrono::Duration::hours(9),
+            google_event_url: Some("https://teams.microsoft.com/l/meetup-join/meeting123".to_string()),
+        },
+        // Event 10: In 5 days - Client demo with session  
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Client Demo - Acme Corp".to_string(),
+            note: indoc::indoc! {r#"|
+                Product demonstration for Acme Corp
+                
+                Demo Flow:
+                1. Dashboard overview
+                2. New features showcase
+                3. Q&A session
+                4. Next steps discussion
+                
+                Google Meet
+                https://meet.google.com/abc-defg-hij
+                Phone: +1 555-0123
+            "#}.to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(5),
+            end_date: now + chrono::Duration::days(5) + chrono::Duration::hours(1) + chrono::Duration::minutes(30),
+            google_event_url: Some("https://meet.google.com/abc-defg-hij".to_string()),
+        },
+        // Event 11: In 6 days - Workshop without session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "UX Workshop - User Journey Mapping".to_string(),
+            note: "Interactive workshop on mapping user journeys and identifying pain points in our product".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(6),
+            end_date: now + chrono::Duration::days(6) + chrono::Duration::hours(3),
+            google_event_url: None,
+        },
+        // Event 12: In 8 days - Interview with session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Technical Interview - Senior Developer".to_string(),
+            note: indoc::indoc! {r#"|
+                Technical interview for Senior Software Developer position
+                
+                Candidate: Jordan Martinez
+                Role: Senior Full-Stack Developer
+                
+                Interview Plan:
+                - System design discussion (30 min)
+                - Coding challenge (45 min)
+                - Behavioral questions (15 min)
+                
+                Zoom Meeting
+                https://zoom.us/j/987654321?pwd=interview123
+            "#}.to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(8),
+            end_date: now + chrono::Duration::days(8) + chrono::Duration::hours(1) + chrono::Duration::minutes(30),
+            google_event_url: Some("https://zoom.us/j/987654321?pwd=interview123".to_string()),
+        },
+        // Event 13: In 10 days - Board meeting without session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Board Meeting - Q3 Review".to_string(),
+            note: "Quarterly board meeting to review Q3 performance and discuss Q4 strategy".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(10),
+            end_date: now + chrono::Duration::days(10) + chrono::Duration::hours(2),
+            google_event_url: None,
+        },
+        // Event 14: In 12 days - Training session with session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Security Training - OWASP Best Practices".to_string(),
+            note: indoc::indoc! {r#"|
+                Company-wide security training session
+                
+                Topics:
+                - OWASP Top 10 vulnerabilities
+                - Secure coding practices
+                - Incident response procedures
+                - Security tools overview
+                
+                WebEx Meeting
+                https://company.webex.com/meet/security.training
+                Meeting Number: 2468013579
+            "#}.to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(12),
+            end_date: now + chrono::Duration::days(12) + chrono::Duration::hours(2),
+            google_event_url: Some("https://company.webex.com/meet/security.training".to_string()),
+        },
+        // Event 15: In 3 weeks - Conference without session
+        Event {
+            id: uuid::Uuid::new_v4().to_string(),
+            user_id: user.id.clone(),
+            tracking_id: uuid::Uuid::new_v4().to_string(),
+            name: "Tech Conference 2024".to_string(),
+            note: "Annual technology conference - attending sessions on AI, cloud architecture, and emerging technologies".to_string(),
+            calendar_id: Some(calendars[0].id.clone()),
+            start_date: now + chrono::Duration::days(21),
+            end_date: now + chrono::Duration::days(23),
+            google_event_url: None,
+        },
         // === PAST EVENTS (for NotesList section testing) ===
-        // Event 7: Yesterday - with session (should appear in notes)
+        // Event 16: Yesterday - with session (should appear in notes)
         Event {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id.clone(),
@@ -310,7 +477,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now - chrono::Duration::days(1) + chrono::Duration::minutes(30),
             google_event_url: None,
         },
-        // Event 8: Last week - with session (should appear in notes)
+        // Event 17: Last week - with session (should appear in notes)
         Event {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id.clone(),
@@ -322,7 +489,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now - chrono::Duration::days(7) + chrono::Duration::hours(1),
             google_event_url: None,
         },
-        // Event 9: 10 days ago - with session (should appear in notes)
+        // Event 18: 10 days ago - with session (should appear in notes)
         Event {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id.clone(),
@@ -334,7 +501,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             end_date: now - chrono::Duration::days(10) + chrono::Duration::hours(2),
             google_event_url: None,
         },
-        // Event 10: 2 weeks ago - without session (should not appear anywhere)
+        // Event 19: 2 weeks ago - without session (should not appear anywhere)
         Event {
             id: uuid::Uuid::new_v4().to_string(),
             user_id: user.id.clone(),

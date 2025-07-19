@@ -11,6 +11,8 @@ import {
   FloatingActionButtons,
   Message,
 } from "../components/chat";
+// ✅ Import useChat instead of streamText
+import { useChat } from "@hypr/utils/ai";
 
 interface ActiveEntityInfo {
   id: string;
@@ -23,14 +25,60 @@ export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  // ✅ Replace manual state with useChat hook
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit: handleChatSubmit,
+    isLoading,
+    error, // ← ADD THIS: Get error state
+    setMessages: setChatMessages,
+    setInput,
+  } = useChat({
+    // ✅ Point directly to OpenRouter API
+    api: "https://openrouter.ai/api/v1/chat/completions", // ← ADD "/chat/completions"
+    headers: {
+      "Authorization": "Bearer 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",
+      "Content-Type": "application/json",
+      "HTTP-Referer": "http://localhost:1420", // ← ADD: OpenRouter likes this
+      "X-Title": "Hyprnote Desktop", // ← ADD: OpenRouter app identification
+    },
+    body: {
+      model: "openai/gpt-4o-mini", // ← CHANGE: Use mini for testing (cheaper)
+    },
+    initialMessages: [
+      {
+        id: "system",
+        role: "system",
+        content: "You are a helpful AI assistant.",
+      },
+    ],
+    // ✅ ADD: Error handling callback
+    onError: (error) => {
+      console.error("useChat error:", error);
+      console.error("Error details:", {
+        message: error.message
+      });
+    },
+    // ✅ ADD: Request debugging
+    onResponse: (response) => {
+      console.log("API Response status:", response.status);
+      console.log("API Response headers:", Object.fromEntries(response.headers.entries()));
+      if (!response.ok) {
+        console.error("API Response not OK:", response.statusText);
+      }
+    },
+    // ✅ ADD: Debug all requests
+    onFinish: (message) => {
+      console.log("Chat finished:", message);
+    },
+  });
+
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-
   const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
   const [hasChatStarted, setHasChatStarted] = useState(false);
-
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
@@ -75,12 +123,9 @@ export function ChatView() {
     }
   }, [isExpanded, chatInputRef]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleSubmit = () => {
-    if (!inputValue.trim()) {
+  // ✅ Enhanced submit with better error handling
+  const handleSubmit = async () => {
+    if (!input.trim()) {
       return;
     }
 
@@ -88,25 +133,13 @@ export function ChatView() {
       setHasChatStarted(true);
     }
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+    console.log("Submitting message:", input); // ← ADD: Debug logging
+    
+    try {
+      await handleChatSubmit();
+    } catch (err) {
+      console.error("Submit error:", err);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -116,26 +149,19 @@ export function ChatView() {
     }
   };
 
-  const handleQuickAction = (prompt: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: prompt,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+  // ✅ Enhanced quick action with error handling
+  const handleQuickAction = async (prompt: string) => {
+    console.log("Quick action:", prompt); // ← ADD: Debug logging
+    
+    setInput(prompt);
+    // Trigger submit after setting input
+    setTimeout(async () => {
+      try {
+        await handleChatSubmit();
+      } catch (err) {
+        console.error("Quick action error:", err);
+      }
+    }, 0);
 
     if (chatInputRef.current) {
       chatInputRef.current.focus();
@@ -149,8 +175,8 @@ export function ChatView() {
   };
 
   const handleNewChat = () => {
-    setMessages([]);
-    setInputValue("");
+    setChatMessages([]);
+    setInput("");
     setShowHistory(false);
     setHasChatStarted(false);
   };
@@ -217,29 +243,70 @@ export function ChatView() {
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       <FloatingActionButtons
-        onNewChat={handleNewChat}
-        onViewHistory={handleViewHistory}
+        onNewChat={() => {
+          setChatMessages([]);
+          setInput("");
+          setShowHistory(false);
+          setHasChatStarted(false);
+        }}
+        onViewHistory={() => setShowHistory(true)}
       />
 
-      {messages.length === 0
+      {messages.length <= 1
         ? (
           <EmptyChatState
             onQuickAction={handleQuickAction}
-            onFocusInput={handleFocusInput}
+            onFocusInput={() => chatInputRef.current?.focus()}
           />
         )
-        : <ChatMessagesView messages={messages} />}
+        : (
+          <ChatMessagesView 
+            messages={messages.slice(1).map(msg => ({
+              id: msg.id,
+              content: msg.content,
+              isUser: msg.role === "user",
+              timestamp: new Date(),
+            }))} 
+          />
+        )}
 
       <ChatInput
-        inputValue={inputValue}
+        inputValue={input}
         onChange={handleInputChange}
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
         autoFocus={true}
         entityId={activeEntity?.id}
         entityType={activeEntity?.type}
-        onNoteBadgeClick={handleNoteBadgeClick}
+        onNoteBadgeClick={() => {
+          if (activeEntity) {
+            navigate({ to: `/app/${activeEntity.type}/$id`, params: { id: activeEntity.id } });
+          }
+        }}
       />
+      
+      {/* ✅ ADD: Loading indicator */}
+      {isLoading && (
+        <div className="text-sm text-blue-500 p-2 border-t">
+          🤖 AI is thinking...
+        </div>
+      )}
+      
+      {/* ✅ ADD: Error display */}
+      {error && (
+        <div className="text-sm text-red-500 p-2 border-t bg-red-50">
+          ❌ Error: {error.message}
+          <details className="mt-1">
+            <summary className="cursor-pointer text-xs">Debug Info</summary>
+            <pre className="text-xs mt-1 overflow-auto max-h-32">
+              {JSON.stringify({
+                message: error.message,
+                stack: error.stack,
+              }, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
     </div>
   );
 }

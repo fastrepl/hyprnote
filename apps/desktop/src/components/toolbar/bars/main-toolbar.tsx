@@ -65,7 +65,7 @@ export function MainToolbar() {
         {isMain && (
           <>
             {(organizationMatch || humanMatch) && <NewWindowButton />}
-            {noteChatQuery.data && <ChatPanelButton />}
+            <ChatPanelButton />
             <TranscriptPanelButton />
           </>
         )}

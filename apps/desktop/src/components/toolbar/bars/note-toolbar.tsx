@@ -6,9 +6,7 @@ export function NoteToolbar() {
     >
       <div className="w-40 flex items-center justify-start" data-tauri-drag-region />
       <div className="flex-1" data-tauri-drag-region />
-      <div className="flex w-40 items-center justify-end" data-tauri-drag-region>
-        {/* <ShareButton /> */}
-      </div>
+      <div className="flex w-40 items-center justify-end" data-tauri-drag-region />
     </header>
   );
 }

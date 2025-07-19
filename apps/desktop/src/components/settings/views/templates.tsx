@@ -7,7 +7,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftIcon, EditIcon, EyeIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, CheckIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import TemplateEditor from "./template";
 
@@ -353,12 +353,12 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
   };
 
   const handleCardClick = () => {
-    onSelect();
+    onEdit?.();
   };
 
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleSetDefaultClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onEdit?.();
+    onSelect();
   };
 
   // Function to truncate text
@@ -368,9 +368,6 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
     }
     return text.substring(0, maxLength).trim() + "...";
   };
-
-  // Check if this is a built-in template
-  const isBuiltinTemplate = !TemplateService.canEditTemplate(template.id);
 
   return (
     <div
@@ -401,16 +398,15 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
           </div>
         </div>
 
-        {onEdit && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleEditClick}
-            className="ml-2 rounded-lg border-neutral-300 hover:border-neutral-400"
-          >
-            {isBuiltinTemplate ? <EyeIcon className="h-4 w-4" /> : <EditIcon className="h-4 w-4" />}
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSetDefaultClick}
+          className="text-xs text-neutral-600 hover:text-neutral-900 px-2 py-1 h-auto flex items-center gap-1 min-w-[96px]"
+        >
+          {isSelected && <CheckIcon className="h-3 w-3" />}
+          {isSelected ? "Default" : "Set as default"}
+        </Button>
       </div>
     </div>
   );

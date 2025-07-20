@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useRightPanel } from "@/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
@@ -11,8 +12,10 @@ import {
   FloatingActionButtons,
   Message,
 } from "../components/chat";
-// ✅ Import useChat instead of streamText
-import { useChat } from "@hypr/utils/ai";
+import { modelProvider, streamText } from "@hypr/utils/ai";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { MessagePart } from "../components/chat/types";
+import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface ActiveEntityInfo {
   id: string;
@@ -24,66 +27,42 @@ export type BadgeType = "note" | "human" | "organization";
 export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
+  const queryClient = useQueryClient();
 
-  // ✅ Replace manual state with useChat hook
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit: handleChatSubmit,
-    isLoading,
-    error, // ← ADD THIS: Get error state
-    setMessages: setChatMessages,
-    setInput,
-  } = useChat({
-    // ✅ Point directly to OpenRouter API
-    api: "https://openrouter.ai/api/v1/chat/completions", // ← ADD "/chat/completions"
-    headers: {
-      "Authorization": "Bearer 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",
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://localhost:1420", // ← ADD: OpenRouter likes this
-      "X-Title": "Hyprnote Desktop", // ← ADD: OpenRouter app identification
-    },
-    body: {
-      model: "openai/gpt-4o-mini", // ← CHANGE: Use mini for testing (cheaper)
-    },
-    initialMessages: [
-      {
-        id: "system",
-        role: "system",
-        content: "You are a helpful AI assistant.",
-      },
-    ],
-    // ✅ ADD: Error handling callback
-    onError: (error) => {
-      console.error("useChat error:", error);
-      console.error("Error details:", {
-        message: error.message
-      });
-    },
-    // ✅ ADD: Request debugging
-    onResponse: (response) => {
-      console.log("API Response status:", response.status);
-      console.log("API Response headers:", Object.fromEntries(response.headers.entries()));
-      if (!response.ok) {
-        console.error("API Response not OK:", response.statusText);
-      }
-    },
-    // ✅ ADD: Debug all requests
-    onFinish: (message) => {
-      console.log("Chat finished:", message);
-    },
-  });
-
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+
   const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
   const [hasChatStarted, setHasChatStarted] = useState(false);
+
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+
+  const sessionId = activeEntity?.type === "note" ? activeEntity.id : null;
+
+  const sessionData = useQuery({
+    enabled: !!sessionId,
+    queryKey: ["session", "chat-context", sessionId],
+    queryFn: async () => {
+      if (!sessionId) return null;
+      
+      const session = await dbCommands.getSession({ id: sessionId });
+      if (!session) return null;
+
+      return {
+        title: session.title || "",
+        rawContent: session.raw_memo_html || "",
+        enhancedContent: session.enhanced_memo_html,
+        preMeetingContent: session.pre_meeting_memo_html,
+        words: session.words || [],
+      };
+    },
+  });
 
   useEffect(() => {
     if (!hasChatStarted) {
@@ -123,9 +102,186 @@ export function ChatView() {
     }
   }, [isExpanded, chatInputRef]);
 
-  // ✅ Enhanced submit with better error handling
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const formatTranscript = (words: Array<{
+    text: string;
+    speaker?: { type: string; value: { index?: number; id?: string; label?: string } } | null;
+    start_ms?: number | null;
+    end_ms?: number | null;
+    confidence?: number | null;
+  }>) => {
+    if (!words.length) return null;
+
+    const speakers = new Map<string, string[]>();
+    let currentSpeaker = "Unknown";
+    let currentChunk: string[] = [];
+    
+    words.forEach((word, index) => {
+      let speakerLabel = "Unknown";
+      if (word.speaker?.type === "assigned" && word.speaker.value.label) {
+        speakerLabel = word.speaker.value.label;
+      } else if (word.speaker?.type === "unassigned" && word.speaker.value.index !== undefined) {
+        speakerLabel = `Speaker ${word.speaker.value.index + 1}`;
+      }
+
+      if (speakerLabel !== currentSpeaker) {
+        if (currentChunk.length > 0) {
+          const existing = speakers.get(currentSpeaker) || [];
+          speakers.set(currentSpeaker, [...existing, currentChunk.join(' ')]);
+          currentChunk = [];
+        }
+        currentSpeaker = speakerLabel;
+      }
+
+      currentChunk.push(word.text);
+
+      if (index === words.length - 1 && currentChunk.length > 0) {
+        const existing = speakers.get(currentSpeaker) || [];
+        speakers.set(currentSpeaker, [...existing, currentChunk.join(' ')]);
+      }
+    });
+
+    const transcriptLines: string[] = [];
+    speakers.forEach((chunks, speaker) => {
+      chunks.forEach(chunk => {
+        transcriptLines.push(`${speaker}: ${chunk}`);
+      });
+    });
+
+    return transcriptLines.join('\n');
+  };
+
+  const prepareNoteContext = async () => {
+    // Refetch session data to get latest content
+    if (sessionId) {
+      await sessionData.refetch(); // Option 1: Use refetch method
+      
+      // Alternative Option 2: Invalidate and refetch
+      // await queryClient.invalidateQueries({ 
+      //   queryKey: ["session", "chat-context", sessionId] 
+      // });
+    }
+
+    if (!activeEntity || activeEntity.type !== "note" || !sessionData.data) {
+      return null;
+    }
+
+    const stripHtml = (html: string) => {
+      return html
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .trim();
+    };
+
+    const parts: string[] = [];
+    
+    if (sessionData.data.title) {
+      parts.push(`Title: ${sessionData.data.title}`);
+    }
+
+    const noteContent = sessionData.data.enhancedContent || sessionData.data.rawContent;
+    if (noteContent) {
+      const cleanContent = stripHtml(noteContent);
+      if (cleanContent) {
+        parts.push(`Enhanced Meeting Summary:\n${cleanContent}`);
+      }
+    }
+
+    /*
+    if (sessionData.data.preMeetingContent) {
+      const cleanPreMeeting = stripHtml(sessionData.data.preMeetingContent);
+      if (cleanPreMeeting) {
+        parts.push(`Pre-meeting Notes:\n${cleanPreMeeting}`);
+      }
+    }
+    */
+
+    if (sessionData.data.words && sessionData.data.words.length > 0) {
+      const transcript = formatTranscript(sessionData.data.words);
+      if (transcript) {
+        parts.push(`Full Meeting Transcript:\n${transcript}`);
+      }
+    }
+
+    return parts.length > 0 ? parts.join('\n\n') : null;
+  };
+
+  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
+    const noteContext = await prepareNoteContext();
+    console.log("this is the note context", noteContext);
+    
+    let systemContent = `
+    You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes 
+    and analyzes meetings. Your purpose is to help users understand their meeting content better.
+
+    You have access to the meeting transcript and an AI-generated summary of the meeting.
+
+    Always keep your responses concise, professional, and directly relevant to the user's questions.
+
+    YOUR PRIMARY SOURCE OF TRUTH IS THE MEETING TRANSCRIPT. Try to generate responses primarily from the transcript, and then the summary or other information (unless the user asks for something specific).
+
+    ## Response Format Guidelines 
+    Your response would be highily likely to be paragraphs with combined information about your thought and whatever note (in markdown format) you generated. 
+
+    For example, 
+
+    'Sure, here is the meeting note that I regenerated with the focus on clariaty and preserving the casual tone.
+
+    \`\`\`
+    # Meeting Note
+    - This is the meeting note that I regenerated with the focus on clariaty and preserving the casual tone.
+
+    ## Key Takeaways
+    - This is the key takeaways that I generated from the meeting transcript.
+
+    ## Action Items
+    - This is the action items that I generated from the meeting transcript.
+
+    \`\`\`
+
+    "
+    
+    IT IS PARAMOUNT THAT WHEN YOU GENERATE RESPONSES LIKE THIS, YOU KEEP THE NOTE INSIDE THE \`\`\`...\`\`\` BLOCKS.
+    
+    `;
+    
+    if (noteContext) {
+      systemContent += `\n\nContext: You are helping the user with their meeting notes. Here is the current context:\n\n${noteContext}`;
+    }
+
+    const conversationHistory: Array<{
+      role: "system" | "user" | "assistant";
+      content: string;
+    }> = [
+      { role: "system" as const, content: systemContent }
+    ];
+
+    messages.forEach(message => {
+      conversationHistory.push({
+        role: message.isUser ? ("user" as const) : ("assistant" as const),
+        content: message.content,
+      });
+    });
+
+    if (currentUserMessage) {
+      conversationHistory.push({
+        role: "user" as const,
+        content: currentUserMessage,
+      });
+    }
+
+    console.log("this is the conversation history", conversationHistory);
+    return conversationHistory;
+  };
+
   const handleSubmit = async () => {
-    if (!input.trim()) {
+    if (!inputValue.trim()) {
       return;
     }
 
@@ -133,12 +289,69 @@ export function ChatView() {
       setHasChatStarted(true);
     }
 
-    console.log("Submitting message:", input); // ← ADD: Debug logging
-    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue,
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue;
+    setInputValue("");
+
     try {
-      await handleChatSubmit();
-    } catch (err) {
-      console.error("Submit error:", err);
+      const provider = await modelProvider();
+      const model = provider.languageModel("defaultModel");
+
+      console.log("this is the model", model);
+      console.log("this is the provider", provider);
+      console.log("this is the messages so far:", messages);
+
+      const aiMessageId = (Date.now() + 1).toString();
+      const aiMessage: Message = {
+        id: aiMessageId,
+        content: "",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+
+      const { textStream } = streamText({
+        model,
+        messages: await prepareMessageHistory(messages, currentInput),
+      });
+
+      let aiResponse = "";
+      
+      for await (const chunk of textStream) {
+        aiResponse += chunk;
+        
+        // Parse the content for markdown blocks
+        const parts = parseMarkdownBlocks(aiResponse);
+        
+        setMessages((prev) => 
+          prev.map(msg => 
+            msg.id === aiMessageId 
+              ? { 
+                  ...msg, 
+                  content: aiResponse,
+                  parts: parts // Add parsed parts
+                }
+              : msg
+          )
+        );
+      }
+
+    } catch (error) {
+      console.error("AI error:", error);
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I encountered an error. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
     }
   };
 
@@ -149,19 +362,69 @@ export function ChatView() {
     }
   };
 
-  // ✅ Enhanced quick action with error handling
   const handleQuickAction = async (prompt: string) => {
-    console.log("Quick action:", prompt); // ← ADD: Debug logging
-    
-    setInput(prompt);
-    // Trigger submit after setting input
-    setTimeout(async () => {
-      try {
-        await handleChatSubmit();
-      } catch (err) {
-        console.error("Quick action error:", err);
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: prompt,
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+
+    try {
+      const provider = await modelProvider();
+      const model = provider.languageModel("defaultModel");
+
+      console.log("this is the model", model);
+      console.log("this is the provider", provider);
+
+      const aiMessageId = (Date.now() + 1).toString();
+      const aiMessage: Message = {
+        id: aiMessageId,
+        content: "",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+
+      const { textStream } = streamText({
+        model,
+        messages: await prepareMessageHistory(messages, prompt),
+      });
+
+      let aiResponse = "";
+      
+      for await (const chunk of textStream) {
+        aiResponse += chunk;
+        
+        // Parse the content for markdown blocks
+        const parts = parseMarkdownBlocks(aiResponse);
+        
+        setMessages((prev) => 
+          prev.map(msg => 
+            msg.id === aiMessageId 
+              ? { 
+                  ...msg, 
+                  content: aiResponse,
+                  parts: parts // Add parsed parts
+                }
+              : msg
+          )
+        );
       }
-    }, 0);
+
+    } catch (error) {
+      console.error("AI error:", error);
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I encountered an error. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }
 
     if (chatInputRef.current) {
       chatInputRef.current.focus();
@@ -175,8 +438,8 @@ export function ChatView() {
   };
 
   const handleNewChat = () => {
-    setChatMessages([]);
-    setInput("");
+    setMessages([]);
+    setInputValue("");
     setShowHistory(false);
     setHasChatStarted(false);
   };
@@ -243,70 +506,32 @@ export function ChatView() {
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-full">
       <FloatingActionButtons
-        onNewChat={() => {
-          setChatMessages([]);
-          setInput("");
-          setShowHistory(false);
-          setHasChatStarted(false);
-        }}
-        onViewHistory={() => setShowHistory(true)}
+        onNewChat={handleNewChat}
+        onViewHistory={handleViewHistory}
       />
 
-      {messages.length <= 1
+      {messages.length === 0
         ? (
           <EmptyChatState
             onQuickAction={handleQuickAction}
-            onFocusInput={() => chatInputRef.current?.focus()}
+            onFocusInput={handleFocusInput}
           />
         )
-        : (
-          <ChatMessagesView 
-            messages={messages.slice(1).map(msg => ({
-              id: msg.id,
-              content: msg.content,
-              isUser: msg.role === "user",
-              timestamp: new Date(),
-            }))} 
-          />
-        )}
+        : <ChatMessagesView 
+            messages={messages} 
+            sessionTitle={sessionData.data?.title || "Untitled"} // Add this prop
+          />}
 
       <ChatInput
-        inputValue={input}
+        inputValue={inputValue}
         onChange={handleInputChange}
         onSubmit={handleSubmit}
         onKeyDown={handleKeyDown}
         autoFocus={true}
         entityId={activeEntity?.id}
         entityType={activeEntity?.type}
-        onNoteBadgeClick={() => {
-          if (activeEntity) {
-            navigate({ to: `/app/${activeEntity.type}/$id`, params: { id: activeEntity.id } });
-          }
-        }}
+        onNoteBadgeClick={handleNoteBadgeClick}
       />
-      
-      {/* ✅ ADD: Loading indicator */}
-      {isLoading && (
-        <div className="text-sm text-blue-500 p-2 border-t">
-          🤖 AI is thinking...
-        </div>
-      )}
-      
-      {/* ✅ ADD: Error display */}
-      {error && (
-        <div className="text-sm text-red-500 p-2 border-t bg-red-50">
-          ❌ Error: {error.message}
-          <details className="mt-1">
-            <summary className="cursor-pointer text-xs">Debug Info</summary>
-            <pre className="text-xs mt-1 overflow-auto max-h-32">
-              {JSON.stringify({
-                message: error.message,
-                stack: error.stack,
-              }, null, 2)}
-            </pre>
-          </details>
-        </div>
-      )}
     </div>
   );
 }

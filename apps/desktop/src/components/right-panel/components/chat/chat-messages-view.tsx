@@ -4,9 +4,10 @@ import { Message } from "./types";
 
 interface ChatMessagesViewProps {
   messages: Message[];
+  sessionTitle?: string;
 }
 
-export function ChatMessagesView({ messages }: ChatMessagesViewProps) {
+export function ChatMessagesView({ messages, sessionTitle }: ChatMessagesViewProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -15,7 +16,7 @@ export function ChatMessagesView({ messages }: ChatMessagesViewProps) {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.map((message) => <ChatMessage key={message.id} message={message} />)}
+      {messages.map((message) => <ChatMessage key={message.id} message={message} sessionTitle={sessionTitle} />)}
       <div ref={messagesEndRef} />
     </div>
   );

@@ -6,3 +6,5 @@ export * from "./chat-messages-view";
 export * from "./empty-chat-state";
 export * from "./floating-action-buttons";
 export * from "./types";
+export { MarkdownCard } from "./markdown-card";
+export { MessageContent } from "./message-content";

@@ -1,12 +1,14 @@
 import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
 import { Message } from "./types";
+import { MessageContent } from "./message-content";
 
 interface ChatMessageProps {
   message: Message;
+  sessionTitle?: string;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, sessionTitle }: ChatMessageProps) {
   return (
     <div className="w-full mb-4">
       <div
@@ -17,7 +19,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       >
         {message.isUser ? <Trans>User:</Trans> : <Trans>Assistant:</Trans>}
       </div>
-      <div className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-full">{message.content}</div>
+      <MessageContent message={message} sessionTitle={sessionTitle} />
     </div>
   );
 }

@@ -7,11 +7,14 @@ use hypr_file::{download_file_with_callback, DownloadProgress};
 
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+
     fn models_dir(&self) -> PathBuf;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
+
     fn is_server_running(&self) -> impl Future<Output = bool>;
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
+
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
 

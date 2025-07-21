@@ -109,6 +109,7 @@ futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 reqwest = "0.12"
+reqwest-streams = "0.10.0"
 tokio = "1"
 tokio-stream = "0.1.17"
 tokio-tungstenite = "0.26.0"
@@ -200,7 +201,7 @@ kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", de
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.8", default-features = false }
-libsql = "0.9.8"
+libsql = "0.9.17"
 
 block2 = "0.6"
 objc2 = "0.6"

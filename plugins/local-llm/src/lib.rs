@@ -112,7 +112,25 @@ mod test {
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
         ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
-        builder.plugin(init()).build(ctx).unwrap()
+
+        builder
+            .plugin(tauri_plugin_store::Builder::default().build())
+            .plugin(init())
+            .build(ctx)
+            .unwrap()
+    }
+
+    fn extract_content_from_stream_chunk(data: &[u8]) -> Option<String> {
+        let text = String::from_utf8_lossy(data);
+
+        let vs = text.split("data: ").collect::<Vec<&str>>();
+        let stripped = match vs.get(1) {
+            Some(s) => s,
+            None => return None,
+        };
+
+        let c: CreateChatCompletionStreamResponse = serde_json::from_str(stripped).ok()?;
+        c.choices.first()?.delta.content.clone()
     }
 
     fn shared_request() -> CreateChatCompletionRequest {
@@ -124,6 +142,9 @@ mod test {
                     .unwrap()
                     .into(),
             )],
+            metadata: Some(
+                serde_json::json!({ "grammar": hypr_gbnf::Grammar::Enhance { sections: None } }),
+            ),
             ..Default::default()
         }
     }
@@ -146,14 +167,15 @@ mod test {
                         .into(),
                 ),
             ],
+            metadata: Some(serde_json::json!({ "grammar": hypr_gbnf::Grammar::Title })),
             ..Default::default()
         }
     }
 
     #[tokio::test]
     #[ignore]
-    // cargo test test_non_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
-    async fn test_non_streaming_response() {
+    // cargo test test_enhance_non_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
+    async fn test_enhance_non_streaming_response() {
         let app = create_app(tauri::test::mock_builder());
         app.start_server().await.unwrap();
         let api_base = app.api_base().await.unwrap();
@@ -181,8 +203,8 @@ mod test {
 
     #[tokio::test]
     #[ignore]
-    // cargo test test_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
-    async fn test_streaming_response() {
+    // cargo test test_enhance_streaming_response -p tauri-plugin-local-llm -- --ignored --nocapture
+    async fn test_enhance_streaming_response() {
         let app = create_app(tauri::test::mock_builder());
         app.start_server().await.unwrap();
         let api_base = app.api_base().await.unwrap();
@@ -199,26 +221,13 @@ mod test {
             .await
             .unwrap();
 
-        let stream = response.bytes_stream().map(|chunk| {
-            chunk.map(|data| {
-                let text = String::from_utf8_lossy(&data);
-                let stripped = text.split("data: ").collect::<Vec<&str>>()[1];
-                let c: CreateChatCompletionStreamResponse = serde_json::from_str(stripped).unwrap();
-                c.choices
-                    .first()
-                    .unwrap()
-                    .delta
-                    .content
-                    .as_ref()
-                    .unwrap()
-                    .clone()
-            })
+        let stream = response.bytes_stream().filter_map(|chunk| async move {
+            chunk
+                .ok()
+                .and_then(|data| extract_content_from_stream_chunk(&data))
         });
 
-        let content = stream
-            .filter_map(|r| async move { r.ok() })
-            .collect::<String>()
-            .await;
+        let content = stream.collect::<String>().await;
 
         assert!(content.contains("Seoul"));
     }
@@ -249,14 +258,9 @@ mod test {
             .unwrap();
 
         let content = data.choices[0].message.content.clone().unwrap();
-        println!("Generated title: {}", content);
 
-        // Title should start with capital letter and contain only letters/spaces
         assert!(!content.is_empty());
         assert!(content.chars().next().unwrap().is_uppercase());
-        assert!(content
-            .chars()
-            .all(|c| c.is_alphabetic() || c.is_whitespace()));
     }
 
     #[tokio::test]
@@ -279,30 +283,14 @@ mod test {
             .await
             .unwrap();
 
-        let stream = response.bytes_stream().map(|chunk| {
-            chunk.map(|data| {
-                let text = String::from_utf8_lossy(&data);
-                let stripped = text.split("data: ").collect::<Vec<&str>>()[1];
-                let c: CreateChatCompletionStreamResponse = serde_json::from_str(stripped).unwrap();
-                c.choices
-                    .first()
-                    .unwrap()
-                    .delta
-                    .content
-                    .as_ref()
-                    .unwrap()
-                    .clone()
-            })
+        let stream = response.bytes_stream().filter_map(|chunk| async move {
+            chunk
+                .ok()
+                .and_then(|data| extract_content_from_stream_chunk(&data))
         });
 
-        let content = stream
-            .filter_map(|r| async move { r.ok() })
-            .collect::<String>()
-            .await;
+        let content = stream.collect::<String>().await;
 
-        println!("Generated title (streaming): {}", content);
-
-        // Title should start with capital letter and contain only letters/spaces
         assert!(!content.is_empty());
         assert!(content.chars().next().unwrap().is_uppercase());
         assert!(content

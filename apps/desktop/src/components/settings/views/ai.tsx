@@ -217,6 +217,9 @@ export default function LocalAI() {
         newSet.delete(modelKey);
         return newSet;
       });
+
+      setSelectedSTTModel(modelKey);
+      localSttCommands.setCurrentModel(modelKey as any);
     }, queryClient);
   };
 
@@ -233,6 +236,8 @@ export default function LocalAI() {
       });
 
       setSelectedLLMModel(modelKey);
+      localLlmCommands.setCurrentModel(modelKey as SupportedModel);
+      setCustomLLMEnabledMutation.mutate(false);
     }, queryClient);
   };
 

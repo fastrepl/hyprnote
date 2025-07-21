@@ -61,6 +61,33 @@ const initialSttModels = [
     fileName: "ggml-tiny-q8_0.bin",
   },
   {
+    key: "QuantizedTinyEn",
+    name: "Tiny - English",
+    accuracy: 1,
+    speed: 3,
+    size: "44 MB",
+    downloaded: false,
+    fileName: "ggml-tiny.en-q8_0.bin",
+  },
+  {
+    key: "QuantizedBase",
+    name: "Base",
+    accuracy: 2,
+    speed: 2,
+    size: "82 MB",
+    downloaded: false,
+    fileName: "ggml-base-q8_0.bin",
+  },
+  {
+    key: "QuantizedBaseEn",
+    name: "Base - English",
+    accuracy: 2,
+    speed: 2,
+    size: "82 MB",
+    downloaded: false,
+    fileName: "ggml-base.en-q8_0.bin",
+  },
+  {
     key: "QuantizedSmall",
     name: "Small",
     accuracy: 2,
@@ -68,6 +95,15 @@ const initialSttModels = [
     size: "264 MB",
     downloaded: false,
     fileName: "ggml-small-q8_0.bin",
+  },
+  {
+    key: "QuantizedSmallEn",
+    name: "Small - English",
+    accuracy: 2,
+    speed: 2,
+    size: "264 MB",
+    downloaded: false,
+    fileName: "ggml-small.en-q8_0.bin",
   },
   {
     key: "QuantizedLargeTurbo",
@@ -354,6 +390,67 @@ export default function LocalAI() {
     return apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1"));
   };
 
+  //call backend for the current selected LLM model and sets it 
+  const currentLLMModel = useQuery({
+    queryKey: ["current-llm-model"],
+    queryFn: () => localLlmCommands.getCurrentModel(),
+  });
+
+  useEffect(() => {
+    if (currentLLMModel.data && !customLLMEnabled.data) {
+      setSelectedLLMModel(currentLLMModel.data);
+    }
+  }, [currentLLMModel.data, customLLMEnabled.data]);
+
+  //call backend for the current selected STT model and sets it 
+  const currentSTTModel = useQuery({
+    queryKey: ["current-stt-model"],
+    queryFn: () => localSttCommands.getCurrentModel(),
+  });
+
+  useEffect(() => {
+    if (currentSTTModel.data) {
+      setSelectedSTTModel(currentSTTModel.data);
+    }
+  }, [currentSTTModel.data]);
+
+  //call backend for the download status of the STT models and sets it 
+  const sttModelDownloadStatus = useQuery({
+    queryKey: ["stt-model-download-status"],
+    queryFn: async () => {
+      const statusChecks = await Promise.all([
+        localSttCommands.isModelDownloaded("QuantizedTiny"),
+        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
+        localSttCommands.isModelDownloaded("QuantizedBase"),
+        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
+        localSttCommands.isModelDownloaded("QuantizedSmall"),
+        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
+      ]);
+      return {
+        "QuantizedTiny": statusChecks[0],
+        "QuantizedTinyEn": statusChecks[1],
+        "QuantizedBase": statusChecks[2],
+        "QuantizedBaseEn": statusChecks[3],
+        "QuantizedSmall": statusChecks[4],
+        "QuantizedSmallEn": statusChecks[5],
+        "QuantizedLargeTurbo": statusChecks[6],
+      } as Record<string, boolean>;
+    },
+    refetchInterval: 3000,
+  });
+
+  useEffect(() => {
+    if (sttModelDownloadStatus.data) {
+      setSttModels(prev =>
+        prev.map(model => ({
+          ...model,
+          downloaded: sttModelDownloadStatus.data[model.key] || false,
+        }))
+      );
+    }
+  }, [sttModelDownloadStatus.data]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -389,6 +486,7 @@ export default function LocalAI() {
                 onClick={() => {
                   if (model.downloaded) {
                     setSelectedSTTModel(model.key);
+                    localSttCommands.setCurrentModel(model.key as any);
                   }
                 }}
               >
@@ -526,6 +624,7 @@ export default function LocalAI() {
                 onClick={() => {
                   if (model.available && model.downloaded) {
                     setSelectedLLMModel(model.key);
+                    localLlmCommands.setCurrentModel(model.key as SupportedModel);
                     setCustomLLMEnabledMutation.mutate(false);
                   }
                 }}

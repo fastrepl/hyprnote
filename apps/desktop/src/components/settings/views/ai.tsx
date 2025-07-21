@@ -390,7 +390,7 @@ export default function LocalAI() {
     return apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1"));
   };
 
-  //call backend for the current selected LLM model and sets it 
+  // call backend for the current selected LLM model and sets it
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
@@ -402,7 +402,7 @@ export default function LocalAI() {
     }
   }, [currentLLMModel.data, customLLMEnabled.data]);
 
-  //call backend for the current selected STT model and sets it 
+  // call backend for the current selected STT model and sets it
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -414,7 +414,7 @@ export default function LocalAI() {
     }
   }, [currentSTTModel.data]);
 
-  //call backend for the download status of the STT models and sets it 
+  // call backend for the download status of the STT models and sets it
   const sttModelDownloadStatus = useQuery({
     queryKey: ["stt-model-download-status"],
     queryFn: async () => {

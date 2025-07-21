@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { memo, useCallback } from "react";
+import { Badge } from "@hypr/ui/components/ui/badge";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
@@ -20,9 +21,14 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
       className="flex-1 flex flex-col items-center justify-center h-full p-4 text-center"
       onClick={handleContainerClick}
     >
-      <h3 className="text-lg font-medium mb-4">
-        <Trans>How can I help you today?</Trans>
-      </h3>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-lg font-medium">
+          <Trans>Chat with your meeting notes</Trans>
+        </h3>
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 border-blue-200">
+          Beta
+        </Badge>
+      </div>
       <div className="flex flex-wrap gap-2 justify-center mb-4 max-w-[280px]">
         <button
           onClick={handleButtonClick("Summarize this meeting")}

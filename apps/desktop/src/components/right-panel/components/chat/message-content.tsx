@@ -4,9 +4,11 @@ import { MarkdownCard } from "./markdown-card";
 interface MessageContentProps {
   message: Message;
   sessionTitle?: string;
+  hasEnhancedNote?: boolean;
+  onApplyMarkdown?: (markdownContent: string) => void;
 }
 
-export function MessageContent({ message, sessionTitle }: MessageContentProps) {
+export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
   // If no parts are parsed, show regular content
   if (!message.parts || message.parts.length === 0) {
     return (
@@ -29,6 +31,8 @@ export function MessageContent({ message, sessionTitle }: MessageContentProps) {
               content={part.content} 
               isComplete={part.isComplete || false}
               sessionTitle={sessionTitle}
+              hasEnhancedNote={hasEnhancedNote}
+              onApplyMarkdown={onApplyMarkdown}
             />
           )}
         </div>

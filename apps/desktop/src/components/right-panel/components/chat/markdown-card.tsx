@@ -1,18 +1,36 @@
-import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { useEffect, useState } from "react";
 import Renderer from "@hypr/tiptap/renderer";
-import { FileTextIcon, PlayIcon } from "lucide-react";
+import { FileTextIcon, PlayIcon, CopyIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 
 interface MarkdownCardProps {
   content: string;
   isComplete: boolean;
   sessionTitle?: string;
+  onApplyMarkdown?: (markdownContent: string) => void;
+  hasEnhancedNote?: boolean;
 }
 
-export function MarkdownCard({ content, isComplete, sessionTitle }: MarkdownCardProps) {
+export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false }: MarkdownCardProps) {
   const [htmlContent, setHtmlContent] = useState<string>("");
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleApplyClick = () => {
+    if (onApplyMarkdown) {
+      onApplyMarkdown(content);
+    }
+  };
+
+  const handleCopyClick = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+    }
+  };
 
   useEffect(() => {
     const convertMarkdown = async () => {
@@ -48,6 +66,19 @@ export function MarkdownCard({ content, isComplete, sessionTitle }: MarkdownCard
           font-size: 0.875rem !important;
           line-height: 2 !important;
           padding: 0 !important;
+          /* Enable text selection */
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+        }
+        
+        .markdown-card-container .tiptap-normal * {
+          /* Ensure all children are selectable */
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
         }
         
         .markdown-card-container .tiptap-normal h1 {
@@ -72,29 +103,53 @@ export function MarkdownCard({ content, isComplete, sessionTitle }: MarkdownCard
         .markdown-card-container .tiptap-normal li {
           margin-bottom: 3px !important;
         }
+        
+        /* Make selection highlight visible */
+        .markdown-card-container .tiptap-normal ::selection {
+          background-color: #3b82f6 !important;
+          color: white !important;
+        }
+        
+        .markdown-card-container .tiptap-normal ::-moz-selection {
+          background-color: #3b82f6 !important;
+          color: white !important;
+        }
       `}</style>
       
       {/* Flat card with no shadow */}
       <div className="mt-4 mb-4 border border-neutral-200 rounded-lg bg-white overflow-hidden">
-        {/* Grey header section */}
-        <div className="bg-neutral-50 px-4 py-2 border-b border-neutral-200 flex items-center justify-between">
+        {/* Grey header section - Made thinner with py-1 */}
+        <div className="bg-neutral-50 px-4 py-1 border-b border-neutral-200 flex items-center justify-between">
           <div className="text-sm text-neutral-600 flex items-center gap-2">
             <FileTextIcon className="h-4 w-4" />
             {sessionTitle || "Hyprnote Suggestion"}
           </div>
           
-          <Button
-            variant="ghost"
-            className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-          >
-            <PlayIcon className="size-3" />
-            Apply
-          </Button>
+          {/* Conditional button based on hasEnhancedNote */}
+          {hasEnhancedNote ? (
+            <Button
+              variant="ghost"
+              className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+              onClick={handleApplyClick}
+            >
+              <PlayIcon className="size-3" />
+              Apply
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+              onClick={handleCopyClick}
+            >
+              <CopyIcon className="size-3" />
+              {isCopied ? "Copied" : "Copy"}
+            </Button>
+          )}
         </div>
         
-        {/* Content section */}
+        {/* Content section - Add selectable class */}
         <div className="p-4">
-          <div className="markdown-card-container">
+          <div className="markdown-card-container select-text">
             <Renderer initialContent={htmlContent} />
           </div>
         </div>

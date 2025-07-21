@@ -6,9 +6,11 @@ import { MessageContent } from "./message-content";
 interface ChatMessageProps {
   message: Message;
   sessionTitle?: string;
+  hasEnhancedNote?: boolean;
+  onApplyMarkdown?: (markdownContent: string) => void;
 }
 
-export function ChatMessage({ message, sessionTitle }: ChatMessageProps) {
+export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: ChatMessageProps) {
   return (
     <div className="w-full mb-4">
       <div
@@ -19,7 +21,12 @@ export function ChatMessage({ message, sessionTitle }: ChatMessageProps) {
       >
         {message.isUser ? <Trans>User:</Trans> : <Trans>Assistant:</Trans>}
       </div>
-      <MessageContent message={message} sessionTitle={sessionTitle} />
+      <MessageContent 
+        message={message} 
+        sessionTitle={sessionTitle} 
+        hasEnhancedNote={hasEnhancedNote}
+        onApplyMarkdown={onApplyMarkdown} 
+      />
     </div>
   );
 }

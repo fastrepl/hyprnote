@@ -46,7 +46,7 @@ async function generateTitleDirect(enhancedContent: string, targetSessionId: str
   ]);
 
   const model = provider.languageModel("defaultModel");
-  const abortSignal = AbortSignal.timeout(30_000);
+  const abortSignal = AbortSignal.timeout(60_000);
 
   const { text } = await generateText({
     abortSignal,
@@ -333,7 +333,7 @@ export function useEnhanceMutation({
       );
 
       const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
       setEnhanceController(abortController);
 
       const provider = await modelProvider();

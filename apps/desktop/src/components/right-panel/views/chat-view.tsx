@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-import { useRightPanel } from "@/contexts";
+import { useRightPanel, useHypr } from "@/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import {
   ChatHistoryView,
@@ -14,7 +14,10 @@ import {
 } from "../components/chat";
 import { modelProvider, streamText } from "@hypr/utils/ai";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { MessagePart } from "../components/chat/types";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { useSessions } from "@hypr/utils/contexts";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface ActiveEntityInfo {
@@ -27,7 +30,7 @@ export type BadgeType = "note" | "human" | "organization";
 export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
-  const queryClient = useQueryClient();
+  const { userId } = useHypr();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -38,6 +41,9 @@ export function ChatView() {
   const [hasChatStarted, setHasChatStarted] = useState(false);
 
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
+
+  // Add generation tracking state
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
@@ -64,6 +70,12 @@ export function ChatView() {
     },
   });
 
+
+  useEffect(() => {
+    console.log("hasChatStarted changed to : ", hasChatStarted);
+    console.log("activeEntity changed to : ", activeEntity);
+  }, [hasChatStarted, activeEntity]);
+  
   useEffect(() => {
     if (!hasChatStarted) {
       if (noteMatch) {
@@ -106,154 +118,50 @@ export function ChatView() {
     setInputValue(e.target.value);
   };
 
-  const formatTranscript = (words: Array<{
-    text: string;
-    speaker?: { type: string; value: { index?: number; id?: string; label?: string } } | null;
-    start_ms?: number | null;
-    end_ms?: number | null;
-    confidence?: number | null;
-  }>) => {
-    if (!words.length) return null;
+  const sessions = useSessions((state) => state.sessions);
 
-    const speakers = new Map<string, string[]>();
-    let currentSpeaker = "Unknown";
-    let currentChunk: string[] = [];
-    
-    words.forEach((word, index) => {
-      let speakerLabel = "Unknown";
-      if (word.speaker?.type === "assigned" && word.speaker.value.label) {
-        speakerLabel = word.speaker.value.label;
-      } else if (word.speaker?.type === "unassigned" && word.speaker.value.index !== undefined) {
-        speakerLabel = `Speaker ${word.speaker.value.index + 1}`;
-      }
+  const handleApplyMarkdown = async (markdownContent: string) => {
+    if (!sessionId) {
+      console.error("No session ID available");
+      return;
+    }
 
-      if (speakerLabel !== currentSpeaker) {
-        if (currentChunk.length > 0) {
-          const existing = speakers.get(currentSpeaker) || [];
-          speakers.set(currentSpeaker, [...existing, currentChunk.join(' ')]);
-          currentChunk = [];
-        }
-        currentSpeaker = speakerLabel;
-      }
+    const sessionStore = sessions[sessionId];
+    if (!sessionStore) {
+      console.error("Session not found in store");
+      return;
+    }
 
-      currentChunk.push(word.text);
-
-      if (index === words.length - 1 && currentChunk.length > 0) {
-        const existing = speakers.get(currentSpeaker) || [];
-        speakers.set(currentSpeaker, [...existing, currentChunk.join(' ')]);
-      }
-    });
-
-    const transcriptLines: string[] = [];
-    speakers.forEach((chunks, speaker) => {
-      chunks.forEach(chunk => {
-        transcriptLines.push(`${speaker}: ${chunk}`);
-      });
-    });
-
-    return transcriptLines.join('\n');
-  };
-
-  const prepareNoteContext = async () => {
-    // Refetch session data to get latest content
-    if (sessionId) {
-      await sessionData.refetch(); // Option 1: Use refetch method
+    try {
+      // Convert markdown to HTML using the same function as the card
+      const html = await miscCommands.opinionatedMdToHtml(markdownContent);
       
-      // Alternative Option 2: Invalidate and refetch
-      // await queryClient.invalidateQueries({ 
-      //   queryKey: ["session", "chat-context", sessionId] 
-      // });
+      // Update the enhanced note content
+      sessionStore.getState().updateEnhancedNote(html);
+      
+      console.log("Applied markdown content to enhanced note");
+    } catch (error) {
+      console.error("Failed to apply markdown content:", error);
     }
-
-    if (!activeEntity || activeEntity.type !== "note" || !sessionData.data) {
-      return null;
-    }
-
-    const stripHtml = (html: string) => {
-      return html
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .trim();
-    };
-
-    const parts: string[] = [];
-    
-    if (sessionData.data.title) {
-      parts.push(`Title: ${sessionData.data.title}`);
-    }
-
-    const noteContent = sessionData.data.enhancedContent || sessionData.data.rawContent;
-    if (noteContent) {
-      const cleanContent = stripHtml(noteContent);
-      if (cleanContent) {
-        parts.push(`Enhanced Meeting Summary:\n${cleanContent}`);
-      }
-    }
-
-    /*
-    if (sessionData.data.preMeetingContent) {
-      const cleanPreMeeting = stripHtml(sessionData.data.preMeetingContent);
-      if (cleanPreMeeting) {
-        parts.push(`Pre-meeting Notes:\n${cleanPreMeeting}`);
-      }
-    }
-    */
-
-    if (sessionData.data.words && sessionData.data.words.length > 0) {
-      const transcript = formatTranscript(sessionData.data.words);
-      if (transcript) {
-        parts.push(`Full Meeting Transcript:\n${transcript}`);
-      }
-    }
-
-    return parts.length > 0 ? parts.join('\n\n') : null;
   };
+
 
   const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
-    const noteContext = await prepareNoteContext();
-    console.log("this is the note context", noteContext);
     
-    let systemContent = `
-    You are a helpful AI meeting assistant in Hyprnote, an intelligent meeting platform that transcribes 
-    and analyzes meetings. Your purpose is to help users understand their meeting content better.
+   const refetchResult = await sessionData.refetch();
+   let freshSessionData = refetchResult.data;
 
-    You have access to the meeting transcript and an AI-generated summary of the meeting.
+    const systemContent = await templateCommands.render("ai_chat.system", {
+      session: freshSessionData,
+      // Pass raw words for timeline filter to handle
+      words: JSON.stringify(freshSessionData?.words || []),
+      title: freshSessionData?.title,
+      enhancedContent: freshSessionData?.enhancedContent,
+      rawContent: freshSessionData?.rawContent,
+      preMeetingContent: freshSessionData?.preMeetingContent,
+    });
 
-    Always keep your responses concise, professional, and directly relevant to the user's questions.
-
-    YOUR PRIMARY SOURCE OF TRUTH IS THE MEETING TRANSCRIPT. Try to generate responses primarily from the transcript, and then the summary or other information (unless the user asks for something specific).
-
-    ## Response Format Guidelines 
-    Your response would be highily likely to be paragraphs with combined information about your thought and whatever note (in markdown format) you generated. 
-
-    For example, 
-
-    'Sure, here is the meeting note that I regenerated with the focus on clariaty and preserving the casual tone.
-
-    \`\`\`
-    # Meeting Note
-    - This is the meeting note that I regenerated with the focus on clariaty and preserving the casual tone.
-
-    ## Key Takeaways
-    - This is the key takeaways that I generated from the meeting transcript.
-
-    ## Action Items
-    - This is the action items that I generated from the meeting transcript.
-
-    \`\`\`
-
-    "
-    
-    IT IS PARAMOUNT THAT WHEN YOU GENERATE RESPONSES LIKE THIS, YOU KEEP THE NOTE INSIDE THE \`\`\`...\`\`\` BLOCKS.
-    
-    `;
-    
-    if (noteContext) {
-      systemContent += `\n\nContext: You are helping the user with their meeting notes. Here is the current context:\n\n${noteContext}`;
-    }
+    console.log("this is the system content", systemContent);
 
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
@@ -281,13 +189,22 @@ export function ChatView() {
   };
 
   const handleSubmit = async () => {
-    if (!inputValue.trim()) {
+    
+    if (!inputValue.trim() || isGenerating) { // Prevent submit if generating
       return;
     }
+
+    await analyticsCommands.event({
+      event: "chat_message_sent",
+      distinct_id: userId,
+    });
 
     if (!hasChatStarted && activeEntity) {
       setHasChatStarted(true);
     }
+
+    // Set generating to true
+    setIsGenerating(true);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -311,7 +228,7 @@ export function ChatView() {
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
         id: aiMessageId,
-        content: "",
+        content: "Generating...",
         isUser: false,
         timestamp: new Date(),
       };
@@ -343,8 +260,15 @@ export function ChatView() {
         );
       }
 
+      // Generation complete - enable submit
+      setIsGenerating(false);
+
     } catch (error) {
       console.error("AI error:", error);
+    
+      // Error occurred - enable submit
+      setIsGenerating(false);
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Sorry, I encountered an error. Please try again.",
@@ -363,6 +287,23 @@ export function ChatView() {
   };
 
   const handleQuickAction = async (prompt: string) => {
+
+    if (isGenerating) { // Prevent quick action if generating
+      return;
+    }
+
+    await analyticsCommands.event({
+      event: "chat_quickaction_sent",
+      distinct_id: userId,
+    });
+
+    if (!hasChatStarted && activeEntity) {
+      setHasChatStarted(true);
+    }
+
+    // Set generating to true
+    setIsGenerating(true);
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: prompt,
@@ -383,7 +324,7 @@ export function ChatView() {
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
         id: aiMessageId,
-        content: "",
+        content: "Generating...",
         isUser: false,
         timestamp: new Date(),
       };
@@ -415,6 +356,9 @@ export function ChatView() {
         );
       }
 
+      // Generation complete
+      setIsGenerating(false);
+
     } catch (error) {
       console.error("AI error:", error);
       const aiMessage: Message = {
@@ -424,6 +368,8 @@ export function ChatView() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+      // Error occurred  
+      setIsGenerating(false);
     }
 
     if (chatInputRef.current) {
@@ -519,7 +465,9 @@ export function ChatView() {
         )
         : <ChatMessagesView 
             messages={messages} 
-            sessionTitle={sessionData.data?.title || "Untitled"} // Add this prop
+            sessionTitle={sessionData.data?.title || "Untitled"}
+            hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
+            onApplyMarkdown={handleApplyMarkdown}
           />}
 
       <ChatInput
@@ -531,6 +479,7 @@ export function ChatView() {
         entityId={activeEntity?.id}
         entityType={activeEntity?.type}
         onNoteBadgeClick={handleNoteBadgeClick}
+        isGenerating={isGenerating}
       />
     </div>
   );

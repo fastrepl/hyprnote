@@ -1,5 +1,5 @@
-import { Message } from "./types";
 import { MarkdownCard } from "./markdown-card";
+import { Message } from "./types";
 
 interface MessageContentProps {
   message: Message;
@@ -22,19 +22,21 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
     <div className="space-y-1">
       {message.parts.map((part, index) => (
         <div key={index}>
-          {part.type === 'text' ? (
-            <div className="whitespace-pre-wrap text-sm text-neutral-800">
-              {part.content}
-            </div>
-          ) : (
-            <MarkdownCard 
-              content={part.content} 
-              isComplete={part.isComplete || false}
-              sessionTitle={sessionTitle}
-              hasEnhancedNote={hasEnhancedNote}
-              onApplyMarkdown={onApplyMarkdown}
-            />
-          )}
+          {part.type === "text"
+            ? (
+              <div className="whitespace-pre-wrap text-sm text-neutral-800">
+                {part.content}
+              </div>
+            )
+            : (
+              <MarkdownCard
+                content={part.content}
+                isComplete={part.isComplete || false}
+                sessionTitle={sessionTitle}
+                hasEnhancedNote={hasEnhancedNote}
+                onApplyMarkdown={onApplyMarkdown}
+              />
+            )}
         </div>
       ))}
     </div>

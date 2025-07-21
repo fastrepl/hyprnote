@@ -1,7 +1,7 @@
 import { cn } from "@hypr/ui/lib/utils";
 import { Trans } from "@lingui/react/macro";
-import { Message } from "./types";
 import { MessageContent } from "./message-content";
+import { Message } from "./types";
 
 interface ChatMessageProps {
   message: Message;
@@ -21,11 +21,11 @@ export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMar
       >
         {message.isUser ? <Trans>User:</Trans> : <Trans>Assistant:</Trans>}
       </div>
-      <MessageContent 
-        message={message} 
-        sessionTitle={sessionTitle} 
+      <MessageContent
+        message={message}
+        sessionTitle={sessionTitle}
         hasEnhancedNote={hasEnhancedNote}
-        onApplyMarkdown={onApplyMarkdown} 
+        onApplyMarkdown={onApplyMarkdown}
       />
     </div>
   );

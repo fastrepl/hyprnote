@@ -1,8 +1,8 @@
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { useEffect, useState } from "react";
 import Renderer from "@hypr/tiptap/renderer";
-import { FileTextIcon, PlayIcon, CopyIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
+import { CopyIcon, FileTextIcon, PlayIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface MarkdownCardProps {
   content: string;
@@ -12,7 +12,9 @@ interface MarkdownCardProps {
   hasEnhancedNote?: boolean;
 }
 
-export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false }: MarkdownCardProps) {
+export function MarkdownCard(
+  { content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false }: MarkdownCardProps,
+) {
   const [htmlContent, setHtmlContent] = useState<string>("");
   const [isCopied, setIsCopied] = useState(false);
 
@@ -36,16 +38,16 @@ export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdow
     const convertMarkdown = async () => {
       try {
         let html = await miscCommands.opinionatedMdToHtml(content);
-        
+
         // Clean up spacing
         html = html
-          .replace(/<p>\s*<\/p>/g, '')
-          .replace(/<p>\u00A0<\/p>/g, '')
-          .replace(/<p>&nbsp;<\/p>/g, '')
-          .replace(/<p>\s+<\/p>/g, '')
-          .replace(/<p> <\/p>/g, '')
+          .replace(/<p>\s*<\/p>/g, "")
+          .replace(/<p>\u00A0<\/p>/g, "")
+          .replace(/<p>&nbsp;<\/p>/g, "")
+          .replace(/<p>\s+<\/p>/g, "")
+          .replace(/<p> <\/p>/g, "")
           .trim();
-        
+
         setHtmlContent(html);
       } catch (error) {
         console.error("Failed to convert markdown:", error);
@@ -60,7 +62,8 @@ export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdow
 
   return (
     <>
-      <style>{`
+      <style>
+        {`
         /* Override tiptap spacing for compact cards */
         .markdown-card-container .tiptap-normal {
           font-size: 0.875rem !important;
@@ -114,8 +117,9 @@ export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdow
           background-color: #3b82f6 !important;
           color: white !important;
         }
-      `}</style>
-      
+      `}
+      </style>
+
       {/* Flat card with no shadow */}
       <div className="mt-4 mb-4 border border-neutral-200 rounded-lg bg-white overflow-hidden">
         {/* Grey header section - Made thinner with py-1 */}
@@ -124,29 +128,31 @@ export function MarkdownCard({ content, isComplete, sessionTitle, onApplyMarkdow
             <FileTextIcon className="h-4 w-4" />
             {sessionTitle || "Hyprnote Suggestion"}
           </div>
-          
+
           {/* Conditional button based on hasEnhancedNote */}
-          {hasEnhancedNote ? (
-            <Button
-              variant="ghost"
-              className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-              onClick={handleApplyClick}
-            >
-              <PlayIcon className="size-3" />
-              Apply
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-              onClick={handleCopyClick}
-            >
-              <CopyIcon className="size-3" />
-              {isCopied ? "Copied" : "Copy"}
-            </Button>
-          )}
+          {hasEnhancedNote
+            ? (
+              <Button
+                variant="ghost"
+                className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+                onClick={handleApplyClick}
+              >
+                <PlayIcon className="size-3" />
+                Apply
+              </Button>
+            )
+            : (
+              <Button
+                variant="ghost"
+                className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+                onClick={handleCopyClick}
+              >
+                <CopyIcon className="size-3" />
+                {isCopied ? "Copied" : "Copy"}
+              </Button>
+            )}
         </div>
-        
+
         {/* Content section - Add selectable class */}
         <div className="p-4">
           <div className="markdown-card-container select-text">

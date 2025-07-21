@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
-import { useRightPanel, useHypr } from "@/contexts";
+import { useHypr, useRightPanel } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as templateCommands } from "@hypr/plugin-template";
+import { modelProvider, streamText } from "@hypr/utils/ai";
+import { useSessions } from "@hypr/utils/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import {
   ChatHistoryView,
@@ -12,12 +18,6 @@ import {
   FloatingActionButtons,
   Message,
 } from "../components/chat";
-import { modelProvider, streamText } from "@hypr/utils/ai";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as templateCommands } from "@hypr/plugin-template";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { useSessions } from "@hypr/utils/contexts";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface ActiveEntityInfo {
@@ -55,10 +55,14 @@ export function ChatView() {
     enabled: !!sessionId,
     queryKey: ["session", "chat-context", sessionId],
     queryFn: async () => {
-      if (!sessionId) return null;
-      
+      if (!sessionId) {
+        return null;
+      }
+
       const session = await dbCommands.getSession({ id: sessionId });
-      if (!session) return null;
+      if (!session) {
+        return null;
+      }
 
       return {
         title: session.title || "",
@@ -70,12 +74,11 @@ export function ChatView() {
     },
   });
 
-
   useEffect(() => {
     console.log("hasChatStarted changed to : ", hasChatStarted);
     console.log("activeEntity changed to : ", activeEntity);
   }, [hasChatStarted, activeEntity]);
-  
+
   useEffect(() => {
     if (!hasChatStarted) {
       if (noteMatch) {
@@ -135,21 +138,19 @@ export function ChatView() {
     try {
       // Convert markdown to HTML using the same function as the card
       const html = await miscCommands.opinionatedMdToHtml(markdownContent);
-      
+
       // Update the enhanced note content
       sessionStore.getState().updateEnhancedNote(html);
-      
+
       console.log("Applied markdown content to enhanced note");
     } catch (error) {
       console.error("Failed to apply markdown content:", error);
     }
   };
 
-
   const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
-    
-   const refetchResult = await sessionData.refetch();
-   let freshSessionData = refetchResult.data;
+    const refetchResult = await sessionData.refetch();
+    let freshSessionData = refetchResult.data;
 
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,
@@ -167,7 +168,7 @@ export function ChatView() {
       role: "system" | "user" | "assistant";
       content: string;
     }> = [
-      { role: "system" as const, content: systemContent }
+      { role: "system" as const, content: systemContent },
     ];
 
     messages.forEach(message => {
@@ -189,7 +190,6 @@ export function ChatView() {
   };
 
   const handleSubmit = async () => {
-    
     if (!inputValue.trim() || isGenerating) { // Prevent submit if generating
       return;
     }
@@ -240,21 +240,21 @@ export function ChatView() {
       });
 
       let aiResponse = "";
-      
+
       for await (const chunk of textStream) {
         aiResponse += chunk;
-        
+
         // Parse the content for markdown blocks
         const parts = parseMarkdownBlocks(aiResponse);
-        
-        setMessages((prev) => 
-          prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { 
-                  ...msg, 
-                  content: aiResponse,
-                  parts: parts // Add parsed parts
-                }
+
+        setMessages((prev) =>
+          prev.map(msg =>
+            msg.id === aiMessageId
+              ? {
+                ...msg,
+                content: aiResponse,
+                parts: parts, // Add parsed parts
+              }
               : msg
           )
         );
@@ -262,13 +262,12 @@ export function ChatView() {
 
       // Generation complete - enable submit
       setIsGenerating(false);
-
     } catch (error) {
       console.error("AI error:", error);
-    
+
       // Error occurred - enable submit
       setIsGenerating(false);
-      
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Sorry, I encountered an error. Please try again.",
@@ -287,7 +286,6 @@ export function ChatView() {
   };
 
   const handleQuickAction = async (prompt: string) => {
-
     if (isGenerating) { // Prevent quick action if generating
       return;
     }
@@ -336,21 +334,21 @@ export function ChatView() {
       });
 
       let aiResponse = "";
-      
+
       for await (const chunk of textStream) {
         aiResponse += chunk;
-        
+
         // Parse the content for markdown blocks
         const parts = parseMarkdownBlocks(aiResponse);
-        
-        setMessages((prev) => 
-          prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { 
-                  ...msg, 
-                  content: aiResponse,
-                  parts: parts // Add parsed parts
-                }
+
+        setMessages((prev) =>
+          prev.map(msg =>
+            msg.id === aiMessageId
+              ? {
+                ...msg,
+                content: aiResponse,
+                parts: parts, // Add parsed parts
+              }
               : msg
           )
         );
@@ -358,7 +356,6 @@ export function ChatView() {
 
       // Generation complete
       setIsGenerating(false);
-
     } catch (error) {
       console.error("AI error:", error);
       const aiMessage: Message = {
@@ -368,7 +365,7 @@ export function ChatView() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-      // Error occurred  
+      // Error occurred
       setIsGenerating(false);
     }
 
@@ -463,12 +460,14 @@ export function ChatView() {
             onFocusInput={handleFocusInput}
           />
         )
-        : <ChatMessagesView 
-            messages={messages} 
+        : (
+          <ChatMessagesView
+            messages={messages}
             sessionTitle={sessionData.data?.title || "Untitled"}
             hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
             onApplyMarkdown={handleApplyMarkdown}
-          />}
+          />
+        )}
 
       <ChatInput
         inputValue={inputValue}

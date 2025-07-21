@@ -1,6 +1,6 @@
+import { Badge } from "@hypr/ui/components/ui/badge";
 import { Trans } from "@lingui/react/macro";
 import { memo, useCallback } from "react";
-import { Badge } from "@hypr/ui/components/ui/badge";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;

@@ -7,7 +7,7 @@ export const parseMarkdownBlocks = (text: string): MessagePart[] => {
   let markdownStart = -1;
 
   for (let i = 0; i < text.length - 2; i++) {
-    if (text.slice(i, i + 3) === '```') {
+    if (text.slice(i, i + 3) === "```") {
       if (!inMarkdownBlock) {
         // Starting a markdown block
         if (i > currentIndex) {
@@ -15,8 +15,8 @@ export const parseMarkdownBlocks = (text: string): MessagePart[] => {
           const textContent = text.slice(currentIndex, i).trim();
           if (textContent) {
             parts.push({
-              type: 'text',
-              content: textContent
+              type: "text",
+              content: textContent,
             });
           }
         }
@@ -27,9 +27,9 @@ export const parseMarkdownBlocks = (text: string): MessagePart[] => {
         // Ending a markdown block
         const markdownContent = text.slice(markdownStart, i);
         parts.push({
-          type: 'markdown',
+          type: "markdown",
           content: markdownContent,
-          isComplete: true
+          isComplete: true,
         });
         inMarkdownBlock = false;
         currentIndex = i + 3;
@@ -43,17 +43,17 @@ export const parseMarkdownBlocks = (text: string): MessagePart[] => {
     // Incomplete markdown block
     const markdownContent = text.slice(markdownStart);
     parts.push({
-      type: 'markdown',
+      type: "markdown",
       content: markdownContent,
-      isComplete: false
+      isComplete: false,
     });
   } else if (currentIndex < text.length) {
     // Remaining text
     const remainingText = text.slice(currentIndex).trim();
     if (remainingText) {
       parts.push({
-        type: 'text',
-        content: remainingText
+        type: "text",
+        content: remainingText,
       });
     }
   }

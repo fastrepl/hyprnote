@@ -368,7 +368,7 @@ msgstr ""
 msgid "Ask questions about past meetings"
 msgstr ""
 
-#: src/components/right-panel/components/chat/chat-message.tsx:18
+#: src/components/right-panel/components/chat/chat-message.tsx:22
 msgid "Assistant:"
 msgstr ""
 
@@ -420,6 +420,10 @@ msgstr ""
 
 #: src/components/settings/views/profile.tsx:143
 msgid "CEO"
+msgstr ""
+
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:26
+msgid "Chat with your meeting notes"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:185
@@ -501,7 +505,7 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:49
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:55
 msgid "Create agenda"
 msgstr ""
 
@@ -628,7 +632,7 @@ msgstr ""
 msgid "Extensions"
 msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:49
 msgid "Extract action items"
 msgstr ""
 
@@ -706,8 +710,8 @@ msgid "Hmm... this is off..."
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
-msgid "How can I help you today?"
-msgstr ""
+#~ msgid "How can I help you today?"
+#~ msgstr ""
 
 #: src/components/individualization-modal/how-heard-view.tsx:38
 msgid "How did you hear about Hyprnote?"
@@ -743,7 +747,7 @@ msgstr ""
 msgid "Join meeting"
 msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:37
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
 msgid "Key decisions"
 msgstr ""
 
@@ -1113,7 +1117,7 @@ msgstr ""
 msgid "Submit Feedback"
 msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:31
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:37
 msgid "Summarize meeting"
 msgstr ""
 
@@ -1183,7 +1187,7 @@ msgstr ""
 msgid "Toggle left sidebar"
 msgstr ""
 
-#: src/components/toolbar/buttons/transcript-panel-button.tsx:34
+#: src/components/toolbar/buttons/transcript-panel-button.tsx:36
 msgid "Toggle widget panel"
 msgstr ""
 
@@ -1235,7 +1239,7 @@ msgstr ""
 msgid "User"
 msgstr ""
 
-#: src/components/right-panel/components/chat/chat-message.tsx:18
+#: src/components/right-panel/components/chat/chat-message.tsx:22
 msgid "User:"
 msgstr ""
 

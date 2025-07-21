@@ -65,9 +65,7 @@ impl From<PredefinedTemplate> for Template {
             PredefinedTemplate::SuggestTagsUser => {
                 Template::Static(PredefinedTemplate::SuggestTagsUser)
             }
-            PredefinedTemplate::AiChatSystem => {
-                Template::Static(PredefinedTemplate::AiChatSystem)
-            }
+            PredefinedTemplate::AiChatSystem => Template::Static(PredefinedTemplate::AiChatSystem),
         }
     }
 }

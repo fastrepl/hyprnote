@@ -368,7 +368,7 @@ msgstr "Are you sure you want to delete this note?"
 msgid "Ask questions about past meetings"
 msgstr "Ask questions about past meetings"
 
-#: src/components/right-panel/components/chat/chat-message.tsx:18
+#: src/components/right-panel/components/chat/chat-message.tsx:22
 msgid "Assistant:"
 msgstr "Assistant:"
 
@@ -421,6 +421,10 @@ msgstr "Cancel"
 #: src/components/settings/views/profile.tsx:143
 msgid "CEO"
 msgstr "CEO"
+
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:26
+msgid "Chat with your meeting notes"
+msgstr "Chat with your meeting notes"
 
 #: src/components/settings/views/general.tsx:185
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
@@ -501,7 +505,7 @@ msgstr "Control how creative the AI enhancement should be"
 msgid "Create"
 msgstr "Create"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:49
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:55
 msgid "Create agenda"
 msgstr "Create agenda"
 
@@ -628,7 +632,7 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 msgid "Extensions"
 msgstr "Extensions"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:49
 msgid "Extract action items"
 msgstr "Extract action items"
 
@@ -706,8 +710,8 @@ msgid "Hmm... this is off..."
 msgstr "Hmm... this is off..."
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:24
-msgid "How can I help you today?"
-msgstr "How can I help you today?"
+#~ msgid "How can I help you today?"
+#~ msgstr "How can I help you today?"
 
 #: src/components/individualization-modal/how-heard-view.tsx:38
 msgid "How did you hear about Hyprnote?"
@@ -743,7 +747,7 @@ msgstr "Job title"
 msgid "Join meeting"
 msgstr "Join meeting"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:37
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
 msgid "Key decisions"
 msgstr "Key decisions"
 
@@ -1113,7 +1117,7 @@ msgstr "Stop"
 msgid "Submit Feedback"
 msgstr "Submit Feedback"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:31
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:37
 msgid "Summarize meeting"
 msgstr "Summarize meeting"
 
@@ -1183,7 +1187,7 @@ msgstr "Toggle chat panel"
 msgid "Toggle left sidebar"
 msgstr "Toggle left sidebar"
 
-#: src/components/toolbar/buttons/transcript-panel-button.tsx:34
+#: src/components/toolbar/buttons/transcript-panel-button.tsx:36
 msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
@@ -1235,7 +1239,7 @@ msgstr "Upgrade"
 msgid "User"
 msgstr "User"
 
-#: src/components/right-panel/components/chat/chat-message.tsx:18
+#: src/components/right-panel/components/chat/chat-message.tsx:22
 msgid "User:"
 msgstr "User:"
 

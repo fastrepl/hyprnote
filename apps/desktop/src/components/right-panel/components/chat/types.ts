@@ -1,5 +1,5 @@
 export interface MessagePart {
-  type: 'text' | 'markdown';
+  type: "text" | "markdown";
   content: string;
   isComplete?: boolean;
 }

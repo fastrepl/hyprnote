@@ -74,10 +74,6 @@ export function ChatView() {
     },
   });
 
-  useEffect(() => {
-    console.log("hasChatStarted changed to : ", hasChatStarted);
-    console.log("activeEntity changed to : ", activeEntity);
-  }, [hasChatStarted, activeEntity]);
 
   useEffect(() => {
     if (!hasChatStarted) {
@@ -162,7 +158,6 @@ export function ChatView() {
       preMeetingContent: freshSessionData?.preMeetingContent,
     });
 
-    console.log("this is the system content", systemContent);
 
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
@@ -185,7 +180,6 @@ export function ChatView() {
       });
     }
 
-    console.log("this is the conversation history", conversationHistory);
     return conversationHistory;
   };
 
@@ -221,9 +215,6 @@ export function ChatView() {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      console.log("this is the model", model);
-      console.log("this is the provider", provider);
-      console.log("this is the messages so far:", messages);
 
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
@@ -316,8 +307,6 @@ export function ChatView() {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      console.log("this is the model", model);
-      console.log("this is the provider", provider);
 
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {

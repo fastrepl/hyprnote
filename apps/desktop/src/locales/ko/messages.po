@@ -346,12 +346,12 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:757
+#: src/components/settings/views/ai.tsx:762
 msgid "API Base URL"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:197
-#: src/components/settings/views/ai.tsx:783
+#: src/components/settings/views/ai.tsx:788
 msgid "API Key"
 msgstr ""
 
@@ -472,7 +472,7 @@ msgstr ""
 #~ msgid "Connect"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:737
+#: src/components/settings/views/ai.tsx:742
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr ""
 
@@ -504,7 +504,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:869
+#: src/components/settings/views/ai.tsx:874
 msgid "Control how creative the AI enhancement should be"
 msgstr ""
 
@@ -529,7 +529,7 @@ msgstr ""
 msgid "Create your first template to get started"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:866
+#: src/components/settings/views/ai.tsx:871
 msgid "Creativity Level"
 msgstr ""
 
@@ -537,7 +537,7 @@ msgstr ""
 msgid "Current Plan"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:734
+#: src/components/settings/views/ai.tsx:739
 msgid "Custom Endpoint"
 msgstr ""
 
@@ -600,7 +600,7 @@ msgstr ""
 msgid "Enable Integration"
 msgstr "Enable Integration"
 
-#: src/components/settings/views/ai.tsx:607
+#: src/components/settings/views/ai.tsx:612
 msgid "Enhancing"
 msgstr "Enhancing"
 
@@ -612,11 +612,11 @@ msgstr ""
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:786
+#: src/components/settings/views/ai.tsx:791
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:760
+#: src/components/settings/views/ai.tsx:765
 msgid "Enter the base URL for your custom LLM endpoint"
 msgstr ""
 
@@ -779,7 +779,7 @@ msgstr ""
 msgid "Live summary of the meeting"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:820
+#: src/components/settings/views/ai.tsx:825
 msgid "Loading available models..."
 msgstr ""
 
@@ -825,7 +825,7 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:808
+#: src/components/settings/views/ai.tsx:813
 msgid "Model Name"
 msgstr ""
 
@@ -967,7 +967,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:468
+#: src/components/settings/views/ai.tsx:473
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1057,7 +1057,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:811
+#: src/components/settings/views/ai.tsx:816
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
@@ -1199,7 +1199,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:459
+#: src/components/settings/views/ai.tsx:464
 msgid "Transcribing"
 msgstr ""
 

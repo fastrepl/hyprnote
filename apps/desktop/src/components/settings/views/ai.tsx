@@ -492,7 +492,7 @@ export default function LocalAI() {
                   if (model.downloaded) {
                     setSelectedSTTModel(model.key);
                     localSttCommands.setCurrentModel(model.key as any);
-    
+
                     localSttCommands.restartServer();
                   }
                 }}
@@ -633,7 +633,7 @@ export default function LocalAI() {
                     setSelectedLLMModel(model.key);
                     localLlmCommands.setCurrentModel(model.key as SupportedModel);
                     setCustomLLMEnabledMutation.mutate(false);
-                    
+
                     localLlmCommands.restartServer();
                   }
                 }}

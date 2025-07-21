@@ -6,12 +6,15 @@ pub use local::*;
 pub use remote::*;
 pub use types::*;
 
-use futures_util::StreamExt;
-use std::{
-    fs::File,
-    fs::OpenOptions,
-    io::{BufReader, Read, Write},
-    path::Path,
+use {
+    futures_util::StreamExt,
+    reqwest::StatusCode,
+    std::{
+        fs::File,
+        fs::OpenOptions,
+        io::{BufReader, Read, Write},
+        path::Path,
+    },
 };
 
 #[derive(Debug)]
@@ -54,13 +57,13 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         std::fs::create_dir_all(parent)?;
     }
 
-    let existing_size = if output_path.as_ref().exists() {
+    let mut existing_size = if output_path.as_ref().exists() {
         file_size(&output_path)?
     } else {
         0
     };
 
-    let res = request_with_range(
+    let mut res = request_with_range(
         url.clone(),
         if existing_size > 0 {
             Some(existing_size)
@@ -69,6 +72,12 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         },
     )
     .await?;
+
+    if existing_size > 0 && res.status() != StatusCode::PARTIAL_CONTENT {
+        std::fs::File::create(output_path.as_ref())?;
+        existing_size = 0;
+        res = request_with_range(url.clone(), None).await?;
+    }
 
     let total_size = if let Some(content_length) = res.content_length() {
         if existing_size > 0 {
@@ -263,6 +272,59 @@ mod tests {
         assert_eq!(content.len(), 1016);
         assert!(content.starts_with(b"FIRST_HALF"));
         assert!(content.ends_with(b"SECOND_HALF"));
+    }
+
+    #[tokio::test]
+    async fn test_download_file_with_callback_range_validation() {
+        use tempfile::NamedTempFile;
+        use wiremock::matchers::{header, method, path};
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/test-file"))
+            .and(header("Range", "bytes=5-"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_bytes(b"FULL_CONTENT")
+                    .insert_header("Content-Length", "12"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        Mock::given(method("GET"))
+            .and(path("/test-file"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_bytes(b"FULL_CONTENT")
+                    .insert_header("Content-Length", "12"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let temp_file = NamedTempFile::new().unwrap();
+        let temp_path = temp_file.path();
+
+        std::fs::write(temp_path, b"PARTIAL").unwrap();
+        let initial_size = std::fs::metadata(temp_path).unwrap().len();
+        assert_eq!(initial_size, 7);
+
+        let url = format!("{}/test-file", mock_server.uri());
+
+        let range_response = request_with_range(&url, Some(5)).await.unwrap();
+        assert_eq!(
+            range_response.status().as_u16(),
+            200,
+            "Server should return 200 when ignoring Range header"
+        );
+
+        let result = download_file_with_callback(url.clone(), temp_path, |_| {}).await;
+        assert!(result.is_ok());
+
+        let content = std::fs::read(temp_path).unwrap();
+        assert_eq!(content, b"FULL_CONTENT");
+        assert_eq!(content.len(), 12);
     }
 
     #[tokio::test]

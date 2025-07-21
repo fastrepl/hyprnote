@@ -14,8 +14,15 @@ use {
         fs::OpenOptions,
         io::{BufReader, Read, Write},
         path::Path,
+        sync::OnceLock,
     },
 };
+
+static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn get_client() -> &'static reqwest::Client {
+    CLIENT.get_or_init(|| reqwest::Client::new())
+}
 
 #[derive(Debug)]
 pub enum DownloadProgress {
@@ -30,7 +37,7 @@ pub async fn request_with_range(
     url: impl reqwest::IntoUrl,
     start_byte: Option<u64>,
 ) -> Result<reqwest::Response, crate::Error> {
-    let client = reqwest::Client::new();
+    let client = get_client();
     let url = url.into_url()?;
 
     let mut request = client.get(url);

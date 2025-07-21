@@ -5,14 +5,36 @@
 /** user-defined commands **/
 
 export const commands = {
-  async event(payload: AnalyticsPayload): Promise<null> {
-    return await TAURI_INVOKE("plugin:analytics|event", { payload });
+  async startMeetingAutomation(): Promise<null> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|start_meeting_automation",
+    );
   },
-  async setDisabled(disabled: boolean): Promise<null> {
-    return await TAURI_INVOKE("plugin:analytics|set_disabled", { disabled });
+  async stopMeetingAutomation(): Promise<null> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|stop_meeting_automation",
+    );
   },
-  async isDisabled(): Promise<boolean> {
-    return await TAURI_INVOKE("plugin:analytics|is_disabled");
+  async getAutomationStatus(): Promise<boolean> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|get_automation_status",
+    );
+  },
+  async configureAutomation(config: AutomationConfig): Promise<null> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|configure_automation",
+      { config },
+    );
+  },
+  async getAutomationConfig(): Promise<AutomationConfig> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|get_automation_config",
+    );
+  },
+  async testMeetingDetection(): Promise<null> {
+    return await TAURI_INVOKE(
+      "plugin:meeting-automation|test_meeting_detection",
+    );
   },
 };
 
@@ -22,22 +44,26 @@ export const commands = {
 
 /** user-defined types **/
 
-export type AnalyticsPayload = Partial<{
-  [key in string]:
-    | null
-    | boolean
-    | number
-    | string
-    | JsonValue[]
-    | Partial<{ [key in string]: JsonValue }>;
-}> & { event: string; distinct_id: string };
-export type JsonValue =
-  | null
-  | boolean
-  | number
-  | string
-  | JsonValue[]
-  | Partial<{ [key in string]: JsonValue }>;
+export type AutomationConfig = {
+  enabled: boolean;
+  auto_start_on_app_detection: boolean;
+  auto_start_on_mic_activity: boolean;
+  auto_stop_on_app_exit: boolean;
+  auto_start_scheduled_meetings: boolean;
+  require_window_focus: boolean;
+  pre_meeting_notification_minutes: number;
+  post_meeting_start_window_minutes: number;
+  supported_apps: SupportedApp[];
+  notification_settings: NotificationSettings;
+};
+export type NotificationSettings = {
+  show_meeting_started: boolean;
+  show_meeting_ending: boolean;
+  show_pre_meeting_reminder: boolean;
+  show_recording_started: boolean;
+  show_recording_stopped: boolean;
+};
+export type SupportedApp = { bundle_id: string; name: string };
 
 /** tauri-specta globals **/
 

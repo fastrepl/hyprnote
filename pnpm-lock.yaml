@@ -268,6 +268,9 @@ importers:
       '@hypr/plugin-local-stt':
         specifier: workspace:^
         version: link:../../plugins/local-stt
+      '@hypr/plugin-meeting-automation':
+        specifier: workspace:^
+        version: link:../../plugins/meeting-automation
       '@hypr/plugin-membership':
         specifier: workspace:^
         version: link:../../plugins/membership
@@ -976,6 +979,8 @@ importers:
       '@tauri-apps/api':
         specifier: ^2.6.0
         version: 2.6.0
+
+  plugins/meeting-automation: {}
 
   plugins/membership:
     dependencies:

@@ -3746,6 +3746,7 @@ dependencies = [
  "tauri-plugin-local-llm",
  "tauri-plugin-local-stt",
  "tauri-plugin-machine-uid",
+ "tauri-plugin-meeting-automation",
  "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
@@ -14366,6 +14367,29 @@ dependencies = [
  "tauri-plugin",
  "tauri-specta",
  "thiserror 2.0.12",
+]
+
+[[package]]
+name = "tauri-plugin-meeting-automation"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "db-user",
+ "detect",
+ "notification2",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin-db",
+ "tauri-plugin-listener",
+ "tauri-plugin-notification",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

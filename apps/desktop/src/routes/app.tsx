@@ -1,6 +1,8 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { sonnerToast } from "@hypr/ui/components/ui/toast";
 import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
@@ -60,6 +62,7 @@ function Component() {
               <RestartTTT />
               <RestartSTT />
               <MainWindowStateEventSupport />
+              <MeetingAutomationEventListeners />
               <SettingsProvider>
                 <NewNoteProvider>
                   <SearchProvider>
@@ -171,6 +174,72 @@ function AudioPermissions() {
         listenerCommands.requestSystemAudioAccess();
       }
     });
+  }, []);
+
+  return null;
+}
+
+// Helper functions for runtime validation
+function isRecordingPayload(payload: unknown): payload is { app_name: string; session_id: string; timestamp: string } {
+  return (
+    typeof payload === "object"
+    && payload !== null
+    && typeof (payload as any).app_name === "string"
+    && typeof (payload as any).session_id === "string"
+    && typeof (payload as any).timestamp === "string"
+  );
+}
+
+function isNotificationPayload(payload: unknown): payload is { title: string; message: string; timestamp: string } {
+  return (
+    typeof payload === "object"
+    && payload !== null
+    && typeof (payload as any).title === "string"
+    && typeof (payload as any).message === "string"
+    && typeof (payload as any).timestamp === "string"
+  );
+}
+
+function MeetingAutomationEventListeners() {
+  useEffect(() => {
+    const unsubscribePromises = [
+      listen("recording_auto_started", (event) => {
+        if (!isRecordingPayload(event.payload)) {
+          console.error("Invalid recording_auto_started payload:", event.payload);
+          return;
+        }
+        const data = event.payload;
+        sonnerToast.success("Recording started automatically", {
+          description: `Started recording for ${data.app_name}`,
+          duration: 3000,
+        });
+      }),
+
+      listen("recording_auto_stopped", (event) => {
+        sonnerToast.info("Recording stopped automatically", {
+          description: "Meeting automation stopped the recording",
+          duration: 3000,
+        });
+      }),
+
+      listen("meeting_notification", (event) => {
+        if (!isNotificationPayload(event.payload)) {
+          console.error("Invalid meeting_notification payload:", event.payload);
+          return;
+        }
+        const data = event.payload;
+        sonnerToast.info(data.title, {
+          description: data.message,
+          duration: 5000,
+        });
+      }),
+    ];
+
+    return () => {
+      Promise.all(unsubscribePromises).then(unsubscribeFns => {
+        unsubscribeFns.forEach(fn => fn());
+      });
+    };
   }, []);
 
   return null;

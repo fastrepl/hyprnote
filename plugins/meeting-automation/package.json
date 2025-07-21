@@ -1,0 +1,6 @@
+{
+  "name": "@hypr/plugin-meeting-automation",
+  "version": "0.1.0",
+  "main": "js/index.ts",
+  "types": "js/index.ts"
+}

@@ -244,12 +244,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:105
-msgid "(Beta) Detect meetings automatically"
-msgstr ""
+#~ msgid "(Beta) Detect meetings automatically"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:132
-msgid "(Beta) Upcoming meeting notifications"
-msgstr ""
+#~ msgid "(Beta) Upcoming meeting notifications"
+#~ msgstr ""
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
@@ -320,6 +320,10 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:190
+msgid "Advanced settings"
+msgstr ""
+
 #: src/routes/app.settings.tsx:64
 #: src/routes/app.settings.tsx:118
 msgid "AI"
@@ -331,6 +335,10 @@ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:201
+msgid "Also detect microphone activity"
 msgstr ""
 
 #. placeholder {0}: members.length - 5
@@ -375,6 +383,14 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr ""
+
+#: src/components/settings/views/notifications.tsx:167
+msgid "Auto-record meetings"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:170
+msgid "Automatically start and stop recording when meetings are detected."
+msgstr ""
 
 #: src/components/settings/views/integrations.tsx:246
 msgid "Base Folder"
@@ -808,6 +824,10 @@ msgstr ""
 msgid "Make it public"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:110
+#~ msgid "Meeting Automation"
+#~ msgstr ""
+
 #: src/components/settings/views/billing.tsx:41
 msgid "Meeting note sharing via links"
 msgstr ""
@@ -923,6 +943,10 @@ msgstr ""
 msgid "Official Templates"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:232
+msgid "Only start recording when the meeting window is in focus."
+msgstr ""
+
 #: src/components/settings/views/feedback.tsx:18
 msgid "Ooh! Suggestion!"
 msgstr ""
@@ -1005,6 +1029,10 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:56
 msgid "Requesting..."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:229
+msgid "Require window focus"
 msgstr ""
 
 #: src/components/settings/views/sound.tsx:107
@@ -1090,12 +1118,12 @@ msgid "Share usage data"
 msgstr ""
 
 #: src/components/settings/views/notifications.tsx:135
-msgid "Show notifications when you have meetings starting soon in your calendar."
-msgstr ""
+#~ msgid "Show notifications when you have meetings starting soon in your calendar."
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:108
-msgid "Show notifications when you join a meeting."
-msgstr ""
+#~ msgid "Show notifications when you join a meeting."
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:53
 msgid "Single sign-on for all users"
@@ -1115,6 +1143,10 @@ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:154
 msgid "Start recording"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:204
+msgid "Start recording even when just microphone activity is detected."
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:373

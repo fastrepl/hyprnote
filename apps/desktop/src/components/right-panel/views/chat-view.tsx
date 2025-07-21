@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { modelProvider, streamText } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
@@ -148,7 +148,7 @@ export function ChatView() {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
 
-    const { type } = await connectorCommands.getLlmConnection();  
+    const { type } = await connectorCommands.getLlmConnection();
 
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,

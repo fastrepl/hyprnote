@@ -6,6 +6,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { modelProvider, streamText } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
@@ -147,15 +148,19 @@ export function ChatView() {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
 
+    const { type } = await connectorCommands.getLlmConnection();  
+
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,
-      // Pass raw words for timeline filter to handle
       words: JSON.stringify(freshSessionData?.words || []),
       title: freshSessionData?.title,
       enhancedContent: freshSessionData?.enhancedContent,
       rawContent: freshSessionData?.rawContent,
       preMeetingContent: freshSessionData?.preMeetingContent,
+      type: type,
     });
+
+    console.log("systemContent", systemContent);
 
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";

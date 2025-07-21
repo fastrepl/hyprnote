@@ -12,7 +12,7 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
   // If no parts are parsed, show regular content
   if (!message.parts || message.parts.length === 0) {
     return (
-      <div className="whitespace-pre-wrap text-sm text-neutral-800">
+      <div className="whitespace-pre-wrap text-sm text-neutral-800 select-text">
         {message.content}
       </div>
     );
@@ -24,7 +24,7 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
         <div key={index}>
           {part.type === "text"
             ? (
-              <div className="whitespace-pre-wrap text-sm text-neutral-800">
+              <div className="whitespace-pre-wrap text-sm text-neutral-800 select-text">
                 {part.content}
               </div>
             )

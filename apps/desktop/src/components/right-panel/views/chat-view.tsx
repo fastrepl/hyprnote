@@ -74,7 +74,6 @@ export function ChatView() {
     },
   });
 
-
   useEffect(() => {
     if (!hasChatStarted) {
       if (noteMatch) {
@@ -158,7 +157,6 @@ export function ChatView() {
       preMeetingContent: freshSessionData?.preMeetingContent,
     });
 
-
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
       content: string;
@@ -214,7 +212,6 @@ export function ChatView() {
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
-
 
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
@@ -306,7 +303,6 @@ export function ChatView() {
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
-
 
       const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {

@@ -1,7 +1,7 @@
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Trans } from "@lingui/react/macro";
 import { memo, useCallback } from "react";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
@@ -37,12 +37,12 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
           Beta
         </Badge>
       </div>
-      
+
       <div className="mb-6 p-3 rounded-lg bg-neutral-50 border border-neutral-200 max-w-[240px] text-left">
         <p className="text-xs text-neutral-600">
           <Trans>
             Chat feature is in beta. For best results, we recommend you to use{" "}
-            <span 
+            <span
               onClick={handleCustomEndpointsClick}
               className="text-blue-600 hover:text-blue-800 cursor-pointer underline"
             >
@@ -52,7 +52,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
           </Trans>
         </p>
       </div>
-      
+
       <div className="flex flex-wrap gap-2 justify-center mb-4 max-w-[280px]">
         <button
           onClick={handleButtonClick("Summarize this meeting")}

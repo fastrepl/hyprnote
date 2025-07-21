@@ -422,9 +422,17 @@ msgstr "Cancel"
 msgid "CEO"
 msgstr "CEO"
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
+msgid "Chat feature is in beta. For best results, we recommend you to use <0>custom endpoints</0>."
+msgstr "Chat feature is in beta. For best results, we recommend you to use <0>custom endpoints</0>."
+
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:34
+msgid "Chat with meeting notes"
+msgstr "Chat with meeting notes"
+
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:26
-msgid "Chat with your meeting notes"
-msgstr "Chat with your meeting notes"
+#~ msgid "Chat with your meeting notes"
+#~ msgstr "Chat with your meeting notes"
 
 #: src/components/settings/views/general.tsx:185
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
@@ -505,7 +513,7 @@ msgstr "Control how creative the AI enhancement should be"
 msgid "Create"
 msgstr "Create"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:55
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:79
 msgid "Create agenda"
 msgstr "Create agenda"
 
@@ -632,7 +640,7 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 msgid "Extensions"
 msgstr "Extensions"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:49
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:73
 msgid "Extract action items"
 msgstr "Extract action items"
 
@@ -747,7 +755,7 @@ msgstr "Job title"
 msgid "Join meeting"
 msgstr "Join meeting"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:67
 msgid "Key decisions"
 msgstr "Key decisions"
 
@@ -1117,7 +1125,7 @@ msgstr "Stop"
 msgid "Submit Feedback"
 msgstr "Submit Feedback"
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:37
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:61
 msgid "Summarize meeting"
 msgstr "Summarize meeting"
 

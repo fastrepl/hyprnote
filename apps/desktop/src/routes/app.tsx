@@ -114,7 +114,7 @@ function RestartTTT() {
   const watcher = async () => {
     const llmPath = await localLlmCommands.modelsDir();
 
-    return watch([llmPath], (_event) => {
+    return watch(llmPath, (_event) => {
       localLlmCommands.restartServer();
     }, { delayMs: 1000 });
   };
@@ -138,7 +138,7 @@ function RestartSTT() {
   const watcher = async () => {
     const sttPath = await localSttCommands.modelsDir();
 
-    return watch([sttPath], (_event) => {
+    return watch(sttPath, (_event) => {
       localSttCommands.restartServer();
     }, { delayMs: 1000 });
   };

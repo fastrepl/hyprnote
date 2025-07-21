@@ -507,7 +507,7 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/workspace-calendar/event-card.tsx:144
+#: src/components/workspace-calendar/event-card.tsx:166
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -773,6 +773,7 @@ msgstr "Loading events..."
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
+#: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr "Loading..."
@@ -909,12 +910,12 @@ msgid "Ooh! Suggestion!"
 msgstr "Ooh! Suggestion!"
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
-#~ msgid "Open calendar view"
-#~ msgstr "Open calendar view"
+msgid "Open calendar view"
+msgstr "Open calendar view"
 
 #: src/components/left-sidebar/top-area/finder-button.tsx:26
-msgid "Open finder view"
-msgstr "Open finder view"
+#~ msgid "Open finder view"
+#~ msgstr "Open finder view"
 
 #: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:319
@@ -1164,7 +1165,7 @@ msgstr "This is a short description of your company."
 msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
 
-#: src/components/finder/views/calendar-view.tsx:64
+#: src/components/toolbar/bars/calendar-toolbar.tsx:67
 msgid "Today"
 msgstr "Today"
 

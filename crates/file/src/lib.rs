@@ -79,15 +79,13 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         res = request_with_range(url.clone(), None).await?;
     }
 
-    let total_size = if let Some(content_length) = res.content_length() {
+    let total_size = res.content_length().map(|content_length| {
         if existing_size > 0 {
             existing_size + content_length
         } else {
             content_length
         }
-    } else {
-        u64::MAX
-    };
+    });
 
     let mut file = if existing_size > 0 {
         OpenOptions::new().append(true).open(output_path.as_ref())?
@@ -104,7 +102,10 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
-        progress_callback(DownloadProgress::Progress(downloaded, total_size));
+        progress_callback(DownloadProgress::Progress(
+            downloaded,
+            total_size.unwrap_or(downloaded),
+        ));
     }
 
     progress_callback(DownloadProgress::Finished);

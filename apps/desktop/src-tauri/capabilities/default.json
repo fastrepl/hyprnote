@@ -88,6 +88,7 @@
         { "url": "http://**" }
       ]
     },
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "keygen:default"
   ]
 }

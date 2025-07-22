@@ -463,6 +463,12 @@ importers:
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
+      tauri-plugin-keygen-api:
+        specifier: github:bagindo/tauri-plugin-keygen#v2
+        version: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de
+      tauri-plugin-keygen-rs2-api:
+        specifier: ^0.2.3
+        version: 0.2.3
       tauri-plugin-sentry-api:
         specifier: ^0.4.1
         version: 0.4.1
@@ -3946,6 +3952,9 @@ packages:
   '@tauri-apps/api@2.0.0-beta.8':
     resolution: {integrity: sha512-fN5u+9HsSfhRaXGOdD2kPGbqDgyX+nkm1XF/4d/LNuM4WiNfvHjjRAqWQYBhQsg1aF9nsTPmSW+tmy+Yn5T5+A==}
     engines: {node: '>= 18', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
+
+  '@tauri-apps/api@2.0.2':
+    resolution: {integrity: sha512-3wSwmG+1kr6WrgAFKK5ijkNFPp8TT3FLj3YHUb5EwMO+3FxX4uWlfSWkeeBy+Kc1RsKzugtYLuuya+98Flj+3w==}
 
   '@tauri-apps/api@2.6.0':
     resolution: {integrity: sha512-hRNcdercfgpzgFrMXWwNDBN0B7vNzOzRepy6ZAmhxi5mDLVPNrTpo9MGg2tN/F7JRugj4d2aF7E1rtPXAHaetg==}
@@ -9149,6 +9158,13 @@ packages:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
 
+  tauri-plugin-keygen-api@https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de:
+    resolution: {tarball: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de}
+    version: 2.0.0
+
+  tauri-plugin-keygen-rs2-api@0.2.3:
+    resolution: {integrity: sha512-xgqa2X1KbpLHMyxZK7UbCxoHCIB8hOBOZ3qY1X9Fgyf0jX+jTrCepvDoTBoQ2IgAaYVnBx7psgPC9cAznCtjSg==}
+
   tauri-plugin-sentry-api@0.4.1:
     resolution: {integrity: sha512-KgfL7JhN51TOA3e0UYDu6UkdwgH+wC1/RC3qIHJOZIAsvyTfde4uifUFB11GfgXfHgY33xUkIGgqWKkaK5lg6Q==}
 
@@ -13140,6 +13156,8 @@ snapshots:
       zod: 3.25.76
 
   '@tauri-apps/api@2.0.0-beta.8': {}
+
+  '@tauri-apps/api@2.0.2': {}
 
   '@tauri-apps/api@2.6.0': {}
 
@@ -19241,6 +19259,15 @@ snapshots:
       minizlib: 3.0.2
       mkdirp: 3.0.1
       yallist: 5.0.0
+
+  tauri-plugin-keygen-api@https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de:
+    dependencies:
+      '@tauri-apps/api': 2.0.2
+      tslib: 2.8.1
+
+  tauri-plugin-keygen-rs2-api@0.2.3:
+    dependencies:
+      '@tauri-apps/api': 2.6.0
 
   tauri-plugin-sentry-api@0.4.1:
     dependencies:

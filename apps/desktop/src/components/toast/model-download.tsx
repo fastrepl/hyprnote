@@ -68,7 +68,6 @@ export default function ModelDownloadNotification() {
   });
 
   useEffect(() => {
-
     if (!checkForModelDownload.data) {
       return;
     }

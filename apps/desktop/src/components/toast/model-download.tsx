@@ -41,6 +41,14 @@ export default function ModelDownloadNotification() {
     refetchInterval: 5000,
   });
 
+  const listDownloadedModels = useQuery({
+    queryKey: ["list-downloaded-models"],
+    queryFn: async () => {
+      return localLlmCommands.listDownloadedModel();
+    },
+    refetchInterval: 3000,
+  });
+
   const sttModelDownloading = useQuery({
     enabled: !checkForModelDownload.data?.sttModelDownloaded,
     queryKey: ["stt-model-downloading"],
@@ -60,6 +68,7 @@ export default function ModelDownloadNotification() {
   });
 
   useEffect(() => {
+
     if (!checkForModelDownload.data) {
       return;
     }
@@ -77,7 +86,7 @@ export default function ModelDownloadNotification() {
     }
 
     const needsSttModel = !checkForModelDownload.data?.sttModelDownloaded;
-    const needsLlmModel = !checkForModelDownload.data?.llmModelDownloaded;
+    const needsLlmModel = listDownloadedModels.data?.length === 0;
 
     let title: string;
     let content: string;

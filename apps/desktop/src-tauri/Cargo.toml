@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.54"
+version = "0.0.55"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -40,6 +40,7 @@ tauri-plugin-machine-uid = { workspace = true }
 tauri-plugin-membership = { workspace = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-notification = { workspace = true }
+tauri-plugin-obsidian = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
 tauri-plugin-sse = { workspace = true }
@@ -80,6 +81,7 @@ thiserror = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_qs = { workspace = true }
 
 bytes = { workspace = true }
 chrono = { workspace = true }

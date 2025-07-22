@@ -42,6 +42,8 @@ pub enum PredefinedTemplate {
     SuggestTagsSystem,
     #[strum(serialize = "suggest_tags.user")]
     SuggestTagsUser,
+    #[strum(serialize = "ai_chat.system")]
+    AiChatSystem,
 }
 
 impl From<PredefinedTemplate> for Template {
@@ -63,6 +65,7 @@ impl From<PredefinedTemplate> for Template {
             PredefinedTemplate::SuggestTagsUser => {
                 Template::Static(PredefinedTemplate::SuggestTagsUser)
             }
+            PredefinedTemplate::AiChatSystem => Template::Static(PredefinedTemplate::AiChatSystem),
         }
     }
 }
@@ -73,6 +76,7 @@ pub const CREATE_TITLE_SYSTEM_TPL: &str = include_str!("../assets/create_title.s
 pub const CREATE_TITLE_USER_TPL: &str = include_str!("../assets/create_title.user.jinja");
 pub const SUGGEST_TAGS_SYSTEM_TPL: &str = include_str!("../assets/suggest_tags.system.jinja");
 pub const SUGGEST_TAGS_USER_TPL: &str = include_str!("../assets/suggest_tags.user.jinja");
+pub const AI_CHAT_SYSTEM_TPL: &str = include_str!("../assets/ai_chat_system.jinja");
 
 pub fn init(env: &mut minijinja::Environment) {
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
@@ -102,6 +106,11 @@ pub fn init(env: &mut minijinja::Environment) {
     env.add_template(
         PredefinedTemplate::SuggestTagsUser.as_ref(),
         SUGGEST_TAGS_USER_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::AiChatSystem.as_ref(),
+        AI_CHAT_SYSTEM_TPL,
     )
     .unwrap();
 

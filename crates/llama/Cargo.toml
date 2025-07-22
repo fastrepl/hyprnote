@@ -16,8 +16,8 @@ openmp = ["llama-cpp-2/openmp"]
 hypr-gguf = { workspace = true }
 
 encoding_rs = "0.8.35"
-llama-cpp-2 = { git = "https://github.com/yujonglee/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-06-25" }
-llama-cpp-sys-2 = { git = "https://github.com/yujonglee/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-06-25" }
+llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-07-16" }
+llama-cpp-sys-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-07-16" }
 
 async-openai = { workspace = true }
 futures-util = { workspace = true }
@@ -38,3 +38,7 @@ hypr-template = { workspace = true }
 dirs = { workspace = true }
 rand = "0.9.0"
 serde_json = { workspace = true }
+
+llguidance = "1.1.0"
+toktrie_hf_downloader = "1.1.0"
+toktrie_hf_tokenizers = "1.1.0"

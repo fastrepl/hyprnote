@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-base-folder"
+description = "Enables the set_base_folder command without any pre-configured scope."
+commands.allow = ["set_base_folder"]
+
+[[permission]]
+identifier = "deny-set-base-folder"
+description = "Denies the set_base_folder command without any pre-configured scope."
+commands.deny = ["set_base_folder"]

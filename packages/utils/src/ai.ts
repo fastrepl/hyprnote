@@ -6,15 +6,6 @@ import { fetch as customFetch } from "@hypr/utils";
 
 export { generateObject, generateText, type Provider, smoothStream, streamText, tool } from "ai";
 
-import { useChat as useChat$1 } from "@ai-sdk/react";
-
-export const useChat = (options: Parameters<typeof useChat$1>[0]) => {
-  return useChat$1({
-    fetch: customFetch,
-    ...options,
-  });
-};
-
 export const localProviderName = "hypr-llm-local";
 export const remoteProviderName = "hypr-llm-remote";
 

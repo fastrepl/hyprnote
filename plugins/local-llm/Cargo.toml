@@ -21,11 +21,16 @@ tauri-plugin = { workspace = true, features = ["build"] }
 dirs = { workspace = true }
 reqwest = { workspace = true, features = ["json", "stream"] }
 specta-typescript = { workspace = true }
+tauri-plugin-store = { workspace = true }
 
 [dependencies]
 hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
 hypr-llama = { workspace = true }
+
+tauri = { workspace = true, features = ["test"] }
+tauri-plugin-store2 = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }
@@ -36,15 +41,12 @@ serde_json = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
-tauri = { workspace = true, features = ["test"] }
-tauri-plugin-store2 = { workspace = true }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-
 async-openai = { workspace = true }
 async-stream = { workspace = true }
 axum = { workspace = true }
 
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["stream"] }
+reqwest-streams = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }

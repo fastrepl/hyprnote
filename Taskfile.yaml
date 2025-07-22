@@ -42,8 +42,7 @@ tasks:
               $2,
               ($3 == "-" ? 0: $3),
               ($4 == "-" ? 0: $4)
-          }' |
-          jq -s . > ./apps/docs/data/i18n.json
+          }'
 
   bindgen:
     cmds:

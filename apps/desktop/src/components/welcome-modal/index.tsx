@@ -78,6 +78,9 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const handleModelSelected = (model: SupportedModel) => {
     selectSTTModel.mutate(model);
+
+    sessionStorage.setItem("model-download-toast-dismissed", "true");
+
     onClose();
   };
 

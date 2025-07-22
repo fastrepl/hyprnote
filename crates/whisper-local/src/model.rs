@@ -323,7 +323,7 @@ mod tests {
         let llama_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.dev")
-            .join("llm.gguf");
+            .join("hypr-llm.gguf");
 
         let llama = hypr_llama::Llama::new(llama_path).unwrap();
 

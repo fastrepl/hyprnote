@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BrainIcon, Zap as SpeedIcon } from "lucide-react";
 import React, { useState } from "react";
 
@@ -53,6 +53,7 @@ export const ModelSelectionView = ({
 }: {
   onContinue: (model: SupportedModel) => void;
 }) => {
+  const queryClient = useQueryClient();
   const [selectedModel, setSelectedModel] = useState<SupportedModel>("QuantizedSmall");
 
   const supportedSTTModels = useQuery<ModelInfo[]>({
@@ -70,8 +71,8 @@ export const ModelSelectionView = ({
   });
 
   const handleContinue = () => {
-    showSttModelDownloadToast(selectedModel);
-    showLlmModelDownloadToast();
+    showSttModelDownloadToast(selectedModel, undefined, queryClient);
+    showLlmModelDownloadToast(undefined, undefined, queryClient);
     onContinue(selectedModel);
   };
 

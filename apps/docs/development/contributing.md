@@ -1,3 +1,0 @@
-# Contributing
-
-<!--@include: ../../../CONTRIBUTING.md -->

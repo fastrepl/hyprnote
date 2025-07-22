@@ -1,0 +1,15 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+    "allow-get-api-key",
+    "allow-get-base-url",
+    "allow-get-vault-name",
+    "allow-set-api-key",
+    "allow-set-base-url",
+    "allow-set-vault-name",
+    "allow-get-enabled",
+    "allow-set-enabled",
+    "allow-get-deep-link-url",
+    "allow-get-base-folder",
+    "allow-set-base-folder",
+]

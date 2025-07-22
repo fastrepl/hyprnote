@@ -1,4 +1,5 @@
 mod commands;
+mod deeplink;
 mod ext;
 mod store;
 
@@ -80,6 +81,7 @@ pub async fn main() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_obsidian::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -132,6 +134,7 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
+                // hypr://hyprnote.com + <path>
                 app.deep_link().on_open_url(move |event| {
                     let url = if let Some(url) = event.urls().first() {
                         url.to_string()
@@ -139,34 +142,11 @@ pub async fn main() {
                         return;
                     };
 
-                    tracing::info!("deeplink: {:?}", url::Url::parse(&url));
-
-                    let dest = if let Ok(parsed_url) = url::Url::parse(&url) {
-                        match parsed_url.path() {
-                            "/notification" => {
-                                if let Some(query) = parsed_url.query() {
-                                    let params: std::collections::HashMap<String, String> =
-                                        url::form_urlencoded::parse(query.as_bytes())
-                                            .into_owned()
-                                            .collect();
-
-                                    if let Some(event_id) = params.get("event_id") {
-                                        format!("/app/note/event/{}", event_id)
-                                    } else {
-                                        "/app/new?record=true".to_string()
-                                    }
-                                } else {
-                                    "/app/new?record=false".to_string()
-                                }
-                            }
-                            _ => "/app/new?record=false".to_string(),
+                    let dests = deeplink::parse(url);
+                    for dest in dests {
+                        if app_clone.window_show(dest.window.clone()).is_ok() {
+                            let _ = app_clone.window_navigate(dest.window, &dest.url);
                         }
-                    } else {
-                        "/app/new?record=false".to_string()
-                    };
-
-                    if app_clone.window_show(HyprWindow::Main).is_ok() {
-                        let _ = app_clone.window_navigate(HyprWindow::Main, &dest);
                     }
                 });
             }

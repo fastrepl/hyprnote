@@ -19,9 +19,11 @@ impl SlackMessageTemplate for SessionMessage {
                 some_into(SlackSectionBlock::new().with_text(md!("Hey {}", "123"))),
                 some_into(SlackDividerBlock::new()),
                 some_into(SlackImageBlock::new(
-                    "https://www.gstatic.com/webp/gallery3/2_webp_ll.png"
-                        .parse::<url::Url>()
-                        .unwrap(),
+                    SlackImageUrlOrFile::ImageUrl {
+                        image_url: "https://www.gstatic.com/webp/gallery3/2_webp_ll.png"
+                            .parse::<url::Url>()
+                            .unwrap(),
+                    },
                     "Test Image".into()
                 )),
                 some_into(SlackHeaderBlock::new(pt!("Simple header"))),

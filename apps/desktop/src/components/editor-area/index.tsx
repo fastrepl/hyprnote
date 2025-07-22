@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
+import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -27,10 +28,44 @@ import {
   streamText,
   tool,
 } from "@hypr/utils/ai";
-import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
+
+async function generateTitleDirect(enhancedContent: string, targetSessionId: string, sessions: Record<string, any>) {
+  const [config, { type }, provider] = await Promise.all([
+    dbCommands.getConfig(),
+    connectorCommands.getLlmConnection(),
+    modelProvider(),
+  ]);
+
+  const [systemMessage, userMessage] = await Promise.all([
+    templateCommands.render("create_title.system", { config, type }),
+    templateCommands.render("create_title.user", { type, enhanced_note: enhancedContent }),
+  ]);
+
+  const model = provider.languageModel("defaultModel");
+  const abortSignal = AbortSignal.timeout(60_000);
+
+  const { text } = await generateText({
+    abortSignal,
+    model,
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: userMessage },
+    ],
+    providerOptions: {
+      [localProviderName]: { metadata: { grammar: "title" } },
+    },
+  });
+
+  const session = await dbCommands.getSession({ id: targetSessionId });
+  if (!session?.title && sessions[targetSessionId]?.getState) {
+    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+  }
+}
 
 export default function EditorArea({
   editable,
@@ -65,7 +100,7 @@ export default function EditorArea({
 
   const templatesQuery = useQuery({
     queryKey: ["templates"],
-    queryFn: () => dbCommands.listTemplates(),
+    queryFn: () => TemplateService.getAllTemplates(),
     refetchOnWindowFocus: true,
   });
 
@@ -77,6 +112,8 @@ export default function EditorArea({
     queryFn: () => connectorCommands.getLlmConnection(),
   });
 
+  const sessionsStore = useSessions((s) => s.sessions);
+
   const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
@@ -84,12 +121,10 @@ export default function EditorArea({
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       if (hasTranscriptWords) {
-        generateTitle.mutate({ enhancedContent: content });
+        generateTitleDirect(content, sessionId, sessionsStore).catch(console.error);
       }
     },
   });
-
-  const generateTitle = useGenerateTitleMutation({ sessionId });
 
   useAutoEnhance({
     sessionId,
@@ -224,19 +259,35 @@ export function useEnhanceMutation({
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
   const queryClient = useQueryClient();
 
+  // Extract H1 headers at component level (always available)
+  const extractH1Headers = useCallback((htmlContent: string): string[] => {
+    if (!htmlContent) {
+      return [];
+    }
+
+    const h1Regex = /<h1[^>]*>(.*?)<\/h1>/gi;
+    const headers: string[] = [];
+    let match;
+
+    while ((match = h1Regex.exec(htmlContent)) !== null) {
+      const headerText = match[1].replace(/<[^>]*>/g, "").trim();
+      if (headerText) {
+        headers.push(headerText);
+      }
+    }
+
+    return headers;
+  }, []);
+
+  const h1Headers = useMemo(() => extractH1Headers(rawContent), [rawContent, extractH1Headers]);
+
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
-  // finalInput is the text that will be used to enhance the note
-  let finalInput = "";
-  const wordDiff = diffWords(preMeetingText, rawText);
-  if (wordDiff && wordDiff.length > 0) {
-    for (const diff of wordDiff) {
-      if (diff.added && diff.removed == false) {
-        finalInput += " " + diff.value;
-      }
-    }
-  }
+  const finalInput = diffWords(preMeetingText, rawText)
+    ?.filter(diff => diff.added && !diff.removed)
+    .map(diff => diff.value)
+    .join(" ") || "";
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
@@ -256,20 +307,19 @@ export function useEnhanceMutation({
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { type } = await connectorCommands.getLlmConnection();
-      const freshIsLocalLlm = type === "HyprLocal";
+      const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
+      const [{ type }, config, words] = await Promise.all([
+        connectorCommands.getLlmConnection(),
+        dbCommands.getConfig(),
+        getWordsFunc(sessionId),
+      ]);
 
+      const freshIsLocalLlm = type === "HyprLocal";
       setActualIsLocalLlm(freshIsLocalLlm);
 
       if (freshIsLocalLlm) {
         setProgress(0);
       }
-
-      const fn = sessionId === onboardingSessionId
-        ? dbCommands.getWordsOnboarding
-        : dbCommands.getWords;
-
-      const words = await fn(sessionId);
 
       if (!words.length) {
         toast({
@@ -282,28 +332,27 @@ export function useEnhanceMutation({
         return;
       }
 
-      const config = await dbCommands.getConfig();
+      const effectiveTemplateId = templateId !== undefined
+        ? templateId
+        : config.general?.selected_template_id;
 
-      const getTemplate = async () => {
-        const effectiveTemplateId = templateId !== undefined
-          ? templateId
-          : config.general?.selected_template_id;
+      const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
-        if (!effectiveTemplateId) {
-          return null;
-        }
-
-        const templates = await dbCommands.listTemplates();
-        return templates.find(t => t.id === effectiveTemplateId) || null;
-      };
-
-      const selectedTemplate = await getTemplate();
+      const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
+      const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo: selectedTemplate },
+        {
+          config,
+          type,
+          // Pass userHeaders when using H1 headers, templateInfo otherwise
+          ...(shouldUseH1Headers
+            ? { userHeaders: h1Headers }
+            : { templateInfo: selectedTemplate }),
+        },
       );
 
       const userMessage = await templateCommands.render(
@@ -317,7 +366,7 @@ export function useEnhanceMutation({
       );
 
       const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
       setEnhanceController(abortController);
 
       const provider = await modelProvider();
@@ -337,7 +386,6 @@ export function useEnhanceMutation({
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        // Use fresh value for tools
         ...(freshIsLocalLlm && {
           tools: {
             update_progress: tool({ parameters: z.any() }),
@@ -351,14 +399,13 @@ export function useEnhanceMutation({
           markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
-        // Use fresh value for provider options
         ...(freshIsLocalLlm && {
           providerOptions: {
             [localProviderName]: {
               metadata: {
                 grammar: {
                   task: "enhance",
-                  sections: selectedTemplate?.sections.map(s => s.title) || null,
+                  sections: grammarSections,
                 } satisfies Grammar,
               },
             },
@@ -371,7 +418,6 @@ export function useEnhanceMutation({
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
         }
-        // Use fresh value for progress updates
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;
           setProgress(chunkProgress);
@@ -413,64 +459,6 @@ export function useEnhanceMutation({
   });
 
   return { enhance, progress: actualIsLocalLlm ? progress : undefined };
-}
-
-function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
-  const { title, updateTitle } = useSession(sessionId, (s) => ({
-    title: s.session.title,
-    updateTitle: s.updateTitle,
-  }));
-
-  const generateTitle = useMutation({
-    mutationKey: ["generateTitle", sessionId],
-    mutationFn: async ({ enhancedContent }: { enhancedContent: string }) => {
-      const config = await dbCommands.getConfig();
-      const { type } = await connectorCommands.getLlmConnection();
-
-      const systemMessage = await templateCommands.render(
-        "create_title.system",
-        { config, type },
-      );
-
-      const userMessage = await templateCommands.render(
-        "create_title.user",
-        {
-          type,
-          enhanced_note: enhancedContent,
-        },
-      );
-
-      const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(30 * 1000)]);
-
-      const provider = await modelProvider();
-      const model = provider.languageModel("defaultModel");
-
-      const newTitle = await generateText({
-        abortSignal,
-        model,
-        messages: [
-          { role: "system", content: systemMessage },
-          { role: "user", content: userMessage },
-        ],
-        providerOptions: {
-          [localProviderName]: {
-            metadata: {
-              grammar: {
-                task: "title",
-              } satisfies Grammar,
-            },
-          },
-        },
-      });
-
-      if (!title) {
-        updateTitle(newTitle.text);
-      }
-    },
-  });
-
-  return generateTitle;
 }
 
 function useAutoEnhance({

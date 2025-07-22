@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { TemplateService } from "@/utils/template-service";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -299,7 +300,7 @@ function RecordingControls({
 
   const templatesQuery = useQuery({
     queryKey: ["templates"],
-    queryFn: () => dbCommands.listTemplates(),
+    queryFn: () => TemplateService.getAllTemplates(),
     refetchOnWindowFocus: true,
   });
 

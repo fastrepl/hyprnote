@@ -3,12 +3,21 @@ on:
   workflow_dispatch:
     inputs:
       channel:
+        description: "Release channel to use. Defaults to 'stable' for manual runs, 'nightly' for automated releases"
         required: false
         default: "stable"
         type: choice
         options:
           - "stable"
           - "nightly"
+      runner:
+        description: "Type of runner to use."
+        required: false
+        default: "github"
+        type: choice
+        options:
+          - "warp"
+          - "github"
   release:
     types:
       - published
@@ -49,8 +58,8 @@ jobs:
             target: "x86_64-apple-darwin"
             runner: "macos-latest"
           - platform: "windows"
-            runner: "warp-windows-latest-x64-8x"
             target: "x86_64-pc-windows-msvc"
+            runner: "${{ inputs.runner == 'warp' && 'warp-windows-latest-x64-4x' || 'windows-latest' }}"
     runs-on: ${{ matrix.runner }}
     defaults:
       run:

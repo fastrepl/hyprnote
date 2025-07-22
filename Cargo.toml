@@ -95,6 +95,7 @@ tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-membership = { path = "plugins/membership" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
+tauri-plugin-obsidian = { path = "plugins/obsidian" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
@@ -108,6 +109,7 @@ futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
 reqwest = "0.12"
+reqwest-streams = "0.10.0"
 tokio = "1"
 tokio-stream = "0.1.17"
 tokio-tungstenite = "0.26.0"
@@ -124,7 +126,6 @@ dirs = "6.0.0"
 dotenv = "0.15.0"
 include_url_macro = "0.1.0"
 indoc = "2"
-insta = "1.42"
 itertools = "0.14.0"
 lazy_static = "1.5.0"
 once_cell = "1.20.3"
@@ -133,7 +134,8 @@ schemars = "0.8.21"
 serde = "1"
 serde_bytes = "0.11.15"
 serde_json = "1"
-serde_qs = "0.14.0"
+serde_qs = "1.0.0-rc.3"
+similar = "2.7.0"
 statig = { version = "0.3.0" }
 strum = "0.26"
 tempfile = "3"
@@ -142,6 +144,8 @@ url = "2"
 uuid = "1"
 
 criterion = "0.6"
+insta = "1.42"
+inventory = "0.3.20"
 serial_test = "3"
 testcontainers-modules = "0.11.5"
 
@@ -197,7 +201,7 @@ kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", de
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.8", default-features = false }
-libsql = "0.9.8"
+libsql = "0.9.17"
 
 block2 = "0.6"
 objc2 = "0.6"

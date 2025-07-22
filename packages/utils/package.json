@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^0.2.14",
-    "@ai-sdk/react": "^1.2.12",
     "@date-fns/tz": "^1.2.0",
     "@hypr/client": "workspace:^",
     "@hypr/plugin-connector": "workspace:^",

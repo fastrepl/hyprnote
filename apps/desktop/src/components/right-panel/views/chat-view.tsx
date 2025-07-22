@@ -1,6 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { useRightPanel } from "@/contexts";
+import { useHypr, useRightPanel } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as templateCommands } from "@hypr/plugin-template";
+import { modelProvider, streamText } from "@hypr/utils/ai";
+import { useSessions } from "@hypr/utils/contexts";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import {
   ChatHistoryView,
@@ -11,6 +19,7 @@ import {
   FloatingActionButtons,
   Message,
 } from "../components/chat";
+import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface ActiveEntityInfo {
   id: string;
@@ -22,6 +31,7 @@ export type BadgeType = "note" | "human" | "organization";
 export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
+  const { userId } = useHypr();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -33,9 +43,37 @@ export function ChatView() {
 
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
+  // Add generation tracking state
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
   const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+
+  const sessionId = activeEntity?.type === "note" ? activeEntity.id : null;
+
+  const sessionData = useQuery({
+    enabled: !!sessionId,
+    queryKey: ["session", "chat-context", sessionId],
+    queryFn: async () => {
+      if (!sessionId) {
+        return null;
+      }
+
+      const session = await dbCommands.getSession({ id: sessionId });
+      if (!session) {
+        return null;
+      }
+
+      return {
+        title: session.title || "",
+        rawContent: session.raw_memo_html || "",
+        enhancedContent: session.enhanced_memo_html,
+        preMeetingContent: session.pre_meeting_memo_html,
+        words: session.words || [],
+      };
+    },
+  });
 
   useEffect(() => {
     if (!hasChatStarted) {
@@ -79,14 +117,91 @@ export function ChatView() {
     setInputValue(e.target.value);
   };
 
-  const handleSubmit = () => {
-    if (!inputValue.trim()) {
+  const sessions = useSessions((state) => state.sessions);
+
+  const handleApplyMarkdown = async (markdownContent: string) => {
+    if (!sessionId) {
+      console.error("No session ID available");
       return;
     }
+
+    const sessionStore = sessions[sessionId];
+    if (!sessionStore) {
+      console.error("Session not found in store");
+      return;
+    }
+
+    try {
+      // Convert markdown to HTML using the same function as the card
+      const html = await miscCommands.opinionatedMdToHtml(markdownContent);
+
+      // Update the enhanced note content
+      sessionStore.getState().updateEnhancedNote(html);
+
+      console.log("Applied markdown content to enhanced note");
+    } catch (error) {
+      console.error("Failed to apply markdown content:", error);
+    }
+  };
+
+  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
+    const refetchResult = await sessionData.refetch();
+    let freshSessionData = refetchResult.data;
+
+    const { type } = await connectorCommands.getLlmConnection();
+
+    const systemContent = await templateCommands.render("ai_chat.system", {
+      session: freshSessionData,
+      words: JSON.stringify(freshSessionData?.words || []),
+      title: freshSessionData?.title,
+      enhancedContent: freshSessionData?.enhancedContent,
+      rawContent: freshSessionData?.rawContent,
+      preMeetingContent: freshSessionData?.preMeetingContent,
+      type: type,
+    });
+
+    console.log("systemContent", systemContent);
+
+    const conversationHistory: Array<{
+      role: "system" | "user" | "assistant";
+      content: string;
+    }> = [
+      { role: "system" as const, content: systemContent },
+    ];
+
+    messages.forEach(message => {
+      conversationHistory.push({
+        role: message.isUser ? ("user" as const) : ("assistant" as const),
+        content: message.content,
+      });
+    });
+
+    if (currentUserMessage) {
+      conversationHistory.push({
+        role: "user" as const,
+        content: currentUserMessage,
+      });
+    }
+
+    return conversationHistory;
+  };
+
+  const handleSubmit = async () => {
+    if (!inputValue.trim() || isGenerating) { // Prevent submit if generating
+      return;
+    }
+
+    await analyticsCommands.event({
+      event: "chat_message_sent",
+      distinct_id: userId,
+    });
 
     if (!hasChatStarted && activeEntity) {
       setHasChatStarted(true);
     }
+
+    // Set generating to true
+    setIsGenerating(true);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -96,17 +211,64 @@ export function ChatView() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue("");
 
-    setTimeout(() => {
+    try {
+      const provider = await modelProvider();
+      const model = provider.languageModel("defaultModel");
+
+      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
+        id: aiMessageId,
+        content: "Generating...",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+
+      const { textStream } = streamText({
+        model,
+        messages: await prepareMessageHistory(messages, currentInput),
+      });
+
+      let aiResponse = "";
+
+      for await (const chunk of textStream) {
+        aiResponse += chunk;
+
+        // Parse the content for markdown blocks
+        const parts = parseMarkdownBlocks(aiResponse);
+
+        setMessages((prev) =>
+          prev.map(msg =>
+            msg.id === aiMessageId
+              ? {
+                ...msg,
+                content: aiResponse,
+                parts: parts, // Add parsed parts
+              }
+              : msg
+          )
+        );
+      }
+
+      // Generation complete - enable submit
+      setIsGenerating(false);
+    } catch (error) {
+      console.error("AI error:", error);
+
+      // Error occurred - enable submit
+      setIsGenerating(false);
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I encountered an error. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -116,7 +278,23 @@ export function ChatView() {
     }
   };
 
-  const handleQuickAction = (prompt: string) => {
+  const handleQuickAction = async (prompt: string) => {
+    if (isGenerating) { // Prevent quick action if generating
+      return;
+    }
+
+    await analyticsCommands.event({
+      event: "chat_quickaction_sent",
+      distinct_id: userId,
+    });
+
+    if (!hasChatStarted && activeEntity) {
+      setHasChatStarted(true);
+    }
+
+    // Set generating to true
+    setIsGenerating(true);
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: prompt,
@@ -127,15 +305,59 @@ export function ChatView() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    setTimeout(() => {
+    try {
+      const provider = await modelProvider();
+      const model = provider.languageModel("defaultModel");
+
+      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
+        id: aiMessageId,
+        content: "Generating...",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+
+      const { textStream } = streamText({
+        model,
+        messages: await prepareMessageHistory(messages, prompt),
+      });
+
+      let aiResponse = "";
+
+      for await (const chunk of textStream) {
+        aiResponse += chunk;
+
+        // Parse the content for markdown blocks
+        const parts = parseMarkdownBlocks(aiResponse);
+
+        setMessages((prev) =>
+          prev.map(msg =>
+            msg.id === aiMessageId
+              ? {
+                ...msg,
+                content: aiResponse,
+                parts: parts, // Add parsed parts
+              }
+              : msg
+          )
+        );
+      }
+
+      // Generation complete
+      setIsGenerating(false);
+    } catch (error) {
+      console.error("AI error:", error);
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I encountered an error. Please try again.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+      // Error occurred
+      setIsGenerating(false);
+    }
 
     if (chatInputRef.current) {
       chatInputRef.current.focus();
@@ -228,7 +450,14 @@ export function ChatView() {
             onFocusInput={handleFocusInput}
           />
         )
-        : <ChatMessagesView messages={messages} />}
+        : (
+          <ChatMessagesView
+            messages={messages}
+            sessionTitle={sessionData.data?.title || "Untitled"}
+            hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
+            onApplyMarkdown={handleApplyMarkdown}
+          />
+        )}
 
       <ChatInput
         inputValue={inputValue}
@@ -239,6 +468,7 @@ export function ChatView() {
         entityId={activeEntity?.id}
         entityType={activeEntity?.type}
         onNoteBadgeClick={handleNoteBadgeClick}
+        isGenerating={isGenerating}
       />
     </div>
   );

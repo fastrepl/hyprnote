@@ -1,14 +1,16 @@
+import { Trans } from "@lingui/react/macro";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BrainIcon, DownloadIcon, Zap as SpeedIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
 import { showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Label } from "@hypr/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BrainIcon, DownloadIcon, Zap as SpeedIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { LanguageDisplay, RatingDisplay } from "./shared";
 
 export const sttModelMetadata: Record<SupportedModel, {
   name: string;
@@ -98,44 +100,6 @@ export const sttModelMetadata: Record<SupportedModel, {
     languageSupport: "multilingual",
     huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-large-v3-turbo-q8_0.bin",
   },
-};
-
-export const RatingDisplay = (
-  { label, rating, maxRating = 3, icon: Icon }: {
-    label: string;
-    rating: number;
-    maxRating?: number;
-    icon: React.ElementType;
-  },
-) => (
-  <div className="flex flex-col items-center px-2">
-    <span className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1.5">{label}</span>
-    <div className="flex space-x-1">
-      {[...Array(maxRating)].map((_, i) => (
-        <Icon
-          key={i}
-          className={cn(
-            "w-3.5 h-3.5",
-            i < rating ? "text-black fill-current" : "text-neutral-300",
-          )}
-          strokeWidth={i < rating ? 0 : 1.5}
-        />
-      ))}
-    </div>
-  </div>
-);
-
-export const LanguageDisplay = ({ support }: { support: "multilingual" | "english-only" }) => {
-  return (
-    <div className="flex flex-col items-center px-2">
-      <span className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1.5">
-        Language
-      </span>
-      <div className="text-xs font-medium">
-        {support === "multilingual" ? "Multilingual" : "English Only"}
-      </div>
-    </div>
-  );
 };
 
 export function STTView() {
@@ -261,7 +225,7 @@ export function STTView() {
                                 .finally(() => {
                                   setDownloadingModelName(null);
                                 });
-                            });
+                            }, queryClient);
                           } catch (error) {
                             console.error(`Error initiating STT model download for ${model.model}:`, error);
                             setDownloadingModelName(null);

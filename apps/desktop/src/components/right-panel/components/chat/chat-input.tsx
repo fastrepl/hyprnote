@@ -17,11 +17,21 @@ interface ChatInputProps {
   entityId?: string;
   entityType?: BadgeType;
   onNoteBadgeClick?: () => void;
+  isGenerating?: boolean;
 }
 
 export function ChatInput(
-  { inputValue, onChange, onSubmit, onKeyDown, autoFocus = false, entityId, entityType = "note", onNoteBadgeClick }:
-    ChatInputProps,
+  {
+    inputValue,
+    onChange,
+    onSubmit,
+    onKeyDown,
+    autoFocus = false,
+    entityId,
+    entityType = "note",
+    onNoteBadgeClick,
+    isGenerating = false,
+  }: ChatInputProps,
 ) {
   const { chatInputRef } = useRightPanel();
 
@@ -107,6 +117,7 @@ export function ChatInput(
         placeholder="Type a message..."
         className="w-full resize-none overflow-hidden px-3 py-2 pr-10 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
         rows={1}
+        disabled={isGenerating}
       />
       <div className="flex items-center justify-between pb-2 px-3">
         {entityId
@@ -123,7 +134,7 @@ export function ChatInput(
         <Button
           size="icon"
           onClick={onSubmit}
-          disabled={!inputValue.trim()}
+          disabled={!inputValue.trim() || isGenerating}
         >
           <ArrowUpIcon className="h-4 w-4" />
         </Button>

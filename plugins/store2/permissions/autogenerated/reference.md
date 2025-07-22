@@ -4,7 +4,12 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-get-bool`
+- `allow-get-number`
+- `allow-get-str`
+- `allow-set-bool`
+- `allow-set-number`
+- `allow-set-str`
 
 ## Permission Table
 
@@ -89,32 +94,6 @@ Enables the get_str command without any pre-configured scope.
 <td>
 
 Denies the get_str command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`store2:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`store2:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
 
 </td>
 </tr>

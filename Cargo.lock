@@ -2186,6 +2186,7 @@ version = "0.1.0"
 dependencies = [
  "calendar-interface",
  "graph-rs-sdk",
+ "serde_json",
 ]
 
 [[package]]

@@ -3,6 +3,13 @@ use chrono::{DateTime, Utc};
 use crate::user_common_derives;
 
 user_common_derives! {
+    pub struct Participant {
+        pub name: String,
+        pub email: Option<String>,
+    }
+}
+
+user_common_derives! {
     pub struct Event {
         pub id: String,
         pub user_id: String,

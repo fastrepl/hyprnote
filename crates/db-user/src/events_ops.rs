@@ -11,7 +11,7 @@ impl UserDatabase {
         match rows.next().await? {
             None => Ok(None),
             Some(row) => {
-                let event: Event = libsql::de::from_row(&row)?;
+                let event: Event = self.deserialize_event_from_row(&row)?;
                 Ok(Some(event))
             }
         }
@@ -114,7 +114,7 @@ impl UserDatabase {
             .await?;
 
         let row = rows.next().await?.unwrap();
-        let event: Event = libsql::de::from_row(&row)?;
+        let event: Event = self.deserialize_event_from_row(&row)?;
         Ok(event)
     }
 
@@ -176,10 +176,15 @@ impl UserDatabase {
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {
-            let item: Event = libsql::de::from_row(&row)?;
+            let item: Event = self.deserialize_event_from_row(&row)?;
             items.push(item);
         }
         Ok(items)
+    }
+
+    fn deserialize_event_from_row(&self, row: &libsql::Row) -> Result<Event, crate::Error> {
+        let event: Event = libsql::de::from_row(row)?;
+        Ok(event)
     }
 }
 

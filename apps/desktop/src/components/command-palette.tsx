@@ -92,26 +92,26 @@ const sortSessionMatches = (matches: (SearchMatch & { type: "session" })[], sort
 const extractParticipantSnippet = async (sessionId: string, query: string) => {
   try {
     const participants = await dbCommands.sessionListParticipants(sessionId);
-    const matchingParticipants = participants.filter(p => 
-      (p.full_name && p.full_name.toLowerCase().includes(query.toLowerCase())) ||
-      (p.email && p.email.toLowerCase().includes(query.toLowerCase()))
+    const matchingParticipants = participants.filter(p =>
+      (p.full_name && p.full_name.toLowerCase().includes(query.toLowerCase()))
+      || (p.email && p.email.toLowerCase().includes(query.toLowerCase()))
     );
-    
+
     if (matchingParticipants.length > 0) {
       const names = matchingParticipants
         .map(p => p.full_name || p.email)
         .filter(Boolean)
         .slice(0, 3); // Limit to 3 names
-      
-      const nameText = names.join(', ');
+
+      const nameText = names.join(", ");
       const extraCount = matchingParticipants.length - names.length;
-      
-      return extraCount > 0 
-        ? `Meeting with ${nameText} and ${extraCount} other${extraCount > 1 ? 's' : ''}`
+
+      return extraCount > 0
+        ? `Meeting with ${nameText} and ${extraCount} other${extraCount > 1 ? "s" : ""}`
         : `Meeting with ${nameText}`;
     }
   } catch (error) {
-    console.error('Error fetching participants:', error);
+    console.error("Error fetching participants:", error);
   }
   return null;
 };
@@ -128,17 +128,19 @@ function SessionItem({ match, query, onSelect }: {
   // Try content snippets first
   const contentSnippet = !titleMatches
     ? (() => {
-        if (match.item.enhanced_memo_html) {
-          const enhancedSnippet = extractContentSnippet(match.item.enhanced_memo_html, query);
-          if (enhancedSnippet) return enhancedSnippet;
+      if (match.item.enhanced_memo_html) {
+        const enhancedSnippet = extractContentSnippet(match.item.enhanced_memo_html, query);
+        if (enhancedSnippet) {
+          return enhancedSnippet;
         }
-        
-        if (match.item.raw_memo_html) {
-          return extractContentSnippet(match.item.raw_memo_html, query);
-        }
-        
-        return null;
-      })()
+      }
+
+      if (match.item.raw_memo_html) {
+        return extractContentSnippet(match.item.raw_memo_html, query);
+      }
+
+      return null;
+    })()
     : null;
 
   // Fetch participant snippet only if no content snippet
@@ -150,10 +152,10 @@ function SessionItem({ match, query, onSelect }: {
     }
   }, [match.item.id, query, titleMatches, contentSnippet]);
 
-  const snippet = contentSnippet 
-    ? { type: 'content' as const, text: contentSnippet }
-    : participantSnippet 
-    ? { type: 'participants' as const, text: participantSnippet }
+  const snippet = contentSnippet
+    ? { type: "content" as const, text: contentSnippet }
+    : participantSnippet
+    ? { type: "participants" as const, text: participantSnippet }
     : null;
 
   const formatDate = (dateString: string) => {
@@ -178,19 +180,18 @@ function SessionItem({ match, query, onSelect }: {
           {formatDate(match.item.created_at)}
         </span>
         {snippet && (
-          <div className={`text-xs mt-2 flex items-center gap-1 ${
-            snippet.type === 'participants' 
-              ? 'text-neutral-900'
-              : 'text-neutral-600'
-          }`}>
-            {snippet.type === 'participants' && (
-              <UserIcon className="h-3 w-3 flex-shrink-0" />
-            )}
-            <span className={snippet.type === 'participants' ? '' : ''}>
-              {snippet.type === 'participants' 
-                ? snippet.text 
-                : highlightText(snippet.text, query)
-              }
+          <div
+            className={`text-xs mt-2 flex items-center gap-1 ${
+              snippet.type === "participants"
+                ? "text-neutral-900"
+                : "text-neutral-600"
+            }`}
+          >
+            {snippet.type === "participants" && <UserIcon className="h-3 w-3 flex-shrink-0" />}
+            <span className={snippet.type === "participants" ? "" : ""}>
+              {snippet.type === "participants"
+                ? snippet.text
+                : highlightText(snippet.text, query)}
             </span>
           </div>
         )}

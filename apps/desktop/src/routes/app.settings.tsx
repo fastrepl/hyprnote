@@ -7,6 +7,7 @@ import { z } from "zod";
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
 import {
+  Billing,
   Calendar,
   Feedback,
   General,
@@ -116,14 +117,14 @@ function Component() {
                           ? <Trans>Sound</Trans>
                           : tab.name === "ai"
                           ? <Trans>AI</Trans>
-                          : tab.name === "lab"
-                          ? <Trans>Lab</Trans>
                           : tab.name === "feedback"
                           ? <Trans>Feedback</Trans>
                           : tab.name === "templates"
                           ? <Trans>Templates</Trans>
                           : tab.name === "integrations"
                           ? <Trans>Integrations</Trans>
+                          : tab.name === "billing"
+                          ? <Trans>Billing</Trans>
                           : null}
                       </span>
                     </button>
@@ -157,6 +158,7 @@ function Component() {
               {search.tab === "feedback" && <Feedback />}
               {search.tab === "templates" && <TemplatesView />}
               {search.tab === "integrations" && <Integrations />}
+              {search.tab === "billing" && <Billing />}
             </div>
           </div>
         </div>

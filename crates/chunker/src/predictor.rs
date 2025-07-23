@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 pub trait Predictor: Send + Sync {
     fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error>;
 }
@@ -26,20 +28,20 @@ impl Predictor for RMS {
 
 #[derive(Debug)]
 pub struct Silero {
-    #[allow(dead_code)]
-    inner: hypr_vad::Vad,
+    inner: Mutex<hypr_vad::Vad>,
 }
 
 impl Silero {
     pub fn new() -> Result<Self, crate::Error> {
         Ok(Self {
-            inner: hypr_vad::Vad::new()?,
+            inner: Mutex::new(hypr_vad::Vad::new()?),
         })
     }
 }
 
 impl Predictor for Silero {
-    fn predict(&self, _samples: &[f32]) -> Result<bool, crate::Error> {
-        Ok(true)
+    fn predict(&self, samples: &[f32]) -> Result<bool, crate::Error> {
+        let v = self.inner.lock().unwrap().run(samples)?;
+        Ok(v > 0.5)
     }
 }

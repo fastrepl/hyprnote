@@ -15,16 +15,12 @@ use axum::{
 };
 
 use futures_util::{SinkExt, StreamExt};
-use rodio::Source;
 use tower_http::cors::{self, CorsLayer};
 
-use hypr_chunker::ChunkerExt;
+use hypr_chunker::VadExt;
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 
-use crate::{
-    manager::{ConnectionGuard, ConnectionManager},
-    temp::VadExt,
-};
+use crate::manager::{ConnectionGuard, ConnectionManager};
 
 #[derive(Default)]
 pub struct ServerStateBuilder {
@@ -154,14 +150,11 @@ async fn websocket_single_channel(
 ) {
     let stream = {
         let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked = audio_source.chunks(
-            hypr_chunker::Silero::new().unwrap(),
-            std::time::Duration::from_secs(13),
-        );
+        let chunked = audio_source.vad_chunks();
 
         let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
             hypr_whisper_local::SimpleAudioChunk {
-                samples: chunk.convert_samples().collect(),
+                samples: chunk.samples,
                 meta: Some(serde_json::json!({ "source": "mixed" })),
             }
         }));
@@ -180,8 +173,8 @@ async fn websocket_dual_channel(
     let (mic_source, speaker_source) =
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
-    let mic_chunked = mic_source.vad_chunks(silero_rs::VadConfig::default());
-    let speaker_chunked = speaker_source.vad_chunks(silero_rs::VadConfig::default());
+    let mic_chunked = mic_source.vad_chunks();
+    let speaker_chunked = speaker_source.vad_chunks();
 
     let mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
         hypr_whisper_local::SimpleAudioChunk {

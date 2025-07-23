@@ -49,9 +49,6 @@ hypr-whisper = { workspace = true }
 hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
-hypr-audio = { workspace = true }
-silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
-
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }

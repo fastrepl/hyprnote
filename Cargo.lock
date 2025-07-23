@@ -2426,11 +2426,10 @@ dependencies = [
  "futures-util",
  "hound",
  "kalosm-sound",
- "rodio",
  "serde",
+ "silero",
  "thiserror 2.0.12",
  "tokio",
- "vad",
 ]
 
 [[package]]
@@ -14331,7 +14330,6 @@ dependencies = [
 name = "tauri-plugin-local-stt"
 version = "0.1.0"
 dependencies = [
- "audio",
  "audio-utils",
  "axum 0.8.4",
  "chunker",
@@ -14347,7 +14345,6 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
- "silero",
  "similar",
  "specta",
  "specta-typescript",

@@ -126,7 +126,7 @@ export function ChatInput(
               className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-neutral-100 cursor-pointer max-w-48"
               onClick={onNoteBadgeClick}
             >
-              {getBadgeIcon()} 
+              {getBadgeIcon()}
               <span className="truncate">{entityTitle}</span>
             </Badge>
           )

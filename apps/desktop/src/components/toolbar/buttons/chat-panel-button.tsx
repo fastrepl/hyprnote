@@ -27,16 +27,16 @@ function ChatPanelButtonBase() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'j' && (event.metaKey || event.ctrlKey)) {
+      if (event.key === "j" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         togglePanel("chat");
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [togglePanel]);
 

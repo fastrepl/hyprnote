@@ -1187,7 +1187,7 @@ msgstr ""
 msgid "Today"
 msgstr ""
 
-#: src/components/toolbar/buttons/chat-panel-button.tsx:52
+#: src/components/toolbar/buttons/chat-panel-button.tsx:67
 msgid "Toggle chat panel"
 msgstr ""
 

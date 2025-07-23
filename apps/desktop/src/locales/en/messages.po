@@ -1187,7 +1187,7 @@ msgstr "This is the name of the company you work for."
 msgid "Today"
 msgstr "Today"
 
-#: src/components/toolbar/buttons/chat-panel-button.tsx:52
+#: src/components/toolbar/buttons/chat-panel-button.tsx:67
 msgid "Toggle chat panel"
 msgstr "Toggle chat panel"
 

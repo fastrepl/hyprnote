@@ -95,15 +95,9 @@ impl HyprWindow {
     pub fn emit_navigate(
         &self,
         app: &AppHandle<tauri::Wry>,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error> {
-        if let Some(window) = self.get(app) {
-            let mut url = window.url().unwrap();
-            url.set_path(path.as_ref());
-
-            let event = events::Navigate {
-                path: path.as_ref().into(),
-            };
+        if let Some(_) = self.get(app) {
             events::Navigate::emit_to(&event, app, self.label())?;
         }
         Ok(())
@@ -475,7 +469,7 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_emit_navigate(
         &self,
         window: HyprWindow,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error>;
 
     fn window_navigate(
@@ -598,9 +592,9 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
     fn window_emit_navigate(
         &self,
         window: HyprWindow,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error> {
-        window.emit_navigate(self, path)
+        window.emit_navigate(self, event)
     }
 
     fn window_navigate(

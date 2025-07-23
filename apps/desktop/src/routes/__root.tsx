@@ -54,7 +54,7 @@ function Component() {
 
     const webview = getCurrentWebviewWindow();
     windowsEvents.navigate(webview).listen(({ payload }) => {
-      navigate({ to: payload.path });
+      navigate({ to: payload.path, search: payload.search });
     }).then((fn) => {
       unlisten = fn;
     });

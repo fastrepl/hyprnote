@@ -1,10 +1,12 @@
 import { Trans } from "@lingui/react/macro";
+import type { LinkProps } from "@tanstack/react-router";
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { CastleIcon, CogIcon, ShieldIcon } from "lucide-react";
 import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
 import { useHypr } from "@/contexts";
+import { useLicense } from "@/hooks/use-license";
 import { openURL } from "@/utils/shell";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -21,7 +23,8 @@ export function SettingsButton() {
   const [open, setOpen] = useState(false);
   const { userId } = useHypr();
 
-  const isPro = false;
+  const { getLicense } = useLicense();
+  const isPro = !!getLicense.data?.valid;
 
   const versionQuery = useQuery({
     queryKey: ["appVersion"],
@@ -43,7 +46,13 @@ export function SettingsButton() {
 
   const handleClickPlans = () => {
     setOpen(false);
-    windowsCommands.windowShow({ type: "settings" });
+
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      const params = { to: "/app/settings", search: { tab: "billing" } } as const satisfies LinkProps;
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "settings" }, { path: params.to, search: params.search });
+      }, 500);
+    });
   };
 
   const handleClickChangelog = async () => {

@@ -14800,6 +14800,7 @@ dependencies = [
 name = "tauri-plugin-tray"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",
@@ -14868,6 +14869,7 @@ dependencies = [
  "objc2-foundation 0.3.1",
  "once_cell",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "strum 0.26.3",

@@ -22,7 +22,7 @@ export const safeNavigate = async (
       const isVisible = await windowsCommands.windowIsVisible(window);
 
       if (isVisible) {
-        await windowsCommands.windowEmitNavigate(window, url);
+        await windowsCommands.windowEmitNavigate(window, { path: url, search: {} });
         return;
       } else if (attempts < maxAttempts) {
         attempts++;

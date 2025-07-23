@@ -50,7 +50,7 @@ pub async fn sync_events(
     }
 
     _sync_events(
-        user_id.clone(),
+        user_id,
         db_events_with_session,
         db_selected_calendars,
         system_events_per_selected_calendar,
@@ -58,22 +58,6 @@ pub async fn sync_events(
     .await?
     .execute(&db)
     .await;
-
-    // NEW: Query final database state
-    tracing::info!("=== POST-SYNC DATABASE STATE ===");
-    let final_events = list_db_events(&db, &user_id).await.unwrap_or_default();
-    tracing::info!("📊 Total events in database: {}", final_events.len());
-    
-    for event in &final_events {
-        tracing::info!("   📅 '{}' (id: {}, tracking_id: {})", 
-                      event.name, event.id, event.tracking_id);
-        tracing::info!("       Calendar: {:?} | Dates: {} to {}", 
-                      event.calendar_id,
-                      event.start_date.format("%Y-%m-%d %H:%M:%S"),
-                      event.end_date.format("%Y-%m-%d %H:%M:%S"));
-    }
-    
-    tracing::info!("=== DATABASE STATE END ===");
 
     Ok(())
 }
@@ -139,19 +123,6 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
-    tracing::info!("=== SYNC EVENTS START ===");
-    tracing::info!("Processing {} db events across {} calendars", 
-                  db_events_with_session.len(), db_selected_calendars.len());
-    
-    // Log calendar summary
-    for calendar in &db_selected_calendars {
-        let system_event_count = system_events_per_selected_calendar
-            .get(&calendar.id)
-            .map(|events| events.len())
-            .unwrap_or(0);
-        tracing::info!("  Calendar '{}': {} system events", calendar.name, system_event_count);
-    }
-
     // Collect all system events for rescheduled event detection
     let all_system_events: Vec<&hypr_calendar_interface::Event> =
         system_events_per_selected_calendar
@@ -159,39 +130,21 @@ async fn _sync_events(
             .flatten()
             .collect();
 
-    tracing::info!("Total system events across all calendars: {}", all_system_events.len());
-
     // Process existing events:
-    tracing::info!("=== PROCESSING EXISTING DB EVENTS ===");
     for (db_event, session) in &db_events_with_session {
-        let has_session = session.is_some();
-        let session_empty = session.as_ref().map_or(true, |s| s.is_empty());
-        
-        tracing::info!("📝 Event '{}' (id: {}, tracking_id: {})", 
-                      db_event.name, db_event.id, db_event.tracking_id);
-        tracing::info!("   Session: {} | Empty: {}", has_session, session_empty);
-
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.id == db_event.calendar_id.clone().unwrap_or_default());
 
-        tracing::info!("   Calendar selected: {}", is_selected_cal);
-
         if !is_selected_cal && session.as_ref().map_or(true, |s| s.is_empty()) {
-            tracing::info!("   ❌ DELETE: unselected calendar + no notes");
             state.to_delete.push(db_event.clone());
             continue;
         }
 
         if let Some(ref calendar_id) = db_event.calendar_id {
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
-                tracing::info!("   Found {} system events in calendar", events.len());
-                
                 // Check if event exists with same tracking_id
                 if let Some(matching_event) = events.iter().find(|e| e.id == db_event.tracking_id) {
-                    tracing::info!("   ✅ UPDATE: found exact match");
-                    tracing::info!("      System name: '{}' | DB name: '{}'", matching_event.name, db_event.name);
-                    
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: matching_event.id.clone(),
@@ -213,10 +166,6 @@ async fn _sync_events(
                     &all_system_events,
                     &db_selected_calendars,
                 ) {
-                    tracing::info!("   🔄 UPDATE: found rescheduled event");
-                    tracing::info!("      Old tracking_id: {}", db_event.tracking_id);
-                    tracing::info!("      New tracking_id: {}", rescheduled_event.id);
-                    
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: rescheduled_event.id.clone(),
@@ -232,28 +181,18 @@ async fn _sync_events(
                     continue;
                 }
 
-                tracing::info!("   ❌ DELETE: not found in Apple Calendar");
                 state.to_delete.push(db_event.clone());
             } else {
-                tracing::info!("   ❌ DELETE: calendar not in HashMap");
                 state.to_delete.push(db_event.clone());
             }
         } else {
-            tracing::info!("   ❌ DELETE: no calendar_id");
             state.to_delete.push(db_event.clone());
         }
     }
 
     // Add new events (that haven't been handled as updates)
-    tracing::info!("=== PROCESSING NEW SYSTEM EVENTS ===");
-    let mut new_events_count = 0;
-    
     for db_calendar in db_selected_calendars {
-        tracing::info!("📅 Processing calendar '{}'", db_calendar.name);
-        
         if let Some(fresh_events) = system_events_per_selected_calendar.get(&db_calendar.id) {
-            tracing::info!("   Found {} fresh events", fresh_events.len());
-            
             for system_event in fresh_events {
                 // Skip if this event was already handled as an update
                 let already_handled = state
@@ -261,7 +200,6 @@ async fn _sync_events(
                     .iter()
                     .any(|e| e.tracking_id == system_event.id);
                 if already_handled {
-                    tracing::info!("   ⏭️  Skip '{}': already handled as update", system_event.name);
                     continue;
                 }
 
@@ -270,17 +208,10 @@ async fn _sync_events(
                     .iter()
                     .any(|(db_event, _)| db_event.tracking_id == system_event.id);
                 if already_exists {
-                    tracing::info!("   ⏭️  Skip '{}': already exists in DB", system_event.name);
                     continue;
                 }
 
                 // This is a genuinely new event
-                tracing::info!("   ➕ ADD '{}': new from Apple Calendar", system_event.name);
-                tracing::info!("      Tracking ID: {}", system_event.id);
-                tracing::info!("      Date: {} to {}", 
-                              system_event.start_date.format("%Y-%m-%d %H:%M:%S"),
-                              system_event.end_date.format("%Y-%m-%d %H:%M:%S"));
-                
                 let new_event = hypr_db_user::Event {
                     id: uuid::Uuid::new_v4().to_string(),
                     tracking_id: system_event.id.clone(),
@@ -293,42 +224,9 @@ async fn _sync_events(
                     google_event_url: None,
                 };
                 state.to_upsert.push(new_event);
-                new_events_count += 1;
             }
-        } else {
-            tracing::warn!("   ⚠️  Calendar '{}' not found in system events HashMap!", db_calendar.name);
         }
     }
-
-    // Final summary
-    tracing::info!("=== SYNC EVENTS SUMMARY ===");
-    tracing::info!("📊 Operations planned:");
-    tracing::info!("   DELETE: {} events", state.to_delete.len());
-    tracing::info!("   UPDATE: {} events", state.to_update.len());
-    tracing::info!("   ADD: {} events", state.to_upsert.len());
-    
-    if state.to_delete.len() > 0 {
-        tracing::info!("🗑️  Events to delete:");
-        for event in &state.to_delete {
-            tracing::info!("     - '{}'", event.name);
-        }
-    }
-    
-    if state.to_update.len() > 0 {
-        tracing::info!("🔄 Events to update:");
-        for event in &state.to_update {
-            tracing::info!("     - '{}'", event.name);
-        }
-    }
-    
-    if state.to_upsert.len() > 0 {
-        tracing::info!("➕ Events to add:");
-        for event in &state.to_upsert {
-            tracing::info!("     - '{}'", event.name);
-        }
-    }
-
-    tracing::info!("=== SYNC EVENTS END ===");
 
     Ok(state)
 }
@@ -572,42 +470,23 @@ impl CalendarSyncState {
 
 impl EventSyncState {
     async fn execute(self, db: &hypr_db_user::UserDatabase) {
-        tracing::info!("=== EXECUTING DATABASE CHANGES ===");
-        
-        // Actually DELETE events from database
-        tracing::info!("🗑️  Deleting {} events...", self.to_delete.len());
         for event in self.to_delete {
-            tracing::info!("   Deleting '{}'", event.name);
             if let Err(e) = db.delete_event(&event.id).await {
-                tracing::error!("   ❌ delete_event_error: {}", e);
-            } else {
-                tracing::info!("   ✅ Deleted successfully");
+                tracing::error!("delete_event_error: {}", e);
             }
         }
 
-        // Actually UPDATE events in database  
-        tracing::info!("🔄 Updating {} events...", self.to_update.len());
         for event in self.to_update {
-            tracing::info!("   Updating '{}'", event.name);
             if let Err(e) = db.update_event(event).await {
-                tracing::error!("   ❌ update_event_error: {}", e);
-            } else {
-                tracing::info!("   ✅ Updated successfully");
+                tracing::error!("update_event_error: {}", e);
             }
         }
 
-        // Actually ADD new events to database
-        tracing::info!("➕ Adding {} events...", self.to_upsert.len());
         for event in self.to_upsert {
-            tracing::info!("   Adding '{}'", event.name);
             if let Err(e) = db.upsert_event(event).await {
-                tracing::error!("   ❌ upsert_event_error: {}", e);
-            } else {
-                tracing::info!("   ✅ Added successfully");
+                tracing::error!("upsert_event_error: {}", e);
             }
         }
-        
-        tracing::info!("=== DATABASE CHANGES COMPLETE ===");
     }
 }
 

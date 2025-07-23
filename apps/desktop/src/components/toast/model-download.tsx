@@ -41,14 +41,6 @@ export default function ModelDownloadNotification() {
     refetchInterval: 5000,
   });
 
-  const listDownloadedModels = useQuery({
-    queryKey: ["list-downloaded-models"],
-    queryFn: async () => {
-      return localLlmCommands.listDownloadedModel();
-    },
-    refetchInterval: 3000,
-  });
-
   const sttModelDownloading = useQuery({
     enabled: !checkForModelDownload.data?.sttModelDownloaded,
     queryKey: ["stt-model-downloading"],
@@ -67,7 +59,47 @@ export default function ModelDownloadNotification() {
     refetchInterval: 3000,
   });
 
+
+  const sttModelExists = useQuery({
+    queryKey: ["stt-model-exists"],
+    queryFn: async () => {
+      const results = await Promise.all([
+        localSttCommands.isModelDownloaded("QuantizedTiny"),
+        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
+        localSttCommands.isModelDownloaded("QuantizedBase"),
+        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
+        localSttCommands.isModelDownloaded("QuantizedSmall"),
+        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo")
+      ]);
+      
+      // Return true if at least one is downloaded
+      return results.some(Boolean);
+    },
+    refetchInterval: 3000,
+  });
+
+  const llmModelExists = useQuery({
+    queryKey: ["llm-model-exists"],
+    queryFn: async () => {
+      const results = await Promise.all([
+        localLlmCommands.isModelDownloaded("Llama3p2_3bQ4"),
+        localLlmCommands.isModelDownloaded("HyprLLM")
+      ]);
+      
+      // Return true if at least one is downloaded
+      return results.some(Boolean);
+    },
+    refetchInterval: 3000,
+  });
+
   useEffect(() => {
+
+    console.log("this is the stt model exists");
+    console.log(sttModelExists.data);
+    console.log("this is the llm model exists");
+    console.log(llmModelExists.data);
+
     if (!checkForModelDownload.data) {
       return;
     }
@@ -84,8 +116,8 @@ export default function ModelDownloadNotification() {
       return;
     }
 
-    const needsSttModel = !checkForModelDownload.data?.sttModelDownloaded;
-    const needsLlmModel = listDownloadedModels.data?.length === 0;
+    const needsSttModel = !sttModelExists.data;
+    const needsLlmModel = !llmModelExists.data;
 
     let title: string;
     let content: string;
@@ -94,11 +126,11 @@ export default function ModelDownloadNotification() {
     if (needsSttModel && needsLlmModel) {
       title = "Transcribing & Enhancing AI Needed";
       content = "Both STT models and LLMs are required for offline functionality.";
-      buttonLabel = "Download Both Models";
+      buttonLabel = "Download Models";
     } else if (needsSttModel) {
       title = "Transcribing Model Needed";
       content = "The STT model is required for offline transcribing functionality.";
-      buttonLabel = "Download Transcribing Model";
+      buttonLabel = "Download Model";
     } else if (needsLlmModel) {
       title = "Enhancing AI Model Needed";
       content = "The LLM model is required for offline enhancing functionality.";

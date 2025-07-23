@@ -59,7 +59,6 @@ export default function ModelDownloadNotification() {
     refetchInterval: 3000,
   });
 
-
   const sttModelExists = useQuery({
     queryKey: ["stt-model-exists"],
     queryFn: async () => {
@@ -70,9 +69,9 @@ export default function ModelDownloadNotification() {
         localSttCommands.isModelDownloaded("QuantizedBaseEn"),
         localSttCommands.isModelDownloaded("QuantizedSmall"),
         localSttCommands.isModelDownloaded("QuantizedSmallEn"),
-        localSttCommands.isModelDownloaded("QuantizedLargeTurbo")
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
       ]);
-      
+
       // Return true if at least one is downloaded
       return results.some(Boolean);
     },
@@ -84,9 +83,9 @@ export default function ModelDownloadNotification() {
     queryFn: async () => {
       const results = await Promise.all([
         localLlmCommands.isModelDownloaded("Llama3p2_3bQ4"),
-        localLlmCommands.isModelDownloaded("HyprLLM")
+        localLlmCommands.isModelDownloaded("HyprLLM"),
       ]);
-      
+
       // Return true if at least one is downloaded
       return results.some(Boolean);
     },
@@ -94,7 +93,6 @@ export default function ModelDownloadNotification() {
   });
 
   useEffect(() => {
-
     console.log("this is the stt model exists");
     console.log(sttModelExists.data);
     console.log("this is the llm model exists");

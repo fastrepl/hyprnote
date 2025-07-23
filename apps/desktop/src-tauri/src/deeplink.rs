@@ -89,7 +89,7 @@ fn parse_license_query(parsed_url: &url::Url) -> Vec<Destination> {
 
     let settings_url = match parsed_url.query() {
         Some(query) => match serde_qs::from_str::<LicenseQuery>(query) {
-            Ok(params) => format!("/app/settings?licenseKey={}", params.key),
+            Ok(params) => format!("/app/settings?tab=billing&key={}", params.key),
             Err(_) => "/app/settings".to_string(),
         },
         None => "/app/settings".to_string(),

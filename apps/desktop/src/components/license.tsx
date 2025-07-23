@@ -12,7 +12,7 @@ export function LicenseRefreshProvider({ children }: { children: React.ReactNode
 
     const checkAndRefresh = () => {
       if (shouldRefresh() && !refreshLicense.isPending) {
-        refreshLicense.mutate();
+        refreshLicense.mutate({});
       }
     };
 

@@ -72,7 +72,6 @@ export default function ModelDownloadNotification() {
         localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
       ]);
 
-      // Return true if at least one is downloaded
       return results.some(Boolean);
     },
     refetchInterval: 3000,
@@ -86,18 +85,12 @@ export default function ModelDownloadNotification() {
         localLlmCommands.isModelDownloaded("HyprLLM"),
       ]);
 
-      // Return true if at least one is downloaded
       return results.some(Boolean);
     },
     refetchInterval: 3000,
   });
 
   useEffect(() => {
-    console.log("this is the stt model exists");
-    console.log(sttModelExists.data);
-    console.log("this is the llm model exists");
-    console.log(llmModelExists.data);
-
     if (!checkForModelDownload.data) {
       return;
     }

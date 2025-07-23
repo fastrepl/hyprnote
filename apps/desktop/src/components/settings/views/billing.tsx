@@ -1,6 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { ArrowRight, CreditCard, ExternalLink, Shield } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useBilling } from "@/hooks/use-billing";
 import { useLicense } from "@/hooks/use-license";
@@ -51,72 +51,19 @@ function FreeSection() {
 }
 
 function FreeSectionCheckout() {
+  const { checkout } = useBilling();
+
   const [email, setEmail] = useState("");
   const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
-  const [workflowId, setWorkflowId] = useState<string | null>(null);
 
-  const startCheckoutMutation = useMutation({
-    mutationFn: async ({ email, interval }: { email: string; interval: "monthly" | "yearly" }) => {
-      const response = await fetch("/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, interval }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to start checkout");
-      }
-
-      return response.json() as Promise<{ workflowId: string; status: string; invocationId: string }>;
-    },
-    onSuccess: (data) => {
-      setWorkflowId(data.workflowId);
-    },
-    onError: (error) => {
-      console.error("Checkout error:", error);
-    },
-  });
-
-  // Query to poll for checkout URL
-  const checkoutStatusQuery = useQuery({
-    queryKey: ["checkout-status", workflowId],
-    queryFn: async () => {
-      if (!workflowId) {
-        return null;
-      }
-
-      const response = await fetch(`/checkout/${workflowId}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to get checkout status");
-      }
-
-      return response.json() as Promise<{ workflowId: string; url?: string }>;
-    },
-    enabled: !!workflowId,
-    refetchInterval: 1000, // Poll every 1 second
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
-  });
-
-  // Open checkout URL when it becomes available
-  const checkoutUrl = checkoutStatusQuery.data?.url;
-  if (checkoutUrl && workflowId) {
-    window.open(checkoutUrl, "_blank");
-    setWorkflowId(null); // Reset to stop polling
-  }
-
-  const handleStartCheckout = () => {
-    startCheckoutMutation.mutate({ email, interval });
-  };
-
-  const isCheckingOut = startCheckoutMutation.isPending || (workflowId && !checkoutUrl);
-  const checkoutError = startCheckoutMutation.error?.message || checkoutStatusQuery.error?.message;
+  useEffect(() => {
+    if (checkout.status === "success") {
+      openUrl(checkout.data.url);
+    }
+  }, [checkout.status]);
 
   return (
-    <>
+    <div>
       <div className="space-y-5">
         <div className="space-y-2.5">
           <Label htmlFor="email" className="text-sm font-medium">
@@ -163,18 +110,13 @@ function FreeSectionCheckout() {
       </div>
       <div className="space-y-4 pt-2">
         <Button
-          onClick={handleStartCheckout}
+          onClick={() => checkout.mutate({ email, interval })}
           className="w-full transition-colors"
-          disabled={!email || !!isCheckingOut}
+          disabled={!email || checkout.isPending}
         >
-          {isCheckingOut ? "Starting Checkout..." : "Continue to Checkout"}
+          {checkout.isPending ? "Starting Checkout..." : "Continue to Checkout"}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
-        {checkoutError && (
-          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-            {checkoutError}
-          </div>
-        )}
         <a
           href="/docs/pro"
           className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -185,7 +127,7 @@ function FreeSectionCheckout() {
           <ExternalLink className="w-3 h-3 ml-1.5" />
         </a>
       </div>
-    </>
+    </div>
   );
 }
 

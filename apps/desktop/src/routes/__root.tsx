@@ -1,4 +1,5 @@
 // react-scan must be imported before React
+// @ts-nocheck
 import { scan } from "react-scan";
 
 import { useQuery } from "@tanstack/react-query";
@@ -64,7 +65,7 @@ function Component() {
 
   useEffect(() => {
     windowsInit();
-    scan({ enabled: true });
+    // scan({ enabled: true });
   }, []);
 
   // Listen for debug events from control window

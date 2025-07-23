@@ -1,7 +1,9 @@
+import { Trans } from "@lingui/react/macro";
+import type { LinkProps } from "@tanstack/react-router";
+import { memo, useCallback } from "react";
+
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Badge } from "@hypr/ui/components/ui/badge";
-import { Trans } from "@lingui/react/macro";
-import { memo, useCallback } from "react";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
@@ -20,7 +22,11 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
   const handleCustomEndpointsClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     windowsCommands.windowShow({ type: "settings" }).then(() => {
-      windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=ai");
+      const params = { to: "/app/settings", search: { tab: "ai" } } as const satisfies LinkProps;
+
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "settings" }, { path: params.to, search: params.search });
+      }, 500);
     });
   }, []);
 

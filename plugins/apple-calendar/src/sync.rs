@@ -36,9 +36,10 @@ pub async fn sync_events(
         .iter()
         .map(|cal| cal.tracking_id.clone())
         .collect();
-    
-    let system_events_per_tracking_id = list_system_events_for_calendars(calendar_tracking_ids).await;
-    
+
+    let system_events_per_tracking_id =
+        list_system_events_for_calendars(calendar_tracking_ids).await;
+
     // Convert from tracking_id -> database_id mapping
     let mut system_events_per_selected_calendar = std::collections::HashMap::new();
     for db_calendar in &db_selected_calendars {
@@ -274,24 +275,20 @@ async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
 }
 
 async fn list_system_events_for_calendars(
-    calendar_tracking_ids: Vec<String>
+    calendar_tracking_ids: Vec<String>,
 ) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
     let now = Utc::now();
-    
-    tracing::info!("=== SYSTEM EVENTS DEBUG: Starting batch fetch for {} calendars", calendar_tracking_ids.len());
+
     for (i, id) in calendar_tracking_ids.iter().enumerate() {
-        tracing::info!("  Calendar {}: tracking_id={}", i+1, id);
+        tracing::info!("  Calendar {}: tracking_id={}", i + 1, id);
     }
-    
+
     tauri::async_runtime::spawn_blocking(move || {
         let handle = hypr_calendar_apple::Handle::new();
-        tracing::info!("=== SYSTEM EVENTS DEBUG: Created Apple Calendar handle");
-        
+
         let mut results = std::collections::HashMap::new();
-        
+
         for (i, calendar_tracking_id) in calendar_tracking_ids.iter().enumerate() {
-           
-            
             let filter = EventFilter {
                 calendar_tracking_id: calendar_tracking_id.clone(),
                 from: now,
@@ -303,12 +300,12 @@ async fn list_system_events_for_calendars(
                 std::thread::sleep(std::time::Duration::from_millis(50));
                 tracing::info!("  Applied 50ms delay after calendar {}", i);
             }
-            
+
             let events = match tokio::runtime::Handle::try_current() {
                 Ok(rt) => {
                     tracing::info!("  Using existing tokio runtime");
                     rt.block_on(handle.list_events(filter)).unwrap_or_default()
-                },
+                }
                 Err(_) => {
                     tracing::info!("  Creating new tokio runtime");
                     let rt = tokio::runtime::Builder::new_current_thread()
@@ -318,17 +315,14 @@ async fn list_system_events_for_calendars(
                     rt.block_on(handle.list_events(filter)).unwrap_or_default()
                 }
             };
-            
+
             results.insert(calendar_tracking_id.clone(), events);
         }
-        
+
         results
     })
     .await
-    .unwrap_or_else(|e| {
-        tracing::error!("=== SYSTEM EVENTS DEBUG: spawn_blocking failed: {}", e);
-        std::collections::HashMap::new()
-    })
+    .unwrap_or_else(|e| std::collections::HashMap::new())
 }
 
 async fn list_db_calendars(

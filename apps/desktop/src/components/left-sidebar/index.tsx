@@ -55,9 +55,6 @@ export default function LeftSidebar() {
         end: addDays(now, 28).toISOString(),
       });
 
-      console.log("this is the raw events");
-      console.log(rawEvents);
-
       const ongoingOrUpcomingEvents = rawEvents.filter(
         (event) => new Date(event.end_date) > now,
       );

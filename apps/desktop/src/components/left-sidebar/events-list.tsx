@@ -33,8 +33,6 @@ export default function EventsList({
   activeSessionId,
 }: EventsListProps) {
   const queryClient = useQueryClient();
-  console.log("this is the events");
-  console.log(events);
 
   const syncEventsMutation = useMutation({
     mutationFn: async () => {

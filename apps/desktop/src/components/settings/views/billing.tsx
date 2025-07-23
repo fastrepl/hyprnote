@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowRight, CreditCard, ExternalLink, Shield } from "lucide-react";
 import { useState } from "react";
 
@@ -12,10 +13,8 @@ import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 
 export default function Billing() {
-  const l = useLicense();
-
-  // Determine if user is pro based on license status
-  const isPro = l.getLicense.data?.valid === true;
+  const { getLicense } = useLicense();
+  const isPro = getLicense.data?.valid === true;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -27,19 +26,6 @@ export default function Billing() {
 }
 
 function FreeSection() {
-  const l = useLicense();
-  const [licenseKey, setLicenseKey] = useState("");
-  const [email, setEmail] = useState("");
-  const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
-
-  const onSubscribe = (email: string, interval: "monthly" | "yearly") => {
-    // TODO: Implement subscription logic
-  };
-
-  const onActivateKey = (key: string) => {
-    l.activateLicense.mutate(key);
-  };
-
   return (
     <SectionContainer title="Free Plan">
       <Tabs defaultValue="subscribe" className="space-y-6">
@@ -53,92 +39,178 @@ function FreeSection() {
         </TabsList>
 
         <TabsContent value="subscribe" className="space-y-6 pt-2">
-          <div className="space-y-5">
-            <div className="space-y-2.5">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="transition-colors focus:border-primary/20"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">
-                Billing Interval
-              </Label>
-              <RadioGroup
-                value={interval}
-                onValueChange={(value) => setInterval(value as "monthly" | "yearly")}
-                className="flex gap-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="monthly" id="monthly" />
-                  <Label
-                    htmlFor="monthly"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Monthly
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yearly" id="yearly" />
-                  <Label
-                    htmlFor="yearly"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Yearly <span className="text-primary">Save 20%</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-          <div className="space-y-4 pt-2">
-            <Button
-              onClick={() => onSubscribe(email, interval)}
-              className="w-full transition-colors"
-              disabled={!email}
-            >
-              Continue to Checkout
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <a
-              href="/docs/pro"
-              className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn more about Pro features
-              <ExternalLink className="w-3 h-3 ml-1.5" />
-            </a>
-          </div>
+          <FreeSectionCheckout />
         </TabsContent>
 
         <TabsContent value="license" className="space-y-6 pt-2">
-          <pre>{JSON.stringify(l.getLicense.data, null, 2)}</pre>
-          <div className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Enter your license key"
-              value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
-              className="font-mono transition-colors focus:border-primary/20"
-            />
-            <Button
-              onClick={() => onActivateKey(licenseKey)}
-              className="w-full transition-colors"
-              disabled={!licenseKey}
-            >
-              Activate License
-            </Button>
-          </div>
+          <FreeSectionActivate />
         </TabsContent>
       </Tabs>
     </SectionContainer>
+  );
+}
+
+function FreeSectionCheckout() {
+  const [email, setEmail] = useState("");
+  const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
+
+  const startCheckoutMutation = useMutation({
+    mutationFn: async ({ email, interval }: { email: string; interval: "monthly" | "yearly" }) => {
+      const response = await fetch("/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, interval }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start checkout");
+      }
+
+      return response.json() as Promise<{ workflowId: string; status: string; invocationId: string }>;
+    },
+    onSuccess: (data) => {
+      setWorkflowId(data.workflowId);
+    },
+    onError: (error) => {
+      console.error("Checkout error:", error);
+    },
+  });
+
+  // Query to poll for checkout URL
+  const checkoutStatusQuery = useQuery({
+    queryKey: ["checkout-status", workflowId],
+    queryFn: async () => {
+      if (!workflowId) {
+        return null;
+      }
+
+      const response = await fetch(`/checkout/${workflowId}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to get checkout status");
+      }
+
+      return response.json() as Promise<{ workflowId: string; url?: string }>;
+    },
+    enabled: !!workflowId,
+    refetchInterval: 1000, // Poll every 1 second
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Open checkout URL when it becomes available
+  const checkoutUrl = checkoutStatusQuery.data?.url;
+  if (checkoutUrl && workflowId) {
+    window.open(checkoutUrl, "_blank");
+    setWorkflowId(null); // Reset to stop polling
+  }
+
+  const handleStartCheckout = () => {
+    startCheckoutMutation.mutate({ email, interval });
+  };
+
+  const isCheckingOut = startCheckoutMutation.isPending || (workflowId && !checkoutUrl);
+  const checkoutError = startCheckoutMutation.error?.message || checkoutStatusQuery.error?.message;
+
+  return (
+    <>
+      <div className="space-y-5">
+        <div className="space-y-2.5">
+          <Label htmlFor="email" className="text-sm font-medium">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="transition-colors focus:border-primary/20"
+          />
+        </div>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            Billing Interval
+          </Label>
+          <RadioGroup
+            value={interval}
+            onValueChange={(value) => setInterval(value as "monthly" | "yearly")}
+            className="flex gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="monthly" id="monthly" />
+              <Label
+                htmlFor="monthly"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Monthly
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yearly" id="yearly" />
+              <Label
+                htmlFor="yearly"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Yearly <span className="text-primary">Save 20%</span>
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+      </div>
+      <div className="space-y-4 pt-2">
+        <Button
+          onClick={handleStartCheckout}
+          className="w-full transition-colors"
+          disabled={!email || !!isCheckingOut}
+        >
+          {isCheckingOut ? "Starting Checkout..." : "Continue to Checkout"}
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+        {checkoutError && (
+          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+            {checkoutError}
+          </div>
+        )}
+        <a
+          href="/docs/pro"
+          className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn more about Pro features
+          <ExternalLink className="w-3 h-3 ml-1.5" />
+        </a>
+      </div>
+    </>
+  );
+}
+
+function FreeSectionActivate() {
+  const { activateLicense } = useLicense();
+
+  const [licenseKey, setLicenseKey] = useState("");
+
+  return (
+    <div className="space-y-4">
+      <Input
+        type="text"
+        placeholder="Enter your license key"
+        value={licenseKey}
+        onChange={(e) => setLicenseKey(e.target.value)}
+        className="font-mono transition-colors focus:border-primary/20"
+      />
+      <Button
+        disabled={activateLicense.isPending}
+        onClick={() => activateLicense.mutate(licenseKey)}
+        className="w-full transition-colors"
+      >
+        Activate License
+      </Button>
+    </div>
   );
 }
 

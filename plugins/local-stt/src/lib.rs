@@ -8,6 +8,7 @@ mod ext;
 mod manager;
 mod model;
 mod store;
+mod temp;
 
 pub mod server;
 

@@ -1,6 +1,7 @@
 import { ArrowRight, CreditCard, ExternalLink, Shield } from "lucide-react";
 import { useState } from "react";
 
+import { useBilling } from "@/hooks/use-billing";
 import { useLicense } from "@/hooks/use-license";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -26,6 +27,7 @@ export default function Billing() {
 }
 
 function FreeSection() {
+  const l = useLicense();
   const [licenseKey, setLicenseKey] = useState("");
   const [email, setEmail] = useState("");
   const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
@@ -35,7 +37,7 @@ function FreeSection() {
   };
 
   const onActivateKey = (key: string) => {
-    // TODO: Implement license activation logic
+    l.activateLicense.mutate(key);
   };
 
   return (
@@ -117,6 +119,7 @@ function FreeSection() {
         </TabsContent>
 
         <TabsContent value="license" className="space-y-6 pt-2">
+          <pre>{JSON.stringify(l.getLicense.data, null, 2)}</pre>
           <div className="space-y-4">
             <Input
               type="text"
@@ -142,18 +145,39 @@ function FreeSection() {
 function ProSection() {
   const l = useLicense();
 
-  const onDeactivateKey = () => {
-    // TODO: Implement license deactivation logic
-  };
+  const { stripeCustomerId, stripeSubscriptionId } = l.getLicense.data?.metadata || {};
+  const b = useBilling({ stripe_customer_id: stripeCustomerId, stripe_subscription_id: stripeSubscriptionId });
 
-  const onOpenStripePortal = () => {
-    // TODO: Implement Stripe portal opening logic
+  const getSubtitle = () => {
+    if (!b.info.data) {
+      return "...";
+    }
+
+    const { price, current_period_end, cancel_at_period_end, status } = b.info.data;
+
+    if (status !== "active") {
+      return "Subscription inactive";
+    }
+
+    if (cancel_at_period_end) {
+      const endDate = new Date(current_period_end * 1000).toLocaleDateString();
+      return `Subscription ends on ${endDate}`;
+    }
+
+    const interval = price?.recurring?.interval;
+    const amount = price?.unit_amount ? (price.unit_amount / 100).toFixed(2) : "0.00";
+    const nextChargeDate = new Date(current_period_end * 1000).toLocaleDateString();
+
+    const intervalText = interval === "year" ? "yearly" : interval === "month" ? "monthly" : interval;
+
+    return `$${amount} ${intervalText} • Next charge: ${nextChargeDate}`;
   };
 
   const headerAction = (
     <Button
+      disabled={b.portal.isPending || !b.info.data}
       variant="outline"
-      onClick={onOpenStripePortal}
+      onClick={() => b.portal.mutate({})}
       className="flex items-center transition-colors hover:bg-primary/5"
     >
       <CreditCard className="w-4 h-4 mr-2" />
@@ -164,7 +188,7 @@ function ProSection() {
   return (
     <SectionContainer
       title="Pro Plan"
-      subtitle="Next charge: {/* TODO: Add billing date */} • {/* TODO: Add billing cycle */}"
+      subtitle={getSubtitle()}
       headerAction={headerAction}
     >
       <div className="space-y-6">
@@ -180,7 +204,8 @@ function ProSection() {
         <div className="pt-2">
           <Button
             variant="outline"
-            onClick={onDeactivateKey}
+            disabled={l.deactivateLicense.isPending}
+            onClick={() => l.deactivateLicense.mutate({})}
             className="text-destructive hover:text-destructive-foreground hover:bg-destructive transition-colors"
           >
             Deactivate Device

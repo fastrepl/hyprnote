@@ -35,6 +35,7 @@ export function useLicense() {
 
       return license;
     },
+    onError: console.error,
     onSuccess: (license) => {
       queryClient.setQueryData(LICENSE_QUERY_KEY, license);
     },
@@ -65,8 +66,10 @@ export function useLicense() {
         ttlSeconds: 60 * 60 * 24 * 7, // 7 days
         ttlForever: false,
       });
+      console.log("Activated license", license);
       return license;
     },
+    onError: console.error,
     onSuccess: (license) => {
       queryClient.setQueryData(LICENSE_QUERY_KEY, license);
     },
@@ -80,6 +83,7 @@ export function useLicense() {
       ]);
       return null;
     },
+    onError: console.error,
     onSuccess: (license) => {
       queryClient.setQueryData(LICENSE_QUERY_KEY, license);
     },

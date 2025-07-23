@@ -288,21 +288,15 @@ async fn list_system_events_for_calendars(
         tracing::info!("=== SYSTEM EVENTS DEBUG: Created Apple Calendar handle");
         
         let mut results = std::collections::HashMap::new();
-        let mut total_events = 0;
         
         for (i, calendar_tracking_id) in calendar_tracking_ids.iter().enumerate() {
-            tracing::info!("=== SYSTEM EVENTS DEBUG: Querying calendar {} of {} (tracking_id: {})", 
-                          i+1, calendar_tracking_ids.len(), calendar_tracking_id);
+           
             
             let filter = EventFilter {
                 calendar_tracking_id: calendar_tracking_id.clone(),
                 from: now,
                 to: now + chrono::Duration::days(28),
             };
-
-            tracing::info!("  Filter: from={}, to={}", 
-                          filter.from.format("%Y-%m-%d %H:%M:%S"), 
-                          filter.to.format("%Y-%m-%d %H:%M:%S"));
 
             // Add small delay between API calls to avoid overwhelming EventKit
             if i > 0 {
@@ -325,24 +319,7 @@ async fn list_system_events_for_calendars(
                 }
             };
             
-            tracing::info!("  ✅ Calendar {} returned {} events", i+1, events.len());
-            if events.len() > 0 {
-                tracing::info!("    Event names: {:?}", 
-                              events.iter().map(|e| &e.name).collect::<Vec<_>>());
-                tracing::info!("    Event tracking_ids: {:?}", 
-                              events.iter().map(|e| &e.id).collect::<Vec<_>>());
-            }
-            
-            total_events += events.len();
             results.insert(calendar_tracking_id.clone(), events);
-        }
-        
-        tracing::info!("=== SYSTEM EVENTS DEBUG: Batch fetch complete");
-        tracing::info!("  Total calendars queried: {}", calendar_tracking_ids.len());
-        tracing::info!("  Total events returned: {}", total_events);
-        tracing::info!("  Results summary:");
-        for (calendar_id, events) in &results {
-            tracing::info!("    {}: {} events", calendar_id, events.len());
         }
         
         results

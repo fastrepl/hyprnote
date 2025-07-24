@@ -1,8 +1,0 @@
-[package]
-name = "tauri-plugin-meeting-automation"
-version = "0.1.0"
-authors = ["You"]
-edition = "2021"
-description = "Meeting automation plugin"
-
-[dependencies]

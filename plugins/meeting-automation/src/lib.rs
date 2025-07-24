@@ -1,1 +1,0 @@
-// Meeting automation plugin - placeholder

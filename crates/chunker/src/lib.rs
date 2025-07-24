@@ -107,13 +107,13 @@ pub struct AudioChunk {
 }
 
 impl<S: AsyncSource + Unpin> Stream for VadChunkStream<S> {
-    type Item = AudioChunk;
+    type Item = Result<AudioChunk, Error>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
 
         if let Some(chunk) = this.pending_chunks.pop() {
-            return Poll::Ready(Some(chunk));
+            return Poll::Ready(Some(Ok(chunk)));
         }
 
         loop {
@@ -127,11 +127,12 @@ impl<S: AsyncSource + Unpin> Stream for VadChunkStream<S> {
                         }
 
                         if let Some(chunk) = this.pending_chunks.pop() {
-                            return Poll::Ready(Some(chunk));
+                            return Poll::Ready(Some(Ok(chunk)));
                         }
                     }
                     Err(e) => {
-                        tracing::error!("vad_chunk_stream: {}", e);
+                        let error = Error::VadProcessingFailed(e.to_string());
+                        return Poll::Ready(Some(Err(error)));
                     }
                 },
                 Poll::Ready(None) => return Poll::Ready(None),

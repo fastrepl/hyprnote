@@ -165,7 +165,20 @@ export default function EditorArea({
     }
   }, []);
 
+  const lastBacklinkSearchTime = useRef<number>(0);
+
   const handleMentionSearch = async (query: string) => {
+    const now = Date.now();
+    const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
+
+    if (timeSinceLastEvent >= 5000) {
+      analyticsCommands.event({
+        event: "searched_backlink",
+        distinct_id: userId,
+      });
+      lastBacklinkSearchTime.current = now;
+    }
+
     const session = await dbCommands.listSessions({ type: "search", query, user_id: userId, limit: 5 });
 
     return session.map((s) => ({

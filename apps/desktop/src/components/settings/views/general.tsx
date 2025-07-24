@@ -74,6 +74,7 @@ const schema = z.object({
   telemetryConsent: z.boolean().optional(),
   jargons: z.string(),
   saveRecordings: z.boolean().optional(),
+  autoPauseSilenceMinutes: z.number().min(1).max(60).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -98,6 +99,7 @@ export default function General() {
       telemetryConsent: true,
       jargons: "",
       saveRecordings: true,
+      autoPauseSilenceMinutes: 10.0,
     },
   });
 
@@ -109,6 +111,7 @@ export default function General() {
         telemetryConsent: config.data.general.telemetry_consent ?? true,
         jargons: (config.data.general.jargons ?? []).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
+        autoPauseSilenceMinutes: config.data.general.auto_pause_silence_minutes ?? 10.0,
       });
     }
   }, [config.data, form]);
@@ -127,6 +130,7 @@ export default function General() {
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         selected_template_id: config.data.general.selected_template_id,
+        auto_pause_silence_minutes: v.autoPauseSilenceMinutes ?? 10.0,
       };
 
       await dbCommands.setConfig({
@@ -185,6 +189,41 @@ export default function General() {
                     onCheckedChange={field.onChange}
                     color="gray"
                   />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="autoPauseSilenceMinutes"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>
+                    <Trans>Auto-pause after silence</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>Automatically pause recording after this many minutes of silence</Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="10 min" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 minutes</SelectItem>
+                      <SelectItem value="10">10 minutes</SelectItem>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="20">20 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
               </FormItem>
             )}

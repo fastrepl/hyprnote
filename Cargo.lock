@@ -14255,6 +14255,7 @@ dependencies = [
  "hound",
  "language",
  "listener-interface",
+ "notification2",
  "objc2 0.6.1",
  "objc2-foundation 0.3.1",
  "rodio",
@@ -14367,6 +14368,10 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.12",
 ]
+
+[[package]]
+name = "tauri-plugin-meeting-automation"
+version = "0.1.0"
 
 [[package]]
 name = "tauri-plugin-membership"

@@ -14,6 +14,8 @@ use crate::SessionEvent;
 
 const SAMPLE_RATE: u32 = 16000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
+const SILENCE_THRESHOLD: f32 = 0.01; // Amplitude threshold for silence detection
+const DEFAULT_AUTO_PAUSE_SILENCE_DURATION: Duration = Duration::from_secs(10 * 60); // 10 minutes default
 
 const WAV_SPEC: hound::WavSpec = hound::WavSpec {
     channels: 1,
@@ -201,7 +203,7 @@ impl Session {
         let session_id = id.into();
         self.session_id = Some(session_id.clone());
 
-        let (record, language, jargons) = {
+        let (record, language, jargons, auto_pause_duration) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -213,9 +215,17 @@ impl Session {
                 |c| c.general.display_language.clone(),
             );
 
-            let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
+            let jargons = config
+                .as_ref()
+                .map_or_else(Vec::new, |c| c.general.jargons.clone());
 
-            (record, language, jargons)
+            let auto_pause_duration = config
+                .as_ref()
+                .and_then(|c| c.general.auto_pause_silence_minutes)
+                .map(|minutes| Duration::from_secs_f64(minutes * 60.0))
+                .unwrap_or(DEFAULT_AUTO_PAUSE_SILENCE_DURATION);
+
+            (record, language, jargons, auto_pause_duration)
         };
 
         let session = self
@@ -235,7 +245,7 @@ impl Session {
         self.mic_muted_rx = Some(mic_muted_rx_main.clone());
         self.speaker_muted_tx = Some(speaker_muted_tx);
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
-        self.session_state_tx = Some(session_state_tx);
+        self.session_state_tx = Some(session_state_tx.clone());
 
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
@@ -287,10 +297,13 @@ impl Session {
             let save_speaker_raw_tx = channels.save_speaker_raw_tx.clone();
             let process_mic_tx = channels.process_mic_tx.clone();
             let process_speaker_tx = channels.process_speaker_tx.clone();
+            let session_state_tx = session_state_tx.clone();
+            let auto_pause_duration = auto_pause_duration;
 
             async move {
                 let mut aec = hypr_aec::AEC::new().unwrap();
                 let mut last_broadcast = Instant::now();
+                let mut silence_start: Option<Instant> = None;
 
                 // TODO: AGC might be needed.
                 const PRE_MIC_GAIN: f32 = 1.0;
@@ -332,6 +345,64 @@ impl Session {
                             tracing::error!("broadcast_error: {:?}", e);
                         }
                         last_broadcast = now;
+                    }
+
+                    // Silence detection for auto-pause
+                    let mic_amplitude = mic_chunk
+                        .iter()
+                        .map(|&x| x.abs())
+                        .max_by(|a, b| a.partial_cmp(b).unwrap())
+                        .unwrap_or(0.0);
+                    let speaker_amplitude = speaker_chunk
+                        .iter()
+                        .map(|&x| x.abs())
+                        .max_by(|a, b| a.partial_cmp(b).unwrap())
+                        .unwrap_or(0.0);
+
+                    let is_silent =
+                        mic_amplitude < SILENCE_THRESHOLD && speaker_amplitude < SILENCE_THRESHOLD;
+
+                    if is_silent {
+                        if silence_start.is_none() {
+                            silence_start = Some(now);
+                        } else if let Some(start_time) = silence_start {
+                            if now.duration_since(start_time) >= auto_pause_duration {
+                                let duration_display = if auto_pause_duration.as_secs() < 60 {
+                                    format!("{} seconds", auto_pause_duration.as_secs())
+                                } else {
+                                    format!("{} minutes", auto_pause_duration.as_secs() / 60)
+                                };
+
+                                tracing::info!(
+                                    "Auto-pausing due to {} of silence",
+                                    duration_display
+                                );
+
+                                // Show native notification
+                                let notif = hypr_notification2::Notification {
+                                    title: "Recording paused".to_string(),
+                                    message: format!(
+                                        "Automatically paused after {} of silence",
+                                        duration_display
+                                    ),
+                                    url: None,
+                                    timeout: Some(std::time::Duration::from_secs(5)),
+                                };
+                                hypr_notification2::show(notif);
+
+                                if let Err(e) = session_state_tx.send(State::RunningPaused {}) {
+                                    tracing::error!("Failed to auto-pause session: {:?}", e);
+                                }
+                                // Trigger the state machine pause event
+                                if let Some(state) = app.try_state::<crate::SharedState>() {
+                                    let mut guard = state.lock().await;
+                                    guard.fsm.handle(&crate::fsm::StateEvent::Pause).await;
+                                }
+                                silence_start = None; // Reset silence tracking
+                            }
+                        }
+                    } else {
+                        silence_start = None; // Reset silence tracking when audio is detected
                     }
 
                     if let Some(ref tx) = save_mic_raw_tx {

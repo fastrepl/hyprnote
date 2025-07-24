@@ -164,7 +164,14 @@ export default function ModelDownloadNotification() {
       ],
       dismissible: false,
     });
-  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data, isDismissed, sttModelExists.data, llmModelExists.data]);
+  }, [
+    checkForModelDownload.data,
+    sttModelDownloading.data,
+    llmModelDownloading.data,
+    isDismissed,
+    sttModelExists.data,
+    llmModelExists.data,
+  ]);
 
   return null;
 }

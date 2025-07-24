@@ -207,10 +207,7 @@ async fn process_transcription_stream(
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
-                if confidence < 0.1 {
-                    tracing::warn!(confidence, "skipping_transcript: {}", text);
-                    continue;
-                }
+
 
                 let source = meta.and_then(|meta|
                     meta.get("source")

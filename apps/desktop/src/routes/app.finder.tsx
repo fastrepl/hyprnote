@@ -4,14 +4,16 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
 
 import { ViewSelector } from "@/components/finder/view-selector";
-import { CalendarView, FolderView, TableView } from "@/components/finder/views";
+import { CalendarView, FolderView, TableView, ContactView } from "@/components/finder/views";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
-  view: z.enum(["folder", "calendar", "table"]).default("calendar"),
+  view: z.enum(["folder", "calendar", "table", "contact"]).default("calendar"),
   date: z.string().optional(),
   sessionId: z.string().optional(),
+  personId: z.string().optional(),
+  orgId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/finder")({
@@ -146,11 +148,16 @@ export const Route = createFileRoute("/app/finder")({
     if (search.view === "folder") {
       return baseData;
     }
+
+    if (search.view === "contact") {
+      return baseData;
+    }
+
     return baseData;
   },
 });
 
-export type ViewType = "folder" | "calendar" | "table";
+export type ViewType = "folder" | "calendar" | "table" | "contact";
 
 interface LoaderData {
   view: ViewType;
@@ -162,6 +169,8 @@ interface LoaderData {
 function FinderView() {
   const { view, date, sessions, events } = Route.useLoaderData() as LoaderData;
   const navigate = Route.useNavigate();
+  const { userId } = Route.useRouteContext();
+  const searchParams = Route.useSearch();
 
   const handleViewChange = (newView: ViewType) => {
     navigate({
@@ -189,7 +198,7 @@ function FinderView() {
         <ViewSelector currentView={view} onViewChange={handleViewChange} />
       </div>
 
-      <div className={cn("flex-1 overflow-hidden", view !== "calendar" && "p-4")}>
+      <div className={cn("flex-1 overflow-hidden", view !== "calendar" && view !== "contact" && "p-4")}>
         {view === "folder" && (
           <FolderView
             date={date}
@@ -210,6 +219,13 @@ function FinderView() {
             sessions={sessions}
             events={events}
             onNavigate={handleNavigate}
+          />
+        )}
+        {view === "contact" && (
+          <ContactView 
+            userId={userId} 
+            initialPersonId={searchParams.personId}
+            initialOrgId={searchParams.orgId}
           />
         )}
       </div>

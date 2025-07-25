@@ -1,8 +1,8 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Calendar, Folder, Table } from "lucide-react";
+import { Calendar, Folder, Table, Users } from "lucide-react";
 
-type ViewType = "folder" | "calendar" | "table";
+type ViewType = "folder" | "calendar" | "table" | "contact";
 
 interface ViewSelectorProps {
   currentView: ViewType;
@@ -49,6 +49,19 @@ export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
       >
         <Table size={14} />
         {currentView === "table" && "Table"}
+      </Button>
+
+      <Button
+        variant={currentView === "contact" ? "default" : "ghost"}
+        size="sm"
+        className={cn(
+          "h-8 transition-all",
+          currentView === "contact" ? "px-1.5 py-1 min-w-[90px]" : "w-8 px-0 py-0",
+        )}
+        onClick={() => onViewChange("contact")}
+      >
+        <Users size={14} />
+        {currentView === "contact" && "Contact"}
       </Button>
     </div>
   );

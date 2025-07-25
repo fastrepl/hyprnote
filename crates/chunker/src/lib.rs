@@ -71,6 +71,7 @@ pub trait VadExt: AsyncSource + Sized {
     {
         let config = VadConfig {
             redemption_time: Duration::from_millis(600),
+            min_speech_time: Duration::from_millis(50),
             ..Default::default()
         };
 

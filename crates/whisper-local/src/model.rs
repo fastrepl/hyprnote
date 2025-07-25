@@ -179,7 +179,13 @@ impl Whisper {
             .filter(|s| {
                 let t = s.text.trim().to_lowercase();
 
-                if s.confidence < 0.005 || t == "you" || t == "thank you" || t == "🎵" {
+                if s.confidence < 0.005
+                    || t == "you"
+                    || t == "thank you"
+                    || t == "you."
+                    || t == "thank you."
+                    || t == "🎵"
+                {
                     false
                 } else {
                     true

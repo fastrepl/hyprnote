@@ -396,23 +396,26 @@ function MicrophoneSelector({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: devices = [], isLoading } = useQuery({
-    queryKey: ["microphone-devices"],
+  const allDevicesQuery = useQuery({
+    queryKey: ["microphone", "devices"],
     queryFn: () => listenerCommands.listMicrophoneDevices(),
-    refetchOnWindowFocus: false,
-    refetchInterval: 1000,
   });
 
-  const { data: selectedDevice } = useQuery({
-    queryKey: ["current-microphone-device"],
+  const currentDeviceQuery = useQuery({
+    queryKey: ["microphone", "current-device"],
     queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
-    refetchOnWindowFocus: false,
-    refetchInterval: 1000,
   });
 
   const handleSelectDevice = (device: string) => {
-    listenerCommands.setMicrophoneDevice(device);
+    listenerCommands.setMicrophoneDevice(device).then(() => {
+      currentDeviceQuery.refetch();
+    });
   };
+
+  useEffect(() => {
+    console.log("currentDeviceQuery.data", currentDeviceQuery.data);
+    console.log("allDevicesQuery.data", allDevicesQuery.data);
+  }, [currentDeviceQuery.data, allDevicesQuery.data]);
 
   const Icon = isMuted ? MicOffIcon : MicIcon;
 
@@ -453,14 +456,14 @@ function MicrophoneSelector({
               <span className="text-sm font-medium">Microphone</span>
             </div>
 
-            {isLoading
+            {allDevicesQuery.isLoading
               ? (
                 <div className="p-4 text-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-neutral-600 mx-auto"></div>
                   <p className="text-sm text-neutral-500 mt-2">Loading devices...</p>
                 </div>
               )
-              : devices.length === 0
+              : allDevicesQuery.data?.length === 0
               ? (
                 <div className="p-4 text-center">
                   <p className="text-sm text-neutral-500">No microphones found</p>
@@ -468,8 +471,8 @@ function MicrophoneSelector({
               )
               : (
                 <div className="space-y-1">
-                  {devices.map((device) => {
-                    const isSelected = device === selectedDevice;
+                  {allDevicesQuery.data?.map((device) => {
+                    const isSelected = device === currentDeviceQuery.data;
                     return (
                       <Button
                         key={device}

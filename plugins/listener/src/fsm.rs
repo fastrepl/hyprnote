@@ -181,10 +181,12 @@ pub struct Session {
 
 impl Session {
     pub fn new(app: tauri::AppHandle) -> Self {
+        let mic_device_name = hypr_audio::AudioInput::get_default_mic_device_name();
+
         Self {
             app,
             session_id: None,
-            mic_device_name: None,
+            mic_device_name: Some(mic_device_name),
             mic_muted_tx: None,
             mic_muted_rx: None,
             speaker_muted_tx: None,
@@ -241,17 +243,12 @@ impl Session {
 
         let listen_client = setup_listen_client(&self.app, language, jargons).await?;
 
-        // Create mic input with device selection
         let mic_sample_stream = {
             let mut input = match &self.mic_device_name {
                 Some(device_name) => {
-                    tracing::info!("Using mic device: {}", device_name);
                     hypr_audio::AudioInput::from_mic_with_device_name(device_name.clone())
                 }
-                None => {
-                    tracing::info!("Using default mic device");
-                    hypr_audio::AudioInput::from_mic()
-                }
+                None => hypr_audio::AudioInput::from_mic(),
             };
             input.stream()
         };
@@ -636,35 +633,15 @@ impl Session {
                 Handled
             }
             StateEvent::MicChange(device_name) => {
-                // Store the new device name
                 self.mic_device_name = device_name.clone();
 
-                // If we have an active session (indicated by session_id and tasks), restart with the new device
                 if self.session_id.is_some() && self.tasks.is_some() {
                     if let Some(session_id) = self.session_id.clone() {
-                        // Teardown current resources
                         self.teardown_resources().await;
-
-                        // Setup with new mic device
-                        match self.setup_resources(&session_id).await {
-                            Ok(_) => {
-                                tracing::info!(
-                                    "Successfully changed mic device to: {:?}",
-                                    device_name
-                                );
-                                // Emit an event to notify the UI if needed
-                                // SessionEvent::MicChanged { device_name: device_name.clone() }.emit(&self.app);
-                            }
-                            Err(e) => {
-                                tracing::error!("Failed to change mic device: {:?}", e);
-                                // Optionally emit an error event
-                            }
-                        }
+                        self.setup_resources(&session_id).await.unwrap();
                     }
-                } else {
-                    // Just store the device name for next session
-                    tracing::info!("Mic device will be used in next session: {:?}", device_name);
                 }
+
                 Handled
             }
             _ => Super,

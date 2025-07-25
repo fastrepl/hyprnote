@@ -20,7 +20,6 @@ export function NoteCard({
   const { userId } = useHypr();
   const [open, setOpen] = useState(false);
 
-  // Fetch linked event if this session is connected to a calendar event
   const linkedEvent = useQuery({
     queryKey: ["session-linked-event", session.calendar_event_id],
     queryFn: async () => {
@@ -72,7 +71,6 @@ export function NoteCard({
   };
 
   const getStartDate = () => {
-    // If recorded, use record_start; otherwise use created_at
     if (session.record_start) {
       return new Date(session.record_start);
     }
@@ -80,11 +78,9 @@ export function NoteCard({
   };
 
   const getEndDate = () => {
-    // Only return end date if this is a recorded session
     if (session.record_start && session.record_end) {
       return new Date(session.record_end);
     }
-    // For unrecorded notes, return same as start (single point in time)
     return getStartDate();
   };
 
@@ -112,7 +108,6 @@ export function NoteCard({
         <p className="text-sm mb-2 text-neutral-600">
           {shouldShowRange
             ? (
-              // Recorded session: show record range
               <>
                 {format(getStartDate(), "MMM d, h:mm a")}
                 {" - "}
@@ -123,7 +118,6 @@ export function NoteCard({
               </>
             )
             : (
-              // Unrecorded note: show just creation time
               <>
                 Created: {format(getStartDate(), "MMM d, h:mm a")}
               </>

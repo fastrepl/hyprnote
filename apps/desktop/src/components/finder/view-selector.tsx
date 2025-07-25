@@ -61,7 +61,7 @@ export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
         onClick={() => onViewChange("contact")}
       >
         <Users size={14} />
-        {currentView === "contact" && "Contact"}
+        {currentView === "contact" && "Contacts"}
       </Button>
     </div>
   );

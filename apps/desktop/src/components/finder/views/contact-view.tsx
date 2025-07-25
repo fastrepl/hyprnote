@@ -8,22 +8,17 @@ import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Briefcase,
   Building2,
-  Calendar,
-  Check,
   CircleMinus,
   FileText,
-  LinkedinIcon,
-  Mail,
   Pencil,
   Plus,
   SearchIcon,
   User,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState, useRef } from "react";
+import { RiCornerDownLeftLine } from "@remixicon/react";
 
 interface ContactViewProps {
   userId: string;
@@ -55,7 +50,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     queryKey: ["all-people", userId],
     queryFn: async () => {
       try {
-        // Pass an empty search to get all humans
         const allHumans = await dbCommands.listHumans({ search: [100, ""] });
         return allHumans;
       } catch (error) {
@@ -73,7 +67,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         return [];
       }
 
-      // Get all sessions for the user
       const sessions = await dbCommands.listSessions({
         type: "search",
         query: "",
@@ -81,7 +74,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         limit: 100,
       });
 
-      // For each session, check if the person is a participant
       const sessionsWithPerson = [];
       for (const session of sessions) {
         try {
@@ -103,22 +95,12 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
 
-  useEffect(() => {
-    // Only auto-select first organization if we don't have any initial selections
-    // and the user hasn't explicitly selected "All People" (selectedOrganization === null)
-    if (selectedOrganization === undefined && organizations.length > 0 && !initialOrgId && !initialPersonId) {
-      // Don't auto-select, let the user choose
-      setSelectedOrganization(null);
-    }
-  }, [organizations, initialOrgId, initialPersonId]);
-
   // Handle initial person selection
   useEffect(() => {
     if (initialPersonId && allPeople.length > 0) {
       const person = allPeople.find(p => p.id === initialPersonId);
       if (person) {
         setSelectedPerson(initialPersonId);
-        // If person has an organization, select it
         if (person.organization_id) {
           setSelectedOrganization(person.organization_id);
         }
@@ -328,7 +310,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                   </div>
 
                   <div className="flex-1 p-6">
-                    <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
+                    <h3 className="text-sm font-medium text-neutral-600 mb-4 pl-3">Related Notes</h3>
                     <div className="h-full overflow-y-auto">
                       <div className="space-y-2">
                         {personSessions.length > 0
@@ -346,15 +328,14 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                                   </span>
                                 </div>
                                 {session.created_at && (
-                                  <div className="flex items-center gap-2 text-xs text-neutral-500">
-                                    <Calendar className="h-3 w-3" />
+                                  <div className="text-xs text-neutral-500">
                                     {new Date(session.created_at).toLocaleDateString()}
                                   </div>
                                 )}
                               </button>
                             ))
                           )
-                          : <p className="text-sm text-neutral-500">No related notes found</p>}
+                          : <p className="text-sm text-neutral-500 pl-3">No related notes found</p>}
                       </div>
                     </div>
                   </div>
@@ -418,11 +399,10 @@ function EditPersonForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-people"] });
       queryClient.invalidateQueries({ queryKey: ["organization-members"] });
-      toast.success("Contact updated successfully");
       onSave();
     },
     onError: () => {
-      toast.error("Failed to update contact");
+      console.error("Failed to update contact");
     },
   });
 
@@ -431,9 +411,22 @@ function EditPersonForm({
     updatePersonMutation.mutate(formData);
   };
 
+  const getInitials = (name: string) => {
+    if (!name) {
+      return "?";
+    }
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-      <div className="px-6 py-4 border-b border-neutral-200">
+    <div className="flex-1 flex flex-col">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Edit Contact</h3>
           <div className="flex gap-2">
@@ -442,109 +435,185 @@ function EditPersonForm({
               variant="ghost"
               size="sm"
               onClick={onCancel}
+              className="hover:bg-gray-100 text-gray-700"
             >
-              <X className="h-4 w-4" />
+              Cancel
             </Button>
             <Button
-              type="submit"
+              onClick={handleSubmit}
+              variant="ghost"
               size="sm"
               disabled={updatePersonMutation.isPending}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700"
             >
-              <Check className="h-4 w-4 mr-1" />
               Save
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-1.5">
-            <User className="h-4 w-4" />
-            Full Name
-          </label>
-          <Input
-            value={formData.full_name}
-            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            placeholder="John Doe"
-            className="w-full"
-          />
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Avatar Section */}
+        <div className="flex flex-col items-center py-6">
+          <div className="w-24 h-24 mb-3 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-xl font-semibold text-gray-600">
+              {getInitials(formData.full_name || "?")}
+            </span>
+          </div>
         </div>
 
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-1.5">
-            <Mail className="h-4 w-4" />
-            Email
-          </label>
-          <Input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="john@example.com"
-            className="w-full"
-          />
-        </div>
+        {/* Form Section */}
+        <div className="border-t border-gray-200">
+          {/* Name Field */}
+          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="w-28 text-sm text-gray-500">Name</div>
+            <div className="flex-1">
+              <Input
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="John Doe"
+                className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </div>
 
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-1.5">
-            <Briefcase className="h-4 w-4" />
-            Job Title
-          </label>
-          <Input
-            value={formData.job_title}
-            onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-            placeholder="Software Engineer"
-            className="w-full"
-          />
-        </div>
+          {/* Job Title Field */}
+          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="w-28 text-sm text-gray-500">Job Title</div>
+            <div className="flex-1">
+              <Input
+                value={formData.job_title}
+                onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                placeholder="Software Engineer"
+                className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </div>
 
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-1.5">
-            <Building2 className="h-4 w-4" />
-            Organization
-          </label>
-          <OrganizationSelector
-            value={formData.organization_id}
-            onChange={(orgId) => setFormData({ ...formData, organization_id: orgId })}
-          />
-        </div>
+          {/* Company Field */}
+          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="w-28 text-sm text-gray-500">Company</div>
+            <div className="flex-1">
+              <ContactOrganizationSelector
+                value={formData.organization_id}
+                onChange={(orgId) => setFormData({ ...formData, organization_id: orgId })}
+              />
+            </div>
+          </div>
 
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-1.5">
-            <LinkedinIcon className="h-4 w-4" />
-            LinkedIn
-          </label>
-          <Input
-            value={formData.linkedin_username}
-            onChange={(e) => setFormData({ ...formData, linkedin_username: e.target.value })}
-            placeholder="linkedin.com/in/johndoe"
-            className="w-full"
-          />
+          {/* Email Field */}
+          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="w-28 text-sm text-gray-500">Email</div>
+            <div className="flex-1">
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="john@example.com"
+                className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </div>
+
+          {/* LinkedIn Field */}
+          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+            <div className="w-28 text-sm text-gray-500">LinkedIn</div>
+            <div className="flex-1">
+              <Input
+                value={formData.linkedin_username}
+                onChange={(e) => setFormData({ ...formData, linkedin_username: e.target.value })}
+                placeholder="https://www.linkedin.com/in/johntopia/"
+                className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </div>
         </div>
       </div>
-    </form>
+    </div>
   );
 }
 
-function OrganizationSelector({
+function ContactOrganizationSelector({
   value,
   onChange,
 }: {
   value: string | null;
   onChange: (orgId: string | null) => void;
 }) {
-  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: selectedOrg } = useQuery({
-    queryKey: ["organization", value],
+  const { data: organization } = useQuery({
+    queryKey: ["org", value],
     queryFn: () => (value ? dbCommands.getOrganization(value) : null),
     enabled: !!value,
   });
 
+  const handleRemoveOrganization = () => {
+    onChange(null);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div className="flex flex-row items-center cursor-pointer">
+          {organization
+            ? (
+              <div className="flex items-center">
+                <span className="text-base">{organization.name}</span>
+                <span className="ml-2 text-gray-400 group">
+                  <CircleMinus
+                    className="size-4 cursor-pointer text-gray-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveOrganization();
+                    }}
+                  />
+                </span>
+              </div>
+            )
+            : <span className="text-gray-500 text-base">Select organization</span>}
+        </div>
+      </PopoverTrigger>
+
+      <PopoverContent className="shadow-lg p-3" align="start" side="bottom">
+        <OrganizationControl onChange={onChange} closePopover={() => setOpen(false)} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OrganizationControl({
+  onChange,
+  closePopover,
+}: {
+  onChange: (orgId: string | null) => void;
+  closePopover: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const addOrganizationMutation = useMutation({
+    mutationFn: async ({ name }: { name: string }) => {
+      const newOrg = await dbCommands.upsertOrganization({
+        id: crypto.randomUUID(),
+        name,
+        description: null,
+      });
+
+      onChange(newOrg.id);
+      return newOrg;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["organizations"],
+      });
+      closePopover();
+    },
+  });
+
   const { data: organizations = [] } = useQuery({
-    queryKey: ["organizations-search", searchTerm],
+    queryKey: ["organizations", searchTerm],
     queryFn: () => {
       if (!searchTerm) {
         return dbCommands.listOrganizations(null);
@@ -553,122 +622,113 @@ function OrganizationSelector({
     },
   });
 
-  const createOrgMutation = useMutation({
-    mutationFn: async ({ name }: { name: string }) => {
-      const newOrg = await dbCommands.upsertOrganization({
-        id: crypto.randomUUID(),
-        name,
-        description: null,
-      });
-      return newOrg;
-    },
-    onSuccess: (org) => {
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      onChange(org.id);
-      setOpen(false);
-      setSearchTerm("");
-    },
-  });
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const handleRemoveOrganization = () => {
-    onChange(null);
-  };
+    const name = searchTerm.trim();
+    if (name === "") {
+      return;
+    }
 
-  const selectOrganization = (orgId: string) => {
-    onChange(orgId);
-    setOpen(false);
+    addOrganizationMutation.mutate({ name });
+    setSearchTerm("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
+
       const name = searchTerm.trim();
-      if (name !== "") {
-        createOrgMutation.mutate({ name });
+      if (name === "") {
+        return;
       }
+
+      addOrganizationMutation.mutate({ name });
+      setSearchTerm("");
     }
   };
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="flex items-center justify-between w-full px-3 py-2 border border-neutral-200 rounded-md text-sm cursor-pointer hover:bg-neutral-50">
-          {selectedOrg
-            ? (
-              <div className="flex items-center justify-between w-full">
-                <span>{selectedOrg.name}</span>
-                <CircleMinus
-                  className="h-4 w-4 text-neutral-400 hover:text-red-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveOrganization();
-                  }}
-                />
-              </div>
-            )
-            : <span className="text-neutral-500">Select organization</span>}
-        </div>
-      </PopoverTrigger>
+  const selectOrganization = (orgId: string) => {
+    onChange(orgId);
+    closePopover();
+  };
 
-      <PopoverContent className="w-[300px] p-3" align="start" side="bottom">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded bg-neutral-50 border border-neutral-200">
-            <SearchIcon className="h-4 w-4 text-neutral-500 flex-shrink-0" />
+  return (
+    <div className="flex flex-col gap-3 max-w-[450px]">
+      <div className="text-sm font-medium text-gray-700">Organization</div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-gray-50 border border-gray-200">
+            <span className="text-gray-500 flex-shrink-0">
+              <SearchIcon className="size-4" />
+            </span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search or add company"
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
-              autoFocus
+              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
           {searchTerm.trim() && (
-            <div className="rounded border border-neutral-200 overflow-hidden">
+            <div className="flex flex-col w-full rounded border border-gray-200 overflow-hidden">
               {organizations.map((org) => (
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-neutral-100 w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <Building2 className="h-4 w-4 text-neutral-500" />
-                  <span className="truncate">{org.name}</span>
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-100 rounded-full">
+                    <Building2 className="size-3" />
+                  </span>
+                  <span className="font-medium truncate">{org.name}</span>
                 </button>
               ))}
+
               {organizations.length === 0 && (
                 <button
                   type="button"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-neutral-100 w-full"
-                  onClick={() => createOrgMutation.mutate({ name: searchTerm.trim() })}
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
+                  onClick={() => addOrganizationMutation.mutate({ name: searchTerm.trim() })}
                 >
-                  <Plus className="h-4 w-4 text-neutral-500" />
-                  <span>Create "{searchTerm.trim()}"</span>
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-200 rounded-full">
+                    <span className="text-xs">+</span>
+                  </span>
+                  <span className="flex items-center gap-1 font-medium text-gray-600">
+                    Create
+                    <span className="text-gray-900 truncate max-w-[140px]">
+                      &quot;{searchTerm.trim()}&quot;
+                    </span>
+                  </span>
                 </button>
               )}
             </div>
           )}
 
           {!searchTerm.trim() && organizations.length > 0 && (
-            <div className="rounded border border-neutral-200 overflow-hidden max-h-[200px] overflow-y-auto">
+            <div className="flex flex-col w-full rounded border border-gray-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
               {organizations.map((org) => (
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-neutral-100 w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <Building2 className="h-4 w-4 text-neutral-500" />
-                  <span className="truncate">{org.name}</span>
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-100 rounded-full">
+                    <Building2 className="size-3" />
+                  </span>
+                  <span className="font-medium truncate">{org.name}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </form>
+    </div>
   );
 }
 
@@ -682,10 +742,8 @@ function EditOrganizationForm({
   onCancel: () => void;
 }) {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
-    name: organization.name,
-    description: organization.description || "",
-  });
+  const [name, setName] = useState(organization.name);
+  const formRef = useRef<HTMLDivElement>(null);
 
   const updateOrgMutation = useMutation({
     mutationFn: (data: Partial<Organization>) =>
@@ -696,50 +754,70 @@ function EditOrganizationForm({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
       queryClient.invalidateQueries({ queryKey: ["organization", organization.id] });
-      toast.success("Organization updated");
       onSave();
     },
     onError: () => {
-      toast.error("Failed to update organization");
+      console.error("Failed to update organization");
     },
   });
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(event.target as Node)) {
+        onCancel();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onCancel]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateOrgMutation.mutate(formData);
+    if (name.trim()) {
+      updateOrgMutation.mutate({ name: name.trim() });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (name.trim()) {
+        updateOrgMutation.mutate({ name: name.trim() });
+      }
+    }
+    if (e.key === "Escape") {
+      onCancel();
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-2">
-      <div className="bg-white border border-neutral-200 rounded-md p-3 space-y-2">
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Organization name"
-          className="text-sm h-8"
-          autoFocus
-        />
-        <div className="flex gap-1">
-          <Button
-            type="submit"
-            size="sm"
-            className="h-7 text-xs"
-            disabled={updateOrgMutation.isPending || !formData.name.trim()}
-          >
-            <Check className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={onCancel}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+    <div className="p-2" ref={formRef}>
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Organization name"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            autoFocus
+          />
+          {name.trim() && (
+            <button
+              type="submit"
+              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              aria-label="Save organization"
+            >
+              <RiCornerDownLeftLine className="size-4" />
+            </button>
+          )}
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
 
@@ -752,6 +830,7 @@ function NewOrganizationForm({
 }) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
+  const formRef = useRef<HTMLDivElement>(null);
 
   const createOrgMutation = useMutation({
     mutationFn: (name: string) =>
@@ -762,13 +841,25 @@ function NewOrganizationForm({
       }),
     onSuccess: (org) => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      toast.success("Organization created");
       onSave(org);
     },
     onError: () => {
-      toast.error("Failed to create organization");
+      console.error("Failed to create organization");
     },
   });
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(event.target as Node)) {
+        onCancel();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onCancel]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -777,36 +868,42 @@ function NewOrganizationForm({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (name.trim()) {
+        createOrgMutation.mutate(name.trim());
+      }
+    }
+    if (e.key === "Escape") {
+      onCancel();
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="p-2">
-      <div className="bg-white border border-neutral-200 rounded-md p-3 space-y-2">
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="New organization name"
-          className="text-sm h-8"
-          autoFocus
-        />
-        <div className="flex gap-1">
-          <Button
-            type="submit"
-            size="sm"
-            className="h-7 text-xs"
-            disabled={createOrgMutation.isPending || !name.trim()}
-          >
-            <Check className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={onCancel}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+    <div className="p-2" ref={formRef}>
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Add organization"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            autoFocus
+          />
+          {name.trim() && (
+            <button
+              type="submit"
+              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              aria-label="Add organization"
+            >
+              <RiCornerDownLeftLine className="size-4" />
+            </button>
+          )}
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

@@ -402,18 +402,6 @@ function EditPersonForm({
     updatePersonMutation.mutate(formData);
   };
 
-  const getInitials = (name: string) => {
-    if (!name) {
-      return "?";
-    }
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
   return (
     <div className="flex-1 flex flex-col">
       {/* Header */}

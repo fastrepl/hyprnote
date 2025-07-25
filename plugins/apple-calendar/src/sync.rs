@@ -322,7 +322,7 @@ async fn list_system_events_for_calendars(
         results
     })
     .await
-    .unwrap_or_else(|e| std::collections::HashMap::new())
+    .unwrap_or_default()
 }
 
 async fn list_db_calendars(

@@ -62,7 +62,7 @@ tauri-plugin-os = "2"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
 tauri-plugin-process = "2"
 tauri-plugin-sentry = { version = "0.4.1", features = ["tracing"] }
-tauri-plugin-shell = "2"
+tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = "2"

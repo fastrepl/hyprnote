@@ -80,6 +80,7 @@ tauri-plugin-fs = "2.4"
 tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.4"
+tauri-plugin-shell = "2.3"
 tauri-plugin-store = "2.3"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -148,7 +149,8 @@ inventory = "0.3.20"
 serial_test = "3"
 testcontainers-modules = "0.11.5"
 
-axum = "0.8.1"
+axum = "0.8.4"
+axum-extra = "0.10.1"
 tower = "0.5.2"
 tower-http = "0.6.2"
 

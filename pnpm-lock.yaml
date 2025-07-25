@@ -865,8 +865,8 @@ importers:
   packages/utils:
     dependencies:
       '@ai-sdk/openai-compatible':
-        specifier: ^0.2.14
-        version: 0.2.14(zod@3.25.76)
+        specifier: ^0.2.16
+        version: 0.2.16(zod@3.25.76)
       '@date-fns/tz':
         specifier: ^1.2.0
         version: 1.2.0
@@ -898,8 +898,8 @@ importers:
         specifier: ^2.4.4
         version: 2.4.4
       ai:
-        specifier: ^4.3.16
-        version: 4.3.17(react@18.3.1)(zod@3.25.76)
+        specifier: ^4.3.19
+        version: 4.3.19(react@18.3.1)(zod@3.25.76)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -1048,8 +1048,8 @@ importers:
 
 packages:
 
-  '@ai-sdk/openai-compatible@0.2.14':
-    resolution: {integrity: sha512-icjObfMCHKSIbywijaoLdZ1nSnuRnWgMEMLgwoxPJgxsUHMx0aVORnsLUid4SPtdhHI3X2masrt6iaEQLvOSFw==}
+  '@ai-sdk/openai-compatible@0.2.16':
+    resolution: {integrity: sha512-LkvfcM8slJedRyJa/MiMiaOzcMjV1zNDwzTHEGz7aAsgsQV0maLfmJRi/nuSwf5jmp0EouC+JXXDUj2l94HgQw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -4674,16 +4674,6 @@ packages:
   agent-base@7.1.3:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
-
-  ai@4.3.17:
-    resolution: {integrity: sha512-uWqIQ94Nb1GTYtYElGHegJMOzv3r2mCKNFlKrqkft9xrfvIahTI5OdcnD5U9612RFGuUNGmSDTO1/YRNFXobaQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      react: ^18 || ^19 || ^19.0.0-rc
-      zod: ^3.23.8
-    peerDependenciesMeta:
-      react:
-        optional: true
 
   ai@4.3.19:
     resolution: {integrity: sha512-dIE2bfNpqHN3r6IINp9znguYdhIOheKW2LDigAMrgt/upT3B8eBGPSCblENvaZGoq+hxaN9fSMzjWpbqloP+7Q==}
@@ -10099,7 +10089,7 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/openai-compatible@0.2.14(zod@3.25.76)':
+  '@ai-sdk/openai-compatible@0.2.16(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
@@ -14088,18 +14078,6 @@ snapshots:
   acorn@8.15.0: {}
 
   agent-base@7.1.3: {}
-
-  ai@4.3.17(react@18.3.1)(zod@3.25.76):
-    dependencies:
-      '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
-      '@ai-sdk/react': 1.2.12(react@18.3.1)(zod@3.25.76)
-      '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
-      '@opentelemetry/api': 1.9.0
-      jsondiffpatch: 0.6.0
-      zod: 3.25.76
-    optionalDependencies:
-      react: 18.3.1
 
   ai@4.3.19(react@18.3.1)(zod@3.25.76):
     dependencies:

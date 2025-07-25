@@ -70,7 +70,8 @@ pub trait VadExt: AsyncSource + Sized {
         Self: Unpin,
     {
         let config = VadConfig {
-            post_speech_pad: Duration::from_millis(50),
+            redemption_time: Duration::from_millis(600),
+            min_speech_time: Duration::from_millis(50),
             ..Default::default()
         };
 

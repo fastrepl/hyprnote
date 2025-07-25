@@ -738,6 +738,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
     {
         let chat_group_1 = ChatGroup {
             id: uuid::Uuid::new_v4().to_string(),
+            session_id: sessions[0].id.clone(),
             user_id: user.clone().id,
             name: Some("Chat Group 1".to_string()),
             created_at: now,

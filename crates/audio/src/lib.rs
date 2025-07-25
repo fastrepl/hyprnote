@@ -11,6 +11,7 @@ pub use speaker::*;
 pub use stream::*;
 
 pub use cpal;
+use cpal::traits::{DeviceTrait, HostTrait};
 
 use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
@@ -70,10 +71,36 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
+    pub fn get_default_mic_device_name() -> String {
+        let host = cpal::default_host();
+        let device = host.default_input_device().unwrap();
+        device.name().unwrap().to_string()
+    }
+
+    pub fn list_mic_devices() -> Vec<String> {
+        let host = cpal::default_host();
+
+        let devices = host.input_devices().unwrap();
+
+        devices
+            .filter_map(|d| d.name().ok())
+            .filter(|d| d != "hypr-audio-tap")
+            .collect()
+    }
+
     pub fn from_mic() -> Self {
         Self {
             source: AudioSource::RealtimeMic,
             mic: Some(MicInput::default()),
+            speaker: None,
+            data: None,
+        }
+    }
+
+    pub fn from_mic_with_device_name(device_name: String) -> Self {
+        Self {
+            source: AudioSource::RealtimeMic,
+            mic: Some(MicInput::from_device(device_name)),
             speaker: None,
             data: None,
         }
@@ -94,6 +121,14 @@ impl AudioInput {
             mic: None,
             speaker: None,
             data: Some(data),
+        }
+    }
+
+    pub fn device_name(&self) -> String {
+        match &self.source {
+            AudioSource::RealtimeMic => self.mic.as_ref().unwrap().device_name(),
+            AudioSource::RealtimeSpeaker => "TODO".to_string(),
+            AudioSource::Recorded => "TODO".to_string(),
         }
     }
 

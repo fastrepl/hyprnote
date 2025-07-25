@@ -6,13 +6,14 @@ use std::{
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        Query, State as AxumState,
+        State as AxumState,
     },
     http::StatusCode,
     response::IntoResponse,
     routing::get,
     Router,
 };
+use axum_extra::extract::Query;
 
 use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};
@@ -124,8 +125,15 @@ async fn websocket_with_model(
     let model_cache_dir = state.model_cache_dir.clone();
     let model_path = model_cache_dir.join(model_type.file_name());
 
+    let languages: Vec<hypr_whisper::Language> = params
+        .languages
+        .into_iter()
+        .filter_map(|lang| lang.try_into().ok())
+        .collect();
+
     let model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.to_str().unwrap())
+        .languages(languages)
         .static_prompt(&params.static_prompt)
         .dynamic_prompt(&params.dynamic_prompt)
         .build();
@@ -207,10 +215,7 @@ async fn process_transcription_stream(
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
-                if confidence < 0.1 {
-                    tracing::warn!(confidence, "skipping_transcript: {}", text);
-                    continue;
-                }
+
 
                 let source = meta.and_then(|meta|
                     meta.get("source")

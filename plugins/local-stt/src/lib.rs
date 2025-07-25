@@ -133,7 +133,7 @@ mod test {
             .api_base(api_base)
             .api_key("NONE")
             .params(hypr_listener_interface::ListenParams {
-                language: hypr_language::ISO639::En.into(),
+                languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
             .build_single();

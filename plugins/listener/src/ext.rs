@@ -1,7 +1,6 @@
 use std::future::Future;
 
 use futures_util::StreamExt;
-use hypr_audio::cpal::traits::{DeviceTrait, HostTrait};
 
 #[cfg(target_os = "macos")]
 use {
@@ -11,6 +10,13 @@ use {
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn get_current_microphone_device(
+        &self,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn set_microphone_device(
+        &self,
+        device_name: impl Into<String>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -34,13 +40,30 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
-        let host = hypr_audio::cpal::default_host();
-        let devices = host.input_devices()?;
+        Ok(hypr_audio::AudioInput::list_mic_devices())
+    }
 
-        Ok(devices
-            .filter_map(|d| d.name().ok())
-            .filter(|d| d != "hypr-audio-tap")
-            .collect())
+    #[tracing::instrument(skip_all)]
+    async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+        Ok(s.fsm.get_current_mic_device())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn set_microphone_device(
+        &self,
+        device_name: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::StateEvent::MicChange(Some(device_name.into()));
+            guard.fsm.handle(&event).await;
+        }
+
+        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

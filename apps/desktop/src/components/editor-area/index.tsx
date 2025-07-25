@@ -317,6 +317,9 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      const abortController = new AbortController();
+      setEnhanceController(abortController);
+
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -378,9 +381,7 @@ export function useEnhanceMutation({
         },
       );
 
-      const abortController = new AbortController();
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
-      setEnhanceController(abortController);
 
       const provider = await modelProvider();
       const model = sessionId === onboardingSessionId
@@ -442,7 +443,7 @@ export function useEnhanceMutation({
 
       return text.then(miscCommands.opinionatedMdToHtml);
     },
-    onSuccess: (enhancedContent) => {
+    onSuccess: (enhancedContent: string | undefined) => {
       onSuccess(enhancedContent ?? "");
 
       analyticsCommands.event({
@@ -458,6 +459,8 @@ export function useEnhanceMutation({
       if (actualIsLocalLlm) {
         setProgress(0);
       }
+
+      setEnhanceController(null);
     },
     onError: (error) => {
       console.error(error);
@@ -468,6 +471,8 @@ export function useEnhanceMutation({
       if (!(error as unknown as string).includes("cancel")) {
         enhanceFailedToast();
       }
+
+      setEnhanceController(null);
     },
   });
 

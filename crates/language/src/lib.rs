@@ -1,10 +1,14 @@
 mod error;
 pub use error::*;
 
+use std::str::FromStr;
+
 pub use codes_iso_639::part_1::LanguageCode as ISO639;
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, specta::Type, schemars::JsonSchema)]
 pub struct Language {
+    #[specta(type = String)]
+    #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
     iso639: ISO639,
 }
 
@@ -336,5 +340,25 @@ impl Language {
             ISO639::Zh => Ok(String::from("文字记录")),
             _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
+    }
+}
+
+impl serde::Serialize for Language {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.iso639().code())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Language {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let code = String::deserialize(deserializer)?;
+        let iso639 = ISO639::from_str(&code).map_err(serde::de::Error::custom)?;
+        Ok(iso639.into())
     }
 }

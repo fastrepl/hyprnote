@@ -6,19 +6,10 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Building2,
-  CircleMinus,
-  FileText,
-  Pencil,
-  Plus,
-  SearchIcon,
-  User,
-  X,
-} from "lucide-react";
-import { useEffect, useState, useRef } from "react";
 import { RiCornerDownLeftLine } from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface ContactViewProps {
   userId: string;
@@ -768,9 +759,9 @@ function EditOrganizationForm({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onCancel]);
 
@@ -855,9 +846,9 @@ function NewOrganizationForm({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onCancel]);
 

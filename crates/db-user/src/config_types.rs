@@ -45,6 +45,7 @@ user_common_derives! {
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,
         pub selected_template_id: Option<String>,
+        pub auto_pause_silence_minutes: Option<f64>,
     }
 }
 
@@ -57,6 +58,7 @@ impl Default for ConfigGeneral {
             telemetry_consent: true,
             save_recordings: Some(true),
             selected_template_id: None,
+            auto_pause_silence_minutes: Some(10.0),
         }
     }
 }

@@ -14,9 +14,9 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:275
-msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
-msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+#: src/components/settings/views/general.tsx:358
+msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
+msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:22
@@ -209,6 +209,11 @@ msgid "{weeks} weeks later"
 msgstr "{weeks} weeks later"
 
 #. js-lingui-explicit-id
+#: src/components/settings/views/general.tsx:275
+#~ msgid "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+#~ msgstr "Type jargons (e.g., Blitz Meeting, PaC Squad)"
+
+#. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:168
 #~ msgid "just now"
 #~ msgstr "just now"
@@ -314,6 +319,10 @@ msgstr "Add members"
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:311
 msgid "Add participant"
 msgstr "Add participant"
+
+#: src/components/settings/views/general.tsx:349
+msgid "Add specific terms or jargon for improved transcription accuracy"
+msgstr "Add specific terms or jargon for improved transcription accuracy"
 
 #: src/components/settings/views/team.tsx:142
 #: src/components/settings/views/team.tsx:229
@@ -436,13 +445,13 @@ msgstr "Chat with meeting notes"
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr "Choose the language you want to use for the speech-to-text model and language model"
 
-#: src/components/settings/views/general.tsx:177
+#: src/components/settings/views/general.tsx:186
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
 #: src/components/settings/views/general.tsx:230
-msgid "Choose your preferred language of use"
-msgstr "Choose your preferred language of use"
+#~ msgid "Choose your preferred language of use"
+#~ msgstr "Choose your preferred language of use"
 
 #: src/components/settings/components/wer-modal.tsx:126
 msgid "Close"
@@ -539,6 +548,10 @@ msgstr "Current Plan"
 msgid "Custom Endpoint"
 msgstr "Custom Endpoint"
 
+#: src/components/settings/views/general.tsx:346
+msgid "Custom Vocabulary"
+msgstr "Custom Vocabulary"
+
 #: src/components/settings/components/ai/llm-view.tsx:149
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr "Default (llama-3.2-3b-q4)"
@@ -564,6 +577,10 @@ msgstr "Description"
 #: src/components/editor-area/note-header/listen-button.tsx:349
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
+
+#: src/components/settings/views/general.tsx:236
+msgid "Display language"
+msgstr "Display language"
 
 #. placeholder {0}: metadata?.size && `(${metadata.size})`
 #: src/components/settings/components/ai/stt-view.tsx:237
@@ -692,7 +709,7 @@ msgstr "Get Started"
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/components/settings/views/general.tsx:203
+#: src/components/settings/views/general.tsx:212
 msgid "Help us improve Hyprnote by sharing anonymous usage data"
 msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
@@ -741,8 +758,8 @@ msgid "Invite members"
 msgstr "Invite members"
 
 #: src/components/settings/views/general.tsx:263
-msgid "Jargons"
-msgstr "Jargons"
+#~ msgid "Jargons"
+#~ msgstr "Jargons"
 
 #: src/components/settings/views/profile.tsx:139
 msgid "Job title"
@@ -761,8 +778,8 @@ msgstr "Key decisions"
 #~ msgstr "Lab"
 
 #: src/components/settings/views/general.tsx:227
-msgid "Language"
-msgstr "Language"
+#~ msgid "Language"
+#~ msgstr "Language"
 
 #: src/components/settings/views/billing.tsx:200
 msgid "Learn more about our pricing plans"
@@ -971,6 +988,10 @@ msgstr "Performance difference between languages"
 msgid "Play video"
 msgstr "Play video"
 
+#: src/components/settings/views/general.tsx:239
+msgid "Primary language for the interface"
+msgstr "Primary language for the interface"
+
 #: src/components/settings/views/billing.tsx:33
 msgid "Pro"
 msgstr "Pro"
@@ -1024,7 +1045,7 @@ msgstr "Role"
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
 
-#: src/components/settings/views/general.tsx:174
+#: src/components/settings/views/general.tsx:183
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1069,6 +1090,10 @@ msgstr "Select a transcribing model"
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
+#: src/components/settings/views/general.tsx:268
+msgid "Select languages you speak for better transcription"
+msgstr "Select languages you speak for better transcription"
+
 #: src/components/settings/components/ai/llm-view.tsx:253
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr "Select or enter the model name required by your endpoint."
@@ -1081,7 +1106,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:200
+#: src/components/settings/views/general.tsx:209
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1100,6 +1125,10 @@ msgstr "Single sign-on for all users"
 #: src/routes/app.settings.tsx:116
 #~ msgid "Sound"
 #~ msgstr "Sound"
+
+#: src/components/settings/views/general.tsx:265
+msgid "Spoken languages"
+msgstr "Spoken languages"
 
 #: src/components/settings/views/billing.tsx:76
 msgid "Start Annual Plan"
@@ -1311,8 +1340,8 @@ msgstr "Works offline"
 #~ msgstr "Yes, activate speaker"
 
 #: src/components/settings/views/general.tsx:266
-msgid "You can make Hyprnote takes these words into account when transcribing"
-msgstr "You can make Hyprnote takes these words into account when transcribing"
+#~ msgid "You can make Hyprnote takes these words into account when transcribing"
+#~ msgstr "You can make Hyprnote takes these words into account when transcribing"
 
 #: src/components/settings/views/integrations.tsx:207
 msgid "Your API key for Obsidian local-rest-api plugin."

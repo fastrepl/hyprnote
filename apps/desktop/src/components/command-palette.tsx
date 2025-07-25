@@ -285,8 +285,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         // Open finder window and navigate to contact view with person selected
         windowsCommands.windowShow({ type: "finder" }).then(() => {
           windowsCommands.windowNavigate(
-            { type: "finder" }, 
-            `/app/finder?view=contact&personId=${match.item.id}`
+            { type: "finder" },
+            `/app/finder?view=contact&personId=${match.item.id}`,
           );
         });
         break;
@@ -294,8 +294,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         // Open finder window and navigate to contact view with organization selected
         windowsCommands.windowShow({ type: "finder" }).then(() => {
           windowsCommands.windowNavigate(
-            { type: "finder" }, 
-            `/app/finder?view=contact&orgId=${match.item.id}`
+            { type: "finder" },
+            `/app/finder?view=contact&orgId=${match.item.id}`,
           );
         });
         break;

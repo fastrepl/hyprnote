@@ -4,7 +4,7 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
 
 import { ViewSelector } from "@/components/finder/view-selector";
-import { CalendarView, FolderView, TableView, ContactView } from "@/components/finder/views";
+import { CalendarView, ContactView, FolderView, TableView } from "@/components/finder/views";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -222,8 +222,8 @@ function FinderView() {
           />
         )}
         {view === "contact" && (
-          <ContactView 
-            userId={userId} 
+          <ContactView
+            userId={userId}
             initialPersonId={searchParams.personId}
             initialOrgId={searchParams.orgId}
           />

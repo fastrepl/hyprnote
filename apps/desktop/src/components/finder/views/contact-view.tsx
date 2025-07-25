@@ -1,16 +1,29 @@
-import { useState, useEffect } from "react";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { cn } from "@hypr/ui/lib/utils";
-import { Building2, User, Calendar, FileText, Pencil, X, Check, Mail, Briefcase, LinkedinIcon, Plus, CircleMinus, SearchIcon } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
-import { type Organization, type Human, type Session } from "@hypr/plugin-db";
-import { Input } from "@hypr/ui/components/ui/input";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { type Human, type Organization } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { toast } from "sonner";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  Check,
+  CircleMinus,
+  FileText,
+  LinkedinIcon,
+  Mail,
+  Pencil,
+  Plus,
+  SearchIcon,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface ContactViewProps {
   userId: string;
@@ -24,7 +37,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: organizations = [] } = useQuery({
@@ -34,7 +46,8 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   const { data: people = [] } = useQuery({
     queryKey: ["organization-members", selectedOrganization],
-    queryFn: () => selectedOrganization ? dbCommands.listOrganizationMembers(selectedOrganization) : Promise.resolve([]),
+    queryFn: () =>
+      selectedOrganization ? dbCommands.listOrganizationMembers(selectedOrganization) : Promise.resolve([]),
     enabled: !!selectedOrganization,
   });
 
@@ -56,8 +69,10 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const { data: personSessions = [] } = useQuery({
     queryKey: ["person-sessions", selectedPerson, userId],
     queryFn: async () => {
-      if (!selectedPerson) return [];
-      
+      if (!selectedPerson) {
+        return [];
+      }
+
       // Get all sessions for the user
       const sessions = await dbCommands.listSessions({
         type: "search",
@@ -65,7 +80,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         user_id: userId,
         limit: 100,
       });
-      
+
       // For each session, check if the person is a participant
       const sessionsWithPerson = [];
       for (const session of sessions) {
@@ -78,7 +93,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
           console.error("Error fetching participants for session", session.id, error);
         }
       }
-      
+
       return sessionsWithPerson;
     },
     enabled: !!selectedPerson,
@@ -154,7 +169,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
               onClick={() => setSelectedOrganization(null)}
               className={cn(
                 "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors",
-                !selectedOrganization && "bg-neutral-100"
+                !selectedOrganization && "bg-neutral-100",
               )}
             >
               <User className="h-4 w-4 text-neutral-500" />
@@ -170,39 +185,41 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
               />
             )}
             {organizations.map((org) => (
-              editingOrg === org.id ? (
-                <EditOrganizationForm
-                  key={org.id}
-                  organization={org}
-                  onSave={() => setEditingOrg(null)}
-                  onCancel={() => setEditingOrg(null)}
-                />
-              ) : (
-                <div
-                  key={org.id}
-                  className={cn(
-                    "group relative rounded-md transition-colors",
-                    selectedOrganization === org.id && "bg-neutral-100"
-                  )}
-                >
-                  <button
-                    onClick={() => setSelectedOrganization(org.id)}
-                    className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
+              editingOrg === org.id
+                ? (
+                  <EditOrganizationForm
+                    key={org.id}
+                    organization={org}
+                    onSave={() => setEditingOrg(null)}
+                    onCancel={() => setEditingOrg(null)}
+                  />
+                )
+                : (
+                  <div
+                    key={org.id}
+                    className={cn(
+                      "group relative rounded-md transition-colors",
+                      selectedOrganization === org.id && "bg-neutral-100",
+                    )}
                   >
-                    <Building2 className="h-4 w-4 text-neutral-500" />
-                    {org.name}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditOrganization(org.id);
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
-                  >
-                    <Pencil className="h-3 w-3 text-neutral-500" />
-                  </button>
-                </div>
-              )
+                    <button
+                      onClick={() => setSelectedOrganization(org.id)}
+                      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
+                    >
+                      <Building2 className="h-4 w-4 text-neutral-500" />
+                      {org.name}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditOrganization(org.id);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
+                    >
+                      <Pencil className="h-3 w-3 text-neutral-500" />
+                    </button>
+                  </div>
+                )
             ))}
           </div>
         </div>
@@ -242,7 +259,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 onClick={() => setSelectedPerson(person.id)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-neutral-100 transition-colors flex items-center gap-2",
-                  selectedPerson === person.id && "bg-neutral-100"
+                  selectedPerson === person.id && "bg-neutral-100",
                 )}
               >
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
@@ -263,86 +280,92 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
       </div>
 
       <div className="flex-1 flex flex-col">
-        {selectedPersonData ? (
-          editingPerson === selectedPersonData.id ? (
-            <EditPersonForm
-              person={selectedPersonData}
-              organizations={organizations}
-              onSave={() => setEditingPerson(null)}
-              onCancel={() => setEditingPerson(null)}
-            />
-          ) : (
-            <>
-              <div className="px-6 py-4 border-b border-neutral-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                    <span className="text-lg font-medium text-neutral-600">
-                      {getInitials(selectedPersonData.full_name || selectedPersonData.email)}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold">{selectedPersonData.full_name || "Unnamed Contact"}</h2>
-                        {selectedPersonData.job_title && (
-                          <p className="text-sm text-neutral-600">{selectedPersonData.job_title}</p>
-                        )}
-                        {selectedPersonData.email && (
-                          <p className="text-sm text-neutral-500">{selectedPersonData.email}</p>
-                        )}
-                        {selectedPersonData.organization_id && (
-                          <OrganizationInfo organizationId={selectedPersonData.organization_id} />
-                        )}
+        {selectedPersonData
+          ? (
+            editingPerson === selectedPersonData.id
+              ? (
+                <EditPersonForm
+                  person={selectedPersonData}
+                  organizations={organizations}
+                  onSave={() => setEditingPerson(null)}
+                  onCancel={() => setEditingPerson(null)}
+                />
+              )
+              : (
+                <>
+                  <div className="px-6 py-4 border-b border-neutral-200">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
+                        <span className="text-lg font-medium text-neutral-600">
+                          {getInitials(selectedPersonData.full_name || selectedPersonData.email)}
+                        </span>
                       </div>
-                      <button
-                        onClick={() => handleEditPerson(selectedPersonData.id)}
-                        className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
-                      >
-                        <Pencil className="h-4 w-4 text-neutral-500" />
-                      </button>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h2 className="text-lg font-semibold">
+                              {selectedPersonData.full_name || "Unnamed Contact"}
+                            </h2>
+                            {selectedPersonData.job_title && (
+                              <p className="text-sm text-neutral-600">{selectedPersonData.job_title}</p>
+                            )}
+                            {selectedPersonData.email && (
+                              <p className="text-sm text-neutral-500">{selectedPersonData.email}</p>
+                            )}
+                            {selectedPersonData.organization_id && (
+                              <OrganizationInfo organizationId={selectedPersonData.organization_id} />
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleEditPerson(selectedPersonData.id)}
+                            className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
+                          >
+                            <Pencil className="h-4 w-4 text-neutral-500" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-            <div className="flex-1 p-6">
-              <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
-              <div className="h-full overflow-y-auto">
-                <div className="space-y-2">
-                  {personSessions.length > 0 ? (
-                    personSessions.map((session) => (
-                      <button
-                        key={session.id}
-                        onClick={() => handleSessionClick(session.id)}
-                        className="w-full text-left p-3 rounded-md border border-neutral-200 hover:bg-neutral-50 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <FileText className="h-4 w-4 text-neutral-500" />
-                          <span className="font-medium text-sm">
-                            {session.title || "Untitled Note"}
-                          </span>
-                        </div>
-                        {session.created_at && (
-                          <div className="flex items-center gap-2 text-xs text-neutral-500">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(session.created_at).toLocaleDateString()}
-                          </div>
-                        )}
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-sm text-neutral-500">No related notes found</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            </>
+                  <div className="flex-1 p-6">
+                    <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
+                    <div className="h-full overflow-y-auto">
+                      <div className="space-y-2">
+                        {personSessions.length > 0
+                          ? (
+                            personSessions.map((session) => (
+                              <button
+                                key={session.id}
+                                onClick={() => handleSessionClick(session.id)}
+                                className="w-full text-left p-3 rounded-md border border-neutral-200 hover:bg-neutral-50 transition-colors"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <FileText className="h-4 w-4 text-neutral-500" />
+                                  <span className="font-medium text-sm">
+                                    {session.title || "Untitled Note"}
+                                  </span>
+                                </div>
+                                {session.created_at && (
+                                  <div className="flex items-center gap-2 text-xs text-neutral-500">
+                                    <Calendar className="h-3 w-3" />
+                                    {new Date(session.created_at).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </button>
+                            ))
+                          )
+                          : <p className="text-sm text-neutral-500">No related notes found</p>}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )
           )
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-sm text-neutral-500">Select a person to view details</p>
-          </div>
-        )}
+          : (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-sm text-neutral-500">Select a person to view details</p>
+            </div>
+          )}
       </div>
     </div>
   );
@@ -355,7 +378,9 @@ function OrganizationInfo({ organizationId }: { organizationId: string }) {
     enabled: !!organizationId,
   });
 
-  if (!organization) return null;
+  if (!organization) {
+    return null;
+  }
 
   return (
     <p className="text-sm text-neutral-500">
@@ -364,12 +389,12 @@ function OrganizationInfo({ organizationId }: { organizationId: string }) {
   );
 }
 
-function EditPersonForm({ 
-  person, 
+function EditPersonForm({
+  person,
   organizations,
-  onSave, 
-  onCancel 
-}: { 
+  onSave,
+  onCancel,
+}: {
   person: Human;
   organizations: Organization[];
   onSave: () => void;
@@ -381,11 +406,11 @@ function EditPersonForm({
     email: person.email || "",
     job_title: person.job_title || "",
     linkedin_username: person.linkedin_username || "",
-    organization_id: person.organization_id
+    organization_id: person.organization_id,
   });
 
   const updatePersonMutation = useMutation({
-    mutationFn: (data: Partial<Human>) => 
+    mutationFn: (data: Partial<Human>) =>
       dbCommands.upsertHuman({
         ...person,
         ...data,
@@ -398,7 +423,7 @@ function EditPersonForm({
     },
     onError: () => {
       toast.error("Failed to update contact");
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -478,7 +503,7 @@ function EditPersonForm({
             <Building2 className="h-4 w-4" />
             Organization
           </label>
-          <OrganizationSelector 
+          <OrganizationSelector
             value={formData.organization_id}
             onChange={(orgId) => setFormData({ ...formData, organization_id: orgId })}
           />
@@ -501,10 +526,10 @@ function EditPersonForm({
   );
 }
 
-function OrganizationSelector({ 
-  value, 
-  onChange 
-}: { 
+function OrganizationSelector({
+  value,
+  onChange,
+}: {
   value: string | null;
   onChange: (orgId: string | null) => void;
 }) {
@@ -568,20 +593,20 @@ function OrganizationSelector({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-center justify-between w-full px-3 py-2 border border-neutral-200 rounded-md text-sm cursor-pointer hover:bg-neutral-50">
-          {selectedOrg ? (
-            <div className="flex items-center justify-between w-full">
-              <span>{selectedOrg.name}</span>
-              <CircleMinus
-                className="h-4 w-4 text-neutral-400 hover:text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveOrganization();
-                }}
-              />
-            </div>
-          ) : (
-            <span className="text-neutral-500">Select organization</span>
-          )}
+          {selectedOrg
+            ? (
+              <div className="flex items-center justify-between w-full">
+                <span>{selectedOrg.name}</span>
+                <CircleMinus
+                  className="h-4 w-4 text-neutral-400 hover:text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveOrganization();
+                  }}
+                />
+              </div>
+            )
+            : <span className="text-neutral-500">Select organization</span>}
         </div>
       </PopoverTrigger>
 
@@ -647,11 +672,11 @@ function OrganizationSelector({
   );
 }
 
-function EditOrganizationForm({ 
-  organization, 
-  onSave, 
-  onCancel 
-}: { 
+function EditOrganizationForm({
+  organization,
+  onSave,
+  onCancel,
+}: {
   organization: Organization;
   onSave: () => void;
   onCancel: () => void;
@@ -659,11 +684,11 @@ function EditOrganizationForm({
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: organization.name,
-    description: organization.description || ""
+    description: organization.description || "",
   });
 
   const updateOrgMutation = useMutation({
-    mutationFn: (data: Partial<Organization>) => 
+    mutationFn: (data: Partial<Organization>) =>
       dbCommands.upsertOrganization({
         ...organization,
         ...data,
@@ -676,7 +701,7 @@ function EditOrganizationForm({
     },
     onError: () => {
       toast.error("Failed to update organization");
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -718,10 +743,10 @@ function EditOrganizationForm({
   );
 }
 
-function NewOrganizationForm({ 
-  onSave, 
-  onCancel 
-}: { 
+function NewOrganizationForm({
+  onSave,
+  onCancel,
+}: {
   onSave: (org: Organization) => void;
   onCancel: () => void;
 }) {
@@ -729,7 +754,7 @@ function NewOrganizationForm({
   const [name, setName] = useState("");
 
   const createOrgMutation = useMutation({
-    mutationFn: (name: string) => 
+    mutationFn: (name: string) =>
       dbCommands.upsertOrganization({
         id: crypto.randomUUID(),
         name,
@@ -742,7 +767,7 @@ function NewOrganizationForm({
     },
     onError: () => {
       toast.error("Failed to create organization");
-    }
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {

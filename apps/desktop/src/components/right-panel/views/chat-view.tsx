@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useHypr, useRightPanel } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
-import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as dbCommands, type ChatGroup, type ChatMessage, type ChatMessageRole } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { modelProvider, streamText } from "@hypr/utils/ai";
@@ -52,6 +52,38 @@ export function ChatView() {
 
   const sessionId = activeEntity?.type === "note" ? activeEntity.id : null;
 
+  // Load persisted chat messages for this session
+  const chatMessagesQuery = useQuery({
+    enabled: !!sessionId,
+    queryKey: ["chat-messages", sessionId],
+    queryFn: async () => {
+      if (!sessionId || !userId) return [];
+      
+      // Try to find existing chat group for this session
+      const chatGroups = await dbCommands.listChatGroups(userId);
+      let chatGroup = chatGroups.find(group => group.id === sessionId);
+      
+      // If no chat group exists, create one
+      if (!chatGroup) {
+        chatGroup = await dbCommands.createChatGroup({
+          id: sessionId,
+          user_id: userId,
+          name: null,
+          created_at: new Date().toISOString(),
+        });
+      }
+      
+      // Load existing messages
+      const dbMessages = await dbCommands.listChatMessages(sessionId);
+      return dbMessages.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        isUser: msg.role === "User",
+        timestamp: new Date(msg.created_at),
+      }));
+    },
+  });
+
   const sessionData = useQuery({
     enabled: !!sessionId,
     queryKey: ["session", "chat-context", sessionId],
@@ -76,30 +108,54 @@ export function ChatView() {
   });
 
   useEffect(() => {
-    if (!hasChatStarted) {
-      if (noteMatch) {
-        const noteId = noteMatch.params.id;
-        setActiveEntity({
-          id: noteId,
-          type: "note",
-        });
-      } else if (humanMatch) {
-        const humanId = humanMatch.params.id;
-        setActiveEntity({
-          id: humanId,
-          type: "human",
-        });
-      } else if (organizationMatch) {
-        const orgId = organizationMatch.params.id;
-        setActiveEntity({
-          id: orgId,
-          type: "organization",
-        });
-      } else {
-        setActiveEntity(null);
-      }
+    let newEntity = null;
+    
+    if (noteMatch) {
+      const noteId = noteMatch.params.id;
+      newEntity = {
+        id: noteId,
+        type: "note" as const,
+      };
+    } else if (humanMatch) {
+      const humanId = humanMatch.params.id;
+      newEntity = {
+        id: humanId,
+        type: "human" as const,
+      };
+    } else if (organizationMatch) {
+      const orgId = organizationMatch.params.id;
+      newEntity = {
+        id: orgId,
+        type: "organization" as const,
+      };
     }
-  }, [noteMatch, humanMatch, organizationMatch, hasChatStarted]);
+    
+    // Check if we're switching to a different session
+    const isDifferentSession = !activeEntity || 
+      (newEntity && (activeEntity.id !== newEntity.id || activeEntity.type !== newEntity.type));
+    
+    if (isDifferentSession) {
+      setActiveEntity(newEntity);
+      // Reset chat state when switching sessions
+      setMessages([]);
+      setInputValue("");
+      setShowHistory(false);
+      setHasChatStarted(false);
+      setIsGenerating(false);
+    }
+  }, [noteMatch, humanMatch, organizationMatch, activeEntity]);
+
+  // Initialize messages from database when they load
+  useEffect(() => {
+    if (chatMessagesQuery.data && chatMessagesQuery.data.length > 0) {
+      setMessages(chatMessagesQuery.data);
+      setHasChatStarted(true);
+    } else if (chatMessagesQuery.data && chatMessagesQuery.data.length === 0) {
+      // No messages for this session - show empty state
+      setMessages([]);
+      setHasChatStarted(false);
+    }
+  }, [chatMessagesQuery.data]);
 
   useEffect(() => {
     if (isExpanded) {
@@ -118,6 +174,23 @@ export function ChatView() {
   };
 
   const sessions = useSessions((state) => state.sessions);
+
+  // Helper function to save a message to the database
+  const saveMessageToDb = async (message: Message) => {
+    if (!sessionId || !userId) return;
+    
+    try {
+      await dbCommands.upsertChatMessage({
+        id: message.id,
+        group_id: sessionId,
+        created_at: message.timestamp.toISOString(),
+        role: message.isUser ? "User" : "Assistant",
+        content: message.content,
+      });
+    } catch (error) {
+      console.error("Failed to save message to database:", error);
+    }
+  };
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -149,6 +222,27 @@ export function ChatView() {
     let freshSessionData = refetchResult.data;
 
     const { type } = await connectorCommands.getLlmConnection();
+    
+    // Get participants from database like the editor area does (only if sessionId exists)
+    const participants = sessionId ? await dbCommands.sessionListParticipants(sessionId) : [];
+    
+    // Get calendar event information if sessionId exists
+    const calendarEvent = sessionId ? await dbCommands.sessionGetEvent(sessionId) : null;
+    
+    // Get current date and time
+    const currentDateTime = new Date().toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    // Format event information if available
+    const eventInfo = calendarEvent 
+      ? `${calendarEvent.name} (${calendarEvent.start_date} - ${calendarEvent.end_date})${calendarEvent.note ? ` - ${calendarEvent.note}` : ''}`
+      : "";
 
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,
@@ -158,6 +252,9 @@ export function ChatView() {
       rawContent: freshSessionData?.rawContent,
       preMeetingContent: freshSessionData?.preMeetingContent,
       type: type,
+      date: currentDateTime,
+      participants: participants,
+      event: eventInfo,
     });
 
     console.log("systemContent", systemContent);
@@ -214,6 +311,9 @@ export function ChatView() {
     const currentInput = inputValue;
     setInputValue("");
 
+    // Save user message to database
+    await saveMessageToDb(userMessage);
+
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
@@ -255,6 +355,15 @@ export function ChatView() {
 
       // Generation complete - enable submit
       setIsGenerating(false);
+
+      // Save final AI message to database
+      const finalAiMessage = {
+        id: aiMessageId,
+        content: aiResponse,
+        isUser: false,
+        timestamp: new Date(),
+      };
+      await saveMessageToDb(finalAiMessage);
     } catch (error) {
       console.error("AI error:", error);
 
@@ -268,6 +377,9 @@ export function ChatView() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+      
+      // Save error message to database
+      await saveMessageToDb(aiMessage);
     }
   };
 
@@ -304,6 +416,9 @@ export function ChatView() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+
+    // Save user message to database
+    await saveMessageToDb(userMessage);
 
     try {
       const provider = await modelProvider();
@@ -346,6 +461,15 @@ export function ChatView() {
 
       // Generation complete
       setIsGenerating(false);
+
+      // Save final AI message to database
+      const finalAiMessage = {
+        id: aiMessageId,
+        content: aiResponse,
+        isUser: false,
+        timestamp: new Date(),
+      };
+      await saveMessageToDb(finalAiMessage);
     } catch (error) {
       console.error("AI error:", error);
       const aiMessage: Message = {
@@ -357,6 +481,9 @@ export function ChatView() {
       setMessages((prev) => [...prev, aiMessage]);
       // Error occurred
       setIsGenerating(false);
+      
+      // Save error message to database
+      await saveMessageToDb(aiMessage);
     }
 
     if (chatInputRef.current) {
@@ -375,6 +502,8 @@ export function ChatView() {
     setInputValue("");
     setShowHistory(false);
     setHasChatStarted(false);
+    // Note: We don't clear the database messages, just the UI state
+    // If user wants to see old messages, they can refresh or navigate away and back
   };
 
   const handleViewHistory = () => {

@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
@@ -168,22 +170,22 @@ const specificityLevels = {
   1: {
     title: "Conservative",
     description:
-      "Minimal creative changes. Preserves your original writing style and content while making only essential improvements to clarity and flow.",
+      "Minimal AI autonomy. Closely follows your original content and structure while making only essential improvements to clarity and organization.",
   },
   2: {
     title: "Balanced",
     description:
-      "Moderate creative input. Enhances your content with some stylistic improvements while maintaining the core message and tone.",
+      "Moderate AI autonomy. Makes independent decisions about structure and phrasing while respecting your core message and intended tone.",
   },
   3: {
-    title: "Creative",
+    title: "Autonomous",
     description:
-      "More creative freedom. Actively improves and expands content with additional context, examples, and engaging language.",
+      "High AI autonomy. Takes initiative in restructuring and expanding content, making independent decisions about organization and presentation.",
   },
   4: {
-    title: "Innovative",
+    title: "Full Autonomy",
     description:
-      "Maximum creativity. Transforms content with rich language, fresh perspectives, and creative restructuring while preserving key information.",
+      "Maximum AI autonomy. Independently transforms and enhances content with complete freedom in structure, language, and presentation while preserving key information.",
   },
 } as const;
 
@@ -195,6 +197,8 @@ export default function LocalAI() {
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [sttModels, setSttModels] = useState(initialSttModels);
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
+
+  const { userId } = useHypr();
 
   const handleModelDownload = async (modelKey: string) => {
     // If the key does not start with "Quantized", treat it as an LLM download.
@@ -872,10 +876,10 @@ export default function LocalAI() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Creativity Level</Trans>
+                            <Trans>Autonomy Selector</Trans>
                           </FormLabel>
                           <FormDescription className="text-xs">
-                            <Trans>Control how creative the AI enhancement should be</Trans>
+                            <Trans>Control how autonomousthe AI enhancement should be</Trans>
                           </FormDescription>
                           <FormControl>
                             <div className="space-y-3">
@@ -889,6 +893,11 @@ export default function LocalAI() {
                                       onClick={() => {
                                         field.onChange(level);
                                         aiConfigMutation.mutate({ aiSpecificity: level });
+                                        analyticsCommands.event({
+                                          event: "autonomy_selected",
+                                          distinct_id: userId,
+                                          level: level,
+                                        });
                                       }}
                                       disabled={!customLLMEnabled.data}
                                       className={cn(

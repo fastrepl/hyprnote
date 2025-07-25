@@ -178,14 +178,22 @@ impl Whisper {
     }
 
     fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
-        if self.languages.is_empty() {
+        if self.languages.len() == 0 {
+            return Ok(None);
+        }
+
+        if self.languages.len() == 1 {
+            let lang = &self.languages[0];
+            return Ok(Some(lang.to_string()));
+        }
+
+        let lang_str = {
             self.state.pcm_to_mel(audio, 1)?;
             let (lang_id, _lang_probs) = self.state.lang_detect(0, 1)?;
-            let lang_str = whisper_rs::get_lang_str(lang_id);
-            Ok(lang_str.map(|s| s.to_owned()))
-        } else {
-            Ok(None)
-        }
+            whisper_rs::get_lang_str(lang_id)
+        };
+
+        Ok(lang_str.map(|s| s.to_owned()))
     }
 
     fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {

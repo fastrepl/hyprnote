@@ -38,18 +38,18 @@ impl ListenClientBuilder {
         };
 
         url.set_path("/api/desktop/listen/realtime");
-        let languages_str = params
-            .languages
-            .iter()
-            .map(|lang| lang.iso639().code())
-            .collect::<Vec<_>>()
-            .join(",");
 
-        url.query_pairs_mut()
-            .append_pair("languages", &languages_str)
-            .append_pair("static_prompt", &params.static_prompt)
-            .append_pair("dynamic_prompt", &params.dynamic_prompt)
-            .append_pair("audio_mode", params.audio_mode.as_ref());
+        {
+            let mut query_pairs = url.query_pairs_mut();
+
+            for lang in &params.languages {
+                query_pairs.append_pair("languages", lang.iso639().code());
+            }
+            query_pairs
+                .append_pair("static_prompt", &params.static_prompt)
+                .append_pair("dynamic_prompt", &params.dynamic_prompt)
+                .append_pair("audio_mode", params.audio_mode.as_ref());
+        }
 
         let host = url.host_str().unwrap();
 

@@ -6,13 +6,14 @@ use std::{
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        Query, State as AxumState,
+        State as AxumState,
     },
     http::StatusCode,
     response::IntoResponse,
     routing::get,
     Router,
 };
+use axum_extra::extract::Query;
 
 use futures_util::{SinkExt, StreamExt};
 use tower_http::cors::{self, CorsLayer};

@@ -1,5 +1,5 @@
 // https://github.com/openai/whisper/blob/ba3f3cd/whisper/tokenizer.py#L10-L128
-#[derive(strum::EnumString, strum::Display, strum::AsRefStr)]
+#[derive(Debug, strum::EnumString, strum::Display, strum::AsRefStr)]
 pub enum Language {
     #[strum(serialize = "en")]
     En,

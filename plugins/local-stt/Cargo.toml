@@ -68,6 +68,7 @@ thiserror = { workspace = true }
 rodio = { workspace = true, features = ["symphonia", "symphonia-all"] }
 
 axum = { workspace = true, features = ["ws", "multipart"] }
+axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }

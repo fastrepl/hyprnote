@@ -3755,6 +3755,7 @@ dependencies = [
  "tauri-plugin-membership",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
+ "tauri-plugin-oauth2",
  "tauri-plugin-obsidian",
  "tauri-plugin-opener",
  "tauri-plugin-os",
@@ -14536,6 +14537,28 @@ dependencies = [
  "tauri-plugin",
  "thiserror 1.0.69",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-oauth2"
+version = "0.1.0"
+dependencies = [
+ "oauth-callback",
+ "oauth-client",
+ "oauth-core",
+ "oauth-providers",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

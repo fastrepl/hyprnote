@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
@@ -52,39 +52,74 @@ export function ChatView() {
 
   const sessionId = activeEntity?.type === "note" ? activeEntity.id : null;
 
-  // Load persisted chat messages for this session
+  console.log("🔍 DEBUG: sessionId =", sessionId);
+  console.log("🔍 DEBUG: userId =", userId);
+  console.log("🔍 DEBUG: activeEntity =", activeEntity);
+
+  // Replace the current chatMessagesQuery with this updated version:
   const chatMessagesQuery = useQuery({
-    enabled: !!sessionId,
+    enabled: !!sessionId && !!userId,
     queryKey: ["chat-messages", sessionId],
     queryFn: async () => {
       if (!sessionId || !userId) return [];
+
+      console.log("🔍 DEBUG: Current session ID =", sessionId);
+
+      // Find existing chat groups for this session
+      const existingGroups = await dbCommands.listChatGroups(userId);
+      const sessionGroups = existingGroups.filter(group => group.session_id === sessionId);
       
-      // Try to find existing chat group for this session
-      const chatGroups = await dbCommands.listChatGroups(userId);
-      let chatGroup = chatGroups.find(group => group.id === sessionId);
+      console.log("🔍 DEBUG: Available chat groups for this session =", sessionGroups);
       
-      // If no chat group exists, create one
-      if (!chatGroup) {
-        chatGroup = await dbCommands.createChatGroup({
-          id: sessionId,
-          user_id: userId,
-          name: null,
-          created_at: new Date().toISOString(),
-        });
+      if (sessionGroups.length === 0) {
+        // No chat groups exist for this session
+        return [];
       }
-      
-      // Load existing messages
-      const dbMessages = await dbCommands.listChatMessages(sessionId);
+
+      // Get the latest chat group (most recent created_at)
+      const latestGroup = sessionGroups.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0];
+
+      // Load messages for the latest chat group
+      const dbMessages = await dbCommands.listChatMessages(latestGroup.id);
       return dbMessages.map(msg => ({
         id: msg.id,
         content: msg.content,
         isUser: msg.role === "User",
         timestamp: new Date(msg.created_at),
-        // Parse markdown blocks for AI messages when loading from database
         parts: msg.role === "Assistant" ? parseMarkdownBlocks(msg.content) : undefined,
       }));
     },
   });
+
+  // Update the useEffect that sets messages:
+  useEffect(() => {
+    if (chatMessagesQuery.data) {
+      setMessages(chatMessagesQuery.data);
+      setHasChatStarted(chatMessagesQuery.data.length > 0);
+    }
+  }, [chatMessagesQuery.data]);
+
+  // Simple helper to get or create chat group
+  const getChatGroupId = async (): Promise<string> => {
+    if (!sessionId || !userId) throw new Error("No session or user");
+    
+    const existingGroups = await dbCommands.listChatGroups(userId);
+    let chatGroup = existingGroups.find(group => group.session_id === sessionId);
+    
+    if (!chatGroup) {
+      chatGroup = await dbCommands.createChatGroup({
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        user_id: userId,
+        name: null,
+        created_at: new Date().toISOString(),
+      });
+    }
+    
+    return chatGroup.id;
+  };
 
   const sessionData = useQuery({
     enabled: !!sessionId,
@@ -147,17 +182,8 @@ export function ChatView() {
     }
   }, [noteMatch, humanMatch, organizationMatch, activeEntity]);
 
-  // Initialize messages from database when they load
-  useEffect(() => {
-    if (chatMessagesQuery.data && chatMessagesQuery.data.length > 0) {
-      setMessages(chatMessagesQuery.data);
-      setHasChatStarted(true);
-    } else if (chatMessagesQuery.data && chatMessagesQuery.data.length === 0) {
-      // No messages for this session - show empty state
-      setMessages([]);
-      setHasChatStarted(false);
-    }
-  }, [chatMessagesQuery.data]);
+  console.log("🔍 DEBUG: Current messages state =", messages);
+  console.log("🔍 DEBUG: hasChatStarted =", hasChatStarted);
 
   useEffect(() => {
     if (isExpanded) {
@@ -176,22 +202,20 @@ export function ChatView() {
   };
 
   const sessions = useSessions((state) => state.sessions);
+  const queryClient = useQueryClient();
 
   // Helper function to save a message to the database
   const saveMessageToDb = async (message: Message) => {
     if (!sessionId || !userId) return;
     
-    try {
-      await dbCommands.upsertChatMessage({
-        id: message.id,
-        group_id: sessionId,
-        created_at: message.timestamp.toISOString(),
-        role: message.isUser ? "User" : "Assistant",
-        content: message.content,
-      });
-    } catch (error) {
-      console.error("Failed to save message to database:", error);
-    }
+    const groupId = await getChatGroupId();
+    await dbCommands.upsertChatMessage({
+      id: message.id,
+      group_id: groupId,
+      created_at: message.timestamp.toISOString(),
+      role: message.isUser ? "User" : "Assistant",
+      content: message.content.trim(),
+    });
   };
 
   const handleApplyMarkdown = async (markdownContent: string) => {
@@ -500,36 +524,26 @@ export function ChatView() {
   };
 
   const handleNewChat = async () => {
-    if (!sessionId || !userId) {
-      console.warn("Cannot clear chat - no session ID or user ID");
-      return;
-    }
+    if (!sessionId || !userId) return;
 
     try {
-      // Clear messages from database
-      await dbCommands.deleteChatMessages(sessionId);
-      
-      // Invalidate React Query cache to trigger refetch
-      // queryClient.invalidateQueries({
-      //   queryKey: ["chat-messages", sessionId],
-      // });
-      
-      // Clear UI state
+      // Create a new chat group for this session
+      const newChatGroup = await dbCommands.createChatGroup({
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        user_id: userId,
+        name: null,
+        created_at: new Date().toISOString(),
+      });
+
+      // Clear messages and reset state
       setMessages([]);
-      setInputValue("");
-      setShowHistory(false);
       setHasChatStarted(false);
-      setIsGenerating(false);
       
-      console.log("Chat cleared successfully");
+      // Refetch to get the new empty state
+      chatMessagesQuery.refetch();
     } catch (error) {
-      console.error("Failed to clear chat:", error);
-      // Still clear UI state even if database operation fails
-      setMessages([]);
-      setInputValue("");
-      setShowHistory(false);
-      setHasChatStarted(false);
-      setIsGenerating(false);
+      console.error("Failed to create new chat:", error);
     }
   };
 

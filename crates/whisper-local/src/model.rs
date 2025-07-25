@@ -17,7 +17,7 @@ lazy_static! {
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
-    language: Option<Language>,
+    languages: Option<Vec<Language>>,
     static_prompt: Option<String>,
     dynamic_prompt: Option<String>,
 }
@@ -28,8 +28,8 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn language(mut self, language: Language) -> Self {
-        self.language = Some(language);
+    pub fn languages(mut self, languages: Vec<Language>) -> Self {
+        self.languages = Some(languages);
         self
     }
 
@@ -63,7 +63,7 @@ impl WhisperBuilder {
         let token_beg = ctx.token_beg();
 
         Whisper {
-            language: self.language,
+            languages: self.languages.unwrap_or_default(),
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
@@ -84,7 +84,7 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: Option<Language>,
+    languages: Vec<Language>,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
@@ -98,6 +98,9 @@ impl Whisper {
     }
 
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
+        let token_beg = self.token_beg;
+        let language = self.get_language(audio)?;
+
         let params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
@@ -107,12 +110,14 @@ impl Whisper {
 
             tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
 
-            p.set_translate(false);
-            p.set_language(self.language.as_ref().map(|l| l.as_ref()));
+            p.set_translate(true);
+            p.set_detect_language(false);
+            p.set_language(language.as_deref());
+
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {
-                Self::suppress_beg(&mut p, &self.token_beg);
+                Self::suppress_beg(&mut p, &token_beg);
             }
 
             p.set_no_timestamps(true);
@@ -122,7 +127,6 @@ impl Whisper {
             p.set_temperature(0.0);
             p.set_temperature_inc(0.2);
 
-            p.set_detect_language(false);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);
@@ -171,6 +175,40 @@ impl Whisper {
         }
 
         Ok(segments)
+    }
+
+    fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
+        if self.languages.len() == 0 {
+            return Ok(None);
+        }
+
+        if self.languages.len() == 1 {
+            let lang = &self.languages[0];
+            return Ok(Some(lang.to_string()));
+        }
+
+        let lang_str = {
+            self.state.pcm_to_mel(audio, 1)?;
+            let (_lang_id, lang_probs) = self.state.lang_detect(0, 1)?;
+
+            let mut best_lang = None;
+            let mut best_prob = f32::NEG_INFINITY;
+
+            for lang in &self.languages {
+                let lang_id = lang.whisper_index();
+                if lang_id < lang_probs.len() {
+                    let prob = lang_probs[lang_id];
+                    if prob > best_prob {
+                        best_prob = prob;
+                        best_lang = Some(lang.as_ref().to_string());
+                    }
+                }
+            }
+
+            best_lang
+        };
+
+        Ok(lang_str)
     }
 
     fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {

@@ -53,7 +53,7 @@ export const createOngoingSessionStore = (
     get: () => get(),
     cancelEnhance: () => {
       const { enhanceController } = get();
-      if (enhanceController) {
+      if (enhanceController && !enhanceController.signal.aborted) {
         enhanceController.abort();
       }
     },

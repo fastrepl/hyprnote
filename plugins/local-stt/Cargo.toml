@@ -28,7 +28,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
-hypr-language = { workspace = true }
+hypr-language = { workspace = true, features = ["whisper"] }
 
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-store = { workspace = true }
@@ -68,6 +68,7 @@ thiserror = { workspace = true }
 rodio = { workspace = true, features = ["symphonia", "symphonia-all"] }
 
 axum = { workspace = true, features = ["ws", "multipart"] }
+axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }

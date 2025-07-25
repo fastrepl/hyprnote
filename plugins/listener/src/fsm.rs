@@ -205,21 +205,21 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, language, jargons) = {
+        let (record, languages, jargons) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
                 .as_ref()
                 .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
 
-            let language = config.as_ref().map_or_else(
-                || hypr_language::ISO639::En.into(),
-                |c| c.general.display_language.clone(),
+            let languages = config.as_ref().map_or_else(
+                || vec![hypr_language::ISO639::En.into()],
+                |c| c.general.spoken_languages.clone(),
             );
 
             let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
 
-            (record, language, jargons)
+            (record, languages, jargons)
         };
 
         let session = self
@@ -241,7 +241,7 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(&self.app, language, jargons).await?;
+        let listen_client = setup_listen_client(&self.app, languages, jargons).await?;
 
         let mic_sample_stream = {
             let mut input = match &self.mic_device_name {
@@ -541,7 +541,7 @@ impl Session {
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    language: hypr_language::Language,
+    languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
 ) -> Result<crate::client::ListenClientDual, crate::Error> {
     let api_base = {
@@ -557,7 +557,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
             .unwrap_or_default()
     };
 
-    tracing::info!(api_base = ?api_base, api_key = ?api_key, language = ?language, "listen_client");
+    tracing::info!(api_base = ?api_base, api_key = ?api_key, languages = ?languages, "listen_client");
 
     // let static_prompt = format!(
     //     "{} / {}:",
@@ -572,7 +572,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_base(api_base)
         .api_key(api_key)
         .params(hypr_listener_interface::ListenParams {
-            language,
+            languages,
             static_prompt,
             ..Default::default()
         })

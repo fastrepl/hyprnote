@@ -13,7 +13,10 @@ pub async fn handler(
     Query(params): Query<ListenParams>,
     State(state): State<STTState>,
 ) -> impl IntoResponse {
-    let stt = state.recorded_stt.for_language(params.language).await;
+    let stt = state
+        .recorded_stt
+        .for_language(params.languages.first().unwrap().clone())
+        .await;
 
     let input = RecordedSpeech::File("TODO".into());
     let result = stt.transcribe(input).await.unwrap();

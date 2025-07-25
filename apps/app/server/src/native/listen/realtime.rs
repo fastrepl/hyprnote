@@ -29,7 +29,10 @@ async fn websocket(socket: WebSocket, state: STTState, params: ListenParams) {
 
     let (mut ws_sender, ws_receiver) = socket.split();
 
-    let mut stt = state.realtime_stt.for_language(params.language).await;
+    let mut stt = state
+        .realtime_stt
+        .for_language(params.languages.first().unwrap().clone())
+        .await;
 
     let input_stream =
         futures_util::stream::try_unfold(ws_receiver, |mut ws_receiver| async move {

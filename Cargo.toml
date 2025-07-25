@@ -149,7 +149,8 @@ inventory = "0.3.20"
 serial_test = "3"
 testcontainers-modules = "0.11.5"
 
-axum = "0.8.1"
+axum = "0.8.4"
+axum-extra = "0.10.1"
 tower = "0.5.2"
 tower-http = "0.6.2"
 

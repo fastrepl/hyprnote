@@ -189,11 +189,26 @@ impl Whisper {
 
         let lang_str = {
             self.state.pcm_to_mel(audio, 1)?;
-            let (lang_id, _lang_probs) = self.state.lang_detect(0, 1)?;
-            whisper_rs::get_lang_str(lang_id)
+            let (_lang_id, lang_probs) = self.state.lang_detect(0, 1)?;
+
+            let mut best_lang = None;
+            let mut best_prob = f32::NEG_INFINITY;
+
+            for lang in &self.languages {
+                let lang_id = lang.whisper_index();
+                if lang_id < lang_probs.len() {
+                    let prob = lang_probs[lang_id];
+                    if prob > best_prob {
+                        best_prob = prob;
+                        best_lang = Some(lang.as_ref().to_string());
+                    }
+                }
+            }
+
+            best_lang
         };
 
-        Ok(lang_str.map(|s| s.to_owned()))
+        Ok(lang_str)
     }
 
     fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {

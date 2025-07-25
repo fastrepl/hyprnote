@@ -75,3 +75,23 @@ pub async fn upsert_chat_message(
         .await
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
+pub async fn delete_chat_messages(
+    state: tauri::State<'_, crate::ManagedState>,
+    group_id: String,
+) -> Result<(), String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    db.delete_chat_messages(group_id)
+        .await
+        .map_err(|e| e.to_string())
+}

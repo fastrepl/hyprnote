@@ -58,6 +58,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::chats::list_chat_messages,
             commands::chats::create_chat_group,
             commands::chats::upsert_chat_message,
+            commands::chats::delete_chat_messages,
             commands::tags::list_all_tags,
             commands::tags::list_session_tags,
             commands::tags::assign_tag_to_session,

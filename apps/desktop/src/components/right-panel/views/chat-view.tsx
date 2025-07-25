@@ -80,6 +80,8 @@ export function ChatView() {
         content: msg.content,
         isUser: msg.role === "User",
         timestamp: new Date(msg.created_at),
+        // Parse markdown blocks for AI messages when loading from database
+        parts: msg.role === "Assistant" ? parseMarkdownBlocks(msg.content) : undefined,
       }));
     },
   });
@@ -359,7 +361,7 @@ export function ChatView() {
       // Save final AI message to database
       const finalAiMessage = {
         id: aiMessageId,
-        content: aiResponse,
+        content: aiResponse.trim(), // Add .trim() here
         isUser: false,
         timestamp: new Date(),
       };
@@ -465,7 +467,7 @@ export function ChatView() {
       // Save final AI message to database
       const finalAiMessage = {
         id: aiMessageId,
-        content: aiResponse,
+        content: aiResponse.trim(), // Add .trim() here
         isUser: false,
         timestamp: new Date(),
       };
@@ -497,13 +499,38 @@ export function ChatView() {
     }
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    setInputValue("");
-    setShowHistory(false);
-    setHasChatStarted(false);
-    // Note: We don't clear the database messages, just the UI state
-    // If user wants to see old messages, they can refresh or navigate away and back
+  const handleNewChat = async () => {
+    if (!sessionId || !userId) {
+      console.warn("Cannot clear chat - no session ID or user ID");
+      return;
+    }
+
+    try {
+      // Clear messages from database
+      await dbCommands.deleteChatMessages(sessionId);
+      
+      // Invalidate React Query cache to trigger refetch
+      // queryClient.invalidateQueries({
+      //   queryKey: ["chat-messages", sessionId],
+      // });
+      
+      // Clear UI state
+      setMessages([]);
+      setInputValue("");
+      setShowHistory(false);
+      setHasChatStarted(false);
+      setIsGenerating(false);
+      
+      console.log("Chat cleared successfully");
+    } catch (error) {
+      console.error("Failed to clear chat:", error);
+      // Still clear UI state even if database operation fails
+      setMessages([]);
+      setInputValue("");
+      setShowHistory(false);
+      setHasChatStarted(false);
+      setIsGenerating(false);
+    }
   };
 
   const handleViewHistory = () => {

@@ -115,6 +115,9 @@ async createChatGroup(group: ChatGroup) : Promise<ChatGroup> {
 async upsertChatMessage(message: ChatMessage) : Promise<ChatMessage> {
     return await TAURI_INVOKE("plugin:db|upsert_chat_message", { message });
 },
+async deleteChatMessages(groupId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|delete_chat_messages", { groupId });
+},
 async listAllTags() : Promise<Tag[]> {
     return await TAURI_INVOKE("plugin:db|list_all_tags");
 },

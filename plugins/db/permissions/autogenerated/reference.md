@@ -42,6 +42,7 @@ Default permissions for the plugin
 - `allow-list-chat-messages`
 - `allow-create-chat-group`
 - `allow-upsert-chat-message`
+- `allow-delete-chat-messages`
 - `allow-upsert-tag`
 - `allow-delete-tag`
 - `allow-list-all-tags`
@@ -106,6 +107,32 @@ Enables the create_chat_group command without any pre-configured scope.
 <td>
 
 Denies the create_chat_group command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-delete-chat-messages`
+
+</td>
+<td>
+
+Enables the delete_chat_messages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-delete-chat-messages`
+
+</td>
+<td>
+
+Denies the delete_chat_messages command without any pre-configured scope.
 
 </td>
 </tr>

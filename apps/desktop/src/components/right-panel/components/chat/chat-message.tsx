@@ -11,16 +11,36 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: ChatMessageProps) {
+  if (message.isUser) {
+    // User message in white box style similar to chat input
+    return (
+      <div className="w-full mb-4 flex justify-end">
+        <div className="max-w-[80%]">
+          <div className="border border-input rounded-lg overflow-clip bg-white">
+            <div className="px-3 py-2">
+              <MessageContent
+                message={message}
+                sessionTitle={sessionTitle}
+                hasEnhancedNote={hasEnhancedNote}
+                onApplyMarkdown={onApplyMarkdown}
+              />
+            </div>
+          </div>
+          {/* Timestamp below the message */}
+          <div className="text-xs text-neutral-500 mt-1 text-right">
+            {message.timestamp.toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Assistant message (cleaned up - no label)
   return (
     <div className="w-full mb-4">
-      <div
-        className={cn(
-          "font-semibold text-xs mb-1",
-          message.isUser ? "text-neutral-700" : "text-amber-700",
-        )}
-      >
-        {message.isUser ? <Trans>User:</Trans> : <Trans>Assistant:</Trans>}
-      </div>
       <MessageContent
         message={message}
         sessionTitle={sessionTitle}

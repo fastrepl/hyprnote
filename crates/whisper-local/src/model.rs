@@ -98,6 +98,9 @@ impl Whisper {
     }
 
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
+        let token_beg = self.token_beg;
+        let language = self.get_language(audio)?;
+
         let params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
@@ -108,11 +111,13 @@ impl Whisper {
             tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
 
             p.set_translate(false);
-            p.set_language(self.language.as_ref().map(|l| l.as_ref()));
+            p.set_detect_language(false);
+            p.set_language(language.as_deref());
+
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {
-                Self::suppress_beg(&mut p, &self.token_beg);
+                Self::suppress_beg(&mut p, &token_beg);
             }
 
             p.set_no_timestamps(true);
@@ -122,7 +127,6 @@ impl Whisper {
             p.set_temperature(0.0);
             p.set_temperature_inc(0.2);
 
-            p.set_detect_language(false);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);
@@ -171,6 +175,17 @@ impl Whisper {
         }
 
         Ok(segments)
+    }
+
+    fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
+        if self.language.is_none() {
+            self.state.pcm_to_mel(audio, 1)?;
+            let (lang_id, _lang_probs) = self.state.lang_detect(0, 1)?;
+            let lang_str = whisper_rs::get_lang_str(lang_id);
+            Ok(lang_str.map(|s| s.to_owned()))
+        } else {
+            Ok(None)
+        }
     }
 
     fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {

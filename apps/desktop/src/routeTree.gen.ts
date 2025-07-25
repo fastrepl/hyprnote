@@ -15,8 +15,8 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPlansRouteImport } from './routes/app.plans'
 import { Route as AppNewRouteImport } from './routes/app.new'
+import { Route as AppFinderRouteImport } from './routes/app.finder'
 import { Route as AppControlRouteImport } from './routes/app.control'
-import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppOrganizationIdRouteImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
 import { Route as AppHumanIdRouteImport } from './routes/app.human.$id'
@@ -52,14 +52,14 @@ const AppNewRoute = AppNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFinderRoute = AppFinderRouteImport.update({
+  id: '/finder',
+  path: '/finder',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppControlRoute = AppControlRouteImport.update({
   id: '/control',
   path: '/control',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCalendarRoute = AppCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
   getParentRoute: () => AppRoute,
 } as any)
 const AppOrganizationIdRoute = AppOrganizationIdRouteImport.update({
@@ -86,8 +86,8 @@ const AppNoteEventIdRoute = AppNoteEventIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
   '/app/control': typeof AppControlRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -99,8 +99,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
   '/app/control': typeof AppControlRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -114,8 +114,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
   '/video': typeof VideoRoute
-  '/app/calendar': typeof AppCalendarRoute
   '/app/control': typeof AppControlRoute
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/plans': typeof AppPlansRoute
   '/app/settings': typeof AppSettingsRoute
@@ -130,8 +130,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/app'
     | '/video'
-    | '/app/calendar'
     | '/app/control'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -143,8 +143,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/video'
-    | '/app/calendar'
     | '/app/control'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -157,8 +157,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/app'
     | '/video'
-    | '/app/calendar'
     | '/app/control'
+    | '/app/finder'
     | '/app/new'
     | '/app/plans'
     | '/app/settings'
@@ -218,18 +218,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/finder': {
+      id: '/app/finder'
+      path: '/finder'
+      fullPath: '/app/finder'
+      preLoaderRoute: typeof AppFinderRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/control': {
       id: '/app/control'
       path: '/control'
       fullPath: '/app/control'
       preLoaderRoute: typeof AppControlRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/calendar': {
-      id: '/app/calendar'
-      path: '/calendar'
-      fullPath: '/app/calendar'
-      preLoaderRoute: typeof AppCalendarRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/organization/$id': {
@@ -264,8 +264,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppCalendarRoute: typeof AppCalendarRoute
   AppControlRoute: typeof AppControlRoute
+  AppFinderRoute: typeof AppFinderRoute
   AppNewRoute: typeof AppNewRoute
   AppPlansRoute: typeof AppPlansRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -277,8 +277,8 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppCalendarRoute: AppCalendarRoute,
   AppControlRoute: AppControlRoute,
+  AppFinderRoute: AppFinderRoute,
   AppNewRoute: AppNewRoute,
   AppPlansRoute: AppPlansRoute,
   AppSettingsRoute: AppSettingsRoute,

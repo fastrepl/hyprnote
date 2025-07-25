@@ -23,6 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHypr } from "@/contexts/hypr";
 import { type SearchMatch } from "@/stores/search";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -281,10 +282,22 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         navigate({ to: "/app/new", search: { calendarEventId: match.item.id } });
         break;
       case "human":
-        navigate({ to: "/app/human/$id", params: { id: match.item.id } });
+        // Open finder window and navigate to contact view with person selected
+        windowsCommands.windowShow({ type: "finder" }).then(() => {
+          windowsCommands.windowNavigate(
+            { type: "finder" },
+            `/app/finder?view=contact&personId=${match.item.id}`,
+          );
+        });
         break;
       case "organization":
-        navigate({ to: "/app/organization/$id", params: { id: match.item.id } });
+        // Open finder window and navigate to contact view with organization selected
+        windowsCommands.windowShow({ type: "finder" }).then(() => {
+          windowsCommands.windowNavigate(
+            { type: "finder" },
+            `/app/finder?view=contact&orgId=${match.item.id}`,
+          );
+        });
         break;
     }
     onOpenChange(false);

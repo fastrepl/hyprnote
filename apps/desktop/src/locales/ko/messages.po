@@ -368,7 +368,7 @@ msgid "Apple"
 msgstr ""
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-#: src/components/left-sidebar/notes-list.tsx:268
+#: src/components/left-sidebar/notes-list.tsx:266
 msgid "Are you sure you want to delete this note?"
 msgstr ""
 
@@ -528,7 +528,7 @@ msgstr ""
 msgid "Create new note"
 msgstr ""
 
-#: src/components/workspace-calendar/event-card.tsx:166
+#: src/components/workspace-calendar/event-card.tsx:144
 msgid "Create Note"
 msgstr ""
 
@@ -558,7 +558,7 @@ msgstr ""
 
 #: src/components/settings/views/template.tsx:215
 #: src/components/settings/views/team.tsx:165
-#: src/components/left-sidebar/notes-list.tsx:335
+#: src/components/left-sidebar/notes-list.tsx:333
 msgid "Delete"
 msgstr ""
 
@@ -724,7 +724,7 @@ msgstr ""
 msgid "Help us tailor your Hyprnote experience"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:305
+#: src/components/left-sidebar/events-list.tsx:302
 #~ msgid "Hide Event"
 #~ msgstr ""
 
@@ -805,7 +805,6 @@ msgstr ""
 msgid "Loading templates..."
 msgstr ""
 
-#: src/components/workspace-calendar/event-card.tsx:163
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr ""
@@ -867,8 +866,8 @@ msgstr ""
 msgid "New note"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:312
-#: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/notes-list.tsx:310
+#: src/components/left-sidebar/events-list.tsx:178
 msgid "New window"
 msgstr ""
 
@@ -912,7 +911,7 @@ msgstr ""
 msgid "No templates yet"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:95
+#: src/components/left-sidebar/events-list.tsx:94
 msgid "No upcoming events"
 msgstr ""
 
@@ -941,23 +940,23 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/left-sidebar/top-area/calendar-button.tsx:26
-msgid "Open calendar view"
-msgstr ""
-
-#: src/components/left-sidebar/top-area/finder-button.tsx:26
-#~ msgid "Open finder view"
+#~ msgid "Open calendar view"
 #~ msgstr ""
 
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
+msgid "Open finder view"
+msgstr ""
+
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-#: src/components/left-sidebar/search-list.tsx:319
-#: src/components/left-sidebar/search-list.tsx:396
+#: src/components/left-sidebar/search-list.tsx:298
+#: src/components/left-sidebar/search-list.tsx:368
 msgid "Open in new window"
 msgstr ""
 
 #: src/components/workspace-calendar/note-card.tsx:123
 #: src/components/workspace-calendar/event-card.tsx:153
-msgid "Open Note"
-msgstr ""
+#~ msgid "Open Note"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:255
 msgid "Optional base folder path within your Obsidian vault."
@@ -1206,7 +1205,7 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
-#: src/components/toolbar/bars/calendar-toolbar.tsx:67
+#: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
 msgstr ""
 
@@ -1250,7 +1249,7 @@ msgstr ""
 msgid "Untitled Template"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:62
+#: src/components/left-sidebar/events-list.tsx:61
 msgid "Upcoming"
 msgstr ""
 
@@ -1282,11 +1281,11 @@ msgstr ""
 msgid "Vault Name"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:323
+#: src/components/left-sidebar/notes-list.tsx:321
 msgid "View calendar"
 msgstr ""
 
-#: src/components/left-sidebar/events-list.tsx:193
+#: src/components/left-sidebar/events-list.tsx:190
 #: src/components/editor-area/note-header/chips/event-chip.tsx:246
 msgid "View in calendar"
 msgstr ""

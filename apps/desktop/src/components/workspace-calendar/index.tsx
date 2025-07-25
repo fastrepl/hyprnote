@@ -90,15 +90,27 @@ export default function WorkspaceCalendar({
     const daySessions = getSessionsForDay(date);
     const dayEvents = getEventsForDay(date);
 
+    // Filter out sessions that are linked to events to prevent duplicate display
+    // When a session is linked to an event, show only the event (not both)
+    const unlinkedSessions = daySessions.filter(session => {
+      // If session has calendar_event_id, check if that event exists in current events
+      if (session.calendar_event_id) {
+        // If the linked event exists in our events list, don't show the session separately
+        return !events.some(event => event.id === session.calendar_event_id);
+      }
+      // Session without calendar_event_id can be shown
+      return true;
+    });
+
     if (isFutureDate) {
-      return [...dayEvents, ...daySessions] as CalendarItem[];
+      return [...dayEvents, ...unlinkedSessions] as CalendarItem[];
     }
 
     if (isPastDate) {
-      return daySessions as CalendarItem[];
+      return unlinkedSessions as CalendarItem[];
     }
 
-    return [...dayEvents, ...daySessions] as CalendarItem[];
+    return [...dayEvents, ...unlinkedSessions] as CalendarItem[];
   };
 
   const getCalendarDays = () => {

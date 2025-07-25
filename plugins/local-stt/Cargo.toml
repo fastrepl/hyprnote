@@ -21,7 +21,7 @@ openblas = ["hypr-whisper-local/openblas"]
 metal = ["hypr-whisper-local/metal"]
 vulkan = ["hypr-whisper-local/vulkan"]
 openmp = ["hypr-whisper-local/openmp"]
-load-dynamic = ["hypr-pyannote-local/load-dynamic", "hypr-chunker/load-dynamic"]
+load-dynamic = ["hypr-pyannote-local/load-dynamic"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -29,7 +29,9 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 hypr-data = { workspace = true }
 hypr-language = { workspace = true }
+
 tauri-plugin-listener = { workspace = true }
+tauri-plugin-store = { workspace = true }
 
 dirs = { workspace = true }
 inventory = { workspace = true }
@@ -50,10 +52,11 @@ hypr-whisper-local = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-store = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-shell = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 dirs = { workspace = true }
 serde = { workspace = true }

@@ -134,7 +134,7 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
-                // hypr://
+                // hypr://hyprnote.com + <path>
                 app.deep_link().on_open_url(move |event| {
                     let url = if let Some(url) = event.urls().first() {
                         url.to_string()
@@ -142,10 +142,11 @@ pub async fn main() {
                         return;
                     };
 
-                    let dest = deeplink::parse(url);
-
-                    if app_clone.window_show(dest.window.clone()).is_ok() {
-                        let _ = app_clone.window_navigate(dest.window, &dest.url);
+                    let dests = deeplink::parse(url);
+                    for dest in dests {
+                        if app_clone.window_show(dest.window.clone()).is_ok() {
+                            let _ = app_clone.window_navigate(dest.window, &dest.url);
+                        }
                     }
                 });
             }

@@ -1,5 +1,6 @@
 use tauri_plugin_windows::HyprWindow;
 
+#[derive(Debug)]
 pub struct Destination {
     pub window: HyprWindow,
     pub url: String,
@@ -14,22 +15,25 @@ impl Default for Destination {
     }
 }
 
-pub fn parse(url: String) -> Destination {
+pub fn parse(url: String) -> Vec<Destination> {
     let parsed_url = match url::Url::parse(&url) {
         Ok(url) => url,
         Err(_) => {
-            return Destination::default();
+            return vec![Destination::default()];
         }
     };
 
-    match parsed_url.path() {
+    let dests = match parsed_url.path() {
         "/notification" => parse_notification_query(&parsed_url),
         "/register" => parse_register_query(&parsed_url),
-        _ => Destination::default(),
-    }
+        _ => vec![Destination::default()],
+    };
+
+    tracing::info!("deeplink: {:?}", dests);
+    dests
 }
 
-fn parse_notification_query(parsed_url: &url::Url) -> Destination {
+fn parse_notification_query(parsed_url: &url::Url) -> Vec<Destination> {
     let url = match parsed_url.query() {
         Some(query) => match serde_qs::from_str::<NotificationQuery>(query) {
             Ok(params) => {
@@ -44,28 +48,36 @@ fn parse_notification_query(parsed_url: &url::Url) -> Destination {
         None => "/app/new?record=false".to_string(),
     };
 
-    Destination {
+    vec![Destination {
         window: HyprWindow::Main,
         url,
-    }
+    }]
 }
 
-fn parse_register_query(parsed_url: &url::Url) -> Destination {
-    let url = match parsed_url.query() {
+fn parse_register_query(parsed_url: &url::Url) -> Vec<Destination> {
+    let main_url = "/app".to_string();
+
+    let settings_url = match parsed_url.query() {
         Some(query) => match serde_qs::from_str::<RegisterQuery>(query) {
             Ok(params) => format!(
-                "/app/register?base_url={}&api_key={}",
+                "/app/settings?baseUrl={}&apiKey={}",
                 params.base_url, params.api_key
             ),
-            Err(_) => "/app/register".to_string(),
+            Err(_) => "/app/settings".to_string(),
         },
-        None => "/app/register".to_string(),
+        None => "/app/settings".to_string(),
     };
 
-    Destination {
-        window: HyprWindow::Main,
-        url,
-    }
+    vec![
+        Destination {
+            window: HyprWindow::Main,
+            url: main_url,
+        },
+        Destination {
+            window: HyprWindow::Settings,
+            url: settings_url,
+        },
+    ]
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -77,4 +89,24 @@ struct NotificationQuery {
 struct RegisterQuery {
     base_url: String,
     api_key: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_register_query() {
+        let url = "hypr://hyprnote.com/register?base_url=http://localhost:3000&api_key=123";
+
+        let dests = parse(url.to_string());
+        assert_eq!(dests.len(), 1);
+
+        let dest = dests.first().unwrap();
+        assert_eq!(dest.window, HyprWindow::Main);
+        assert_eq!(
+            dest.url,
+            "/app/register?base_url=http://localhost:3000&api_key=123"
+        );
+    }
 }

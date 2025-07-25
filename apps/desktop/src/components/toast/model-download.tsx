@@ -1,13 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "./shared";
 
+const TOAST_DISMISSAL_KEY = "model-download-toast-dismissed";
+
 export default function ModelDownloadNotification() {
   const queryClient = useQueryClient();
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return sessionStorage.getItem(TOAST_DISMISSAL_KEY) === "true";
+  });
   const currentSttModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -54,6 +59,37 @@ export default function ModelDownloadNotification() {
     refetchInterval: 3000,
   });
 
+  const sttModelExists = useQuery({
+    queryKey: ["stt-model-exists"],
+    queryFn: async () => {
+      const results = await Promise.all([
+        localSttCommands.isModelDownloaded("QuantizedTiny"),
+        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
+        localSttCommands.isModelDownloaded("QuantizedBase"),
+        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
+        localSttCommands.isModelDownloaded("QuantizedSmall"),
+        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
+      ]);
+
+      return results.some(Boolean);
+    },
+    refetchInterval: 3000,
+  });
+
+  const llmModelExists = useQuery({
+    queryKey: ["llm-model-exists"],
+    queryFn: async () => {
+      const results = await Promise.all([
+        localLlmCommands.isModelDownloaded("Llama3p2_3bQ4"),
+        localLlmCommands.isModelDownloaded("HyprLLM"),
+      ]);
+
+      return results.some(Boolean);
+    },
+    refetchInterval: 3000,
+  });
+
   useEffect(() => {
     if (!checkForModelDownload.data) {
       return;
@@ -67,8 +103,12 @@ export default function ModelDownloadNotification() {
       return;
     }
 
-    const needsSttModel = !checkForModelDownload.data?.sttModelDownloaded;
-    const needsLlmModel = !checkForModelDownload.data?.llmModelDownloaded;
+    if (isDismissed) {
+      return;
+    }
+
+    const needsSttModel = !sttModelExists.data;
+    const needsLlmModel = !llmModelExists.data;
 
     let title: string;
     let content: string;
@@ -77,11 +117,11 @@ export default function ModelDownloadNotification() {
     if (needsSttModel && needsLlmModel) {
       title = "Transcribing & Enhancing AI Needed";
       content = "Both STT models and LLMs are required for offline functionality.";
-      buttonLabel = "Download Both Models";
+      buttonLabel = "Download Models";
     } else if (needsSttModel) {
       title = "Transcribing Model Needed";
       content = "The STT model is required for offline transcribing functionality.";
-      buttonLabel = "Download Transcribing Model";
+      buttonLabel = "Download Model";
     } else if (needsLlmModel) {
       title = "Enhancing AI Model Needed";
       content = "The LLM model is required for offline enhancing functionality.";
@@ -89,6 +129,12 @@ export default function ModelDownloadNotification() {
     } else {
       return;
     }
+
+    const handleDismiss = () => {
+      setIsDismissed(true);
+      sessionStorage.setItem(TOAST_DISMISSAL_KEY, "true");
+      sonnerToast.dismiss("model-download-needed");
+    };
 
     toast({
       id: "model-download-needed",
@@ -110,10 +156,22 @@ export default function ModelDownloadNotification() {
           },
           primary: true,
         },
+        {
+          label: "Dismiss",
+          onClick: handleDismiss,
+          primary: false,
+        },
       ],
       dismissible: false,
     });
-  }, [checkForModelDownload.data, sttModelDownloading.data, llmModelDownloading.data]);
+  }, [
+    checkForModelDownload.data,
+    sttModelDownloading.data,
+    llmModelDownloading.data,
+    isDismissed,
+    sttModelExists.data,
+    llmModelExists.data,
+  ]);
 
   return null;
 }

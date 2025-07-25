@@ -1,15 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
@@ -21,6 +23,7 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
@@ -58,6 +61,33 @@ const initialSttModels = [
     fileName: "ggml-tiny-q8_0.bin",
   },
   {
+    key: "QuantizedTinyEn",
+    name: "Tiny - English",
+    accuracy: 1,
+    speed: 3,
+    size: "44 MB",
+    downloaded: false,
+    fileName: "ggml-tiny.en-q8_0.bin",
+  },
+  {
+    key: "QuantizedBase",
+    name: "Base",
+    accuracy: 2,
+    speed: 2,
+    size: "82 MB",
+    downloaded: false,
+    fileName: "ggml-base-q8_0.bin",
+  },
+  {
+    key: "QuantizedBaseEn",
+    name: "Base - English",
+    accuracy: 2,
+    speed: 2,
+    size: "82 MB",
+    downloaded: false,
+    fileName: "ggml-base.en-q8_0.bin",
+  },
+  {
     key: "QuantizedSmall",
     name: "Small",
     accuracy: 2,
@@ -65,6 +95,15 @@ const initialSttModels = [
     size: "264 MB",
     downloaded: false,
     fileName: "ggml-small-q8_0.bin",
+  },
+  {
+    key: "QuantizedSmallEn",
+    name: "Small - English",
+    accuracy: 2,
+    speed: 2,
+    size: "264 MB",
+    downloaded: false,
+    fileName: "ggml-small.en-q8_0.bin",
   },
   {
     key: "QuantizedLargeTurbo",
@@ -120,6 +159,34 @@ const initialLlmModels = [
   },
 ];
 
+const aiConfigSchema = z.object({
+  aiSpecificity: z.number().int().min(1).max(4).optional(),
+});
+type AIConfigValues = z.infer<typeof aiConfigSchema>;
+
+const specificityLevels = {
+  1: {
+    title: "Conservative",
+    description:
+      "Minimal creative changes. Preserves your original writing style and content while making only essential improvements to clarity and flow.",
+  },
+  2: {
+    title: "Balanced",
+    description:
+      "Moderate creative input. Enhances your content with some stylistic improvements while maintaining the core message and tone.",
+  },
+  3: {
+    title: "Creative",
+    description:
+      "More creative freedom. Actively improves and expands content with additional context, examples, and engaging language.",
+  },
+  4: {
+    title: "Innovative",
+    description:
+      "Maximum creativity. Transforms content with rich language, fresh perspectives, and creative restructuring while preserving key information.",
+  },
+} as const;
+
 export default function LocalAI() {
   const queryClient = useQueryClient();
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
@@ -150,6 +217,9 @@ export default function LocalAI() {
         newSet.delete(modelKey);
         return newSet;
       });
+
+      setSelectedSTTModel(modelKey);
+      localSttCommands.setCurrentModel(modelKey as any);
     }, queryClient);
   };
 
@@ -166,11 +236,14 @@ export default function LocalAI() {
       });
 
       setSelectedLLMModel(modelKey);
+      localLlmCommands.setCurrentModel(modelKey as SupportedModel);
+      setCustomLLMEnabledMutation.mutate(false);
     }, queryClient);
   };
 
-  const handleShowFileLocation = async (modelKey: string) => {
-    // TODO: Implement opening models in finder functionality
+  const handleShowFileLocation = async (modelType: "stt" | "llm") => {
+    const path = await (modelType === "stt" ? localSttCommands.modelsDir() : localLlmCommands.modelsDir());
+    await openPath(path);
   };
 
   const customLLMEnabled = useQuery({
@@ -240,6 +313,49 @@ export default function LocalAI() {
     },
   });
 
+  const config = useQuery({
+    queryKey: ["config", "ai"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+  });
+
+  const aiConfigForm = useForm<AIConfigValues>({
+    resolver: zodResolver(aiConfigSchema),
+    defaultValues: {
+      aiSpecificity: 3,
+    },
+  });
+
+  useEffect(() => {
+    if (config.data) {
+      aiConfigForm.reset({
+        aiSpecificity: config.data.ai.ai_specificity ?? 3,
+      });
+    }
+  }, [config.data, aiConfigForm]);
+
+  const aiConfigMutation = useMutation({
+    mutationFn: async (values: AIConfigValues) => {
+      if (!config.data) {
+        return;
+      }
+
+      await dbCommands.setConfig({
+        ...config.data,
+        ai: {
+          ...config.data.ai,
+          ai_specificity: values.aiSpecificity ?? 3,
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config", "ai"] });
+    },
+    onError: console.error,
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(endpointSchema),
     mode: "onChange",
@@ -279,6 +395,67 @@ export default function LocalAI() {
     return apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1"));
   };
 
+  // call backend for the current selected LLM model and sets it
+  const currentLLMModel = useQuery({
+    queryKey: ["current-llm-model"],
+    queryFn: () => localLlmCommands.getCurrentModel(),
+  });
+
+  useEffect(() => {
+    if (currentLLMModel.data && !customLLMEnabled.data) {
+      setSelectedLLMModel(currentLLMModel.data);
+    }
+  }, [currentLLMModel.data, customLLMEnabled.data]);
+
+  // call backend for the current selected STT model and sets it
+  const currentSTTModel = useQuery({
+    queryKey: ["current-stt-model"],
+    queryFn: () => localSttCommands.getCurrentModel(),
+  });
+
+  useEffect(() => {
+    if (currentSTTModel.data) {
+      setSelectedSTTModel(currentSTTModel.data);
+    }
+  }, [currentSTTModel.data]);
+
+  // call backend for the download status of the STT models and sets it
+  const sttModelDownloadStatus = useQuery({
+    queryKey: ["stt-model-download-status"],
+    queryFn: async () => {
+      const statusChecks = await Promise.all([
+        localSttCommands.isModelDownloaded("QuantizedTiny"),
+        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
+        localSttCommands.isModelDownloaded("QuantizedBase"),
+        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
+        localSttCommands.isModelDownloaded("QuantizedSmall"),
+        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
+      ]);
+      return {
+        "QuantizedTiny": statusChecks[0],
+        "QuantizedTinyEn": statusChecks[1],
+        "QuantizedBase": statusChecks[2],
+        "QuantizedBaseEn": statusChecks[3],
+        "QuantizedSmall": statusChecks[4],
+        "QuantizedSmallEn": statusChecks[5],
+        "QuantizedLargeTurbo": statusChecks[6],
+      } as Record<string, boolean>;
+    },
+    refetchInterval: 3000,
+  });
+
+  useEffect(() => {
+    if (sttModelDownloadStatus.data) {
+      setSttModels(prev =>
+        prev.map(model => ({
+          ...model,
+          downloaded: sttModelDownloadStatus.data[model.key] || false,
+        }))
+      );
+    }
+  }, [sttModelDownloadStatus.data]);
+
   return (
     <div className="space-y-8">
       <div>
@@ -314,6 +491,9 @@ export default function LocalAI() {
                 onClick={() => {
                   if (model.downloaded) {
                     setSelectedSTTModel(model.key);
+                    localSttCommands.setCurrentModel(model.key as any);
+
+                    localSttCommands.restartServer();
                   }
                 }}
               >
@@ -388,7 +568,7 @@ export default function LocalAI() {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowFileLocation(model.key);
+                          handleShowFileLocation("stt");
                         }}
                         className="text-xs h-7 px-2 flex items-center gap-1"
                       >
@@ -451,7 +631,10 @@ export default function LocalAI() {
                 onClick={() => {
                   if (model.available && model.downloaded) {
                     setSelectedLLMModel(model.key);
+                    localLlmCommands.setCurrentModel(model.key as SupportedModel);
                     setCustomLLMEnabledMutation.mutate(false);
+
+                    localLlmCommands.restartServer();
                   }
                 }}
               >
@@ -492,7 +675,7 @@ export default function LocalAI() {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowFileLocation(model.key);
+                          handleShowFileLocation("llm");
                         }}
                         className="text-xs h-7 px-2 flex items-center gap-1"
                       >
@@ -680,6 +863,62 @@ export default function LocalAI() {
                       </FormItem>
                     )}
                   />
+
+                  {/* NEW: Detail Level Configuration */}
+                  <Form {...aiConfigForm}>
+                    <FormField
+                      control={aiConfigForm.control}
+                      name="aiSpecificity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Creativity Level</Trans>
+                          </FormLabel>
+                          <FormDescription className="text-xs">
+                            <Trans>Control how creative the AI enhancement should be</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <div className="space-y-3">
+                              {/* Button bar - matching form element width */}
+                              <div className="w-full">
+                                <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
+                                  {[1, 2, 3, 4].map((level) => (
+                                    <button
+                                      key={level}
+                                      type="button"
+                                      onClick={() => {
+                                        field.onChange(level);
+                                        aiConfigMutation.mutate({ aiSpecificity: level });
+                                      }}
+                                      disabled={!customLLMEnabled.data}
+                                      className={cn(
+                                        "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
+                                        field.value === level
+                                          ? "bg-white text-black shadow-sm"
+                                          : "text-white hover:bg-white/20",
+                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
+                                      )}
+                                    >
+                                      {specificityLevels[level as keyof typeof specificityLevels]?.title}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Current selection description in card */}
+                              <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                                <div className="text-xs text-muted-foreground">
+                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description
+                                    || specificityLevels[3].description}
+                                </div>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </Form>
                 </form>
               </Form>
             </div>

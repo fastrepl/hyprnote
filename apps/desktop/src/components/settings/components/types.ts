@@ -20,6 +20,6 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "sound", icon: Volume2 },
   { name: "templates", icon: LayoutTemplate },
   // { name: "lab", icon: FlaskConical },
-  { name: "feedback", icon: MessageSquare },
   { name: "integrations", icon: MessageSquare },
+  { name: "feedback", icon: MessageSquare },
 ];

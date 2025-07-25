@@ -24,7 +24,7 @@ const DEFAULT_MAX_OUTPUT_TOKENS: u32 = 1024 * 2;
 
 static LLAMA_BACKEND: OnceLock<Arc<LlamaBackend>> = OnceLock::new();
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ModelName {
     HyprLLM,
     Other(Option<String>),

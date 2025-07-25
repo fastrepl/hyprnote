@@ -37,6 +37,7 @@ import { z } from "zod";
 import { getActiveOrganizationFull, getUserRole } from "@/services/auth.api";
 import { getOrganizationConfig, upsertOrganizationConfig } from "@/services/config.api";
 import { createApiKey, deleteApiKeys, listApiKey } from "@/services/key.api";
+import { listLlmProvider } from "@/services/provider.api";
 
 export const Route = createFileRoute("/app/settings")({
   validateSearch: z.object({
@@ -124,6 +125,14 @@ function Component() {
 function PersonalSettings({ email }: { email: string | undefined }) {
   const [opened, handler] = useDisclosure(false);
 
+  const integratiosn = useQuery({
+    queryKey: ["integrations"],
+    queryFn: async () => {
+      const integrations = await listLlmProvider();
+      return integrations;
+    },
+  });
+
   const baseUrl = useQuery({
     queryKey: ["organizationConfig", "baseUrl"],
     queryFn: async () => {
@@ -188,6 +197,20 @@ function PersonalSettings({ email }: { email: string | undefined }) {
               </Text>
             </Alert>
           )
+          : integratiosn.isPending
+          ? <LoadingOverlay visible />
+          : !integratiosn.data?.length
+          ? (
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              color="red"
+              variant="light"
+            >
+              <Text size="sm">
+                No integrations configured.
+              </Text>
+            </Alert>
+          )
           : existingApiKeys.isPending
           ? <LoadingOverlay visible />
           : existingApiKeys.data?.length
@@ -244,6 +267,9 @@ function ClientConnectionHelperModal({
   baseUrl: string;
   apiKey: string;
 }) {
+  // should match with deeplink.rs
+  const deeplink = `hypr://hyprnote.com/register?baseUrl=${baseUrl}&apiKey=${apiKey}`;
+
   return (
     <Modal
       centered
@@ -258,9 +284,7 @@ function ClientConnectionHelperModal({
             Method 1. Auto-Connect using deep-link
           </Text>
           <Button
-            onClick={() => {
-              window.open(`hypr://register?baseUrl=${baseUrl}&apiKey=${apiKey}`, "_blank");
-            }}
+            onClick={() => window.open(deeplink, "_blank")}
             size="sm"
             radius="md"
           >
@@ -404,8 +428,7 @@ function OrganizationSettings({ slug }: { slug: string }) {
 
                 <TextInput
                   label="Base URL"
-                  placeholder="e.g. https://hyprnote.yourdomain.com"
-                  key={form.key("baseUrl")}
+                  placeholder={`e.g. ${window.location.origin}`}
                   {...form.getInputProps("baseUrl")}
                 />
               </Stack>

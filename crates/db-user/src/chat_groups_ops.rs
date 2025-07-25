@@ -10,8 +10,9 @@ impl UserDatabase {
                     id,
                     user_id,
                     name,
-                    created_at
-                ) VALUES (?, ?, ?, ?)
+                    created_at,
+                    session_id
+                ) VALUES (?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     libsql::Value::Text(group.id),
@@ -21,6 +22,7 @@ impl UserDatabase {
                         .map(libsql::Value::Text)
                         .unwrap_or(libsql::Value::Null),
                     libsql::Value::Text(group.created_at.to_rfc3339()),
+                    libsql::Value::Text(group.session_id),
                 ],
             )
             .await?;
@@ -32,16 +34,16 @@ impl UserDatabase {
 
     pub async fn list_chat_groups(
         &self,
-        user_id: impl Into<String>,
+        session_id: impl Into<String>,
     ) -> Result<Vec<ChatGroup>, crate::Error> {
         let conn = self.conn()?;
 
         let mut rows = conn
             .query(
                 "SELECT * FROM chat_groups 
-                WHERE user_id = ? 
+                WHERE session_id = ? 
                 ORDER BY created_at DESC",
-                vec![user_id.into()],
+                vec![session_id.into()],
             )
             .await?;
 

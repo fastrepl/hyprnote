@@ -30,14 +30,18 @@ export const Route = createFileRoute("/login")({
     }
   },
   loader: async () => {
-    const adminEmail = await getEnv({ data: { key: "ADMIN_EMAIL" } }) as string;
-    const orgSlug = await getEnv({ data: { key: "ORG_SLUG" } }) as string;
-    return { adminEmail, orgSlug };
+    const [baseUrl, adminEmail, orgSlug] = await Promise.all([
+      getEnv({ data: { key: "VITE_BASE_URL" } }),
+      getEnv({ data: { key: "ADMIN_EMAIL" } }),
+      getEnv({ data: { key: "ORG_SLUG" } }),
+    ]) as [string, string, string];
+
+    return { baseUrl, adminEmail, orgSlug };
   },
 });
 
 function Component() {
-  const { adminEmail, orgSlug } = Route.useLoaderData();
+  const { baseUrl, adminEmail, orgSlug } = Route.useLoaderData();
 
   const adminCreatedQuery = useQuery({
     queryKey: ["adminCreated"],
@@ -56,12 +60,18 @@ function Component() {
     )
     : (
       <Container title="Admin Sign Up" description="Admin can invite other members to join">
-        <PasswordAdminSignUpForm adminEmail={adminEmail} orgSlug={orgSlug} />
+        <PasswordAdminSignUpForm
+          baseUrl={baseUrl}
+          adminEmail={adminEmail}
+          orgSlug={orgSlug}
+        />
       </Container>
     );
 }
 
-function PasswordAdminSignUpForm({ adminEmail, orgSlug }: { adminEmail: string; orgSlug: string }) {
+function PasswordAdminSignUpForm(
+  { baseUrl, adminEmail, orgSlug }: { baseUrl: string; adminEmail: string; orgSlug: string },
+) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -90,7 +100,11 @@ function PasswordAdminSignUpForm({ adminEmail, orgSlug }: { adminEmail: string; 
       return response;
     },
     onError: (error) => {
-      form.setFieldError("email", error.message);
+      if (error.message) {
+        form.setFieldError("email", error.message);
+      } else {
+        form.setFieldError("email", `${baseUrl} seems to be an invalid base URL.`);
+      }
     },
     onSuccess: (response) => {
       queryClient.resetQueries();
@@ -150,7 +164,6 @@ function PasswordAdminSignUpForm({ adminEmail, orgSlug }: { adminEmail: string; 
           key={form.key("passwordConfirm")}
           {...form.getInputProps("passwordConfirm")}
         />
-
         <Button
           type="submit"
           fullWidth

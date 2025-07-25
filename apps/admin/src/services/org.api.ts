@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { envServerSchema } from "@/env";
+import { envServerSchema } from "@/envServer";
 import { db } from "@/lib/db";
 import { organization } from "@/lib/db/schema";
 

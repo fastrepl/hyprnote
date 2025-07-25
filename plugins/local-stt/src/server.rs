@@ -15,10 +15,9 @@ use axum::{
 };
 
 use futures_util::{SinkExt, StreamExt};
-use rodio::Source;
 use tower_http::cors::{self, CorsLayer};
 
-use hypr_chunker::ChunkerExt;
+use hypr_chunker::VadExt;
 use hypr_listener_interface::{ListenOutputChunk, ListenParams, Word};
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
@@ -149,20 +148,12 @@ async fn websocket_single_channel(
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
 ) {
-    let stream = {
-        let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-        let chunked =
-            audio_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+    let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
+    let vad_chunks = audio_source.vad_chunks();
 
-        let chunked = hypr_whisper_local::AudioChunkStream(chunked.map(|chunk| {
-            hypr_whisper_local::SimpleAudioChunk {
-                samples: chunk.convert_samples().collect(),
-                meta: Some(serde_json::json!({ "source": "mixed" })),
-            }
-        }));
-        hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model)
-    };
+    let chunked = hypr_whisper_local::AudioChunkStream(process_vad_stream(vad_chunks, "mixed"));
 
+    let stream = hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model);
     process_transcription_stream(ws_sender, stream, guard).await;
 }
 
@@ -175,24 +166,15 @@ async fn websocket_dual_channel(
     let (mic_source, speaker_source) =
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
-    let mic_chunked =
-        mic_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
-    let speaker_chunked =
-        speaker_source.chunks(hypr_chunker::RMS::new(), std::time::Duration::from_secs(13));
+    let mic_chunked = {
+        let mic_vad_chunks = mic_source.vad_chunks();
+        hypr_whisper_local::AudioChunkStream(process_vad_stream(mic_vad_chunks, "mic"))
+    };
 
-    let mic_chunked = hypr_whisper_local::AudioChunkStream(mic_chunked.map(|chunk| {
-        hypr_whisper_local::SimpleAudioChunk {
-            samples: chunk.convert_samples().collect(),
-            meta: Some(serde_json::json!({ "source": "mic" })),
-        }
-    }));
-
-    let speaker_chunked = hypr_whisper_local::AudioChunkStream(speaker_chunked.map(|chunk| {
-        hypr_whisper_local::SimpleAudioChunk {
-            samples: chunk.convert_samples().collect(),
-            meta: Some(serde_json::json!({ "source": "speaker" })),
-        }
-    }));
+    let speaker_chunked = {
+        let speaker_vad_chunks = speaker_source.vad_chunks();
+        hypr_whisper_local::AudioChunkStream(process_vad_stream(speaker_vad_chunks, "speaker"))
+    };
 
     let merged_stream = hypr_whisper_local::AudioChunkStream(futures_util::stream::select(
         mic_chunked.0,
@@ -225,10 +207,7 @@ async fn process_transcription_stream(
                 let duration = chunk.duration() as u64;
                 let confidence = chunk.confidence();
 
-                if confidence < 0.2 {
-                    tracing::warn!(confidence, "skipping_transcript: {}", text);
-                    continue;
-                }
+
 
                 let source = meta.and_then(|meta|
                     meta.get("source")
@@ -266,4 +245,35 @@ async fn process_transcription_stream(
     }
 
     let _ = ws_sender.close().await;
+}
+
+fn process_vad_stream<S, E>(
+    stream: S,
+    source_name: &str,
+) -> impl futures_util::Stream<Item = hypr_whisper_local::SimpleAudioChunk>
+where
+    S: futures_util::Stream<Item = Result<hypr_chunker::AudioChunk, E>>,
+    E: std::fmt::Display,
+{
+    let source_name = source_name.to_string();
+
+    stream
+        .take_while(move |chunk_result| {
+            futures_util::future::ready(match chunk_result {
+                Ok(_) => true,
+                Err(e) => {
+                    tracing::error!("vad_error_disconnecting: {}", e);
+                    false // This will end the stream
+                }
+            })
+        })
+        .filter_map(move |chunk_result| {
+            futures_util::future::ready(match chunk_result {
+                Err(_) => None, // This shouldn't happen due to take_while above
+                Ok(chunk) => Some(hypr_whisper_local::SimpleAudioChunk {
+                    samples: chunk.samples,
+                    meta: Some(serde_json::json!({ "source": source_name })),
+                }),
+            })
+        })
 }

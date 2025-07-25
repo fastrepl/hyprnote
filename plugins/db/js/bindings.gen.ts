@@ -103,8 +103,8 @@ async listOrganizations(filter: ListOrganizationFilter | null) : Promise<Organiz
 async listOrganizationMembers(organizationId: string) : Promise<Human[]> {
     return await TAURI_INVOKE("plugin:db|list_organization_members", { organizationId });
 },
-async listChatGroups(userId: string) : Promise<ChatGroup[]> {
-    return await TAURI_INVOKE("plugin:db|list_chat_groups", { userId });
+async listChatGroups(sessionId: string) : Promise<ChatGroup[]> {
+    return await TAURI_INVOKE("plugin:db|list_chat_groups", { sessionId });
 },
 async listChatMessages(groupId: string) : Promise<ChatMessage[]> {
     return await TAURI_INVOKE("plugin:db|list_chat_messages", { groupId });
@@ -146,11 +146,11 @@ async deleteTag(tagId: string) : Promise<null> {
 /** user-defined types **/
 
 export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean; source: string | null }
-export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string }
+export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string; session_id: string }
 export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
 export type ChatMessageRole = "User" | "Assistant"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification; ai: ConfigAI }
-export type ConfigAI = { api_base: string | null; api_key: string | null }
+export type ConfigAI = { api_base: string | null; api_key: string | null; ai_specificity: number | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; jargons: string[]; telemetry_consent: boolean; save_recordings: boolean | null; selected_template_id: string | null }
 export type ConfigNotification = { before: boolean; auto: boolean; ignoredPlatforms: string[] | null }
 export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }

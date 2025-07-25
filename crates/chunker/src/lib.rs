@@ -1,61 +1,144 @@
-mod error;
-mod predictor;
-mod stream;
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
+};
 
-pub use error::*;
-pub use predictor::*;
-pub use stream::*;
-
+use futures_util::Stream;
 use kalosm_sound::AsyncSource;
-use std::time::Duration;
 
-pub trait ChunkerExt: AsyncSource + Sized {
-    fn chunks<P: Predictor + Unpin>(
-        self,
-        predictor: P,
-        chunk_duration: Duration,
-    ) -> ChunkStream<Self, P>
-    where
-        Self: Unpin,
-    {
-        ChunkStream::new(self, predictor, chunk_duration)
+use silero_rs::{VadConfig, VadSession, VadTransition};
+
+mod error;
+use error::*;
+
+pub struct ChunkStream<S: AsyncSource> {
+    source: S,
+    chunk_samples: usize,
+    buffer: Vec<f32>,
+}
+
+impl<S: AsyncSource> ChunkStream<S> {
+    fn new(source: S, chunk_duration: Duration) -> Self {
+        let sample_rate = source.sample_rate();
+        let chunk_samples = (chunk_duration.as_secs_f64() * sample_rate as f64) as usize;
+
+        Self {
+            source,
+            chunk_samples,
+            buffer: Vec::with_capacity(chunk_samples),
+        }
     }
 }
 
-impl<T: AsyncSource> ChunkerExt for T {}
+impl<S: AsyncSource + Unpin> Stream for ChunkStream<S> {
+    type Item = Vec<f32>;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use futures_util::StreamExt;
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        let stream = this.source.as_stream();
+        let mut stream = std::pin::pin!(stream);
 
-    #[tokio::test]
-    async fn test_chunker() {
-        let audio_source = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap();
+        while this.buffer.len() < this.chunk_samples {
+            match stream.as_mut().poll_next(cx) {
+                Poll::Pending => {
+                    return Poll::Pending;
+                }
+                Poll::Ready(Some(sample)) => {
+                    this.buffer.push(sample);
+                }
+                Poll::Ready(None) => {
+                    if this.buffer.is_empty() {
+                        return Poll::Ready(None);
+                    } else {
+                        let chunk = std::mem::take(&mut this.buffer);
+                        return Poll::Ready(Some(chunk));
+                    }
+                }
+            }
+        }
 
-        let spec = hound::WavSpec {
-            channels: 1,
-            sample_rate: 16000,
-            bits_per_sample: 32,
-            sample_format: hound::SampleFormat::Float,
+        let mut chunk = Vec::with_capacity(this.chunk_samples);
+        chunk.extend(this.buffer.drain(..this.chunk_samples));
+        Poll::Ready(Some(chunk))
+    }
+}
+
+pub trait VadExt: AsyncSource + Sized {
+    fn vad_chunks(self) -> VadChunkStream<Self>
+    where
+        Self: Unpin,
+    {
+        let config = VadConfig {
+            redemption_time: Duration::from_millis(600),
+            min_speech_time: Duration::from_millis(50),
+            ..Default::default()
         };
 
-        let mut stream = audio_source.chunks(RMS::new(), Duration::from_secs(15));
-        let mut i = 0;
+        VadChunkStream::new(self, config).unwrap()
+    }
+}
 
-        let _ = std::fs::remove_dir_all("tmp/english_1");
-        let _ = std::fs::create_dir_all("tmp/english_1");
+impl<T: AsyncSource> VadExt for T {}
 
-        while let Some(chunk) = stream.next().await {
-            let file = std::fs::File::create(format!("tmp/english_1/chunk_{}.wav", i)).unwrap();
-            let mut writer = hound::WavWriter::new(file, spec).unwrap();
-            for sample in chunk {
-                writer.write_sample(sample).unwrap();
+pub struct VadChunkStream<S: AsyncSource> {
+    chunk_stream: ChunkStream<S>,
+    vad_session: VadSession,
+    pending_chunks: Vec<AudioChunk>,
+}
+
+impl<S: AsyncSource> VadChunkStream<S> {
+    fn new(source: S, mut config: VadConfig) -> Result<Self, Error> {
+        config.sample_rate = source.sample_rate() as usize;
+
+        // https://github.com/emotechlab/silero-rs/blob/26a6460/src/lib.rs#L775
+        let chunk_duration = Duration::from_millis(30);
+
+        Ok(Self {
+            chunk_stream: ChunkStream::new(source, chunk_duration),
+            vad_session: VadSession::new(config).map_err(|_| Error::VadSessionCreationFailed)?,
+            pending_chunks: Vec::new(),
+        })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct AudioChunk {
+    pub samples: Vec<f32>,
+}
+
+impl<S: AsyncSource + Unpin> Stream for VadChunkStream<S> {
+    type Item = Result<AudioChunk, Error>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        if let Some(chunk) = this.pending_chunks.pop() {
+            return Poll::Ready(Some(Ok(chunk)));
+        }
+
+        loop {
+            match Pin::new(&mut this.chunk_stream).poll_next(cx) {
+                Poll::Ready(Some(samples)) => match this.vad_session.process(&samples) {
+                    Ok(transitions) => {
+                        for transition in transitions {
+                            if let VadTransition::SpeechEnd { samples, .. } = transition {
+                                this.pending_chunks.push(AudioChunk { samples });
+                            }
+                        }
+
+                        if let Some(chunk) = this.pending_chunks.pop() {
+                            return Poll::Ready(Some(Ok(chunk)));
+                        }
+                    }
+                    Err(e) => {
+                        let error = Error::VadProcessingFailed(e.to_string());
+                        return Poll::Ready(Some(Err(error)));
+                    }
+                },
+                Poll::Ready(None) => return Poll::Ready(None),
+                Poll::Pending => return Poll::Pending,
             }
-            i += 1;
         }
     }
 }

@@ -7,11 +7,14 @@ import { userRequiredMiddlewareForRequest } from "@/services/auth.api";
 import { findLlmProvider } from "@/services/provider.api";
 
 // https://platform.openai.com/docs/api-reference/chat
-export const ServerRoute = createServerFileRoute("/v1/chat/completion")
+export const ServerRoute = createServerFileRoute("/v1/chat/completions")
   .methods((api) => ({
     POST: api.middleware([userRequiredMiddlewareForRequest]).handler(async ({ request, context }) => {
       const { model: id, messages, stream = false } = await request.json();
-      const [name, model] = id.split("/") as [string, string];
+
+      const idx = id.indexOf("/");
+      const [name, model] = [id.slice(0, idx), id.slice(idx + 1)] as [string, string];
+
       const provider = await findLlmProvider({ data: { name, model } });
 
       if (!provider) {

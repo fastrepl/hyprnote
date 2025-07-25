@@ -46,7 +46,7 @@ async function generateTitleDirect(enhancedContent: string, targetSessionId: str
   ]);
 
   const model = provider.languageModel("defaultModel");
-  const abortSignal = AbortSignal.timeout(30_000);
+  const abortSignal = AbortSignal.timeout(60_000);
 
   const { text } = await generateText({
     abortSignal,
@@ -62,7 +62,8 @@ async function generateTitleDirect(enhancedContent: string, targetSessionId: str
 
   const session = await dbCommands.getSession({ id: targetSessionId });
   if (!session?.title && sessions[targetSessionId]?.getState) {
-    sessions[targetSessionId].getState().updateTitle(text);
+    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
   }
 }
 
@@ -164,7 +165,20 @@ export default function EditorArea({
     }
   }, []);
 
+  const lastBacklinkSearchTime = useRef<number>(0);
+
   const handleMentionSearch = async (query: string) => {
+    const now = Date.now();
+    const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
+
+    if (timeSinceLastEvent >= 5000) {
+      analyticsCommands.event({
+        event: "searched_backlink",
+        distinct_id: userId,
+      });
+      lastBacklinkSearchTime.current = now;
+    }
+
     const session = await dbCommands.listSessions({ type: "search", query, user_id: userId, limit: 5 });
 
     return session.map((s) => ({
@@ -258,6 +272,28 @@ export function useEnhanceMutation({
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
   const queryClient = useQueryClient();
 
+  // Extract H1 headers at component level (always available)
+  const extractH1Headers = useCallback((htmlContent: string): string[] => {
+    if (!htmlContent) {
+      return [];
+    }
+
+    const h1Regex = /<h1[^>]*>(.*?)<\/h1>/gi;
+    const headers: string[] = [];
+    let match;
+
+    while ((match = h1Regex.exec(htmlContent)) !== null) {
+      const headerText = match[1].replace(/<[^>]*>/g, "").trim();
+      if (headerText) {
+        headers.push(headerText);
+      }
+    }
+
+    return headers;
+  }, []);
+
+  const h1Headers = useMemo(() => extractH1Headers(rawContent), [rawContent, extractH1Headers]);
+
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
@@ -315,11 +351,21 @@ export function useEnhanceMutation({
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
+      const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
+      const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
+
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo: selectedTemplate },
+        {
+          config,
+          type,
+          // Pass userHeaders when using H1 headers, templateInfo otherwise
+          ...(shouldUseH1Headers
+            ? { userHeaders: h1Headers }
+            : { templateInfo: selectedTemplate }),
+        },
       );
 
       const userMessage = await templateCommands.render(
@@ -333,7 +379,7 @@ export function useEnhanceMutation({
       );
 
       const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
       setEnhanceController(abortController);
 
       const provider = await modelProvider();
@@ -372,7 +418,7 @@ export function useEnhanceMutation({
               metadata: {
                 grammar: {
                   task: "enhance",
-                  sections: selectedTemplate?.sections.map(s => s.title) || null,
+                  sections: grammarSections,
                 } satisfies Grammar,
               },
             },

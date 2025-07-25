@@ -1,6 +1,6 @@
 import posthog from "posthog-js";
 
-import { envServerSchema } from "@/env";
+import { envServerSchema } from "@/envServer";
 
 export const init = () => {
   if (!envServerSchema.TELEMETRY) {

@@ -1,3 +1,4 @@
+import { json } from "@tanstack/react-start";
 import { createServerFileRoute } from "@tanstack/react-start/server";
 
 import { userRequiredMiddlewareForRequest } from "@/services/auth.api";
@@ -11,7 +12,7 @@ export const ServerRoute = createServerFileRoute("/v1/models")
       const ORG_SLUG = await getEnv({ data: { key: "ORG_SLUG" } }) as string;
       const providers = await listLlmProvider();
 
-      return {
+      return json({
         "object": "list",
         "data": providers.map((provider) => ({
           "id": `${provider.name}/${provider.model}`,
@@ -19,6 +20,6 @@ export const ServerRoute = createServerFileRoute("/v1/models")
           "created": provider.createdAt,
           "owned_by": ORG_SLUG,
         })),
-      };
+      });
     }),
   }));

@@ -17,6 +17,7 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 cpal = { workspace = true }
+dasp = { workspace = true }
 rodio = { workspace = true }
 
 ebur128 = "0.1.10"

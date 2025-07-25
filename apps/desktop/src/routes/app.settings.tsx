@@ -1,13 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { ExternalLinkIcon } from "lucide-react";
+import { useEffect } from "react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
 import {
   Calendar,
-  Feedback,
   General,
   Integrations,
   LocalAI,
@@ -15,10 +17,14 @@ import {
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
+  // TODO: not ideal. should match deeplink.rs
+  baseUrl: z.string().optional(),
+  apiKey: z.string().optional(),
 });
 
 const PATH = "/app/settings";
@@ -28,20 +34,35 @@ export const Route = createFileRoute(PATH)({
 });
 
 function Component() {
+  const { t } = useLingui();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
-  const { t } = useLingui();
+
+  // TODO: this is a hack
+  useEffect(() => {
+    if (search.baseUrl && search.apiKey) {
+      connectorCommands.setCustomLlmConnection({
+        api_base: search.baseUrl,
+        api_key: search.apiKey,
+      }).then(() => {
+        connectorCommands.setCustomLlmEnabled(true);
+        navigate({ to: PATH, search: { tab: "ai" } });
+      });
+    }
+  }, [search.baseUrl, search.apiKey]);
 
   const handleClickTab = (tab: Tab) => {
-    navigate({ to: PATH, search: { ...search, tab } });
+    if (tab === "feedback") {
+      openUrl("https://hyprnote.canny.io/feature-requests");
+    } else {
+      navigate({ to: PATH, search: { ...search, tab } });
+    }
   };
 
-  const getTabTitle = (tab: string) => {
+  const getTabTitle = (tab: Tab) => {
     switch (tab) {
       case "general":
         return t`General`;
-      case "profile":
-        return t`Profile`;
       case "ai":
         return t`AI`;
       case "calendar":
@@ -50,14 +71,10 @@ function Component() {
         return t`Notifications`;
       case "templates":
         return t`Templates`;
-      case "extensions":
-        return t`Extensions`;
-      case "team":
-        return t`Team`;
-      case "billing":
-        return t`Billing`;
       case "integrations":
         return t`Integrations`;
+      case "feedback":
+        return t`Feedback`;
       default:
         return tab;
     }
@@ -87,27 +104,14 @@ function Component() {
                       onClick={() => handleClickTab(tab.name)}
                     >
                       <TabIcon tab={tab.name} />
-                      <span>
-                        {tab.name === "general"
-                          ? <Trans>General</Trans>
-                          : tab.name === "calendar"
-                          ? <Trans>Calendar</Trans>
-                          : tab.name === "notifications"
-                          ? <Trans>Notifications</Trans>
-                          : tab.name === "sound"
-                          ? <Trans>Sound</Trans>
-                          : tab.name === "ai"
-                          ? <Trans>AI</Trans>
-                          : tab.name === "lab"
-                          ? <Trans>Lab</Trans>
-                          : tab.name === "feedback"
-                          ? <Trans>Feedback</Trans>
-                          : tab.name === "templates"
-                          ? <Trans>Templates</Trans>
-                          : tab.name === "integrations"
-                          ? <Trans>Integrations</Trans>
-                          : null}
-                      </span>
+                      {tab.name === "feedback"
+                        ? (
+                          <div className="flex items-center justify-between flex-1">
+                            <Trans>Feedback</Trans>
+                            <ExternalLinkIcon className="h-3 w-3" />
+                          </div>
+                        )
+                        : <span>{getTabTitle(tab.name)}</span>}
                     </button>
                   ))}
                 </div>
@@ -135,8 +139,6 @@ function Component() {
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
               {search.tab === "ai" && <LocalAI />}
-              {/* {search.tab === "lab" && <Lab />} */}
-              {search.tab === "feedback" && <Feedback />}
               {search.tab === "templates" && <TemplatesView />}
               {search.tab === "integrations" && <Integrations />}
             </div>

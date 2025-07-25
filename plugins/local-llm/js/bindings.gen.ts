@@ -39,6 +39,9 @@ async getCurrentModel() : Promise<SupportedModel> {
 },
 async setCurrentModel(model: SupportedModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-llm|set_current_model", { model });
+},
+async listDownloadedModel() : Promise<SupportedModel[]> {
+    return await TAURI_INVOKE("plugin:local-llm|list_downloaded_model");
 }
 }
 

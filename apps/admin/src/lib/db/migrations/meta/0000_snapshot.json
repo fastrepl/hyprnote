@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "9baf04e9-f42a-4d13-b83d-03220c62678c",
+  "id": "e75f92db-114c-47b0-9e89-6028ecc18b39",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account": {
@@ -943,7 +943,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "llm_provider_name_organization_id_unique": {
+          "name": "llm_provider_name_organization_id_unique",
+          "columns": [
+            "name",
+            "organization_id"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
         "llm_provider_organization_id_organization_id_fk": {
           "name": "llm_provider_organization_id_organization_id_fk",

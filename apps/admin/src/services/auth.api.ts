@@ -2,7 +2,7 @@ import { createMiddleware, createServerFn, json } from "@tanstack/react-start";
 import { getWebRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 
-import { envServerSchema } from "@/env";
+import { envServerSchema } from "@/envServer";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organization } from "@/lib/db/schema";
@@ -107,17 +107,29 @@ export const userRequiredMiddlewareForFunction = createMiddleware({ type: "funct
 export const activeOrgRequiredMiddlewareForFunction = createMiddleware({ type: "function" })
   .middleware([userRequiredMiddlewareForFunction])
   .server(async ({ next, context }) => {
-    if (!context.userSession?.session?.activeOrganizationId) {
-      throw json(
-        { message: "You must have an active organization!" },
-        { status: 403 },
-      );
+    if (context.userSession?.session?.activeOrganizationId) {
+      return next({
+        context: {
+          ...context,
+          activeOrganizationId: context.userSession.session.activeOrganizationId,
+        },
+      });
     }
 
-    return next({
-      context: {
-        userSession: context.userSession,
-        activeOrganizationId: context.userSession.session.activeOrganizationId,
-      },
-    });
+    // TODO: Assume only one organization per user
+    const request = getWebRequest();
+    const orgs = await auth.api.listOrganizations({ headers: request.headers });
+    if (orgs.length > 0) {
+      return next({
+        context: {
+          ...context,
+          activeOrganizationId: orgs[0].id,
+        },
+      });
+    }
+
+    throw json(
+      { message: "You must have an active organization!" },
+      { status: 403 },
+    );
   });

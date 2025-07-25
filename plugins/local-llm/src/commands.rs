@@ -81,6 +81,14 @@ pub async fn get_current_model<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_downloaded_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<crate::SupportedModel>, String> {
+    app.list_downloaded_model().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn set_current_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: crate::SupportedModel,

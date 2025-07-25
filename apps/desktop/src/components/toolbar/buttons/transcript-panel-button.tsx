@@ -8,11 +8,13 @@ import { cn } from "@hypr/ui/lib/utils";
 import Shortcut from "../../shortcut";
 
 export function TranscriptPanelButton() {
-  const { isExpanded, togglePanel } = useRightPanel();
+  const { isExpanded, currentView, togglePanel } = useRightPanel();
 
   const handleClick = () => {
     togglePanel("transcript");
   };
+
+  const isActive = isExpanded && currentView === "transcript";
 
   return (
     <Tooltip>
@@ -23,7 +25,7 @@ export function TranscriptPanelButton() {
           onClick={handleClick}
           className={cn(
             "hover:bg-neutral-300 text-xs",
-            isExpanded && "bg-neutral-200",
+            isActive && "bg-neutral-200",
           )}
         >
           <CaptionsIcon className="size-4" />

@@ -139,31 +139,59 @@ impl Whisper {
 
         let mut segments = Vec::new();
         for i in 0..num_segments {
-            let text = self.state.full_get_segment_text_lossy(i)?;
+            let text = TRAILING_DOTS
+                .replace(&self.state.full_get_segment_text_lossy(i)?, "")
+                .to_string();
+
             let (start, end) = (
                 self.state.full_get_segment_t0(i)?,
                 self.state.full_get_segment_t1(i)?,
             );
             let confidence = self.calculate_segment_confidence(i);
 
-            let mut segment = Segment {
+            segments.push(Segment {
                 text,
                 start: start as f32 / 1000.0,
                 end: end as f32 / 1000.0,
                 confidence,
                 ..Default::default()
-            };
-            segment.trim();
-            segments.push(segment);
+            });
         }
 
-        self.dynamic_prompt = segments
+        let segments = Self::filter_segments(segments);
+
+        let full_text = segments
             .iter()
             .map(|s| s.text())
             .collect::<Vec<&str>>()
             .join(" ");
 
+        if !full_text.is_empty() {
+            self.dynamic_prompt = full_text;
+        }
+
         Ok(segments)
+    }
+
+    fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {
+        segments
+            .into_iter()
+            .filter(|s| {
+                let t = s.text.trim().to_lowercase();
+
+                if s.confidence < 0.005
+                    || t == "you"
+                    || t == "thank you"
+                    || t == "you."
+                    || t == "thank you."
+                    || t == "🎵"
+                {
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect()
     }
 
     // https://github.com/ggml-org/whisper.cpp/pull/971/files#diff-2d3599a9fad195f2c3c60bd06691bc1815325b3560b5feda41a91fa71194e805R310-R327
@@ -262,46 +290,12 @@ impl Segment {
     pub fn meta(&self) -> Option<serde_json::Value> {
         self.meta.clone()
     }
-
-    pub fn trim(&mut self) {
-        self.text = TRAILING_DOTS.replace(&self.text, "").to_string();
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use futures_util::StreamExt;
-
-    #[test]
-    fn test_trim() {
-        {
-            let mut segment = Segment {
-                text: "Hello...".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello");
-        }
-
-        {
-            let mut segment = Segment {
-                text: "Hello".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello");
-        }
-
-        {
-            let mut segment = Segment {
-                text: "Hello.".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello.");
-        }
-    }
 
     #[test]
     fn test_whisper() {

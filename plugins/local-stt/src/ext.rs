@@ -1,6 +1,7 @@
 use std::{future::Future, path::PathBuf};
 
 use tauri::{ipc::Channel, Manager, Runtime};
+use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
 
 use hypr_file::{download_file_with_callback, DownloadProgress};
@@ -13,9 +14,14 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
+
+    fn start_external_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
+    fn stop_external_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
+
     fn is_server_running(&self) -> impl Future<Output = bool>;
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
+
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
 
@@ -79,6 +85,23 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         }
 
         Ok(true)
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn start_external_server(&self) -> Result<String, crate::Error> {
+        let port = 8008;
+        let cmd = self
+            .shell()
+            .sidecar("pro-stt-server")?
+            .arg(format!("--port {}", port));
+
+        let (_rx, _child) = cmd.spawn()?;
+        Ok(format!("http://localhost:{}", port))
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn stop_external_server(&self) -> Result<(), crate::Error> {
+        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

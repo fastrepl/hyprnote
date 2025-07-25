@@ -256,8 +256,8 @@ msgstr "(Beta) Upcoming meeting notifications"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:179
-#: src/components/editor-area/note-header/listen-button.tsx:218
+#: src/components/editor-area/note-header/listen-button.tsx:189
+#: src/components/editor-area/note-header/listen-button.tsx:228
 msgid "{0}"
 msgstr "{0}"
 
@@ -887,7 +887,7 @@ msgstr "No speech-to-text models available or failed to load."
 #~ msgid "No Template"
 #~ msgstr "No Template"
 
-#: src/components/editor-area/note-header/listen-button.tsx:342
+#: src/components/editor-area/note-header/listen-button.tsx:350
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
@@ -955,7 +955,7 @@ msgstr "Optional for participant suggestions"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:365
+#: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Pause"
 msgstr "Pause"
 
@@ -967,7 +967,7 @@ msgstr "people"
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
-#: src/components/editor-area/note-header/listen-button.tsx:198
+#: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "Play video"
 msgstr "Play video"
 
@@ -1011,7 +1011,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:107
+#: src/components/editor-area/note-header/listen-button.tsx:117
 msgid "Resume"
 msgstr "Resume"
 
@@ -1109,11 +1109,11 @@ msgstr "Start Annual Plan"
 msgid "Start Monthly Plan"
 msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:154
+#: src/components/editor-area/note-header/listen-button.tsx:164
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:373
+#: src/components/editor-area/note-header/listen-button.tsx:381
 msgid "Stop"
 msgstr "Stop"
 

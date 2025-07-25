@@ -966,6 +966,7 @@ dependencies = [
  "bytes",
  "cidre",
  "cpal",
+ "dasp",
  "data",
  "ebur128",
  "futures-channel",

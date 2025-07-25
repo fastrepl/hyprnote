@@ -395,19 +395,24 @@ function MicrophoneSelector({
   disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState<string>("");
 
   const { data: devices = [], isLoading } = useQuery({
     queryKey: ["microphone-devices"],
     queryFn: () => listenerCommands.listMicrophoneDevices(),
     refetchOnWindowFocus: false,
+    refetchInterval: 1000,
   });
 
-  useEffect(() => {
-    if (!selectedDevice && devices.length > 0) {
-      setSelectedDevice(devices[0]);
-    }
-  }, [devices, selectedDevice]);
+  const { data: selectedDevice } = useQuery({
+    queryKey: ["current-microphone-device"],
+    queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
+    refetchOnWindowFocus: false,
+    refetchInterval: 1000,
+  });
+
+  const handleSelectDevice = (device: string) => {
+    listenerCommands.setMicrophoneDevice(device);
+  };
 
   const Icon = isMuted ? MicOffIcon : MicIcon;
 
@@ -474,7 +479,7 @@ function MicrophoneSelector({
                           isSelected && "bg-neutral-100",
                         )}
                         onClick={() => {
-                          setSelectedDevice(device);
+                          handleSelectDevice(device);
                           setIsOpen(false);
                         }}
                       >

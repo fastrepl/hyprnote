@@ -256,8 +256,8 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:179
-#: src/components/editor-area/note-header/listen-button.tsx:218
+#: src/components/editor-area/note-header/listen-button.tsx:189
+#: src/components/editor-area/note-header/listen-button.tsx:228
 msgid "{0}"
 msgstr ""
 
@@ -887,7 +887,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:342
+#: src/components/editor-area/note-header/listen-button.tsx:350
 msgid "No Template (Default)"
 msgstr ""
 
@@ -955,7 +955,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:365
+#: src/components/editor-area/note-header/listen-button.tsx:373
 msgid "Pause"
 msgstr ""
 
@@ -967,7 +967,7 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:198
+#: src/components/editor-area/note-header/listen-button.tsx:208
 msgid "Play video"
 msgstr ""
 
@@ -1011,7 +1011,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:107
+#: src/components/editor-area/note-header/listen-button.tsx:117
 msgid "Resume"
 msgstr ""
 
@@ -1109,11 +1109,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:154
+#: src/components/editor-area/note-header/listen-button.tsx:164
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:373
+#: src/components/editor-area/note-header/listen-button.tsx:381
 msgid "Stop"
 msgstr ""
 

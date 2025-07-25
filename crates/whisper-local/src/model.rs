@@ -17,7 +17,7 @@ lazy_static! {
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
-    language: Option<Language>,
+    languages: Option<Vec<Language>>,
     static_prompt: Option<String>,
     dynamic_prompt: Option<String>,
 }
@@ -28,8 +28,8 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn language(mut self, language: Language) -> Self {
-        self.language = Some(language);
+    pub fn languages(mut self, languages: Vec<Language>) -> Self {
+        self.languages = Some(languages);
         self
     }
 
@@ -63,7 +63,7 @@ impl WhisperBuilder {
         let token_beg = ctx.token_beg();
 
         Whisper {
-            language: self.language,
+            languages: self.languages.unwrap_or_default(),
             static_prompt: self.static_prompt.unwrap_or_default(),
             dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
             state,
@@ -84,7 +84,7 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: Option<Language>,
+    languages: Vec<Language>,
     static_prompt: String,
     dynamic_prompt: String,
     state: WhisperState,
@@ -178,7 +178,7 @@ impl Whisper {
     }
 
     fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
-        if self.language.is_none() {
+        if self.languages.is_empty() {
             self.state.pcm_to_mel(audio, 1)?;
             let (lang_id, _lang_probs) = self.state.lang_detect(0, 1)?;
             let lang_str = whisper_rs::get_lang_str(lang_id);

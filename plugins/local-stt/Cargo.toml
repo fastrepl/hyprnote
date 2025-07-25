@@ -28,7 +28,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
-hypr-language = { workspace = true }
+hypr-language = { workspace = true, features = ["whisper"] }
 
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-store = { workspace = true }

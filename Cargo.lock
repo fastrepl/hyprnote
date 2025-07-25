@@ -7813,7 +7813,9 @@ version = "0.1.0"
 dependencies = [
  "codes-iso-639",
  "deepgram",
+ "schemars 0.8.22",
  "serde",
+ "specta",
  "thiserror 2.0.12",
  "whisper",
 ]

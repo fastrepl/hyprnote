@@ -12,7 +12,6 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: ChatMessageProps) {
   if (message.isUser) {
-    // User message in white box style similar to chat input
     return (
       <div className="w-full mb-4 flex justify-end">
         <div className="max-w-[80%]">
@@ -38,7 +37,6 @@ export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMar
     );
   }
 
-  // Assistant message (cleaned up - no label)
   return (
     <div className="w-full mb-4">
       <MessageContent

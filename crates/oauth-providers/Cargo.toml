@@ -1,0 +1,13 @@
+[package]
+name = "oauth-providers"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-oauth-core = { workspace = true }
+
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+url = { workspace = true }

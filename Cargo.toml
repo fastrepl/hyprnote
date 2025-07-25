@@ -50,6 +50,11 @@ hypr-network = { path = "crates/network", package = "network" }
 hypr-notification = { path = "crates/notification", package = "notification" }
 hypr-notification2 = { path = "crates/notification2", package = "notification2" }
 hypr-notion = { path = "crates/notion", package = "notion" }
+hypr-oauth-callback = { path = "crates/oauth-callback", package = "oauth-callback" }
+hypr-oauth-client = { path = "crates/oauth-client", package = "oauth-client" }
+hypr-oauth-core = { path = "crates/oauth-core", package = "oauth-core" }
+hypr-oauth-providers = { path = "crates/oauth-providers", package = "oauth-providers" }
+hypr-oauth-server = { path = "crates/oauth-server", package = "oauth-server" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
@@ -105,6 +110,7 @@ tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
 async-stream = "0.3.6"
+async-trait = "0.1.88"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
@@ -118,6 +124,7 @@ tokio-util = "0.7.15"
 anyhow = "1"
 approx = "0.5.1"
 backon = "1.4.1"
+base64 = "0.22.1"
 bytes = "1.9.0"
 cached = "0.55.1"
 codes-iso-639 = "0.1.5"

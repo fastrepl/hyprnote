@@ -9114,6 +9114,63 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
 
 [[package]]
+name = "oauth-callback"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "futures-util",
+ "oauth-core",
+ "oauth-providers",
+ "reqwest 0.12.22",
+ "serde",
+ "serde_json",
+ "serde_qs 1.0.0-rc.3",
+ "thiserror 2.0.12",
+ "tower 0.5.2",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "oauth-client"
+version = "0.1.0"
+dependencies = [
+ "oauth-core",
+ "reqwest 0.12.22",
+]
+
+[[package]]
+name = "oauth-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "oauth-providers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "oauth-core",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "oauth-server"
+version = "0.1.0"
+dependencies = [
+ "oauth-core",
+ "tower 0.5.2",
+]
+
+[[package]]
 name = "objc"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

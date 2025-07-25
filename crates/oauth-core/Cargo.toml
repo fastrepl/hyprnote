@@ -1,0 +1,12 @@
+[package]
+name = "oauth-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+url = { workspace = true }

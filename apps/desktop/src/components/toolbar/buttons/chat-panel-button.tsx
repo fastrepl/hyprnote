@@ -25,6 +25,21 @@ function ChatPanelButtonBase() {
     return () => clearInterval(animationInterval);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "j" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        togglePanel("chat");
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [togglePanel]);
+
   const handleClick = () => {
     togglePanel("chat");
   };

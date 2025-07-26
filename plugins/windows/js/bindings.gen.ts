@@ -70,8 +70,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "calendar" } | { type: "settings" } | { type: "video"; value: string } | { type: "control" }
-export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "finder" } | { type: "settings" } | { type: "video"; value: string } | { type: "plans" } | { type: "control" }
 export type KnownPosition = "left-half" | "right-half" | "center"
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> }

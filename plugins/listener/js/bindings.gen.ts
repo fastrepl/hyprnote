@@ -10,6 +10,12 @@ export const commands = {
 async listMicrophoneDevices() : Promise<string[]> {
     return await TAURI_INVOKE("plugin:listener|list_microphone_devices");
 },
+async getCurrentMicrophoneDevice() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:listener|get_current_microphone_device");
+},
+async setMicrophoneDevice(deviceName: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:listener|set_microphone_device", { deviceName });
+},
 async checkMicrophoneAccess() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:listener|check_microphone_access");
 },

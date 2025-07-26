@@ -122,21 +122,27 @@ impl UserDatabase {
                 specific: ListSessionFilterSpecific::Search { query },
             }) => {
                 conn.query(
-                    "SELECT * FROM sessions 
-                     WHERE user_id = ? AND (
-                       title LIKE ? OR 
-                       REPLACE(REPLACE(REPLACE(enhanced_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
-                       REPLACE(REPLACE(REPLACE(raw_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ?
+                    "SELECT DISTINCT s.* FROM sessions s
+                     LEFT JOIN session_participants sp ON s.id = sp.session_id
+                     LEFT JOIN humans h ON sp.human_id = h.id
+                     WHERE s.user_id = ? AND (
+                       s.title LIKE ? OR 
+                       REPLACE(REPLACE(REPLACE(s.enhanced_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
+                       REPLACE(REPLACE(REPLACE(s.raw_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
+                       h.full_name LIKE ? OR
+                       h.email LIKE ?
                      ) 
                      ORDER BY 
-                       CASE WHEN title LIKE ? THEN 0 ELSE 1 END,
-                       created_at DESC 
+                       CASE WHEN s.title LIKE ? THEN 0 ELSE 1 END,
+                       s.created_at DESC 
                      LIMIT ?",
                     vec![
                         user_id,
                         format!("%{}%", query),  // title search
                         format!("%{}%", query),  // enhanced_memo search (HTML stripped)
                         format!("%{}%", query),  // raw_memo search (HTML stripped)
+                        format!("%{}%", query),  // participant name search
+                        format!("%{}%", query),  // participant email search
                         format!("%{}%", query),  // title priority check
                         limit.unwrap_or(100).to_string(),
                     ],

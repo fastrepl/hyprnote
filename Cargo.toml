@@ -60,7 +60,6 @@ hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-template = { path = "crates/template", package = "template" }
 hypr-turso = { path = "crates/turso", package = "turso" }
-hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-cloud = { path = "crates/whisper-cloud", package = "whisper-cloud" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
@@ -81,6 +80,7 @@ tauri-plugin-fs = "2.4"
 tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.4"
+tauri-plugin-shell = "2.3"
 tauri-plugin-store = "2.3"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
@@ -149,7 +149,8 @@ inventory = "0.3.20"
 serial_test = "3"
 testcontainers-modules = "0.11.5"
 
-axum = "0.8.1"
+axum = "0.8.4"
+axum-extra = "0.10.1"
 tower = "0.5.2"
 tower-http = "0.6.2"
 
@@ -185,7 +186,7 @@ specta = "2.0.0-rc.21"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = { git = "https://github.com/yury/cidre", rev = "c5b0022" }
+cidre = { git = "https://github.com/yury/cidre", rev = "6f9d1f4" }
 cpal = "0.15.3"
 dasp = "0.11.0"
 flume = "0.11.1"
@@ -193,6 +194,7 @@ hound = "3.5.1"
 realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
+silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }

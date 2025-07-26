@@ -15,6 +15,9 @@ pub trait LocalLlmPluginExt<R: Runtime> {
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
 
+    fn list_downloaded_model(
+        &self,
+    ) -> impl Future<Output = Result<Vec<crate::SupportedModel>, crate::Error>>;
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
 
@@ -122,6 +125,40 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         }
 
         Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn list_downloaded_model(&self) -> Result<Vec<crate::SupportedModel>, crate::Error> {
+        let models_dir = self.models_dir();
+
+        if !models_dir.exists() {
+            return Ok(vec![]);
+        }
+
+        let mut models = Vec::new();
+
+        for entry in models_dir.read_dir()? {
+            let entry = match entry {
+                Ok(e) => e,
+                Err(_) => {
+                    continue;
+                }
+            };
+
+            let file_name = entry.file_name();
+            let file_name_str = file_name.to_string_lossy();
+
+            if let Some(model) = crate::model::SUPPORTED_MODELS
+                .iter()
+                .find(|model| model.file_name() == file_name_str)
+            {
+                if entry.path().is_file() {
+                    models.push(model.clone());
+                }
+            }
+        }
+
+        Ok(models)
     }
 
     #[tracing::instrument(skip_all)]

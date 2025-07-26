@@ -377,16 +377,19 @@ const MemoizedSpeakerSelector = memo(({
   };
 
   return (
-    <div className="mt-2 sticky top-0 z-10 bg-neutral-50">
+    <div className="mt-4 sticky top-0 z-10 bg-neutral-50">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger
-          onMouseDown={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <span className="underline py-1 font-semibold">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1"
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+          >
             {getDisplayName(human)}
-          </span>
+          </Button>
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">

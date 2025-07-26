@@ -169,6 +169,7 @@ impl AudioChannels {
 pub struct Session {
     app: tauri::AppHandle,
     session_id: Option<String>,
+    mic_device_name: Option<String>,
     mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
     mic_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
@@ -180,9 +181,12 @@ pub struct Session {
 
 impl Session {
     pub fn new(app: tauri::AppHandle) -> Self {
+        let mic_device_name = hypr_audio::AudioInput::get_default_mic_device_name();
+
         Self {
             app,
             session_id: None,
+            mic_device_name: Some(mic_device_name),
             mic_muted_tx: None,
             mic_muted_rx: None,
             speaker_muted_tx: None,
@@ -197,25 +201,25 @@ impl Session {
     async fn setup_resources(&mut self, id: impl Into<String>) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
 
-        let user_id = self.app.db_user_id().await?.unwrap();
         let session_id = id.into();
+        let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, language, jargons) = {
+        let (record, languages, jargons) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
                 .as_ref()
                 .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
 
-            let language = config.as_ref().map_or_else(
-                || hypr_language::ISO639::En.into(),
-                |c| c.general.display_language.clone(),
+            let languages = config.as_ref().map_or_else(
+                || vec![hypr_language::ISO639::En.into()],
+                |c| c.general.spoken_languages.clone(),
             );
 
             let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
 
-            (record, language, jargons)
+            (record, languages, jargons)
         };
 
         let session = self
@@ -237,10 +241,15 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(&self.app, language, jargons).await?;
+        let listen_client = setup_listen_client(&self.app, languages, jargons).await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic();
+            let mut input = match &self.mic_device_name {
+                Some(device_name) => {
+                    hypr_audio::AudioInput::from_mic_with_device_name(device_name.clone())
+                }
+                None => hypr_audio::AudioInput::from_mic(),
+            };
             input.stream()
         };
         let mic_stream = mic_sample_stream
@@ -248,7 +257,9 @@ impl Session {
             .chunks(hypr_aec::BLOCK_SIZE);
 
         // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        tokio::time::sleep(Duration::from_millis(65)).await;
+        // We need some delay here for Airpod transition.
+        // But if the delay is too long, AEC will not work.
 
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
         let speaker_stream = speaker_sample_stream
@@ -335,7 +346,7 @@ impl Session {
                     }
 
                     if let Some(ref tx) = save_mic_raw_tx {
-                        let _ = tx.send_async(mic_chunk.clone()).await;
+                        let _ = tx.send_async(mic_chunk_raw.clone()).await;
                     }
                     if let Some(ref tx) = save_speaker_raw_tx {
                         let _ = tx.send_async(speaker_chunk.clone()).await;
@@ -518,11 +529,19 @@ impl Session {
             None => false,
         }
     }
+
+    pub fn get_available_mic_devices() -> Vec<String> {
+        hypr_audio::AudioInput::list_mic_devices()
+    }
+
+    pub fn get_current_mic_device(&self) -> Option<String> {
+        self.mic_device_name.clone()
+    }
 }
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    language: hypr_language::Language,
+    languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
 ) -> Result<crate::client::ListenClientDual, crate::Error> {
     let api_base = {
@@ -538,7 +557,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
             .unwrap_or_default()
     };
 
-    tracing::info!(api_base = ?api_base, api_key = ?api_key, language = ?language, "listen_client");
+    tracing::info!(api_base = ?api_base, api_key = ?api_key, languages = ?languages, "listen_client");
 
     // let static_prompt = format!(
     //     "{} / {}:",
@@ -553,7 +572,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_base(api_base)
         .api_key(api_key)
         .params(hypr_listener_interface::ListenParams {
-            language,
+            languages,
             static_prompt,
             ..Default::default()
         })
@@ -587,6 +606,7 @@ pub enum StateEvent {
     Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
+    MicChange(Option<String>),
 }
 
 #[state_machine(
@@ -610,6 +630,18 @@ impl Session {
                     let _ = tx.send(*muted);
                     let _ = SessionEvent::SpeakerMuted { value: *muted }.emit(&self.app);
                 }
+                Handled
+            }
+            StateEvent::MicChange(device_name) => {
+                self.mic_device_name = device_name.clone();
+
+                if self.session_id.is_some() && self.tasks.is_some() {
+                    if let Some(session_id) = self.session_id.clone() {
+                        self.teardown_resources().await;
+                        self.setup_resources(&session_id).await.unwrap();
+                    }
+                }
+
                 Handled
             }
             _ => Super,

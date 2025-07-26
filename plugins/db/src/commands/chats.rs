@@ -3,7 +3,7 @@
 #[tracing::instrument(skip(state))]
 pub async fn list_chat_groups(
     state: tauri::State<'_, crate::ManagedState>,
-    user_id: String,
+    session_id: String,
 ) -> Result<Vec<hypr_db_user::ChatGroup>, String> {
     let guard = state.lock().await;
 
@@ -13,7 +13,7 @@ pub async fn list_chat_groups(
         .ok_or(crate::Error::NoneDatabase)
         .map_err(|e| e.to_string())?;
 
-    db.list_chat_groups(user_id)
+    db.list_chat_groups(session_id)
         .await
         .map_err(|e| e.to_string())
 }

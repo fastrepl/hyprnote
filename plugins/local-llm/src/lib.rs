@@ -47,6 +47,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::restart_server::<Wry>,
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
+            commands::list_downloaded_model::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

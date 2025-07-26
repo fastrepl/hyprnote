@@ -162,7 +162,7 @@ impl SpeakerInput {
         let asbd = self.tap.asbd().unwrap();
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let rb = HeapRb::<f32>::new(8192);
+        let rb = HeapRb::<f32>::new(1024 * 16);
         let (producer, consumer) = rb.split();
 
         let waker_state = Arc::new(Mutex::new(WakerState {

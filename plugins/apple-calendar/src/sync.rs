@@ -31,12 +31,23 @@ pub async fn sync_events(
     let db_events_with_session = list_db_events_with_session(&db, &user_id).await?;
     let db_selected_calendars = list_db_calendars_selected(&db, &user_id).await?;
 
+    // Batch API call instead of individual calls
+    let calendar_tracking_ids: Vec<String> = db_selected_calendars
+        .iter()
+        .map(|cal| cal.tracking_id.clone())
+        .collect();
+
+    let system_events_per_tracking_id =
+        list_system_events_for_calendars(calendar_tracking_ids).await;
+
+    // Convert from tracking_id -> database_id mapping
     let mut system_events_per_selected_calendar = std::collections::HashMap::new();
     for db_calendar in &db_selected_calendars {
-        system_events_per_selected_calendar.insert(
-            db_calendar.id.clone(),
-            list_system_events(db_calendar.tracking_id.clone()).await,
-        );
+        let events = system_events_per_tracking_id
+            .get(&db_calendar.tracking_id)
+            .unwrap_or(&vec![])
+            .clone();
+        system_events_per_selected_calendar.insert(db_calendar.id.clone(), events);
     }
 
     _sync_events(
@@ -81,7 +92,7 @@ async fn _sync_calendars(
                     .find(|db_c| db_c.tracking_id == sys_c.id);
 
                 hypr_db_user::Calendar {
-                    id: uuid::Uuid::new_v4().to_string(),
+                    id: existing.map_or(uuid::Uuid::new_v4().to_string(), |c| c.id.clone()),
                     tracking_id: sys_c.id.clone(),
                     user_id: user_id.clone(),
                     name: sys_c.name.clone(),
@@ -113,6 +124,9 @@ async fn _sync_events(
 ) -> Result<EventSyncState, crate::Error> {
     let mut state = EventSyncState::default();
 
+    // Track system events that have been handled to prevent duplicates
+    let mut handled_system_event_ids = std::collections::HashSet::<String>::new();
+
     // Collect all system events for rescheduled event detection
     let all_system_events: Vec<&hypr_calendar_interface::Event> =
         system_events_per_selected_calendar
@@ -121,13 +135,10 @@ async fn _sync_events(
             .collect();
 
     // Process existing events:
-    // 1. Delete events from unselected calendars that have no sessions
-    // 2. Handle rescheduled events (update instead of delete + create)
-    // 3. Delete events that no longer exist in the system calendar
     for (db_event, session) in &db_events_with_session {
         let is_selected_cal = db_selected_calendars
             .iter()
-            .any(|c| c.tracking_id == db_event.calendar_id.clone().unwrap_or_default());
+            .any(|c| c.id == db_event.calendar_id.clone().unwrap_or_default());
 
         if !is_selected_cal && session.as_ref().map_or(true, |s| s.is_empty()) {
             state.to_delete.push(db_event.clone());
@@ -138,9 +149,8 @@ async fn _sync_events(
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
                 // Check if event exists with same tracking_id
                 if let Some(matching_event) = events.iter().find(|e| e.id == db_event.tracking_id) {
-                    // Event exists with same tracking_id - it may have been updated
                     let updated_event = hypr_db_user::Event {
-                        id: db_event.id.clone(), // Preserve the original database ID
+                        id: db_event.id.clone(),
                         tracking_id: matching_event.id.clone(),
                         user_id: user_id.clone(),
                         calendar_id: Some(calendar_id.clone()),
@@ -148,28 +158,23 @@ async fn _sync_events(
                         note: matching_event.note.clone(),
                         start_date: matching_event.start_date,
                         end_date: matching_event.end_date,
-                        google_event_url: db_event.google_event_url.clone(), // Preserve any existing URL
+                        google_event_url: db_event.google_event_url.clone(),
                     };
                     state.to_update.push(updated_event);
+
+                    // Mark this system event as handled
+                    handled_system_event_ids.insert(matching_event.id.clone());
                     continue;
                 }
 
-                // Check if this might be a rescheduled event (same name, calendar, but different tracking_id)
+                // Check for rescheduled events
                 if let Some(rescheduled_event) = find_potentially_rescheduled_event(
                     &db_event,
                     &all_system_events,
                     &db_selected_calendars,
                 ) {
-                    tracing::info!(
-                        "Detected rescheduled event: {} -> {}, event: '{}'",
-                        db_event.tracking_id,
-                        rescheduled_event.id,
-                        db_event.name
-                    );
-
-                    // Update the existing database event with new tracking_id and details
                     let updated_event = hypr_db_user::Event {
-                        id: db_event.id.clone(), // Preserve the original database ID to keep user notes/sessions
+                        id: db_event.id.clone(),
                         tracking_id: rescheduled_event.id.clone(),
                         user_id: user_id.clone(),
                         calendar_id: db_event.calendar_id.clone(),
@@ -180,57 +185,56 @@ async fn _sync_events(
                         google_event_url: db_event.google_event_url.clone(),
                     };
                     state.to_update.push(updated_event);
+
+                    // Mark this rescheduled system event as handled to prevent duplicate creation
+                    handled_system_event_ids.insert(rescheduled_event.id.clone());
                     continue;
                 }
 
-                // Event not found - mark for deletion
-                tracing::info!(
-                    "Event not found in system calendar, marking for deletion: {} '{}'",
-                    db_event.tracking_id,
-                    db_event.name
-                );
+                state.to_delete.push(db_event.clone());
+            } else {
                 state.to_delete.push(db_event.clone());
             }
+        } else {
+            state.to_delete.push(db_event.clone());
         }
     }
 
     // Add new events (that haven't been handled as updates)
     for db_calendar in db_selected_calendars {
-        let fresh_events = system_events_per_selected_calendar
-            .get(&db_calendar.id)
-            .unwrap();
+        if let Some(fresh_events) = system_events_per_selected_calendar.get(&db_calendar.id) {
+            for system_event in fresh_events {
+                // Skip if this event was already handled as an update
+                let already_handled = state
+                    .to_update
+                    .iter()
+                    .any(|e| e.tracking_id == system_event.id);
+                if already_handled {
+                    continue;
+                }
 
-        for system_event in fresh_events {
-            // Skip if this event was already handled as an update
-            let already_handled = state
-                .to_update
-                .iter()
-                .any(|e| e.tracking_id == system_event.id);
-            if already_handled {
-                continue;
+                // Skip if this event already exists in the database with the same tracking_id
+                let already_exists = db_events_with_session
+                    .iter()
+                    .any(|(db_event, _)| db_event.tracking_id == system_event.id);
+                if already_exists {
+                    continue;
+                }
+
+                // This is a genuinely new event
+                let new_event = hypr_db_user::Event {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    tracking_id: system_event.id.clone(),
+                    user_id: user_id.clone(),
+                    calendar_id: Some(db_calendar.id.clone()),
+                    name: system_event.name.clone(),
+                    note: system_event.note.clone(),
+                    start_date: system_event.start_date,
+                    end_date: system_event.end_date,
+                    google_event_url: None,
+                };
+                state.to_upsert.push(new_event);
             }
-
-            // Skip if this event already exists in the database with the same tracking_id
-            let already_exists = db_events_with_session
-                .iter()
-                .any(|(db_event, _)| db_event.tracking_id == system_event.id);
-            if already_exists {
-                continue;
-            }
-
-            // This is a genuinely new event
-            let new_event = hypr_db_user::Event {
-                id: uuid::Uuid::new_v4().to_string(),
-                tracking_id: system_event.id.clone(),
-                user_id: user_id.clone(),
-                calendar_id: Some(db_calendar.id.clone()),
-                name: system_event.name.clone(),
-                note: system_event.note.clone(),
-                start_date: system_event.start_date,
-                end_date: system_event.end_date,
-                google_event_url: None,
-            };
-            state.to_upsert.push(new_event);
         }
     }
 
@@ -279,22 +283,52 @@ async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     .unwrap_or_default()
 }
 
-async fn list_system_events(calendar_tracking_id: String) -> Vec<hypr_calendar_interface::Event> {
+async fn list_system_events_for_calendars(
+    calendar_tracking_ids: Vec<String>,
+) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
+    let now = Utc::now();
+
+    for (i, id) in calendar_tracking_ids.iter().enumerate() {
+        tracing::info!("  Calendar {}: tracking_id={}", i + 1, id);
+    }
+
     tauri::async_runtime::spawn_blocking(move || {
         let handle = hypr_calendar_apple::Handle::new();
 
-        let filter = EventFilter {
-            calendar_tracking_id,
-            from: Utc::now(),
-            to: Utc::now() + chrono::Duration::days(28),
-        };
+        let mut results = std::collections::HashMap::new();
 
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap();
+        for (i, calendar_tracking_id) in calendar_tracking_ids.iter().enumerate() {
+            let filter = EventFilter {
+                calendar_tracking_id: calendar_tracking_id.clone(),
+                from: now,
+                to: now + chrono::Duration::days(28),
+            };
 
-        rt.block_on(async { handle.list_events(filter).await.unwrap_or_default() })
+            // Add small delay between API calls to avoid overwhelming EventKit
+            if i > 0 {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                tracing::info!("  Applied 50ms delay after calendar {}", i);
+            }
+
+            let events = match tokio::runtime::Handle::try_current() {
+                Ok(rt) => {
+                    tracing::info!("  Using existing tokio runtime");
+                    rt.block_on(handle.list_events(filter)).unwrap_or_default()
+                }
+                Err(_) => {
+                    tracing::info!("  Creating new tokio runtime");
+                    let rt = tokio::runtime::Builder::new_current_thread()
+                        .enable_all()
+                        .build()
+                        .unwrap();
+                    rt.block_on(handle.list_events(filter)).unwrap_or_default()
+                }
+            };
+
+            results.insert(calendar_tracking_id.clone(), events);
+        }
+
+        results
     })
     .await
     .unwrap_or_default()

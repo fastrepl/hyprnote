@@ -37,14 +37,19 @@ impl ListenClientBuilder {
             ..self.params.clone().unwrap_or_default()
         };
 
-        let language = params.language.code();
-
         url.set_path("/api/desktop/listen/realtime");
-        url.query_pairs_mut()
-            .append_pair("language", language)
-            .append_pair("static_prompt", &params.static_prompt)
-            .append_pair("dynamic_prompt", &params.dynamic_prompt)
-            .append_pair("audio_mode", params.audio_mode.as_ref());
+
+        {
+            let mut query_pairs = url.query_pairs_mut();
+
+            for lang in &params.languages {
+                query_pairs.append_pair("languages", lang.iso639().code());
+            }
+            query_pairs
+                .append_pair("static_prompt", &params.static_prompt)
+                .append_pair("dynamic_prompt", &params.dynamic_prompt)
+                .append_pair("audio_mode", params.audio_mode.as_ref());
+        }
 
         let host = url.host_str().unwrap();
 
@@ -189,7 +194,7 @@ mod tests {
             .api_base("http://127.0.0.1:1234")
             .api_key("".to_string())
             .params(hypr_listener_interface::ListenParams {
-                language: hypr_language::ISO639::En.into(),
+                languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
             .build_single();

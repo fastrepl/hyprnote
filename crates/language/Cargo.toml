@@ -14,5 +14,7 @@ codes-iso-639 = { workspace = true }
 deepgram = { workspace = true, optional = true, features = ["listen"] }
 hypr-whisper = { workspace = true, optional = true }
 
+schemars = { workspace = true }
 serde = { workspace = true }
+specta = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }

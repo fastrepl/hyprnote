@@ -520,8 +520,12 @@ msgid "Continue"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:882
-msgid "Control how autonomousthe AI enhancement should be"
+msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
+
+#: src/components/settings/views/ai.tsx:882
+#~ msgid "Control how autonomousthe AI enhancement should be"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:878
 #~ msgid "Control how creative the AI enhancement should be"

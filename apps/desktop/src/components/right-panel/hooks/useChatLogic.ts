@@ -245,7 +245,7 @@ export function useChatLogic({
 
   const handleQuickAction = async (prompt: string) => {
     await processUserMessage(prompt, "chat_quickaction_sent");
-    
+
     if (chatInputRef.current) {
       chatInputRef.current.focus();
     }

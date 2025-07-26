@@ -30,14 +30,6 @@ export function ShareButton() {
   return param ? <ShareButtonInNote /> : null;
 }
 
-interface ExportCard {
-  id: "pdf" | "email" | "obsidian";
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-  docsUrl: string;
-}
-
 function ShareButtonInNote() {
   const { userId } = useHypr();
   const param = useParams({ from: "/app/note/$id", shouldThrow: true });
@@ -47,30 +39,6 @@ function ShareButtonInNote() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
   const hasEnhancedNote = !!session?.enhanced_memo_html;
-
-  const getDefaultSelectedFolder = (folders: Array<{ value: string; label: string }>, sessionTags: Tag[]) => {
-    if (!sessionTags || sessionTags.length === 0) {
-      return "default";
-    }
-
-    const tagNames = sessionTags.map((tag: Tag) => tag.name.toLowerCase());
-
-    for (const tagName of tagNames) {
-      const exactMatch = folders.find(folder => folder.value.toLowerCase() === tagName);
-      if (exactMatch) {
-        return exactMatch.value;
-      }
-    }
-
-    for (const tagName of tagNames) {
-      const partialMatch = folders.find(folder => folder.value.toLowerCase().includes(tagName));
-      if (partialMatch) {
-        return partialMatch.value;
-      }
-    }
-
-    return "default";
-  };
 
   const isObsidianConfigured = useQuery({
     queryKey: ["integration", "obsidian", "enabled"],
@@ -86,48 +54,7 @@ function ShareButtonInNote() {
 
   const obsidianFolders = useQuery({
     queryKey: ["obsidian", "folders"],
-    queryFn: async () => {
-      if (!isObsidianConfigured.data) {
-        return [];
-      }
-
-      try {
-        const [apiKey, baseUrl] = await Promise.all([
-          obsidianCommands.getApiKey(),
-          obsidianCommands.getBaseUrl(),
-        ]);
-
-        client.setConfig({
-          fetch: tauriFetch,
-          auth: apiKey!,
-          baseUrl: baseUrl!,
-        });
-
-        const response = await getVault({ client });
-
-        const folders = response.data?.files
-          ?.filter(item => item.endsWith("/"))
-          ?.map(folder => ({
-            value: folder.slice(0, -1),
-            label: folder.slice(0, -1),
-          })) || [];
-
-        return [
-          { value: "default", label: "Default (Root)" },
-          ...folders,
-        ];
-      } catch (error) {
-        console.error("Failed to fetch Obsidian folders:", error);
-
-        obsidianCommands.getDeepLinkUrl("").then((url) => {
-          openUrl(url);
-        }).catch((error) => {
-          console.error("Failed to open Obsidian:", error);
-        });
-
-        return [{ value: "default", label: "Default (Root)" }];
-      }
-    },
+    queryFn: () => fetchObsidianFolders(),
     enabled: false,
   });
 
@@ -135,15 +62,41 @@ function ShareButtonInNote() {
     queryKey: ["session", "tags", param.id],
     queryFn: () => dbCommands.listSessionTags(param.id),
     enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   const sessionParticipants = useQuery({
     queryKey: ["session", "participants", param.id],
     queryFn: () => dbCommands.sessionListParticipants(param.id),
     enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
+
+  const exportOptions: ExportCard[] = [
+    {
+      id: "pdf",
+      title: "PDF",
+      icon: <FileText size={20} />,
+      description: "Save as PDF document",
+      docsUrl: "https://docs.hyprnote.com/sharing#pdf",
+    },
+    {
+      id: "email",
+      title: "Email",
+      icon: <Mail size={20} />,
+      description: "Share via email",
+      docsUrl: "https://docs.hyprnote.com/sharing#email",
+    },
+    isObsidianConfigured.data
+      ? {
+        id: "obsidian",
+        title: "Obsidian",
+        icon: <BookText size={20} />,
+        description: "Export to Obsidian",
+        docsUrl: "https://docs.hyprnote.com/sharing#obsidian",
+      }
+      : null,
+  ].filter(Boolean) as ExportCard[];
 
   const toggleExpanded = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -185,140 +138,38 @@ function ShareButtonInNote() {
     }
   };
 
-  const exportOptions: ExportCard[] = [
-    {
-      id: "pdf",
-      title: "PDF",
-      icon: <FileText size={20} />,
-      description: "Save as PDF document",
-      docsUrl: "https://docs.hyprnote.com/sharing#pdf",
-    },
-    {
-      id: "email",
-      title: "Email",
-      icon: <Mail size={20} />,
-      description: "Share via email",
-      docsUrl: "https://docs.hyprnote.com/sharing#email",
-    },
-    isObsidianConfigured.data
-      ? {
-        id: "obsidian",
-        title: "Obsidian",
-        icon: <BookText size={20} />,
-        description: "Export to Obsidian",
-        docsUrl: "https://docs.hyprnote.com/sharing#obsidian",
-      }
-      : null,
-  ].filter(Boolean) as ExportCard[];
-
   const exportMutation = useMutation({
     mutationFn: async ({ session, optionId }: { session: Session; optionId: string }) => {
       const start = performance.now();
-      let result: {
-        type: "pdf";
-        path: string;
-      } | {
-        type: "email";
-        url: string;
-      } | {
-        type: "obsidian";
-        url: string;
-      } | null = null;
+      let result: ExportResult | null = null;
 
       if (optionId === "pdf") {
-        const path = await exportToPDF(session);
-        result = { type: "pdf", path };
+        result = await exportHandlers.pdf(session);
       } else if (optionId === "email") {
-        result = { type: "email", url: `mailto:?subject=${encodeURIComponent(session.title)}` };
+        result = await exportHandlers.email(session);
       } else if (optionId === "obsidian") {
-        // Get cached data first, fetch if missing
         sessionTags.refetch();
         sessionParticipants.refetch();
+
         let sessionTagsData = sessionTags.data;
         let sessionParticipantsData = sessionParticipants.data;
 
-        const [baseFolder, apiKey, baseUrl] = await Promise.all([
-          obsidianCommands.getBaseFolder(),
-          obsidianCommands.getApiKey(),
-          obsidianCommands.getBaseUrl(),
-          // Only fetch if not cached
-          ...(!sessionTagsData
-            ? [
-              sessionTags.refetch().then(r => {
-                sessionTagsData = r.data;
-              }),
-            ]
-            : []),
-          ...(!sessionParticipantsData
-            ? [
-              sessionParticipants.refetch().then(r => {
-                sessionParticipantsData = r.data;
-              }),
-            ]
-            : []),
-        ]);
-
-        client.setConfig({
-          fetch: tauriFetch,
-          auth: apiKey!,
-          baseUrl: baseUrl!,
-        });
-
-        const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
-
-        // Simplified path logic
-        let finalPath: string;
-        if (selectedObsidianFolder === "default") {
-          finalPath = baseFolder ? await join(baseFolder!, filename) : filename;
-        } else {
-          finalPath = await join(selectedObsidianFolder, filename);
+        if (!sessionTagsData) {
+          const tagsResult = await sessionTags.refetch();
+          sessionTagsData = tagsResult.data;
         }
 
-        const convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
-
-        await putVaultByFilename({
-          client,
-          path: { filename: finalPath },
-          body: convertedMarkdown,
-          bodySerializer: null,
-          headers: {
-            "Content-Type": "text/markdown",
-          },
-        });
-
-        // Use cached data
-        const targets = [
-          { target: "date", value: new Date().toISOString() },
-          ...(sessionTagsData && sessionTagsData.length > 0
-            ? [{
-              target: "tags",
-              value: sessionTagsData.map(tag => tag.name),
-            }]
-            : []),
-          ...(sessionParticipantsData && sessionParticipantsData.filter(participant => participant.full_name).length > 0
-            ? [{
-              target: "attendees",
-              value: sessionParticipantsData.map(participant => participant.full_name).filter(Boolean),
-            }]
-            : []),
-        ];
-
-        for (const { target, value } of targets) {
-          await patchVaultByFilename({
-            client,
-            path: { filename: finalPath },
-            headers: {
-              "Operation": "replace",
-              "Target-Type": "frontmatter",
-              "Target": target,
-              "Create-Target-If-Missing": "true",
-            },
-            body: value as any,
-          });
+        if (!sessionParticipantsData) {
+          const participantsResult = await sessionParticipants.refetch();
+          sessionParticipantsData = participantsResult.data;
         }
 
-        const url = await obsidianCommands.getDeepLinkUrl(finalPath);
-        result = { type: "obsidian", url };
+        result = await exportHandlers.obsidian(
+          session,
+          selectedObsidianFolder,
+          sessionTagsData,
+          sessionParticipantsData,
+        );
       }
 
       const elapsed = performance.now() - start;
@@ -336,11 +187,11 @@ function ShareButtonInNote() {
       });
     },
     onSuccess: (result) => {
-      if (result?.type === "pdf") {
+      if (result?.type === "pdf" && result.path) {
         openPath(result.path);
-      } else if (result?.type === "email") {
+      } else if (result?.type === "email" && result.url) {
         openUrl(result.url);
-      } else if (result?.type === "obsidian") {
+      } else if (result?.type === "obsidian" && result.url) {
         openUrl(result.url);
       }
     },
@@ -400,11 +251,9 @@ function ShareButtonInNote() {
                       <div className="text-gray-700">{option.icon}</div>
                       <span className="font-medium text-sm">{option.title}</span>
                     </div>
-                    {
-                      <button className="text-gray-500">
-                        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </button>
-                    }
+                    <button className="text-gray-500">
+                      {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
                   </div>
                   {expanded && (
                     <div className="px-3 pb-3 pt-2 border-t bg-gray-50">
@@ -464,4 +313,172 @@ function ShareButtonInNote() {
       </PopoverContent>
     </Popover>
   );
+}
+
+interface ExportCard {
+  id: "pdf" | "email" | "obsidian";
+  title: string;
+  icon: React.ReactNode;
+  description: string;
+  docsUrl: string;
+}
+
+interface ExportResult {
+  type: "pdf" | "email" | "obsidian";
+  path?: string;
+  url?: string;
+}
+
+interface ObsidianFolder {
+  value: string;
+  label: string;
+}
+
+const exportHandlers = {
+  pdf: async (session: Session): Promise<ExportResult> => {
+    const path = await exportToPDF(session);
+    return { type: "pdf", path };
+  },
+
+  email: async (session: Session): Promise<ExportResult> => {
+    const url = `mailto:?subject=${encodeURIComponent(session.title)}`;
+    return { type: "email", url };
+  },
+
+  obsidian: async (
+    session: Session,
+    selectedFolder: string,
+    sessionTags: Tag[] | undefined,
+    sessionParticipants: Array<{ full_name: string | null }> | undefined,
+  ): Promise<ExportResult> => {
+    const [baseFolder, apiKey, baseUrl] = await Promise.all([
+      obsidianCommands.getBaseFolder(),
+      obsidianCommands.getApiKey(),
+      obsidianCommands.getBaseUrl(),
+    ]);
+
+    client.setConfig({
+      fetch: tauriFetch,
+      auth: apiKey!,
+      baseUrl: baseUrl!,
+    });
+
+    const filename = `${session.title.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-")}.md`;
+
+    let finalPath: string;
+    if (selectedFolder === "default") {
+      finalPath = baseFolder ? await join(baseFolder!, filename) : filename;
+    } else {
+      finalPath = await join(selectedFolder, filename);
+    }
+
+    const convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
+
+    await putVaultByFilename({
+      client,
+      path: { filename: finalPath },
+      body: convertedMarkdown,
+      bodySerializer: null,
+      headers: {
+        "Content-Type": "text/markdown",
+      },
+    });
+
+    // Update frontmatter
+    const targets = [
+      { target: "date", value: new Date().toISOString() },
+      ...(sessionTags && sessionTags.length > 0
+        ? [{
+          target: "tags",
+          value: sessionTags.map(tag => tag.name),
+        }]
+        : []),
+      ...(sessionParticipants && sessionParticipants.filter(participant => participant.full_name).length > 0
+        ? [{
+          target: "attendees",
+          value: sessionParticipants.map(participant => participant.full_name).filter(Boolean),
+        }]
+        : []),
+    ];
+
+    for (const { target, value } of targets) {
+      await patchVaultByFilename({
+        client,
+        path: { filename: finalPath },
+        headers: {
+          "Operation": "replace",
+          "Target-Type": "frontmatter",
+          "Target": target,
+          "Create-Target-If-Missing": "true",
+        },
+        body: value as any,
+      });
+    }
+
+    const url = await obsidianCommands.getDeepLinkUrl(finalPath);
+    return { type: "obsidian", url };
+  },
+};
+
+function getDefaultSelectedFolder(folders: ObsidianFolder[], sessionTags: Tag[]): string {
+  if (!sessionTags || sessionTags.length === 0) {
+    return "default";
+  }
+
+  const tagNames = sessionTags.map((tag: Tag) => tag.name.toLowerCase());
+
+  for (const tagName of tagNames) {
+    const exactMatch = folders.find(folder => folder.value.toLowerCase() === tagName);
+    if (exactMatch) {
+      return exactMatch.value;
+    }
+  }
+
+  for (const tagName of tagNames) {
+    const partialMatch = folders.find(folder => folder.value.toLowerCase().includes(tagName));
+    if (partialMatch) {
+      return partialMatch.value;
+    }
+  }
+
+  return "default";
+}
+
+async function fetchObsidianFolders(): Promise<ObsidianFolder[]> {
+  try {
+    const [apiKey, baseUrl] = await Promise.all([
+      obsidianCommands.getApiKey(),
+      obsidianCommands.getBaseUrl(),
+    ]);
+
+    client.setConfig({
+      fetch: tauriFetch,
+      auth: apiKey!,
+      baseUrl: baseUrl!,
+    });
+
+    const response = await getVault({ client });
+
+    const folders = response.data?.files
+      ?.filter(item => item.endsWith("/"))
+      ?.map(folder => ({
+        value: folder.slice(0, -1),
+        label: folder.slice(0, -1),
+      })) || [];
+
+    return [
+      { value: "default", label: "Default (Root)" },
+      ...folders,
+    ];
+  } catch (error) {
+    console.error("Failed to fetch Obsidian folders:", error);
+
+    obsidianCommands.getDeepLinkUrl("").then((url) => {
+      openUrl(url);
+    }).catch((error) => {
+      console.error("Failed to open Obsidian:", error);
+    });
+
+    return [{ value: "default", label: "Default (Root)" }];
+  }
 }

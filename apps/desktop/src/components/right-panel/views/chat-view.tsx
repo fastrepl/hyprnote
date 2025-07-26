@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -45,6 +45,9 @@ export function ChatView() {
 
   // Add generation tracking state
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Track current chat group
+  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | null>(null);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
@@ -56,33 +59,54 @@ export function ChatView() {
   console.log("🔍 DEBUG: userId =", userId);
   console.log("🔍 DEBUG: activeEntity =", activeEntity);
 
-  // Replace the current chatMessagesQuery with this updated version:
-  const chatMessagesQuery = useQuery({
+  // Query to get all chat groups for the session with first messages
+  const chatGroupsQuery = useQuery({
     enabled: !!sessionId && !!userId,
-    queryKey: ["chat-messages", sessionId],
+    queryKey: ["chat-groups", sessionId],
     queryFn: async () => {
       if (!sessionId || !userId) return [];
-
-      console.log("🔍 DEBUG: Current session ID =", sessionId);
-
-      // Find existing chat groups for this session
-      const existingGroups = await dbCommands.listChatGroups(userId);
-      const sessionGroups = existingGroups.filter(group => group.session_id === sessionId);
+      const groups = await dbCommands.listChatGroups(sessionId);
       
-      console.log("🔍 DEBUG: Available chat groups for this session =", sessionGroups);
+      // Fetch first message for each group
+      const groupsWithFirstMessage = await Promise.all(
+        groups.map(async (group) => {
+          const messages = await dbCommands.listChatMessages(group.id);
+          const firstUserMessage = messages.find(msg => msg.role === "User");
+          return {
+            ...group,
+            firstMessage: firstUserMessage?.content || ""
+          };
+        })
+      );
       
-      if (sessionGroups.length === 0) {
-        // No chat groups exist for this session
-        return [];
-      }
+      return groupsWithFirstMessage;
+    },
+  });
 
-      // Get the latest chat group (most recent created_at)
-      const latestGroup = sessionGroups.sort((a, b) => 
+  // Set current chat group to latest when groups load or session changes
+  useEffect(() => {
+    if (chatGroupsQuery.data && chatGroupsQuery.data.length > 0) {
+      const latestGroup = chatGroupsQuery.data.sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
+      setCurrentChatGroupId(latestGroup.id);
+    } else if (chatGroupsQuery.data && chatGroupsQuery.data.length === 0) {
+      // No groups exist for this session
+      setCurrentChatGroupId(null);
+    }
+  }, [chatGroupsQuery.data, sessionId]); // Add sessionId as dependency to trigger when session changes
 
-      // Load messages for the latest chat group
-      const dbMessages = await dbCommands.listChatMessages(latestGroup.id);
+  // Replace the current chatMessagesQuery with this updated version:
+  const chatMessagesQuery = useQuery({
+    enabled: !!currentChatGroupId,
+    queryKey: ["chat-messages", currentChatGroupId],
+    queryFn: async () => {
+      if (!currentChatGroupId) return [];
+
+      console.log("🔍 DEBUG: Loading messages for chat group =", currentChatGroupId);
+
+      // Load messages for the current chat group
+      const dbMessages = await dbCommands.listChatMessages(currentChatGroupId);
       return dbMessages.map(msg => ({
         id: msg.id,
         content: msg.content,
@@ -93,31 +117,41 @@ export function ChatView() {
     },
   });
 
+  const prevIsGenerating = useRef(isGenerating);
+  
   // Update the useEffect that sets messages:
   useEffect(() => {
-    if (chatMessagesQuery.data) {
+    // Load messages from database when query data changes
+    // But skip if we just finished generating (transition from true to false)
+    const justFinishedGenerating = prevIsGenerating.current === true && isGenerating === false;
+    prevIsGenerating.current = isGenerating;
+    
+    if (chatMessagesQuery.data && !isGenerating && !justFinishedGenerating) {
       setMessages(chatMessagesQuery.data);
       setHasChatStarted(chatMessagesQuery.data.length > 0);
     }
-  }, [chatMessagesQuery.data]);
+  }, [chatMessagesQuery.data, isGenerating]);
 
   // Simple helper to get or create chat group
   const getChatGroupId = async (): Promise<string> => {
     if (!sessionId || !userId) throw new Error("No session or user");
     
-    const existingGroups = await dbCommands.listChatGroups(userId);
-    let chatGroup = existingGroups.find(group => group.session_id === sessionId);
-    
-    if (!chatGroup) {
-      chatGroup = await dbCommands.createChatGroup({
-        id: crypto.randomUUID(),
-        session_id: sessionId,
-        user_id: userId,
-        name: null,
-        created_at: new Date().toISOString(),
-      });
+    // If we have a current chat group, use it
+    if (currentChatGroupId) {
+      return currentChatGroupId;
     }
     
+    // Otherwise create a new one (this happens when sending first message in a new chat)
+    const chatGroup = await dbCommands.createChatGroup({
+      id: crypto.randomUUID(),
+      session_id: sessionId,
+      user_id: userId,
+      name: null,
+      created_at: new Date().toISOString(),
+    });
+    
+    setCurrentChatGroupId(chatGroup.id);
+    chatGroupsQuery.refetch();
     return chatGroup.id;
   };
 
@@ -179,6 +213,7 @@ export function ChatView() {
       setShowHistory(false);
       setHasChatStarted(false);
       setIsGenerating(false);
+      // Don't reset currentChatGroupId - let the useEffect handle it
     }
   }, [noteMatch, humanMatch, organizationMatch, activeEntity]);
 
@@ -203,20 +238,6 @@ export function ChatView() {
 
   const sessions = useSessions((state) => state.sessions);
   const queryClient = useQueryClient();
-
-  // Helper function to save a message to the database
-  const saveMessageToDb = async (message: Message) => {
-    if (!sessionId || !userId) return;
-    
-    const groupId = await getChatGroupId();
-    await dbCommands.upsertChatMessage({
-      id: message.id,
-      group_id: groupId,
-      created_at: message.timestamp.toISOString(),
-      role: message.isUser ? "User" : "Assistant",
-      content: message.content.trim(),
-    });
-  };
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -326,6 +347,9 @@ export function ChatView() {
     // Set generating to true
     setIsGenerating(true);
 
+    // Get or create chat group ID once at the beginning
+    const groupId = await getChatGroupId();
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
@@ -337,8 +361,14 @@ export function ChatView() {
     const currentInput = inputValue;
     setInputValue("");
 
-    // Save user message to database
-    await saveMessageToDb(userMessage);
+    // Save user message to database with specific group ID
+    await dbCommands.upsertChatMessage({
+      id: userMessage.id,
+      group_id: groupId,
+      created_at: userMessage.timestamp.toISOString(),
+      role: "User",
+      content: userMessage.content.trim(),
+    });
 
     try {
       const provider = await modelProvider();
@@ -379,33 +409,40 @@ export function ChatView() {
         );
       }
 
+      // Save final AI message to database with same group ID
+      await dbCommands.upsertChatMessage({
+        id: aiMessageId,
+        group_id: groupId,
+        created_at: new Date().toISOString(),
+        role: "Assistant",
+        content: aiResponse.trim(),
+      });
+      
       // Generation complete - enable submit
       setIsGenerating(false);
-
-      // Save final AI message to database
-      const finalAiMessage = {
-        id: aiMessageId,
-        content: aiResponse.trim(), // Add .trim() here
-        isUser: false,
-        timestamp: new Date(),
-      };
-      await saveMessageToDb(finalAiMessage);
     } catch (error) {
       console.error("AI error:", error);
 
       // Error occurred - enable submit
       setIsGenerating(false);
 
+      const errorMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: errorMessageId,
         content: "Sorry, I encountered an error. Please try again.",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
       
-      // Save error message to database
-      await saveMessageToDb(aiMessage);
+      // Save error message to database with same group ID
+      await dbCommands.upsertChatMessage({
+        id: errorMessageId,
+        group_id: groupId,
+        created_at: new Date().toISOString(),
+        role: "Assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+      });
     }
   };
 
@@ -433,6 +470,9 @@ export function ChatView() {
     // Set generating to true
     setIsGenerating(true);
 
+    // Get or create chat group ID once at the beginning
+    const groupId = await getChatGroupId();
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content: prompt,
@@ -443,8 +483,14 @@ export function ChatView() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Save user message to database
-    await saveMessageToDb(userMessage);
+    // Save user message to database with specific group ID
+    await dbCommands.upsertChatMessage({
+      id: userMessage.id,
+      group_id: groupId,
+      created_at: userMessage.timestamp.toISOString(),
+      role: "User",
+      content: userMessage.content.trim(),
+    });
 
     try {
       const provider = await modelProvider();
@@ -485,31 +531,40 @@ export function ChatView() {
         );
       }
 
+      // Save final AI message to database with same group ID
+      await dbCommands.upsertChatMessage({
+        id: aiMessageId,
+        group_id: groupId,
+        created_at: new Date().toISOString(),
+        role: "Assistant",
+        content: aiResponse.trim(),
+      });
+      
       // Generation complete
       setIsGenerating(false);
-
-      // Save final AI message to database
-      const finalAiMessage = {
-        id: aiMessageId,
-        content: aiResponse.trim(), // Add .trim() here
-        isUser: false,
-        timestamp: new Date(),
-      };
-      await saveMessageToDb(finalAiMessage);
     } catch (error) {
       console.error("AI error:", error);
+      
+      // Error occurred
+      setIsGenerating(false);
+      
+      const errorMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: errorMessageId,
         content: "Sorry, I encountered an error. Please try again.",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-      // Error occurred
-      setIsGenerating(false);
       
-      // Save error message to database
-      await saveMessageToDb(aiMessage);
+      // Save error message to database with same group ID
+      await dbCommands.upsertChatMessage({
+        id: errorMessageId,
+        group_id: groupId,
+        created_at: new Date().toISOString(),
+        role: "Assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+      });
     }
 
     if (chatInputRef.current) {
@@ -526,25 +581,16 @@ export function ChatView() {
   const handleNewChat = async () => {
     if (!sessionId || !userId) return;
 
-    try {
-      // Create a new chat group for this session
-      const newChatGroup = await dbCommands.createChatGroup({
-        id: crypto.randomUUID(),
-        session_id: sessionId,
-        user_id: userId,
-        name: null,
-        created_at: new Date().toISOString(),
-      });
-
-      // Clear messages and reset state
-      setMessages([]);
-      setHasChatStarted(false);
-      
-      // Refetch to get the new empty state
-      chatMessagesQuery.refetch();
-    } catch (error) {
-      console.error("Failed to create new chat:", error);
-    }
+    // Just clear the current chat without creating a new group
+    setCurrentChatGroupId(null);
+    setMessages([]);
+    setHasChatStarted(false);
+    setInputValue("");
+  };
+  
+  const handleSelectChatGroup = async (groupId: string) => {
+    setCurrentChatGroupId(groupId);
+    // Messages will be refetched automatically due to query dependency
   };
 
   const handleViewHistory = () => {
@@ -611,6 +657,8 @@ export function ChatView() {
       <FloatingActionButtons
         onNewChat={handleNewChat}
         onViewHistory={handleViewHistory}
+        chatGroups={chatGroupsQuery.data}
+        onSelectChatGroup={handleSelectChatGroup}
       />
 
       {messages.length === 0

@@ -879,7 +879,7 @@ export default function LocalAI() {
                             <Trans>Autonomy Selector</Trans>
                           </FormLabel>
                           <FormDescription className="text-xs">
-                            <Trans>Control how autonomousthe AI enhancement should be</Trans>
+                            <Trans>Control how autonomous the AI enhancement should be</Trans>
                           </FormDescription>
                           <FormControl>
                             <div className="space-y-3">

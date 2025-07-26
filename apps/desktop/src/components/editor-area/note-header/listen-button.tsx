@@ -141,7 +141,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
       return null;
     }
 
-    return <WhenActive />;
+    return <WhenActive sessionId={sessionId} />;
   }
 }
 
@@ -230,7 +230,7 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
   );
 }
 
-function WhenActive() {
+function WhenActive({ sessionId }: { sessionId: string }) {
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     pause: s.pause,
@@ -273,6 +273,7 @@ function WhenActive() {
       </PopoverTrigger>
       <PopoverContent className="w-64" align="end">
         <RecordingControls
+          sessionId={sessionId}
           onPause={handlePauseSession}
           onStop={handleStopSession}
         />
@@ -282,12 +283,15 @@ function WhenActive() {
 }
 
 function RecordingControls({
+  sessionId,
   onPause,
   onStop,
 }: {
+  sessionId: string;
   onPause: () => void;
   onStop: (templateId?: string | null) => void;
 }) {
+  const { onboardingSessionId } = useHypr();
   const ongoingSessionMuted = useOngoingSession((s) => ({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
@@ -322,6 +326,12 @@ function RecordingControls({
     }
   }, [configQuery.data]);
 
+  useEffect(() => {
+    if (sessionId === onboardingSessionId) {
+      listenerCommands.setMicMuted(true);
+    }
+  }, []);
+
   const handleStopWithTemplate = () => {
     const actualTemplateId = selectedTemplate === "auto" ? null : selectedTemplate;
     onStop(actualTemplateId);
@@ -332,6 +342,7 @@ function RecordingControls({
       <div className="flex gap-2 w-full justify-between mb-3">
         <MicrophoneSelector
           isMuted={ongoingSessionMuted.micMuted}
+          disabled={sessionId === onboardingSessionId}
           onToggleMuted={() => toggleMicMuted.mutate()}
         />
         <SpeakerButton

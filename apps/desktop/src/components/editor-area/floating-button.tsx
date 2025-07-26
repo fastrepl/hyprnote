@@ -48,7 +48,7 @@ interface FloatingButtonProps {
   templates: Template[];
   isError: boolean;
   progress?: number;
-  isLocalLlm: boolean;
+  showProgress?: boolean;
 }
 
 export function FloatingButton({
@@ -58,7 +58,7 @@ export function FloatingButton({
   templates,
   isError,
   progress = 0,
-  isLocalLlm,
+  showProgress,
 }: FloatingButtonProps) {
   const { userId } = useHypr();
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
@@ -156,9 +156,6 @@ export function FloatingButton({
     }
   };
 
-  // Only show progress for local LLMs AND when progress exists
-  const shouldShowProgress = isLocalLlm && progress !== undefined && progress >= 0 && progress < 1;
-
   if (isError) {
     const errorRetryButtonClasses = cn(
       "rounded-xl border",
@@ -230,7 +227,7 @@ export function FloatingButton({
                 ? (
                   <div className="flex items-center gap-2">
                     <XIcon size={20} />
-                    {shouldShowProgress && (
+                    {showProgress && (
                       <span className="text-xs font-mono">
                         {Math.round(progress * 100)}%
                       </span>
@@ -239,10 +236,10 @@ export function FloatingButton({
                 )
                 : (
                   <div className="flex items-center gap-2">
-                    {shouldShowProgress
+                    {showProgress
                       ? <AnimatedEnhanceIcon size={20} />
                       : <EnhanceWIP size={20} strokeWidth={2} />}
-                    {shouldShowProgress && (
+                    {showProgress && (
                       <span className="text-xs font-mono">
                         {Math.round(progress * 100)}%
                       </span>

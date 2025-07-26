@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-thank-you-session-id"
+description = "Enables the thank_you_session_id command without any pre-configured scope."
+commands.allow = ["thank_you_session_id"]
+
+[[permission]]
+identifier = "deny-thank-you-session-id"
+description = "Denies the thank_you_session_id command without any pre-configured scope."
+commands.deny = ["thank_you_session_id"]

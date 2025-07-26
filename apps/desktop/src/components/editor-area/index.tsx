@@ -75,7 +75,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
-  const { userId } = useHypr();
+  const { userId, onboardingSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -245,7 +245,7 @@ export default function EditorArea({
               session={sessionStore.session}
               isError={enhance.status === "error"}
               progress={progress}
-              isLocalLlm={llmConnectionQuery.data?.type === "HyprLocal"}
+              showProgress={llmConnectionQuery.data?.type !== "HyprLocal" && sessionId !== onboardingSessionId}
             />
           </div>
         </motion.div>

@@ -86,6 +86,8 @@ common_derives! {
     #[derive(Default)]
     pub struct ListenParams {
         pub audio_mode: AudioMode,
+        // https://docs.rs/axum-extra/0.10.1/axum_extra/extract/struct.Query.html#example-1
+        #[serde(default)]
         pub languages: Vec<hypr_language::Language>,
         pub static_prompt: String,
         pub dynamic_prompt: String,

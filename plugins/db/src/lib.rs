@@ -34,6 +34,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::templates::upsert_template,
             commands::templates::delete_template,
             commands::sessions::onboarding_session_id,
+            commands::sessions::thank_you_session_id,
             commands::sessions::list_sessions,
             commands::sessions::delete_session,
             commands::sessions::get_session,

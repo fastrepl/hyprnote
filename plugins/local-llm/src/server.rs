@@ -83,7 +83,7 @@ async fn chat_completions(
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
     let response = if request.model == "mock-onboarding" {
-        let provider = MockProvider::new();
+        let provider = MockProvider::default();
         tracing::info!("using_mock_provider");
         provider.chat_completions(request).await
     } else {
@@ -183,13 +183,10 @@ impl LocalProvider {
     }
 }
 
+#[derive(Default)]
 struct MockProvider {}
 
 impl MockProvider {
-    fn new() -> Self {
-        Self {}
-    }
-
     async fn chat_completions(
         &self,
         request: CreateChatCompletionRequest,

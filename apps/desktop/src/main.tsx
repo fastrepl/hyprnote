@@ -92,27 +92,36 @@ function App() {
     return broadcastQueryClient(queryClient);
   }, [queryClient]);
 
-  const [userId, onboardingSessionId] = useQueries({
+  const [userId, onboardingSessionId, thankYouSessionId] = useQueries({
     queries: [
       {
         queryKey: ["auth-user-id"],
         queryFn: () => authCommands.getFromStore("auth-user-id"),
       },
       {
-        queryKey: ["onboarding-session-id"],
+        queryKey: ["session", "onboarding", "id"],
         queryFn: () => dbCommands.onboardingSessionId(),
+      },
+      {
+        queryKey: ["session", "thank-you", "id"],
+        queryFn: () => dbCommands.thankYouSessionId(),
       },
     ],
   });
 
-  if (!userId.data || !onboardingSessionId.data) {
+  if (!userId.data || !onboardingSessionId.data || !thankYouSessionId.data) {
     return null;
   }
 
   return (
     <RouterProvider
       router={router}
-      context={{ ...context, userId: userId.data, onboardingSessionId: onboardingSessionId.data }}
+      context={{
+        ...context,
+        userId: userId.data,
+        onboardingSessionId: onboardingSessionId.data,
+        thankYouSessionId: thankYouSessionId.data,
+      }}
     />
   );
 }

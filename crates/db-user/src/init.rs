@@ -80,8 +80,10 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
     };
 
     let onboarding_session_id = db.onboarding_session_id();
+    let thank_you_session_id = db.thank_you_session_id();
 
     let thank_you_session = Session {
+        id: thank_you_session_id,
         title: "Thank you".to_string(),
         raw_memo_html: hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap(),
         ..new_default_session(&user_id)

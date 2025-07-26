@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-onboarding-session-id`
+- `allow-thank-you-session-id`
 - `allow-upsert-session`
 - `allow-list-sessions`
 - `allow-get-session`
@@ -965,6 +966,32 @@ Enables the set_session_event command without any pre-configured scope.
 <td>
 
 Denies the set_session_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-thank-you-session-id`
+
+</td>
+<td>
+
+Enables the thank_you_session_id command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-thank-you-session-id`
+
+</td>
+<td>
+
+Denies the thank_you_session_id command without any pre-configured scope.
 
 </td>
 </tr>

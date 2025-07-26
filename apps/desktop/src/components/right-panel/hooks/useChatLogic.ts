@@ -8,8 +8,8 @@ import { commands as templateCommands } from "@hypr/plugin-template";
 import { modelProvider, streamText } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 
+import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
-import type { Message, ActiveEntityInfo } from "../types/chat-types";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -71,22 +71,24 @@ export function useChatLogic({
     let freshSessionData = refetchResult.data;
 
     const { type } = await connectorCommands.getLlmConnection();
-    
+
     const participants = sessionId ? await dbCommands.sessionListParticipants(sessionId) : [];
-    
+
     const calendarEvent = sessionId ? await dbCommands.sessionGetEvent(sessionId) : null;
-    
-    const currentDateTime = new Date().toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+
+    const currentDateTime = new Date().toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
 
-    const eventInfo = calendarEvent 
-      ? `${calendarEvent.name} (${calendarEvent.start_date} - ${calendarEvent.end_date})${calendarEvent.note ? ` - ${calendarEvent.note}` : ''}`
+    const eventInfo = calendarEvent
+      ? `${calendarEvent.name} (${calendarEvent.start_date} - ${calendarEvent.end_date})${
+        calendarEvent.note ? ` - ${calendarEvent.note}` : ""
+      }`
       : "";
 
     const systemContent = await templateCommands.render("ai_chat.system", {
@@ -129,7 +131,7 @@ export function useChatLogic({
   };
 
   const handleSubmit = async () => {
-    if (!inputValue.trim() || isGenerating) { 
+    if (!inputValue.trim() || isGenerating) {
       return;
     }
 
@@ -198,7 +200,7 @@ export function useChatLogic({
               ? {
                 ...msg,
                 content: aiResponse,
-                parts: parts, 
+                parts: parts,
               }
               : msg
           )
@@ -212,7 +214,7 @@ export function useChatLogic({
         role: "Assistant",
         content: aiResponse.trim(),
       });
-      
+
       setIsGenerating(false);
     } catch (error) {
       console.error("AI error:", error);
@@ -227,7 +229,7 @@ export function useChatLogic({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-      
+
       await dbCommands.upsertChatMessage({
         id: errorMessageId,
         group_id: groupId,
@@ -239,7 +241,7 @@ export function useChatLogic({
   };
 
   const handleQuickAction = async (prompt: string) => {
-    if (isGenerating) { 
+    if (isGenerating) {
       return;
     }
 
@@ -307,7 +309,7 @@ export function useChatLogic({
               ? {
                 ...msg,
                 content: aiResponse,
-                parts: parts, 
+                parts: parts,
               }
               : msg
           )
@@ -321,13 +323,13 @@ export function useChatLogic({
         role: "Assistant",
         content: aiResponse.trim(),
       });
-      
+
       setIsGenerating(false);
     } catch (error) {
       console.error("AI error:", error);
-      
+
       setIsGenerating(false);
-      
+
       const errorMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
         id: errorMessageId,
@@ -336,7 +338,7 @@ export function useChatLogic({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
-      
+
       await dbCommands.upsertChatMessage({
         id: errorMessageId,
         group_id: groupId,
@@ -365,4 +367,4 @@ export function useChatLogic({
     handleApplyMarkdown,
     handleKeyDown,
   };
-} 
+}

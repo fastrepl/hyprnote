@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import {
@@ -11,11 +11,11 @@ import {
   FloatingActionButtons,
 } from "../components/chat";
 
-import { useChatQueries } from "../hooks/useChatQueries";
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChatLogic } from "../hooks/useChatLogic";
-import { formatDate, focusInput } from "../utils/chat-utils";
+import { useChatQueries } from "../hooks/useChatQueries";
 import type { Message } from "../types/chat-types";
+import { focusInput, formatDate } from "../utils/chat-utils";
 
 export function ChatView() {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export function ChatView() {
     prevIsGenerating,
   });
 
-  const { 
+  const {
     isGenerating,
     handleSubmit,
     handleQuickAction,
@@ -79,14 +79,16 @@ export function ChatView() {
   };
 
   const handleNewChat = async () => {
-    if (!sessionId || !userId) return;
+    if (!sessionId || !userId) {
+      return;
+    }
 
     setCurrentChatGroupId(null);
     setMessages([]);
     setHasChatStarted(false);
     setInputValue("");
   };
-  
+
   const handleSelectChatGroup = async (groupId: string) => {
     setCurrentChatGroupId(groupId);
   };

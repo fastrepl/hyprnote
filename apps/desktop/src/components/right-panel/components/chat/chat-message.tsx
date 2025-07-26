@@ -1,5 +1,3 @@
-import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
 import { MessageContent } from "./message-content";
 import { Message } from "./types";
 
@@ -27,9 +25,9 @@ export function ChatMessage({ message, sessionTitle, hasEnhancedNote, onApplyMar
           </div>
           {/* Timestamp below the message */}
           <div className="text-xs text-neutral-500 mt-1 text-right">
-            {message.timestamp.toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            {message.timestamp.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </div>
         </div>

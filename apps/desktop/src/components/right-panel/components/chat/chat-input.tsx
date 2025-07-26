@@ -6,7 +6,7 @@ import { useRightPanel } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import { BadgeType } from "../../views";
+import { BadgeType } from "../../types/chat-types";
 
 interface ChatInputProps {
   inputValue: string;

@@ -1,4 +1,4 @@
-import type { Message, ChatSession, MessagePart } from "../components/chat/types";
+import type { ChatSession, Message, MessagePart } from "../components/chat/types";
 
 export interface ActiveEntityInfo {
   id: string;
@@ -17,4 +17,4 @@ export interface ChatState {
   currentChatGroupId: string | null;
 }
 
-export type { Message, ChatSession, MessagePart }; 
+export type { ChatSession, Message, MessagePart };

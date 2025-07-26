@@ -354,12 +354,12 @@ msgstr "Annual"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/settings/views/ai.tsx:766
+#: src/components/settings/views/ai.tsx:770
 msgid "API Base URL"
 msgstr "API Base URL"
 
 #: src/components/settings/views/integrations.tsx:197
-#: src/components/settings/views/ai.tsx:792
+#: src/components/settings/views/ai.tsx:796
 msgid "API Key"
 msgstr "API Key"
 
@@ -377,12 +377,16 @@ msgid "Ask questions about past meetings"
 msgstr "Ask questions about past meetings"
 
 #: src/components/right-panel/components/chat/chat-message.tsx:22
-msgid "Assistant:"
-msgstr "Assistant:"
+#~ msgid "Assistant:"
+#~ msgstr "Assistant:"
 
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
+
+#: src/components/settings/views/ai.tsx:879
+msgid "Autonomy Selector"
+msgstr "Autonomy Selector"
 
 #: src/components/settings/views/integrations.tsx:246
 msgid "Base Folder"
@@ -434,8 +438,12 @@ msgid "Chat feature is in beta. For best results, we recommend you to use <0>cus
 msgstr "Chat feature is in beta. For best results, we recommend you to use <0>custom endpoints</0>."
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:34
-msgid "Chat with meeting notes"
-msgstr "Chat with meeting notes"
+#~ msgid "Chat with meeting notes"
+#~ msgstr "Chat with meeting notes"
+
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:34
+msgid "Chat with this meeting"
+msgstr "Chat with this meeting"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:26
 #~ msgid "Chat with your meeting notes"
@@ -479,7 +487,7 @@ msgstr "Company name"
 #~ msgid "Connect"
 #~ msgstr "Connect"
 
-#: src/components/settings/views/ai.tsx:746
+#: src/components/settings/views/ai.tsx:750
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 
@@ -511,9 +519,13 @@ msgstr "Contacts Access"
 msgid "Continue"
 msgstr "Continue"
 
+#: src/components/settings/views/ai.tsx:882
+msgid "Control how autonomousthe AI enhancement should be"
+msgstr "Control how autonomousthe AI enhancement should be"
+
 #: src/components/settings/views/ai.tsx:878
-msgid "Control how creative the AI enhancement should be"
-msgstr "Control how creative the AI enhancement should be"
+#~ msgid "Control how creative the AI enhancement should be"
+#~ msgstr "Control how creative the AI enhancement should be"
 
 #: src/routes/app.human.$id.tsx:535
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:399
@@ -537,14 +549,14 @@ msgid "Create your first template to get started"
 msgstr "Create your first template to get started"
 
 #: src/components/settings/views/ai.tsx:875
-msgid "Creativity Level"
-msgstr "Creativity Level"
+#~ msgid "Creativity Level"
+#~ msgstr "Creativity Level"
 
 #: src/components/settings/views/billing.tsx:66
 msgid "Current Plan"
 msgstr "Current Plan"
 
-#: src/components/settings/views/ai.tsx:743
+#: src/components/settings/views/ai.tsx:747
 msgid "Custom Endpoint"
 msgstr "Custom Endpoint"
 
@@ -615,7 +627,7 @@ msgstr "Enable"
 msgid "Enable Integration"
 msgstr "Enable Integration"
 
-#: src/components/settings/views/ai.tsx:614
+#: src/components/settings/views/ai.tsx:618
 msgid "Enhancing"
 msgstr "Enhancing"
 
@@ -627,11 +639,11 @@ msgstr "Enter a section title"
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
 #~ msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)"
 
-#: src/components/settings/views/ai.tsx:795
+#: src/components/settings/views/ai.tsx:799
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr "Enter the API key for your custom LLM endpoint"
 
-#: src/components/settings/views/ai.tsx:769
+#: src/components/settings/views/ai.tsx:773
 msgid "Enter the base URL for your custom LLM endpoint"
 msgstr "Enter the base URL for your custom LLM endpoint"
 
@@ -793,7 +805,7 @@ msgstr "LinkedIn username"
 msgid "Live summary of the meeting"
 msgstr "Live summary of the meeting"
 
-#: src/components/settings/views/ai.tsx:829
+#: src/components/settings/views/ai.tsx:833
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
@@ -838,7 +850,7 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/views/ai.tsx:817
+#: src/components/settings/views/ai.tsx:821
 msgid "Model Name"
 msgstr "Model Name"
 
@@ -943,7 +955,7 @@ msgstr "Official Templates"
 #~ msgid "Open calendar view"
 #~ msgstr "Open calendar view"
 
-#: src/components/left-sidebar/top-area/finder-button.tsx:26
+#: src/components/left-sidebar/top-area/finder-button.tsx:41
 msgid "Open finder view"
 msgstr "Open finder view"
 
@@ -979,7 +991,7 @@ msgstr "Pause"
 msgid "people"
 msgstr "people"
 
-#: src/components/settings/views/ai.tsx:473
+#: src/components/settings/views/ai.tsx:477
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
@@ -1073,7 +1085,7 @@ msgstr "Search..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/components/settings/views/ai.tsx:820
+#: src/components/settings/views/ai.tsx:824
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 
@@ -1221,7 +1233,7 @@ msgstr "Toggle left sidebar"
 msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
-#: src/components/settings/views/ai.tsx:464
+#: src/components/settings/views/ai.tsx:468
 msgid "Transcribing"
 msgstr "Transcribing"
 
@@ -1270,8 +1282,8 @@ msgid "User"
 msgstr "User"
 
 #: src/components/right-panel/components/chat/chat-message.tsx:22
-msgid "User:"
-msgstr "User:"
+#~ msgid "User:"
+#~ msgstr "User:"
 
 #: src/components/settings/views/profile.tsx:225
 msgid "username"

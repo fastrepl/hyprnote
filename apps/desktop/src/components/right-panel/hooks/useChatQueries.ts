@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import type { Message } from "../types/chat-types";
+import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface UseChatQueriesProps {
   sessionId: string | null;
@@ -30,27 +30,29 @@ export function useChatQueries({
     enabled: !!sessionId && !!userId,
     queryKey: ["chat-groups", sessionId],
     queryFn: async () => {
-      if (!sessionId || !userId) return [];
+      if (!sessionId || !userId) {
+        return [];
+      }
       const groups = await dbCommands.listChatGroups(sessionId);
-      
+
       const groupsWithFirstMessage = await Promise.all(
         groups.map(async (group) => {
           const messages = await dbCommands.listChatMessages(group.id);
           const firstUserMessage = messages.find(msg => msg.role === "User");
-          
+
           // Find the most recent message timestamp in this group
-          const mostRecentMessageTimestamp = messages.length > 0 
+          const mostRecentMessageTimestamp = messages.length > 0
             ? Math.max(...messages.map(msg => new Date(msg.created_at).getTime()))
             : new Date(group.created_at).getTime(); // Fallback to group creation time if no messages
-          
+
           return {
             ...group,
             firstMessage: firstUserMessage?.content || "",
-            mostRecentMessageTimestamp
+            mostRecentMessageTimestamp,
           };
-        })
+        }),
       );
-      
+
       return groupsWithFirstMessage;
     },
   });
@@ -58,7 +60,7 @@ export function useChatQueries({
   useEffect(() => {
     if (chatGroupsQuery.data && chatGroupsQuery.data.length > 0) {
       // Sort by most recent message timestamp instead of group creation time
-      const latestGroup = chatGroupsQuery.data.sort((a, b) => 
+      const latestGroup = chatGroupsQuery.data.sort((a, b) =>
         b.mostRecentMessageTimestamp - a.mostRecentMessageTimestamp
       )[0];
       setCurrentChatGroupId(latestGroup.id);
@@ -72,7 +74,9 @@ export function useChatQueries({
     enabled: !!currentChatGroupId,
     queryKey: ["chat-messages", currentChatGroupId],
     queryFn: async () => {
-      if (!currentChatGroupId) return [];
+      if (!currentChatGroupId) {
+        return [];
+      }
 
       console.log("🔍 DEBUG: Loading messages for chat group =", currentChatGroupId);
 
@@ -92,7 +96,7 @@ export function useChatQueries({
     if (prevIsGenerating) {
       prevIsGenerating.current = isGenerating || false;
     }
-    
+
     if (chatMessagesQuery.data && !isGenerating && !justFinishedGenerating) {
       setMessages(chatMessagesQuery.data);
       setHasChatStarted(chatMessagesQuery.data.length > 0);
@@ -123,12 +127,14 @@ export function useChatQueries({
   });
 
   const getChatGroupId = async (): Promise<string> => {
-    if (!sessionId || !userId) throw new Error("No session or user");
-    
+    if (!sessionId || !userId) {
+      throw new Error("No session or user");
+    }
+
     if (currentChatGroupId) {
       return currentChatGroupId;
     }
-    
+
     const chatGroup = await dbCommands.createChatGroup({
       id: crypto.randomUUID(),
       session_id: sessionId,
@@ -136,7 +142,7 @@ export function useChatQueries({
       name: null,
       created_at: new Date().toISOString(),
     });
-    
+
     setCurrentChatGroupId(chatGroup.id);
     chatGroupsQuery.refetch();
     return chatGroup.id;

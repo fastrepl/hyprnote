@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useMatch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 
@@ -28,7 +28,7 @@ export function useActiveEntity({
 
   useEffect(() => {
     let newEntity = null;
-    
+
     if (noteMatch) {
       const noteId = noteMatch.params.id;
       newEntity = {
@@ -48,10 +48,10 @@ export function useActiveEntity({
         type: "organization" as const,
       };
     }
-    
-    const isDifferentSession = !activeEntity || 
-      (newEntity && (activeEntity.id !== newEntity.id || activeEntity.type !== newEntity.type));
-    
+
+    const isDifferentSession = !activeEntity
+      || (newEntity && (activeEntity.id !== newEntity.id || activeEntity.type !== newEntity.type));
+
     if (isDifferentSession) {
       setActiveEntity(newEntity);
       setMessages([]);
@@ -60,11 +60,21 @@ export function useActiveEntity({
       setHasChatStarted(false);
       setIsGenerating?.(false);
     }
-  }, [noteMatch, humanMatch, organizationMatch, activeEntity, setMessages, setInputValue, setShowHistory, setHasChatStarted, setIsGenerating]);
+  }, [
+    noteMatch,
+    humanMatch,
+    organizationMatch,
+    activeEntity,
+    setMessages,
+    setInputValue,
+    setShowHistory,
+    setHasChatStarted,
+    setIsGenerating,
+  ]);
 
   return {
     activeEntity,
     sessionId,
     setActiveEntity,
   };
-} 
+}

@@ -60,7 +60,11 @@ impl UserDatabase {
         group_id: impl Into<String>,
     ) -> Result<(), crate::Error> {
         let conn = self.conn()?;
-        conn.execute("DELETE FROM chat_messages WHERE group_id = ?", vec![group_id.into()]).await?;
+        conn.execute(
+            "DELETE FROM chat_messages WHERE group_id = ?",
+            vec![group_id.into()],
+        )
+        .await?;
         Ok(())
     }
 }

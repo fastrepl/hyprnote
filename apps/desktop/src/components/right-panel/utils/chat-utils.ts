@@ -25,4 +25,4 @@ export const focusInput = (chatInputRef: React.RefObject<HTMLTextAreaElement>) =
   if (chatInputRef.current) {
     chatInputRef.current.focus();
   }
-}; 
+};

@@ -1,6 +1,7 @@
 use std::{
     net::{Ipv4Addr, SocketAddr},
     path::PathBuf,
+    time::Duration,
 };
 
 use axum::{
@@ -157,7 +158,7 @@ async fn websocket_single_channel(
     guard: ConnectionGuard,
 ) {
     let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-    let vad_chunks = audio_source.vad_chunks();
+    let vad_chunks = audio_source.vad_chunks(Duration::from_millis(250));
 
     let chunked = hypr_whisper_local::AudioChunkStream(process_vad_stream(vad_chunks, "mixed"));
 
@@ -175,12 +176,12 @@ async fn websocket_dual_channel(
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
     let mic_chunked = {
-        let mic_vad_chunks = mic_source.vad_chunks();
+        let mic_vad_chunks = mic_source.vad_chunks(Duration::from_millis(250));
         hypr_whisper_local::AudioChunkStream(process_vad_stream(mic_vad_chunks, "mic"))
     };
 
     let speaker_chunked = {
-        let speaker_vad_chunks = speaker_source.vad_chunks();
+        let speaker_vad_chunks = speaker_source.vad_chunks(Duration::from_millis(250));
         hypr_whisper_local::AudioChunkStream(process_vad_stream(speaker_vad_chunks, "speaker"))
     };
 

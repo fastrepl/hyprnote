@@ -110,7 +110,7 @@ impl Whisper {
 
             tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
 
-            p.set_translate(true);
+            p.set_translate(false);
             p.set_detect_language(false);
             p.set_language(language.as_deref());
 

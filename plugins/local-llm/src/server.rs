@@ -18,6 +18,7 @@ use axum::{
 use futures_util::StreamExt;
 use reqwest_streams::error::StreamBodyError;
 use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
 use crate::ModelManager;
@@ -119,7 +120,13 @@ impl LocalProvider {
     fn build_stream(
         model: &hypr_llama::Llama,
         request: &CreateChatCompletionRequest,
-    ) -> Result<Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>, crate::Error> {
+    ) -> Result<
+        (
+            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+            CancellationToken,
+        ),
+        crate::Error,
+    > {
         let messages = request
             .messages
             .iter()
@@ -151,7 +158,7 @@ impl LocalProvider {
 
         let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
 
-        let content_stream = model.generate_stream_with_callback(
+        let (content_stream, cancellation_token) = model.generate_stream_with_callback(
             request,
             Box::new(move |v| {
                 let _ = progress_sender.send(v);
@@ -179,7 +186,7 @@ impl LocalProvider {
             }
         };
 
-        Ok(Box::pin(mixed_stream))
+        Ok((Box::pin(mixed_stream), cancellation_token))
     }
 }
 
@@ -197,7 +204,10 @@ impl MockProvider {
 
     fn build_stream(
         content: impl AsRef<str>,
-    ) -> Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>> {
+    ) -> (
+        Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+        CancellationToken,
+    ) {
         use futures_util::stream::{self, StreamExt};
         use std::time::Duration;
 
@@ -211,10 +221,13 @@ impl MockProvider {
             .map(|c| c.iter().collect::<String>())
             .collect::<Vec<_>>();
 
-        Box::pin(stream::iter(chunks).then(|chunk| async move {
+        let stream = Box::pin(stream::iter(chunks).then(|chunk| async move {
             tokio::time::sleep(Duration::from_millis(200)).await;
             StreamEvent::Content(chunk)
-        }))
+        }));
+
+        let cancellation_token = CancellationToken::new();
+        (stream, cancellation_token)
     }
 }
 
@@ -227,7 +240,10 @@ enum StreamEvent {
 async fn build_chat_completion_response(
     request: &CreateChatCompletionRequest,
     response_stream_fn: impl FnOnce() -> Result<
-        Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+        (
+            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+            CancellationToken,
+        ),
         crate::Error,
     >,
 ) -> Result<ChatCompletionResponse, crate::Error> {
@@ -289,7 +305,7 @@ async fn build_chat_completion_response(
     let is_stream = request.stream.unwrap_or(false);
 
     if !is_stream {
-        let mut stream = response_stream_fn()?;
+        let (mut stream, _cancellation_token) = response_stream_fn()?;
         let mut completion = String::new();
 
         while let Some(event) = futures_util::StreamExt::next(&mut stream).await {
@@ -312,7 +328,7 @@ async fn build_chat_completion_response(
 
         Ok(ChatCompletionResponse::NonStream(res))
     } else {
-        let source_stream = response_stream_fn()?;
+        let (source_stream, _cancellation_token) = response_stream_fn()?;
         let stream = Box::pin(source_stream.enumerate().map(move |(index, event)| {
             let delta_template = empty_stream_response_delta.clone();
             let response_template = base_stream_response_template.clone();

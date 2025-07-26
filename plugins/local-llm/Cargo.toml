@@ -49,4 +49,5 @@ futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["stream"] }
 reqwest-streams = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt", "macros"] }
+tokio-util = { workspace = true }
 tower-http = { workspace = true, features = ["cors", "trace"] }

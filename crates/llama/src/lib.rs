@@ -10,6 +10,7 @@ use llama_cpp_2::{
     send_logs_to_tracing, LogOptions,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_util::sync::CancellationToken;
 
 use hypr_gguf::GgufExt;
 
@@ -40,6 +41,7 @@ pub enum Task {
         request: LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
+        cancellation_token: CancellationToken,
     },
 }
 
@@ -49,6 +51,7 @@ struct ProgressData {
     enabled: AtomicBool,
     callback: Mutex<Box<dyn FnMut(f64) + Send + 'static>>,
     last_reported: Mutex<i32>,
+    cancellation_token: CancellationToken,
 }
 
 impl Llama {
@@ -107,6 +110,7 @@ impl Llama {
         tpl: &LlamaChatTemplate,
         request: &LlamaRequest,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
+        cancellation_token: CancellationToken,
     ) -> Result<
         (
             llama_cpp_2::context::LlamaContext<'a>,
@@ -130,6 +134,7 @@ impl Llama {
             enabled: AtomicBool::new(true),
             callback: Mutex::new(callback),
             last_reported: Mutex::new(-1),
+            cancellation_token,
         });
         let progress_data_ptr = Box::into_raw(progress_data) as *mut std::ffi::c_void;
 
@@ -144,6 +149,10 @@ impl Llama {
 
             unsafe {
                 let progress_data = &*(user_data as *mut ProgressData);
+
+                if progress_data.cancellation_token.is_cancelled() {
+                    return true;
+                }
 
                 if progress_data.enabled.load(Ordering::Relaxed) {
                     let count = progress_data.processed.fetch_add(1, Ordering::Relaxed) + 1;
@@ -222,12 +231,17 @@ impl Llama {
         request: &LlamaRequest,
         response_sender: tokio::sync::mpsc::UnboundedSender<String>,
         progress_data_ptr: *mut std::ffi::c_void,
+        cancellation_token: CancellationToken,
     ) {
         let mut n_cur = batch.n_tokens();
         let mut decoder = encoding_rs::UTF_8.new_decoder();
         let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
 
         while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
+            if cancellation_token.is_cancelled() {
+                break;
+            }
+
             let token = sampler.sample(&ctx, batch.n_tokens() - 1);
 
             if model.is_eog_token(token) {
@@ -290,9 +304,16 @@ impl Llama {
                             request,
                             response_sender,
                             callback,
+                            cancellation_token,
                         } => {
-                            match Self::process_prefill(&model, &backend, &tpl, &request, callback)
-                            {
+                            match Self::process_prefill(
+                                &model,
+                                &backend,
+                                &tpl,
+                                &request,
+                                callback,
+                                cancellation_token.clone(),
+                            ) {
                                 Ok((ctx, batch, last_index, progress_data_ptr)) => {
                                     Self::process_generation(
                                         &model,
@@ -302,6 +323,7 @@ impl Llama {
                                         &request,
                                         response_sender,
                                         progress_data_ptr,
+                                        cancellation_token,
                                     );
                                 }
                                 Err(e) => {
@@ -323,38 +345,40 @@ impl Llama {
         request: LlamaRequest,
     ) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
         let callback = Box::new(|_| {});
-        self.generate_stream_with_callback(request, callback)
+        let (stream, _cancellation_token) =
+            self.generate_stream_with_callback(request, callback)?;
+        Ok(stream)
     }
 
     pub fn generate_stream_with_callback(
         &self,
         request: LlamaRequest,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
-    ) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
+    ) -> Result<(impl futures_util::Stream<Item = String>, CancellationToken), crate::Error> {
         let (response_sender, response_receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
+        let cancellation_token = CancellationToken::new();
 
         let task = Task::Generate {
             request,
             response_sender,
             callback,
+            cancellation_token: cancellation_token.clone(),
         };
 
         self.task_sender.send(task)?;
         let stream = UnboundedReceiverStream::new(response_receiver);
 
-        Ok(stream)
+        Ok((stream, cancellation_token))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::StreamExt;
+    use futures_util::{pin_mut, StreamExt};
 
     async fn run(model: &Llama, request: LlamaRequest) -> String {
-        use futures_util::pin_mut;
-
-        let stream = model
+        let (stream, _cancellation_token) = model
             .generate_stream_with_callback(
                 request,
                 Box::new(|progress| println!("progress: {}", progress)),
@@ -385,13 +409,8 @@ mod tests {
         assert!(hypr_template::ENHANCE_USER_TPL.contains("<headers>"));
     }
 
-    // cargo test test_english_1 -p llama -- --nocapture --ignored
-    #[ignore]
-    #[tokio::test]
-    async fn test_english_1() {
-        let llama = get_model();
-
-        let request = LlamaRequest {
+    fn get_request() -> LlamaRequest {
+        LlamaRequest {
             grammar: Some(hypr_gbnf::Grammar::Enhance { sections: None }.build()),
             messages: vec![
                 LlamaChatMessage::new(
@@ -402,8 +421,78 @@ mod tests {
                 LlamaChatMessage::new("user".into(), hypr_data::english_3::WORDS_JSON.repeat(1))
                     .unwrap(),
             ],
-        };
+        }
+    }
+
+    // cargo test test_english_3 -p llama -- --nocapture --ignored
+    #[ignore]
+    #[tokio::test]
+    async fn test_english_3() {
+        let llama = get_model();
+        let request = get_request();
 
         run(&llama, request).await;
+    }
+
+    // cargo test test_cancel_generation -p llama -- --nocapture --ignored
+    #[ignore]
+    #[tokio::test]
+    async fn test_cancel_generation() {
+        let llama = get_model();
+        let request = get_request();
+
+        let (stream, cancellation_token) = llama
+            .generate_stream_with_callback(
+                request,
+                Box::new(|progress| println!("progress: {}", progress)),
+            )
+            .unwrap();
+        pin_mut!(stream);
+
+        let mut acc = String::new();
+
+        while let Some(token) = stream.next().await {
+            acc += &token;
+
+            if acc.len() > 3 {
+                let token_clone = cancellation_token.clone();
+                std::thread::spawn(move || {
+                    token_clone.cancel();
+                });
+            }
+        }
+        assert!(acc.len() < 10);
+    }
+
+    // cargo test test_cancel_prefill -p llama -- --nocapture --ignored
+    #[ignore]
+    #[tokio::test]
+    async fn test_cancel_prefill() {
+        use std::sync::{Arc, Mutex};
+
+        let llama = get_model();
+        let request = get_request();
+
+        let last_progress = Arc::new(Mutex::new(0.0));
+        let last_progress_clone = last_progress.clone();
+
+        let (_stream, cancellation_token) = llama
+            .generate_stream_with_callback(
+                request,
+                Box::new(move |progress| {
+                    println!("progress: {}", progress);
+                    *last_progress_clone.lock().unwrap() = progress;
+                }),
+            )
+            .unwrap();
+
+        let token_clone = cancellation_token.clone();
+        let handle = tokio::spawn(async move {
+            tokio::time::sleep(tokio::time::Duration::from_millis(3000)).await;
+            token_clone.cancel();
+        });
+
+        handle.await.unwrap();
+        assert!(*last_progress.lock().unwrap() < 0.5);
     }
 }

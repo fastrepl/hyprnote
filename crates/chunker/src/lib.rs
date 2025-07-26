@@ -65,12 +65,14 @@ impl<S: AsyncSource + Unpin> Stream for ChunkStream<S> {
 }
 
 pub trait VadExt: AsyncSource + Sized {
-    fn vad_chunks(self) -> VadChunkStream<Self>
+    fn vad_chunks(self, redemption_time: Duration) -> VadChunkStream<Self>
     where
         Self: Unpin,
     {
         let config = VadConfig {
-            redemption_time: Duration::from_millis(600),
+            redemption_time,
+            pre_speech_pad: redemption_time,
+            post_speech_pad: Duration::from_millis(0),
             min_speech_time: Duration::from_millis(50),
             ..Default::default()
         };

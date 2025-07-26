@@ -31,7 +31,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
     >
       <div className="flex items-center gap-2 mb-4">
         <h3 className="text-lg font-medium">
-          <Trans>Chat with meeting notes</Trans>
+          <Trans>Chat with this meeting</Trans>
         </h3>
         <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 border-blue-200">
           Beta

@@ -4,6 +4,7 @@ use tauri::Manager;
 mod commands;
 mod error;
 mod ext;
+mod server;
 
 pub use error::*;
 pub use ext::*;
@@ -57,14 +58,13 @@ mod test {
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
         builder
-            .plugin(tauri_plugin_store::Builder::default().build())
             .plugin(init())
             .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
     }
 
     #[tokio::test]
-    async fn test_obsidian() {
+    async fn test_oauth2() {
         let _app = create_app(tauri::test::mock_builder());
     }
 }

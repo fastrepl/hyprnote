@@ -14543,6 +14543,7 @@ dependencies = [
 name = "tauri-plugin-oauth2"
 version = "0.1.0"
 dependencies = [
+ "axum 0.8.4",
  "oauth-callback",
  "oauth-client",
  "oauth-core",
@@ -14553,11 +14554,11 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
- "tauri-plugin-store",
- "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",
+ "tower 0.5.2",
+ "tower-http 0.6.6",
  "tracing",
 ]
 

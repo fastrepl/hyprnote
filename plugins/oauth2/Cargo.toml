@@ -12,7 +12,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
-tauri-plugin-store = { workspace = true }
 
 [dependencies]
 hypr-oauth-callback = { workspace = true }
@@ -20,14 +19,16 @@ hypr-oauth-client = { workspace = true }
 hypr-oauth-core = { workspace = true }
 hypr-oauth-providers = { workspace = true }
 
-tauri-plugin-store2 = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
 
 serde = { workspace = true }
 specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
-tokio = { workspace = true, features = ["time"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
+tower-http = { workspace = true, features = ["cors", "trace"] }
 tracing = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }

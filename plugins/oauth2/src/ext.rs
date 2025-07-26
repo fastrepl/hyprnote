@@ -1,5 +1,3 @@
-use tauri_plugin_store2::StorePluginExt;
-
 pub trait OAuth2PluginExt<R: tauri::Runtime> {
     fn get_base_url(&self) -> Result<Option<String>, crate::Error>;
 }

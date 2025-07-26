@@ -1,0 +1,9 @@
+[package]
+name = "oauth-client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-oauth-core = { workspace = true }
+
+reqwest = { workspace = true }

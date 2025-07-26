@@ -1,0 +1,11 @@
+{
+  "name": "@hypr/plugin-oauth2",
+  "private": true,
+  "main": "./js/index.ts",
+  "scripts": {
+    "codegen": "cargo test -p tauri-plugin-oauth"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.6.0"
+  }
+}

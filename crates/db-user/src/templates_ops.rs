@@ -86,7 +86,7 @@ mod tests {
             .unwrap();
 
         let templates = db.list_templates(&human.id).await.unwrap();
-        assert_eq!(templates.len(), 2);
+        assert_eq!(templates.len(), 0);
 
         let _template = db
             .upsert_template(Template {

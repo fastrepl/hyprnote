@@ -781,3 +781,28 @@ fn new_default_session(user_id: impl Into<String>) -> Session {
         pre_meeting_memo_html: None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_thank_you() {
+        let html = hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap();
+
+        assert!(html.contains("We appreciate your patience"));
+        assert!(html.contains("join our Discord"));
+
+        assert!(html.contains(r#"class="mention""#));
+        assert!(html.contains(r#"data-mention="true""#));
+        assert!(html.contains(r#"data-id="john-jeong""#));
+        assert!(html.contains(r#"data-type="user""#));
+        assert!(html.contains(r#"data-label="John Jeong""#));
+        assert!(html.contains(r#"@John Jeong"#));
+        assert!(html.contains(r#"data-id="yujong-lee""#));
+        assert!(html.contains(r#"@Yujong Lee"#));
+
+        assert!(html.contains(r#"window.__HYPR_NAVIGATE__('/app/user/john-jeong')"#));
+        assert!(html.contains(r#"window.__HYPR_NAVIGATE__('/app/user/yujong-lee')"#));
+    }
+}

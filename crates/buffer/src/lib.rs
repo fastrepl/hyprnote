@@ -12,7 +12,8 @@ pub enum Error {
 
 pub fn opinionated_md_to_html(text: impl AsRef<str>) -> Result<String, Error> {
     let md = md_to_md(text)?;
-    md_to_html(&md)
+    let md_with_mentions = transform_mentions_in_markdown(&md);
+    md_to_html(&md_with_mentions)
 }
 
 pub fn opinionated_md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
@@ -81,6 +82,24 @@ fn md_to_html(text: &str) -> Result<String, Error> {
         .map_err(|e| Error::HTMLParseError(e.to_string()))?;
 
     Ok(dom.outer_html())
+}
+
+fn transform_mentions_in_markdown(markdown: &str) -> String {
+    // @[label](type:id)
+    let re = regex::Regex::new(r"@\[([^\]]+)\]\(([^:]+):([^)]+)\)").unwrap();
+
+    re.replace_all(markdown, |caps: &regex::Captures| {
+        let label = &caps[1];
+        let mention_type = &caps[2];
+        let id = &caps[3];
+
+        let app_url = format!("/app/{}/{}", mention_type, id);
+
+        format!(
+            r#"<a class="mention" data-mention="true" data-id="{}" data-type="{}" data-label="{}" href="javascript:void(0)" onclick="event.preventDefault(); if (window.__HYPR_NAVIGATE__) window.__HYPR_NAVIGATE__('{}');">@{}</a>"#,
+            id, mention_type, label, app_url, label
+        )
+    }).to_string()
 }
 
 fn remove_char_repeat(text: &mut String) {
@@ -433,5 +452,23 @@ mod tests {
         <li>Join the community and chat on <a href="https://hyprnote.com/discord">Discord</a>.</li>
         </ul>
         "###);
+    }
+
+    #[test]
+    fn test_mention_transformation() {
+        let input =
+            r#"Hello @[John Doe](user:john-doe) and @[Jane Smith](workspace:jane-workspace)!"#;
+
+        let html = opinionated_md_to_html(input).unwrap();
+        println!("HTML output: {}", html);
+
+        assert!(html.contains(r#"data-mention="true""#));
+        assert!(html.contains(r#"data-id="john-doe""#));
+        assert!(html.contains(r#"data-type="user""#));
+        assert!(html.contains(r#"data-label="John Doe""#));
+        assert!(html.contains(r#"@John Doe"#));
+        assert!(html.contains(r#"data-id="jane-workspace""#));
+        assert!(html.contains(r#"data-type="workspace""#));
+        assert!(html.contains(r#"@Jane Smith"#));
     }
 }

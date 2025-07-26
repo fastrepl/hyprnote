@@ -2022,6 +2022,7 @@ dependencies = [
  "insta",
  "markdown",
  "mdast_util_to_markdown",
+ "regex",
  "thiserror 2.0.12",
  "tl",
 ]

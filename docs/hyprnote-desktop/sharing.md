@@ -6,7 +6,7 @@
 
 ## Other methods
 
-<figure><img src=".gitbook/assets/Screenshot 2025-07-14 at 12.26.15 AM.png" alt="" width="334"><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/Screenshot 2025-07-14 at 12.26.15 AM.png" alt="" width="334"><figcaption></figcaption></figure>
 
 ### PDF
 
@@ -32,7 +32,7 @@ We support basic title pre-fill for now.
 {% step %}
 ### Enable HTTP in the Obsidian plugin settings
 
-<div data-full-width="false"><figure><img src=".gitbook/assets/Screenshot 2025-07-13 at 4.15.27 PM (2).png" alt="" width="563"><figcaption></figcaption></figure></div>
+<div data-full-width="false"><figure><img src="../.gitbook/assets/Screenshot 2025-07-13 at 4.15.27 PM (2).png" alt="" width="563"><figcaption></figcaption></figure></div>
 
 
 {% endstep %}
@@ -40,7 +40,7 @@ We support basic title pre-fill for now.
 {% step %}
 ### Configure Hyprnote (Settings - Integrations)
 
-<figure><img src=".gitbook/assets/Screenshot 2025-07-13 at 4.15.39 PM.png" alt="" width="563"><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/Screenshot 2025-07-13 at 4.15.39 PM.png" alt="" width="563"><figcaption></figcaption></figure>
 
 Enable Obsidian, and copy-paste base-url, api-key, and configure other stuffs like base-folder.
 {% endstep %}
@@ -50,6 +50,6 @@ Enable Obsidian, and copy-paste base-url, api-key, and configure other stuffs li
 
 
 
-<figure><img src=".gitbook/assets/Screenshot 2025-07-14 at 12.21.03 AM (1).png" alt="" width="333"><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/Screenshot 2025-07-14 at 12.21.03 AM (1).png" alt="" width="333"><figcaption></figcaption></figure>
 {% endstep %}
 {% endstepper %}

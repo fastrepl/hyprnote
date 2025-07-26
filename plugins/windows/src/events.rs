@@ -52,7 +52,9 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
-        #[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+        #[derive(
+            serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event,
+        )]
         $item
     };
 }
@@ -60,6 +62,7 @@ macro_rules! common_event_derives {
 common_event_derives! {
     pub struct Navigate {
         pub path: String,
+        pub search: Option<serde_json::Map<String, serde_json::Value>>,
     }
 }
 

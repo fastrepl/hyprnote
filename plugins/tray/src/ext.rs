@@ -111,10 +111,20 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         let _ = HyprWindow::Main.show(app);
                     }
                     HyprMenuItem::TrayStart => {
-                        use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
                         if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ =
-                                app.window_emit_navigate(HyprWindow::Main, "/app/new?record=true");
+                            let _ = app.window_emit_navigate(
+                                HyprWindow::Main,
+                                Navigate {
+                                    path: "/app/new".to_string(),
+                                    search: Some(
+                                        serde_json::json!({ "record": true })
+                                            .as_object()
+                                            .cloned()
+                                            .unwrap(),
+                                    ),
+                                },
+                            );
                         }
                     }
                     HyprMenuItem::TrayQuit => {
@@ -151,9 +161,15 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                             });
                     }
                     HyprMenuItem::AppNew => {
-                        use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
                         if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ = app.window_emit_navigate(HyprWindow::Main, "/app/new");
+                            let _ = app.window_emit_navigate(
+                                HyprWindow::Main,
+                                Navigate {
+                                    path: "/app/new".to_string(),
+                                    search: None,
+                                },
+                            );
                         }
                     }
                 }

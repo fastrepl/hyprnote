@@ -99,6 +99,13 @@ pub async fn main() {
         .plugin(tauri_plugin_membership::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(
+            tauri_plugin_keygen::Builder::new(
+                "76dfe152-397c-4689-9c5e-3669cefa34b9",
+                "13f18c98b8c1e5539d92df4aad2d51f4d203d5aead296215df7c3d6376b78b13",
+            )
+            .build(),
+        )
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),

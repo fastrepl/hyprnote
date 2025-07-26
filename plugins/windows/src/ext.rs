@@ -24,8 +24,6 @@ pub enum HyprWindow {
     Settings,
     #[serde(rename = "video")]
     Video(String),
-    #[serde(rename = "plans")]
-    Plans,
     #[serde(rename = "control")]
     Control,
 }
@@ -40,7 +38,6 @@ impl std::fmt::Display for HyprWindow {
             Self::Finder => write!(f, "finder"),
             Self::Settings => write!(f, "settings"),
             Self::Video(id) => write!(f, "video-{}", id),
-            Self::Plans => write!(f, "plans"),
             Self::Control => write!(f, "control"),
         }
     }
@@ -63,7 +60,6 @@ impl std::str::FromStr for HyprWindow {
                 "human" => return Ok(Self::Human(id.to_string())),
                 "organization" => return Ok(Self::Organization(id.to_string())),
                 "video" => return Ok(Self::Video(id.to_string())),
-                "plans" => return Ok(Self::Plans),
                 _ => {}
             }
         }
@@ -99,15 +95,9 @@ impl HyprWindow {
     pub fn emit_navigate(
         &self,
         app: &AppHandle<tauri::Wry>,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error> {
-        if let Some(window) = self.get(app) {
-            let mut url = window.url().unwrap();
-            url.set_path(path.as_ref());
-
-            let event = events::Navigate {
-                path: path.as_ref().into(),
-            };
+        if let Some(_) = self.get(app) {
             events::Navigate::emit_to(&event, app, self.label())?;
         }
         Ok(())
@@ -146,7 +136,6 @@ impl HyprWindow {
             Self::Finder => "Finder".into(),
             Self::Settings => "Settings".into(),
             Self::Video(_) => "Video".into(),
-            Self::Plans => "Plans".into(),
             Self::Control => "Control".into(),
         }
     }
@@ -333,13 +322,6 @@ impl HyprWindow {
                 .inner_size(640.0, 360.0)
                 .min_inner_size(640.0, 360.0)
                 .build()?,
-            Self::Plans => self
-                .window_builder(app, "/app/plans")
-                .maximizable(false)
-                .minimizable(false)
-                .inner_size(900.0, 600.0)
-                .min_inner_size(900.0, 600.0)
-                .build()?,
             Self::Control => {
                 let window_width = (monitor.size().width as f64) / monitor.scale_factor();
                 let window_height = (monitor.size().height as f64) / monitor.scale_factor();
@@ -487,7 +469,7 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_emit_navigate(
         &self,
         window: HyprWindow,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error>;
 
     fn window_navigate(
@@ -610,9 +592,9 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
     fn window_emit_navigate(
         &self,
         window: HyprWindow,
-        path: impl AsRef<str>,
+        event: events::Navigate,
     ) -> Result<(), crate::Error> {
-        window.emit_navigate(self, path)
+        window.emit_navigate(self, event)
     }
 
     fn window_navigate(

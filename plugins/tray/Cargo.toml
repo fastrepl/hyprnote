@@ -23,3 +23,5 @@ tauri-plugin-windows = { workspace = true }
 
 specta = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde_json = { workspace = true }

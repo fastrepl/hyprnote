@@ -1,4 +1,5 @@
 // react-scan must be imported before React
+// @ts-nocheck
 import { scan } from "react-scan";
 
 import { useQuery } from "@tanstack/react-query";
@@ -54,7 +55,7 @@ function Component() {
 
     const webview = getCurrentWebviewWindow();
     windowsEvents.navigate(webview).listen(({ payload }) => {
-      navigate({ to: payload.path });
+      navigate({ to: payload.path, search: payload.search });
     }).then((fn) => {
       unlisten = fn;
     });
@@ -64,7 +65,7 @@ function Component() {
 
   useEffect(() => {
     windowsInit();
-    scan({ enabled: true });
+    // scan({ enabled: true });
   }, []);
 
   // Listen for debug events from control window

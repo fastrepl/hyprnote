@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
+import { LicenseRefreshProvider } from "@/components/license";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
@@ -51,7 +52,7 @@ function Component() {
     && !onboardingCompletedThisSession;
 
   return (
-    <>
+    <LicenseRefreshProvider>
       <SessionsProvider store={sessionsStore}>
         <OngoingSessionProvider store={ongoingSessionStore}>
           <LeftSidebarProvider>
@@ -106,7 +107,7 @@ function Component() {
         </OngoingSessionProvider>
       </SessionsProvider>
       {showNotifications && <Notifications />}
-    </>
+    </LicenseRefreshProvider>
   );
 }
 

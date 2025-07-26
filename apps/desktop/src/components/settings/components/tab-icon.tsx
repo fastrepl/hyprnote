@@ -3,7 +3,7 @@ import {
   BellIcon,
   BlocksIcon,
   CalendarIcon,
-  FlaskConicalIcon,
+  CreditCardIcon,
   LayoutTemplateIcon,
   MessageSquareIcon,
   SettingsIcon,
@@ -20,8 +20,6 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <BellIcon className="h-4 w-4" />;
     case "sound":
       return <AudioLinesIcon className="h-4 w-4" />;
-    case "lab":
-      return <FlaskConicalIcon className="h-4 w-4" />;
     case "feedback":
       return <MessageSquareIcon className="h-4 w-4" />;
     case "ai":
@@ -32,6 +30,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <LayoutTemplateIcon className="h-4 w-4" />;
     case "integrations":
       return <BlocksIcon className="h-4 w-4" />;
+    case "billing":
+      return <CreditCardIcon className="h-4 w-4" />;
     default:
       return null;
   }

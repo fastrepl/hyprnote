@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { BrainIcon, Zap as SpeedIcon } from "lucide-react";
 import React, { useState } from "react";
 
@@ -12,7 +12,7 @@ import {
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
 
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
+
 import { SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
@@ -53,7 +53,6 @@ export const ModelSelectionView = ({
 }: {
   onContinue: (model: SupportedModel) => void;
 }) => {
-  const queryClient = useQueryClient();
   const [selectedModel, setSelectedModel] = useState<SupportedModel>("QuantizedSmall");
 
   const supportedSTTModels = useQuery<ModelInfo[]>({
@@ -71,8 +70,6 @@ export const ModelSelectionView = ({
   });
 
   const handleContinue = () => {
-    showSttModelDownloadToast(selectedModel, undefined, queryClient);
-    showLlmModelDownloadToast(undefined, undefined, queryClient);
     onContinue(selectedModel);
   };
 

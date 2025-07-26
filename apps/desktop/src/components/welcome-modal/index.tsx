@@ -1,9 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 
 import { commands } from "@/types";
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -13,6 +14,7 @@ import { Particles } from "@hypr/ui/components/ui/particles";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { AudioPermissionsView } from "./audio-permissions-view";
 import { CalendarPermissionsView } from "./calendar-permissions-view";
+import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
@@ -24,9 +26,12 @@ interface WelcomeModalProps {
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [port, setPort] = useState<number | null>(null);
-  const [currentStep, setCurrentStep] = useState<"welcome" | "model-selection" | "audio-permissions" | "language-selection" | "calendar-permissions">("welcome");
+  const [currentStep, setCurrentStep] = useState<"welcome" | "model-selection" | "download-progress" | "audio-permissions" | "language-selection" | "calendar-permissions">("welcome");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
+  const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
+  const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
 
   const selectSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
@@ -83,7 +88,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const handleModelSelected = (model: SupportedModel) => {
     selectSTTModel.mutate(model);
+    setSelectedSttModel(model);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
+    setCurrentStep("download-progress");
+  };
+
+  const handleDownloadProgressContinue = () => {
+    setWentThroughDownloads(true);
     setCurrentStep("audio-permissions");
   };
 
@@ -115,6 +126,17 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     onClose();
   };
 
+  // When modal closes, show toasts if we went through downloads
+  useEffect(() => {
+    if (!isOpen && wentThroughDownloads) {
+      console.log("Welcome modal closed after downloads, showing toasts");
+      
+      // Show both toasts since we started both downloads
+      showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
+      showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
+    }
+  }, [isOpen, wentThroughDownloads, selectedSttModel, queryClient]);
+
   return (
     <Modal
       open={isOpen}
@@ -134,6 +156,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           {currentStep === "model-selection" && (
             <ModelSelectionView
               onContinue={handleModelSelected}
+            />
+          )}
+          {currentStep === "download-progress" && (
+            <DownloadProgressView
+              selectedSttModel={selectedSttModel}
+              onContinue={handleDownloadProgressContinue}
             />
           )}
           {currentStep === "audio-permissions" && (

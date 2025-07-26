@@ -919,7 +919,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:350
+#: src/components/editor-area/note-header/listen-button.tsx:361
 msgid "No Template (Default)"
 msgstr ""
 
@@ -987,7 +987,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:373
+#: src/components/editor-area/note-header/listen-button.tsx:384
 msgid "Pause"
 msgstr ""
 
@@ -1157,7 +1157,7 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:381
+#: src/components/editor-area/note-header/listen-button.tsx:392
 msgid "Stop"
 msgstr ""
 

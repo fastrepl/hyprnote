@@ -4,13 +4,6 @@ import { BrainIcon, Zap as SpeedIcon } from "lucide-react";
 import React, { useState } from "react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@hypr/ui/components/ui/carousel";
 
 
 import { SupportedModel } from "@hypr/plugin-local-stt";
@@ -32,14 +25,14 @@ const RatingDisplay = (
     icon: React.ElementType;
   },
 ) => (
-  <div className="flex flex-col items-center px-2">
-    <span className="text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1.5">{label}</span>
-    <div className="flex space-x-1">
+  <div className="flex flex-col items-center px-1 sm:px-2">
+    <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1 sm:mb-1.5">{label}</span>
+    <div className="flex space-x-0.5 sm:space-x-1">
       {[...Array(maxRating)].map((_, i) => (
         <Icon
           key={i}
           className={cn(
-            "w-3.5 h-3.5",
+            "w-2.5 h-2.5 sm:w-3.5 sm:h-3.5",
             i < rating ? "text-blue-500" : "text-neutral-300",
           )}
         />
@@ -79,15 +72,14 @@ export const ModelSelectionView = ({
         <Trans>Select a transcribing model</Trans>
       </h2>
 
-      <div className="w-full mb-8">
-        <Carousel
-          opts={{
-            align: "start",
-          }}
-          className="w-full max-w-lg"
-        >
-          <CarouselContent>
-            {supportedSTTModels.data?.map(modelInfo => {
+      <div className="w-full mb-8 px-2 sm:px-4">
+        <div className="flex gap-2 sm:gap-4 max-w-2xl mx-auto">
+          {supportedSTTModels.data
+            ?.filter(modelInfo => {
+              const model = modelInfo.model;
+              return ['QuantizedTiny', 'QuantizedSmall', 'QuantizedLargeTurbo'].includes(model);
+            })
+            ?.map(modelInfo => {
               const model = modelInfo.model;
               const metadata = sttModelMetadata[model as SupportedModel];
               if (!metadata) {
@@ -97,8 +89,8 @@ export const ModelSelectionView = ({
               const isSelected = selectedModel === model;
 
               return (
-                <CarouselItem key={model} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="p-1">
+                <div key={model} className="flex-1">
+                  <div className="p-0.5 sm:p-1">
                     <Card
                       className={cn(
                         "cursor-pointer transition-all duration-200",
@@ -108,9 +100,9 @@ export const ModelSelectionView = ({
                       )}
                       onClick={() => setSelectedModel(model as SupportedModel)}
                     >
-                      <CardContent className="flex flex-col gap-4 justify-between p-5 h-56">
+                      <CardContent className="flex flex-col gap-2 sm:gap-4 justify-between p-3 sm:p-5 h-48 sm:h-56">
                         <div className="flex-1 text-center">
-                          <div className="text-lg font-medium mb-4">{metadata.name}</div>
+                          <div className="text-sm sm:text-lg font-medium mb-2 sm:mb-4">{metadata.name}</div>
                           <div className="text-xs text-center text-neutral-600">{metadata.description}</div>
                         </div>
 
@@ -130,15 +122,10 @@ export const ModelSelectionView = ({
                       </CardContent>
                     </Card>
                   </div>
-                </CarouselItem>
+                </div>
               );
             })}
-          </CarouselContent>
-          <div className="mt-4">
-            <CarouselPrevious className="-left-4" />
-            <CarouselNext className="-right-4" />
-          </div>
-        </Carousel>
+        </div>
       </div>
 
       <PushableButton

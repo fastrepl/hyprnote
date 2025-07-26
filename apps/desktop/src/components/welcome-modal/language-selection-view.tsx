@@ -46,7 +46,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Select Your Languages</Trans>
       </h2>
@@ -55,7 +55,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
         <Trans>Choose the languages you speak for better transcription accuracy</Trans>
       </p>
 
-      <div className="w-full max-w-lg mb-8">
+      <div className="w-full max-w-[30rem] mb-8">
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
           <div className="flex items-start gap-2">
             <div className="flex-1">

@@ -117,7 +117,7 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
   }, [contactsAccess]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Calendar & Contacts</Trans>
       </h2>
@@ -126,7 +126,7 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
         <Trans>Connect your calendar and contacts for a better experience</Trans>
       </p>
 
-      <div className="w-full max-w-lg space-y-3 mb-8">
+      <div className="w-full max-w-[30rem] space-y-3 mb-8">
         <PermissionItem
           icon={<CalendarIcon className="h-5 w-5" />}
           title="Calendar Access"

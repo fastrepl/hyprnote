@@ -154,16 +154,16 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const allPermissionsGranted = micPermissionStatus.data && systemAudioPermissionStatus.data;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Audio Permissions</Trans>
       </h2>
       
       <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>Grant access to audio so Hyprnote can transcribe your meetings</Trans>
+        <Trans>Grant access to audio so Hyprnote can transcribe your meetings </Trans>
       </p>
 
-      <div className="w-full max-w-lg space-y-3 mb-8">
+      <div className="w-full max-w-[30rem] space-y-3 mb-8">
         <PermissionItem
           icon={<MicIcon className="h-5 w-5" />}
           title={t`Microphone Access`}

@@ -91,7 +91,7 @@ export const sttModelMetadata: Record<SupportedModel, {
   },
   "QuantizedLargeTurbo": {
     name: "Large",
-    description: "Highest accuracy, potentially faster than standard large. Resource intensive.",
+    description: "Highest accuracy, resource intensive.",
     intelligence: 3,
     speed: 1,
     size: "874 MB",

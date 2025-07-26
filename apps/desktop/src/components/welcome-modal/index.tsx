@@ -18,6 +18,7 @@ import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
+import { useGlobalDownloadState } from "@/hooks/use-global-downloads";
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -126,16 +127,22 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     onClose();
   };
 
-  // When modal closes, show toasts if we went through downloads
+  const downloadState = useGlobalDownloadState(selectedSttModel, "HyprLLM");
+
   useEffect(() => {
-    if (!isOpen && wentThroughDownloads) {
-      console.log("Welcome modal closed after downloads, showing toasts");
+    if (!isOpen && wentThroughDownloads && downloadState.data) {
+      console.log("Welcome modal closed, checking ongoing downloads");
       
-      // Show both toasts since we started both downloads
-      showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
-      showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
+      // Only show toasts for downloads that are actually still running
+      if (downloadState.data.sttDownloading) {
+        showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
+      }
+      
+      if (downloadState.data.llmDownloading) {
+        showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
+      }
     }
-  }, [isOpen, wentThroughDownloads, selectedSttModel, queryClient]);
+  }, [isOpen, wentThroughDownloads, selectedSttModel, queryClient, downloadState.data]);
 
   return (
     <Modal

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
-import { Progress } from "@hypr/ui/components/ui/progress";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -48,28 +47,17 @@ const ModelProgressCard = ({
           )} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium truncate">{title}</h3>
-            <span className="text-xs text-muted-foreground">({size})</span>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="font-medium truncate">{title}</div>
+          <div className="text-sm text-muted-foreground">
             {download.error ? (
-              <span className="text-sm text-destructive">Download failed</span>
+              <span className="text-destructive">Download failed</span>
             ) : download.completed ? (
-              <span className="text-blue-600 flex items-center gap-1 text-sm">
-                <CheckCircle2Icon className="w-3.5 h-3.5" />
+              <span className="text-blue-600 flex items-center gap-1">
+                <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
                 <Trans>Ready</Trans>
               </span>
             ) : (
-              <div className="flex items-center gap-2 w-full">
-                <Progress 
-                  value={download.progress} 
-                  className="h-1.5 flex-1 max-w-[120px]"
-                />
-                <span className="text-xs text-muted-foreground">
-                  {Math.round(download.progress)}%
-                </span>
-              </div>
+              <span className="block truncate pr-2">Size: {size} • {Math.round(download.progress)}%</span>
             )}
           </div>
         </div>
@@ -82,17 +70,6 @@ const ModelProgressCard = ({
     </div>
   );
 };
-
-const WAITING_MESSAGES = [
-  "Downloading models may take a few minutes...",
-  "You are free to continue your setup...",
-  "Teaching your AI not to snitch...",
-  "Securing your data from prying eyes...",
-  "Preparing transcription capabilities...",
-  "Setting up local language models...",
-  "Building your AI fortress...",
-  "Hiding your AI from the NSA...",
-];
 
 export const DownloadProgressView = ({
   selectedSttModel,
@@ -164,8 +141,19 @@ export const DownloadProgressView = ({
     }
   }, [bothCompleted, hasErrors]);
 
+  const WAITING_MESSAGES = [
+    "Downloading models may take a few minutes...",
+    "You are free to continue your setup...",
+    "Teaching your AI not to snitch...",
+    "Securing your data from prying eyes...",
+    "Preparing transcription capabilities...",
+    "Setting up local language models...",
+    "Building your AI fortress...",
+    "Hiding your AI from the NSA...",
+  ];
+
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-w-[30rem] w-full max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Downloading AI Models</Trans>
       </h2>
@@ -174,7 +162,7 @@ export const DownloadProgressView = ({
         <Trans>Setting up your private AI assistant</Trans>
       </p>
 
-      <div className="w-full max-w-lg space-y-3 mb-8">
+      <div className="w-full max-w-[30rem] space-y-3 mb-8">
         <ModelProgressCard
           title="Speech Recognition"
           icon={MicIcon}
@@ -197,34 +185,34 @@ export const DownloadProgressView = ({
         <Trans>Continue Setup</Trans>
       </PushableButton>
 
-      {/* Animated waiting messages */}
-      <div className="h-8 flex items-center justify-center">
-        {!bothCompleted && !hasErrors && (
-          <div className="relative w-full max-w-sm">
-            <p 
+      {/* Bottom animated text - width constrained */}
+      <div className="w-full max-w-[30rem] mt-4">
+        <p className="text-xs text-muted-foreground text-center">
+          {!bothCompleted && !hasErrors && (
+            <span 
               key={currentMessageIndex}
-              className="text-xs text-muted-foreground text-center transition-all duration-500 ease-in-out"
+              className="transition-all duration-500 ease-in-out block"
               style={{
                 animation: 'fadeInOut 3s ease-in-out',
               }}
             >
               {WAITING_MESSAGES[currentMessageIndex]}
-            </p>
-          </div>
-        )}
-        
-        {bothCompleted && (
-          <p className="text-xs text-blue-600 text-center">
-            <Trans>All models ready!</Trans>
-          </p>
-        )}
-        
-        {hasErrors && (
-          <p className="text-xs text-amber-600 text-center">
-            <Trans>Some downloads failed, but you can continue</Trans>
-          </p>
-        )}
+            </span>
+          )}
+          
+          {bothCompleted && (
+            <span className="text-blue-600">
+              <Trans>All models ready!</Trans>
+            </span>
+          )}
+          
+          {hasErrors && (
+            <span className="text-amber-600">
+              <Trans>Some downloads failed, but you can continue</Trans>
+            </span>
+          )}
+        </p>
       </div>
     </div>
   );
-}; 
+};

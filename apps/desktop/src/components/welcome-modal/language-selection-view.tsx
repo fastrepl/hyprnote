@@ -103,7 +103,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
                   <CommandEmpty>
                     <Trans>No language found.</Trans>
                   </CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-auto">
+                  <CommandGroup className="max-h-[150px] overflow-auto">
                     {SUPPORTED_LANGUAGES.filter(
                       (lang) => !selectedLanguages.includes(lang)
                     ).map((lang) => {

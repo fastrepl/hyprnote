@@ -192,7 +192,7 @@ export const DownloadProgressView = ({
 
       <PushableButton
         onClick={onContinue}
-        className="w-full max-w-sm mb-6"
+        className="w-full max-w-sm"
       >
         <Trans>Continue Setup</Trans>
       </PushableButton>

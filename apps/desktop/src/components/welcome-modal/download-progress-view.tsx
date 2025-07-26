@@ -7,6 +7,7 @@ import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } fro
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
+import { Progress } from "@hypr/ui/components/ui/progress";
 
 interface ModelDownloadProgress {
   channel: Channel<number>;
@@ -57,7 +58,10 @@ const ModelProgressCard = ({
                 <Trans>Ready</Trans>
               </span>
             ) : (
-              <span className="block truncate pr-2">Size: {size} • {Math.round(download.progress)}%</span>
+              <div className="space-y-2">
+                <span className="block text-xs">Size: {size} • {Math.round(download.progress)}%</span>
+                <Progress value={download.progress} className="h-2" />
+              </div>
             )}
           </div>
         </div>

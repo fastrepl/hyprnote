@@ -245,7 +245,7 @@ export default function EditorArea({
               session={sessionStore.session}
               isError={enhance.status === "error"}
               progress={progress}
-              showProgress={llmConnectionQuery.data?.type !== "HyprLocal" && sessionId !== onboardingSessionId}
+              showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
             />
           </div>
         </motion.div>

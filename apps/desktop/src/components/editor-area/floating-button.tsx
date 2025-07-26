@@ -197,6 +197,7 @@ export function FloatingButton({
   );
 
   const showRefresh = !showRaw && (isHovered || showTemplatePopover) && showRefreshIcon;
+  const shouldShowProgress = showProgress && progress < 1.0;
 
   return (
     <div className="flex w-fit flex-row items-center group hover:scale-105 transition-transform duration-200">
@@ -227,7 +228,7 @@ export function FloatingButton({
                 ? (
                   <div className="flex items-center gap-2">
                     <XIcon size={20} />
-                    {showProgress && (
+                    {shouldShowProgress && (
                       <span className="text-xs font-mono">
                         {Math.round(progress * 100)}%
                       </span>
@@ -236,10 +237,10 @@ export function FloatingButton({
                 )
                 : (
                   <div className="flex items-center gap-2">
-                    {showProgress
+                    {shouldShowProgress
                       ? <AnimatedEnhanceIcon size={20} />
                       : <EnhanceWIP size={20} strokeWidth={2} />}
-                    {showProgress && (
+                    {shouldShowProgress && (
                       <span className="text-xs font-mono">
                         {Math.round(progress * 100)}%
                       </span>

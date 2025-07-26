@@ -10,6 +10,10 @@ import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
 
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { AudioPermissionsView } from "./audio-permissions-view";
+import { CalendarPermissionsView } from "./calendar-permissions-view";
+import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
 
@@ -21,7 +25,8 @@ interface WelcomeModalProps {
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
   const [port, setPort] = useState<number | null>(null);
-  const [showModelSelection, setShowModelSelection] = useState(false);
+  const [currentStep, setCurrentStep] = useState<"welcome" | "model-selection" | "audio-permissions" | "language-selection" | "calendar-permissions">("welcome");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
 
   const selectSTTModel = useMutation({
     mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
@@ -73,14 +78,40 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [isOpen]);
 
   const handleStartLocal = () => {
-    setShowModelSelection(true);
+    setCurrentStep("model-selection");
   };
 
   const handleModelSelected = (model: SupportedModel) => {
     selectSTTModel.mutate(model);
-
     sessionStorage.setItem("model-download-toast-dismissed", "true");
+    setCurrentStep("audio-permissions");
+  };
 
+  const handleAudioPermissionsContinue = () => {
+    setCurrentStep("language-selection");
+  };
+
+  const handleLanguageSelectionContinue = async (languages: string[]) => {
+    setSelectedLanguages(languages);
+    
+    // Save the selected languages to the database
+    try {
+      const config = await dbCommands.getConfig();
+      await dbCommands.setConfig({
+        ...config,
+        general: {
+          ...config.general,
+          spoken_languages: languages,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to save language preferences:", error);
+    }
+    
+    setCurrentStep("calendar-permissions");
+  };
+
+  const handleCalendarPermissionsContinue = () => {
     onClose();
   };
 
@@ -94,18 +125,32 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
         <div className="z-10">
-          {!showModelSelection
-            ? (
-              <WelcomeView
-                portReady={port !== null}
-                onGetStarted={handleStartLocal}
-              />
-            )
-            : (
-              <ModelSelectionView
-                onContinue={handleModelSelected}
-              />
-            )}
+          {currentStep === "welcome" && (
+            <WelcomeView
+              portReady={port !== null}
+              onGetStarted={handleStartLocal}
+            />
+          )}
+          {currentStep === "model-selection" && (
+            <ModelSelectionView
+              onContinue={handleModelSelected}
+            />
+          )}
+          {currentStep === "audio-permissions" && (
+            <AudioPermissionsView
+              onContinue={handleAudioPermissionsContinue}
+            />
+          )}
+          {currentStep === "language-selection" && (
+            <LanguageSelectionView
+              onContinue={handleLanguageSelectionContinue}
+            />
+          )}
+          {currentStep === "calendar-permissions" && (
+            <CalendarPermissionsView
+              onContinue={handleCalendarPermissionsContinue}
+            />
+          )}
         </div>
 
         <Particles

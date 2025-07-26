@@ -18,7 +18,7 @@ import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
-import { useGlobalDownloadState } from "@/hooks/use-global-downloads";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -127,22 +127,31 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     onClose();
   };
 
-  const downloadState = useGlobalDownloadState(selectedSttModel, "HyprLLM");
 
   useEffect(() => {
-    if (!isOpen && wentThroughDownloads && downloadState.data) {
+    if (!isOpen && wentThroughDownloads) {
       console.log("Welcome modal closed, checking ongoing downloads");
       
-      // Only show toasts for downloads that are actually still running
-      if (downloadState.data.sttDownloading) {
-        showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
-      }
-      
-      if (downloadState.data.llmDownloading) {
-        showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
-      }
+      const checkAndShowToasts = async () => {
+        try {
+          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as SupportedModel);
+          const llmModelExists = await localLlmCommands.isModelDownloaded("HyprLLM");
+
+          if (!sttModelExists) {
+            showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
+          }
+          
+          if (!llmModelExists) {
+            showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
+          }
+        } catch (error) {
+          console.error("Error checking model download status:", error);
+        }
+      };
+
+      checkAndShowToasts();
     }
-  }, [isOpen, wentThroughDownloads, selectedSttModel, queryClient, downloadState.data]);
+  }, [isOpen, wentThroughDownloads, selectedSttModel, queryClient]);
 
   return (
     <Modal

@@ -152,42 +152,49 @@ export const DownloadProgressView = ({
     "Hiding your AI from the NSA...",
   ];
 
+  // Handle completion and server setup
+  useEffect(() => {
+    const handleSttCompletion = async () => {
+      if (sttDownload.completed) {
+        try {
+          // Set the selected model as current
+          await localSttCommands.setCurrentModel(selectedSttModel);
+          // Start the STT server
+          await localSttCommands.startServer();
+          console.log("STT model set and server started");
+        } catch (error) {
+          console.error("Error setting up STT:", error);
+        }
+      }
+    };
+
+    const handleLlmCompletion = async () => {
+      if (llmDownload.completed) {
+        try {
+          // Set HyprLLM as current model
+          await localLlmCommands.setCurrentModel("HyprLLM");
+          // Start the LLM server
+          await localLlmCommands.startServer();
+          console.log("LLM model set and server started");
+        } catch (error) {
+          console.error("Error setting up LLM:", error);
+        }
+      }
+    };
+
+    handleSttCompletion();
+    handleLlmCompletion();
+  }, [sttDownload.completed, llmDownload.completed, selectedSttModel]);
+
   return (
     <div className="flex flex-col items-center min-w-[30rem] w-full max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Downloading AI Models</Trans>
       </h2>
       
-      <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>Setting up your private AI assistant</Trans>
-      </p>
-
-      <div className="w-full max-w-[30rem] space-y-3 mb-8">
-        <ModelProgressCard
-          title="Speech Recognition"
-          icon={MicIcon}
-          download={sttDownload}
-          size="250MB"
-        />
-        
-        <ModelProgressCard
-          title="Language Model"
-          icon={BrainIcon}
-          download={llmDownload}
-          size="2.5GB"
-        />
-      </div>
-
-      <PushableButton
-        onClick={onContinue}
-        className="w-full max-w-sm"
-      >
-        <Trans>Continue Setup</Trans>
-      </PushableButton>
-
-      {/* Bottom animated text - width constrained */}
-      <div className="w-full max-w-[30rem] mt-4">
-        <p className="text-xs text-muted-foreground text-center">
+      {/* Replace static text with animated messages */}
+      <div className="w-full max-w-[30rem] mb-8">
+        <p className="text-center text-sm text-muted-foreground">
           {!bothCompleted && !hasErrors && (
             <span 
               key={currentMessageIndex}
@@ -213,6 +220,34 @@ export const DownloadProgressView = ({
           )}
         </p>
       </div>
+
+      <div className="w-full max-w-[30rem] space-y-3 mb-8">
+        <ModelProgressCard
+          title="Speech Recognition"
+          icon={MicIcon}
+          download={sttDownload}
+          size="250MB"
+        />
+        
+        <ModelProgressCard
+          title="Language Model"
+          icon={BrainIcon}
+          download={llmDownload}
+          size="2.5GB"
+        />
+      </div>
+
+      <PushableButton
+        onClick={onContinue}
+        className="w-full max-w-sm"
+      >
+        <Trans>Continue Setup</Trans>
+      </PushableButton>
+
+      {/* Bottom text similar to calendar view */}
+      <p className="text-xs text-muted-foreground text-center mt-4">
+        <Trans>Downloads will continue in the background</Trans>
+      </p>
     </div>
   );
 };

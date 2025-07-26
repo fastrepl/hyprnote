@@ -103,10 +103,34 @@ impl UserDatabase {
     }
 
     pub async fn delete_session(&self, id: impl Into<String>) -> Result<(), crate::Error> {
+        let session_id = id.into();
         let conn = self.conn()?;
 
-        conn.execute("DELETE FROM sessions WHERE id = ?", vec![id.into()])
+        let mut rows = conn
+            .query(
+                "SELECT id FROM chat_groups WHERE session_id = ?",
+                vec![session_id.clone()],
+            )
             .await?;
+
+        while let Some(row) = rows.next().await? {
+            let group_id: String = row.get(0)?;
+            conn.execute(
+                "DELETE FROM chat_messages WHERE group_id = ?",
+                vec![group_id],
+            )
+            .await?;
+        }
+
+        conn.execute(
+            "DELETE FROM chat_groups WHERE session_id = ?",
+            vec![session_id.clone()],
+        )
+        .await?;
+
+        conn.execute("DELETE FROM sessions WHERE id = ?", vec![session_id])
+            .await?;
+
         Ok(())
     }
 

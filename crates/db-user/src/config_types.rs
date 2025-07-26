@@ -38,7 +38,9 @@ user_common_derives! {
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
         pub display_language: hypr_language::Language,
         #[specta(type = Vec<String>)]
+        #[serde(default)]
         pub spoken_languages: Vec<hypr_language::Language>,
+        #[serde(default)]
         pub jargons: Vec<String>,
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,

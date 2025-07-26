@@ -4,4 +4,4 @@ We appreciate your patience while you wait for your STT&LLM models to be downloa
 
 Also, please [join our Discord](https://hyprnote.com/discord)! We really want to hear from you.
 
-<img alt="welcome" src="https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/crates/db-user/assets/welcome.png"/>
+<img alt="welcome" src="https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/crates/db-user/assets/welcome2.png"/>

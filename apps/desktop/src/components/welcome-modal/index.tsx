@@ -30,7 +30,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const queryClient = useQueryClient();
   const [port, setPort] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<"welcome" | "model-selection" | "download-progress" | "audio-permissions" | "language-selection" | "calendar-permissions">("welcome");
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
   const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
 
@@ -104,7 +103,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleLanguageSelectionContinue = async (languages: string[]) => {
-    setSelectedLanguages(languages);
     
     // Save the selected languages to the database
     try {
@@ -130,7 +128,10 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      console.log("Welcome modal closed, checking ongoing downloads");
+
+      //start servers for mockup & tutorial 
+      localSttCommands.startServer();
+      localLlmCommands.startServer();
       
       const checkAndShowToasts = async () => {
         try {

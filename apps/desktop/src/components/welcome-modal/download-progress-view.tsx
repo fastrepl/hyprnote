@@ -3,7 +3,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { BrainIcon, CheckCircle2Icon, MicIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -96,15 +96,11 @@ export const DownloadProgressView = ({
 
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
-  // Start downloads when component mounts
   useEffect(() => {
-    // Start STT download
     localSttCommands.downloadModel(selectedSttModel, sttDownload.channel);
     
-    // Start LLM download  
     localLlmCommands.downloadModel("HyprLLM", llmDownload.channel);
 
-    // Setup STT progress listener
     sttDownload.channel.onmessage = (progress) => {
       if (progress < 0) {
         setSttDownload(prev => ({ ...prev, error: true }));
@@ -118,7 +114,6 @@ export const DownloadProgressView = ({
       }));
     };
 
-    // Setup LLM progress listener
     llmDownload.channel.onmessage = (progress) => {
       if (progress < 0) {
         setLlmDownload(prev => ({ ...prev, error: true }));
@@ -136,7 +131,6 @@ export const DownloadProgressView = ({
   const bothCompleted = sttDownload.completed && llmDownload.completed;
   const hasErrors = sttDownload.error || llmDownload.error;
 
-  // Cycle through waiting messages
   useEffect(() => {
     if (!bothCompleted && !hasErrors) {
       const interval = setInterval(() => {
@@ -159,16 +153,12 @@ export const DownloadProgressView = ({
     "Installing integrity.exe (beta)...",
   ];
 
-  // Handle completion and server setup
   useEffect(() => {
     const handleSttCompletion = async () => {
       if (sttDownload.completed) {
         try {
-          // Set the selected model as current
           await localSttCommands.setCurrentModel(selectedSttModel);
-          // Start the STT server
           await localSttCommands.startServer();
-          console.log("STT model set and server started");
         } catch (error) {
           console.error("Error setting up STT:", error);
         }
@@ -178,11 +168,8 @@ export const DownloadProgressView = ({
     const handleLlmCompletion = async () => {
       if (llmDownload.completed) {
         try {
-          // Set HyprLLM as current model
           await localLlmCommands.setCurrentModel("HyprLLM");
-          // Start the LLM server
           await localLlmCommands.startServer();
-          console.log("LLM model set and server started");
         } catch (error) {
           console.error("Error setting up LLM:", error);
         }
@@ -193,7 +180,6 @@ export const DownloadProgressView = ({
     handleLlmCompletion();
   }, [sttDownload.completed, llmDownload.completed, selectedSttModel]);
 
-  // Get the actual metadata for the selected STT model
   const sttMetadata = sttModelMetadata[selectedSttModel];
 
   return (
@@ -254,7 +240,6 @@ export const DownloadProgressView = ({
         <Trans>Continue Setup</Trans>
       </PushableButton>
 
-      {/* Bottom text similar to calendar view */}
       <p className="text-xs text-muted-foreground text-center mt-4">
         <Trans>Downloads will continue in the background</Trans>
       </p>

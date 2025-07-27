@@ -98,24 +98,34 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
-    refetchInterval: 3000,
+    refetchInterval: 1000,  // ← Faster polling
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
-    onSuccess: () => micPermissionStatus.refetch(),
+    onSuccess: () => {
+      // Give TCC time to update (2-5 seconds)
+      setTimeout(() => {
+        micPermissionStatus.refetch();
+      }, 3000);
+    },
     onError: console.error,
   });
 
   const capturePermission = useMutation({
     mutationFn: () => listenerCommands.requestSystemAudioAccess(),
-    onSuccess: () => systemAudioPermissionStatus.refetch(),
+    onSuccess: () => {
+      // Give TCC time to update (2-5 seconds)
+      setTimeout(() => {
+        systemAudioPermissionStatus.refetch();
+      }, 3000);
+    },
     onError: console.error,
   });
 
@@ -162,6 +172,11 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
       {!allPermissionsGranted && (
         <p className="text-xs text-muted-foreground text-center mt-4">
           <Trans>Grant both permissions to continue</Trans>
+        </p>
+      )}
+      {micPermission.isSuccess && !micPermissionStatus.data && (
+        <p className="text-xs text-amber-600 text-center mt-2">
+          <Trans>Permission granted! Detecting changes...</Trans>
         </p>
       )}
     </div>

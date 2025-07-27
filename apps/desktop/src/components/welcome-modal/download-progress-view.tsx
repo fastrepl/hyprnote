@@ -152,13 +152,13 @@ export const DownloadProgressView = ({
     "Downloading models may take a few minutes...",
     "You are free to continue your setup...",
     "Teaching your AI not to snitch...",
-    "Running vibe_check.exe...",
+    "Running vibe_check.sh...",
     "Munching granola for breakfast...",
     "Securing your data from enemies...",
     "Building your AI fortress...",
     "Hunting down infected otters...",
     "Wiping fingerprints off the algorithm...",
-    "Installing integrity.exe (beta)...",
+    "Installing integrity.dmg (beta)...",
   ];
 
   useEffect(() => {
@@ -245,11 +245,11 @@ export const DownloadProgressView = ({
         onClick={onContinue}
         className="w-full max-w-sm"
       >
-        <Trans>Continue Setup</Trans>
+        <Trans>Continue</Trans>
       </PushableButton>
 
       <p className="text-xs text-muted-foreground text-center mt-4">
-        <Trans>Downloads will continue in the background</Trans>
+        <Trans>It's ok to move on, downloads will continue in the background</Trans>
       </p>
     </div>
   );

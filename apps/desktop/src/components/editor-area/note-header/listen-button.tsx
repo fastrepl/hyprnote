@@ -228,7 +228,7 @@ function WhenInactiveAndMeetingNotEndedOnboarding({ disabled, onClick }: { disab
       }}
     >
       <PlayIcon size={14} />
-      <Trans>{disabled ? "No STT" : "Play video"}</Trans>
+      <Trans>{disabled ? "Wait..." : "Play video"}</Trans>
     </ShinyButton>
   );
 }

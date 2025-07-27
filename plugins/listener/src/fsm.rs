@@ -202,6 +202,8 @@ impl Session {
         use tauri_plugin_db::DatabasePluginExt;
 
         let session_id = id.into();
+        let onboarding_session_id = self.app.db_onboarding_session_id().await?;
+
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
@@ -241,15 +243,16 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(&self.app, languages, jargons).await?;
+        let listen_client = setup_listen_client(
+            &self.app,
+            languages,
+            jargons,
+            session_id == onboarding_session_id,
+        )
+        .await?;
 
         let mic_sample_stream = {
-            let mut input = match &self.mic_device_name {
-                Some(device_name) => {
-                    hypr_audio::AudioInput::from_mic_with_device_name(device_name.clone())
-                }
-                None => hypr_audio::AudioInput::from_mic(),
-            };
+            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone());
             input.stream()
         };
         let mic_stream = mic_sample_stream
@@ -543,6 +546,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
+    is_onboarding: bool,
 ) -> Result<crate::client::ListenClientDual, crate::Error> {
     let api_base = {
         use tauri_plugin_connector::{Connection, ConnectorPluginExt};
@@ -559,13 +563,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
 
     tracing::info!(api_base = ?api_base, api_key = ?api_key, languages = ?languages, "listen_client");
 
-    // let static_prompt = format!(
-    //     "{} / {}:",
-    //     jargons.join(", "),
-    //     language
-    //         .text_transcript()
-    //         .unwrap_or("transcript".to_string())
-    // );
+    // Disabled static prompt since it seems to degrade transcription quality.
     let static_prompt = "".to_string();
 
     Ok(crate::client::ListenClient::builder()
@@ -574,6 +572,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .params(hypr_listener_interface::ListenParams {
             languages,
             static_prompt,
+            redemption_time_ms: if is_onboarding { 80 } else { 300 },
             ..Default::default()
         })
         .build_dual())

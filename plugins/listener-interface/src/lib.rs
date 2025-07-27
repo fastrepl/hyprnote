@@ -91,6 +91,7 @@ common_derives! {
         pub languages: Vec<hypr_language::Language>,
         pub static_prompt: String,
         pub dynamic_prompt: String,
+        pub redemption_time_ms: u64,
     }
 }
 

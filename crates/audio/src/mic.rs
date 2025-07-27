@@ -16,39 +16,37 @@ pub struct MicInput {
     config: cpal::SupportedStreamConfig,
 }
 
-impl Default for MicInput {
-    fn default() -> Self {
-        let host = cpal::default_host();
-        let device = host
-            .default_input_device()
-            .expect("Failed to get default input device");
-        let config = device
-            .default_input_config()
-            .expect("Failed to get default input config");
-
-        Self {
-            host,
-            device,
-            config,
-        }
-    }
-}
-
 impl MicInput {
     pub fn device_name(&self) -> String {
-        self.device.name().expect("Failed to get input device name")
+        self.device.name().unwrap_or_default()
     }
 
-    pub fn from_device(device_name: impl AsRef<str>) -> Self {
+    pub fn new(device_name: Option<String>) -> Self {
         let host = cpal::default_host();
-        let device = host
+
+        let default_input_device = host.default_input_device();
+        let input_devices: Vec<cpal::Device> = host
             .input_devices()
-            .expect("Failed to get input devices")
-            .find(|d| d.name().expect("Failed to get input device name") == device_name.as_ref())
-            .expect("Failed to get input device");
-        let config = device
-            .default_input_config()
-            .expect("Failed to get default input config");
+            .map(|devices| devices.collect())
+            .unwrap_or_else(|_| Vec::new());
+
+        let device = match device_name {
+            None => default_input_device
+                .or_else(|| input_devices.into_iter().next())
+                .unwrap(),
+            Some(name) => input_devices
+                .into_iter()
+                .find(|d| d.name().unwrap_or_default() == name)
+                .or(default_input_device)
+                .or_else(|| {
+                    host.input_devices()
+                        .ok()
+                        .and_then(|mut devices| devices.next())
+                })
+                .unwrap(),
+        };
+
+        let config = device.default_input_config().unwrap();
 
         Self {
             host,
@@ -189,7 +187,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mic() {
-        let mic = MicInput::default();
+        let mic = MicInput::new(None);
         let mut stream = mic.stream();
 
         let mut buffer = Vec::new();

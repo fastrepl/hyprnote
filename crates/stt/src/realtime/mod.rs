@@ -137,7 +137,7 @@ mod tests {
     #[allow(unused)]
     fn microphone_as_stream(
     ) -> impl Stream<Item = Result<Bytes, std::io::Error>> + Send + Unpin + 'static {
-        let source = hypr_audio::MicInput::default();
+        let source = hypr_audio::MicInput::new(None);
 
         source
             .stream()

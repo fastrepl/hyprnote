@@ -35,11 +35,22 @@ impl ServerHandle {
     }
 }
 
-pub async fn run_server(model_manager: ModelManager) -> Result<ServerHandle, crate::Error> {
+#[derive(Clone)]
+pub struct ServerState {
+    pub model_manager: ModelManager,
+}
+
+impl ServerState {
+    pub fn new(model_manager: ModelManager) -> Self {
+        Self { model_manager }
+    }
+}
+
+pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error> {
     let app = Router::new()
         .route("/health", get(health))
         .route("/chat/completions", post(chat_completions))
-        .with_state(model_manager)
+        .with_state(state)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)
@@ -72,15 +83,15 @@ pub async fn run_server(model_manager: ModelManager) -> Result<ServerHandle, cra
     Ok(server_handle)
 }
 
-async fn health(AxumState(model_manager): AxumState<ModelManager>) -> impl IntoResponse {
-    match model_manager.get_model().await {
-        Ok(_) => StatusCode::OK,
-        Err(_) => StatusCode::SERVICE_UNAVAILABLE,
-    };
+async fn health(AxumState(state): AxumState<ServerState>) -> impl IntoResponse {
+    match state.model_manager.get_model().await {
+        Ok(_) => (StatusCode::OK, "OK".to_string()),
+        Err(e) => (StatusCode::SERVICE_UNAVAILABLE, e.to_string()),
+    }
 }
 
 async fn chat_completions(
-    AxumState(model_manager): AxumState<ModelManager>,
+    AxumState(state): AxumState<ServerState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
     let response = if request.model == "mock-onboarding" {
@@ -88,7 +99,7 @@ async fn chat_completions(
         tracing::info!("using_mock_provider");
         provider.chat_completions(request).await
     } else {
-        let provider = LocalProvider::new(model_manager);
+        let provider = LocalProvider::new(state.model_manager);
         tracing::info!("using_local_provider");
         provider.chat_completions(request).await
     };

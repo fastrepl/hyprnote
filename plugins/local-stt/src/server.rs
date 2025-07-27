@@ -143,10 +143,24 @@ async fn websocket_with_model(
 
     match params.audio_mode {
         hypr_listener_interface::AudioMode::Single => {
-            websocket_single_channel(ws_sender, ws_receiver, model, guard).await;
+            websocket_single_channel(
+                ws_sender,
+                ws_receiver,
+                model,
+                guard,
+                Duration::from_millis(params.redemption_time_ms),
+            )
+            .await;
         }
         hypr_listener_interface::AudioMode::Dual => {
-            websocket_dual_channel(ws_sender, ws_receiver, model, guard).await;
+            websocket_dual_channel(
+                ws_sender,
+                ws_receiver,
+                model,
+                guard,
+                Duration::from_millis(params.redemption_time_ms),
+            )
+            .await;
         }
     }
 }
@@ -156,9 +170,10 @@ async fn websocket_single_channel(
     ws_receiver: futures_util::stream::SplitStream<WebSocket>,
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
+    redemption_time: Duration,
 ) {
     let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-    let vad_chunks = audio_source.vad_chunks(Duration::from_millis(250));
+    let vad_chunks = audio_source.vad_chunks(redemption_time);
 
     let chunked = hypr_whisper_local::AudioChunkStream(process_vad_stream(vad_chunks, "mixed"));
 
@@ -171,17 +186,18 @@ async fn websocket_dual_channel(
     ws_receiver: futures_util::stream::SplitStream<WebSocket>,
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
+    redemption_time: Duration,
 ) {
     let (mic_source, speaker_source) =
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
     let mic_chunked = {
-        let mic_vad_chunks = mic_source.vad_chunks(Duration::from_millis(250));
+        let mic_vad_chunks = mic_source.vad_chunks(redemption_time);
         hypr_whisper_local::AudioChunkStream(process_vad_stream(mic_vad_chunks, "mic"))
     };
 
     let speaker_chunked = {
-        let speaker_vad_chunks = speaker_source.vad_chunks(Duration::from_millis(250));
+        let speaker_vad_chunks = speaker_source.vad_chunks(redemption_time);
         hypr_whisper_local::AudioChunkStream(process_vad_stream(speaker_vad_chunks, "speaker"))
     };
 

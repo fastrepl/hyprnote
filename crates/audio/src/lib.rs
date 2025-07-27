@@ -88,19 +88,10 @@ impl AudioInput {
             .collect()
     }
 
-    pub fn from_mic() -> Self {
+    pub fn from_mic(device_name: Option<String>) -> Self {
         Self {
             source: AudioSource::RealtimeMic,
-            mic: Some(MicInput::default()),
-            speaker: None,
-            data: None,
-        }
-    }
-
-    pub fn from_mic_with_device_name(device_name: String) -> Self {
-        Self {
-            source: AudioSource::RealtimeMic,
-            mic: Some(MicInput::from_device(device_name)),
+            mic: Some(MicInput::new(device_name)),
             speaker: None,
             data: None,
         }

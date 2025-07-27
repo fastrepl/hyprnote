@@ -1,5 +1,6 @@
 use std::net::{Ipv4Addr, SocketAddr};
 use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 
 use async_openai::types::{
     ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk,
@@ -38,17 +39,37 @@ impl ServerHandle {
 #[derive(Clone)]
 pub struct ServerState {
     pub model_manager: ModelManager,
+    pub cancellation_tokens: Arc<Mutex<Vec<CancellationToken>>>,
 }
 
 impl ServerState {
     pub fn new(model_manager: ModelManager) -> Self {
-        Self { model_manager }
+        Self {
+            model_manager,
+            cancellation_tokens: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn cancel_all(&self) {
+        if let Ok(tokens) = self.cancellation_tokens.lock() {
+            for token in tokens.iter() {
+                token.cancel();
+            }
+        }
+    }
+
+    fn register_token(&self, token: CancellationToken) {
+        if let Ok(mut tokens) = self.cancellation_tokens.lock() {
+            tokens.retain(|t| !t.is_cancelled());
+            tokens.push(token);
+        }
     }
 }
 
 pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error> {
     let app = Router::new()
         .route("/health", get(health))
+        .route("/cancel", get(cancel))
         .route("/chat/completions", post(chat_completions))
         .with_state(state)
         .layer(
@@ -90,6 +111,13 @@ async fn health(AxumState(state): AxumState<ServerState>) -> impl IntoResponse {
     }
 }
 
+// Tauri SSE client disconnects don't propagate to Axum, so we can't use a drop guard.
+async fn cancel(AxumState(state): AxumState<ServerState>) -> impl IntoResponse {
+    tracing::info!("canceling_all");
+    state.cancel_all();
+    StatusCode::OK
+}
+
 async fn chat_completions(
     AxumState(state): AxumState<ServerState>,
     Json(request): Json<CreateChatCompletionRequest>,
@@ -97,11 +125,11 @@ async fn chat_completions(
     let response = if request.model == "mock-onboarding" {
         let provider = MockProvider::default();
         tracing::info!("using_mock_provider");
-        provider.chat_completions(request).await
+        provider.chat_completions(request, &state).await
     } else {
-        let provider = LocalProvider::new(state.model_manager);
+        let provider = LocalProvider::new(state.model_manager.clone());
         tracing::info!("using_local_provider");
-        provider.chat_completions(request).await
+        provider.chat_completions(request, &state).await
     };
 
     response
@@ -121,11 +149,17 @@ impl LocalProvider {
     async fn chat_completions(
         &self,
         request: CreateChatCompletionRequest,
+        state: &ServerState,
     ) -> Result<ChatCompletionResponse, crate::Error> {
         let model = self.model_manager.get_model().await?;
         tracing::info!("loaded_model: {:?}", model.name);
 
-        build_chat_completion_response(&request, || Self::build_stream(&model, &request)).await
+        build_chat_completion_response(&request, || {
+            let (stream, token) = Self::build_stream(&model, &request)?;
+            state.register_token(token.clone());
+            Ok(stream)
+        })
+        .await
     }
 
     fn build_stream(
@@ -208,9 +242,15 @@ impl MockProvider {
     async fn chat_completions(
         &self,
         request: CreateChatCompletionRequest,
+        state: &ServerState,
     ) -> Result<ChatCompletionResponse, crate::Error> {
         let content = crate::ONBOARDING_ENHANCED_MD;
-        build_chat_completion_response(&request, || Ok(Self::build_stream(&content))).await
+        build_chat_completion_response(&request, || {
+            let (stream, token) = Self::build_stream(&content);
+            state.register_token(token.clone());
+            Ok(stream)
+        })
+        .await
     }
 
     fn build_stream(
@@ -251,10 +291,7 @@ enum StreamEvent {
 async fn build_chat_completion_response(
     request: &CreateChatCompletionRequest,
     response_stream_fn: impl FnOnce() -> Result<
-        (
-            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
-            CancellationToken,
-        ),
+        Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
         crate::Error,
     >,
 ) -> Result<ChatCompletionResponse, crate::Error> {
@@ -316,7 +353,7 @@ async fn build_chat_completion_response(
     let is_stream = request.stream.unwrap_or(false);
 
     if !is_stream {
-        let (mut stream, _cancellation_token) = response_stream_fn()?;
+        let mut stream = response_stream_fn()?;
         let mut completion = String::new();
 
         while let Some(event) = futures_util::StreamExt::next(&mut stream).await {
@@ -339,7 +376,7 @@ async fn build_chat_completion_response(
 
         Ok(ChatCompletionResponse::NonStream(res))
     } else {
-        let (source_stream, _cancellation_token) = response_stream_fn()?;
+        let source_stream = response_stream_fn()?;
         let stream = Box::pin(source_stream.enumerate().map(move |(index, event)| {
             let delta_template = empty_stream_response_delta.clone();
             let response_template = base_stream_response_template.clone();

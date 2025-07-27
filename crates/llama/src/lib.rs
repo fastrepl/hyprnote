@@ -97,7 +97,7 @@ impl Llama {
         {
             // https://huggingface.co/Qwen/Qwen3-1.7B-GGUF
             samplers.push(LlamaSampler::temp(0.6));
-            samplers.push(LlamaSampler::penalties(0, 1.4, 0.1, 1.3));
+            samplers.push(LlamaSampler::penalties(0, 1.5, 0.2, 1.4));
             samplers.push(LlamaSampler::mirostat_v2(1234, 3.0, 0.2));
         }
 

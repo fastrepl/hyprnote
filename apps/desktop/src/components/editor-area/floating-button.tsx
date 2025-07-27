@@ -1,15 +1,17 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
+import { fetch } from "@hypr/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 function AnimatedEnhanceIcon({ size = 20 }: { size?: number }) {
@@ -65,15 +67,24 @@ export function FloatingButton({
     s.showRaw,
     s.setShowRaw,
   ]);
-  const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
-  const isEnhancePending = useEnhancePendingState(session.id);
   const [isHovered, setIsHovered] = useState(false);
   const [showRefreshIcon, setShowRefreshIcon] = useState(true);
   const [showTemplatePopover, setShowTemplatePopover] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const queryClient = useQueryClient();
 
-  // Clear timeout on cleanup
+  const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
+  const isEnhancePending = useEnhancePendingState(session.id);
+
+  const localLlmBaseUrl = useQuery({
+    queryKey: ["local-llm"],
+    queryFn: async () => {
+      const { type, connection } = await connectorCommands.getLlmConnection();
+      return type === "HyprLocal" ? connection.api_base : null;
+    },
+  });
+
   useEffect(() => {
     return () => {
       if (hideTimeoutRef.current) {
@@ -102,6 +113,11 @@ export function FloatingButton({
 
     if (isEnhancePending) {
       cancelEnhance();
+
+      // TODO: very hakcy way to hit cancel endpoint
+      if (localLlmBaseUrl.data) {
+        fetch(`${localLlmBaseUrl.data}/cancel`, { method: "GET" });
+      }
     } else {
       handleEnhance();
     }

@@ -24,6 +24,8 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn check_notification_permission(
         &self,
     ) -> impl Future<Output = Result<hypr_notification2::NotificationPermission, Error>>;
+
+    fn show_summarization_complete_notification(&self) -> Result<(), Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
@@ -161,5 +163,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         })
         .await
         .map_err(|_| Error::PermissionTimeout)?
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn show_summarization_complete_notification(&self) -> Result<(), Error> {
+        let notif = hypr_notification2::Notification {
+            title: "Meeting Summary Complete".to_string(),
+            message: "Your meeting has been summarized by local AI".to_string(),
+            url: Some("hypr://hyprnote.com/notification".to_string()),
+            timeout: Some(std::time::Duration::from_secs(5)),
+        };
+
+        hypr_notification2::show(notif);
+        Ok(())
     }
 }

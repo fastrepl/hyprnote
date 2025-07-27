@@ -98,3 +98,12 @@ pub(crate) async fn stop_event_notification<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.stop_event_notification().map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn show_summarization_complete_notification<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    app.show_summarization_complete_notification()
+        .map_err(|e| e.to_string())
+}

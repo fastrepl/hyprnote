@@ -39,6 +39,9 @@ async startEventNotification() : Promise<null> {
 },
 async stopEventNotification() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|stop_event_notification");
+},
+async showSummarizationCompleteNotification() : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|show_summarization_complete_notification");
 }
 }
 

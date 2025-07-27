@@ -36,6 +36,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_detect_notification::<tauri::Wry>,
             commands::start_event_notification::<tauri::Wry>,
             commands::stop_event_notification::<tauri::Wry>,
+            commands::show_summarization_complete_notification::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

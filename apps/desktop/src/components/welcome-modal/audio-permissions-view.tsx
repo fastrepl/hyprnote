@@ -175,6 +175,11 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
           <Trans>Grant both permissions to continue</Trans>
         </p>
       )}
+      {micPermission.isSuccess && !micPermissionStatus.data && (
+        <p className="text-xs text-amber-600 text-center mt-2">
+          <Trans>Permission granted! Detecting changes...</Trans>
+        </p>
+      )}
     </div>
   );
 }

@@ -151,8 +151,10 @@ export const DownloadProgressView = ({
     "You are free to continue your setup...",
     "Teaching your AI not to snitch...",
     "Running vibe_check.exe...",
+    "Munching granola for breakfast...",
     "Securing your data from enemies...",
     "Building your AI fortress...",
+    "Hunting down infected otters...",
     "Wiping fingerprints off the algorithm...", 
     "Installing integrity.exe (beta)...",
   ];

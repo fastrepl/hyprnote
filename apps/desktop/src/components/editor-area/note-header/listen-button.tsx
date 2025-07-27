@@ -62,6 +62,19 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     },
   });
 
+  const anySttModelExists = useQuery({
+    queryKey: ["check-any-stt-model-downloaded"],
+    refetchInterval: 3000,
+    queryFn: async () => {
+      const supportedModels = await localSttCommands.listSupportedModels();
+      const sttDownloadStatuses = await Promise.all(
+        supportedModels.map((model) => localSttCommands.isModelDownloaded(model))
+      );
+      return sttDownloadStatuses.some(Boolean);
+    },
+    enabled: isOnboarding, 
+  });
+
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
@@ -121,7 +134,9 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   if (ongoingSessionStatus === "inactive") {
     const buttonProps = {
-      disabled: !modelDownloaded.data || (meetingEnded && isEnhancePending),
+      disabled: isOnboarding 
+        ? !anySttModelExists.data || (meetingEnded && isEnhancePending)
+        : !modelDownloaded.data || (meetingEnded && isEnhancePending),
       onClick: handleStartSession,
     };
 
@@ -199,13 +214,16 @@ function WhenInactiveAndMeetingNotEndedOnboarding({ disabled, onClick }: { disab
       className={cn([
         "w-24 h-9 rounded-full border-2 transition-all cursor-pointer outline-none p-0 flex items-center justify-center gap-1",
         "bg-neutral-800 border-neutral-700 text-white text-xs font-medium",
+        !disabled
+          ? "hover:scale-95"
+          : "opacity-50 cursor-progress",
       ])}
       style={{
         boxShadow: "0 0 0 2px rgba(255, 255, 255, 0.8) inset",
       }}
     >
       <PlayIcon size={14} />
-      <Trans>Play video</Trans>
+      <Trans>{disabled ? "No STT" : "Play video"}</Trans>
     </ShinyButton>
   );
 }
@@ -336,6 +354,23 @@ function RecordingControls({
     const actualTemplateId = selectedTemplate === "auto" ? null : selectedTemplate;
     onStop(actualTemplateId);
   };
+
+  const isSttModelDownloaded = useQuery({
+    queryKey: ["check-stt-model-downloaded"],
+    queryFn: async () => {
+      // Get all supported STT models
+      const supportedModels = await localSttCommands.listSupportedModels();
+      
+      // Check if any STT model is downloaded
+      const sttDownloadStatuses = await Promise.all(
+        supportedModels.map((model) => localSttCommands.isModelDownloaded(model))
+      );
+      const anySttModelDownloaded = sttDownloadStatuses.some(Boolean);
+      
+      return [anySttModelDownloaded];
+    },
+    refetchInterval: 3000,
+  });
 
   return (
     <>

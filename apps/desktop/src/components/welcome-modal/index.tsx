@@ -82,7 +82,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      commands.setOnboardingNeeded(false);
       sfxCommands.play("BGM");
     } else {
       sfxCommands.stop("BGM");
@@ -90,7 +89,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [isOpen]);
 
   const handleStartLocal = () => {
-    setCurrentStep("model-selection");
+    setCurrentStep("audio-permissions");
   };
 
   const handleModelSelected = (model: SupportedModel) => {
@@ -102,11 +101,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const handleDownloadProgressContinue = () => {
     setWentThroughDownloads(true);
-    setCurrentStep("audio-permissions");
+    setCurrentStep("language-selection");
   };
 
   const handleAudioPermissionsContinue = () => {
-    setCurrentStep("language-selection");
+    setCurrentStep("model-selection");
   };
 
   const handleLanguageSelectionContinue = async (languages: string[]) => {
@@ -128,6 +127,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleCalendarPermissionsContinue = () => {
+    commands.setOnboardingNeeded(false);
     onClose();
   };
 

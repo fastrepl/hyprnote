@@ -1,5 +1,7 @@
+import { message } from "@tauri-apps/plugin-dialog";
 import { useState } from "react";
 
+import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -42,6 +44,7 @@ export function useChatLogic({
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
+  const { getLicense } = useLicense();
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -132,6 +135,20 @@ export function useChatLogic({
 
   const processUserMessage = async (content: string, analyticsEvent: string) => {
     if (!content.trim() || isGenerating) {
+      return;
+    }
+
+    if (messages.length >= 2 && !getLicense.data?.valid) {
+      if (userId) {
+        await analyticsCommands.event({
+          event: "pro_license_required_chat",
+          distinct_id: userId,
+        });
+      }
+      await message("2 messages are allowed per session for free users.", {
+        title: "Pro License Required",
+        kind: "info",
+      });
       return;
     }
 

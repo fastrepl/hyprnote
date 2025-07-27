@@ -113,7 +113,7 @@ function FreeSectionCheckout() {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium">Monthly</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">$35/mo</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">$35 / mo</p>
                   </div>
                 </div>
               </div>
@@ -141,7 +141,7 @@ function FreeSectionCheckout() {
                   <div className="ml-3">
                     <p className="text-sm font-medium">Yearly</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      <span className="text-primary font-semibold">$179/yr</span>
+                      <span className="text-primary font-semibold">$179 / yr</span>
                     </p>
                   </div>
                 </div>

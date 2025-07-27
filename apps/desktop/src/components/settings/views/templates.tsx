@@ -1,26 +1,30 @@
+import { Trans } from "@lingui/react/macro";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { message } from "@tauri-apps/plugin-dialog";
+import { ArrowLeftIcon, CheckIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { useHypr } from "@/contexts";
+import { useLicense } from "@/hooks/use-license";
 import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftIcon, CheckIcon, Loader2Icon, PlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 import TemplateEditor from "./template";
 
 type ViewState = "list" | "editor" | "new";
 
 export default function TemplatesView() {
-  console.log("templatesview mounted@!");
+  const { userId } = useHypr();
+  const { getLicense } = useLicense();
+
   const [viewState, setViewState] = useState<ViewState>("list");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [builtinTemplates, setBuiltinTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
-  const { userId } = useHypr();
   const queryClient = useQueryClient();
 
   // Load config to get selected template
@@ -102,6 +106,16 @@ export default function TemplatesView() {
   };
 
   const handleNewTemplate = () => {
+    analyticsCommands.event({
+      event: "pro_license_required_template",
+      distinct_id: userId,
+    });
+
+    if (!getLicense.data?.valid) {
+      message("Only default templates are allowed for free users.", { title: "Pro License Required", kind: "info" });
+      return;
+    }
+
     analyticsCommands.event({
       event: "template_created",
       distinct_id: userId,

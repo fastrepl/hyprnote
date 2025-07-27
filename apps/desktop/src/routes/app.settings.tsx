@@ -76,6 +76,8 @@ function Component() {
         return t`Integrations`;
       case "feedback":
         return t`Feedback`;
+      case "billing":
+        return t`License`;
       default:
         return tab;
     }

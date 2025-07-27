@@ -723,7 +723,7 @@ msgid "Extract action items"
 msgstr "Extract action items"
 
 #: src/routes/app.settings.tsx:78
-#: src/routes/app.settings.tsx:111
+#: src/routes/app.settings.tsx:113
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -859,6 +859,10 @@ msgstr "Key decisions"
 #: src/components/settings/views/billing.tsx:200
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr "Learn more about our pricing plans"
+
+#: src/routes/app.settings.tsx:80
+msgid "License"
+msgstr "License"
 
 #: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"

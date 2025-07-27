@@ -28,21 +28,21 @@ export default function Billing() {
 function FreeSection() {
   return (
     <SectionContainer title="Free Plan">
-      <Tabs defaultValue="subscribe" className="space-y-6">
+      <Tabs defaultValue="subscribe" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 p-1">
-          <TabsTrigger value="subscribe" className="text-sm">
+          <TabsTrigger value="subscribe" className="text-sm font-medium">
             Get Pro Access
           </TabsTrigger>
-          <TabsTrigger value="license" className="text-sm">
+          <TabsTrigger value="license" className="text-sm font-medium">
             Have a License?
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="subscribe" className="space-y-6 pt-2">
+        <TabsContent value="subscribe">
           <FreeSectionCheckout />
         </TabsContent>
 
-        <TabsContent value="license" className="space-y-6 pt-2">
+        <TabsContent value="license">
           <FreeSectionActivate />
         </TabsContent>
       </Tabs>
@@ -64,9 +64,9 @@ function FreeSectionCheckout() {
 
   return (
     <div>
-      <div className="space-y-5">
-        <div className="space-y-2.5">
-          <Label htmlFor="email" className="text-sm font-medium">
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <Label htmlFor="email" className="text-sm font-medium text-foreground">
             Email
           </Label>
           <Input
@@ -75,56 +75,94 @@ function FreeSectionCheckout() {
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="transition-colors focus:border-primary/20"
+            className="h-12 text-base transition-all duration-200 focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
           />
         </div>
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-foreground">
             Billing Interval
           </Label>
           <RadioGroup
             value={interval}
             onValueChange={(value) => setInterval(value as "monthly" | "yearly")}
-            className="flex gap-6"
+            className="grid grid-cols-2 gap-4"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="monthly" id="monthly" />
-              <Label
-                htmlFor="monthly"
-                className="text-sm font-normal cursor-pointer"
-              >
-                Monthly
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yearly" id="yearly" />
-              <Label
-                htmlFor="yearly"
-                className="text-sm font-normal cursor-pointer"
-              >
-                Yearly <span className="text-primary">Save 20%</span>
-              </Label>
-            </div>
+            <label
+              htmlFor="monthly"
+              className={`relative flex cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 hover:bg-muted/50 ${
+                interval === "monthly"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-border/80"
+              }`}
+            >
+              <RadioGroupItem value="monthly" id="monthly" className="sr-only" />
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  <div
+                    className={`h-4 w-4 rounded-full border-2 ${
+                      interval === "monthly"
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/50"
+                    }`}
+                  >
+                    {interval === "monthly" && <div className="h-full w-full rounded-full bg-white scale-50" />}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">Monthly</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">$35/mo</p>
+                  </div>
+                </div>
+              </div>
+            </label>
+            <label
+              htmlFor="yearly"
+              className={`relative flex cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 hover:bg-muted/50 ${
+                interval === "yearly"
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-border/80"
+              }`}
+            >
+              <RadioGroupItem value="yearly" id="yearly" className="sr-only" />
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  <div
+                    className={`h-4 w-4 rounded-full border-2 ${
+                      interval === "yearly"
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground/50"
+                    }`}
+                  >
+                    {interval === "yearly" && <div className="h-full w-full rounded-full bg-white scale-50" />}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">Yearly</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      <span className="text-primary font-semibold">$179/yr</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </label>
           </RadioGroup>
         </div>
       </div>
-      <div className="space-y-4 pt-2">
+      <div className="space-y-4 pt-8">
         <Button
           onClick={() => checkout.mutate({ email, interval })}
-          className="w-full transition-colors"
+          className="w-full h-12 text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
           disabled={!email || checkout.isPending}
         >
           {checkout.isPending ? "Starting Checkout..." : "Continue to Checkout"}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
         <a
-          href="/docs/pro"
-          className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          href="https://docs.hyprnote.com/pro"
+          className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
           target="_blank"
           rel="noopener noreferrer"
         >
           Learn more about Pro features
-          <ExternalLink className="w-3 h-3 ml-1.5" />
+          <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
         </a>
       </div>
     </div>
@@ -137,18 +175,24 @@ function FreeSectionActivate() {
   const [licenseKey, setLicenseKey] = useState("");
 
   return (
-    <div className="space-y-4">
-      <Input
-        type="text"
-        placeholder="Enter your license key"
-        value={licenseKey}
-        onChange={(e) => setLicenseKey(e.target.value)}
-        className="font-mono transition-colors focus:border-primary/20"
-      />
+    <div className="space-y-5">
+      <div className="space-y-2.5">
+        <Label htmlFor="license" className="text-sm font-medium text-foreground">
+          License Key
+        </Label>
+        <Input
+          id="license"
+          type="text"
+          placeholder="Enter your license key"
+          value={licenseKey}
+          onChange={(e) => setLicenseKey(e.target.value)}
+          className="h-11 font-mono text-sm transition-all duration-200 focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
+        />
+      </div>
       <Button
-        disabled={activateLicense.isPending}
+        disabled={activateLicense.isPending || !licenseKey}
         onClick={() => activateLicense.mutate(licenseKey)}
-        className="w-full transition-colors"
+        className="w-full h-11 text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
       >
         Activate License
       </Button>
@@ -192,7 +236,7 @@ function ProSection() {
       disabled={b.portal.isPending || !b.info.data}
       variant="outline"
       onClick={() => b.portal.mutate({})}
-      className="flex items-center transition-colors hover:bg-primary/5"
+      className="flex items-center transition-all duration-200 hover:bg-primary/5 border-border/60 hover:border-border"
     >
       <CreditCard className="w-4 h-4 mr-2" />
       Billing Portal
@@ -206,13 +250,13 @@ function ProSection() {
       headerAction={headerAction}
     >
       <div className="space-y-6">
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Your License Key</Label>
+        <div className="space-y-2.5">
+          <Label className="text-sm font-medium text-foreground">Your License Key</Label>
           <Input
             type="text"
             value={l.getLicense.data?.key?.replace(/./g, "•") || ""}
             disabled
-            className="font-mono bg-muted/50 border-border/40"
+            className="h-11 font-mono text-sm bg-muted/30 border-border/50 cursor-not-allowed"
           />
         </div>
         <div className="pt-2">
@@ -220,7 +264,7 @@ function ProSection() {
             variant="outline"
             disabled={l.deactivateLicense.isPending}
             onClick={() => l.deactivateLicense.mutate({})}
-            className="text-destructive hover:text-destructive-foreground hover:bg-destructive transition-colors"
+            className="text-destructive hover:text-destructive-foreground hover:bg-destructive/10 hover:border-destructive/50 transition-all duration-200"
           >
             Deactivate Device
           </Button>
@@ -241,17 +285,17 @@ function SectionContainer({ title, subtitle, headerAction, children }: {
 }) {
   return (
     <>
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-border/40">
-        <div className="flex items-center space-x-4">
-          <div className="p-2 rounded-full bg-primary/5">
-            <Shield className="w-6 h-6 text-primary" />
+      <div className="flex items-center justify-between pb-5 border-b border-border/50">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-2 rounded-full bg-primary/10 shadow-sm">
+            <Shield className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-sm text-muted-foreground mt-1.5">
+              <p className="text-sm text-muted-foreground mt-1">
                 {subtitle}
               </p>
             )}

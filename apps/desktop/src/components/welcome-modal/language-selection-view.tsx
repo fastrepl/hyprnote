@@ -8,7 +8,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
-import { cn } from "@hypr/ui/lib/utils";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 

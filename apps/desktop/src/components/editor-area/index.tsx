@@ -110,6 +110,7 @@ export default function EditorArea({
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
     queryFn: () => connectorCommands.getLlmConnection(),
+    refetchOnWindowFocus: true,
   });
 
   const sessionsStore = useSessions((s) => s.sessions);

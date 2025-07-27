@@ -39,7 +39,7 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const router = useRouter();
-  const { thankYouSessionId } = useHypr();
+  const { onboardingSessionId } = useHypr();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
 
   const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
@@ -91,8 +91,8 @@ function Component() {
                           setOnboardingCompletedThisSession(true);
                           
                           // Navigate to thank you session if it exists
-                          if (thankYouSessionId) {
-                            router.navigate({ to: `/app/note/${thankYouSessionId}` });
+                          if (onboardingSessionId) {
+                            router.navigate({ to: `/app/note/${onboardingSessionId}` });
                           }
                           
                           router.invalidate();

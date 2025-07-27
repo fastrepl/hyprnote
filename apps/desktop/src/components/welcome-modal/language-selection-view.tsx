@@ -36,9 +36,11 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
   };
 
   const handleRemoveLanguage = (langCode: string) => {
-    if (selectedLanguages.length > 1) {
-      setSelectedLanguages(selectedLanguages.filter(l => l !== langCode));
+    // Don't allow removing English or if it would leave us with no languages
+    if (langCode === "en" || selectedLanguages.length <= 1) {
+      return;
     }
+    setSelectedLanguages(selectedLanguages.filter(l => l !== langCode));
   };
 
   const handleContinue = () => {
@@ -67,7 +69,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
                     className="flex items-center gap-1 px-2.5 py-1 text-sm bg-neutral-100 text-neutral-700 border-neutral-300 hover:bg-neutral-200 transition-colors"
                   >
                     {LANGUAGES_ISO_639_1[langCode as ISO_639_1_CODE]?.name || langCode}
-                    {selectedLanguages.length > 1 && (
+                    {selectedLanguages.length > 1 && langCode !== "en" && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

@@ -8,6 +8,7 @@ import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
 import { Progress } from "@hypr/ui/components/ui/progress";
+import { sttModelMetadata } from "../settings/components/ai/stt-view";
 
 interface ModelDownloadProgress {
   channel: Channel<number>;
@@ -140,7 +141,7 @@ export const DownloadProgressView = ({
     if (!bothCompleted && !hasErrors) {
       const interval = setInterval(() => {
         setCurrentMessageIndex((prev) => (prev + 1) % WAITING_MESSAGES.length);
-      }, 3000);
+      }, 4000);
       return () => clearInterval(interval);
     }
   }, [bothCompleted, hasErrors]);
@@ -149,11 +150,11 @@ export const DownloadProgressView = ({
     "Downloading models may take a few minutes...",
     "You are free to continue your setup...",
     "Teaching your AI not to snitch...",
-    "Securing your data from prying eyes...",
-    "Preparing transcription capabilities...",
-    "Setting up local language models...",
+    "Running vibe_check.exe...",
+    "Securing your data from enemies...",
     "Building your AI fortress...",
-    "Hiding your AI from the NSA...",
+    "Wiping fingerprints off the algorithm...", 
+    "Installing integrity.exe (beta)...",
   ];
 
   // Handle completion and server setup
@@ -190,6 +191,9 @@ export const DownloadProgressView = ({
     handleLlmCompletion();
   }, [sttDownload.completed, llmDownload.completed, selectedSttModel]);
 
+  // Get the actual metadata for the selected STT model
+  const sttMetadata = sttModelMetadata[selectedSttModel];
+
   return (
     <div className="flex flex-col items-center min-w-[30rem] w-full max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">
@@ -204,7 +208,7 @@ export const DownloadProgressView = ({
               key={currentMessageIndex}
               className="transition-all duration-500 ease-in-out block"
               style={{
-                animation: 'fadeInOut 3s ease-in-out',
+                animation: 'fadeInOut 4s ease-in-out',
               }}
             >
               {WAITING_MESSAGES[currentMessageIndex]}
@@ -230,14 +234,14 @@ export const DownloadProgressView = ({
           title="Speech Recognition"
           icon={MicIcon}
           download={sttDownload}
-          size="250MB"
+          size={sttMetadata?.size || "250MB"}  
         />
         
         <ModelProgressCard
           title="Language Model"
           icon={BrainIcon}
           download={llmDownload}
-          size="2.5GB"
+          size="1.1GB" 
         />
       </div>
 

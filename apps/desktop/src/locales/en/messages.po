@@ -544,14 +544,15 @@ msgstr "Contacts Access"
 
 #: src/components/welcome-modal/model-selection-view.tsx:137
 #: src/components/welcome-modal/language-selection-view.tsx:180
+#: src/components/welcome-modal/download-progress-view.tsx:248
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:159
 msgid "Continue"
 msgstr "Continue"
 
 #: src/components/welcome-modal/download-progress-view.tsx:248
-msgid "Continue Setup"
-msgstr "Continue Setup"
+#~ msgid "Continue Setup"
+#~ msgstr "Continue Setup"
 
 #: src/components/settings/views/ai.tsx:882
 msgid "Control how autonomous the AI enhancement should be"
@@ -642,8 +643,8 @@ msgid "Downloading AI Models"
 msgstr "Downloading AI Models"
 
 #: src/components/welcome-modal/download-progress-view.tsx:252
-msgid "Downloads will continue in the background"
-msgstr "Downloads will continue in the background"
+#~ msgid "Downloads will continue in the background"
+#~ msgstr "Downloads will continue in the background"
 
 #: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
@@ -824,6 +825,10 @@ msgstr "Invite"
 #: src/components/settings/views/team.tsx:189
 msgid "Invite members"
 msgstr "Invite members"
+
+#: src/components/welcome-modal/download-progress-view.tsx:252
+msgid "It's ok to move on, downloads will continue in the background"
+msgstr "It's ok to move on, downloads will continue in the background"
 
 #: src/components/settings/views/general.tsx:263
 #~ msgid "Jargons"

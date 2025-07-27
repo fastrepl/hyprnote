@@ -32,23 +32,25 @@ function PermissionItem({
       )}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className={cn(
-          "flex size-10 items-center justify-center rounded-full flex-shrink-0",
-          done ? "bg-blue-100" : "bg-neutral-50"
-        )}>
+        <div
+          className={cn(
+            "flex size-10 items-center justify-center rounded-full flex-shrink-0",
+            done ? "bg-blue-100" : "bg-neutral-50",
+          )}
+        >
           <div className={cn(done ? "text-blue-600" : "text-neutral-500")}>{icon}</div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-medium truncate">{title}</div>
           <div className="text-sm text-muted-foreground">
-            {done ? (
-              <span className="text-blue-600 flex items-center gap-1">
-                <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                <Trans>Access Granted</Trans>
-              </span>
-            ) : (
-              <span className="block truncate pr-2">{description}</span>
-            )}
+            {done
+              ? (
+                <span className="text-blue-600 flex items-center gap-1">
+                  <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <Trans>Access Granted</Trans>
+                </span>
+              )
+              : <span className="block truncate pr-2">{description}</span>}
           </div>
         </div>
       </div>
@@ -121,7 +123,7 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Calendar & Contacts</Trans>
       </h2>
-      
+
       <p className="text-center text-sm text-muted-foreground mb-8">
         <Trans>Connect your calendar and contacts for a better experience</Trans>
       </p>

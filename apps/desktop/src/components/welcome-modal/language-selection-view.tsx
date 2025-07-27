@@ -12,11 +12,48 @@ import PushableButton from "@hypr/ui/components/ui/pushable-button";
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
-  "es", "it", "ko", "pt", "en", "pl", "ca", "ja", "de", "ru",
-  "nl", "fr", "id", "uk", "tr", "ms", "sv", "zh", "fi", "no",
-  "ro", "th", "vi", "sk", "ar", "cs", "hr", "el", "sr", "da",
-  "bg", "hu", "tl", "bs", "gl", "mk", "hi", "et", "sl", "ta",
-  "lv", "az",
+  "es",
+  "it",
+  "ko",
+  "pt",
+  "en",
+  "pl",
+  "ca",
+  "ja",
+  "de",
+  "ru",
+  "nl",
+  "fr",
+  "id",
+  "uk",
+  "tr",
+  "ms",
+  "sv",
+  "zh",
+  "fi",
+  "no",
+  "ro",
+  "th",
+  "vi",
+  "sk",
+  "ar",
+  "cs",
+  "hr",
+  "el",
+  "sr",
+  "da",
+  "bg",
+  "hu",
+  "tl",
+  "bs",
+  "gl",
+  "mk",
+  "hi",
+  "et",
+  "sl",
+  "ta",
+  "lv",
+  "az",
 ];
 
 interface LanguageSelectionViewProps {
@@ -51,7 +88,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Select Your Languages</Trans>
       </h2>
-      
+
       <p className="text-center text-sm text-muted-foreground mb-8">
         <Trans>Choose the languages you speak for better transcription accuracy</Trans>
       </p>
@@ -106,7 +143,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
                   </CommandEmpty>
                   <CommandGroup className="max-h-[150px] overflow-auto">
                     {SUPPORTED_LANGUAGES.filter(
-                      (lang) => !selectedLanguages.includes(lang)
+                      (lang) => !selectedLanguages.includes(lang),
                     ).map((lang) => {
                       const language = LANGUAGES_ISO_639_1[lang];
                       return (

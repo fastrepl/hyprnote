@@ -68,11 +68,11 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     queryFn: async () => {
       const supportedModels = await localSttCommands.listSupportedModels();
       const sttDownloadStatuses = await Promise.all(
-        supportedModels.map((model) => localSttCommands.isModelDownloaded(model))
+        supportedModels.map((model) => localSttCommands.isModelDownloaded(model)),
       );
       return sttDownloadStatuses.some(Boolean);
     },
-    enabled: isOnboarding, 
+    enabled: isOnboarding,
   });
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
@@ -101,7 +101,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   const handleStartSession = () => {
     if (ongoingSessionStatus === "inactive") {
       ongoingSessionStore.start(sessionId);
-      
+
       // Set mic muted after starting if it's onboarding
       if (isOnboarding) {
         listenerCommands.setMicMuted(true);
@@ -139,7 +139,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   if (ongoingSessionStatus === "inactive") {
     const buttonProps = {
-      disabled: isOnboarding 
+      disabled: isOnboarding
         ? !anySttModelExists.data || (meetingEnded && isEnhancePending)
         : !modelDownloaded.data || (meetingEnded && isEnhancePending),
       onClick: handleStartSession,

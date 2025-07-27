@@ -5,7 +5,6 @@ import React, { useState } from "react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 
-
 import { SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
@@ -26,7 +25,9 @@ const RatingDisplay = (
   },
 ) => (
   <div className="flex flex-col items-center px-1 sm:px-2">
-    <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1 sm:mb-1.5">{label}</span>
+    <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1 sm:mb-1.5">
+      {label}
+    </span>
     <div className="flex space-x-0.5 sm:space-x-1">
       {[...Array(maxRating)].map((_, i) => (
         <Icon
@@ -77,7 +78,7 @@ export const ModelSelectionView = ({
           {supportedSTTModels.data
             ?.filter(modelInfo => {
               const model = modelInfo.model;
-              return ['QuantizedTiny', 'QuantizedSmall', 'QuantizedLargeTurbo'].includes(model);
+              return ["QuantizedTiny", "QuantizedSmall", "QuantizedLargeTurbo"].includes(model);
             })
             ?.map(modelInfo => {
               const model = modelInfo.model;

@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { Progress } from "@hypr/ui/components/ui/progress";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Progress } from "@hypr/ui/components/ui/progress";
 import { sttModelMetadata } from "../settings/components/ai/stt-view";
 
 interface ModelDownloadProgress {
@@ -34,36 +34,44 @@ const ModelProgressCard = ({
   size: string;
 }) => {
   return (
-    <div className={cn(
-      "flex items-center justify-between rounded-lg border p-4 transition-all duration-200",
-      download.completed ? "border-blue-500 bg-blue-50" : "bg-white border-neutral-200"
-    )}>
+    <div
+      className={cn(
+        "flex items-center justify-between rounded-lg border p-4 transition-all duration-200",
+        download.completed ? "border-blue-500 bg-blue-50" : "bg-white border-neutral-200",
+      )}
+    >
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className={cn(
-          "flex size-10 items-center justify-center rounded-full flex-shrink-0",
-          download.completed ? "bg-blue-100" : "bg-neutral-50"
-        )}>
-          <Icon className={cn(
-            "h-5 w-5",
-            download.completed ? "text-blue-600" : "text-neutral-500"
-          )} />
+        <div
+          className={cn(
+            "flex size-10 items-center justify-center rounded-full flex-shrink-0",
+            download.completed ? "bg-blue-100" : "bg-neutral-50",
+          )}
+        >
+          <Icon
+            className={cn(
+              "h-5 w-5",
+              download.completed ? "text-blue-600" : "text-neutral-500",
+            )}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-medium truncate">{title}</div>
           <div className="text-sm text-muted-foreground">
-            {download.error ? (
-              <span className="text-destructive">Download failed</span>
-            ) : download.completed ? (
-              <span className="text-blue-600 flex items-center gap-1">
-                <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                <Trans>Ready</Trans>
-              </span>
-            ) : (
-              <div className="space-y-2">
-                <span className="block text-xs">Size: {size} • {Math.round(download.progress)}%</span>
-                <Progress value={download.progress} className="h-2" />
-              </div>
-            )}
+            {download.error
+              ? <span className="text-destructive">Download failed</span>
+              : download.completed
+              ? (
+                <span className="text-blue-600 flex items-center gap-1">
+                  <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  <Trans>Ready</Trans>
+                </span>
+              )
+              : (
+                <div className="space-y-2">
+                  <span className="block text-xs">Size: {size} • {Math.round(download.progress)}%</span>
+                  <Progress value={download.progress} className="h-2" />
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -98,7 +106,7 @@ export const DownloadProgressView = ({
 
   useEffect(() => {
     localSttCommands.downloadModel(selectedSttModel, sttDownload.channel);
-    
+
     localLlmCommands.downloadModel("HyprLLM", llmDownload.channel);
 
     sttDownload.channel.onmessage = (progress) => {
@@ -149,7 +157,7 @@ export const DownloadProgressView = ({
     "Securing your data from enemies...",
     "Building your AI fortress...",
     "Hunting down infected otters...",
-    "Wiping fingerprints off the algorithm...", 
+    "Wiping fingerprints off the algorithm...",
     "Installing integrity.exe (beta)...",
   ];
 
@@ -187,28 +195,28 @@ export const DownloadProgressView = ({
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Downloading AI Models</Trans>
       </h2>
-      
+
       {/* Replace static text with animated messages */}
       <div className="w-full max-w-[30rem] mb-8">
         <p className="text-center text-sm text-muted-foreground">
           {!bothCompleted && !hasErrors && (
-            <span 
+            <span
               key={currentMessageIndex}
               className="transition-all duration-500 ease-in-out block"
               style={{
-                animation: 'fadeInOut 4s ease-in-out',
+                animation: "fadeInOut 4s ease-in-out",
               }}
             >
               {WAITING_MESSAGES[currentMessageIndex]}
             </span>
           )}
-          
+
           {bothCompleted && (
             <span className="text-blue-600">
               <Trans>All models ready!</Trans>
             </span>
           )}
-          
+
           {hasErrors && (
             <span className="text-amber-600">
               <Trans>Some downloads failed, but you can continue</Trans>
@@ -222,14 +230,14 @@ export const DownloadProgressView = ({
           title="Speech Recognition"
           icon={MicIcon}
           download={sttDownload}
-          size={sttMetadata?.size || "250MB"}  
+          size={sttMetadata?.size || "250MB"}
         />
-        
+
         <ModelProgressCard
           title="Language Model"
           icon={BrainIcon}
           download={llmDownload}
-          size="1.1GB" 
+          size="1.1GB"
         />
       </div>
 

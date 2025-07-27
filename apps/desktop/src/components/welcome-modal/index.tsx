@@ -3,8 +3,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 
-import { commands } from "@/types";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
+import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
@@ -12,13 +12,13 @@ import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { AudioPermissionsView } from "./audio-permissions-view";
 import { CalendarPermissionsView } from "./calendar-permissions-view";
 import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -29,7 +29,14 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [port, setPort] = useState<number | null>(null);
-  const [currentStep, setCurrentStep] = useState<"welcome" | "model-selection" | "download-progress" | "audio-permissions" | "language-selection" | "calendar-permissions">("welcome");
+  const [currentStep, setCurrentStep] = useState<
+    | "welcome"
+    | "model-selection"
+    | "download-progress"
+    | "audio-permissions"
+    | "language-selection"
+    | "calendar-permissions"
+  >("welcome");
   const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
 
@@ -103,7 +110,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleLanguageSelectionContinue = async (languages: string[]) => {
-    
     // Save the selected languages to the database
     try {
       const config = await dbCommands.getConfig();
@@ -117,7 +123,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     } catch (error) {
       console.error("Failed to save language preferences:", error);
     }
-    
+
     setCurrentStep("calendar-permissions");
   };
 
@@ -125,14 +131,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     onClose();
   };
 
-
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-
-      //start servers for mockup & tutorial 
+      // start servers for mockup & tutorial
       localSttCommands.startServer();
       localLlmCommands.startServer();
-      
+
       const checkAndShowToasts = async () => {
         try {
           const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as SupportedModel);
@@ -141,7 +145,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           if (!sttModelExists) {
             showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
           }
-          
+
           if (!llmModelExists) {
             showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
           }

@@ -261,8 +261,9 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:194
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:189
-#: src/components/editor-area/note-header/listen-button.tsx:228
+#: src/components/editor-area/note-header/listen-button.tsx:209
+#: src/components/editor-area/note-header/listen-button.tsx:231
+#: src/components/editor-area/note-header/listen-button.tsx:251
 msgid "{0}"
 msgstr ""
 
@@ -304,12 +305,18 @@ msgstr ""
 msgid "Access granted"
 msgstr ""
 
+#: src/components/welcome-modal/calendar-permissions-view.tsx:50
+#: src/components/welcome-modal/audio-permissions-view.tsx:53
 #: src/components/settings/views/sound.tsx:39
 msgid "Access Granted"
 msgstr ""
 
 #: src/components/settings/views/template.tsx:233
 msgid "Add a description..."
+msgstr ""
+
+#: src/components/welcome-modal/language-selection-view.tsx:171
+msgid "Add languages you speak to improve transcription accuracy"
 msgstr ""
 
 #: src/components/settings/views/team.tsx:94
@@ -336,6 +343,10 @@ msgstr ""
 #: src/components/login-modal.tsx:97
 #~ msgid "AI notepad for meetings"
 #~ msgstr ""
+
+#: src/components/welcome-modal/download-progress-view.tsx:216
+msgid "All models ready!"
+msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:31
 msgid "All Participants"
@@ -380,6 +391,10 @@ msgstr ""
 #~ msgid "Assistant:"
 #~ msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:127
+msgid "Audio Permissions"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr ""
@@ -411,6 +426,10 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:69
 msgid "Calendar"
+msgstr ""
+
+#: src/components/welcome-modal/calendar-permissions-view.tsx:124
+msgid "Calendar & Contacts"
 msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:67
@@ -452,6 +471,10 @@ msgstr ""
 #: src/components/settings/views/general.tsx:185
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr ""
+
+#: src/components/welcome-modal/language-selection-view.tsx:93
+msgid "Choose the languages you speak for better transcription accuracy"
+msgstr ""
 
 #: src/components/settings/views/general.tsx:186
 msgid "Choose whether to save your recordings locally."
@@ -499,6 +522,10 @@ msgstr ""
 #~ msgid "Connect your {0} calendar to track upcoming events"
 #~ msgstr ""
 
+#: src/components/welcome-modal/calendar-permissions-view.tsx:128
+msgid "Connect your calendar and contacts for a better experience"
+msgstr ""
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
 msgid "Connect your calendar and track events"
 msgstr ""
@@ -515,8 +542,15 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:152
+#: src/components/welcome-modal/model-selection-view.tsx:137
+#: src/components/welcome-modal/language-selection-view.tsx:180
+#: src/components/welcome-modal/calendar-permissions-view.tsx:153
+#: src/components/welcome-modal/audio-permissions-view.tsx:159
 msgid "Continue"
+msgstr ""
+
+#: src/components/welcome-modal/download-progress-view.tsx:248
+msgid "Continue Setup"
 msgstr ""
 
 #: src/components/settings/views/ai.tsx:882
@@ -603,6 +637,14 @@ msgstr ""
 msgid "Download {0}"
 msgstr ""
 
+#: src/components/welcome-modal/download-progress-view.tsx:196
+msgid "Downloading AI Models"
+msgstr ""
+
+#: src/components/welcome-modal/download-progress-view.tsx:252
+msgid "Downloads will continue in the background"
+msgstr ""
+
 #: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
 msgstr ""
@@ -623,6 +665,8 @@ msgstr ""
 msgid "Emoji"
 msgstr ""
 
+#: src/components/welcome-modal/calendar-permissions-view.tsx:65
+#: src/components/welcome-modal/audio-permissions-view.tsx:77
 #: src/components/settings/views/sound.tsx:59
 msgid "Enable"
 msgstr ""
@@ -723,6 +767,14 @@ msgstr ""
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
 msgid "Grant Access"
+msgstr ""
+
+#: src/components/welcome-modal/audio-permissions-view.tsx:131
+msgid "Grant access to audio so Hyprnote can transcribe your meetings"
+msgstr ""
+
+#: src/components/welcome-modal/audio-permissions-view.tsx:164
+msgid "Grant both permissions to continue"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:212
@@ -850,6 +902,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:137
 #: src/components/settings/views/sound.tsx:97
 msgid "Microphone Access"
 msgstr ""
@@ -891,6 +944,10 @@ msgstr ""
 msgid "No calendars found"
 msgstr ""
 
+#: src/components/welcome-modal/language-selection-view.tsx:142
+msgid "No language found."
+msgstr ""
+
 #: src/components/settings/views/team.tsx:175
 msgid "No members found"
 msgstr ""
@@ -919,7 +976,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:361
+#: src/components/editor-area/note-header/listen-button.tsx:378
 msgid "No Template (Default)"
 msgstr ""
 
@@ -987,7 +1044,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:384
+#: src/components/editor-area/note-header/listen-button.tsx:401
 msgid "Pause"
 msgstr ""
 
@@ -1000,8 +1057,8 @@ msgid "Performance difference between languages"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:208
-msgid "Play video"
-msgstr ""
+#~ msgid "Play video"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:239
 msgid "Primary language for the interface"
@@ -1017,6 +1074,10 @@ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:15
 msgid "Publish your note"
+msgstr ""
+
+#: src/components/welcome-modal/download-progress-view.tsx:66
+msgid "Ready"
 msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:42
@@ -1035,19 +1096,22 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:74
 #: src/components/settings/views/sound.tsx:56
 msgid "Requesting..."
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:147
 #: src/components/settings/views/sound.tsx:107
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:138
 #: src/components/settings/views/sound.tsx:98
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:117
+#: src/components/editor-area/note-header/listen-button.tsx:135
 msgid "Resume"
 msgstr ""
 
@@ -1097,8 +1161,12 @@ msgstr ""
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:82
+#: src/components/welcome-modal/model-selection-view.tsx:73
 msgid "Select a transcribing model"
+msgstr ""
+
+#: src/components/welcome-modal/language-selection-view.tsx:124
+msgid "Select at least one language"
 msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:69
@@ -1112,6 +1180,10 @@ msgstr ""
 #: src/components/settings/components/ai/llm-view.tsx:253
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
+
+#: src/components/welcome-modal/language-selection-view.tsx:89
+msgid "Select Your Languages"
+msgstr ""
 
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
@@ -1137,6 +1209,10 @@ msgstr ""
 msgid "Single sign-on for all users"
 msgstr ""
 
+#: src/components/welcome-modal/download-progress-view.tsx:222
+msgid "Some downloads failed, but you can continue"
+msgstr ""
+
 #: src/routes/app.settings.tsx:116
 #~ msgid "Sound"
 #~ msgstr ""
@@ -1153,11 +1229,11 @@ msgstr ""
 msgid "Start Monthly Plan"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:164
+#: src/components/editor-area/note-header/listen-button.tsx:184
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:392
+#: src/components/editor-area/note-header/listen-button.tsx:409
 msgid "Stop"
 msgstr ""
 
@@ -1173,6 +1249,7 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:146
 #: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
 msgstr ""
@@ -1198,8 +1275,8 @@ msgid "Templates"
 msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:28
-msgid "The AI Meeting Notepad"
-msgstr ""
+#~ msgid "The AI Meeting Notepad"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:182
 msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
@@ -1211,6 +1288,10 @@ msgstr ""
 
 #: src/components/settings/views/billing.tsx:113
 msgid "There's a plan for everyone"
+msgstr ""
+
+#: src/components/welcome-modal/calendar-permissions-view.tsx:157
+msgid "These permissions are optional but recommended"
 msgstr ""
 
 #: src/components/settings/views/profile.tsx:188
@@ -1332,6 +1413,10 @@ msgstr ""
 
 #: src/components/individualization-modal/role-view.tsx:29
 msgid "What's your role?"
+msgstr ""
+
+#: src/components/welcome-modal/welcome-view.tsx:28
+msgid "Where Conversations Stay Yours"
 msgstr ""
 
 #: src/components/settings/components/wer-modal.tsx:69

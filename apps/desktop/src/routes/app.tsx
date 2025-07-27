@@ -18,9 +18,9 @@ import {
   RightPanelProvider,
   SearchProvider,
   SettingsProvider,
+  useHypr,
   useLeftSidebar,
   useRightPanel,
-  useHypr,
 } from "@/contexts";
 import { commands } from "@/types";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
@@ -89,12 +89,12 @@ function Component() {
                         onClose={() => {
                           commands.setOnboardingNeeded(false);
                           setOnboardingCompletedThisSession(true);
-                          
+
                           // Navigate to thank you session if it exists
                           if (onboardingSessionId) {
                             router.navigate({ to: `/app/note/${onboardingSessionId}` });
                           }
-                          
+
                           router.invalidate();
                         }}
                       />

@@ -92,7 +92,6 @@ function App() {
     return broadcastQueryClient(queryClient);
   }, [queryClient]);
 
- 
   const [userId, onboardingSessionId, thankYouSessionId] = useQueries({
     queries: [
       {

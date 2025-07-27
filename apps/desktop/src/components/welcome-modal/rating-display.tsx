@@ -11,7 +11,9 @@ export const RatingDisplay = (
   },
 ) => (
   <div className="flex flex-col items-center px-1 sm:px-2">
-    <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1 sm:mb-1.5">{label}</span>
+    <span className="text-[8px] sm:text-[10px] text-neutral-500 uppercase font-medium tracking-wider mb-1 sm:mb-1.5">
+      {label}
+    </span>
     <div className="flex space-x-0.5 sm:space-x-1">
       {[...Array(maxRating)].map((_, i) => (
         <Icon

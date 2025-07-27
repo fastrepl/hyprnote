@@ -103,6 +103,36 @@ pub async fn main() {
             Some(vec![]),
         ));
 
+    {
+        let keygen_account_id = {
+            #[cfg(not(debug_assertions))]
+            {
+                env!("KEYGEN_ACCOUNT_ID")
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                option_env!("KEYGEN_ACCOUNT_ID").unwrap_or_default()
+            }
+        };
+
+        let keygen_verify_key = {
+            #[cfg(not(debug_assertions))]
+            {
+                env!("KEYGEN_VERIFY_KEY")
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                option_env!("KEYGEN_VERIFY_KEY").unwrap_or_default()
+            }
+        };
+
+        builder = builder.plugin(
+            tauri_plugin_keygen::Builder::new(keygen_account_id, keygen_verify_key).build(),
+        );
+    }
+
     #[cfg(target_os = "macos")]
     {
         builder = builder.plugin(tauri_plugin_apple_calendar::init())

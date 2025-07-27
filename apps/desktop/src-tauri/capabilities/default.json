@@ -49,6 +49,7 @@
     "fs:default",
     "task:default",
     "obsidian:default",
+    "keygen:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [{ "url": "https://**" }, { "url": "mailto:*" }, { "url": "obsidian://**" }]

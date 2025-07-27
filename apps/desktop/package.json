@@ -92,6 +92,7 @@
     "remixicon": "^4.6.0",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
+    "tauri-plugin-keygen-api": "github:bagindo/tauri-plugin-keygen#v2",
     "tauri-plugin-sentry-api": "^0.4.1",
     "tippy.js": "^6.3.7",
     "zod": "^3.25.46",

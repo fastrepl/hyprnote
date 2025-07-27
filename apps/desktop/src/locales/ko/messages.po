@@ -395,7 +395,7 @@ msgstr ""
 #~ msgid "Assistant:"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:127
+#: src/components/welcome-modal/audio-permissions-view.tsx:137
 msgid "Audio Permissions"
 msgstr ""
 
@@ -550,7 +550,7 @@ msgstr ""
 #: src/components/welcome-modal/language-selection-view.tsx:180
 #: src/components/welcome-modal/download-progress-view.tsx:248
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
-#: src/components/welcome-modal/audio-permissions-view.tsx:159
+#: src/components/welcome-modal/audio-permissions-view.tsx:169
 msgid "Continue"
 msgstr ""
 
@@ -774,11 +774,11 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:131
+#: src/components/welcome-modal/audio-permissions-view.tsx:141
 msgid "Grant access to audio so Hyprnote can transcribe your meetings"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:164
+#: src/components/welcome-modal/audio-permissions-view.tsx:174
 msgid "Grant both permissions to continue"
 msgstr ""
 
@@ -911,7 +911,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:137
+#: src/components/welcome-modal/audio-permissions-view.tsx:147
 #: src/components/settings/views/sound.tsx:97
 msgid "Microphone Access"
 msgstr ""
@@ -1065,6 +1065,10 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:179
+msgid "Permission granted! Detecting changes..."
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:208
 #~ msgid "Play video"
 #~ msgstr ""
@@ -1110,8 +1114,8 @@ msgstr ""
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:138
-#: src/components/welcome-modal/audio-permissions-view.tsx:147
+#: src/components/welcome-modal/audio-permissions-view.tsx:148
+#: src/components/welcome-modal/audio-permissions-view.tsx:157
 msgid "Required for meeting transcription"
 msgstr ""
 
@@ -1261,7 +1265,7 @@ msgstr ""
 msgid "Synchronization across multiple devices"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:146
+#: src/components/welcome-modal/audio-permissions-view.tsx:156
 #: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
 msgstr ""

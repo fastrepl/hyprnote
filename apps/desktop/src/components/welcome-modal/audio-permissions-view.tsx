@@ -98,7 +98,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
-    refetchInterval: 1000,  // ← Faster polling
+    refetchInterval: 1000, // ← Faster polling
   });
 
   const systemAudioPermissionStatus = useQuery({

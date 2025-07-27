@@ -462,9 +462,7 @@ export function useEnhanceMutation({
 
         // Show native notification for local AI model summarization completion
         if (sessionId !== onboardingSessionId) {
-          notificationCommands.showSummarizationCompleteNotification().catch(error => {
-            console.error("Failed to show summarization complete notification:", error);
-          });
+          notificationCommands.showSummarizationCompleteNotification();
         }
       }
 

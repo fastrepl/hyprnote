@@ -1,6 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ArrowRight, CreditCard, ExternalLink, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
 import { useBilling } from "@/hooks/use-billing";
 import { useLicense } from "@/hooks/use-license";
@@ -26,11 +27,14 @@ export default function Billing() {
 }
 
 function FreeSection() {
+  const { getLicense } = useLicense();
+  const isPro = getLicense.data?.valid === true;
+
   return (
     <SectionContainer title="Free Plan">
-      <Tabs defaultValue="subscribe" className="space-y-4">
+      <Tabs defaultValue={isPro ? "license" : "subscribe"} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 p-1">
-          <TabsTrigger value="subscribe" className="text-sm font-medium">
+          <TabsTrigger value="subscribe" className="text-sm font-medium" disabled={isPro}>
             Get Pro Access
           </TabsTrigger>
           <TabsTrigger value="license" className="text-sm font-medium">
@@ -150,7 +154,7 @@ function FreeSectionCheckout() {
         <Button
           onClick={() => checkout.mutate({ email, interval })}
           className="w-full h-12 text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-          disabled={!email || checkout.isPending}
+          disabled={!z.string().email().safeParse(email).success || checkout.isPending}
         >
           {checkout.isPending ? "Starting Checkout..." : "Continue to Checkout"}
           <ArrowRight className="w-4 h-4 ml-2" />
@@ -190,7 +194,7 @@ function FreeSectionActivate() {
         />
       </div>
       <Button
-        disabled={activateLicense.isPending || !licenseKey}
+        disabled={!licenseKey.trim() || activateLicense.isPending}
         onClick={() => activateLicense.mutate(licenseKey)}
         className="w-full h-11 text-base font-medium transition-all duration-200 shadow-sm hover:shadow-md"
       >
@@ -285,7 +289,7 @@ function SectionContainer({ title, subtitle, headerAction, children }: {
 }) {
   return (
     <>
-      <div className="flex items-center justify-between pb-5 border-b border-border/50">
+      <div className="flex items-center justify-between pb-5">
         <div className="flex items-center space-x-3.5">
           <div className="p-2 rounded-full bg-primary/10 shadow-sm">
             <Shield className="w-4 h-4 text-primary" />

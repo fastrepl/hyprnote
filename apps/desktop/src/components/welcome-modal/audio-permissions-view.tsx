@@ -98,13 +98,13 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
-    refetchInterval: 500,
+    refetchInterval: 3000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
-    refetchInterval: 500,
+    refetchInterval: 3000,
   });
 
   const micPermission = useMutation({
@@ -135,7 +135,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
         <PermissionItem
           icon={<MicIcon className="h-5 w-5" />}
           title={t`Microphone Access`}
-          description={t`Required to transcribe your voice during meetings`}
+          description={t`Required for meeting transcription`}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
           onRequest={() => micPermission.mutate({})}
@@ -144,7 +144,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
         <PermissionItem
           icon={<Volume2Icon className="h-5 w-5" />}
           title={t`System Audio Access`}
-          description={t`Required to transcribe other people's voice during meetings`}
+          description={t`Required for meeting transcription`}
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}

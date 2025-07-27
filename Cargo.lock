@@ -14309,6 +14309,7 @@ dependencies = [
  "tauri-plugin-tray",
  "tauri-plugin-windows",
  "tauri-specta",
+ "tcc",
  "thiserror 2.0.12",
  "tokio",
  "tracing",

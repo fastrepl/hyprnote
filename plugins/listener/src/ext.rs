@@ -84,7 +84,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).stream();
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
         }
@@ -92,7 +92,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn check_system_audio_access(&self) -> Result<bool, crate::Error> {
-        Ok(true)
+        Ok(hypr_tcc::audio_capture_permission_granted())
     }
 
     #[tracing::instrument(skip_all)]
@@ -114,7 +114,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).stream();
             mic_sample_stream.next().await;
         }
 

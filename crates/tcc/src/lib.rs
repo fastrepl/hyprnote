@@ -4,8 +4,13 @@ use swift_rs::{swift, Bool};
 #[cfg(target_os = "macos")]
 swift!(fn _audio_capture_permission_granted() -> Bool);
 
+#[cfg(target_os = "macos")]
+pub fn audio_capture_permission_granted() -> bool {
+    unsafe { _audio_capture_permission_granted() }
+}
+
 #[cfg(not(target_os = "macos"))]
-pub fn _audio_capture_permission_granted() -> bool {
+pub fn audio_capture_permission_granted() -> bool {
     true
 }
 
@@ -16,10 +21,10 @@ mod tests {
     #[test]
     fn test_audio_capture_permission_granted() {
         #[cfg(target_os = "macos")]
-        let result = unsafe { _audio_capture_permission_granted() };
+        let result = audio_capture_permission_granted();
 
         #[cfg(not(target_os = "macos"))]
-        let result = _audio_capture_permission_granted();
+        let result = audio_capture_permission_granted();
 
         assert!(result);
     }

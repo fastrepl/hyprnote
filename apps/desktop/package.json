@@ -28,7 +28,6 @@
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-local-llm": "workspace:^",
     "@hypr/plugin-local-stt": "workspace:^",
-    "@hypr/plugin-membership": "workspace:^",
     "@hypr/plugin-misc": "workspace:^",
     "@hypr/plugin-notification": "workspace:^",
     "@hypr/plugin-obsidian": "workspace:^",

@@ -107,3 +107,22 @@ pub(crate) async fn show_summarization_complete_notification<R: tauri::Runtime>(
     app.show_summarization_complete_notification()
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_summarization_notification<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.get_summarization_notification()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_summarization_notification<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    enabled: bool,
+) -> Result<(), String> {
+    app.set_summarization_notification(enabled)
+        .map_err(|e| e.to_string())
+}

@@ -248,11 +248,11 @@ msgstr ""
 #~ msgid "in {hours} hours"
 #~ msgstr ""
 
-#: src/components/settings/views/notifications.tsx:105
+#: src/components/settings/views/notifications.tsx:125
 msgid "(Beta) Detect meetings automatically"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:132
+#: src/components/settings/views/notifications.tsx:152
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
@@ -1209,11 +1209,15 @@ msgstr ""
 msgid "Share usage data"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:135
+#: src/components/settings/views/notifications.tsx:182
+msgid "Show notifications when local AI finishes summarizing your meetings."
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:155
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:108
+#: src/components/settings/views/notifications.tsx:128
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
@@ -1252,6 +1256,10 @@ msgstr ""
 #: src/components/settings/views/feedback.tsx:107
 #~ msgid "Submit Feedback"
 #~ msgstr ""
+
+#: src/components/settings/views/notifications.tsx:179
+msgid "Summarization complete notifications"
+msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:61
 msgid "Summarize meeting"

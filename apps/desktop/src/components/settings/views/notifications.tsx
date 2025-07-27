@@ -12,6 +12,7 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 const schema = z.object({
   detect: z.boolean().optional(),
   event: z.boolean().optional(),
+  summarization: z.boolean().optional(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -27,11 +28,17 @@ export default function NotificationsComponent() {
     queryFn: () => notificationCommands.getDetectNotification(),
   });
 
+  const summarizationNotification = useQuery({
+    queryKey: ["notification", "summarization"],
+    queryFn: () => notificationCommands.getSummarizationNotification(),
+  });
+
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     values: {
       detect: detectNotification.data ?? false,
       event: eventNotification.data ?? false,
+      summarization: summarizationNotification.data ?? true,
     },
   });
 
@@ -77,6 +84,16 @@ export default function NotificationsComponent() {
     },
   });
 
+  const summarizationMutation = useMutation({
+    mutationFn: async (v: Schema) => {
+      notificationCommands.setSummarizationNotification(v.summarization ?? true);
+      return v.summarization;
+    },
+    onSuccess: () => {
+      summarizationNotification.refetch();
+    },
+  });
+
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "detect") {
@@ -85,10 +102,13 @@ export default function NotificationsComponent() {
       if (name === "event") {
         eventMutation.mutate(value);
       }
+      if (name === "summarization") {
+        summarizationMutation.mutate(value);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [eventMutation, detectMutation]);
+  }, [eventMutation, detectMutation, summarizationMutation]);
 
   return (
     <div>
@@ -134,6 +154,33 @@ export default function NotificationsComponent() {
                     <FormDescription>
                       <Trans>
                         Show notifications when you have meetings starting soon in your calendar.
+                      </Trans>
+                    </FormDescription>
+                  </div>
+
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="summarization"
+            render={({ field }) => (
+              <FormItem className="space-y-6">
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <FormLabel>
+                      <Trans>Summarization complete notifications</Trans>
+                    </FormLabel>
+                    <FormDescription>
+                      <Trans>
+                        Show notifications when local AI finishes summarizing your meetings.
                       </Trans>
                     </FormDescription>
                   </div>

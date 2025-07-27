@@ -42,6 +42,12 @@ async stopEventNotification() : Promise<null> {
 },
 async showSummarizationCompleteNotification() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|show_summarization_complete_notification");
+},
+async getSummarizationNotification() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:notification|get_summarization_notification");
+},
+async setSummarizationNotification(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_summarization_notification", { enabled });
 }
 }
 

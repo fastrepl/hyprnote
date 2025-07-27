@@ -462,7 +462,11 @@ export function useEnhanceMutation({
 
         // Show native notification for local AI model summarization completion
         if (sessionId !== onboardingSessionId) {
-          notificationCommands.showSummarizationCompleteNotification();
+          notificationCommands.getSummarizationNotification().then(enabled => {
+            if (enabled) {
+              notificationCommands.showSummarizationCompleteNotification();
+            }
+          });
         }
       }
 

@@ -259,7 +259,7 @@ msgstr ""
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
-#: src/components/settings/views/templates.tsx:194
+#: src/components/settings/views/templates.tsx:208
 #: src/components/settings/components/wer-modal.tsx:116
 #: src/components/editor-area/note-header/listen-button.tsx:209
 #: src/components/editor-area/note-header/listen-button.tsx:231
@@ -423,7 +423,7 @@ msgstr ""
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr ""
 
-#: src/components/settings/views/templates.tsx:279
+#: src/components/settings/views/templates.tsx:293
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -585,7 +585,7 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:269
+#: src/components/settings/views/templates.tsx:283
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -880,7 +880,7 @@ msgstr ""
 msgid "Loading events..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:217
+#: src/components/settings/views/templates.tsx:231
 msgid "Loading templates..."
 msgstr ""
 
@@ -991,7 +991,7 @@ msgstr ""
 msgid "No Template (Default)"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:266
+#: src/components/settings/views/templates.tsx:280
 msgid "No templates yet"
 msgstr ""
 
@@ -1171,7 +1171,7 @@ msgstr ""
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:234
+#: src/components/settings/views/templates.tsx:248
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1469,7 +1469,7 @@ msgstr ""
 msgid "Your Name"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:231
+#: src/components/settings/views/templates.tsx:245
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr ""

@@ -212,7 +212,7 @@ function ProSection() {
 
   const getSubtitle = () => {
     if (!b.info.data) {
-      return "...";
+      return "No subscription information found.";
     }
 
     const { price, current_period_end, cancel_at_period_end, status } = b.info.data;

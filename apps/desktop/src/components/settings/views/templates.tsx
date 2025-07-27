@@ -106,12 +106,12 @@ export default function TemplatesView() {
   };
 
   const handleNewTemplate = () => {
-    analyticsCommands.event({
-      event: "pro_license_required_template",
-      distinct_id: userId,
-    });
-
     if (!getLicense.data?.valid) {
+      analyticsCommands.event({
+        event: "pro_license_required_template",
+        distinct_id: userId,
+      });
+
       message("Only default templates are allowed for free users.", { title: "Pro License Required", kind: "info" });
       return;
     }

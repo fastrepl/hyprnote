@@ -18,7 +18,10 @@ export async function showModelSelectToast(language: string) {
 
     windowsCommands.windowShow({ type: "settings" }).then(() => {
       setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, `${url.to}?${url.search}`);
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: url.to,
+          search: url.search,
+        });
       }, 500);
     });
 

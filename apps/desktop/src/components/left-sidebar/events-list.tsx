@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
@@ -128,10 +128,13 @@ function EventItem({
   const handleOpenCalendar = () => {
     const date = new Date(event.start_date);
     const formattedDate = format(date, "yyyy-MM-dd");
-    const url = `/app/finder?view=calendar&date=${formattedDate}`;
+    const url = { to: "/app/finder", search: { view: "calendar", date: formattedDate } } as const satisfies LinkProps;
 
     windowsCommands.windowShow({ type: "finder" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "finder" }, url);
+      windowsCommands.windowEmitNavigate({ type: "finder" }, {
+        path: url.to,
+        search: url.search,
+      });
     });
   };
 

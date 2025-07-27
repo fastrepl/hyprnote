@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
+import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { File, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -64,9 +64,12 @@ export function NoteCard({
   const handleClick = (id: string) => {
     setOpen(false);
 
-    const url = `/app/note/${id}`;
+    const url = { to: "/app/note/$id", params: { id } } as const satisfies LinkProps;
     windowsCommands.windowShow({ type: "main" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      windowsCommands.windowEmitNavigate({ type: "main" }, {
+        path: url.to.replace("$id", id),
+        search: null,
+      });
     });
   };
 

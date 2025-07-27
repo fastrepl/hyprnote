@@ -1,3 +1,8 @@
+import { RiCornerDownLeftLine } from "@remixicon/react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { type Human, type Organization } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -6,10 +11,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
-import { RiCornerDownLeftLine } from "@remixicon/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { LinkProps } from "node_modules/@tanstack/react-router/dist/esm/link";
 
 interface ContactViewProps {
   userId: string;
@@ -110,9 +112,13 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   }, [initialOrgId, organizations]);
 
   const handleSessionClick = (sessionId: string) => {
-    const url = `/app/note/${sessionId}`;
+    const path = { to: "/app/note/$id", params: { id: sessionId } } as const satisfies LinkProps;
+
     windowsCommands.windowShow({ type: "main" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "main" }, url);
+      windowsCommands.windowEmitNavigate({ type: "main" }, {
+        path: path.to.replace("$id", path.params.id),
+        search: null,
+      });
     });
   };
 

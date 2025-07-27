@@ -1,7 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMatch, useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { endOfMonth, startOfMonth, subMonths } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, TrashIcon } from "lucide-react";
@@ -236,10 +236,13 @@ function NoteItem({
   const handleOpenCalendar = () => {
     const date = new Date(currentSession.created_at);
     const formattedDate = format(date, "yyyy-MM-dd");
-    const url = `/app/finder?view=calendar&date=${formattedDate}`;
+    const url = { to: "/app/finder", search: { view: "calendar", date: formattedDate } } as const satisfies LinkProps;
 
     windowsCommands.windowShow({ type: "finder" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "finder" }, url);
+      windowsCommands.windowEmitNavigate({ type: "finder" }, {
+        path: url.to,
+        search: url.search,
+      });
     });
   };
 

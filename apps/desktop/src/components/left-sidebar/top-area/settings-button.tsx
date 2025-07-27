@@ -51,7 +51,10 @@ export function SettingsButton() {
       const params = { to: "/app/settings", search: { tab: "billing" } } as const satisfies LinkProps;
 
       setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, `${params.to}?${params.search}`);
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: params.to,
+          search: params.search,
+        });
       }, 500);
     });
   };

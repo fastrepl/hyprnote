@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-
+import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, FileText, Pen } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -65,14 +65,21 @@ export function EventCard({
     setOpen(false);
 
     if (session.data) {
-      const url = `/app/note/${session.data.id}`;
+      const id = session.data.id;
+      const url = { to: "/app/note/$id", params: { id } } as const satisfies LinkProps;
       windowsCommands.windowShow({ type: "main" }).then(() => {
-        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+        windowsCommands.windowEmitNavigate({ type: "main" }, {
+          path: url.to.replace("$id", id),
+          search: null,
+        });
       });
     } else {
-      const url = `/app/new?calendarEventId=${event.id}`;
+      const url = { to: "/app/new", search: { calendarEventId: event.id } } as const satisfies LinkProps;
       windowsCommands.windowShow({ type: "main" }).then(() => {
-        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+        windowsCommands.windowEmitNavigate({ type: "main" }, {
+          path: url.to,
+          search: url.search,
+        });
       });
     }
   };

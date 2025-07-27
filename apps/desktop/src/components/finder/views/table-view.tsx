@@ -1,3 +1,4 @@
+import type { LinkProps } from "@tanstack/react-router";
 import { format, isToday } from "date-fns";
 import { Archive, Calendar, ChevronDown, ChevronUp, FileText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -108,32 +109,41 @@ export function TableView({ date, sessions, events, onNavigate }: TableViewProps
 
   const handleRowClick = async (item: TableItem) => {
     if (item.type === "session") {
-      const url = `/app/note/${item.id}`;
+      const url = { to: "/app/note/$id", params: { id: item.id } } as const satisfies LinkProps;
       windowsCommands.windowShow({ type: "main" }).then(() => {
-        windowsCommands.windowEmitNavigate({ type: "main" }, url);
+        windowsCommands.windowEmitNavigate({ type: "main" }, {
+          path: url.to.replace("$id", item.id),
+          search: null,
+        });
       });
     } else if (item.type === "event") {
       try {
         const session = await dbCommands.getSession({ calendarEventId: item.id });
 
         if (session) {
-          // Navigate to existing session
-          const url = `/app/note/${session.id}`;
+          const url = { to: "/app/note/$id", params: { id: session.id } } as const satisfies LinkProps;
           windowsCommands.windowShow({ type: "main" }).then(() => {
-            windowsCommands.windowEmitNavigate({ type: "main" }, url);
+            windowsCommands.windowEmitNavigate({ type: "main" }, {
+              path: url.to.replace("$id", session.id),
+              search: null,
+            });
           });
         } else {
-          // Create new note with event ID
-          const url = `/app/new?calendarEventId=${item.id}`;
+          const url = { to: "/app/new", search: { calendarEventId: item.id } } as const satisfies LinkProps;
           windowsCommands.windowShow({ type: "main" }).then(() => {
-            windowsCommands.windowEmitNavigate({ type: "main" }, url);
+            windowsCommands.windowEmitNavigate({ type: "main" }, {
+              path: url.to,
+              search: url.search,
+            });
           });
         }
       } catch (error) {
-        // If session lookup fails, create new note
-        const url = `/app/new?calendarEventId=${item.id}`;
+        const url = { to: "/app/new", search: { calendarEventId: item.id } } as const satisfies LinkProps;
         windowsCommands.windowShow({ type: "main" }).then(() => {
-          windowsCommands.windowEmitNavigate({ type: "main" }, url);
+          windowsCommands.windowEmitNavigate({ type: "main" }, {
+            path: url.to,
+            search: url.search,
+          });
         });
       }
     }

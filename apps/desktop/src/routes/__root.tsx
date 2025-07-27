@@ -54,7 +54,7 @@ function Component() {
 
     const webview = getCurrentWebviewWindow();
     windowsEvents.navigate(webview).listen(({ payload }) => {
-      navigate({ to: payload.path });
+      navigate({ to: payload.path, search: payload.search ?? undefined });
     }).then((fn) => {
       unlisten = fn;
     });
@@ -64,7 +64,7 @@ function Component() {
 
   useEffect(() => {
     windowsInit();
-    scan({ enabled: true });
+    scan({ enabled: false });
   }, []);
 
   // Listen for debug events from control window

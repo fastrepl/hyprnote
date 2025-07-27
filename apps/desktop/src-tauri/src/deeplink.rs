@@ -24,8 +24,12 @@ pub fn parse(url: String) -> Vec<Destination> {
     };
 
     let dests = match parsed_url.path() {
+        // Specified in notification related codebase
         "/notification" => parse_notification_query(&parsed_url),
+        // Specified in /apps/admin
         "/register" => parse_register_query(&parsed_url),
+        // Specified in email template
+        "/license" => parse_license_query(&parsed_url),
         _ => vec![Destination::default()],
     };
 
@@ -80,6 +84,29 @@ fn parse_register_query(parsed_url: &url::Url) -> Vec<Destination> {
     ]
 }
 
+fn parse_license_query(parsed_url: &url::Url) -> Vec<Destination> {
+    let main_url = "/app".to_string();
+
+    let settings_url = match parsed_url.query() {
+        Some(query) => match serde_qs::from_str::<LicenseQuery>(query) {
+            Ok(params) => format!("/app/settings?tab=billing&key={}", params.key),
+            Err(_) => "/app/settings".to_string(),
+        },
+        None => "/app/settings".to_string(),
+    };
+
+    vec![
+        Destination {
+            window: HyprWindow::Main,
+            url: main_url,
+        },
+        Destination {
+            window: HyprWindow::Settings,
+            url: settings_url,
+        },
+    ]
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 struct NotificationQuery {
     event_id: Option<String>,
@@ -91,6 +118,11 @@ struct RegisterQuery {
     api_key: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+struct LicenseQuery {
+    key: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,7 +132,7 @@ mod tests {
         let url = "hypr://hyprnote.com/register?base_url=http://localhost:3000&api_key=123";
 
         let dests = parse(url.to_string());
-        assert_eq!(dests.len(), 1);
+        assert_eq!(dests.len(), 2);
 
         let dest = dests.first().unwrap();
         assert_eq!(dest.window, HyprWindow::Main);
@@ -108,5 +140,17 @@ mod tests {
             dest.url,
             "/app/register?base_url=http://localhost:3000&api_key=123"
         );
+    }
+
+    #[test]
+    fn test_parse_license_query() {
+        let url = "hypr://hyprnote.com/license?key=123";
+
+        let dests = parse(url.to_string());
+        assert_eq!(dests.len(), 2);
+
+        let dest = dests.first().unwrap();
+        assert_eq!(dest.window, HyprWindow::Main);
+        assert_eq!(dest.url, "/app");
     }
 }

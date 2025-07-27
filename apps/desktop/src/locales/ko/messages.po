@@ -340,7 +340,7 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: src/routes/app.settings.tsx:67
+#: src/routes/app.settings.tsx:68
 msgid "AI"
 msgstr ""
 
@@ -428,7 +428,7 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:69
+#: src/routes/app.settings.tsx:70
 msgid "Calendar"
 msgstr ""
 
@@ -724,8 +724,8 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:77
-#: src/routes/app.settings.tsx:110
+#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:111
 msgid "Feedback"
 msgstr ""
 
@@ -757,7 +757,7 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:66
 msgid "General"
 msgstr ""
 
@@ -817,7 +817,7 @@ msgstr ""
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr ""
 
-#: src/routes/app.settings.tsx:75
+#: src/routes/app.settings.tsx:76
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr ""
@@ -887,8 +887,8 @@ msgid "Loading..."
 msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:87
-msgid "Local mode"
-msgstr ""
+#~ msgid "Local mode"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:39
 msgid "Long-term memory for past meetings and attendees"
@@ -932,7 +932,7 @@ msgstr ""
 msgid "Much better AI performance"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:108
+#: src/components/left-sidebar/top-area/settings-button.tsx:100
 msgid "My Profile"
 msgstr ""
 
@@ -1005,7 +1005,7 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:71
+#: src/routes/app.settings.tsx:72
 msgid "Notifications"
 msgstr ""
 
@@ -1201,7 +1201,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:101
+#: src/components/left-sidebar/top-area/settings-button.tsx:93
 msgid "Settings"
 msgstr ""
 
@@ -1266,7 +1266,7 @@ msgstr ""
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:114
+#: src/components/left-sidebar/top-area/settings-button.tsx:106
 msgid "Talk to Founders"
 msgstr ""
 
@@ -1282,7 +1282,7 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/routes/app.settings.tsx:73
+#: src/routes/app.settings.tsx:74
 msgid "Templates"
 msgstr ""
 

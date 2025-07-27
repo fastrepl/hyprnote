@@ -104,27 +104,22 @@ pub async fn main() {
         ));
 
     {
-        let keygen_account_id = {
+        // These are not secrets. In prod, we set different values in the environment. (See .github/workflows/desktop_cd.yml)
+        let (keygen_account_id, keygen_verify_key) = {
             #[cfg(not(debug_assertions))]
             {
-                env!("KEYGEN_ACCOUNT_ID")
+                (env!("KEYGEN_ACCOUNT_ID"), env!("KEYGEN_VERIFY_KEY"))
             }
 
             #[cfg(debug_assertions)]
             {
-                option_env!("KEYGEN_ACCOUNT_ID").unwrap_or_default()
-            }
-        };
-
-        let keygen_verify_key = {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("KEYGEN_VERIFY_KEY")
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                option_env!("KEYGEN_VERIFY_KEY").unwrap_or_default()
+                (
+                    option_env!("KEYGEN_ACCOUNT_ID")
+                        .unwrap_or("76dfe152-397c-4689-9c5e-3669cefa34b9"),
+                    option_env!("KEYGEN_VERIFY_KEY").unwrap_or(
+                        "13f18c98b8c1e5539d92df4aad2d51f4d203d5aead296215df7c3d6376b78b13",
+                    ),
+                )
             }
         };
 

@@ -1,5 +1,15 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, Calendar, LayoutTemplate, MessageSquare, Settings, Sparkles, Volume2 } from "lucide-react";
+import {
+  Bell,
+  BlocksIcon,
+  Calendar,
+  CreditCard,
+  LayoutTemplate,
+  MessageSquare,
+  Settings,
+  Sparkles,
+  Volume2,
+} from "lucide-react";
 
 export type Tab =
   | "general"
@@ -8,9 +18,9 @@ export type Tab =
   | "notifications"
   | "sound"
   | "templates"
-  | "lab"
   | "feedback"
-  | "integrations";
+  | "integrations"
+  | "billing";
 
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "general", icon: Settings },
@@ -19,7 +29,7 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "notifications", icon: Bell },
   { name: "sound", icon: Volume2 },
   { name: "templates", icon: LayoutTemplate },
-  // { name: "lab", icon: FlaskConical },
   { name: "integrations", icon: MessageSquare },
-  { name: "feedback", icon: MessageSquare },
+  { name: "feedback", icon: BlocksIcon },
+  { name: "billing", icon: CreditCard },
 ];

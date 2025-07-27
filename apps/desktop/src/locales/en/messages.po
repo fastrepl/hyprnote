@@ -340,7 +340,7 @@ msgstr "Add specific terms or jargon for improved transcription accuracy"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/app.settings.tsx:67
+#: src/routes/app.settings.tsx:68
 msgid "AI"
 msgstr "AI"
 
@@ -428,7 +428,7 @@ msgstr "Billing features are currently under development and will be available i
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:69
+#: src/routes/app.settings.tsx:70
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -724,8 +724,8 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/routes/app.settings.tsx:77
-#: src/routes/app.settings.tsx:110
+#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:111
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -757,7 +757,7 @@ msgstr "Free Trial"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:66
 msgid "General"
 msgstr "General"
 
@@ -817,7 +817,7 @@ msgstr "How did you hear about Hyprnote?"
 msgid "Integration with other apps like Notion and Google Calendar"
 msgstr "Integration with other apps like Notion and Google Calendar"
 
-#: src/routes/app.settings.tsx:75
+#: src/routes/app.settings.tsx:76
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr "Integrations"
@@ -887,8 +887,8 @@ msgid "Loading..."
 msgstr "Loading..."
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:87
-msgid "Local mode"
-msgstr "Local mode"
+#~ msgid "Local mode"
+#~ msgstr "Local mode"
 
 #: src/components/settings/views/billing.tsx:39
 msgid "Long-term memory for past meetings and attendees"
@@ -932,7 +932,7 @@ msgstr "More integrations coming soon..."
 msgid "Much better AI performance"
 msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:108
+#: src/components/left-sidebar/top-area/settings-button.tsx:100
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -1005,7 +1005,7 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:71
+#: src/routes/app.settings.tsx:72
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1201,7 +1201,7 @@ msgstr "Select Your Languages"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:101
+#: src/components/left-sidebar/top-area/settings-button.tsx:93
 msgid "Settings"
 msgstr "Settings"
 
@@ -1266,7 +1266,7 @@ msgstr "Synchronization across multiple devices"
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:114
+#: src/components/left-sidebar/top-area/settings-button.tsx:106
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
@@ -1282,7 +1282,7 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:73
+#: src/routes/app.settings.tsx:74
 msgid "Templates"
 msgstr "Templates"
 

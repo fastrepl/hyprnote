@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
+import { LicenseRefreshProvider } from "@/components/license";
 import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
@@ -53,64 +54,67 @@ function Component() {
 
   return (
     <>
-      <SessionsProvider store={sessionsStore}>
-        <OngoingSessionProvider store={ongoingSessionStore}>
-          <LeftSidebarProvider>
-            <RightPanelProvider>
-              <RestartTTT />
-              <RestartSTT />
-              <MainWindowStateEventSupport />
-              <SettingsProvider>
-                <NewNoteProvider>
-                  <SearchProvider>
-                    <EditModeProvider>
-                      <div className="flex h-screen w-screen overflow-hidden">
-                        <LeftSidebar />
-                        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                          <Toolbar />
+      <LicenseRefreshProvider>
+        <SessionsProvider store={sessionsStore}>
+          <OngoingSessionProvider store={ongoingSessionStore}>
+            <LeftSidebarProvider>
+              <RightPanelProvider>
+                <RestartTTT />
+                <RestartSTT />
+                <MainWindowStateEventSupport />
+                <SettingsProvider>
+                  <NewNoteProvider>
+                    <SearchProvider>
+                      <EditModeProvider>
+                        <div className="flex h-screen w-screen overflow-hidden">
+                          <LeftSidebar />
+                          <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                            <Toolbar />
 
-                          <ResizablePanelGroup
-                            direction="horizontal"
-                            className="flex-1 overflow-hidden flex"
-                            autoSaveId="main"
-                          >
-                            <ResizablePanel className="flex-1 overflow-hidden">
-                              <Outlet />
-                            </ResizablePanel>
-                            <ResizableHandle className="w-0" />
-                            <RightPanel />
-                          </ResizablePanelGroup>
+                            <ResizablePanelGroup
+                              direction="horizontal"
+                              className="flex-1 overflow-hidden flex"
+                              autoSaveId="main"
+                            >
+                              <ResizablePanel className="flex-1 overflow-hidden">
+                                <Outlet />
+                              </ResizablePanel>
+                              <ResizableHandle className="w-0" />
+                              <RightPanel />
+                            </ResizablePanelGroup>
+                          </div>
                         </div>
-                      </div>
-                      <WelcomeModal
-                        isOpen={shouldShowWelcomeModal}
-                        onClose={() => {
-                          commands.setOnboardingNeeded(false);
-                          setOnboardingCompletedThisSession(true);
+                        <WelcomeModal
+                          isOpen={shouldShowWelcomeModal}
+                          onClose={() => {
+                            commands.setOnboardingNeeded(false);
+                            setOnboardingCompletedThisSession(true);
 
-                          // Navigate to thank you session if it exists
-                          if (onboardingSessionId) {
-                            router.navigate({ to: `/app/note/${onboardingSessionId}` });
-                          }
+                            // Navigate to thank you session if it exists
+                            if (onboardingSessionId) {
+                              router.navigate({ to: `/app/note/${onboardingSessionId}` });
+                            }
 
-                          router.invalidate();
-                        }}
-                      />
-                      <IndividualizationModal
-                        isOpen={shouldShowIndividualization}
-                        onClose={() => {
-                          commands.setIndividualizationNeeded(false);
-                          router.invalidate();
-                        }}
-                      />
-                    </EditModeProvider>
-                  </SearchProvider>
-                </NewNoteProvider>
-              </SettingsProvider>
-            </RightPanelProvider>
-          </LeftSidebarProvider>
-        </OngoingSessionProvider>
-      </SessionsProvider>
+                            router.invalidate();
+                          }}
+                        />
+                        <IndividualizationModal
+                          isOpen={shouldShowIndividualization}
+                          onClose={() => {
+                            commands.setIndividualizationNeeded(false);
+                            router.invalidate();
+                          }}
+                        />
+                      </EditModeProvider>
+                    </SearchProvider>
+                  </NewNoteProvider>
+                </SettingsProvider>
+              </RightPanelProvider>
+            </LeftSidebarProvider>
+          </OngoingSessionProvider>
+        </SessionsProvider>
+      </LicenseRefreshProvider>
+
       {showNotifications && <Notifications />}
     </>
   );

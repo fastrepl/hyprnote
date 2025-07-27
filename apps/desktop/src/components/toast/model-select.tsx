@@ -1,3 +1,5 @@
+import type { LinkProps } from "@tanstack/react-router";
+
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -11,6 +13,18 @@ export async function showModelSelectToast(language: string) {
     return;
   }
 
+  const handleClick = () => {
+    const url = { to: "/app/settings", search: { tab: "ai" } } as const satisfies LinkProps;
+
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "settings" }, `${url.to}?${url.search}`);
+      }, 500);
+    });
+
+    sonnerToast.dismiss(id);
+  };
+
   const id = "language-model-mismatch";
   // TODO: this should not pop up if using Cloud
   toast({
@@ -23,13 +37,7 @@ export async function showModelSelectToast(language: string) {
         </div>
         <Button
           variant="default"
-          onClick={() => {
-            windowsCommands.windowShow({ type: "settings" }).then(() => {
-              windowsCommands.windowEmitNavigate({ type: "settings" }, "/app/settings?tab=ai");
-            });
-
-            sonnerToast.dismiss(id);
-          }}
+          onClick={handleClick}
         >
           Open AI Settings
         </Button>

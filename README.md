@@ -1,7 +1,6 @@
 ![github_banner_v2](https://github.com/user-attachments/assets/e5fac942-1a51-4180-9d64-f508db705f9d)
 
 <p align="center">
-  <h1 align="center">Hyprnote</h1>
   <p align="center">AI notepad for <strong>private</strong> meetings. Not a single byte of data leaves your device.</p>
   <p align="center">
    <a href="https://deepwiki.com/fastrepl/hyprnote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>

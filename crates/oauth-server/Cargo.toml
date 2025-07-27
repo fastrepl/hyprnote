@@ -1,0 +1,9 @@
+[package]
+name = "oauth-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-oauth-core = { workspace = true }
+
+tower = { workspace = true }

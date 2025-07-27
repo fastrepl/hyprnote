@@ -1,7 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircle2Icon, MicIcon, Volume2Icon } from "lucide-react";
-import { useState } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -93,7 +92,6 @@ interface AudioPermissionsViewProps {
 
 export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) {
   const { t } = useLingui();
-  const [showSystemSettingsHelp, setShowSystemSettingsHelp] = useState(false);
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
@@ -108,47 +106,15 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   });
 
   const micPermission = useMutation({
-    mutationFn: async () => {
-      try {
-        const result = await listenerCommands.requestMicrophoneAccess();
-        return result;
-      } catch (error) {
-        console.error("Microphone permission request failed:", error);
-        // In development, the permission dialog might not appear
-        // Show system settings button immediately
-        setShowSystemSettingsHelp(true);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      micPermissionStatus.refetch();
-      setShowSystemSettingsHelp(false);
-    },
-    onError: (error) => {
-      console.error("Microphone permission error:", error);
-      setShowSystemSettingsHelp(true);
-    },
+    mutationFn: () => listenerCommands.requestMicrophoneAccess(),
+    onSuccess: () => micPermissionStatus.refetch(),
+    onError: console.error,
   });
 
   const capturePermission = useMutation({
-    mutationFn: async () => {
-      try {
-        const result = await listenerCommands.requestSystemAudioAccess();
-        return result;
-      } catch (error) {
-        console.error("System audio permission request failed:", error);
-        setShowSystemSettingsHelp(true);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      systemAudioPermissionStatus.refetch();
-      setShowSystemSettingsHelp(false);
-    },
-    onError: (error) => {
-      console.error("System audio permission error:", error);
-      setShowSystemSettingsHelp(true);
-    },
+    mutationFn: () => listenerCommands.requestSystemAudioAccess(),
+    onSuccess: () => systemAudioPermissionStatus.refetch(),
+    onError: console.error,
   });
 
   const allPermissionsGranted = micPermissionStatus.data && systemAudioPermissionStatus.data;

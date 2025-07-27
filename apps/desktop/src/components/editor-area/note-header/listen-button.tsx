@@ -101,6 +101,11 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
   const handleStartSession = () => {
     if (ongoingSessionStatus === "inactive") {
       ongoingSessionStore.start(sessionId);
+      
+      // Set mic muted after starting if it's onboarding
+      if (isOnboarding) {
+        listenerCommands.setMicMuted(true);
+      }
     }
   };
 
@@ -344,33 +349,10 @@ function RecordingControls({
     }
   }, [configQuery.data]);
 
-  useEffect(() => {
-    if (sessionId === onboardingSessionId) {
-      listenerCommands.setMicMuted(true);
-    }
-  }, []);
-
   const handleStopWithTemplate = () => {
     const actualTemplateId = selectedTemplate === "auto" ? null : selectedTemplate;
     onStop(actualTemplateId);
   };
-
-  const isSttModelDownloaded = useQuery({
-    queryKey: ["check-stt-model-downloaded"],
-    queryFn: async () => {
-      // Get all supported STT models
-      const supportedModels = await localSttCommands.listSupportedModels();
-      
-      // Check if any STT model is downloaded
-      const sttDownloadStatuses = await Promise.all(
-        supportedModels.map((model) => localSttCommands.isModelDownloaded(model))
-      );
-      const anySttModelDownloaded = sttDownloadStatuses.some(Boolean);
-      
-      return [anySttModelDownloaded];
-    },
-    refetchInterval: 3000,
-  });
 
   return (
     <>

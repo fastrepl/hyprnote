@@ -1,18 +1,14 @@
-# Objective
-- Onboard new users to Hyprnote quickly and efficiently.
-- Demonstrate how to create a new meeting note and generate an enhanced summary.
-- Emphasize offline functionality and privacy-first design.
+# What is Hyprnote? 
+- AI notepad for private meetings 
+- Runs fully offline using on-device STT and LLM models.
+- No internet or third-party servers involved.
+- All data is stored locally to ensure user privacy.
 
-# Core Workflow
+# How to use Hyprnote 
 - Create a new note and press the red record button to begin recording.
 - Live transcription appears in the side panel as participants speak.
 - Users jot down only key points during the meeting.
 - After stopping the recording, Hyprnote generates an enhanced note by combining user notes and the transcript.
-
-# Privacy and Performance
-- Runs fully offline using on-device STT and LLM models.
-- No internet or third-party servers involved.
-- All data is stored locally to ensure user privacy.
 
 # Features
 - AI-enhanced summaries based on your notes and the full transcript.

@@ -345,7 +345,7 @@ mod tests {
         let temp_path = temp_file.path();
 
         let s3_url =
-            "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
+            "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
 
         let partial_content = b"PARTIAL_CONTENT".repeat(100);
         std::fs::write(temp_path, &partial_content).unwrap();

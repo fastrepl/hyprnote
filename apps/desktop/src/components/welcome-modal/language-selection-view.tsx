@@ -168,7 +168,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
           </div>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-3">
-          <Trans>Add languages you speak to improve transcription accuracy</Trans>
+          <Trans>Add languages you use during meetings to improve transcription accuracy</Trans>
         </p>
       </div>
 

@@ -34,13 +34,13 @@ impl SupportedModel {
 
     pub fn model_url(&self) -> &str {
         match self {
-            SupportedModel::QuantizedTiny => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin",
-            SupportedModel::QuantizedTinyEn => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny.en-q8_0.bin",
-            SupportedModel::QuantizedBase => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin",
-            SupportedModel::QuantizedBaseEn => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base.en-q8_0.bin",
-            SupportedModel::QuantizedSmall => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-small-q8_0.bin",
-            SupportedModel::QuantizedSmallEn => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-small.en-q8_0.bin",
-            SupportedModel::QuantizedLargeTurbo => "https://storage.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-large-v3-turbo-q8_0.bin",
+            SupportedModel::QuantizedTiny => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin",
+            SupportedModel::QuantizedTinyEn => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny.en-q8_0.bin",
+            SupportedModel::QuantizedBase => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin",
+            SupportedModel::QuantizedBaseEn => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base.en-q8_0.bin",
+            SupportedModel::QuantizedSmall => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-small-q8_0.bin",
+            SupportedModel::QuantizedSmallEn => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-small.en-q8_0.bin",
+            SupportedModel::QuantizedLargeTurbo => "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-large-v3-turbo-q8_0.bin",
         }
     }
 

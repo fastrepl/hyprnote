@@ -70,7 +70,7 @@ export const sttModelMetadata: Record<SupportedModel, {
   "QuantizedSmall": {
     name: "Small",
     description: "Higher accuracy, moderate speed for multilingual transcription.",
-    intelligence: 3,
+    intelligence: 2,
     speed: 2,
     size: "264 MB",
     inputType: ["audio"],
@@ -91,7 +91,7 @@ export const sttModelMetadata: Record<SupportedModel, {
   },
   "QuantizedLargeTurbo": {
     name: "Large",
-    description: "Highest accuracy, resource intensive.",
+    description: "Highest accuracy, resource intensive. Only for Mac Pro M4 and above.",
     intelligence: 3,
     speed: 1,
     size: "874 MB",

@@ -316,8 +316,12 @@ msgid "Add a description..."
 msgstr "Add a description..."
 
 #: src/components/welcome-modal/language-selection-view.tsx:171
-msgid "Add languages you speak to improve transcription accuracy"
-msgstr "Add languages you speak to improve transcription accuracy"
+#~ msgid "Add languages you speak to improve transcription accuracy"
+#~ msgstr "Add languages you speak to improve transcription accuracy"
+
+#: src/components/welcome-modal/language-selection-view.tsx:171
+msgid "Add languages you use during meetings to improve transcription accuracy"
+msgstr "Add languages you use during meetings to improve transcription accuracy"
 
 #: src/components/settings/views/team.tsx:94
 msgid "Add members"
@@ -1106,12 +1110,15 @@ msgstr "Recent Notes"
 msgid "Requesting..."
 msgstr "Requesting..."
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:138
 #: src/components/welcome-modal/audio-permissions-view.tsx:147
+msgid "Required for meeting transcription"
+msgstr "Required for meeting transcription"
+
 #: src/components/settings/views/sound.tsx:107
 msgid "Required to transcribe other people's voice during meetings"
 msgstr "Required to transcribe other people's voice during meetings"
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:138
 #: src/components/settings/views/sound.tsx:98
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"

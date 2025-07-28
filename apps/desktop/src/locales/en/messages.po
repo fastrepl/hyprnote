@@ -340,6 +340,10 @@ msgstr "Add specific terms or jargon for improved transcription accuracy"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:142
+msgid "After you grant system audio access, app will restart to apply the changes"
+msgstr "After you grant system audio access, app will restart to apply the changes"
+
 #: src/routes/app.settings.tsx:68
 msgid "AI"
 msgstr "AI"

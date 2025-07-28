@@ -344,7 +344,7 @@ msgstr ""
 msgid "After you grant system audio access, app will restart to apply the changes"
 msgstr ""
 
-#: src/routes/app.settings.tsx:67
+#: src/routes/app.settings.tsx:68
 msgid "AI"
 msgstr ""
 

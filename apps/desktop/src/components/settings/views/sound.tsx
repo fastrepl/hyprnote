@@ -6,6 +6,8 @@ import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
+import { message } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -70,22 +72,33 @@ export default function Sound() {
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    refetchInterval: 1000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    refetchInterval: 1000,
   });
 
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
-    onSuccess: () => micPermissionStatus.refetch(),
+    onSuccess: () => {
+      setTimeout(() => {
+        micPermissionStatus.refetch();
+      }, 3000);
+    },
     onError: console.error,
   });
 
   const capturePermission = useMutation({
     mutationFn: () => listenerCommands.requestSystemAudioAccess(),
-    onSuccess: () => systemAudioPermissionStatus.refetch(),
+    onSuccess: () => {
+      message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
+      setTimeout(() => {
+        relaunch();
+      }, 2000);
+    },
     onError: console.error,
   });
 

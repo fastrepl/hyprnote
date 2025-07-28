@@ -125,7 +125,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
       message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
       setTimeout(() => {
         relaunch();
-      }, 4000);
+      }, 2000);
     },
     onError: console.error,
   });
@@ -173,11 +173,6 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
       {!allPermissionsGranted && (
         <p className="text-xs text-muted-foreground text-center mt-4">
           <Trans>Grant both permissions to continue</Trans>
-        </p>
-      )}
-      {micPermission.isSuccess && !micPermissionStatus.data && (
-        <p className="text-xs text-amber-600 text-center mt-2">
-          <Trans>Permission granted! Detecting changes...</Trans>
         </p>
       )}
     </div>

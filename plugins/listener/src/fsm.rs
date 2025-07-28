@@ -578,7 +578,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .params(hypr_listener_interface::ListenParams {
             languages,
             static_prompt,
-            redemption_time_ms: if is_onboarding { 80 } else { 300 },
+            redemption_time_ms: if is_onboarding { 70 } else { 300 },
             ..Default::default()
         })
         .build_dual())

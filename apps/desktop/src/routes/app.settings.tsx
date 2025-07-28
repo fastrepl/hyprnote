@@ -72,6 +72,8 @@ function Component() {
         return t`Notifications`;
       case "templates":
         return t`Templates`;
+      case "sound":
+        return t`Sound`;
       case "integrations":
         return t`Integrations`;
       case "feedback":

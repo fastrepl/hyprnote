@@ -14,7 +14,7 @@ import { Particles } from "@hypr/ui/components/ui/particles";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { AudioPermissionsView } from "./audio-permissions-view";
-import { CalendarPermissionsView } from "./calendar-permissions-view";
+// import { CalendarPermissionsView } from "./calendar-permissions-view";
 import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
@@ -35,7 +35,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     | "download-progress"
     | "audio-permissions"
     | "language-selection"
-    | "calendar-permissions"
   >("welcome");
   const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
@@ -109,7 +108,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleLanguageSelectionContinue = async (languages: string[]) => {
-    // Save the selected languages to the database
     try {
       const config = await dbCommands.getConfig();
       await dbCommands.setConfig({
@@ -123,17 +121,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       console.error("Failed to save language preferences:", error);
     }
 
-    setCurrentStep("calendar-permissions");
-  };
-
-  const handleCalendarPermissionsContinue = () => {
     commands.setOnboardingNeeded(false);
     onClose();
   };
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      // start servers for mockup & tutorial
       localSttCommands.startServer();
       localLlmCommands.startServer();
 
@@ -193,11 +186,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           {currentStep === "language-selection" && (
             <LanguageSelectionView
               onContinue={handleLanguageSelectionContinue}
-            />
-          )}
-          {currentStep === "calendar-permissions" && (
-            <CalendarPermissionsView
-              onContinue={handleCalendarPermissionsContinue}
             />
           )}
         </div>

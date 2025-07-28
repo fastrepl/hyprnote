@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
+import { useState } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -16,6 +17,7 @@ interface PermissionItemProps {
   done: boolean | undefined;
   isPending: boolean;
   onRequest: () => void;
+  buttonText: string;
 }
 
 function PermissionItem({
@@ -25,6 +27,7 @@ function PermissionItem({
   done,
   isPending,
   onRequest,
+  buttonText,
 }: PermissionItemProps) {
   return (
     <div
@@ -58,7 +61,7 @@ function PermissionItem({
                   <Trans>Requesting...</Trans>
                 </>
               )
-              : <Trans>Enable</Trans>}
+              : <Trans>{buttonText}</Trans>}
           </Button>
         )}
       </div>
@@ -68,6 +71,8 @@ function PermissionItem({
 
 export default function Sound() {
   const { t } = useLingui();
+
+  const [micPermissionRequested, setMicPermissionRequested] = useState(false);
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
@@ -84,11 +89,15 @@ export default function Sound() {
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
     onSuccess: () => {
+      setMicPermissionRequested(true);
       setTimeout(() => {
         micPermissionStatus.refetch();
       }, 3000);
     },
-    onError: console.error,
+    onError: (error) => {
+      setMicPermissionRequested(true);
+      console.error(error);
+    },
   });
 
   const capturePermission = useMutation({
@@ -102,6 +111,14 @@ export default function Sound() {
     onError: console.error,
   });
 
+  const handleMicPermissionAction = () => {
+    if (micPermissionRequested && !micPermissionStatus.data) {
+      listenerCommands.openMicrophoneAccessSettings();
+    } else {
+      micPermission.mutate();
+    }
+  };
+
   return (
     <div>
       <div className="space-y-2">
@@ -111,7 +128,8 @@ export default function Sound() {
           description={t`Required to transcribe your voice during meetings`}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
-          onRequest={() => micPermission.mutate({})}
+          onRequest={handleMicPermissionAction}
+          buttonText={micPermissionRequested && !micPermissionStatus.data ? "Open Settings" : "Enable"}
         />
 
         <PermissionItem
@@ -121,6 +139,7 @@ export default function Sound() {
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}
+          buttonText="Enable"
         />
       </div>
     </div>

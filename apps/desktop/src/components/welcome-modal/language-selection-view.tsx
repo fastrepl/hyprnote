@@ -177,7 +177,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
         className="w-full max-w-sm"
         disabled={selectedLanguages.length === 0}
       >
-        <Trans>Continue</Trans>
+        <Trans>Finish Onboarding</Trans>
       </PushableButton>
     </div>
   );

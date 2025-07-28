@@ -9,6 +9,7 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
 import { message } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { useState } from "react";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -18,6 +19,7 @@ interface PermissionItemProps {
   isPending: boolean;
   onRequest: () => void;
   showSystemSettings?: boolean;
+  buttonText: string;
 }
 
 function PermissionItem({
@@ -28,6 +30,7 @@ function PermissionItem({
   isPending,
   onRequest,
   showSystemSettings = false,
+  buttonText,
 }: PermissionItemProps) {
   return (
     <div
@@ -76,7 +79,7 @@ function PermissionItem({
                     <Trans>Requesting...</Trans>
                   </>
                 )
-                : <Trans>Enable</Trans>}
+                : <Trans>{buttonText}</Trans>}
             </Button>
           </>
         )}
@@ -97,6 +100,8 @@ interface AudioPermissionsViewProps {
 export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) {
   const { t } = useLingui();
 
+  const [micPermissionRequested, setMicPermissionRequested] = useState(false);
+
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
@@ -112,11 +117,15 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
     onSuccess: () => {
+      setMicPermissionRequested(true);
       setTimeout(() => {
         micPermissionStatus.refetch();
       }, 3000);
     },
-    onError: console.error,
+    onError: (error) => {
+      setMicPermissionRequested(true);
+      console.error(error);
+    },
   });
 
   const capturePermission = useMutation({
@@ -129,6 +138,14 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
     },
     onError: console.error,
   });
+
+  const handleMicPermissionAction = () => {
+    if (micPermissionRequested && !micPermissionStatus.data) {
+      listenerCommands.openMicrophoneAccessSettings();
+    } else {
+      micPermission.mutate();
+    }
+  };
 
   const allPermissionsGranted = micPermissionStatus.data && systemAudioPermissionStatus.data;
 
@@ -149,7 +166,8 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
           description={t`Required for meeting transcription`}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
-          onRequest={() => micPermission.mutate({})}
+          onRequest={handleMicPermissionAction}
+          buttonText={micPermissionRequested && !micPermissionStatus.data ? "Open Settings" : "Enable"}
         />
 
         <PermissionItem
@@ -159,6 +177,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}
+          buttonText="Enable"
         />
       </div>
 

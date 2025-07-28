@@ -17,6 +17,8 @@ export function useLicense() {
       return null;
     },
     refetchInterval: 1000 * 60 * 5,
+    // This is important for immediate refresh
+    refetchIntervalInBackground: true,
   });
 
   const refreshLicense = useMutation({
@@ -70,8 +72,8 @@ export function useLicense() {
       return license;
     },
     onError: console.error,
-    onSuccess: (license) => {
-      queryClient.setQueryData(LICENSE_QUERY_KEY, license);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LICENSE_QUERY_KEY });
     },
   });
 
@@ -84,8 +86,8 @@ export function useLicense() {
       return null;
     },
     onError: console.error,
-    onSuccess: (license) => {
-      queryClient.setQueryData(LICENSE_QUERY_KEY, license);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LICENSE_QUERY_KEY });
     },
   });
 

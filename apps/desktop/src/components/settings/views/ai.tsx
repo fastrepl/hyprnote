@@ -13,7 +13,6 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
   FormControl,
@@ -37,18 +36,39 @@ import {
   STTModel,
   SharedSTTProps,
   SharedLLMProps,
-  SharedCustomEndpointProps 
+  SharedCustomEndpointProps,
+  OpenAIFormValues,
+  GeminiFormValues,
+  CustomFormValues
 } from "../components/ai/shared";
 
-const endpointSchema = z.object({
-  model: z.string().min(1),
+// Schema for OpenAI form
+const openaiSchema = z.object({
+  api_key: z.string().min(1, { message: "API key is required" }).refine(
+    (value) => value.startsWith("sk-"),
+    { message: "OpenAI API key should start with 'sk-'" }
+  ),
+  model: z.string().min(1, { message: "Model is required" }),
+});
+
+// Schema for Gemini form
+const geminiSchema = z.object({
+  api_key: z.string().min(1, { message: "API key is required" }).refine(
+    (value) => value.startsWith("AIza"),
+    { message: "Gemini API key should start with 'AIza'" }
+  ),
+  model: z.string().min(1, { message: "Model is required" }),
+});
+
+// Schema for Custom endpoint form
+const customSchema = z.object({
+  model: z.string().min(1, { message: "Model is required" }),
   api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
     (value) => {
       const v1Needed = ["openai", "openrouter"].some((host) => value.includes(host));
       if (v1Needed && !value.endsWith("/v1")) {
         return false;
       }
-
       return true;
     },
     { message: "Should end with '/v1'" },
@@ -58,7 +78,6 @@ const endpointSchema = z.object({
   ),
   api_key: z.string().optional(),
 });
-type FormValues = z.infer<typeof endpointSchema>;
 
 const initialSttModels: STTModel[] = [
   {
@@ -215,10 +234,6 @@ export default function LocalAI() {
 
   // Custom Endpoint State
   const [openAccordion, setOpenAccordion] = useState<'custom' | 'openai' | 'gemini' | null>(null);
-  const [openaiApiKey, setOpenaiApiKeyState] = useState("");
-  const [selectedOpenaiModel, setSelectedOpenaiModel] = useState("");
-  const [geminiApiKey, setGeminiApiKeyState] = useState("");
-  const [selectedGeminiModel, setSelectedGeminiModel] = useState("");
 
   const { userId } = useHypr();
 
@@ -390,31 +405,72 @@ export default function LocalAI() {
     });
   };
 
-  // Set API keys from queries
+  // Create form instances for each provider
+  const openaiForm = useForm<OpenAIFormValues>({
+    resolver: zodResolver(openaiSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const geminiForm = useForm<GeminiFormValues>({
+    resolver: zodResolver(geminiSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const customForm = useForm<CustomFormValues>({
+    resolver: zodResolver(customSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_base: "",
+      api_key: "",
+      model: "",
+    },
+  });
+
+  // Set form values from stored data
   useEffect(() => {
     if (openaiApiKeyQuery.data) {
-      setOpenaiApiKeyState(openaiApiKeyQuery.data);
+      openaiForm.setValue("api_key", openaiApiKeyQuery.data);
     }
-  }, [openaiApiKeyQuery.data]);
+  }, [openaiApiKeyQuery.data, openaiForm]);
 
   useEffect(() => {
     if (geminiApiKeyQuery.data) {
-      setGeminiApiKeyState(geminiApiKeyQuery.data);
+      geminiForm.setValue("api_key", geminiApiKeyQuery.data);
     }
-  }, [geminiApiKeyQuery.data]);
+  }, [geminiApiKeyQuery.data, geminiForm]);
 
-  // Set selected models from stored model
+  useEffect(() => {
+    if (customLLMConnection.data) {
+      customForm.reset({
+        model: getCustomLLMModel.data || "",
+        api_base: customLLMConnection.data.api_base,
+        api_key: customLLMConnection.data.api_key || "",
+      });
+    } else {
+      customForm.reset({ model: "", api_base: "", api_key: "" });
+    }
+  }, [getCustomLLMModel.data, customLLMConnection.data, customForm]);
+
+  // Set selected models from stored model for OpenAI and Gemini
   useEffect(() => {
     if (getCustomLLMModel.data && openAccordion === 'openai') {
-      setSelectedOpenaiModel(getCustomLLMModel.data);
+      openaiForm.setValue("model", getCustomLLMModel.data);
     }
-  }, [getCustomLLMModel.data, openAccordion]);
+  }, [getCustomLLMModel.data, openAccordion, openaiForm]);
 
   useEffect(() => {
     if (getCustomLLMModel.data && openAccordion === 'gemini') {
-      setSelectedGeminiModel(getCustomLLMModel.data);
+      geminiForm.setValue("model", getCustomLLMModel.data);
     }
-  }, [getCustomLLMModel.data, openAccordion]);
+  }, [getCustomLLMModel.data, openAccordion, geminiForm]);
 
   // AI Configuration
   const config = useQuery({
@@ -460,44 +516,8 @@ export default function LocalAI() {
     onError: console.error,
   });
 
-  // Form for custom endpoint
-  const form = useForm<FormValues>({
-    resolver: zodResolver(endpointSchema),
-    mode: "onChange",
-  });
-
-  useEffect(() => {
-    if (customLLMConnection.data) {
-      form.reset({
-        model: getCustomLLMModel.data || "",
-        api_base: customLLMConnection.data.api_base,
-        api_key: customLLMConnection.data.api_key || "",
-      });
-    } else {
-      form.reset({ model: "", api_base: "", api_key: "" });
-    }
-  }, [getCustomLLMModel.data, customLLMConnection.data, form.reset]);
-
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      // Use the new centralized function for custom endpoint configuration
-      if (value.api_base && value.model && 
-          !form.formState.errors.model && 
-          !form.formState.errors.api_base) {
-        configureCustomEndpoint({
-          provider: 'custom',
-          api_base: value.api_base,
-          api_key: value.api_key,
-          model: value.model,
-        });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [form]);
-
   const isLocalEndpoint = (): boolean => {
-    const apiBase = form.watch("api_base");
+    const apiBase = customForm.watch("api_base");
     return Boolean(apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1")));
   };
 
@@ -528,20 +548,14 @@ export default function LocalAI() {
   const customEndpointProps: SharedCustomEndpointProps = {
     ...localLlmProps,
     configureCustomEndpoint,
-    openaiApiKey,
-    setOpenaiApiKeyState,
-    selectedOpenaiModel,
-    setSelectedOpenaiModel,
-    geminiApiKey,
-    setGeminiApiKeyState,
-    selectedGeminiModel,
-    setSelectedGeminiModel,
     openAccordion,
     setOpenAccordion,
     customLLMConnection,
     getCustomLLMModel,
     availableLLMModels,
-    form,
+    openaiForm,
+    geminiForm,
+    customForm,
     isLocalEndpoint,
   };
 

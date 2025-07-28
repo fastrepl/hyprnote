@@ -2,6 +2,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import { SupportedModel } from "@hypr/plugin-local-llm";
 import { Connection } from "@hypr/plugin-connector";
+import { UseFormReturn } from "react-hook-form";
 
 export const RatingDisplay = (
   { label, rating, maxRating = 3, icon: Icon }: {
@@ -67,6 +68,23 @@ export type ConfigureEndpointConfig = {
   model: string;
 };
 
+// Form types for each provider
+export type OpenAIFormValues = {
+  api_key: string;
+  model: string;
+};
+
+export type GeminiFormValues = {
+  api_key: string;
+  model: string;
+};
+
+export type CustomFormValues = {
+  api_base: string;
+  api_key?: string;
+  model: string;
+};
+
 export interface SharedSTTProps {
   selectedSTTModel: string;
   setSelectedSTTModel: (model: string) => void;
@@ -99,18 +117,6 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   // Custom Endpoint Configuration
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
   
-  // OpenAI State
-  openaiApiKey: string;
-  setOpenaiApiKeyState: (key: string) => void;
-  selectedOpenaiModel: string;
-  setSelectedOpenaiModel: (model: string) => void;
-  
-  // Gemini State
-  geminiApiKey: string;
-  setGeminiApiKeyState: (key: string) => void;
-  selectedGeminiModel: string;
-  setSelectedGeminiModel: (model: string) => void;
-  
   // Accordion State
   openAccordion: 'custom' | 'openai' | 'gemini' | null;
   setOpenAccordion: (accordion: 'custom' | 'openai' | 'gemini' | null) => void;
@@ -120,7 +126,11 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   getCustomLLMModel: UseQueryResult<string | null>;
   availableLLMModels: UseQueryResult<string[]>;
   
-  // Form
-  form: any; // The react-hook-form form instance
+  // Form instances for each provider
+  openaiForm: UseFormReturn<OpenAIFormValues>;
+  geminiForm: UseFormReturn<GeminiFormValues>;
+  customForm: UseFormReturn<CustomFormValues>;
+  
+  // Helper functions
   isLocalEndpoint: () => boolean;
 }

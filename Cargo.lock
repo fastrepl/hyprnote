@@ -14022,6 +14022,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-db",
+ "tauri-plugin-shell",
  "tauri-specta",
  "thiserror 2.0.12",
  "tokio",

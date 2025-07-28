@@ -2,12 +2,16 @@ use std::future::Future;
 
 pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
     fn open_calendar(&self) -> Result<(), String>;
+
     fn open_calendar_access_settings(&self) -> Result<(), String>;
     fn open_contacts_access_settings(&self) -> Result<(), String>;
+
     fn calendar_access_status(&self) -> bool;
     fn contacts_access_status(&self) -> bool;
+
     fn request_calendar_access(&self);
     fn request_contacts_access(&self);
+
     fn start_worker(&self, user_id: impl Into<String>) -> impl Future<Output = Result<(), String>>;
     fn stop_worker(&self);
     fn sync_calendars(&self) -> impl Future<Output = Result<(), crate::Error>>;
@@ -76,12 +80,38 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn request_calendar_access(&self) {
+        #[cfg(target_os = "macos")]
+        {
+            use tauri_plugin_shell::ShellExt;
+
+            let bundle_id = self.config().identifier.clone();
+            self.app_handle()
+                .shell()
+                .command("tccutil")
+                .args(["reset", "Calendar", &bundle_id])
+                .spawn()
+                .ok();
+        }
+
         let mut handle = hypr_calendar_apple::Handle::new();
         handle.request_calendar_access();
     }
 
     #[tracing::instrument(skip_all)]
     fn request_contacts_access(&self) {
+        #[cfg(target_os = "macos")]
+        {
+            use tauri_plugin_shell::ShellExt;
+
+            let bundle_id = self.config().identifier.clone();
+            self.app_handle()
+                .shell()
+                .command("tccutil")
+                .args(["reset", "AddressBook", &bundle_id])
+                .spawn()
+                .ok();
+        }
+
         let mut handle = hypr_calendar_apple::Handle::new();
         handle.request_contacts_access();
     }

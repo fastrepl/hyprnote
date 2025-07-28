@@ -87,7 +87,6 @@ function Component() {
                         <WelcomeModal
                           isOpen={shouldShowWelcomeModal}
                           onClose={() => {
-                            commands.setOnboardingNeeded(false);
                             setOnboardingCompletedThisSession(true);
 
                             // Navigate to thank you session if it exists
@@ -114,7 +113,6 @@ function Component() {
           </OngoingSessionProvider>
         </SessionsProvider>
       </LicenseRefreshProvider>
-
       {showNotifications && <Notifications />}
     </>
   );

@@ -7,6 +7,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
+import { message } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -98,24 +100,33 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
-    refetchInterval: 3000,
+    refetchInterval: 1000,
   });
 
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
-    onSuccess: () => micPermissionStatus.refetch(),
+    onSuccess: () => {
+      setTimeout(() => {
+        micPermissionStatus.refetch();
+      }, 3000);
+    },
     onError: console.error,
   });
 
   const capturePermission = useMutation({
     mutationFn: () => listenerCommands.requestSystemAudioAccess(),
-    onSuccess: () => systemAudioPermissionStatus.refetch(),
+    onSuccess: () => {
+      message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
+      setTimeout(() => {
+        relaunch();
+      }, 4000);
+    },
     onError: console.error,
   });
 
@@ -128,7 +139,7 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
       </h2>
 
       <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>Grant access to audio so Hyprnote can transcribe your meetings</Trans>
+        <Trans>After you grant system audio access, app will restart to apply the changes</Trans>
       </p>
 
       <div className="w-full max-w-[30rem] space-y-3 mb-8">
@@ -162,6 +173,11 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
       {!allPermissionsGranted && (
         <p className="text-xs text-muted-foreground text-center mt-4">
           <Trans>Grant both permissions to continue</Trans>
+        </p>
+      )}
+      {micPermission.isSuccess && !micPermissionStatus.data && (
+        <p className="text-xs text-amber-600 text-center mt-2">
+          <Trans>Permission granted! Detecting changes...</Trans>
         </p>
       )}
     </div>

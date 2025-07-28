@@ -306,7 +306,7 @@ msgid "Access granted"
 msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:50
-#: src/components/welcome-modal/audio-permissions-view.tsx:53
+#: src/components/welcome-modal/audio-permissions-view.tsx:55
 #: src/components/settings/views/sound.tsx:39
 msgid "Access Granted"
 msgstr ""
@@ -340,7 +340,11 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: src/routes/app.settings.tsx:68
+#: src/components/welcome-modal/audio-permissions-view.tsx:142
+msgid "After you grant system audio access, app will restart to apply the changes"
+msgstr ""
+
+#: src/routes/app.settings.tsx:67
 msgid "AI"
 msgstr ""
 
@@ -395,7 +399,7 @@ msgstr ""
 #~ msgid "Assistant:"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:127
+#: src/components/welcome-modal/audio-permissions-view.tsx:138
 msgid "Audio Permissions"
 msgstr ""
 
@@ -548,7 +552,7 @@ msgstr ""
 #: src/components/welcome-modal/language-selection-view.tsx:180
 #: src/components/welcome-modal/download-progress-view.tsx:248
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
-#: src/components/welcome-modal/audio-permissions-view.tsx:159
+#: src/components/welcome-modal/audio-permissions-view.tsx:170
 msgid "Continue"
 msgstr ""
 
@@ -669,7 +673,7 @@ msgid "Emoji"
 msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:65
-#: src/components/welcome-modal/audio-permissions-view.tsx:77
+#: src/components/welcome-modal/audio-permissions-view.tsx:79
 #: src/components/settings/views/sound.tsx:59
 msgid "Enable"
 msgstr ""
@@ -772,11 +776,11 @@ msgstr ""
 msgid "Grant Access"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:131
-msgid "Grant access to audio so Hyprnote can transcribe your meetings"
-msgstr ""
+#: src/components/welcome-modal/audio-permissions-view.tsx:141
+#~ msgid "Grant access to audio so Hyprnote can transcribe your meetings"
+#~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:164
+#: src/components/welcome-modal/audio-permissions-view.tsx:175
 msgid "Grant both permissions to continue"
 msgstr ""
 
@@ -913,7 +917,7 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:137
+#: src/components/welcome-modal/audio-permissions-view.tsx:148
 #: src/components/settings/views/sound.tsx:97
 msgid "Microphone Access"
 msgstr ""
@@ -1067,6 +1071,10 @@ msgstr ""
 msgid "Performance difference between languages"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:180
+msgid "Permission granted! Detecting changes..."
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:208
 #~ msgid "Play video"
 #~ msgstr ""
@@ -1107,13 +1115,13 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:74
+#: src/components/welcome-modal/audio-permissions-view.tsx:76
 #: src/components/settings/views/sound.tsx:56
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:138
-#: src/components/welcome-modal/audio-permissions-view.tsx:147
+#: src/components/welcome-modal/audio-permissions-view.tsx:149
+#: src/components/welcome-modal/audio-permissions-view.tsx:158
 msgid "Required for meeting transcription"
 msgstr ""
 
@@ -1263,7 +1271,7 @@ msgstr ""
 #~ msgid "Synchronization across multiple devices"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:146
+#: src/components/welcome-modal/audio-permissions-view.tsx:157
 #: src/components/settings/views/sound.tsx:106
 msgid "System Audio Access"
 msgstr ""

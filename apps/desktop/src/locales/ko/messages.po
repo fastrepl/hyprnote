@@ -272,6 +272,11 @@ msgstr ""
 msgid "{0} calendars selected"
 msgstr ""
 
+#: src/components/welcome-modal/audio-permissions-view.tsx:82
+#: src/components/settings/views/sound.tsx:64
+msgid "{buttonText}"
+msgstr ""
+
 #: src/components/settings/components/wer-modal.tsx:103
 msgid "{category}"
 msgstr ""
@@ -306,8 +311,8 @@ msgid "Access granted"
 msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:50
-#: src/components/welcome-modal/audio-permissions-view.tsx:55
-#: src/components/settings/views/sound.tsx:41
+#: src/components/welcome-modal/audio-permissions-view.tsx:58
+#: src/components/settings/views/sound.tsx:44
 msgid "Access Granted"
 msgstr ""
 
@@ -340,7 +345,7 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:142
+#: src/components/welcome-modal/audio-permissions-view.tsx:159
 msgid "After you grant system audio access, app will restart to apply the changes"
 msgstr ""
 
@@ -399,7 +404,7 @@ msgstr ""
 #~ msgid "Assistant:"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:138
+#: src/components/welcome-modal/audio-permissions-view.tsx:155
 msgid "Audio Permissions"
 msgstr ""
 
@@ -549,10 +554,9 @@ msgid "Contacts Access"
 msgstr ""
 
 #: src/components/welcome-modal/model-selection-view.tsx:137
-#: src/components/welcome-modal/language-selection-view.tsx:180
 #: src/components/welcome-modal/download-progress-view.tsx:248
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
-#: src/components/welcome-modal/audio-permissions-view.tsx:170
+#: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
 msgstr ""
 
@@ -673,8 +677,6 @@ msgid "Emoji"
 msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:65
-#: src/components/welcome-modal/audio-permissions-view.tsx:79
-#: src/components/settings/views/sound.tsx:61
 msgid "Enable"
 msgstr ""
 
@@ -726,9 +728,13 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:78
-#: src/routes/app.settings.tsx:113
+#: src/routes/app.settings.tsx:80
+#: src/routes/app.settings.tsx:115
 msgid "Feedback"
+msgstr ""
+
+#: src/components/welcome-modal/language-selection-view.tsx:180
+msgid "Finish Onboarding"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:47
@@ -780,7 +786,7 @@ msgstr ""
 #~ msgid "Grant access to audio so Hyprnote can transcribe your meetings"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:175
+#: src/components/welcome-modal/audio-permissions-view.tsx:194
 msgid "Grant both permissions to continue"
 msgstr ""
 
@@ -819,7 +825,7 @@ msgstr ""
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:76
+#: src/routes/app.settings.tsx:78
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr ""
@@ -864,7 +870,7 @@ msgstr ""
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:80
+#: src/routes/app.settings.tsx:82
 msgid "License"
 msgstr ""
 
@@ -917,8 +923,8 @@ msgstr ""
 msgid "Members"
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:148
-#: src/components/settings/views/sound.tsx:110
+#: src/components/welcome-modal/audio-permissions-view.tsx:165
+#: src/components/settings/views/sound.tsx:127
 msgid "Microphone Access"
 msgstr ""
 
@@ -1115,21 +1121,21 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:76
-#: src/components/settings/views/sound.tsx:58
+#: src/components/welcome-modal/audio-permissions-view.tsx:79
+#: src/components/settings/views/sound.tsx:61
 msgid "Requesting..."
 msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:149
-#: src/components/welcome-modal/audio-permissions-view.tsx:158
+#: src/components/welcome-modal/audio-permissions-view.tsx:166
+#: src/components/welcome-modal/audio-permissions-view.tsx:176
 msgid "Required for meeting transcription"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:120
+#: src/components/settings/views/sound.tsx:138
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:111
+#: src/components/settings/views/sound.tsx:128
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
@@ -1235,9 +1241,9 @@ msgstr ""
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 
-#: src/routes/app.settings.tsx:116
-#~ msgid "Sound"
-#~ msgstr ""
+#: src/routes/app.settings.tsx:76
+msgid "Sound"
+msgstr ""
 
 #: src/components/settings/views/general.tsx:265
 msgid "Spoken languages"
@@ -1271,8 +1277,8 @@ msgstr ""
 #~ msgid "Synchronization across multiple devices"
 #~ msgstr ""
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:157
-#: src/components/settings/views/sound.tsx:119
+#: src/components/welcome-modal/audio-permissions-view.tsx:175
+#: src/components/settings/views/sound.tsx:137
 msgid "System Audio Access"
 msgstr ""
 

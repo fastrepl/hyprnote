@@ -13,6 +13,14 @@ const COMMANDS: &[&str] = &[
     "set_openai_api_key",
     "get_gemini_api_key",
     "set_gemini_api_key",
+    "get_provider_source",
+    "set_provider_source",
+    "get_others_api_key",
+    "set_others_api_key",
+    "get_others_api_base",
+    "set_others_api_base",
+    "get_others_model",
+    "set_others_model",
 ];
 
 fn main() {

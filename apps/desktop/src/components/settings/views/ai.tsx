@@ -233,7 +233,7 @@ export default function LocalAI() {
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
 
   // Custom Endpoint State
-  const [openAccordion, setOpenAccordion] = useState<'custom' | 'openai' | 'gemini' | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<'others' | 'openai' | 'gemini' | null>(null);
 
   const { userId } = useHypr();
 
@@ -380,6 +380,106 @@ export default function LocalAI() {
     },
   });
 
+  // NEW: Others provider queries/mutations
+  const othersApiBaseQuery = useQuery({
+    queryKey: ["others-api-base"],
+    queryFn: () => connectorCommands.getOthersApiBase(),
+  });
+
+  const othersApiKeyQuery = useQuery({
+    queryKey: ["others-api-key"], 
+    queryFn: () => connectorCommands.getOthersApiKey(),
+  });
+
+  const othersModelQuery = useQuery({
+    queryKey: ["others-model"],
+    queryFn: () => connectorCommands.getOthersModel(),
+  });
+
+  const providerSourceQuery = useQuery({
+    queryKey: ["provider-source"],
+    queryFn: () => connectorCommands.getProviderSource(),
+  });
+
+  const setOthersApiBaseMutation = useMutation({
+    mutationFn: (apiBase: string) => connectorCommands.setOthersApiBase(apiBase),
+    onSuccess: () => {
+      othersApiBaseQuery.refetch();
+    },
+  });
+
+  const setOthersApiKeyMutation = useMutation({
+    mutationFn: (apiKey: string) => connectorCommands.setOthersApiKey(apiKey),
+    onSuccess: () => {
+      othersApiKeyQuery.refetch();
+    },
+  });
+
+  const setOthersModelMutation = useMutation({
+    mutationFn: (model: string) => connectorCommands.setOthersModel(model),
+    onSuccess: () => {
+      othersModelQuery.refetch();
+    },
+  });
+
+  const setProviderSourceMutation = useMutation({
+    mutationFn: (source: string) => connectorCommands.setProviderSource(source),
+    onSuccess: () => {
+      providerSourceQuery.refetch();
+    },
+  });
+
+  // MIGRATION LOGIC - Run once on component mount
+  useEffect(() => {
+    const handleMigration = async () => {
+      // Skip if no store exists at all
+      if (!customLLMConnection.data && !customLLMEnabled.data) {
+        return;
+      }
+
+      // Check if migration needed (no providerSource exists)
+      if (!providerSourceQuery.data && customLLMConnection.data) {
+        console.log("Migrating existing user to new provider system...");
+        
+        try {
+          // Copy existing custom* fields to others* fields
+          if (customLLMConnection.data.api_base) {
+            await setOthersApiBaseMutation.mutateAsync(customLLMConnection.data.api_base);
+          }
+          if (customLLMConnection.data.api_key) {
+            await setOthersApiKeyMutation.mutateAsync(customLLMConnection.data.api_key);
+          }
+          if (getCustomLLMModel.data) {
+            await setOthersModelMutation.mutateAsync(getCustomLLMModel.data);
+          }
+          
+          // Set provider source to 'others'
+          await setProviderSourceMutation.mutateAsync('others');
+          
+          console.log("Migration completed successfully");
+        } catch (error) {
+          console.error("Migration failed:", error);
+        }
+      }
+    };
+
+    // Run migration when all queries have loaded
+    if (providerSourceQuery.data !== undefined && customLLMConnection.data !== undefined && getCustomLLMModel.data !== undefined) {
+      handleMigration();
+    }
+  }, [providerSourceQuery.data, customLLMConnection.data, getCustomLLMModel.data]);
+
+  // ACCORDION DISPLAY - Based on providerSource, not URL
+  useEffect(() => {
+    if (providerSourceQuery.data) {
+      setOpenAccordion(providerSourceQuery.data as 'openai' | 'gemini' | 'others');
+    } else if (customLLMEnabled.data) {
+      setOpenAccordion('others'); // Fallback during migration
+    } else {
+      setOpenAccordion(null);
+    }
+  }, [providerSourceQuery.data, customLLMEnabled.data, setOpenAccordion]);
+
   // CRITICAL: Centralized function to configure custom endpoint
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
     const finalApiBase = 
@@ -390,14 +490,25 @@ export default function LocalAI() {
     // Enable custom LLM
     setCustomLLMEnabledMutation.mutate(true);
     
-    // Store provider-specific API keys
+    // Store in provider-specific storage
     if (config.provider === 'openai' && config.api_key) {
       setOpenaiApiKeyMutation.mutate(config.api_key);
+      // TODO: setOpenaiModelMutation.mutate(config.model);
     } else if (config.provider === 'gemini' && config.api_key) {
       setGeminiApiKeyMutation.mutate(config.api_key);
+      // TODO: setGeminiModelMutation.mutate(config.model);
+    } else if (config.provider === 'others') {
+      setOthersApiBaseMutation.mutate(config.api_base);
+      if (config.api_key) {
+        setOthersApiKeyMutation.mutate(config.api_key);
+      }
+      setOthersModelMutation.mutate(config.model);
     }
     
-    // Set the model and connection
+    // Set provider source
+    setProviderSourceMutation.mutate(config.provider);
+    
+    // Set as currently active (custom* fields)
     setCustomLLMModel.mutate(config.model);
     setCustomLLMConnection.mutate({
       api_base: finalApiBase,
@@ -439,25 +550,24 @@ export default function LocalAI() {
     if (openaiApiKeyQuery.data) {
       openaiForm.setValue("api_key", openaiApiKeyQuery.data);
     }
+    // TODO: Set OpenAI model when implemented
   }, [openaiApiKeyQuery.data, openaiForm]);
 
   useEffect(() => {
     if (geminiApiKeyQuery.data) {
       geminiForm.setValue("api_key", geminiApiKeyQuery.data);
     }
+    // TODO: Set Gemini model when implemented  
   }, [geminiApiKeyQuery.data, geminiForm]);
 
   useEffect(() => {
-    if (customLLMConnection.data) {
-      customForm.reset({
-        model: getCustomLLMModel.data || "",
-        api_base: customLLMConnection.data.api_base,
-        api_key: customLLMConnection.data.api_key || "",
-      });
-    } else {
-      customForm.reset({ model: "", api_base: "", api_key: "" });
-    }
-  }, [getCustomLLMModel.data, customLLMConnection.data, customForm]);
+    // Others form gets populated from Others-specific storage
+    customForm.reset({
+      api_base: othersApiBaseQuery.data || "",
+      api_key: othersApiKeyQuery.data || "",
+      model: othersModelQuery.data || "",
+    });
+  }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
 
   // Set selected models from stored model for OpenAI and Gemini
   useEffect(() => {

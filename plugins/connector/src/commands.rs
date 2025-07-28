@@ -138,4 +138,95 @@ pub async fn set_gemini_api_key<R: tauri::Runtime>(
 }
 
 
+#[tauri::command]
+#[specta::specta]
+pub async fn get_provider_source<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::ProviderSource)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
 
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_provider_source<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    source: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::ProviderSource, source)
+        .map_err(|e| e.to_string())
+} 
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_others_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::OthersApiKey)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_others_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_key: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::OthersApiKey, api_key)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_others_api_base<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::OthersApiBase)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_others_api_base<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_base: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::OthersApiBase, api_base)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_others_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::OthersModel)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_others_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::OthersModel, model)
+        .map_err(|e| e.to_string())
+}

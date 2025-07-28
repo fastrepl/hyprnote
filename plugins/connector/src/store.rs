@@ -11,6 +11,10 @@ pub enum StoreKey {
     OpenaiApiKey,
     OpenrouterApiKey,
     GeminiApiKey,
+    ProviderSource, 
+    OthersApiKey, 
+    OthersApiBase, 
+    OthersModel,
 }
 
 impl ScopedStoreKey for StoreKey {}

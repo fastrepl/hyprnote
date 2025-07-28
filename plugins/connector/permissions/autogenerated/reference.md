@@ -18,6 +18,14 @@ Default permissions for the plugin
 - `allow-set-openai-api-key`
 - `allow-get-gemini-api-key`
 - `allow-set-gemini-api-key`
+- `allow-get-provider-source`
+- `allow-set-provider-source`
+- `allow-set-others-api-base`
+- `allow-get-others-api-base`
+- `allow-set-others-api-key`
+- `allow-get-others-api-key`
+- `allow-set-others-model`
+- `allow-get-others-model`
 
 ## Permission Table
 
@@ -213,6 +221,110 @@ Denies the get_openai_api_key command without any pre-configured scope.
 <tr>
 <td>
 
+`connector:allow-get-others-api-base`
+
+</td>
+<td>
+
+Enables the get_others_api_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-others-api-base`
+
+</td>
+<td>
+
+Denies the get_others_api_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-others-api-key`
+
+</td>
+<td>
+
+Enables the get_others_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-others-api-key`
+
+</td>
+<td>
+
+Denies the get_others_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-others-model`
+
+</td>
+<td>
+
+Enables the get_others_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-others-model`
+
+</td>
+<td>
+
+Denies the get_others_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-provider-source`
+
+</td>
+<td>
+
+Enables the get_provider_source command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-provider-source`
+
+</td>
+<td>
+
+Denies the get_provider_source command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `connector:allow-get-stt-connection`
 
 </td>
@@ -388,6 +500,110 @@ Enables the set_openai_api_key command without any pre-configured scope.
 <td>
 
 Denies the set_openai_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-others-api-base`
+
+</td>
+<td>
+
+Enables the set_others_api_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-others-api-base`
+
+</td>
+<td>
+
+Denies the set_others_api_base command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-others-api-key`
+
+</td>
+<td>
+
+Enables the set_others_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-others-api-key`
+
+</td>
+<td>
+
+Denies the set_others_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-others-model`
+
+</td>
+<td>
+
+Enables the set_others_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-others-model`
+
+</td>
+<td>
+
+Denies the set_others_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-provider-source`
+
+</td>
+<td>
+
+Enables the set_provider_source command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-provider-source`
+
+</td>
+<td>
+
+Denies the set_provider_source command without any pre-configured scope.
 
 </td>
 </tr>

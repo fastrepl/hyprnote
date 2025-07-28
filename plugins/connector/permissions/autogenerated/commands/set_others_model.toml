@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-others-model"
+description = "Enables the set_others_model command without any pre-configured scope."
+commands.allow = ["set_others_model"]
+
+[[permission]]
+identifier = "deny-set-others-model"
+description = "Denies the set_others_model command without any pre-configured scope."
+commands.deny = ["set_others_model"]

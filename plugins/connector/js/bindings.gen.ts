@@ -48,6 +48,30 @@ async getGeminiApiKey() : Promise<string> {
 },
 async setGeminiApiKey(apiKey: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:connector|set_gemini_api_key", { apiKey });
+},
+async getProviderSource() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_provider_source");
+},
+async setProviderSource(source: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_provider_source", { source });
+},
+async getOthersApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_api_key");
+},
+async setOthersApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_api_key", { apiKey });
+},
+async getOthersApiBase() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_api_base");
+},
+async setOthersApiBase(apiBase: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_api_base", { apiBase });
+},
+async getOthersModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_model");
+},
+async setOthersModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_model", { model });
 }
 }
 

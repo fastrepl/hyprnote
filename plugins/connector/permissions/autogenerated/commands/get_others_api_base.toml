@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-others-api-base"
+description = "Enables the get_others_api_base command without any pre-configured scope."
+commands.allow = ["get_others_api_base"]
+
+[[permission]]
+identifier = "deny-get-others-api-base"
+description = "Denies the get_others_api_base command without any pre-configured scope."
+commands.deny = ["get_others_api_base"]

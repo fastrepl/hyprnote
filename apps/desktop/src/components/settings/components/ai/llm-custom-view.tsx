@@ -46,23 +46,24 @@ export function LLMCustomView({
   isLocalEndpoint,
 }: SharedCustomEndpointProps) {
   // Provider detection based on stored connection
-  useEffect(() => {
-    if (customLLMConnection.data?.api_base) {
-      const apiBase = customLLMConnection.data.api_base;
-      const isOpenai = apiBase.includes('openai.com');
-      const isGemini = apiBase.includes('googleapis.com');
-      
-      setOpenAccordion(
-        isOpenai ? 'openai' : 
-        isGemini ? 'gemini' : 
-        'custom'
-      );
-    } else if (customLLMEnabled.data) {
-      setOpenAccordion('custom'); // Default to custom if enabled but no connection
-    } else {
-      setOpenAccordion(null);
-    }
-  }, [customLLMConnection.data, customLLMEnabled.data, setOpenAccordion]);
+  // NOTE: This logic is now handled in ai.tsx using providerSource
+  // useEffect(() => {
+  //   if (customLLMConnection.data?.api_base) {
+  //     const apiBase = customLLMConnection.data.api_base;
+  //     const isOpenai = apiBase.includes('openai.com');
+  //     const isGemini = apiBase.includes('googleapis.com');
+  //     
+  //     setOpenAccordion(
+  //       isOpenai ? 'openai' : 
+  //       isGemini ? 'gemini' : 
+  //       'others'
+  //     );
+  //   } else if (customLLMEnabled.data) {
+  //     setOpenAccordion('others'); // Default to others if enabled but no connection
+  //   } else {
+  //     setOpenAccordion(null);
+  //   }
+  // }, [customLLMConnection.data, customLLMEnabled.data, setOpenAccordion]);
 
 
 
@@ -105,7 +106,7 @@ export function LLMCustomView({
           // Basic URL validation
           new URL(values.api_base);
           configureCustomEndpoint({
-            provider: 'custom',
+            provider: 'others',
             api_base: values.api_base,
             api_key: values.api_key,
             model: values.model,
@@ -118,7 +119,7 @@ export function LLMCustomView({
     return () => subscription.unsubscribe();
   }, [customForm, configureCustomEndpoint]);
 
-  const handleAccordionClick = (provider: 'openai' | 'gemini' | 'custom') => {
+  const handleAccordionClick = (provider: 'openai' | 'gemini' | 'others') => {
     // Only allow opening if customLLMEnabled is true
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
@@ -343,7 +344,7 @@ export function LLMCustomView({
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
-            openAccordion === 'custom' && customLLMEnabled.data
+            openAccordion === 'others' && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
             !customLLMEnabled.data && "opacity-60"
@@ -351,7 +352,7 @@ export function LLMCustomView({
         >
           <div
             className="p-4"
-            onClick={() => handleAccordionClick('custom')}
+            onClick={() => handleAccordionClick('others')}
           >
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
@@ -363,12 +364,12 @@ export function LLMCustomView({
                 </p>
               </div>
               <div className="text-neutral-400">
-                {openAccordion === 'custom' && customLLMEnabled.data ? '−' : '+'}
+                {openAccordion === 'others' && customLLMEnabled.data ? '−' : '+'}
               </div>
             </div>
           </div>
 
-          {openAccordion === 'custom' && customLLMEnabled.data && (
+          {openAccordion === 'others' && customLLMEnabled.data && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
                 <Form {...customForm}>

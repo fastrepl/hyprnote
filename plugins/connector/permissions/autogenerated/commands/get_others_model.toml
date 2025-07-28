@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-others-model"
+description = "Enables the get_others_model command without any pre-configured scope."
+commands.allow = ["get_others_model"]
+
+[[permission]]
+identifier = "deny-get-others-model"
+description = "Denies the get_others_model command without any pre-configured scope."
+commands.deny = ["get_others_model"]

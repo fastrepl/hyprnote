@@ -62,7 +62,7 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: 'custom' | 'openai' | 'gemini';
+  provider: 'others' | 'openai' | 'gemini';
   api_base: string;
   api_key?: string;
   model: string;
@@ -118,8 +118,8 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
   
   // Accordion State
-  openAccordion: 'custom' | 'openai' | 'gemini' | null;
-  setOpenAccordion: (accordion: 'custom' | 'openai' | 'gemini' | null) => void;
+  openAccordion: 'others' | 'openai' | 'gemini' | null;
+  setOpenAccordion: (accordion: 'others' | 'openai' | 'gemini' | null) => void;
   
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;

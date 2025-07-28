@@ -317,6 +317,26 @@ export default function LocalAI() {
     },
   });
 
+  // NEW: Centralized function to configure custom endpoint
+  const configureCustomEndpoint = (config: {
+    provider: string; // for now just "custom"
+    api_base: string;
+    api_key?: string;
+    model: string;
+  }) => {
+    // Enable custom LLM
+    setCustomLLMEnabledMutation.mutate(true);
+    
+    // Set the model
+    setCustomLLMModel.mutate(config.model);
+    
+    // Set the connection
+    setCustomLLMConnection.mutate({
+      api_base: config.api_base,
+      api_key: config.api_key || null,
+    });
+  };
+
   const config = useQuery({
     queryKey: ["config", "ai"],
     queryFn: async () => {
@@ -379,14 +399,15 @@ export default function LocalAI() {
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (!form.formState.errors.model && value.model) {
-        setCustomLLMModel.mutate(value.model);
-      }
-
-      if (!form.formState.errors.api_base && value.api_base) {
-        setCustomLLMConnection.mutate({
+      // Use the new centralized function for custom endpoint configuration
+      if (value.api_base && value.model && 
+          !form.formState.errors.model && 
+          !form.formState.errors.api_base) {
+        configureCustomEndpoint({
+          provider: "custom",
           api_base: value.api_base,
-          api_key: value.api_key || null,
+          api_key: value.api_key,
+          model: value.model,
         });
       }
     });

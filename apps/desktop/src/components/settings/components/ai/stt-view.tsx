@@ -1,17 +1,16 @@
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BrainIcon, DownloadIcon, Zap as SpeedIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
+import { useEffect } from "react";
 
-import { showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Label } from "@hypr/ui/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@hypr/ui/components/ui/radio-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
-import { LanguageDisplay, RatingDisplay } from "./shared";
+import { SharedSTTProps } from "./shared";
+import { WERPerformanceModal } from "../wer-modal";
 
+// Export the STT model metadata for use in other components
 export const sttModelMetadata: Record<SupportedModel, {
   name: string;
   description: string;
@@ -102,152 +101,224 @@ export const sttModelMetadata: Record<SupportedModel, {
   },
 };
 
-export function STTView() {
-  const queryClient = useQueryClient();
-  const [downloadingModelName, setDownloadingModelName] = useState<string | null>(null);
+interface STTViewProps extends SharedSTTProps {
+  isWerModalOpen: boolean;
+  setIsWerModalOpen: (open: boolean) => void;
+}
 
+export function STTView({
+  selectedSTTModel,
+  setSelectedSTTModel,
+  sttModels,
+  setSttModels,
+  downloadingModels,
+  handleModelDownload,
+  handleShowFileLocation,
+  isWerModalOpen,
+  setIsWerModalOpen,
+}: STTViewProps) {
+  // call backend for the current selected STT model and sets it
   const currentSTTModel = useQuery({
-    queryKey: ["local-stt", "current-model"],
+    queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
   });
 
-  const setCurrentSTTModel = useMutation({
-    mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
-    onSuccess: () => {
-      currentSTTModel.refetch();
+  useEffect(() => {
+    if (currentSTTModel.data) {
+      setSelectedSTTModel(currentSTTModel.data);
+    }
+  }, [currentSTTModel.data, setSelectedSTTModel]);
+
+  // call backend for the download status of the STT models and sets it
+  const sttModelDownloadStatus = useQuery({
+    queryKey: ["stt-model-download-status"],
+    queryFn: async () => {
+      const statusChecks = await Promise.all([
+        localSttCommands.isModelDownloaded("QuantizedTiny"),
+        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
+        localSttCommands.isModelDownloaded("QuantizedBase"),
+        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
+        localSttCommands.isModelDownloaded("QuantizedSmall"),
+        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
+        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
+      ]);
+      return {
+        "QuantizedTiny": statusChecks[0],
+        "QuantizedTinyEn": statusChecks[1],
+        "QuantizedBase": statusChecks[2],
+        "QuantizedBaseEn": statusChecks[3],
+        "QuantizedSmall": statusChecks[4],
+        "QuantizedSmallEn": statusChecks[5],
+        "QuantizedLargeTurbo": statusChecks[6],
+      } as Record<string, boolean>;
     },
+    refetchInterval: 3000,
   });
 
-  const supportedSTTModels = useQuery({
-    queryKey: ["local-stt", "supported-models"],
-    queryFn: async () => {
-      const models = await localSttCommands.listSupportedModels();
-      const downloadedModels = await Promise.all(models.map((model) => localSttCommands.isModelDownloaded(model)));
-      return models.map((model, index) => ({ model, isDownloaded: downloadedModels[index] }));
-    },
-  });
+  useEffect(() => {
+    if (sttModelDownloadStatus.data) {
+      setSttModels(prev =>
+        prev.map(model => ({
+          ...model,
+          downloaded: sttModelDownloadStatus.data[model.key] || false,
+        }))
+      );
+    }
+  }, [sttModelDownloadStatus.data, setSttModels]);
 
   return (
-    <RadioGroup
-      defaultValue={currentSTTModel.data}
-      onValueChange={(value) => {
-        setCurrentSTTModel.mutate(value as SupportedModel);
-      }}
-      className="flex flex-col gap-4 flex-1"
-    >
-      {supportedSTTModels.data?.map((model) => {
-        const metadata = sttModelMetadata[model.model as keyof typeof sttModelMetadata];
-        const isSelected = currentSTTModel.data === model.model;
-        const isDownloaded = model.isDownloaded;
-        const isCurrentlyDownloading = downloadingModelName === model.model;
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-semibold">
+          <Trans>Transcribing</Trans>
+        </h2>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" onClick={() => setIsWerModalOpen(true)}>
+              <InfoIcon className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Trans>Performance difference between languages</Trans>
+          </TooltipContent>
+        </Tooltip>
+      </div>
 
-        return (
-          <Label
-            key={model.model}
-            htmlFor={model.model}
-            onClick={(e) => {
-              if (!isDownloaded) {
-                e.preventDefault();
-                toast.info("You need to download this model first to be able to use it.", {
-                  duration: 2500,
-                });
-              }
-            }}
-            className={cn(
-              "relative rounded-lg p-4 flex flex-col transition-all",
-              isDownloaded
-                ? isSelected
-                  ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50 cursor-pointer"
-                  : "border border-neutral-200 bg-white cursor-pointer hover:border-neutral-300"
-                : "border border-neutral-300 bg-neutral-100",
-              !metadata && "items-center",
-            )}
-          >
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between w-full">
-                <div>
-                  <RadioGroupItem
-                    value={model.model}
-                    id={model.model}
-                    className="peer absolute w-0 h-0 opacity-0"
-                    disabled={!isDownloaded}
-                  />
-
-                  <a
-                    href={metadata?.huggingface}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline decoration-dotted"
-                  >
-                    {metadata?.name || model.model}
-                  </a>
-                </div>
-              </div>
-
-              {metadata?.description && (
-                <div className="text-xs text-neutral-600">
-                  {metadata.description}
-                </div>
+      <div className="max-w-2xl">
+        <div className="space-y-2">
+          {sttModels.map((model) => (
+            <div
+              key={model.key}
+              className={cn(
+                "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
+                selectedSTTModel === model.key && model.downloaded
+                  ? "border-solid border-blue-500 bg-blue-50"
+                  : model.downloaded
+                  ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
+                  : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
               )}
-            </div>
-
-            {metadata && (
-              <div className="mt-4 pt-4 border-t border-neutral-200 flex items-center justify-between w-full">
-                <div className="flex divide-x divide-neutral-200 -mx-2">
-                  <RatingDisplay label="Intelligence" rating={metadata.intelligence} icon={BrainIcon} />
-                  <RatingDisplay label="Speed" rating={metadata.speed} icon={SpeedIcon} />
-                  <LanguageDisplay support={metadata.languageSupport} />
+              onClick={() => {
+                if (model.downloaded) {
+                  setSelectedSTTModel(model.key);
+                  localSttCommands.setCurrentModel(model.key as any);
+                  localSttCommands.restartServer();
+                }
+              }}
+            >
+              <div className="flex items-center gap-6 flex-1">
+                <div className="min-w-0">
+                  <h3
+                    className={cn(
+                      "font-semibold text-base",
+                      model.downloaded ? "text-gray-900" : "text-gray-400",
+                    )}
+                  >
+                    {model.name}
+                  </h3>
                 </div>
 
-                <div className="flex flex-col items-end space-y-1.5">
-                  {!isDownloaded
-                    && (
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (isCurrentlyDownloading || supportedSTTModels.isFetching) {
-                            return;
-                          }
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        model.downloaded ? "text-gray-700" : "text-gray-400",
+                      )}
+                    >
+                      Accuracy
+                    </span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3].map((step) => (
+                        <div
+                          key={step}
+                          className={cn(
+                            "w-2 h-2 rounded-full",
+                            model.accuracy >= step
+                              ? "bg-green-500"
+                              : "bg-gray-200",
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-                          setDownloadingModelName(model.model);
-
-                          try {
-                            showSttModelDownloadToast(model.model, () => {
-                              queryClient.invalidateQueries({ queryKey: ["local-stt", "supported-models"] })
-                                .catch((invalidationError) => {
-                                  console.error(
-                                    `Error during query invalidation for ${model.model}:`,
-                                    invalidationError,
-                                  );
-                                })
-                                .finally(() => {
-                                  setDownloadingModelName(null);
-                                });
-                            }, queryClient);
-                          } catch (error) {
-                            console.error(`Error initiating STT model download for ${model.model}:`, error);
-                            setDownloadingModelName(null);
-                          }
-                        }}
-                        disabled={supportedSTTModels.isFetching || isCurrentlyDownloading}
-                      >
-                        <DownloadIcon className="w-4 h-4" />
-                        <Trans>Download {metadata?.size && `(${metadata.size})`}</Trans>
-                      </Button>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        model.downloaded ? "text-gray-700" : "text-gray-400",
+                      )}
+                    >
+                      Speed
+                    </span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3].map((step) => (
+                        <div
+                          key={step}
+                          className={cn(
+                            "w-2 h-2 rounded-full",
+                            model.speed >= step
+                              ? "bg-blue-500"
+                              : "bg-gray-200",
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
-          </Label>
-        );
-      })}
-      {!supportedSTTModels.data?.length && (
-        <div className="text-sm text-neutral-500 py-2 text-center">
-          <Trans>No speech-to-text models available or failed to load.</Trans>
+
+              <div className="flex items-center">
+                {model.downloaded
+                  ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowFileLocation("stt");
+                      }}
+                      className="text-xs h-7 px-2 flex items-center gap-1"
+                    >
+                      <FolderIcon className="w-3 h-3" />
+                      Show in Finder
+                    </Button>
+                  )
+                  : downloadingModels.has(model.key)
+                  ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
+                    >
+                      Downloading...
+                    </Button>
+                  )
+                  : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleModelDownload(model.key);
+                      }}
+                      className="text-xs h-7 px-2 flex items-center gap-1"
+                    >
+                      <DownloadIcon className="w-3 h-3" />
+                      {model.size}
+                    </Button>
+                  )}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-    </RadioGroup>
+      </div>
+
+      <WERPerformanceModal
+        isOpen={isWerModalOpen}
+        onClose={() => setIsWerModalOpen(false)}
+      />
+    </div>
   );
 }

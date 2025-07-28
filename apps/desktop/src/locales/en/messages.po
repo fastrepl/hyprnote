@@ -307,7 +307,7 @@ msgstr "Access granted"
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:50
 #: src/components/welcome-modal/audio-permissions-view.tsx:55
-#: src/components/settings/views/sound.tsx:39
+#: src/components/settings/views/sound.tsx:41
 msgid "Access Granted"
 msgstr "Access Granted"
 
@@ -674,7 +674,7 @@ msgstr "Emoji"
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:65
 #: src/components/welcome-modal/audio-permissions-view.tsx:79
-#: src/components/settings/views/sound.tsx:59
+#: src/components/settings/views/sound.tsx:61
 msgid "Enable"
 msgstr "Enable"
 
@@ -918,7 +918,7 @@ msgid "Members"
 msgstr "Members"
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:148
-#: src/components/settings/views/sound.tsx:97
+#: src/components/settings/views/sound.tsx:110
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
@@ -1072,8 +1072,8 @@ msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:180
-msgid "Permission granted! Detecting changes..."
-msgstr "Permission granted! Detecting changes..."
+#~ msgid "Permission granted! Detecting changes..."
+#~ msgstr "Permission granted! Detecting changes..."
 
 #: src/components/editor-area/note-header/listen-button.tsx:208
 #~ msgid "Play video"
@@ -1116,7 +1116,7 @@ msgstr "Recent Notes"
 #~ msgstr "Remove {0} from list"
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:76
-#: src/components/settings/views/sound.tsx:56
+#: src/components/settings/views/sound.tsx:58
 msgid "Requesting..."
 msgstr "Requesting..."
 
@@ -1125,11 +1125,11 @@ msgstr "Requesting..."
 msgid "Required for meeting transcription"
 msgstr "Required for meeting transcription"
 
-#: src/components/settings/views/sound.tsx:107
+#: src/components/settings/views/sound.tsx:120
 msgid "Required to transcribe other people's voice during meetings"
 msgstr "Required to transcribe other people's voice during meetings"
 
-#: src/components/settings/views/sound.tsx:98
+#: src/components/settings/views/sound.tsx:111
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
@@ -1272,7 +1272,7 @@ msgstr "Summarize meeting"
 #~ msgstr "Synchronization across multiple devices"
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:157
-#: src/components/settings/views/sound.tsx:106
+#: src/components/settings/views/sound.tsx:119
 msgid "System Audio Access"
 msgstr "System Audio Access"
 

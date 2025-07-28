@@ -99,7 +99,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn request_microphone_access(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
-            /* 
+            /*
             {
                 use tauri_plugin_shell::ShellExt;
 

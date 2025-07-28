@@ -189,6 +189,20 @@ const specificityLevels = {
   },
 } as const;
 
+const openaiModels = [
+  "gpt-4",
+  "gpt-4-turbo",
+  "gpt-4o", 
+  "gpt-4o-mini",
+  "gpt-3.5-turbo"
+];
+
+const geminiModels = [
+  "gemini-1.5-pro",
+  "gemini-1.5-flash", 
+  "gemini-1.0-pro"
+];
+
 export default function LocalAI() {
   const queryClient = useQueryClient();
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
@@ -197,6 +211,45 @@ export default function LocalAI() {
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [sttModels, setSttModels] = useState(initialSttModels);
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
+
+  // NEW: Accordion state for Custom vs OpenAI
+  const [openAccordion, setOpenAccordion] = useState<'custom' | 'openai' | 'gemini' | null>(null);
+  
+  // NEW: OpenAI form state
+  const [openaiApiKey, setOpenaiApiKeyState] = useState("");
+  const [selectedOpenaiModel, setSelectedOpenaiModel] = useState("");
+
+  // NEW: Query for OpenAI API key
+  const openaiApiKeyQuery = useQuery({
+    queryKey: ["openai-api-key"],
+    queryFn: () => connectorCommands.getOpenaiApiKey(),
+  });
+
+  // NEW: Mutation for setting OpenAI API key
+  const setOpenaiApiKeyMutation = useMutation({
+    mutationFn: (apiKey: string) => connectorCommands.setOpenaiApiKey(apiKey),
+    onSuccess: () => {
+      openaiApiKeyQuery.refetch();
+    },
+  });
+
+  // NEW: Gemini form state
+  const [geminiApiKey, setGeminiApiKeyState] = useState("");
+  const [selectedGeminiModel, setSelectedGeminiModel] = useState("");
+
+  // NEW: Query for Gemini API key
+  const geminiApiKeyQuery = useQuery({
+    queryKey: ["gemini-api-key"],
+    queryFn: () => connectorCommands.getGeminiApiKey(),
+  });
+
+  // NEW: Mutation for setting Gemini API key
+  const setGeminiApiKeyMutation = useMutation({
+    mutationFn: (apiKey: string) => connectorCommands.setGeminiApiKey(apiKey),
+    onSuccess: () => {
+      geminiApiKeyQuery.refetch();
+    },
+  });
 
   const { userId } = useHypr();
 
@@ -317,25 +370,83 @@ export default function LocalAI() {
     },
   });
 
-  // NEW: Centralized function to configure custom endpoint
+  // MODIFIED: Centralized function to configure custom endpoint
   const configureCustomEndpoint = (config: {
-    provider: string; // for now just "custom"
+    provider: 'custom' | 'openai' | 'gemini';
     api_base: string;
     api_key?: string;
     model: string;
   }) => {
+    // Auto-set API base for different providers
+    const finalApiBase = 
+      config.provider === 'openai' ? 'https://api.openai.com/v1' :
+      config.provider === 'gemini' ? 'https://generativelanguage.googleapis.com/v1beta/openai' :
+      config.api_base;
+    
     // Enable custom LLM
     setCustomLLMEnabledMutation.mutate(true);
     
-    // Set the model
-    setCustomLLMModel.mutate(config.model);
+    // Store provider-specific API keys
+    if (config.provider === 'openai' && config.api_key) {
+      setOpenaiApiKeyMutation.mutate(config.api_key);
+    } else if (config.provider === 'gemini' && config.api_key) {
+      setGeminiApiKeyMutation.mutate(config.api_key);
+    }
     
-    // Set the connection
+    // Set the model and connection
+    setCustomLLMModel.mutate(config.model);
     setCustomLLMConnection.mutate({
-      api_base: config.api_base,
+      api_base: finalApiBase,
       api_key: config.api_key || null,
     });
   };
+
+  // NEW: Determine which accordion should be open based on stored connection
+  useEffect(() => {
+    if (customLLMConnection.data?.api_base) {
+      const apiBase = customLLMConnection.data.api_base;
+      const isOpenai = apiBase.includes('openai.com');
+      const isGemini = apiBase.includes('googleapis.com');
+      
+      setOpenAccordion(
+        isOpenai ? 'openai' : 
+        isGemini ? 'gemini' : 
+        'custom'
+      );
+    } else if (customLLMEnabled.data) {
+      setOpenAccordion('custom'); // Default to custom if enabled but no connection
+    } else {
+      setOpenAccordion(null);
+    }
+  }, [customLLMConnection.data, customLLMEnabled.data]);
+
+  // NEW: Set OpenAI API key from query
+  useEffect(() => {
+    if (openaiApiKeyQuery.data) {
+      setOpenaiApiKeyState(openaiApiKeyQuery.data);
+    }
+  }, [openaiApiKeyQuery.data]);
+
+  // NEW: Set selected OpenAI model from stored model
+  useEffect(() => {
+    if (getCustomLLMModel.data && openAccordion === 'openai') {
+      setSelectedOpenaiModel(getCustomLLMModel.data);
+    }
+  }, [getCustomLLMModel.data, openAccordion]);
+
+  // NEW: Set Gemini API key from query
+  useEffect(() => {
+    if (geminiApiKeyQuery.data) {
+      setGeminiApiKeyState(geminiApiKeyQuery.data);
+    }
+  }, [geminiApiKeyQuery.data]);
+
+  // NEW: Set selected Gemini model from stored model
+  useEffect(() => {
+    if (getCustomLLMModel.data && openAccordion === 'gemini') {
+      setSelectedGeminiModel(getCustomLLMModel.data);
+    }
+  }, [getCustomLLMModel.data, openAccordion]);
 
   const config = useQuery({
     queryKey: ["config", "ai"],
@@ -748,210 +859,407 @@ export default function LocalAI() {
           </div>
         </div>
 
-        <div className="max-w-2xl">
+        <div className="max-w-2xl space-y-4">
+          {/* OpenAI Accordion */}
           <div
             className={cn(
-              "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out cursor-pointer",
-              customLLMEnabled.data
-                ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50"
-                : "border border-neutral-200 bg-white hover:border-neutral-300",
+              "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
+              openAccordion === 'openai'
+                ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
+                : "border-neutral-200 bg-white hover:border-neutral-300",
             )}
-            onClick={() => {
-              setCustomLLMEnabledMutation.mutate(true);
-              setSelectedLLMModel("");
-            }}
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
+            <div
+              className="p-4"
+              onClick={() => {
+                const newState = openAccordion === 'openai' ? null : 'openai';
+                setOpenAccordion(newState);
+                if (newState === 'openai') {
+                  setCustomLLMEnabledMutation.mutate(true);
+                  setSelectedLLMModel("");
+                }
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    <Trans>OpenAI</Trans>
+                  </span>
+                  <p className="text-xs font-normal text-neutral-500 mt-1">
+                    <Trans>Use OpenAI's GPT models with your API key</Trans>
+                  </p>
+                </div>
+                <div className="text-neutral-400">
+                  {openAccordion === 'openai' ? '−' : '+'}
+                </div>
+              </div>
+            </div>
+
+            {openAccordion === 'openai' && (
+              <div className="px-4 pb-4 border-t">
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      <Trans>API Key</Trans>
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="sk-..."
+                      value={openaiApiKey}
+                      onChange={(e) => {
+                        setOpenaiApiKeyState(e.target.value);
+                        if (e.target.value && selectedOpenaiModel) {
+                          configureCustomEndpoint({
+                            provider: 'openai',
+                            api_base: '', // Will be auto-set
+                            api_key: e.target.value,
+                            model: selectedOpenaiModel,
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      <Trans>Model</Trans>
+                    </label>
+                    <Select
+                      value={selectedOpenaiModel}
+                      onValueChange={(value) => {
+                        setSelectedOpenaiModel(value);
+                        if (openaiApiKey && value) {
+                          configureCustomEndpoint({
+                            provider: 'openai',
+                            api_base: '', // Will be auto-set
+                            api_key: openaiApiKey,
+                            model: value,
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select OpenAI model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {openaiModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* NEW: Gemini Accordion */}
+          <div
+            className={cn(
+              "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
+              openAccordion === 'gemini'
+                ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
+                : "border-neutral-200 bg-white hover:border-neutral-300",
+            )}
+          >
+            <div
+              className="p-4"
+              onClick={() => {
+                const newState = openAccordion === 'gemini' ? null : 'gemini';
+                setOpenAccordion(newState);
+                if (newState === 'gemini') {
+                  setCustomLLMEnabledMutation.mutate(true);
+                  setSelectedLLMModel("");
+                }
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    <Trans>Google Gemini</Trans>
+                  </span>
+                  <p className="text-xs font-normal text-neutral-500 mt-1">
+                    <Trans>Use Google's Gemini models with your API key</Trans>
+                  </p>
+                </div>
+                <div className="text-neutral-400">
+                  {openAccordion === 'gemini' ? '−' : '+'}
+                </div>
+              </div>
+            </div>
+
+            {openAccordion === 'gemini' && (
+              <div className="px-4 pb-4 border-t">
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      <Trans>API Key</Trans>
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={geminiApiKey}
+                      onChange={(e) => {
+                        setGeminiApiKeyState(e.target.value);
+                        if (e.target.value && selectedGeminiModel) {
+                          configureCustomEndpoint({
+                            provider: 'gemini',
+                            api_base: '', // Will be auto-set
+                            api_key: e.target.value,
+                            model: selectedGeminiModel,
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      <Trans>Model</Trans>
+                    </label>
+                    <Select
+                      value={selectedGeminiModel}
+                      onValueChange={(value) => {
+                        setSelectedGeminiModel(value);
+                        if (geminiApiKey && value) {
+                          configureCustomEndpoint({
+                            provider: 'gemini',
+                            api_base: '', // Will be auto-set
+                            api_key: geminiApiKey,
+                            model: value,
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Gemini model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {geminiModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Custom Endpoint Accordion */}
+          <div
+            className={cn(
+              "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
+              openAccordion === 'custom'
+                ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
+                : "border-neutral-200 bg-white hover:border-neutral-300",
+            )}
+          >
+            <div
+              className="p-4"
+              onClick={() => {
+                const newState = openAccordion === 'custom' ? null : 'custom';
+                setOpenAccordion(newState);
+                if (newState === 'custom') {
+                  setCustomLLMEnabledMutation.mutate(true);
+                  setSelectedLLMModel("");
+                }
+              }}
+            >
+              <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="font-medium">
                     <Trans>Custom Endpoint</Trans>
                   </span>
                   <p className="text-xs font-normal text-neutral-500 mt-1">
-                    <Trans>Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible).</Trans>
+                    <Trans>Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)</Trans>
                   </p>
+                </div>
+                <div className="text-neutral-400">
+                  {openAccordion === 'custom' ? '−' : '+'}
                 </div>
               </div>
             </div>
 
-            <div
-              className={cn(
-                "mt-4 pt-4 border-t transition-opacity duration-200",
-                customLLMEnabled.data ? "opacity-100" : "opacity-50 pointer-events-none",
-              )}
-            >
-              <Form {...form}>
-                <form className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="api_base"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>API Base URL</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>
-                            Enter the base URL for your custom LLM endpoint
-                          </Trans>
-                        </FormDescription>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="http://localhost:11434/v1"
-                            disabled={!customLLMEnabled.data}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {form.watch("api_base") && !isLocalEndpoint() && (
-                    <FormField
-                      control={form.control}
-                      name="api_key"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
-                          </FormLabel>
-                          <FormDescription className="text-xs">
-                            <Trans>Enter the API key for your custom LLM endpoint</Trans>
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="sk-..."
-                              disabled={!customLLMEnabled.data}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  <FormField
-                    control={form.control}
-                    name="model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>Model Name</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>
-                            Select a model from the dropdown (if available) or manually enter the model name required by
-                            your endpoint.
-                          </Trans>
-                        </FormDescription>
-                        <FormControl>
-                          {availableLLMModels.isLoading && !field.value
-                            ? (
-                              <div className="py-1 text-sm text-neutral-500">
-                                <Trans>Loading available models...</Trans>
-                              </div>
-                            )
-                            : availableLLMModels.data && availableLLMModels.data.length > 0
-                            ? (
-                              <Select
-                                defaultValue={field.value}
-                                onValueChange={(value: string) => {
-                                  field.onChange(value);
-                                  setCustomLLMModel.mutate(value);
-                                }}
-                                disabled={!customLLMEnabled.data}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select model" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableLLMModels.data.map((model) => (
-                                    <SelectItem key={model} value={model}>
-                                      {model}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )
-                            : (
+            {openAccordion === 'custom' && (
+              <div className="px-4 pb-4 border-t">
+                <div className="mt-4">
+                  <Form {...form}>
+                    <form className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="api_base"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">
+                              <Trans>API Base URL</Trans>
+                            </FormLabel>
+                            <FormDescription className="text-xs">
+                              <Trans>Enter the base URL for your custom LLM endpoint</Trans>
+                            </FormDescription>
+                            <FormControl>
                               <Input
                                 {...field}
-                                placeholder="Enter model name (e.g., gpt-4, llama3.2:3b)"
-                                disabled={!customLLMEnabled.data}
+                                placeholder="http://localhost:11434/v1"
+                                disabled={openAccordion !== 'custom'}
                               />
-                            )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  {/* NEW: Detail Level Configuration */}
-                  <Form {...aiConfigForm}>
-                    <FormField
-                      control={aiConfigForm.control}
-                      name="aiSpecificity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>Autonomy Selector</Trans>
-                          </FormLabel>
-                          <FormDescription className="text-xs">
-                            <Trans>Control how autonomous the AI enhancement should be</Trans>
-                          </FormDescription>
-                          <FormControl>
-                            <div className="space-y-3">
-                              {/* Button bar - matching form element width */}
-                              <div className="w-full">
-                                <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
-                                  {[1, 2, 3, 4].map((level) => (
-                                    <button
-                                      key={level}
-                                      type="button"
-                                      onClick={() => {
-                                        field.onChange(level);
-                                        aiConfigMutation.mutate({ aiSpecificity: level });
-                                        analyticsCommands.event({
-                                          event: "autonomy_selected",
-                                          distinct_id: userId,
-                                          level: level,
-                                        });
-                                      }}
-                                      disabled={!customLLMEnabled.data}
-                                      className={cn(
-                                        "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
-                                        field.value === level
-                                          ? "bg-white text-black shadow-sm"
-                                          : "text-white hover:bg-white/20",
-                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
-                                      )}
-                                    >
-                                      {specificityLevels[level as keyof typeof specificityLevels]?.title}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Current selection description in card */}
-                              <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
-                                <div className="text-xs text-muted-foreground">
-                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description
-                                    || specificityLevels[3].description}
-                                </div>
-                              </div>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      {form.watch("api_base") && !isLocalEndpoint() && (
+                        <FormField
+                          control={form.control}
+                          name="api_key"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">
+                                <Trans>API Key</Trans>
+                              </FormLabel>
+                              <FormDescription className="text-xs">
+                                <Trans>Enter the API key for your custom LLM endpoint</Trans>
+                              </FormDescription>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="password"
+                                  placeholder="sk-..."
+                                  disabled={!customLLMEnabled.data}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
+
+                      <FormField
+                        control={form.control}
+                        name="model"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">
+                              <Trans>Model Name</Trans>
+                            </FormLabel>
+                            <FormDescription className="text-xs">
+                              <Trans>
+                                Select a model from the dropdown (if available) or manually enter the model name required by
+                                your endpoint.
+                              </Trans>
+                            </FormDescription>
+                            <FormControl>
+                              {availableLLMModels.isLoading && !field.value
+                                ? (
+                                  <div className="py-1 text-sm text-neutral-500">
+                                    <Trans>Loading available models...</Trans>
+                                  </div>
+                                )
+                                : availableLLMModels.data && availableLLMModels.data.length > 0
+                                ? (
+                                  <Select
+                                    defaultValue={field.value}
+                                    onValueChange={(value: string) => {
+                                      field.onChange(value);
+                                      setCustomLLMModel.mutate(value);
+                                    }}
+                                    disabled={!customLLMEnabled.data}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select model" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {availableLLMModels.data.map((model) => (
+                                        <SelectItem key={model} value={model}>
+                                          {model}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )
+                                : (
+                                  <Input
+                                    {...field}
+                                    placeholder="Enter model name (e.g., gpt-4, llama3.2:3b)"
+                                    disabled={!customLLMEnabled.data}
+                                  />
+                                )}
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* NEW: Detail Level Configuration */}
+                      <Form {...aiConfigForm}>
+                        <FormField
+                          control={aiConfigForm.control}
+                          name="aiSpecificity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">
+                                <Trans>Autonomy Selector</Trans>
+                              </FormLabel>
+                              <FormDescription className="text-xs">
+                                <Trans>Control how autonomous the AI enhancement should be</Trans>
+                              </FormDescription>
+                              <FormControl>
+                                <div className="space-y-3">
+                                  {/* Button bar - matching form element width */}
+                                  <div className="w-full">
+                                    <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
+                                      {[1, 2, 3, 4].map((level) => (
+                                        <button
+                                          key={level}
+                                          type="button"
+                                          onClick={() => {
+                                            field.onChange(level);
+                                            aiConfigMutation.mutate({ aiSpecificity: level });
+                                            analyticsCommands.event({
+                                              event: "autonomy_selected",
+                                              distinct_id: userId,
+                                              level: level,
+                                            });
+                                          }}
+                                          disabled={!customLLMEnabled.data}
+                                          className={cn(
+                                            "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
+                                            field.value === level
+                                              ? "bg-white text-black shadow-sm"
+                                              : "text-white hover:bg-white/20",
+                                            !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
+                                          )}
+                                        >
+                                          {specificityLevels[level as keyof typeof specificityLevels]?.title}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Current selection description in card */}
+                                  <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                                    <div className="text-xs text-muted-foreground">
+                                      {specificityLevels[field.value as keyof typeof specificityLevels]?.description
+                                        || specificityLevels[3].description}
+                                    </div>
+                                  </div>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </Form>
+                    </form>
                   </Form>
-                </form>
-              </Form>
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

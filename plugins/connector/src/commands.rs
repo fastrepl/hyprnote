@@ -100,3 +100,42 @@ pub async fn get_openai_api_key<R: tauri::Runtime>(
         .map_err(|e| e.to_string())?;
     Ok(v.unwrap_or_default())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_gemini_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::GeminiApiKey)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
+
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_openai_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_key: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::OpenaiApiKey, api_key)
+        .map_err(|e| e.to_string())
+}
+
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_gemini_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_key: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::GeminiApiKey, api_key)
+        .map_err(|e| e.to_string())
+}
+
+
+

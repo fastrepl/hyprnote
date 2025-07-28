@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the get_custom_llm_model command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_gemini_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-gemini-api-key",
+          "markdownDescription": "Enables the get_gemini_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_gemini_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-gemini-api-key",
+          "markdownDescription": "Denies the get_gemini_api_key command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_llm_connection command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-llm-connection",
@@ -427,10 +439,34 @@
           "markdownDescription": "Denies the set_custom_llm_model command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`\n- `allow-get-openai-api-key`",
+          "description": "Enables the set_gemini_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-gemini-api-key",
+          "markdownDescription": "Enables the set_gemini_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_gemini_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-gemini-api-key",
+          "markdownDescription": "Denies the set_gemini_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_openai_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-openai-api-key",
+          "markdownDescription": "Enables the set_openai_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_openai_api_key command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-openai-api-key",
+          "markdownDescription": "Denies the set_openai_api_key command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`\n- `allow-get-openai-api-key`\n- `allow-set-openai-api-key`\n- `allow-get-gemini-api-key`\n- `allow-set-gemini-api-key`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`\n- `allow-get-openai-api-key`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-custom-llm-models`\n- `allow-get-custom-llm-model`\n- `allow-set-custom-llm-model`\n- `allow-get-custom-llm-enabled`\n- `allow-set-custom-llm-enabled`\n- `allow-get-custom-llm-connection`\n- `allow-set-custom-llm-connection`\n- `allow-get-local-llm-connection`\n- `allow-get-llm-connection`\n- `allow-get-stt-connection`\n- `allow-get-openai-api-key`\n- `allow-set-openai-api-key`\n- `allow-get-gemini-api-key`\n- `allow-set-gemini-api-key`"
         }
       ]
     }

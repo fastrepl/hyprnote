@@ -39,6 +39,15 @@ async getSttConnection() : Promise<ConnectionSTT> {
 },
 async getOpenaiApiKey() : Promise<string> {
     return await TAURI_INVOKE("plugin:connector|get_openai_api_key");
+},
+async setOpenaiApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openai_api_key", { apiKey });
+},
+async getGeminiApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_gemini_api_key");
+},
+async setGeminiApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_gemini_api_key", { apiKey });
 }
 }
 

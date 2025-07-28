@@ -15,6 +15,9 @@ Default permissions for the plugin
 - `allow-get-llm-connection`
 - `allow-get-stt-connection`
 - `allow-get-openai-api-key`
+- `allow-set-openai-api-key`
+- `allow-get-gemini-api-key`
+- `allow-set-gemini-api-key`
 
 ## Permission Table
 
@@ -99,6 +102,32 @@ Enables the get_custom_llm_model command without any pre-configured scope.
 <td>
 
 Denies the get_custom_llm_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-gemini-api-key`
+
+</td>
+<td>
+
+Enables the get_gemini_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-gemini-api-key`
+
+</td>
+<td>
+
+Denies the get_gemini_api_key command without any pre-configured scope.
 
 </td>
 </tr>
@@ -307,6 +336,58 @@ Enables the set_custom_llm_model command without any pre-configured scope.
 <td>
 
 Denies the set_custom_llm_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-gemini-api-key`
+
+</td>
+<td>
+
+Enables the set_gemini_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-gemini-api-key`
+
+</td>
+<td>
+
+Denies the set_gemini_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-openai-api-key`
+
+</td>
+<td>
+
+Enables the set_openai_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-openai-api-key`
+
+</td>
+<td>
+
+Denies the set_openai_api_key command without any pre-configured scope.
 
 </td>
 </tr>

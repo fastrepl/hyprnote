@@ -10,6 +10,9 @@ const COMMANDS: &[&str] = &[
     "get_llm_connection",
     "get_stt_connection",
     "get_openai_api_key",
+    "set_openai_api_key",
+    "get_gemini_api_key",
+    "set_gemini_api_key",
 ];
 
 fn main() {

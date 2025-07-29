@@ -338,11 +338,12 @@ export function useEnhanceMutation({
         setProgress(0);
       }
 
-      if (!words.length) {
+      const wordsThreshold = import.meta.env.DEV ? 5 : 100;
+      if (!words.length || words.length < wordsThreshold) {
         toast({
           id: "short-timeline",
           title: "Recording too short",
-          content: "The recording is too short to enhance",
+          content: `We need at least ${wordsThreshold} words to enhance your note.`,
           dismissible: true,
           duration: 5000,
         });

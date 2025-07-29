@@ -555,4 +555,41 @@ mod tests {
         assert!(has_started, "Should have Started event");
         assert!(has_finished, "Should have Finished event");
     }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_parallel_faster_than_serial() {
+        use std::time::Instant;
+        use tempfile::NamedTempFile;
+
+        // Use a larger file to make the performance difference more pronounced
+        let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin";
+        
+        // Test serial download
+        let temp_file1 = NamedTempFile::new().unwrap();
+        let start = Instant::now();
+        download_file_with_callback(url, temp_file1.path(), |_| {}).await.unwrap();
+        let serial_duration = start.elapsed();
+        
+        // Test parallel download
+        let temp_file2 = NamedTempFile::new().unwrap();
+        let start = Instant::now();
+        download_file_parallel(url, temp_file2.path(), |_| {}).await.unwrap();
+        let parallel_duration = start.elapsed();
+        
+        println!("Serial: {:?}, Parallel: {:?}", serial_duration, parallel_duration);
+        println!("Speedup: {:.2}x", serial_duration.as_secs_f64() / parallel_duration.as_secs_f64());
+        
+        // Verify both files are the same size
+        let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
+        let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
+        assert_eq!(serial_size, parallel_size, "Both downloads should produce files of the same size");
+        
+        // Assert parallel is faster (with tolerance for network variance)
+        // Parallel should be at least 15% faster for it to be considered an improvement
+        assert!(parallel_duration < serial_duration * 85 / 100, 
+            "Parallel should be at least 15% faster: serial={:?}, parallel={:?}, speedup={:.2}x", 
+            serial_duration, parallel_duration, 
+            serial_duration.as_secs_f64() / parallel_duration.as_secs_f64());
+    }
 }

@@ -814,10 +814,6 @@ export default function LocalAI() {
           {customLLMEnabled.data && (
             <div className="max-w-2xl">
               <div className="border rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-4">
-                  <Trans>AI Configuration</Trans>
-                </h3>
-                
                 <Form {...aiConfigForm}>
                   <FormField
                     control={aiConfigForm.control}

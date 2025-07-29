@@ -29,13 +29,12 @@ const geminiModels = [
 
 const openrouterModels = [
   "x-ai/grok-4",
-  "google/gemma-2-9b-it:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
   "openai/gpt-4o-mini",
   "openai/gpt-4o",
   "openai/gpt-4.1-nano",
   "anthropic/claude-sonnet-4",
-  "anthropic/claude-opus-4"
+  "moonshotai/kimi-k2",
+  "mistralai/mistral-small-3.2-24b-instruct" ,
 ];
 
 export function LLMCustomView({
@@ -117,7 +116,7 @@ export function LLMCustomView({
             model: values.model,
           });
         } catch {
-          // Invalid URL, don't submit
+          // invalid URL 
         }
       }
     });
@@ -125,7 +124,6 @@ export function LLMCustomView({
   }, [customForm, configureCustomEndpoint]);
 
   const handleAccordionClick = (provider: 'openai' | 'gemini' | 'openrouter' | 'others') => {
-    // Only allow opening if customLLMEnabled is true
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
       setOpenAccordion(provider);

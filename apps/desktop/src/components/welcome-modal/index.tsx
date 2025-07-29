@@ -15,6 +15,8 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { AudioPermissionsView } from "./audio-permissions-view";
 // import { CalendarPermissionsView } from "./calendar-permissions-view";
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { ModelSelectionView } from "./model-selection-view";
@@ -28,6 +30,7 @@ interface WelcomeModalProps {
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { userId } = useHypr();
   const [port, setPort] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<
     | "welcome"
@@ -86,6 +89,42 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       sfxCommands.stop("BGM");
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (currentStep === "audio-permissions" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_audio",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "model-selection" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_model_selection",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "download-progress" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_download_progress",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "language-selection" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_language_selection",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
 
   const handleStartLocal = () => {
     setCurrentStep("audio-permissions");

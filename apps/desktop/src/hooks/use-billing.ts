@@ -1,4 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { message } from "@tauri-apps/plugin-dialog";
+
+import { fetch } from "@hypr/utils";
 
 const SERVER_BASE_URL = import.meta.env.DEV
   ? "http://localhost:8082"
@@ -34,7 +37,13 @@ export function useBilling({
 
       return data as { url: string };
     },
-    onError: console.error,
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      message(errorMessage, {
+        kind: "error",
+        title: "Failed to start checkout",
+      });
+    },
   });
 
   const info = useQuery({
@@ -60,9 +69,15 @@ export function useBilling({
       });
       return response.json() as Promise<{ url: string }>;
     },
-    onError: console.error,
     onSuccess: ({ url }) => {
       window.open(url, "_blank");
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      message(errorMessage, {
+        kind: "error",
+        title: "Failed to open billing portal",
+      });
     },
   });
 

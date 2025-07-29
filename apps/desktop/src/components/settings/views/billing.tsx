@@ -239,7 +239,7 @@ function ProSection() {
     <Button
       disabled={b.portal.isPending || !b.info.data}
       variant="outline"
-      onClick={() => b.portal.mutate({})}
+      onClick={() => b.portal.mutate()}
       className="flex items-center transition-all duration-200 hover:bg-primary/5 border-border/60 hover:border-border"
     >
       <CreditCard className="w-4 h-4 mr-2" />

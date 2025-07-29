@@ -25,6 +25,10 @@ const COMMANDS: &[&str] = &[
     "set_openai_model",
     "get_gemini_model",
     "set_gemini_model",
+    "get_openrouter_model",
+    "set_openrouter_model",
+    "get_openrouter_api_key",
+    "set_openrouter_api_key",
 ];
 
 fn main() {

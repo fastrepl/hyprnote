@@ -41,6 +41,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_openai_model::<tauri::Wry>,
             commands::get_gemini_model::<tauri::Wry>,
             commands::set_gemini_model::<tauri::Wry>,
+            commands::get_openrouter_model::<tauri::Wry>,
+            commands::set_openrouter_model::<tauri::Wry>,
+            commands::get_openrouter_api_key::<tauri::Wry>,
+            commands::set_openrouter_api_key::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

@@ -27,4 +27,8 @@ permissions = [
     "allow-set-openai-model",
     "allow-get-gemini-model",
     "allow-set-gemini-model",
+    "allow-get-openrouter-api-key", 
+    "allow-set-openrouter-api-key", 
+    "allow-set-openrouter-model", 
+    "allow-get-openrouter-model", 
 ]

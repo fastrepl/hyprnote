@@ -30,6 +30,10 @@ Default permissions for the plugin
 - `allow-set-openai-model`
 - `allow-get-gemini-model`
 - `allow-set-gemini-model`
+- `allow-get-openrouter-api-key`
+- `allow-set-openrouter-api-key`
+- `allow-set-openrouter-model`
+- `allow-get-openrouter-model`
 
 ## Permission Table
 
@@ -270,6 +274,58 @@ Enables the get_openai_model command without any pre-configured scope.
 <td>
 
 Denies the get_openai_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-openrouter-api-key`
+
+</td>
+<td>
+
+Enables the get_openrouter_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-openrouter-api-key`
+
+</td>
+<td>
+
+Denies the get_openrouter_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-openrouter-model`
+
+</td>
+<td>
+
+Enables the get_openrouter_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-openrouter-model`
+
+</td>
+<td>
+
+Denies the get_openrouter_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -608,6 +664,58 @@ Enables the set_openai_model command without any pre-configured scope.
 <td>
 
 Denies the set_openai_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-openrouter-api-key`
+
+</td>
+<td>
+
+Enables the set_openrouter_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-openrouter-api-key`
+
+</td>
+<td>
+
+Denies the set_openrouter_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-openrouter-model`
+
+</td>
+<td>
+
+Enables the set_openrouter_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-openrouter-model`
+
+</td>
+<td>
+
+Denies the set_openrouter_model command without any pre-configured scope.
 
 </td>
 </tr>

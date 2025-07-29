@@ -27,6 +27,17 @@ const geminiModels = [
   "gemini-1.5-flash", 
 ];
 
+const openrouterModels = [
+  "x-ai/grok-4",
+  "google/gemma-2-9b-it:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "openai/gpt-4o-mini",
+  "openai/gpt-4o",
+  "openai/gpt-4.1-nano",
+  "anthropic/claude-sonnet-4",
+  "anthropic/claude-opus-4"
+];
+
 export function LLMCustomView({
   customLLMEnabled,
   selectedLLMModel,
@@ -40,6 +51,7 @@ export function LLMCustomView({
   availableLLMModels,
   openaiForm,
   geminiForm,
+  openrouterForm,
   customForm,
   isLocalEndpoint,
 }: SharedCustomEndpointProps) {
@@ -77,6 +89,21 @@ export function LLMCustomView({
   }, [geminiForm, configureCustomEndpoint]);
 
   useEffect(() => {
+    const subscription = openrouterForm.watch((values) => {
+      // Manual validation: OpenRouter key starts with "sk-" and model is selected
+      if (values.api_key && values.api_key.startsWith("sk-") && values.model) {
+        configureCustomEndpoint({
+          provider: 'openrouter',
+          api_base: '', // Will be auto-set
+          api_key: values.api_key,
+          model: values.model,
+        });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [openrouterForm, configureCustomEndpoint]);
+
+  useEffect(() => {
     const subscription = customForm.watch((values) => {
       // Manual validation: URL and model are present
       if (values.api_base && values.model) {
@@ -97,7 +124,7 @@ export function LLMCustomView({
     return () => subscription.unsubscribe();
   }, [customForm, configureCustomEndpoint]);
 
-  const handleAccordionClick = (provider: 'openai' | 'gemini' | 'others') => {
+  const handleAccordionClick = (provider: 'openai' | 'gemini' | 'openrouter' | 'others') => {
     // Only allow opening if customLLMEnabled is true
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
@@ -300,6 +327,101 @@ export function LLMCustomView({
                               </SelectTrigger>
                               <SelectContent>
                                 {geminiModels.map((model) => (
+                                  <SelectItem key={model} value={model}>
+                                    {model}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </form>
+                </Form>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* OpenRouter Accordion */}
+        <div
+          className={cn(
+            "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
+            openAccordion === 'openrouter' && customLLMEnabled.data
+              ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
+              : "border-neutral-200 bg-white hover:border-neutral-300",
+            !customLLMEnabled.data && "opacity-60"
+          )}
+        >
+          <div
+            className="p-4"
+            onClick={() => handleAccordionClick('openrouter')}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/>
+                  </svg>
+                  <span className="font-medium">
+                    <Trans>OpenRouter</Trans>
+                  </span>
+                </div>
+                <p className="text-xs font-normal text-neutral-500 mt-1">
+                  <Trans>Access multiple AI models through OpenRouter with your API key</Trans>
+                </p>
+              </div>
+              <div className="text-neutral-400">
+                {openAccordion === 'openrouter' && customLLMEnabled.data ? '−' : '+'}
+              </div>
+            </div>
+          </div>
+
+          {openAccordion === 'openrouter' && customLLMEnabled.data && (
+            <div className="px-4 pb-4 border-t">
+              <div className="mt-4">
+                <Form {...openrouterForm}>
+                  <form className="space-y-4">
+                    <FormField
+                      control={openrouterForm.control}
+                      name="api_key"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>API Key</Trans>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="sk-..."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={openrouterForm.control}
+                      name="model"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Model</Trans>
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select OpenRouter model" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {openrouterModels.map((model) => (
                                   <SelectItem key={model} value={model}>
                                     {model}
                                   </SelectItem>

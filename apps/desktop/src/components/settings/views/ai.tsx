@@ -39,7 +39,8 @@ import {
   SharedCustomEndpointProps,
   OpenAIFormValues,
   GeminiFormValues,
-  CustomFormValues
+  CustomFormValues,
+  OpenRouterFormValues
 } from "../components/ai/shared";
 
 // Schema for OpenAI form
@@ -56,6 +57,15 @@ const geminiSchema = z.object({
   api_key: z.string().min(1, { message: "API key is required" }).refine(
     (value) => value.startsWith("AIza"),
     { message: "Gemini API key should start with 'AIza'" }
+  ),
+  model: z.string().min(1, { message: "Model is required" }),
+});
+
+// Schema for OpenRouter form
+const openrouterSchema = z.object({
+  api_key: z.string().min(1, { message: "API key is required" }).refine(
+    (value) => value.startsWith("sk-"),
+    { message: "OpenRouter API key should start with 'sk-'" }
   ),
   model: z.string().min(1, { message: "Model is required" }),
 });
@@ -233,7 +243,7 @@ export default function LocalAI() {
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
 
   // Custom Endpoint State
-  const [openAccordion, setOpenAccordion] = useState<'others' | 'openai' | 'gemini' | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<'others' | 'openai' | 'gemini' | 'openrouter' | null>(null);
 
   const { userId } = useHypr();
 
@@ -454,6 +464,31 @@ export default function LocalAI() {
     },
   });
 
+  // OpenRouter queries/mutations
+  const openrouterApiKeyQuery = useQuery({
+    queryKey: ["openrouter-api-key"],
+    queryFn: () => connectorCommands.getOpenrouterApiKey(),
+  });
+
+  const setOpenrouterApiKeyMutation = useMutation({
+    mutationFn: (apiKey: string) => connectorCommands.setOpenrouterApiKey(apiKey),
+    onSuccess: () => {
+      openrouterApiKeyQuery.refetch();
+    },
+  });
+
+  const openrouterModelQuery = useQuery({
+    queryKey: ["openrouter-model"],
+    queryFn: () => connectorCommands.getOpenrouterModel(),
+  });
+
+  const setOpenrouterModelMutation = useMutation({
+    mutationFn: (model: string) => connectorCommands.setOpenrouterModel(model),
+    onSuccess: () => {
+      openrouterModelQuery.refetch();
+    },
+  });
+
   // MIGRATION LOGIC - Run once on component mount
   useEffect(() => {
     const handleMigration = async () => {
@@ -497,7 +532,7 @@ export default function LocalAI() {
   // ACCORDION DISPLAY - Based on providerSource, not URL
   useEffect(() => {
     if (providerSourceQuery.data) {
-      setOpenAccordion(providerSourceQuery.data as 'openai' | 'gemini' | 'others');
+      setOpenAccordion(providerSourceQuery.data as 'openai' | 'gemini' | 'openrouter' | 'others');
     } else if (customLLMEnabled.data) {
       setOpenAccordion('others'); // Fallback during migration
     } else {
@@ -510,6 +545,7 @@ export default function LocalAI() {
     const finalApiBase = 
       config.provider === 'openai' ? 'https://api.openai.com/v1' :
       config.provider === 'gemini' ? 'https://generativelanguage.googleapis.com/v1beta/openai' :
+      config.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' :
       config.api_base;
     
     // Enable custom LLM
@@ -522,6 +558,9 @@ export default function LocalAI() {
     } else if (config.provider === 'gemini' && config.api_key) {
       setGeminiApiKeyMutation.mutate(config.api_key);
       setGeminiModelMutation.mutate(config.model);
+    } else if (config.provider === 'openrouter' && config.api_key) {
+      setOpenrouterApiKeyMutation.mutate(config.api_key);
+      setOpenrouterModelMutation.mutate(config.model);
     } else if (config.provider === 'others') {
       setOthersApiBaseMutation.mutate(config.api_base);
       if (config.api_key) {
@@ -560,6 +599,15 @@ export default function LocalAI() {
     },
   });
 
+  const openrouterForm = useForm<OpenRouterFormValues>({
+    resolver: zodResolver(openrouterSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
   const customForm = useForm<CustomFormValues>({
     resolver: zodResolver(customSchema),
     mode: "onChange",
@@ -589,6 +637,15 @@ export default function LocalAI() {
     }
   }, [geminiApiKeyQuery.data, geminiModelQuery.data, geminiForm]);
 
+  useEffect(() => {
+    if (openrouterApiKeyQuery.data) {
+      openrouterForm.setValue("api_key", openrouterApiKeyQuery.data);
+    }
+    if (openrouterModelQuery.data) {
+      openrouterForm.setValue("model", openrouterModelQuery.data);
+    }
+  }, [openrouterApiKeyQuery.data, openrouterModelQuery.data, openrouterForm]);
+
   
   useEffect(() => {
     // Others form gets populated from Others-specific storage using setValue to trigger watch
@@ -615,6 +672,12 @@ export default function LocalAI() {
       geminiForm.setValue("model", geminiModelQuery.data);
     }
   }, [geminiModelQuery.data, openAccordion, geminiForm]);
+
+  useEffect(() => {
+    if (openrouterModelQuery.data && openAccordion === 'openrouter') {
+      openrouterForm.setValue("model", openrouterModelQuery.data);
+    }
+  }, [openrouterModelQuery.data, openAccordion, openrouterForm]);
 
   // ADD THIS: Set stored values for Others when accordion opens
   useEffect(() => {
@@ -714,6 +777,7 @@ export default function LocalAI() {
     availableLLMModels,
     openaiForm,
     geminiForm,
+    openrouterForm,
     customForm,
     isLocalEndpoint,
   };

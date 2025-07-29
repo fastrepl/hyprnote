@@ -84,6 +84,18 @@ async getGeminiModel() : Promise<string> {
 },
 async setGeminiModel(model: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:connector|set_gemini_model", { model });
+},
+async getOpenrouterModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openrouter_model");
+},
+async setOpenrouterModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openrouter_model", { model });
+},
+async getOpenrouterApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openrouter_api_key");
+},
+async setOpenrouterApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openrouter_api_key", { apiKey });
 }
 }
 

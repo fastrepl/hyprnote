@@ -17,6 +17,7 @@ pub enum StoreKey {
     OthersModel,
     OpenaiModel, 
     GeminiModel,
+    OpenrouterModel,
 }
 
 impl ScopedStoreKey for StoreKey {}

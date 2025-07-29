@@ -62,7 +62,7 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: 'others' | 'openai' | 'gemini';
+  provider: 'others' | 'openai' | 'gemini' | 'openrouter';
   api_base: string;
   api_key?: string;
   model: string;
@@ -75,6 +75,11 @@ export type OpenAIFormValues = {
 };
 
 export type GeminiFormValues = {
+  api_key: string;
+  model: string;
+};
+
+export type OpenRouterFormValues = {
   api_key: string;
   model: string;
 };
@@ -118,8 +123,8 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
   
   // Accordion State
-  openAccordion: 'others' | 'openai' | 'gemini' | null;
-  setOpenAccordion: (accordion: 'others' | 'openai' | 'gemini' | null) => void;
+  openAccordion: 'others' | 'openai' | 'gemini' | 'openrouter' | null;
+  setOpenAccordion: (accordion: 'others' | 'openai' | 'gemini' | 'openrouter' | null) => void;
   
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;
@@ -129,6 +134,7 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   // Form instances for each provider
   openaiForm: UseFormReturn<OpenAIFormValues>;
   geminiForm: UseFormReturn<GeminiFormValues>;
+  openrouterForm: UseFormReturn<OpenRouterFormValues>;
   customForm: UseFormReturn<CustomFormValues>;
   
   // Helper functions

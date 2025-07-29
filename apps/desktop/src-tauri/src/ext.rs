@@ -140,6 +140,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
 
             #[cfg(debug_assertions)]
             hypr_db_user::init::seed(user_db, &user_id).await.unwrap();
+            
         }
 
         #[cfg(target_os = "macos")]

@@ -165,17 +165,14 @@ export function STTView({
     }
   }, [sttModelDownloadStatus.data, setSttModels]);
 
-  // Filter models to show
   const defaultModelKeys = ["QuantizedTiny", "QuantizedSmall", "QuantizedLargeTurbo"];
   const otherModelKeys = ["QuantizedTinyEn", "QuantizedBase", "QuantizedBaseEn", "QuantizedSmallEn"];
   
   const modelsToShow = sttModels.filter(model => {
-    // Always show default models
     if (defaultModelKeys.includes(model.key)) {
       return true;
     }
     
-    // Show other models only if they are downloaded
     if (otherModelKeys.includes(model.key) && model.downloaded) {
       return true;
     }

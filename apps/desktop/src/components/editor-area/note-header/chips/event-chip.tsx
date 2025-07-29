@@ -14,7 +14,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/ui/lib/utils";
-import { useSession } from "@hypr/utils/contexts";
+import { useSession, useSessions } from "@hypr/utils/contexts";
 import { formatRelativeWithDay } from "@hypr/utils/datetime";
 
 interface EventChipProps {
@@ -24,6 +24,12 @@ interface EventChipProps {
 interface EventWithMeetingLink extends Event {
   meetingLink?: string | null;
 }
+
+const isBlankNote = (session: any) => {
+  return !session?.title?.trim() && 
+         !session?.raw_memo_html?.trim() && 
+         !session?.enhanced_memo_html?.trim();
+};
 
 export function EventChip({ sessionId }: EventChipProps) {
   const { userId, onboardingSessionId } = useHypr();
@@ -90,7 +96,7 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   if (onboardingSessionId === sessionId) {
     return (
-      <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5">
+      <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5" style={{ outline: 'none' }}>
         <CalendarIcon size={14} />
         <p className="text-xs">{formatRelativeWithDay(date)}</p>
       </div>
@@ -99,131 +105,178 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   if (event.data) {
     return (
-      <Popover>
-        <PopoverTrigger>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={cn(
-                    "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
-                    "hover:bg-neutral-100",
-                  )}
-                >
-                  {event.data.meetingLink ? <VideoIcon size={14} /> : <SpeechIcon size={14} />}
-                  <p className="text-xs">{formatRelativeWithDay(date)}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                {format(new Date(date), "EEE, MMM d, yyyy 'at' h:mm a zzz")}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </PopoverTrigger>
-
-        <PopoverContent align="start" className="shadow-lg w-80 relative">
-          {(() => {
-            const startDateObj = new Date(event.data.start_date);
-            const endDateObj = new Date(event.data.end_date);
-            const formattedStartDate = formatRelativeWithDay(startDateObj.toISOString());
-            const startTime = format(startDateObj, "p");
-            const endTime = format(endDateObj, "p");
-            let dateString;
-            if (isSameDay(startDateObj, endDateObj)) {
-              dateString = `${formattedStartDate}, ${startTime} - ${endTime}`;
-            } else {
-              const formattedEndDate = formatRelativeWithDay(endDateObj.toISOString());
-              dateString = `${formattedStartDate}, ${startTime} - ${formattedEndDate}, ${endTime}`;
+      <div style={{ outline: 'none' }}>
+        <style>
+          {`
+            .event-chip-container *:focus {
+              outline: none !important;
+              box-shadow: none !important;
+              border-color: inherit !important;
             }
-
-            return (
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => detachEvent.mutate()}
-                  className="absolute top-4 right-4 p-1 bg-red-100 text-white rounded-full hover:bg-red-500 transition-colors z-10"
-                  aria-label="Detach event"
-                >
-                  <XIcon size={12} />
-                </button>
-                <div className="font-semibold">{event.data.name}</div>
-                <div className="text-sm text-neutral-500">{dateString}</div>
-
-                <div className="flex gap-2">
-                  {event.data.meetingLink && (
-                    <Button
-                      onClick={() => {
-                        const meetingLink = event.data?.meetingLink;
-                        if (typeof meetingLink === "string") {
-                          openUrl(meetingLink);
-                        }
-                      }}
-                      className="flex-1"
-                    >
-                      <VideoIcon size={16} />
-                      <Trans>Join meeting</Trans>
-                    </Button>
-                  )}
-
-                  <Button variant="outline" onClick={handleClickCalendar} disabled={!calendar.data} className="flex-1">
-                    <Trans>View in calendar</Trans>
-                  </Button>
-                </div>
-
-                {event.data.note && (
-                  <div className="border-t pt-2 text-sm text-neutral-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto scrollbar-none">
-                    {event.data.note}
+            .event-chip-container *:focus-visible {
+              outline: none !important;
+              box-shadow: none !important;
+              border-color: inherit !important;
+            }
+          `}
+        </style>
+        <Popover>
+          <PopoverTrigger>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={cn(
+                      "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
+                      "hover:bg-neutral-100",
+                      "event-chip-container"
+                    )}
+                  >
+                    {event.data.meetingLink ? <VideoIcon size={14} /> : <SpeechIcon size={14} />}
+                    <p className="text-xs">{formatRelativeWithDay(date)}</p>
                   </div>
-                )}
-              </div>
-            );
-          })()}
-        </PopoverContent>
-      </Popover>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {format(new Date(date), "EEE, MMM d, yyyy 'at' h:mm a zzz")}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </PopoverTrigger>
+
+          <PopoverContent align="start" className="shadow-lg w-80 relative event-chip-container">
+            {(() => {
+              const startDateObj = new Date(event.data.start_date);
+              const endDateObj = new Date(event.data.end_date);
+              const formattedStartDate = formatRelativeWithDay(startDateObj.toISOString());
+              const startTime = format(startDateObj, "p");
+              const endTime = format(endDateObj, "p");
+              let dateString;
+              if (isSameDay(startDateObj, endDateObj)) {
+                dateString = `${formattedStartDate}, ${startTime} - ${endTime}`;
+              } else {
+                const formattedEndDate = formatRelativeWithDay(endDateObj.toISOString());
+                dateString = `${formattedStartDate}, ${startTime} - ${formattedEndDate}, ${endTime}`;
+              }
+
+              return (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => detachEvent.mutate()}
+                    className="absolute top-4 right-4 p-1 bg-red-100 text-white rounded-full hover:bg-red-500 transition-colors z-10 focus:outline-none"
+                    aria-label="Detach event"
+                  >
+                    <XIcon size={12} />
+                  </button>
+                  <div className="font-semibold">{event.data.name}</div>
+                  <div className="text-sm text-neutral-500">{dateString}</div>
+
+                  <div className="flex gap-2">
+                    {event.data.meetingLink && (
+                      <Button
+                        onClick={() => {
+                          const meetingLink = event.data?.meetingLink;
+                          if (typeof meetingLink === "string") {
+                            openUrl(meetingLink);
+                          }
+                        }}
+                        className="flex-1 focus:outline-none"
+                      >
+                        <VideoIcon size={16} />
+                        <Trans>Join meeting</Trans>
+                      </Button>
+                    )}
+
+                    <Button variant="outline" onClick={handleClickCalendar} disabled={!calendar.data} className="flex-1 focus:outline-none">
+                      <Trans>View in calendar</Trans>
+                    </Button>
+                  </div>
+
+                  {event.data.note && (
+                    <div className="border-t pt-2 text-sm text-neutral-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto scrollbar-none">
+                      {event.data.note}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </PopoverContent>
+        </Popover>
+      </div>
     );
   } else {
+    const noteIsBlank = isBlankNote(currentSessionDetails);
+    
     return (
-      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-        <PopoverTrigger asChild>
-          <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 cursor-pointer">
-            <CalendarIcon size={14} />
-            <p className="text-xs">{formatRelativeWithDay(sessionCreatedAt)}</p>
-          </div>
-        </PopoverTrigger>
+      <div style={{ outline: 'none' }}>
+        <style>
+          {`
+            .event-chip-container *:focus {
+              outline: none !important;
+              box-shadow: none !important;
+              border-color: inherit !important;
+            }
+            .event-chip-container *:focus-visible {
+              outline: none !important;
+              box-shadow: none !important;
+              border-color: inherit !important;
+            }
+          `}
+        </style>
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 cursor-pointer event-chip-container">
+              <CalendarIcon size={14} />
+              <p className="text-xs">{formatRelativeWithDay(sessionCreatedAt)}</p>
+            </div>
+          </PopoverTrigger>
 
-        <PopoverContent align="start" className="shadow-lg w-80">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "event" | "date")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="event">Add Event</TabsTrigger>
-              <TabsTrigger value="date">Change Date</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="event" className="mt-4">
-              <EventTab 
-                sessionId={sessionId}
-                userId={userId}
-                currentSessionDetails={currentSessionDetails}
-                updateTitle={updateTitle}
-                onSuccess={() => setIsPopoverOpen(false)}
-                queryClient={queryClient}
-              />
-            </TabsContent>
-            
-            <TabsContent value="date" className="mt-4">
-              <DateTab 
-                sessionId={sessionId}
-                currentSession={currentSessionDetails}
-                onSuccess={() => setIsPopoverOpen(false)}
-                queryClient={queryClient}
-              />
-            </TabsContent>
-          </Tabs>
-        </PopoverContent>
-      </Popover>
+          <PopoverContent align="start" className="shadow-lg w-80 event-chip-container">
+            {noteIsBlank ? (
+              <div className="mt-1">
+                <EventTab 
+                  sessionId={sessionId}
+                  userId={userId}
+                  currentSessionDetails={currentSessionDetails}
+                  updateTitle={updateTitle}
+                  onSuccess={() => setIsPopoverOpen(false)}
+                  queryClient={queryClient}
+                />
+              </div>
+            ) : (
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "event" | "date")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="event" className="focus:outline-none">Add Event</TabsTrigger>
+                  <TabsTrigger value="date" className="focus:outline-none">Change Date</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="event" className="mt-4">
+                  <EventTab 
+                    sessionId={sessionId}
+                    userId={userId}
+                    currentSessionDetails={currentSessionDetails}
+                    updateTitle={updateTitle}
+                    onSuccess={() => setIsPopoverOpen(false)}
+                    queryClient={queryClient}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="date" className="mt-4">
+                  <DateTab 
+                    sessionId={sessionId}
+                    currentSession={currentSessionDetails}
+                    onSuccess={() => setIsPopoverOpen(false)}
+                    queryClient={queryClient}
+                  />
+                </TabsContent>
+              </Tabs>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
     );
   }
 }
 
-// Event Tab Component
 function EventTab({ 
   sessionId, 
   userId, 
@@ -330,7 +383,7 @@ function EventTab({
           placeholder="Search past events..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+          className="w-full bg-transparent text-sm focus:outline-none focus:ring-0 focus:border-transparent placeholder:text-neutral-400"
         />
       </div>
 
@@ -357,7 +410,7 @@ function EventTab({
               <button
                 key={linkableEv.id}
                 onClick={() => handleSelectEvent(linkableEv.id)}
-                className="flex flex-col items-start p-2 hover:bg-neutral-100 text-left w-full rounded-md"
+                className="flex flex-col items-start p-2 hover:bg-neutral-100 text-left w-full rounded-md focus:outline-none"
               >
                 <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full">
                   {linkableEv.name}
@@ -374,7 +427,6 @@ function EventTab({
   );
 }
 
-// Date Tab Component  
 function DateTab({
   sessionId,
   currentSession,
@@ -387,18 +439,27 @@ function DateTab({
   queryClient: any;
 }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(currentSession.created_at));
+  
+  const { sessionsStore } = useSessions((s) => ({
+    sessionsStore: s.sessions,
+  }));
 
   const updateSessionDate = useMutation({
     mutationFn: async (newDate: Date) => {
       const updatedSession = {
         ...currentSession,
         created_at: newDate.toISOString(),
-        visited_at: new Date().toISOString(), // Update visited_at to current time
+        visited_at: new Date().toISOString(), 
       };
       await dbCommands.upsertSession(updatedSession);
       return updatedSession;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      const sessionStore = sessionsStore[sessionId];
+      if (sessionStore) {
+        await sessionStore.getState().refresh();
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
       onSuccess();
@@ -409,9 +470,22 @@ function DateTab({
   });
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
-    if (!isNaN(newDate.getTime())) {
-      setSelectedDate(newDate);
+    const dateStr = e.target.value; 
+    if (dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const newDate = new Date(year, month - 1, day); // month is 0-indexed
+      
+      const originalTime = new Date(currentSession.created_at);
+      newDate.setHours(
+        originalTime.getHours(),
+        originalTime.getMinutes(),
+        originalTime.getSeconds(),
+        originalTime.getMilliseconds()
+      );
+      
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+      }
     }
   };
 
@@ -419,21 +493,13 @@ function DateTab({
     updateSessionDate.mutate(selectedDate);
   };
 
-  // Format date for input (YYYY-MM-DD)
   const formatDateForInput = (date: Date) => {
     return format(date, "yyyy-MM-dd");
   };
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-neutral-600">
-        <Trans>Change the date for this note</Trans>
-      </div>
-      
       <div className="space-y-2">
-        <label htmlFor="date-input" className="text-sm font-medium text-neutral-700">
-          <Trans>Select Date</Trans>
-        </label>
         <input
           id="date-input"
           type="date"
@@ -441,7 +507,7 @@ function DateTab({
           onChange={handleDateChange}
           max={formatDateForInput(new Date())}
           min="1900-01-01"
-          className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-0 focus:border-neutral-200"
         />
       </div>
       
@@ -449,17 +515,11 @@ function DateTab({
         <Button 
           onClick={handleSaveDate} 
           disabled={updateSessionDate.isPending}
-          className="flex-1"
+          className="flex-1 focus:outline-none"
         >
           {updateSessionDate.isPending ? <Trans>Saving...</Trans> : <Trans>Save Date</Trans>}
         </Button>
       </div>
-      
-      {selectedDate && (
-        <div className="text-xs text-neutral-500">
-          <Trans>New date: {format(selectedDate, "EEE, MMM d, yyyy")}</Trans>
-        </div>
-      )}
     </div>
   );
 }

@@ -26,9 +26,9 @@ interface EventWithMeetingLink extends Event {
 }
 
 const isBlankNote = (session: any) => {
-  return !session?.title?.trim() && 
-         !session?.raw_memo_html?.trim() && 
-         !session?.enhanced_memo_html?.trim();
+  return !session?.title?.trim()
+    && !session?.raw_memo_html?.trim()
+    && !session?.enhanced_memo_html?.trim();
 };
 
 export function EventChip({ sessionId }: EventChipProps) {
@@ -96,7 +96,7 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   if (onboardingSessionId === sessionId) {
     return (
-      <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5" style={{ outline: 'none' }}>
+      <div className="flex flex-row items-center gap-2 rounded-md px-2 py-1.5" style={{ outline: "none" }}>
         <CalendarIcon size={14} />
         <p className="text-xs">{formatRelativeWithDay(date)}</p>
       </div>
@@ -105,7 +105,7 @@ export function EventChip({ sessionId }: EventChipProps) {
 
   if (event.data) {
     return (
-      <div style={{ outline: 'none' }}>
+      <div style={{ outline: "none" }}>
         <style>
           {`
             .event-chip-container *:focus {
@@ -129,7 +129,7 @@ export function EventChip({ sessionId }: EventChipProps) {
                     className={cn(
                       "flex flex-row items-center gap-2 rounded-md px-2 py-1.5",
                       "hover:bg-neutral-100",
-                      "event-chip-container"
+                      "event-chip-container",
                     )}
                   >
                     {event.data.meetingLink ? <VideoIcon size={14} /> : <SpeechIcon size={14} />}
@@ -186,7 +186,12 @@ export function EventChip({ sessionId }: EventChipProps) {
                       </Button>
                     )}
 
-                    <Button variant="outline" onClick={handleClickCalendar} disabled={!calendar.data} className="flex-1 focus:outline-none">
+                    <Button
+                      variant="outline"
+                      onClick={handleClickCalendar}
+                      disabled={!calendar.data}
+                      className="flex-1 focus:outline-none"
+                    >
                       <Trans>View in calendar</Trans>
                     </Button>
                   </div>
@@ -205,9 +210,9 @@ export function EventChip({ sessionId }: EventChipProps) {
     );
   } else {
     const noteIsBlank = isBlankNote(currentSessionDetails);
-    
+
     return (
-      <div style={{ outline: 'none' }}>
+      <div style={{ outline: "none" }}>
         <style>
           {`
             .event-chip-container *:focus {
@@ -231,26 +236,10 @@ export function EventChip({ sessionId }: EventChipProps) {
           </PopoverTrigger>
 
           <PopoverContent align="start" className="shadow-lg w-80 event-chip-container">
-            {noteIsBlank ? (
-              <div className="mt-1">
-                <EventTab 
-                  sessionId={sessionId}
-                  userId={userId}
-                  currentSessionDetails={currentSessionDetails}
-                  updateTitle={updateTitle}
-                  onSuccess={() => setIsPopoverOpen(false)}
-                  queryClient={queryClient}
-                />
-              </div>
-            ) : (
-              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "event" | "date")}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="event" className="focus:outline-none">Add Event</TabsTrigger>
-                  <TabsTrigger value="date" className="focus:outline-none">Change Date</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="event" className="mt-4">
-                  <EventTab 
+            {noteIsBlank
+              ? (
+                <div className="mt-1">
+                  <EventTab
                     sessionId={sessionId}
                     userId={userId}
                     currentSessionDetails={currentSessionDetails}
@@ -258,18 +247,36 @@ export function EventChip({ sessionId }: EventChipProps) {
                     onSuccess={() => setIsPopoverOpen(false)}
                     queryClient={queryClient}
                   />
-                </TabsContent>
-                
-                <TabsContent value="date" className="mt-4">
-                  <DateTab 
-                    sessionId={sessionId}
-                    currentSession={currentSessionDetails}
-                    onSuccess={() => setIsPopoverOpen(false)}
-                    queryClient={queryClient}
-                  />
-                </TabsContent>
-              </Tabs>
-            )}
+                </div>
+              )
+              : (
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "event" | "date")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="event" className="focus:outline-none">Add Event</TabsTrigger>
+                    <TabsTrigger value="date" className="focus:outline-none">Change Date</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="event" className="mt-4">
+                    <EventTab
+                      sessionId={sessionId}
+                      userId={userId}
+                      currentSessionDetails={currentSessionDetails}
+                      updateTitle={updateTitle}
+                      onSuccess={() => setIsPopoverOpen(false)}
+                      queryClient={queryClient}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="date" className="mt-4">
+                    <DateTab
+                      sessionId={sessionId}
+                      currentSession={currentSessionDetails}
+                      onSuccess={() => setIsPopoverOpen(false)}
+                      queryClient={queryClient}
+                    />
+                  </TabsContent>
+                </Tabs>
+              )}
           </PopoverContent>
         </Popover>
       </div>
@@ -277,13 +284,13 @@ export function EventChip({ sessionId }: EventChipProps) {
   }
 }
 
-function EventTab({ 
-  sessionId, 
-  userId, 
-  currentSessionDetails, 
-  updateTitle, 
+function EventTab({
+  sessionId,
+  userId,
+  currentSessionDetails,
+  updateTitle,
   onSuccess,
-  queryClient 
+  queryClient,
 }: {
   sessionId: string;
   userId: string;
@@ -431,7 +438,7 @@ function DateTab({
   sessionId,
   currentSession,
   onSuccess,
-  queryClient
+  queryClient,
 }: {
   sessionId: string;
   currentSession: any;
@@ -439,7 +446,7 @@ function DateTab({
   queryClient: any;
 }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(currentSession.created_at));
-  
+
   const { sessionsStore } = useSessions((s) => ({
     sessionsStore: s.sessions,
   }));
@@ -449,7 +456,7 @@ function DateTab({
       const updatedSession = {
         ...currentSession,
         created_at: newDate.toISOString(),
-        visited_at: new Date().toISOString(), 
+        visited_at: new Date().toISOString(),
       };
       await dbCommands.upsertSession(updatedSession);
       return updatedSession;
@@ -459,7 +466,7 @@ function DateTab({
       if (sessionStore) {
         await sessionStore.getState().refresh();
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
       onSuccess();
@@ -470,19 +477,19 @@ function DateTab({
   });
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const dateStr = e.target.value; 
+    const dateStr = e.target.value;
     if (dateStr) {
-      const [year, month, day] = dateStr.split('-').map(Number);
+      const [year, month, day] = dateStr.split("-").map(Number);
       const newDate = new Date(year, month - 1, day); // month is 0-indexed
-      
+
       const originalTime = new Date(currentSession.created_at);
       newDate.setHours(
         originalTime.getHours(),
         originalTime.getMinutes(),
         originalTime.getSeconds(),
-        originalTime.getMilliseconds()
+        originalTime.getMilliseconds(),
       );
-      
+
       if (!isNaN(newDate.getTime())) {
         setSelectedDate(newDate);
       }
@@ -510,10 +517,10 @@ function DateTab({
           className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:ring-0 focus:border-neutral-200"
         />
       </div>
-      
+
       <div className="flex gap-2">
-        <Button 
-          onClick={handleSaveDate} 
+        <Button
+          onClick={handleSaveDate}
           disabled={updateSessionDate.isPending}
           className="flex-1 focus:outline-none"
         >

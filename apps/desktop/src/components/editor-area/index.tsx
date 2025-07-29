@@ -361,9 +361,6 @@ export function useEnhanceMutation({
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
-      console.log("words", JSON.stringify(words));
-      console.log("words length", words.length);
-
       const systemMessage = await templateCommands.render(
         "enhance.system",
         {

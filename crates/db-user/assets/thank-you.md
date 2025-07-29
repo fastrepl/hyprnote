@@ -1,6 +1,9 @@
 We appreciate your patience while you wait for your **STT&LLM models** to be downloaded.
 <br/>
 
+We are currently in Beta, so there might be some glitches or errors. We're working day and night to fix every reported bug and improve the product, so we ask for your trust :)
+<br/>
+
 You will be able to try out Meeting Transcription after STT download is complete (the recording button will <u>**turn RED**</u> when it's ready!), and Meeting Summarization after LLM download is complete.
 <br/>
 

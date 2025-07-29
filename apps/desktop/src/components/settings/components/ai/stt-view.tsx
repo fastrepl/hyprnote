@@ -167,16 +167,16 @@ export function STTView({
 
   const defaultModelKeys = ["QuantizedTiny", "QuantizedSmall", "QuantizedLargeTurbo"];
   const otherModelKeys = ["QuantizedTinyEn", "QuantizedBase", "QuantizedBaseEn", "QuantizedSmallEn"];
-  
+
   const modelsToShow = sttModels.filter(model => {
     if (defaultModelKeys.includes(model.key)) {
       return true;
     }
-    
+
     if (otherModelKeys.includes(model.key) && model.downloaded) {
       return true;
     }
-    
+
     return false;
   });
 

@@ -1121,7 +1121,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:181
+#: src/components/settings/components/ai/stt-view.tsx:196
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1394,7 +1394,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:172
+#: src/components/settings/components/ai/stt-view.tsx:187
 msgid "Transcribing"
 msgstr ""
 

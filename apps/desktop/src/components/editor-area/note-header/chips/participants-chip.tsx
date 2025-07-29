@@ -68,7 +68,13 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
   }, [participants, userId]);
 
   const handleClickHuman = (human: Human) => {
-    windowsCommands.windowShow({ type: "human", value: human.id });
+    // Open finder window and navigate to contact view with person selected
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowNavigate(
+        { type: "finder" },
+        `/app/finder?view=contact&personId=${human.id}`,
+      );
+    });
   };
 
   return (

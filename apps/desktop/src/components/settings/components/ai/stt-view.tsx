@@ -199,7 +199,7 @@ export function STTView({
               onClick={() => {
                 if (model.downloaded) {
                   setSelectedSTTModel(model.key);
-                  localSttCommands.setCurrentModel(model.key as any);
+                  localSttCommands.setCurrentModel(model.key as SupportedModel);
                   localSttCommands.restartServer();
                 }
               }}

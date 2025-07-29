@@ -336,7 +336,7 @@ msgstr "Add languages you use during meetings to improve transcription accuracy"
 msgid "Add members"
 msgstr "Add members"
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:311
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:317
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -588,7 +588,7 @@ msgstr "Control how autonomous the AI enhancement should be"
 #~ msgstr "Control how creative the AI enhancement should be"
 
 #: src/routes/app.human.$id.tsx:535
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:399
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:405
 msgid "Create"
 msgstr "Create"
 
@@ -1073,7 +1073,7 @@ msgstr "Official Templates"
 #~ msgid "Open calendar view"
 #~ msgstr "Open calendar view"
 
-#: src/components/left-sidebar/top-area/finder-button.tsx:41
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
 msgid "Open finder view"
 msgstr "Open finder view"
 

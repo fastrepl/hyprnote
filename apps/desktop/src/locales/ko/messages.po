@@ -336,7 +336,7 @@ msgstr ""
 msgid "Add members"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:311
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:317
 msgid "Add participant"
 msgstr ""
 
@@ -588,7 +588,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/routes/app.human.$id.tsx:535
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:399
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:405
 msgid "Create"
 msgstr ""
 
@@ -1073,7 +1073,7 @@ msgstr ""
 #~ msgid "Open calendar view"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/finder-button.tsx:41
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
 msgid "Open finder view"
 msgstr ""
 

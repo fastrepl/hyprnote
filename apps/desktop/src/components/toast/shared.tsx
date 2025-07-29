@@ -76,6 +76,7 @@ export function showSttModelDownloadToast(model: SupportedModel, onComplete?: ()
             channel={sttChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
+              localSttCommands.setCurrentModel(model);
               localSttCommands.startServer();
               if (onComplete) {
                 onComplete();
@@ -118,6 +119,7 @@ export function showLlmModelDownloadToast(
             channel={llmChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
+              localLlmCommands.setCurrentModel(modelToDownload);
               localLlmCommands.startServer();
               if (onComplete) {
                 onComplete();

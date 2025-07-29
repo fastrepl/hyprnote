@@ -47,7 +47,17 @@ pub struct DecoderResponse {
 /// Nested message and enum types in `DecoderResponse`.
 pub mod decoder_response {
     /// Indicates the type of speech event.
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
     #[repr(i32)]
     pub enum SpeechEventType {
         /// No speech event specified.
@@ -203,7 +213,17 @@ pub struct DecoderConfig {
 }
 /// Nested message and enum types in `DecoderConfig`.
 pub mod decoder_config {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash,
+        PartialOrd,
+        Ord,
+        ::prost::Enumeration
+    )]
     #[repr(i32)]
     pub enum AudioEncoding {
         /// Not specified.
@@ -290,10 +310,10 @@ pub mod online_decoder_client {
         dead_code,
         missing_docs,
         clippy::wildcard_imports,
-        clippy::let_unit_value
+        clippy::let_unit_value,
     )]
-    use tonic::codegen::http::Uri;
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     /// The greeting service definition.
     #[derive(Debug, Clone)]
     pub struct OnlineDecoderClient<T> {
@@ -338,8 +358,9 @@ pub mod online_decoder_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + std::marker::Send + std::marker::Sync,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + std::marker::Send + std::marker::Sync,
         {
             OnlineDecoderClient::new(InterceptedService::new(inner, interceptor))
         }
@@ -382,11 +403,18 @@ pub mod online_decoder_client {
             tonic::Response<tonic::codec::Streaming<super::DecoderResponse>>,
             tonic::Status,
         > {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::unknown(format!("Service was not ready: {}", e.into()))
-            })?;
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/online_decoder.OnlineDecoder/Decode");
+            let path = http::uri::PathAndQuery::from_static(
+                "/online_decoder.OnlineDecoder/Decode",
+            );
             let mut req = request.into_streaming_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("online_decoder.OnlineDecoder", "Decode"));

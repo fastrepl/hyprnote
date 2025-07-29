@@ -7,15 +7,17 @@ pub use remote::*;
 pub use types::*;
 
 use {
-    futures_util::StreamExt,
+    futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
     reqwest::StatusCode,
     std::{
+        cmp::min,
         fs::File,
         fs::OpenOptions,
-        io::{BufReader, Read, Write},
+        io::{BufReader, Read, Seek, SeekFrom, Write},
         path::Path,
-        sync::OnceLock,
+        sync::{Arc, Mutex, OnceLock},
     },
+    tokio::task::JoinHandle,
 };
 
 static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
@@ -115,6 +117,134 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         ));
     }
 
+    progress_callback(DownloadProgress::Finished);
+
+    Ok(())
+}
+
+const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024; // 8MB chunks
+const MAX_CONCURRENT_CHUNKS: usize = 4;
+
+pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
+    url: impl reqwest::IntoUrl,
+    output_path: impl AsRef<Path>,
+    progress_callback: F,
+) -> Result<(), crate::Error> {
+    let url = url.into_url()?;
+    let progress_callback = Arc::new(progress_callback);
+
+    if let Some(parent) = output_path.as_ref().parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    let head_response = get_client().head(url.clone()).send().await?;
+    let total_size = head_response
+        .content_length()
+        .ok_or_else(|| crate::Error::OtherError("Content-Length header missing".to_string()))?;
+
+    let supports_ranges = head_response
+        .headers()
+        .get("accept-ranges")
+        .map(|v| v.to_str().unwrap_or(""))
+        .unwrap_or("")
+        == "bytes";
+
+    if !supports_ranges || total_size <= DEFAULT_CHUNK_SIZE {
+        return download_file_with_callback(url, output_path, move |progress| {
+            progress_callback(progress)
+        })
+        .await;
+    }
+
+    let existing_size = if output_path.as_ref().exists() {
+        file_size(&output_path)?
+    } else {
+        0
+    };
+
+    if existing_size >= total_size {
+        progress_callback(DownloadProgress::Finished);
+        return Ok(());
+    }
+
+    let remaining_size = total_size - existing_size;
+    let chunk_size = min(
+        DEFAULT_CHUNK_SIZE,
+        remaining_size / MAX_CONCURRENT_CHUNKS as u64,
+    )
+    .max(1024 * 1024);
+    let num_chunks = (remaining_size + chunk_size - 1) / chunk_size;
+
+    let mut file = if existing_size > 0 {
+        OpenOptions::new().write(true).open(output_path.as_ref())?
+    } else {
+        std::fs::File::create(output_path.as_ref())?
+    };
+
+    let downloaded = Arc::new(Mutex::new(existing_size));
+    let mut tasks = FuturesUnordered::new();
+
+    progress_callback(DownloadProgress::Started);
+
+    for chunk_idx in 0..num_chunks {
+        let start = existing_size + chunk_idx * chunk_size;
+        let end = min(start + chunk_size - 1, total_size - 1);
+
+        let url_clone = url.clone();
+        let downloaded_clone = Arc::clone(&downloaded);
+        let progress_callback_clone = Arc::clone(&progress_callback);
+
+        let task: JoinHandle<Result<(u64, Vec<u8>), crate::Error>> = tokio::spawn(async move {
+            let client = get_client();
+            let range_header = format!("bytes={}-{}", start, end);
+
+            let response = client
+                .get(url_clone)
+                .header("Range", range_header)
+                .send()
+                .await?;
+
+            if response.status() != StatusCode::PARTIAL_CONTENT {
+                return Err(crate::Error::OtherError(
+                    "Server does not support range requests".to_string(),
+                ));
+            }
+
+            let mut bytes = Vec::new();
+            let mut stream = response.bytes_stream();
+
+            while let Some(chunk) = stream.try_next().await? {
+                bytes.extend_from_slice(&chunk);
+
+                let mut downloaded_guard = downloaded_clone.lock().unwrap();
+                *downloaded_guard += chunk.len() as u64;
+                let current_downloaded = *downloaded_guard;
+                drop(downloaded_guard);
+
+                progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
+            }
+
+            Ok((start, bytes))
+        });
+
+        tasks.push(task);
+
+        if tasks.len() >= MAX_CONCURRENT_CHUNKS {
+            if let Some(result) = tasks.next().await {
+                let (offset, data) = result??;
+                file.seek(SeekFrom::Start(offset))?;
+                file.write_all(&data)?;
+            }
+        }
+    }
+
+    while let Some(result) = tasks.next().await {
+        let (offset, data) = result??;
+        file.seek(SeekFrom::Start(offset))?;
+        file.write_all(&data)?;
+    }
+
+    file.flush()?;
     progress_callback(DownloadProgress::Finished);
 
     Ok(())
@@ -383,5 +513,46 @@ mod tests {
             !events.is_empty(),
             "Progress events should have been recorded"
         );
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_download_file_parallel_s3() {
+        use std::sync::{Arc, Mutex};
+        use tempfile::NamedTempFile;
+
+        let temp_file = NamedTempFile::new().unwrap();
+        let temp_path = temp_file.path();
+
+        let s3_url =
+            "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
+
+        let progress_events = Arc::new(Mutex::new(Vec::new()));
+        let progress_events_clone = Arc::clone(&progress_events);
+
+        let result = download_file_parallel(s3_url, temp_path, move |progress| {
+            progress_events_clone.lock().unwrap().push(progress);
+        })
+        .await;
+
+        assert!(result.is_ok());
+
+        let file_size = std::fs::metadata(temp_path).unwrap().len();
+        assert!(file_size > 0, "File should have been downloaded");
+
+        let events = progress_events.lock().unwrap();
+        assert!(
+            !events.is_empty(),
+            "Progress events should have been recorded"
+        );
+
+        let has_started = events
+            .iter()
+            .any(|e| matches!(e, DownloadProgress::Started));
+        let has_finished = events
+            .iter()
+            .any(|e| matches!(e, DownloadProgress::Finished));
+        assert!(has_started, "Should have Started event");
+        assert!(has_finished, "Should have Finished event");
     }
 }

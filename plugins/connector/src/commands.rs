@@ -101,7 +101,6 @@ pub async fn get_openai_api_key<R: tauri::Runtime>(
     Ok(v.unwrap_or_default())
 }
 
-
 #[tauri::command]
 #[specta::specta]
 pub async fn get_openrouter_api_key<R: tauri::Runtime>(
@@ -126,7 +125,6 @@ pub async fn get_gemini_api_key<R: tauri::Runtime>(
     Ok(v.unwrap_or_default())
 }
 
-
 #[tauri::command]
 #[specta::specta]
 pub async fn set_openai_api_key<R: tauri::Runtime>(
@@ -149,7 +147,6 @@ pub async fn set_openrouter_api_key<R: tauri::Runtime>(
         .map_err(|e| e.to_string())
 }
 
-
 #[tauri::command]
 #[specta::specta]
 pub async fn set_gemini_api_key<R: tauri::Runtime>(
@@ -160,7 +157,6 @@ pub async fn set_gemini_api_key<R: tauri::Runtime>(
         .set(StoreKey::GeminiApiKey, api_key)
         .map_err(|e| e.to_string())
 }
-
 
 #[tauri::command]
 #[specta::specta]
@@ -174,7 +170,6 @@ pub async fn get_provider_source<R: tauri::Runtime>(
     Ok(v.unwrap_or_default())
 }
 
-
 #[tauri::command]
 #[specta::specta]
 pub async fn set_provider_source<R: tauri::Runtime>(
@@ -184,7 +179,7 @@ pub async fn set_provider_source<R: tauri::Runtime>(
     app.connector_store()
         .set(StoreKey::ProviderSource, source)
         .map_err(|e| e.to_string())
-} 
+}
 
 #[tauri::command]
 #[specta::specta]
@@ -323,4 +318,3 @@ pub async fn get_openrouter_model<R: tauri::Runtime>(
         .map_err(|e| e.to_string())?;
     Ok(v.unwrap_or_default())
 }
-

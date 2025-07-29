@@ -23,31 +23,31 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 import { cn } from "@hypr/ui/lib/utils";
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
 // Import the new components
-import { STTView } from "../components/ai/stt-view";
-import { LLMLocalView } from "../components/ai/llm-local-view";
 import { LLMCustomView } from "../components/ai/llm-custom-view";
-import { 
-  ConfigureEndpointConfig, 
-  LLMModel, 
-  STTModel,
-  SharedSTTProps,
-  SharedLLMProps,
-  SharedCustomEndpointProps,
-  OpenAIFormValues,
-  GeminiFormValues,
+import { LLMLocalView } from "../components/ai/llm-local-view";
+import {
+  ConfigureEndpointConfig,
   CustomFormValues,
-  OpenRouterFormValues
+  GeminiFormValues,
+  LLMModel,
+  OpenAIFormValues,
+  OpenRouterFormValues,
+  SharedCustomEndpointProps,
+  SharedLLMProps,
+  SharedSTTProps,
+  STTModel,
 } from "../components/ai/shared";
+import { STTView } from "../components/ai/stt-view";
 
 // Schema for OpenAI form
 const openaiSchema = z.object({
   api_key: z.string().min(1, { message: "API key is required" }).refine(
     (value) => value.startsWith("sk-"),
-    { message: "OpenAI API key should start with 'sk-'" }
+    { message: "OpenAI API key should start with 'sk-'" },
   ),
   model: z.string().min(1, { message: "Model is required" }),
 });
@@ -56,7 +56,7 @@ const openaiSchema = z.object({
 const geminiSchema = z.object({
   api_key: z.string().min(1, { message: "API key is required" }).refine(
     (value) => value.startsWith("AIza"),
-    { message: "Gemini API key should start with 'AIza'" }
+    { message: "Gemini API key should start with 'AIza'" },
   ),
   model: z.string().min(1, { message: "Model is required" }),
 });
@@ -65,7 +65,7 @@ const geminiSchema = z.object({
 const openrouterSchema = z.object({
   api_key: z.string().min(1, { message: "API key is required" }).refine(
     (value) => value.startsWith("sk-"),
-    { message: "OpenRouter API key should start with 'sk-'" }
+    { message: "OpenRouter API key should start with 'sk-'" },
   ),
   model: z.string().min(1, { message: "Model is required" }),
 });
@@ -226,24 +226,22 @@ const specificityLevels = {
   },
 } as const;
 
-
-
 export default function LocalAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'transcription' | 'local' | 'custom'>('transcription');
-  
+  const [activeTab, setActiveTab] = useState<"transcription" | "local" | "custom">("transcription");
+
   // STT State
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
   const [sttModels, setSttModels] = useState(initialSttModels);
-  
+
   // LLM State
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [llmModelsState, setLlmModels] = useState(initialLlmModels);
 
   // Custom Endpoint State
-  const [openAccordion, setOpenAccordion] = useState<'others' | 'openai' | 'gemini' | 'openrouter' | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | null>(null);
 
   const { userId } = useHypr();
 
@@ -397,7 +395,7 @@ export default function LocalAI() {
   });
 
   const othersApiKeyQuery = useQuery({
-    queryKey: ["others-api-key"], 
+    queryKey: ["others-api-key"],
     queryFn: () => connectorCommands.getOthersApiKey(),
   });
 
@@ -500,7 +498,7 @@ export default function LocalAI() {
       // Check if migration needed (no providerSource exists)
       if (!providerSourceQuery.data && customLLMConnection.data) {
         console.log("Migrating existing user to new provider system...");
-        
+
         try {
           // Copy existing custom* fields to others* fields
           if (customLLMConnection.data.api_base) {
@@ -512,10 +510,10 @@ export default function LocalAI() {
           if (getCustomLLMModel.data) {
             await setOthersModelMutation.mutateAsync(getCustomLLMModel.data);
           }
-          
+
           // Set provider source to 'others'
-          await setProviderSourceMutation.mutateAsync('others');
-          
+          await setProviderSourceMutation.mutateAsync("others");
+
           console.log("Migration completed successfully");
         } catch (error) {
           console.error("Migration failed:", error);
@@ -524,7 +522,10 @@ export default function LocalAI() {
     };
 
     // Run migration when all queries have loaded
-    if (providerSourceQuery.data !== undefined && customLLMConnection.data !== undefined && getCustomLLMModel.data !== undefined) {
+    if (
+      providerSourceQuery.data !== undefined && customLLMConnection.data !== undefined
+      && getCustomLLMModel.data !== undefined
+    ) {
       handleMigration();
     }
   }, [providerSourceQuery.data, customLLMConnection.data, getCustomLLMModel.data]);
@@ -532,9 +533,9 @@ export default function LocalAI() {
   // ACCORDION DISPLAY - Based on providerSource, not URL
   useEffect(() => {
     if (providerSourceQuery.data) {
-      setOpenAccordion(providerSourceQuery.data as 'openai' | 'gemini' | 'openrouter' | 'others');
+      setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
     } else if (customLLMEnabled.data) {
-      setOpenAccordion('others'); // Fallback during migration
+      setOpenAccordion("others"); // Fallback during migration
     } else {
       setOpenAccordion(null);
     }
@@ -542,36 +543,38 @@ export default function LocalAI() {
 
   // CRITICAL: Centralized function to configure custom endpoint
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
-    const finalApiBase = 
-      config.provider === 'openai' ? 'https://api.openai.com/v1' :
-      config.provider === 'gemini' ? 'https://generativelanguage.googleapis.com/v1beta/openai' :
-      config.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' :
-      config.api_base;
-    
+    const finalApiBase = config.provider === "openai"
+      ? "https://api.openai.com/v1"
+      : config.provider === "gemini"
+      ? "https://generativelanguage.googleapis.com/v1beta/openai"
+      : config.provider === "openrouter"
+      ? "https://openrouter.ai/api/v1"
+      : config.api_base;
+
     // Enable custom LLM
     setCustomLLMEnabledMutation.mutate(true);
-    
+
     // Store in provider-specific storage
-    if (config.provider === 'openai' && config.api_key) {
+    if (config.provider === "openai" && config.api_key) {
       setOpenaiApiKeyMutation.mutate(config.api_key);
       setOpenaiModelMutation.mutate(config.model);
-    } else if (config.provider === 'gemini' && config.api_key) {
+    } else if (config.provider === "gemini" && config.api_key) {
       setGeminiApiKeyMutation.mutate(config.api_key);
       setGeminiModelMutation.mutate(config.model);
-    } else if (config.provider === 'openrouter' && config.api_key) {
+    } else if (config.provider === "openrouter" && config.api_key) {
       setOpenrouterApiKeyMutation.mutate(config.api_key);
       setOpenrouterModelMutation.mutate(config.model);
-    } else if (config.provider === 'others') {
+    } else if (config.provider === "others") {
       setOthersApiBaseMutation.mutate(config.api_base);
       if (config.api_key) {
         setOthersApiKeyMutation.mutate(config.api_key);
       }
       setOthersModelMutation.mutate(config.model);
     }
-    
+
     // Set provider source
     setProviderSourceMutation.mutate(config.provider);
-    
+
     // Set as currently active (custom* fields)
     setCustomLLMModel.mutate(config.model);
     setCustomLLMConnection.mutate({
@@ -646,7 +649,6 @@ export default function LocalAI() {
     }
   }, [openrouterApiKeyQuery.data, openrouterModelQuery.data, openrouterForm]);
 
-  
   useEffect(() => {
     // Others form gets populated from Others-specific storage using setValue to trigger watch
     if (othersApiBaseQuery.data) {
@@ -662,26 +664,26 @@ export default function LocalAI() {
 
   // Set selected models from stored model for OpenAI and Gemini
   useEffect(() => {
-    if (openaiModelQuery.data && openAccordion === 'openai') {
+    if (openaiModelQuery.data && openAccordion === "openai") {
       openaiForm.setValue("model", openaiModelQuery.data);
     }
   }, [openaiModelQuery.data, openAccordion, openaiForm]);
 
   useEffect(() => {
-    if (geminiModelQuery.data && openAccordion === 'gemini') {
+    if (geminiModelQuery.data && openAccordion === "gemini") {
       geminiForm.setValue("model", geminiModelQuery.data);
     }
   }, [geminiModelQuery.data, openAccordion, geminiForm]);
 
   useEffect(() => {
-    if (openrouterModelQuery.data && openAccordion === 'openrouter') {
+    if (openrouterModelQuery.data && openAccordion === "openrouter") {
       openrouterForm.setValue("model", openrouterModelQuery.data);
     }
   }, [openrouterModelQuery.data, openAccordion, openrouterForm]);
 
   // ADD THIS: Set stored values for Others when accordion opens
   useEffect(() => {
-    if (openAccordion === 'others') {
+    if (openAccordion === "others") {
       if (othersApiBaseQuery.data) {
         customForm.setValue("api_base", othersApiBaseQuery.data);
       }
@@ -787,7 +789,7 @@ export default function LocalAI() {
       {/* Tab Navigation */}
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as 'transcription' | 'local' | 'custom')}
+        onValueChange={(value) => setActiveTab(value as "transcription" | "local" | "custom")}
         className="w-full"
       >
         <TabsList className="grid grid-cols-3 mb-6">
@@ -804,12 +806,12 @@ export default function LocalAI() {
       </Tabs>
 
       {/* Tab Content */}
-      {activeTab === 'transcription' && <STTView {...sttProps} />}
-      {activeTab === 'local' && <LLMLocalView {...localLlmProps} />}
-      {activeTab === 'custom' && (
+      {activeTab === "transcription" && <STTView {...sttProps} />}
+      {activeTab === "local" && <LLMLocalView {...localLlmProps} />}
+      {activeTab === "custom" && (
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
-          
+
           {/* AI Configuration - only show in custom tab */}
           {customLLMEnabled.data && (
             <div className="max-w-2xl">

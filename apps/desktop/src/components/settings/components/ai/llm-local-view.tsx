@@ -147,4 +147,4 @@ export function LLMLocalView({
       </div>
     </div>
   );
-} 
+}

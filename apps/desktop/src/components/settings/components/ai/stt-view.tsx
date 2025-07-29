@@ -7,8 +7,8 @@ import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
-import { SharedSTTProps } from "./shared";
 import { WERPerformanceModal } from "../wer-modal";
+import { SharedSTTProps } from "./shared";
 
 export const sttModelMetadata: Record<SupportedModel, {
   name: string;

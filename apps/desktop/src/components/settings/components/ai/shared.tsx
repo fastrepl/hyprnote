@@ -1,6 +1,6 @@
+import { Connection } from "@hypr/plugin-connector";
 import { cn } from "@hypr/ui/lib/utils";
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
-import { Connection } from "@hypr/plugin-connector";
 import { UseFormReturn } from "react-hook-form";
 
 export const RatingDisplay = (
@@ -61,7 +61,7 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: 'others' | 'openai' | 'gemini' | 'openrouter';
+  provider: "others" | "openai" | "gemini" | "openrouter";
   api_base: string;
   api_key?: string;
   model: string;
@@ -103,14 +103,14 @@ export interface SharedLLMProps {
   customLLMEnabled: UseQueryResult<boolean>;
   selectedLLMModel: string;
   setSelectedLLMModel: (model: string) => void;
-  
+
   // Critical Mutations
   setCustomLLMEnabledMutation: UseMutationResult<null, Error, boolean, unknown>;
-  
+
   // Model State
   downloadingModels: Set<string>;
   llmModelsState: LLMModel[];
-  
+
   // Functions
   handleModelDownload: (modelKey: string) => Promise<void>;
   handleShowFileLocation: (modelType: "stt" | "llm") => Promise<void>;
@@ -119,22 +119,22 @@ export interface SharedLLMProps {
 export interface SharedCustomEndpointProps extends SharedLLMProps {
   // Custom Endpoint Configuration
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
-  
+
   // Accordion State
-  openAccordion: 'others' | 'openai' | 'gemini' | 'openrouter' | null;
-  setOpenAccordion: (accordion: 'others' | 'openai' | 'gemini' | 'openrouter' | null) => void;
-  
+  openAccordion: "others" | "openai" | "gemini" | "openrouter" | null;
+  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | null) => void;
+
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;
   getCustomLLMModel: UseQueryResult<string | null>;
   availableLLMModels: UseQueryResult<string[]>;
-  
+
   // Form instances for each provider
   openaiForm: UseFormReturn<OpenAIFormValues>;
   geminiForm: UseFormReturn<GeminiFormValues>;
   openrouterForm: UseFormReturn<OpenRouterFormValues>;
   customForm: UseFormReturn<CustomFormValues>;
-  
+
   // Helper functions
   isLocalEndpoint: () => boolean;
 }

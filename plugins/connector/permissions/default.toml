@@ -23,4 +23,8 @@ permissions = [
     "allow-get-others-api-key", 
     "allow-set-others-model",
     "allow-get-others-model", 
+    "allow-get-openai-model",
+    "allow-set-openai-model",
+    "allow-get-gemini-model",
+    "allow-set-gemini-model",
 ]

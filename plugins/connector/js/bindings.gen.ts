@@ -72,6 +72,18 @@ async getOthersModel() : Promise<string> {
 },
 async setOthersModel(model: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:connector|set_others_model", { model });
+},
+async getOpenaiModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openai_model");
+},
+async setOpenaiModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openai_model", { model });
+},
+async getGeminiModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_gemini_model");
+},
+async setGeminiModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_gemini_model", { model });
 }
 }
 

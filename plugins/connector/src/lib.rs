@@ -37,6 +37,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_others_api_base::<tauri::Wry>,
             commands::get_others_model::<tauri::Wry>,
             commands::set_others_model::<tauri::Wry>,
+            commands::get_openai_model::<tauri::Wry>,
+            commands::set_openai_model::<tauri::Wry>,
+            commands::get_gemini_model::<tauri::Wry>,
+            commands::set_gemini_model::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

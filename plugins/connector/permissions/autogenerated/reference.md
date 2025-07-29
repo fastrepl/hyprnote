@@ -26,6 +26,10 @@ Default permissions for the plugin
 - `allow-get-others-api-key`
 - `allow-set-others-model`
 - `allow-get-others-model`
+- `allow-get-openai-model`
+- `allow-set-openai-model`
+- `allow-get-gemini-model`
+- `allow-set-gemini-model`
 
 ## Permission Table
 
@@ -143,6 +147,32 @@ Denies the get_gemini_api_key command without any pre-configured scope.
 <tr>
 <td>
 
+`connector:allow-get-gemini-model`
+
+</td>
+<td>
+
+Enables the get_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-gemini-model`
+
+</td>
+<td>
+
+Denies the get_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `connector:allow-get-llm-connection`
 
 </td>
@@ -214,6 +244,32 @@ Enables the get_openai_api_key command without any pre-configured scope.
 <td>
 
 Denies the get_openai_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-openai-model`
+
+</td>
+<td>
+
+Enables the get_openai_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-openai-model`
+
+</td>
+<td>
+
+Denies the get_openai_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -481,6 +537,32 @@ Denies the set_gemini_api_key command without any pre-configured scope.
 <tr>
 <td>
 
+`connector:allow-set-gemini-model`
+
+</td>
+<td>
+
+Enables the set_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-gemini-model`
+
+</td>
+<td>
+
+Denies the set_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `connector:allow-set-openai-api-key`
 
 </td>
@@ -500,6 +582,32 @@ Enables the set_openai_api_key command without any pre-configured scope.
 <td>
 
 Denies the set_openai_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-openai-model`
+
+</td>
+<td>
+
+Enables the set_openai_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-openai-model`
+
+</td>
+<td>
+
+Denies the set_openai_model command without any pre-configured scope.
 
 </td>
 </tr>

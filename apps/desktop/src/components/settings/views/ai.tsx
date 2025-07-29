@@ -429,6 +429,31 @@ export default function LocalAI() {
     },
   });
 
+  // NEW: OpenAI and Gemini model queries/mutations
+  const openaiModelQuery = useQuery({
+    queryKey: ["openai-model"],
+    queryFn: () => connectorCommands.getOpenaiModel(),
+  });
+
+  const setOpenaiModelMutation = useMutation({
+    mutationFn: (model: string) => connectorCommands.setOpenaiModel(model),
+    onSuccess: () => {
+      openaiModelQuery.refetch();
+    },
+  });
+
+  const geminiModelQuery = useQuery({
+    queryKey: ["gemini-model"],
+    queryFn: () => connectorCommands.getGeminiModel(),
+  });
+
+  const setGeminiModelMutation = useMutation({
+    mutationFn: (model: string) => connectorCommands.setGeminiModel(model),
+    onSuccess: () => {
+      geminiModelQuery.refetch();
+    },
+  });
+
   // MIGRATION LOGIC - Run once on component mount
   useEffect(() => {
     const handleMigration = async () => {
@@ -493,10 +518,10 @@ export default function LocalAI() {
     // Store in provider-specific storage
     if (config.provider === 'openai' && config.api_key) {
       setOpenaiApiKeyMutation.mutate(config.api_key);
-      // TODO: setOpenaiModelMutation.mutate(config.model);
+      setOpenaiModelMutation.mutate(config.model);
     } else if (config.provider === 'gemini' && config.api_key) {
       setGeminiApiKeyMutation.mutate(config.api_key);
-      // TODO: setGeminiModelMutation.mutate(config.model);
+      setGeminiModelMutation.mutate(config.model);
     } else if (config.provider === 'others') {
       setOthersApiBaseMutation.mutate(config.api_base);
       if (config.api_key) {
@@ -550,37 +575,61 @@ export default function LocalAI() {
     if (openaiApiKeyQuery.data) {
       openaiForm.setValue("api_key", openaiApiKeyQuery.data);
     }
-    // TODO: Set OpenAI model when implemented
-  }, [openaiApiKeyQuery.data, openaiForm]);
+    if (openaiModelQuery.data) {
+      openaiForm.setValue("model", openaiModelQuery.data);
+    }
+  }, [openaiApiKeyQuery.data, openaiModelQuery.data, openaiForm]);
 
   useEffect(() => {
     if (geminiApiKeyQuery.data) {
       geminiForm.setValue("api_key", geminiApiKeyQuery.data);
     }
-    // TODO: Set Gemini model when implemented  
-  }, [geminiApiKeyQuery.data, geminiForm]);
+    if (geminiModelQuery.data) {
+      geminiForm.setValue("model", geminiModelQuery.data);
+    }
+  }, [geminiApiKeyQuery.data, geminiModelQuery.data, geminiForm]);
 
+  
   useEffect(() => {
-    // Others form gets populated from Others-specific storage
-    customForm.reset({
-      api_base: othersApiBaseQuery.data || "",
-      api_key: othersApiKeyQuery.data || "",
-      model: othersModelQuery.data || "",
-    });
+    // Others form gets populated from Others-specific storage using setValue to trigger watch
+    if (othersApiBaseQuery.data) {
+      customForm.setValue("api_base", othersApiBaseQuery.data);
+    }
+    if (othersApiKeyQuery.data) {
+      customForm.setValue("api_key", othersApiKeyQuery.data);
+    }
+    if (othersModelQuery.data) {
+      customForm.setValue("model", othersModelQuery.data);
+    }
   }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
 
   // Set selected models from stored model for OpenAI and Gemini
   useEffect(() => {
-    if (getCustomLLMModel.data && openAccordion === 'openai') {
-      openaiForm.setValue("model", getCustomLLMModel.data);
+    if (openaiModelQuery.data && openAccordion === 'openai') {
+      openaiForm.setValue("model", openaiModelQuery.data);
     }
-  }, [getCustomLLMModel.data, openAccordion, openaiForm]);
+  }, [openaiModelQuery.data, openAccordion, openaiForm]);
 
   useEffect(() => {
-    if (getCustomLLMModel.data && openAccordion === 'gemini') {
-      geminiForm.setValue("model", getCustomLLMModel.data);
+    if (geminiModelQuery.data && openAccordion === 'gemini') {
+      geminiForm.setValue("model", geminiModelQuery.data);
     }
-  }, [getCustomLLMModel.data, openAccordion, geminiForm]);
+  }, [geminiModelQuery.data, openAccordion, geminiForm]);
+
+  // ADD THIS: Set stored values for Others when accordion opens
+  useEffect(() => {
+    if (openAccordion === 'others') {
+      if (othersApiBaseQuery.data) {
+        customForm.setValue("api_base", othersApiBaseQuery.data);
+      }
+      if (othersApiKeyQuery.data) {
+        customForm.setValue("api_key", othersApiKeyQuery.data);
+      }
+      if (othersModelQuery.data) {
+        customForm.setValue("model", othersModelQuery.data);
+      }
+    }
+  }, [openAccordion, othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
 
   // AI Configuration
   const config = useQuery({

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-openai-model"
+description = "Enables the get_openai_model command without any pre-configured scope."
+commands.allow = ["get_openai_model"]
+
+[[permission]]
+identifier = "deny-get-openai-model"
+description = "Denies the get_openai_model command without any pre-configured scope."
+commands.deny = ["get_openai_model"]

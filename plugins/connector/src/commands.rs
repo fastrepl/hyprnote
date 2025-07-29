@@ -230,3 +230,49 @@ pub async fn set_others_model<R: tauri::Runtime>(
         .set(StoreKey::OthersModel, model)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_openai_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::OpenaiModel, model)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_openai_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::OpenaiModel)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_gemini_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: String,
+) -> Result<(), String> {
+    app.connector_store()
+        .set(StoreKey::GeminiModel, model)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_gemini_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    let store = app.connector_store();
+    let v = store
+        .get::<String>(StoreKey::GeminiModel)
+        .map_err(|e| e.to_string())?;
+    Ok(v.unwrap_or_default())
+}

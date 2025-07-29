@@ -16,17 +16,15 @@ import { cn } from "@hypr/ui/lib/utils";
 import { SharedCustomEndpointProps } from "./shared";
 
 const openaiModels = [
-  "gpt-4",
-  "gpt-4-turbo",
   "gpt-4o", 
   "gpt-4o-mini",
-  "gpt-3.5-turbo"
+  "gpt-4.1", 
+  "chatgpt-4o-latest"
 ];
 
 const geminiModels = [
   "gemini-1.5-pro",
   "gemini-1.5-flash", 
-  "gemini-1.0-pro"
 ];
 
 export function LLMCustomView({
@@ -45,27 +43,7 @@ export function LLMCustomView({
   customForm,
   isLocalEndpoint,
 }: SharedCustomEndpointProps) {
-  // Provider detection based on stored connection
-  // NOTE: This logic is now handled in ai.tsx using providerSource
-  // useEffect(() => {
-  //   if (customLLMConnection.data?.api_base) {
-  //     const apiBase = customLLMConnection.data.api_base;
-  //     const isOpenai = apiBase.includes('openai.com');
-  //     const isGemini = apiBase.includes('googleapis.com');
-  //     
-  //     setOpenAccordion(
-  //       isOpenai ? 'openai' : 
-  //       isGemini ? 'gemini' : 
-  //       'others'
-  //     );
-  //   } else if (customLLMEnabled.data) {
-  //     setOpenAccordion('others'); // Default to others if enabled but no connection
-  //   } else {
-  //     setOpenAccordion(null);
-  //   }
-  // }, [customLLMConnection.data, customLLMEnabled.data, setOpenAccordion]);
-
-
+ 
 
   // Watch forms and submit when complete and valid
   useEffect(() => {

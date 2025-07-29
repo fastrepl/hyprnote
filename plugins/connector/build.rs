@@ -21,6 +21,10 @@ const COMMANDS: &[&str] = &[
     "set_others_api_base",
     "get_others_model",
     "set_others_model",
+    "get_openai_model",
+    "set_openai_model",
+    "get_gemini_model",
+    "set_gemini_model",
 ];
 
 fn main() {

@@ -15,6 +15,8 @@ pub enum StoreKey {
     OthersApiKey, 
     OthersApiBase, 
     OthersModel,
+    OpenaiModel, 
+    GeminiModel,
 }
 
 impl ScopedStoreKey for StoreKey {}

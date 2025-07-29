@@ -27,6 +27,7 @@ import { commands } from "@/types";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 export const Route = createFileRoute("/app")({
   component: Component,
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const router = useRouter();
-  const { thankYouSessionId } = useHypr();
+  const { thankYouSessionId, userId } = useHypr();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
 
   const [onboardingCompletedThisSession, setOnboardingCompletedThisSession] = useState(false);
@@ -89,6 +90,12 @@ function Component() {
                           onClose={() => {
                             setOnboardingCompletedThisSession(true);
 
+                            // Add posthog analytics 
+                            analyticsCommands.event({
+                              event: "onboarding_all_steps_completed",
+                              distinct_id: userId,
+                            });
+                            
                             // Navigate to thank you session if it exists
                             if (thankYouSessionId) {
                               router.navigate({ to: `/app/note/${thankYouSessionId}` });

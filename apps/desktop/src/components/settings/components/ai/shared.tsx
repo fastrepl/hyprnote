@@ -1,6 +1,5 @@
 import { cn } from "@hypr/ui/lib/utils";
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
-import { SupportedModel } from "@hypr/plugin-local-llm";
 import { Connection } from "@hypr/plugin-connector";
 import { UseFormReturn } from "react-hook-form";
 
@@ -68,7 +67,6 @@ export type ConfigureEndpointConfig = {
   model: string;
 };
 
-// Form types for each provider
 export type OpenAIFormValues = {
   api_key: string;
   model: string;

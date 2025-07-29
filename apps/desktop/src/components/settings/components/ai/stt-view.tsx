@@ -10,7 +10,6 @@ import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps } from "./shared";
 import { WERPerformanceModal } from "../wer-modal";
 
-// Export the STT model metadata for use in other components
 export const sttModelMetadata: Record<SupportedModel, {
   name: string;
   description: string;

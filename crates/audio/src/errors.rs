@@ -1,2 +1,5 @@
 #[derive(thiserror::Error, Debug)]
-pub enum Error {}
+pub enum Error {
+    #[error("no input device found")]
+    NoInputDevice,
+}

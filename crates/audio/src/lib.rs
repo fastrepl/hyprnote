@@ -80,28 +80,34 @@ impl AudioInput {
     pub fn list_mic_devices() -> Vec<String> {
         let host = cpal::default_host();
 
-        let devices = host.input_devices().unwrap();
+        let devices: Vec<cpal::Device> = host
+            .input_devices()
+            .map(|devices| devices.collect())
+            .unwrap_or_else(|_| Vec::new());
 
         devices
+            .into_iter()
             .filter_map(|d| d.name().ok())
             .filter(|d| d != "hypr-audio-tap")
             .collect()
     }
 
-    pub fn from_mic(device_name: Option<String>) -> Self {
-        Self {
+    pub fn from_mic(device_name: Option<String>) -> Result<Self, crate::Error> {
+        let mic = MicInput::new(device_name)?;
+
+        Ok(Self {
             source: AudioSource::RealtimeMic,
-            mic: Some(MicInput::new(device_name)),
+            mic: Some(mic),
             speaker: None,
             data: None,
-        }
+        })
     }
 
-    pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {
+    pub fn from_speaker() -> Self {
         Self {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
-            speaker: Some(SpeakerInput::new(sample_rate_override).unwrap()),
+            speaker: Some(SpeakerInput::new().unwrap()),
             data: None,
         }
     }

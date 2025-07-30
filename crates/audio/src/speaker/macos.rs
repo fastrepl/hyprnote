@@ -16,7 +16,6 @@ use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
 pub struct SpeakerInput {
     tap: ca::TapGuard,
     agg_desc: arc::Retained<cf::DictionaryOf<cf::String, cf::Type>>,
-    sample_rate_override: Option<u32>,
 }
 
 struct WakerState {
@@ -27,7 +26,6 @@ struct WakerState {
 pub struct SpeakerStream {
     consumer: HeapCons<f32>,
     stream_desc: cat::AudioBasicStreamDesc,
-    sample_rate_override: Option<u32>,
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
     _tap: ca::TapGuard,
@@ -36,14 +34,7 @@ pub struct SpeakerStream {
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        tracing::info!(
-            tap_sample_rate = self.stream_desc.sample_rate,
-            override_sample_rate = self.sample_rate_override,
-            "speaker_stream"
-        );
-
-        self.sample_rate_override
-            .unwrap_or(self.stream_desc.sample_rate as u32)
+        self.stream_desc.sample_rate as u32
     }
 }
 
@@ -54,7 +45,7 @@ struct Ctx {
 }
 
 impl SpeakerInput {
-    pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
+    pub fn new() -> Result<Self> {
         let output_device = ca::System::default_output_device()?;
         let output_uid = output_device.uid()?;
 
@@ -101,11 +92,7 @@ impl SpeakerInput {
             ],
         );
 
-        Ok(Self {
-            tap,
-            agg_desc,
-            sample_rate_override,
-        })
+        Ok(Self { tap, agg_desc })
     }
 
     fn start_device(
@@ -181,7 +168,6 @@ impl SpeakerInput {
         SpeakerStream {
             consumer,
             stream_desc: asbd,
-            sample_rate_override: self.sample_rate_override,
             _device: device,
             _ctx: ctx,
             _tap: self.tap,

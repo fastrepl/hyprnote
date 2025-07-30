@@ -7,6 +7,8 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
+    HyprAudioError(#[from] hypr_audio::Error),
+    #[error(transparent)]
     CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
     #[error(transparent)]
     ListenClientError(#[from] hypr_ws::Error),

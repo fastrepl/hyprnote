@@ -8,15 +8,11 @@ use std::time::Duration;
 use tracing::error;
 use wasapi::{get_default_device, Direction, SampleType, StreamMode, WaveFormat};
 
-pub struct SpeakerInput {
-    sample_rate_override: Option<u32>,
-}
+pub struct SpeakerInput {}
 
 impl SpeakerInput {
-    pub fn new(sample_rate_override: Option<u32>) -> Result<Self> {
-        Ok(Self {
-            sample_rate_override,
-        })
+    pub fn new() -> Result<Self> {
+        Ok(Self {})
     }
 
     pub fn stream(self) -> SpeakerStream {
@@ -45,7 +41,6 @@ impl SpeakerInput {
             sample_queue,
             waker_state,
             capture_thread: Some(capture_thread),
-            sample_rate_override: self.sample_rate_override,
         }
     }
 }
@@ -60,12 +55,11 @@ pub struct SpeakerStream {
     sample_queue: Arc<Mutex<VecDeque<f32>>>,
     waker_state: Arc<Mutex<WakerState>>,
     capture_thread: Option<thread::JoinHandle<()>>,
-    sample_rate_override: Option<u32>,
 }
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        self.sample_rate_override.unwrap_or(44100)
+        44100
     }
 
     fn capture_audio_loop(

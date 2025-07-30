@@ -151,7 +151,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         let stop = hypr_audio::AudioOutput::silence();
 
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         speaker_sample_stream.next().await;
 
         let _ = stop.send(());

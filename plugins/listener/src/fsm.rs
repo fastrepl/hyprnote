@@ -252,7 +252,7 @@ impl Session {
         .await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone());
+            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
         };
         let mic_stream = mic_sample_stream
@@ -264,7 +264,7 @@ impl Session {
         // We need some delay here for Airpod transition.
         // But if the delay is too long, AEC will not work.
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         let speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);

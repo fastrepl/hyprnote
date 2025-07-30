@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 
 import type { Event, Session } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -34,19 +34,25 @@ export default function WorkspaceCalendar({
   const batchParticipants = useQuery({
     queryKey: ["batch-participants", allSessionIds],
     queryFn: async () => {
-      if (allSessionIds.length === 0) return {};
+      if (allSessionIds.length === 0) {
+        return {};
+      }
       const results = await Promise.all(
         allSessionIds.map(async (sessionId) => {
           const participants = await dbCommands.sessionListParticipants(sessionId);
           return {
             sessionId,
             participants: participants.sort((a, b) => {
-              if (a.is_user && !b.is_user) return 1;
-              if (!a.is_user && b.is_user) return -1;
+              if (a.is_user && !b.is_user) {
+                return 1;
+              }
+              if (!a.is_user && b.is_user) {
+                return -1;
+              }
               return 0;
-            })
+            }),
           };
-        })
+        }),
       );
       return Object.fromEntries(results.map(r => [r.sessionId, r.participants]));
     },
@@ -58,12 +64,14 @@ export default function WorkspaceCalendar({
   const batchLinkedEvents = useQuery({
     queryKey: ["batch-linked-events", sessionsWithEventIds.map(s => s.calendar_event_id)],
     queryFn: async () => {
-      if (sessionsWithEventIds.length === 0) return {};
+      if (sessionsWithEventIds.length === 0) {
+        return {};
+      }
       const results = await Promise.all(
         sessionsWithEventIds.map(async (session) => {
           const event = await dbCommands.getEvent(session.calendar_event_id!);
           return { sessionId: session.id, event };
-        })
+        }),
       );
       return Object.fromEntries(results.map(r => [r.sessionId, r.event]));
     },
@@ -75,12 +83,14 @@ export default function WorkspaceCalendar({
   const batchEventSessions = useQuery({
     queryKey: ["batch-event-sessions", allEventIds],
     queryFn: async () => {
-      if (allEventIds.length === 0) return {};
+      if (allEventIds.length === 0) {
+        return {};
+      }
       const results = await Promise.all(
         allEventIds.map(async (eventId) => {
           const session = await dbCommands.getSession({ calendarEventId: eventId });
           return { eventId, session };
-        })
+        }),
       );
       return Object.fromEntries(results.map(r => [r.eventId, r.session]));
     },
@@ -296,8 +306,8 @@ export default function WorkspaceCalendar({
                           const linkedEvent = batchLinkedEvents.data?.[session.id] || null;
                           return (
                             <div key={key}>
-                              <NoteCard 
-                                session={session} 
+                              <NoteCard
+                                session={session}
                                 participants={participants}
                                 linkedEvent={linkedEvent}
                               />
@@ -309,8 +319,8 @@ export default function WorkspaceCalendar({
                           const participants = session ? (batchParticipants.data?.[session.id] || []) : [];
                           return (
                             <div key={key}>
-                              <EventCard 
-                                event={event} 
+                              <EventCard
+                                event={event}
                                 session={session}
                                 participants={participants}
                               />
@@ -357,9 +367,9 @@ export default function WorkspaceCalendar({
                                   key={key}
                                   className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
                                 >
-                                  <NoteCard 
-                                    session={session} 
-                                    showTime 
+                                  <NoteCard
+                                    session={session}
+                                    showTime
                                     participants={participants}
                                     linkedEvent={linkedEvent}
                                   />
@@ -374,9 +384,9 @@ export default function WorkspaceCalendar({
                                   key={key}
                                   className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
                                 >
-                                  <EventCard 
-                                    event={event} 
-                                    showTime 
+                                  <EventCard
+                                    event={event}
+                                    showTime
                                     session={session}
                                     participants={participants}
                                   />

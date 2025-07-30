@@ -32,9 +32,8 @@ function Component() {
   const showDevtools = useQuery({
     queryKey: ["showDevtools"],
     queryFn: () => {
-      //const flag = (window as any).TANSTACK_DEVTOOLS;
-      //return (flag ?? false);
-      return true;
+      const flag = (window as any).TANSTACK_DEVTOOLS;
+      return (flag ?? false);
     },
     enabled: process.env.NODE_ENV !== "production",
     refetchInterval: 1000,

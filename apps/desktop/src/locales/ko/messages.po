@@ -256,6 +256,10 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
+#: src/components/settings/components/ai/llm-custom-view.tsx:518
+msgid "(Optional for localhost)"
+msgstr ""
+
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
@@ -390,7 +394,7 @@ msgstr ""
 #: src/components/settings/components/ai/llm-custom-view.tsx:201
 #: src/components/settings/components/ai/llm-custom-view.tsx:297
 #: src/components/settings/components/ai/llm-custom-view.tsx:403
-#: src/components/settings/components/ai/llm-custom-view.tsx:516
+#: src/components/settings/components/ai/llm-custom-view.tsx:515
 msgid "API Key"
 msgstr ""
 
@@ -600,7 +604,7 @@ msgstr ""
 msgid "Create new note"
 msgstr ""
 
-#: src/components/workspace-calendar/event-card.tsx:151
+#: src/components/workspace-calendar/event-card.tsx:129
 msgid "Create Note"
 msgstr ""
 
@@ -711,8 +715,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:519
-msgid "Enter the API key for your custom LLM endpoint"
-msgstr ""
+#~ msgid "Enter the API key for your custom LLM endpoint"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:496
 msgid "Enter the base URL for your custom LLM endpoint"

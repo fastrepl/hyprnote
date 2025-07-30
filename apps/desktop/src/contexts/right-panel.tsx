@@ -92,19 +92,14 @@ export function RightPanelProvider({
     [isExpanded, currentView],
   );
 
-  
   const windowLabel = getCurrentWebviewWindowLabel();
   const isMainWindow = windowLabel === "main";
-  
-  // Debug logging
-  console.log("[RightPanelProvider] Window label:", windowLabel, "isMainWindow:", isMainWindow);
-  
+
   const { data: chatPanelEnabled = false } = useQuery({
     queryKey: ["flags", "ChatRightPanel"],
     queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
     enabled: isMainWindow,
   });
-  
 
   useHotkeys(
     "mod+r",

@@ -1,7 +1,7 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { type Human, type Organization } from "@hypr/plugin-db";
@@ -24,7 +24,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const [selectedOrganization, setSelectedOrganization] = useState<string | null>(initialOrgId || null);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(initialPersonId || null);
 
- 
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
@@ -65,11 +64,13 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   // Merge user profile with all people, ensuring user's own profile is included
   const allPeopleWithUser = React.useMemo(() => {
-    if (!userProfile) return allPeople;
-    
+    if (!userProfile) {
+      return allPeople;
+    }
+
     // Check if user is already in the list
     const userInList = allPeople.some(person => person.id === userId);
-    
+
     if (userInList) {
       return allPeople;
     } else {
@@ -86,7 +87,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
       if (!selectedPerson) {
         throw new Error("Query should not run when selectedPerson is null");
       }
-      
+
       const sessions = await dbCommands.listSessions({
         type: "search",
         query: "",
@@ -113,10 +114,8 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     staleTime: 30 * 1000,
   });
 
-
-
   // Client-side filtering: filter allPeopleWithUser by organization when one is selected
-  const displayPeople = selectedOrganization 
+  const displayPeople = selectedOrganization
     ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
     : allPeopleWithUser;
 

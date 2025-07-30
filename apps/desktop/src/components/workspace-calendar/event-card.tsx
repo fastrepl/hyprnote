@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { openURL } from "@/utils/shell";
-import type { Event, Session, Human } from "@hypr/plugin-db";
+import type { Event, Human, Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 

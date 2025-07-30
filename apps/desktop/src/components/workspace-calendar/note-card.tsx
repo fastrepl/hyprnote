@@ -4,7 +4,7 @@ import { File, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import type { Session, Event, Human } from "@hypr/plugin-db";
+import type { Event, Human, Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 

@@ -1,6 +1,6 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, User } from "lucide-react";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -128,6 +128,38 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   const handleEditOrganization = (organizationId: string) => {
     setEditingOrg(organizationId);
+  };
+
+  const deletePersonMutation = useMutation({
+    mutationFn: (personId: string) => dbCommands.deleteHuman(personId),
+    onSuccess: () => {
+
+      queryClient.invalidateQueries({ queryKey: ["all-people"] });
+      queryClient.invalidateQueries({ queryKey: ["organization-members"] });
+      
+      if (selectedPerson === selectedPersonData?.id) {
+        setSelectedPerson(null);
+      }
+    
+    },
+    onError: (error) => {
+      console.error("Failed to delete person:", error);
+    },
+  });
+
+  const handleDeletePerson = async (personId: string) => {
+    
+    try {
+      const userConfirmed = await confirm("Are you sure you want to delete this contact? This action cannot be undone.");
+      
+      if (userConfirmed) {
+        deletePersonMutation.mutate(personId);
+      } else {
+        console.log("Deletion cancelled");
+      }
+    } catch (error) {
+      console.log("Confirm dialog error:", error);
+    }
   };
 
   return (
@@ -295,12 +327,29 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                               <OrganizationInfo organizationId={selectedPersonData.organization_id} />
                             )}
                           </div>
-                          <button
-                            onClick={() => handleEditPerson(selectedPersonData.id)}
-                            className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
-                          >
-                            <Pencil className="h-4 w-4 text-neutral-500" />
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditPerson(selectedPersonData.id)}
+                              className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
+                              title="Edit contact"
+                            >
+                              <Pencil className="h-4 w-4 text-neutral-500" />
+                            </button>
+                            {!selectedPersonData.is_user && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();       
+                                  e.stopPropagation();    
+                                  handleDeletePerson(selectedPersonData.id);
+                                }}
+                                className="p-2 rounded-md hover:bg-red-50 transition-colors"
+                                disabled={deletePersonMutation.isPending}
+                                title="Delete contact"
+                              >
+                                <TrashIcon className="h-4 w-4 text-red-500 hover:text-red-600" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -506,30 +506,30 @@ export function LLMCustomView({
                       )}
                     />
 
-                    {customForm.watch("api_base") && !isLocalEndpoint() && (
-                      <FormField
-                        control={customForm.control}
-                        name="api_key"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium">
-                              <Trans>API Key</Trans>
-                            </FormLabel>
-                            <FormDescription className="text-xs">
-                              <Trans>Enter the API key for your custom LLM endpoint</Trans>
-                            </FormDescription>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="password"
-                                placeholder="sk-..."
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={customForm.control}
+                      name="api_key"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>API Key</Trans>
+                            {customForm.watch("api_base") && isLocalEndpoint() && (
+                              <span className="text-xs font-normal text-neutral-500 ml-2">
+                                <Trans>(Optional for localhost)</Trans>
+                              </span>
+                            )}
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="sk-..."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <FormField
                       control={customForm.control}

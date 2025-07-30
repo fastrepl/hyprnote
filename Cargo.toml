@@ -12,19 +12,20 @@ resolver = "2"
 members = [
   "apps/app/server",
   "apps/desktop/src-tauri",
-  "apps/restate",
+  "apps/proxy",
   "crates/*",
   "plugins/*",
 ]
 
 [workspace.package]
-rust-version = "1.86.0"
+rust-version = "1.88.0"
 
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
+hypr-aws-transcribe = { path = "crates/aws-transcribe", package = "aws-transcribe" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-apple" }
 hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
@@ -52,6 +53,7 @@ hypr-notification2 = { path = "crates/notification2", package = "notification2" 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
+hypr-proxy = { path = "apps/proxy", package = "proxy" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }

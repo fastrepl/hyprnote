@@ -22,23 +22,20 @@ interface ContactViewProps {
 export function ContactView({ userId, initialPersonId, initialOrgId }: ContactViewProps) {
   const [selectedOrganization, setSelectedOrganization] = useState<string | null>(initialOrgId || null);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(initialPersonId || null);
+
+ 
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
   const queryClient = useQueryClient();
 
+  // Load organizations once and keep cached (global data)
   const { data: organizations = [] } = useQuery({
-    queryKey: ["organizations", userId],
+    queryKey: ["organizations"],
     queryFn: () => dbCommands.listOrganizations(null),
   });
 
-  const { data: people = [] } = useQuery({
-    queryKey: ["organization-members", selectedOrganization],
-    queryFn: () =>
-      selectedOrganization ? dbCommands.listOrganizationMembers(selectedOrganization) : Promise.resolve([]),
-    enabled: !!selectedOrganization,
-  });
-
+  // Load all people once and keep cached (user-specific data)
   const { data: allPeople = [] } = useQuery({
     queryKey: ["all-people", userId],
     queryFn: async () => {
@@ -50,13 +47,15 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         return [];
       }
     },
-    enabled: !selectedOrganization,
   });
 
   const { data: personSessions = [] } = useQuery({
     queryKey: ["person-sessions", selectedPerson, userId],
     queryFn: async () => {
+      
+      // Double-check selectedPerson exists (extra safety)
       if (!selectedPerson) {
+        console.warn("❌ personSessions query running without selectedPerson - this should not happen!");
         return [];
       }
 
@@ -81,35 +80,56 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
       return sessionsWithPerson;
     },
-    enabled: !!selectedPerson,
+    enabled: !!selectedPerson && typeof selectedPerson === 'string' && selectedPerson.length > 0,
+    // Add some cache time to prevent unnecessary refetches
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000,  // 30 seconds
   });
 
-  const displayPeople = selectedOrganization ? people : allPeople;
+  console.log("🔍 PersonSessions query state:", { 
+    selectedPerson, 
+    enabled: !!selectedPerson && typeof selectedPerson === 'string' && selectedPerson.length > 0,
+    queryData: personSessions.length 
+  });
+
+  // Client-side filtering: filter allPeople by organization when one is selected
+  const displayPeople = selectedOrganization 
+    ? allPeople.filter(person => person.organization_id === selectedOrganization)
+    : allPeople;
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
 
-  // Handle initial person selection
+  // Handle initial selection only once when data is available
   useEffect(() => {
+    console.log("🎯 PersonId useEffect triggered:", { 
+      initialPersonId, 
+      allPeopleLength: allPeople.length, 
+      selectedPerson 
+    });
+    
     if (initialPersonId && allPeople.length > 0) {
       const person = allPeople.find(p => p.id === initialPersonId);
-      if (person) {
+      if (person && selectedPerson !== initialPersonId) {
         setSelectedPerson(initialPersonId);
-        if (person.organization_id) {
+        if (person.organization_id && selectedOrganization !== person.organization_id) {
           setSelectedOrganization(person.organization_id);
         }
       }
     }
-  }, [initialPersonId, allPeople]);
+  }, [initialPersonId, allPeople.length]); // Only depend on data availability, not the full array
 
-  // Handle initial organization selection
+  // Handle initial organization selection only once when data is available
   useEffect(() => {
+ 
+    
     if (initialOrgId && organizations.length > 0) {
       const org = organizations.find(o => o.id === initialOrgId);
-      if (org) {
+      if (org && selectedOrganization !== initialOrgId) {
+        console.log("✅ Setting selectedOrganization:", initialOrgId);
         setSelectedOrganization(initialOrgId);
       }
     }
-  }, [initialOrgId, organizations]);
+  }, [initialOrgId, organizations.length]); // Only depend on data availability, not the full array
 
   const handleSessionClick = (sessionId: string) => {
     const path = { to: "/app/note/$id", params: { id: sessionId } } as const satisfies LinkProps;
@@ -220,7 +240,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 linkedin_username: null,
               }).then(() => {
                 queryClient.invalidateQueries({ queryKey: ["all-people"] });
-                queryClient.invalidateQueries({ queryKey: ["organization-members"] });
                 setSelectedPerson(newPersonId);
                 setEditingPerson(newPersonId);
               });
@@ -395,7 +414,6 @@ function EditPersonForm({
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-people"] });
-      queryClient.invalidateQueries({ queryKey: ["organization-members"] });
       onSave();
     },
     onError: () => {

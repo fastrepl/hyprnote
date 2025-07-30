@@ -140,24 +140,14 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         setSelectedPerson(null);
       }
     },
-    onError: (error) => {
-      console.error("Failed to delete person:", error);
-    },
   });
 
   const handleDeletePerson = async (personId: string) => {
-    try {
-      const userConfirmed = await confirm(
-        "Are you sure you want to delete this contact? This action cannot be undone.",
-      );
-
-      if (userConfirmed) {
-        deletePersonMutation.mutate(personId);
-      } else {
-        console.log("Deletion cancelled");
-      }
-    } catch (error) {
-      console.log("Confirm dialog error:", error);
+    const userConfirmed = await confirm(
+      "Are you sure you want to delete this contact? This action cannot be undone.",
+    );
+    if (userConfirmed) {
+      deletePersonMutation.mutate(personId);
     }
   };
 

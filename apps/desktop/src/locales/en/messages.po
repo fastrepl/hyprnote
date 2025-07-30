@@ -256,7 +256,7 @@ msgstr "(Beta) Detect meetings automatically"
 msgid "(Beta) Upcoming meeting notifications"
 msgstr "(Beta) Upcoming meeting notifications"
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:518
+#: src/components/settings/components/ai/llm-custom-view.tsx:519
 msgid "(Optional for localhost)"
 msgstr "(Optional for localhost)"
 
@@ -391,17 +391,10 @@ msgid "API Base URL"
 msgstr "API Base URL"
 
 #: src/components/settings/views/integrations.tsx:197
-<<<<<<< HEAD
 #: src/components/settings/components/ai/llm-custom-view.tsx:202
 #: src/components/settings/components/ai/llm-custom-view.tsx:298
 #: src/components/settings/components/ai/llm-custom-view.tsx:404
-#: src/components/settings/components/ai/llm-custom-view.tsx:517
-=======
-#: src/components/settings/components/ai/llm-custom-view.tsx:201
-#: src/components/settings/components/ai/llm-custom-view.tsx:297
-#: src/components/settings/components/ai/llm-custom-view.tsx:403
-#: src/components/settings/components/ai/llm-custom-view.tsx:515
->>>>>>> fe015a5c01764aede13ee54127eb7c838b8ae4f0
+#: src/components/settings/components/ai/llm-custom-view.tsx:516
 msgid "API Key"
 msgstr "API Key"
 
@@ -719,17 +712,11 @@ msgstr "Enter a section title"
 
 #: src/components/settings/components/ai/llm-view.tsx:291
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
-#~ msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)"
+#~ msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)<<<<<<< HEAD"
 
-<<<<<<< HEAD
-#: src/components/settings/components/ai/llm-custom-view.tsx:520
-msgid "Enter the API key for your custom LLM endpoint"
-msgstr "Enter the API key for your custom LLM endpoint"
-=======
 #: src/components/settings/components/ai/llm-custom-view.tsx:519
 #~ msgid "Enter the API key for your custom LLM endpoint"
-#~ msgstr "Enter the API key for your custom LLM endpoint"
->>>>>>> fe015a5c01764aede13ee54127eb7c838b8ae4f0
+#~ msgstr "Enter the API key for your custom LLM endpoint>>>>>>> fe015a5c01764aede13ee54127eb7c838b8ae4f0"
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:497
 msgid "Enter the base URL for your custom LLM endpoint"

@@ -256,7 +256,7 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:518
+#: src/components/settings/components/ai/llm-custom-view.tsx:519
 msgid "(Optional for localhost)"
 msgstr ""
 
@@ -391,10 +391,10 @@ msgid "API Base URL"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:197
-#: src/components/settings/components/ai/llm-custom-view.tsx:201
-#: src/components/settings/components/ai/llm-custom-view.tsx:297
-#: src/components/settings/components/ai/llm-custom-view.tsx:403
-#: src/components/settings/components/ai/llm-custom-view.tsx:515
+#: src/components/settings/components/ai/llm-custom-view.tsx:202
+#: src/components/settings/components/ai/llm-custom-view.tsx:298
+#: src/components/settings/components/ai/llm-custom-view.tsx:404
+#: src/components/settings/components/ai/llm-custom-view.tsx:516
 msgid "API Key"
 msgstr ""
 

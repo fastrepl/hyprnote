@@ -1,6 +1,6 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouter, useLocation } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
@@ -40,6 +40,7 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const router = useRouter();
+  const location = useLocation();
   const { thankYouSessionId, userId } = useHypr();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
 
@@ -53,73 +54,84 @@ function Component() {
   const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
     && !onboardingCompletedThisSession;
 
+  // Check if we're in the finder route
+  const isFinderRoute = location.pathname.includes('/finder');
+
+  const content = (
+    <SessionsProvider store={sessionsStore}>
+      <OngoingSessionProvider store={ongoingSessionStore}>
+        <LeftSidebarProvider>
+          {isMain ? (
+            <RightPanelProvider>
+              <RestartTTT />
+              <RestartSTT />
+              <MainWindowStateEventSupport />
+              <SettingsProvider>
+                <NewNoteProvider>
+                  <SearchProvider>
+                    <EditModeProvider>
+                      <div className="flex h-screen w-screen overflow-hidden">
+                        <LeftSidebar />
+                        <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                          <Toolbar />
+                          <ResizablePanelGroup
+                            direction="horizontal"
+                            className="flex-1 overflow-hidden flex"
+                            autoSaveId="main"
+                          >
+                            <ResizablePanel className="flex-1 overflow-hidden">
+                              <Outlet />
+                            </ResizablePanel>
+                            <ResizableHandle className="w-0" />
+                            <RightPanel />
+                          </ResizablePanelGroup>
+                        </div>
+                      </div>
+                      <WelcomeModal
+                        isOpen={shouldShowWelcomeModal}
+                        onClose={() => {
+                          setOnboardingCompletedThisSession(true);
+                          analyticsCommands.event({
+                            event: "onboarding_all_steps_completed",
+                            distinct_id: userId,
+                          });
+                          if (thankYouSessionId) {
+                            router.navigate({ to: `/app/note/${thankYouSessionId}` });
+                          }
+                          router.invalidate();
+                        }}
+                      />
+                      <IndividualizationModal
+                        isOpen={shouldShowIndividualization}
+                        onClose={() => {
+                          commands.setIndividualizationNeeded(false);
+                          router.invalidate();
+                        }}
+                      />
+                    </EditModeProvider>
+                  </SearchProvider>
+                </NewNoteProvider>
+              </SettingsProvider>
+            </RightPanelProvider>
+          ) : (
+            <div className="h-screen w-screen overflow-hidden">
+              <Outlet />
+            </div>
+          )}
+        </LeftSidebarProvider>
+      </OngoingSessionProvider>
+    </SessionsProvider>
+  );
+
   return (
     <>
-      <LicenseRefreshProvider>
-        <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider store={ongoingSessionStore}>
-            <LeftSidebarProvider>
-              {isMain ? (
-                <RightPanelProvider>
-                  <RestartTTT />
-                  <RestartSTT />
-                  <MainWindowStateEventSupport />
-                  <SettingsProvider>
-                    <NewNoteProvider>
-                      <SearchProvider>
-                        <EditModeProvider>
-                          <div className="flex h-screen w-screen overflow-hidden">
-                            <LeftSidebar />
-                            <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                              <Toolbar />
-                              <ResizablePanelGroup
-                                direction="horizontal"
-                                className="flex-1 overflow-hidden flex"
-                                autoSaveId="main"
-                              >
-                                <ResizablePanel className="flex-1 overflow-hidden">
-                                  <Outlet />
-                                </ResizablePanel>
-                                <ResizableHandle className="w-0" />
-                                <RightPanel />
-                              </ResizablePanelGroup>
-                            </div>
-                          </div>
-                          <WelcomeModal
-                            isOpen={shouldShowWelcomeModal}
-                            onClose={() => {
-                              setOnboardingCompletedThisSession(true);
-                              analyticsCommands.event({
-                                event: "onboarding_all_steps_completed",
-                                distinct_id: userId,
-                              });
-                              if (thankYouSessionId) {
-                                router.navigate({ to: `/app/note/${thankYouSessionId}` });
-                              }
-                              router.invalidate();
-                            }}
-                          />
-                          <IndividualizationModal
-                            isOpen={shouldShowIndividualization}
-                            onClose={() => {
-                              commands.setIndividualizationNeeded(false);
-                              router.invalidate();
-                            }}
-                          />
-                        </EditModeProvider>
-                      </SearchProvider>
-                    </NewNoteProvider>
-                  </SettingsProvider>
-                </RightPanelProvider>
-              ) : (
-                <div className="h-screen w-screen overflow-hidden">
-                  <Outlet />
-                </div>
-              )}
-            </LeftSidebarProvider>
-          </OngoingSessionProvider>
-        </SessionsProvider>
-      </LicenseRefreshProvider>
+      {isFinderRoute ? (
+        content
+      ) : (
+        <LicenseRefreshProvider>
+          {content}
+        </LicenseRefreshProvider>
+      )}
       {showNotifications && <Notifications />}
     </>
   );

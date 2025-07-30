@@ -50,6 +50,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::humans::get_human,
             commands::humans::upsert_human,
             commands::humans::list_humans,
+            commands::humans::delete_human,
             commands::organizations::get_organization,
             commands::organizations::get_organization_by_user_id,
             commands::organizations::upsert_organization,

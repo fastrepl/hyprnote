@@ -91,6 +91,9 @@ async upsertHuman(human: Human) : Promise<Human> {
 async listHumans(filter: ListHumanFilter | null) : Promise<Human[]> {
     return await TAURI_INVOKE("plugin:db|list_humans", { filter });
 },
+async deleteHuman(id: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|delete_human", { id });
+},
 async getOrganization(id: string) : Promise<Organization | null> {
     return await TAURI_INVOKE("plugin:db|get_organization", { id });
 },

@@ -567,9 +567,7 @@ export default function LocalAI() {
       setOpenrouterModelMutation.mutate(config.model);
     } else if (config.provider === "others") {
       setOthersApiBaseMutation.mutate(config.api_base);
-      if (config.api_key) {
-        setOthersApiKeyMutation.mutate(config.api_key);
-      }
+      setOthersApiKeyMutation.mutate(config.api_key || "");
       setOthersModelMutation.mutate(config.model);
     }
 

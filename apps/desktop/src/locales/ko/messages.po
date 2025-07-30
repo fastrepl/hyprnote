@@ -423,7 +423,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:827
+#: src/components/settings/views/ai.tsx:825
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -579,7 +579,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:830
+#: src/components/settings/views/ai.tsx:828
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -904,11 +904,11 @@ msgstr ""
 #~ msgid "Live summary of the meeting"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:804
+#: src/components/settings/views/ai.tsx:802
 msgid "LLM - Custom"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:801
+#: src/components/settings/views/ai.tsx:799
 msgid "LLM - Local"
 msgstr ""
 
@@ -1410,7 +1410,7 @@ msgstr ""
 msgid "Transcribing"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:798
+#: src/components/settings/views/ai.tsx:796
 msgid "Transcription"
 msgstr ""
 

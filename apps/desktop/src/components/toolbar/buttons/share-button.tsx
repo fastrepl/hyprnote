@@ -133,7 +133,7 @@ function ShareButtonInNote() {
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     setExpandedId(null);
-    
+
     if (!newOpen) {
       setCopySuccess(false);
     }
@@ -264,7 +264,7 @@ function ShareButtonInNote() {
             {directActions.map((action) => {
               const isLoading = exportMutation.isPending && exportMutation.variables?.optionId === action.id;
               const isSuccess = action.id === "copy" && copySuccess;
-              
+
               return (
                 <div key={action.id} className="border rounded-lg overflow-hidden">
                   <button
@@ -273,7 +273,7 @@ function ShareButtonInNote() {
                     className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`text-gray-700 transition-colors ${isSuccess ? 'text-green-600' : ''}`}>
+                      <div className={`text-gray-700 transition-colors ${isSuccess ? "text-green-600" : ""}`}>
                         {isSuccess ? <Check size={20} /> : action.icon}
                       </div>
                       <div className="text-left">
@@ -281,12 +281,8 @@ function ShareButtonInNote() {
                         <span className="text-xs text-gray-600">{action.description}</span>
                       </div>
                     </div>
-                    {isLoading && (
-                      <span className="text-xs text-gray-500">Copying...</span>
-                    )}
-                    {isSuccess && (
-                      <span className="text-xs text-green-600">Copied!</span>
-                    )}
+                    {isLoading && <span className="text-xs text-gray-500">Copying...</span>}
+                    {isSuccess && <span className="text-xs text-green-600">Copied!</span>}
                   </button>
                 </div>
               );
@@ -401,7 +397,7 @@ const exportHandlers = {
   copy: async (session: Session): Promise<ExportResult> => {
     try {
       let textToCopy = "";
-      
+
       if (session.enhanced_memo_html) {
         textToCopy = html2md(session.enhanced_memo_html);
       } else if (session.raw_memo_html) {

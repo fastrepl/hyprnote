@@ -321,6 +321,7 @@ export default function LocalAI() {
   const availableLLMModels = useQuery({
     queryKey: ["available-llm-models"],
     queryFn: async () => {
+      console.log("available models being loaded")
       return await connectorCommands.listCustomLlmModels();
     },
   });

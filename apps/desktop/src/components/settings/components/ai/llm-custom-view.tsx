@@ -13,8 +13,8 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
-import { SharedCustomEndpointProps } from "./shared";
 import { useQuery } from "@tanstack/react-query";
+import { SharedCustomEndpointProps } from "./shared";
 
 const openaiModels = [
   "gpt-4o",
@@ -144,59 +144,58 @@ export function LLMCustomView({
     setSelectedLLMModel("");
   };
 
-
-  // temporary fix for fetching models smoothly 
+  // temporary fix for fetching models smoothly
   const othersModels = useQuery({
     queryKey: ["others-direct-models", customForm.watch("api_base"), customForm.watch("api_key")?.slice(0, 8)],
     queryFn: async (): Promise<string[]> => {
       const apiBase = customForm.getValues("api_base");
       const apiKey = customForm.getValues("api_key");
-      
+
       const url = new URL(apiBase);
-      url.pathname = '/v1/models';
-      
+      url.pathname = "/v1/models";
+
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       };
-      
+
       if (apiKey && apiKey.trim().length > 0) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers["Authorization"] = `Bearer ${apiKey}`;
       }
-      
+
       const response = await fetch(url.toString(), {
-        method: 'GET',
+        method: "GET",
         headers,
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.data || !Array.isArray(data.data)) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
-      
+
       const models = data.data
         .map((model: any) => model.id)
         .filter((id: string) => {
-          const excludeKeywords = ['dall-e'];
+          const excludeKeywords = ["dall-e"];
           return !excludeKeywords.some(keyword => id.includes(keyword));
         });
-      
+
       return models;
     },
     enabled: (() => {
       const apiBase = customForm.watch("api_base");
       const apiKey = customForm.watch("api_key");
       const isLocal = apiBase?.includes("localhost") || apiBase?.includes("127.0.0.1");
-      
+
       try {
         // Only enable if URL looks complete (ends with common patterns)
-        const validEndings = ['/v1', '/v1/', ':11434/v1', ':8080/v1'];
+        const validEndings = ["/v1", "/v1/", ":11434/v1", ":8080/v1"];
         const looksComplete = validEndings.some(ending => apiBase?.endsWith(ending));
-        
+
         return Boolean(apiBase && new URL(apiBase) && looksComplete && (isLocal || apiKey));
       } catch {
         return false;

@@ -133,14 +133,12 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const deletePersonMutation = useMutation({
     mutationFn: (personId: string) => dbCommands.deleteHuman(personId),
     onSuccess: () => {
-
       queryClient.invalidateQueries({ queryKey: ["all-people"] });
       queryClient.invalidateQueries({ queryKey: ["organization-members"] });
-      
+
       if (selectedPerson === selectedPersonData?.id) {
         setSelectedPerson(null);
       }
-    
     },
     onError: (error) => {
       console.error("Failed to delete person:", error);
@@ -148,10 +146,11 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   });
 
   const handleDeletePerson = async (personId: string) => {
-    
     try {
-      const userConfirmed = await confirm("Are you sure you want to delete this contact? This action cannot be undone.");
-      
+      const userConfirmed = await confirm(
+        "Are you sure you want to delete this contact? This action cannot be undone.",
+      );
+
       if (userConfirmed) {
         deletePersonMutation.mutate(personId);
       } else {
@@ -338,8 +337,8 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                             {!selectedPersonData.is_user && (
                               <button
                                 onClick={(e) => {
-                                  e.preventDefault();       
-                                  e.stopPropagation();    
+                                  e.preventDefault();
+                                  e.stopPropagation();
                                   handleDeletePerson(selectedPersonData.id);
                                 }}
                                 className="p-2 rounded-md hover:bg-red-50 transition-colors"

@@ -138,14 +138,14 @@ export function useChatLogic({
       return;
     }
 
-    if (messages.length >= 2 && !getLicense.data?.valid) {
+    if (messages.length >= 4 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
           event: "pro_license_required_chat",
           distinct_id: userId,
         });
       }
-      await message("2 messages are allowed per session for free users.", {
+      await message("2 messages are allowed per conversation for free users.", {
         title: "Pro License Required",
         kind: "info",
       });

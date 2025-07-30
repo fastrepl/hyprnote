@@ -1,65 +1,40 @@
-import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { File, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import type { Session } from "@hypr/plugin-db";
-import { commands as dbCommands } from "@hypr/plugin-db";
+import type { Event, Human, Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 export function NoteCard({
   session,
   showTime = false,
+  participants = [],
+  linkedEvent = null,
 }: {
   session: Session;
   showTime?: boolean;
+  participants?: Human[];
+  linkedEvent?: Event | null;
 }) {
   const { userId } = useHypr();
   const [open, setOpen] = useState(false);
 
-  const linkedEvent = useQuery({
-    queryKey: ["session-linked-event", session.calendar_event_id],
-    queryFn: async () => {
-      if (!session.calendar_event_id) {
-        return null;
-      }
-      return await dbCommands.getEvent(session.calendar_event_id);
-    },
-    enabled: !!session.calendar_event_id,
-  });
-
-  const participants = useQuery({
-    queryKey: ["participants", session.id],
-    queryFn: async () => {
-      const participants = await dbCommands.sessionListParticipants(session.id);
-      return participants.sort((a, b) => {
-        if (a.is_user && !b.is_user) {
-          return 1;
-        }
-        if (!a.is_user && b.is_user) {
-          return -1;
-        }
-        return 0;
-      });
-    },
-  });
-
   const participantsPreview = useMemo(() => {
-    const count = participants.data?.length ?? 0;
+    const count = participants?.length ?? 0;
     if (count === 0) {
       return null;
     }
 
-    return participants.data?.map(participant => {
+    return participants?.map(participant => {
       if (participant.id === userId && !participant.full_name) {
         return "You";
       }
       return participant.full_name ?? "??";
     });
-  }, [participants.data, userId]);
+  }, [participants, userId]);
 
   const handleClick = (id: string) => {
     setOpen(false);
@@ -99,13 +74,13 @@ export function NoteCard({
             : <File className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />}
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
-            {linkedEvent.data?.name || session.title || "Untitled"}
+            {linkedEvent?.name || session.title || "Untitled"}
           </div>
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
         <h3 className="font-semibold text-lg mb-2">
-          {linkedEvent.data?.name || session.title || "Untitled"}
+          {linkedEvent?.name || session.title || "Untitled"}
         </h3>
 
         <p className="text-sm mb-2 text-neutral-600">
@@ -141,7 +116,7 @@ export function NoteCard({
             ? <FileText className="size-3 text-neutral-600 flex-shrink-0" />
             : <File className="size-3 text-neutral-600 flex-shrink-0" />}
           <div className="text-xs font-medium text-neutral-800 truncate">
-            {linkedEvent.data?.name || session.title || "Untitled"}
+            {linkedEvent?.name || session.title || "Untitled"}
           </div>
         </div>
       </PopoverContent>

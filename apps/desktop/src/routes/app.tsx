@@ -1,6 +1,6 @@
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
 import { useEffect, useState } from "react";
@@ -40,6 +40,7 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const router = useRouter();
+  const location = useLocation();
   const { thankYouSessionId, userId } = useHypr();
   const { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded } = Route.useLoaderData();
 
@@ -53,12 +54,15 @@ function Component() {
   const shouldShowIndividualization = isMain && isIndividualizationNeeded && !isOnboardingNeeded
     && !onboardingCompletedThisSession;
 
-  return (
-    <>
-      <LicenseRefreshProvider>
-        <SessionsProvider store={sessionsStore}>
-          <OngoingSessionProvider store={ongoingSessionStore}>
-            <LeftSidebarProvider>
+  // Check if we're in the finder route
+  const isFinderRoute = location.pathname.includes("/finder");
+
+  const content = (
+    <SessionsProvider store={sessionsStore}>
+      <OngoingSessionProvider store={ongoingSessionStore}>
+        <LeftSidebarProvider>
+          {isMain
+            ? (
               <RightPanelProvider>
                 <RestartTTT />
                 <RestartSTT />
@@ -71,7 +75,6 @@ function Component() {
                           <LeftSidebar />
                           <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
                             <Toolbar />
-
                             <ResizablePanelGroup
                               direction="horizontal"
                               className="flex-1 overflow-hidden flex"
@@ -89,18 +92,13 @@ function Component() {
                           isOpen={shouldShowWelcomeModal}
                           onClose={() => {
                             setOnboardingCompletedThisSession(true);
-
-                            // Add posthog analytics
                             analyticsCommands.event({
                               event: "onboarding_all_steps_completed",
                               distinct_id: userId,
                             });
-
-                            // Navigate to thank you session if it exists
                             if (thankYouSessionId) {
                               router.navigate({ to: `/app/note/${thankYouSessionId}` });
                             }
-
                             router.invalidate();
                           }}
                         />
@@ -116,10 +114,24 @@ function Component() {
                   </NewNoteProvider>
                 </SettingsProvider>
               </RightPanelProvider>
-            </LeftSidebarProvider>
-          </OngoingSessionProvider>
-        </SessionsProvider>
-      </LicenseRefreshProvider>
+            )
+            : (
+              <div className="h-screen w-screen overflow-hidden">
+                <Outlet />
+              </div>
+            )}
+        </LeftSidebarProvider>
+      </OngoingSessionProvider>
+    </SessionsProvider>
+  );
+
+  return (
+    <>
+      {isFinderRoute ? content : (
+        <LicenseRefreshProvider>
+          {content}
+        </LicenseRefreshProvider>
+      )}
       {showNotifications && <Notifications />}
     </>
   );

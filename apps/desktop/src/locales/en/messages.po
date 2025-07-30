@@ -256,6 +256,10 @@ msgstr "(Beta) Detect meetings automatically"
 msgid "(Beta) Upcoming meeting notifications"
 msgstr "(Beta) Upcoming meeting notifications"
 
+#: src/components/settings/components/ai/llm-custom-view.tsx:518
+msgid "(Optional for localhost)"
+msgstr "(Optional for localhost)"
+
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
@@ -387,10 +391,17 @@ msgid "API Base URL"
 msgstr "API Base URL"
 
 #: src/components/settings/views/integrations.tsx:197
+<<<<<<< HEAD
 #: src/components/settings/components/ai/llm-custom-view.tsx:202
 #: src/components/settings/components/ai/llm-custom-view.tsx:298
 #: src/components/settings/components/ai/llm-custom-view.tsx:404
 #: src/components/settings/components/ai/llm-custom-view.tsx:517
+=======
+#: src/components/settings/components/ai/llm-custom-view.tsx:201
+#: src/components/settings/components/ai/llm-custom-view.tsx:297
+#: src/components/settings/components/ai/llm-custom-view.tsx:403
+#: src/components/settings/components/ai/llm-custom-view.tsx:515
+>>>>>>> fe015a5c01764aede13ee54127eb7c838b8ae4f0
 msgid "API Key"
 msgstr "API Key"
 
@@ -600,7 +611,7 @@ msgstr "Create agenda"
 msgid "Create new note"
 msgstr "Create new note"
 
-#: src/components/workspace-calendar/event-card.tsx:151
+#: src/components/workspace-calendar/event-card.tsx:129
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -710,9 +721,15 @@ msgstr "Enter a section title"
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
 #~ msgstr "Enter model name (e.g., gpt-4, llama3.2:3b)"
 
+<<<<<<< HEAD
 #: src/components/settings/components/ai/llm-custom-view.tsx:520
 msgid "Enter the API key for your custom LLM endpoint"
 msgstr "Enter the API key for your custom LLM endpoint"
+=======
+#: src/components/settings/components/ai/llm-custom-view.tsx:519
+#~ msgid "Enter the API key for your custom LLM endpoint"
+#~ msgstr "Enter the API key for your custom LLM endpoint"
+>>>>>>> fe015a5c01764aede13ee54127eb7c838b8ae4f0
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:497
 msgid "Enter the base URL for your custom LLM endpoint"

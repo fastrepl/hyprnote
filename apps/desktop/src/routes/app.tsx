@@ -59,63 +59,63 @@ function Component() {
         <SessionsProvider store={sessionsStore}>
           <OngoingSessionProvider store={ongoingSessionStore}>
             <LeftSidebarProvider>
-              <RightPanelProvider>
-                <RestartTTT />
-                <RestartSTT />
-                <MainWindowStateEventSupport />
-                <SettingsProvider>
-                  <NewNoteProvider>
-                    <SearchProvider>
-                      <EditModeProvider>
-                        <div className="flex h-screen w-screen overflow-hidden">
-                          <LeftSidebar />
-                          <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
-                            <Toolbar />
-
-                            <ResizablePanelGroup
-                              direction="horizontal"
-                              className="flex-1 overflow-hidden flex"
-                              autoSaveId="main"
-                            >
-                              <ResizablePanel className="flex-1 overflow-hidden">
-                                <Outlet />
-                              </ResizablePanel>
-                              <ResizableHandle className="w-0" />
-                              <RightPanel />
-                            </ResizablePanelGroup>
+              {isMain ? (
+                <RightPanelProvider>
+                  <RestartTTT />
+                  <RestartSTT />
+                  <MainWindowStateEventSupport />
+                  <SettingsProvider>
+                    <NewNoteProvider>
+                      <SearchProvider>
+                        <EditModeProvider>
+                          <div className="flex h-screen w-screen overflow-hidden">
+                            <LeftSidebar />
+                            <div className="flex-1 flex h-screen w-screen flex-col overflow-hidden">
+                              <Toolbar />
+                              <ResizablePanelGroup
+                                direction="horizontal"
+                                className="flex-1 overflow-hidden flex"
+                                autoSaveId="main"
+                              >
+                                <ResizablePanel className="flex-1 overflow-hidden">
+                                  <Outlet />
+                                </ResizablePanel>
+                                <ResizableHandle className="w-0" />
+                                <RightPanel />
+                              </ResizablePanelGroup>
+                            </div>
                           </div>
-                        </div>
-                        <WelcomeModal
-                          isOpen={shouldShowWelcomeModal}
-                          onClose={() => {
-                            setOnboardingCompletedThisSession(true);
-
-                            // Add posthog analytics
-                            analyticsCommands.event({
-                              event: "onboarding_all_steps_completed",
-                              distinct_id: userId,
-                            });
-
-                            // Navigate to thank you session if it exists
-                            if (thankYouSessionId) {
-                              router.navigate({ to: `/app/note/${thankYouSessionId}` });
-                            }
-
-                            router.invalidate();
-                          }}
-                        />
-                        <IndividualizationModal
-                          isOpen={shouldShowIndividualization}
-                          onClose={() => {
-                            commands.setIndividualizationNeeded(false);
-                            router.invalidate();
-                          }}
-                        />
-                      </EditModeProvider>
-                    </SearchProvider>
-                  </NewNoteProvider>
-                </SettingsProvider>
-              </RightPanelProvider>
+                          <WelcomeModal
+                            isOpen={shouldShowWelcomeModal}
+                            onClose={() => {
+                              setOnboardingCompletedThisSession(true);
+                              analyticsCommands.event({
+                                event: "onboarding_all_steps_completed",
+                                distinct_id: userId,
+                              });
+                              if (thankYouSessionId) {
+                                router.navigate({ to: `/app/note/${thankYouSessionId}` });
+                              }
+                              router.invalidate();
+                            }}
+                          />
+                          <IndividualizationModal
+                            isOpen={shouldShowIndividualization}
+                            onClose={() => {
+                              commands.setIndividualizationNeeded(false);
+                              router.invalidate();
+                            }}
+                          />
+                        </EditModeProvider>
+                      </SearchProvider>
+                    </NewNoteProvider>
+                  </SettingsProvider>
+                </RightPanelProvider>
+              ) : (
+                <div className="h-screen w-screen overflow-hidden">
+                  <Outlet />
+                </div>
+              )}
             </LeftSidebarProvider>
           </OngoingSessionProvider>
         </SessionsProvider>

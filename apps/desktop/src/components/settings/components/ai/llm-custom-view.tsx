@@ -24,6 +24,7 @@ const openaiModels = [
 ];
 
 const geminiModels = [
+  "gemini-2.5-pro",
   "gemini-1.5-pro",
   "gemini-1.5-flash",
 ];

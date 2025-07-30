@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { format, isSameDay, subDays } from "date-fns";
 import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
@@ -36,6 +36,12 @@ export function EventChip({ sessionId }: EventChipProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"event" | "date">("event");
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (isPopoverOpen) {
+      setActiveTab("event");
+    }
+  }, [isPopoverOpen]);
 
   const {
     sessionCreatedAt,

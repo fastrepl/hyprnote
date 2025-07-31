@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { SharedCustomEndpointProps } from "./shared";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
 const openaiModels = [
   "gpt-4o",
@@ -153,7 +154,11 @@ export function LLMCustomView({
       const apiKey = customForm.getValues("api_key");
 
       const url = new URL(apiBase);
-      url.pathname = "/v1/models";
+      
+      url.pathname += "/models"
+
+      console.log("onquery")
+      console.log(url.toString())
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -163,7 +168,7 @@ export function LLMCustomView({
         headers["Authorization"] = `Bearer ${apiKey}`;
       }
 
-      const response = await fetch(url.toString(), {
+      const response = await tauriFetch(url.toString(), {
         method: "GET",
         headers,
       });
@@ -194,10 +199,9 @@ export function LLMCustomView({
 
       try {
         // Only enable if URL looks complete (ends with common patterns)
-        const validEndings = ["/v1", "/v1/", ":11434/v1", ":8080/v1"];
-        const looksComplete = validEndings.some(ending => apiBase?.endsWith(ending));
+        
 
-        return Boolean(apiBase && new URL(apiBase) && looksComplete && (isLocal || apiKey));
+        return Boolean(apiBase && new URL(apiBase) && (isLocal || apiKey));
       } catch {
         return false;
       }

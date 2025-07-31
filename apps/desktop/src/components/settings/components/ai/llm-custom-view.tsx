@@ -176,8 +176,7 @@ export function LLMCustomView({
       const apiKey = debouncedApiKey;
 
       const url = new URL(apiBase);
-
-      url.pathname += "/models";
+      url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
 
       console.log("onquery");
       console.log(url.toString());

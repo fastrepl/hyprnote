@@ -69,7 +69,7 @@ export function useChatLogic({
     }
   };
 
-  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
+  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string, mentionedNotes?: Array<{ id: string; type: string; label: string }>) => {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
 
@@ -123,17 +123,61 @@ export function useChatLogic({
       });
     });
 
+    currentUserMessage += "[[From here is an automatically appended content from the mentioned notes, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]" + "\n\n";
+
+    if (mentionedNotes && mentionedNotes.length > 0) {
+      // Fetch note content for each mentioned note
+      const noteContents: string[] = [];
+      
+      for (const mention of mentionedNotes) {
+        try {
+          const sessionData = await dbCommands.getSession({ id: mention.id });
+          
+          if (sessionData) {
+            let noteContent = "";
+            
+            if (sessionData.enhanced_memo_html && sessionData.enhanced_memo_html.trim() !== "") {
+              noteContent = sessionData.enhanced_memo_html;
+            } else if (sessionData.raw_memo_html && sessionData.raw_memo_html.trim() !== "") {
+              noteContent = sessionData.raw_memo_html;
+            } else {
+              continue;
+            }
+            
+            // Add note content with header
+            noteContents.push(`\n\n--- Content from "${mention.label}" ---\n${noteContent}`);
+          } else {
+            console.log(`Could not fetch session data for "${mention.label}" (ID: ${mention.id})`);
+          }
+        } catch (error) {
+          console.error(`Error fetching content for "${mention.label}":`, error);
+        }
+      }
+      
+      // Append all note contents to the current user message
+      if (noteContents.length > 0) {
+        currentUserMessage = currentUserMessage + noteContents.join("");
+      }
+    }
+
+    console.log("appended currentUserMessage", currentUserMessage);
+
     if (currentUserMessage) {
       conversationHistory.push({
         role: "user" as const,
-        content: currentUserMessage,
+        content: currentUserMessage, // This now includes the mentioned note content
       });
     }
 
     return conversationHistory;
   };
 
-  const processUserMessage = async (content: string, analyticsEvent: string) => {
+  const processUserMessage = async (
+    content: string, 
+    analyticsEvent: string, 
+    mentionedNotes?: Array<{ id: string; type: string; label: string }>
+  ) => {
+   
     if (!content.trim() || isGenerating) {
       return;
     }
@@ -200,7 +244,7 @@ export function useChatLogic({
 
       const { textStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content),
+        messages: await prepareMessageHistory(messages, content, mentionedNotes),
       });
 
       let aiResponse = "";
@@ -256,8 +300,8 @@ export function useChatLogic({
     }
   };
 
-  const handleSubmit = async () => {
-    await processUserMessage(inputValue, "chat_message_sent");
+  const handleSubmit = async (mentionedNotes?: Array<{ id: string; type: string; label: string }>) => {
+    await processUserMessage(inputValue, "chat_message_sent", mentionedNotes);
   };
 
   const handleQuickAction = async (prompt: string) => {

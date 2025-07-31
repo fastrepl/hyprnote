@@ -31,8 +31,8 @@ export default function NoteHeaderChips({ sessionId, hashtags = [] }: {
     <div className="-mx-1.5 flex flex-row items-center overflow-x-auto scrollbar-none whitespace-nowrap">
       <EventChip sessionId={sessionId} />
       <ParticipantsChip sessionId={sessionId} />
-      <StartChatButton />
       <TagChip sessionId={sessionId} hashtags={hashtags} />
+      <StartChatButton />
       <PastNotesChip sessionId={sessionId} />
     </div>
   );

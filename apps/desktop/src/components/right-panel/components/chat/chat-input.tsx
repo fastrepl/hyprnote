@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -91,11 +91,11 @@ export function ChatInput(
     }
 
     // Search for notes/sessions
-    const sessions = await dbCommands.listSessions({ 
-      type: "search", 
-      query, 
-      user_id: userId, 
-      limit: 3  // Reduced to make room for people
+    const sessions = await dbCommands.listSessions({
+      type: "search",
+      query,
+      user_id: userId,
+      limit: 3, // Reduced to make room for people
     });
 
     const noteResults = sessions.map((s) => ({
@@ -105,8 +105,8 @@ export function ChatInput(
     }));
 
     // Search for people/humans
-    const humans = await dbCommands.listHumans({ 
-      search: [3, query]  // Limit 3, search by query
+    const humans = await dbCommands.listHumans({
+      search: [3, query], // Limit 3, search by query
     });
 
     const peopleResults = humans
@@ -123,21 +123,21 @@ export function ChatInput(
 
   // Helper function to extract plain text from HTML
   const extractPlainText = useCallback((html: string) => {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.innerHTML = html;
-    return div.textContent || div.innerText || '';
+    return div.textContent || div.innerText || "";
   }, []);
 
   // Handle content changes from the Editor
   const handleContentChange = useCallback((html: string) => {
     const plainText = extractPlainText(html);
-    
+
     // Create synthetic event to maintain compatibility
     const syntheticEvent = {
       target: { value: plainText },
       currentTarget: { value: plainText },
     } as React.ChangeEvent<HTMLTextAreaElement>;
-    
+
     onChange(syntheticEvent);
   }, [onChange, extractPlainText]);
 
@@ -145,55 +145,57 @@ export function ChatInput(
 
   // Extract mentioned notes from editor content
   const extractMentionedContent = useCallback(() => {
-    if (!editorRef.current?.editor) return [];
-    
+    if (!editorRef.current?.editor) {
+      return [];
+    }
+
     const doc = editorRef.current.editor.getJSON();
     const mentions: Array<{ id: string; type: string; label: string }> = [];
-    
+
     // Recursive function to traverse the document tree
     const traverseNode = (node: any) => {
       // Check for mention nodes
-      if (node.type === 'mention' || node.type === 'mention-@') {
+      if (node.type === "mention" || node.type === "mention-@") {
         if (node.attrs) {
           mentions.push({
-            id: node.attrs.id || node.attrs['data-id'],
-            type: node.attrs.type || node.attrs['data-type'] || 'note',
-            label: node.attrs.label || node.attrs['data-label'] || 'Unknown',
+            id: node.attrs.id || node.attrs["data-id"],
+            type: node.attrs.type || node.attrs["data-type"] || "note",
+            label: node.attrs.label || node.attrs["data-label"] || "Unknown",
           });
         }
       }
-      
+
       // Check for mention marks
       if (node.marks && Array.isArray(node.marks)) {
         node.marks.forEach((mark: any) => {
-          if (mark.type === 'mention' || mark.type === 'mention-@') {
+          if (mark.type === "mention" || mark.type === "mention-@") {
             if (mark.attrs) {
               mentions.push({
-                id: mark.attrs.id || mark.attrs['data-id'],
-                type: mark.attrs.type || mark.attrs['data-type'] || 'note',
-                label: mark.attrs.label || mark.attrs['data-label'] || 'Unknown',
+                id: mark.attrs.id || mark.attrs["data-id"],
+                type: mark.attrs.type || mark.attrs["data-type"] || "note",
+                label: mark.attrs.label || mark.attrs["data-label"] || "Unknown",
               });
             }
           }
         });
       }
-      
+
       if (node.content && Array.isArray(node.content)) {
         node.content.forEach(traverseNode);
       }
     };
-    
+
     if (doc.content) {
       doc.content.forEach(traverseNode);
     }
-    
+
     return mentions;
   }, []);
 
   // Handle submit and clear editor
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
-    
+
     /*
     if (mentionedNotes.length > 0) {
       console.log("🔗 Mentioned notes in chat message:");
@@ -205,20 +207,20 @@ export function ChatInput(
       console.log("No notes mentioned in this message");
     }
     */
-    
+
     // Call the original onSubmit with mentioned notes
     onSubmit(mentionedContent);
-    
+
     // Clear the editor content
     if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setContent("<p></p>");
-      
+
       // Trigger onChange with empty value
       const syntheticEvent = {
         target: { value: "" },
         currentTarget: { value: "" },
       } as React.ChangeEvent<HTMLTextAreaElement>;
-      
+
       onChange(syntheticEvent);
     }
   }, [onSubmit, onChange, extractMentionedContent]);
@@ -237,16 +239,16 @@ export function ChatInput(
       const handleKeyDown = (event: KeyboardEvent) => {
         // Disable common rich text shortcuts
         if (event.metaKey || event.ctrlKey) {
-          if (['b', 'i', 'u', 'k'].includes(event.key.toLowerCase())) {
+          if (["b", "i", "u", "k"].includes(event.key.toLowerCase())) {
             event.preventDefault();
             return;
           }
         }
-        
+
         // Handle Enter for submission
-        if (event.key === 'Enter' && !event.shiftKey) {
+        if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
-          
+
           // Only submit if there's content
           if (inputValue.trim()) {
             handleSubmit();
@@ -257,19 +259,19 @@ export function ChatInput(
       const handleClick = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
         // Prevent clicks on mentions
-        if (target && (target.classList.contains('mention') || target.closest('.mention'))) {
+        if (target && (target.classList.contains("mention") || target.closest(".mention"))) {
           event.preventDefault();
           event.stopPropagation();
           return false;
         }
       };
 
-      editor.view.dom.addEventListener('keydown', handleKeyDown);
-      editor.view.dom.addEventListener('click', handleClick);
-      
+      editor.view.dom.addEventListener("keydown", handleKeyDown);
+      editor.view.dom.addEventListener("click", handleClick);
+
       return () => {
-        editor.view.dom.removeEventListener('keydown', handleKeyDown);
-        editor.view.dom.removeEventListener('click', handleClick);
+        editor.view.dom.removeEventListener("keydown", handleKeyDown);
+        editor.view.dom.removeEventListener("click", handleClick);
       };
     }
   }, [editorRef.current?.editor, onKeyDown, handleSubmit, inputValue]);
@@ -291,7 +293,8 @@ export function ChatInput(
   return (
     <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
       {/* Custom styles to disable rich text features */}
-      <style>{`
+      <style>
+        {`
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 40px !important;
@@ -337,8 +340,9 @@ export function ChatInput(
           pointer-events: none;
           height: 0;
         }
-      `}</style>
-      
+      `}
+      </style>
+
       <div className="relative chat-editor">
         <Editor
           ref={editorRef}
@@ -351,7 +355,7 @@ export function ChatInput(
           }}
         />
       </div>
-      
+
       <div className="flex items-center justify-between pb-2 px-3">
         {entityId
           ? (

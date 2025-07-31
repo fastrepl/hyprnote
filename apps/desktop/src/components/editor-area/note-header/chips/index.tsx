@@ -1,5 +1,5 @@
-import { MessageCircleMore } from "lucide-react";
 import { useRightPanel } from "@/contexts";
+import { MessageCircleMore } from "lucide-react";
 import { EventChip } from "./event-chip";
 import { ParticipantsChip } from "./participants-chip";
 import { PastNotesChip } from "./past-notes-chip";
@@ -13,7 +13,7 @@ function StartChatButton() {
   };
 
   return (
-    <button 
+    <button
       onClick={handleChatClick}
       className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs transition-colors"
     >

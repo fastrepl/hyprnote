@@ -222,7 +222,7 @@ impl Whisper {
                     || t == "thank you"
                     || t == "you."
                     || t == "thank you."
-                    || t == "🎵"
+                    || t == "♪"
                 {
                     false
                 } else {

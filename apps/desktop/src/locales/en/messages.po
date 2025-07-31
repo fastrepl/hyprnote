@@ -265,9 +265,9 @@ msgstr "(Optional for localhost)"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:208
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:209
-#: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/editor-area/note-header/listen-button.tsx:251
+#: src/components/editor-area/note-header/listen-button.tsx:216
+#: src/components/editor-area/note-header/listen-button.tsx:238
+#: src/components/editor-area/note-header/listen-button.tsx:258
 msgid "{0}"
 msgstr "{0}"
 
@@ -1037,7 +1037,7 @@ msgstr "No recent notes for this organization"
 #~ msgid "No Template"
 #~ msgstr "No Template"
 
-#: src/components/editor-area/note-header/listen-button.tsx:378
+#: src/components/editor-area/note-header/listen-button.tsx:501
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
@@ -1117,7 +1117,7 @@ msgstr "Others"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:401
+#: src/components/editor-area/note-header/listen-button.tsx:359
 msgid "Pause"
 msgstr "Pause"
 
@@ -1191,7 +1191,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:142
 msgid "Resume"
 msgstr "Resume"
 
@@ -1203,6 +1203,10 @@ msgstr "Role"
 #: src/components/settings/views/templates.tsx:193
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
+
+#: src/components/editor-area/note-header/listen-button.tsx:471
+msgid "Save current recording"
+msgstr "Save current recording"
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:533
 msgid "Save Date"
@@ -1317,11 +1321,11 @@ msgstr "Spoken languages"
 #~ msgid "Start Monthly Plan"
 #~ msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:191
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:448
 msgid "Stop"
 msgstr "Stop"
 
@@ -1357,6 +1361,10 @@ msgstr "Team management features are currently under development and will be ava
 #: src/components/share-and-permission/participants-selector.tsx:34
 msgid "Teamspace"
 msgstr "Teamspace"
+
+#: src/components/editor-area/note-header/listen-button.tsx:492
+msgid "Template"
+msgstr "Template"
 
 #: src/routes/app.settings.tsx:74
 msgid "Templates"

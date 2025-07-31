@@ -2,10 +2,11 @@ const COMMANDS: &[&str] = &[
     "get_git_hash",
     "get_fingerprint",
     "opinionated_md_to_html",
-    "audio_open",
-    "audio_exist",
     "delete_session_folder",
     "parse_meeting_link",
+    "audio_open",
+    "audio_exist",
+    "audio_delete",
 ];
 
 fn main() {

@@ -472,7 +472,6 @@ export function useEnhanceMutation({
         }
 
         const html = await miscCommands.opinionatedMdToHtml(acc);
-        console.log("html", html);
         setEnhancedContent(html);
       }
 

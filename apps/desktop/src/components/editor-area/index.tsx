@@ -462,7 +462,6 @@ export function useEnhanceMutation({
             setEnhancedContent(originalContentRef.current);
           }
           throw new Error("Error occured right away");
-          break;
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;

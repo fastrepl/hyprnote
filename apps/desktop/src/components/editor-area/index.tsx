@@ -104,6 +104,7 @@ export default function EditorArea({
     refetchOnWindowFocus: true,
   });
 
+
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
@@ -309,6 +310,10 @@ export function useEnhanceMutation({
     setEnhancedContent: s.updateEnhancedNote,
   }));
 
+  const getCurrentEnhancedContent = useSession(sessionId, (s) => s.session?.enhanced_memo_html ?? "");
+
+  const originalContentRef = useRef<string>("");
+
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async ({
@@ -318,6 +323,7 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();
       setEnhanceController(abortController);
 
@@ -408,6 +414,20 @@ export function useEnhanceMutation({
           },
         }),
         onError: (error) => {
+          toast({
+            id: "something went wrong",
+            title: "🚨 Something went wrong",
+            content: (
+              <div>
+                Please try again or contact the team.
+                <br />
+                <br />
+                <span className="text-xs">Error: {String(error.error)}</span>
+              </div>
+            ),
+            dismissible: true,
+            duration: 5000,
+          })
           throw error;
         },
         messages: [
@@ -432,10 +452,19 @@ export function useEnhanceMutation({
         }),
       });
 
+
       let acc = "";
+      
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
+        }
+        if (chunk.type === "error"){
+          if(originalContentRef.current && acc === ""){
+            setEnhancedContent(originalContentRef.current);
+            throw new Error("Error occured right away");
+          }
+          break;
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
           const chunkProgress = chunk.args?.progress ?? 0;
@@ -443,6 +472,7 @@ export function useEnhanceMutation({
         }
 
         const html = await miscCommands.opinionatedMdToHtml(acc);
+        console.log("html", html);
         setEnhancedContent(html);
       }
 
@@ -478,6 +508,7 @@ export function useEnhanceMutation({
       }
 
       setEnhanceController(null);
+
     },
   });
 

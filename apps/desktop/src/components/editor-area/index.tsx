@@ -460,10 +460,10 @@ export function useEnhanceMutation({
           acc += chunk.textDelta;
         }
         if (chunk.type === "error"){
-          if(originalContentRef.current && acc === ""){
+          if(originalContentRef.current !== "" && acc === ""){
             setEnhancedContent(originalContentRef.current);
-            throw new Error("Error occured right away");
           }
+          throw new Error("Error occured right away");
           break;
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {

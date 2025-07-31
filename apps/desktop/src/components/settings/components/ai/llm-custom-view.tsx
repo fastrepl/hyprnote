@@ -16,6 +16,8 @@ import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { SharedCustomEndpointProps } from "./shared";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
+import { useState } from "react";
 
 const openaiModels = [
   "gpt-4o",
@@ -51,7 +53,6 @@ export function LLMCustomView({
   setOpenAccordion,
   customLLMConnection,
   getCustomLLMModel,
-  availableLLMModels,
   openaiForm,
   geminiForm,
   openrouterForm,
@@ -147,11 +148,31 @@ export function LLMCustomView({
   };
 
   // temporary fix for fetching models smoothly
+  const [debouncedApiBase, setDebouncedApiBase] = useState("");
+  const [debouncedApiKey, setDebouncedApiKey] = useState("");
+
+  const updateDebouncedValues = useDebouncedCallback(
+    (apiBase: string, apiKey: string) => {
+      setDebouncedApiBase(apiBase);
+      setDebouncedApiKey(apiKey);
+    },
+    [],
+    2000, 
+  );
+
+  // Watch for form changes
+  useEffect(() => {
+    const apiBase = customForm.watch("api_base");
+    const apiKey = customForm.watch("api_key");
+    
+    updateDebouncedValues(apiBase || "", apiKey || "");
+  }, [customForm.watch("api_base"), customForm.watch("api_key"), updateDebouncedValues]);
+
   const othersModels = useQuery({
-    queryKey: ["others-direct-models", customForm.watch("api_base"), customForm.watch("api_key")?.slice(0, 8)],
+    queryKey: ["others-direct-models", debouncedApiBase, debouncedApiKey?.slice(0, 8)],
     queryFn: async (): Promise<string[]> => {
-      const apiBase = customForm.getValues("api_base");
-      const apiKey = customForm.getValues("api_key");
+      const apiBase = debouncedApiBase;
+      const apiKey = debouncedApiKey;
 
       const url = new URL(apiBase);
       
@@ -186,22 +207,17 @@ export function LLMCustomView({
       const models = data.data
         .map((model: any) => model.id)
         .filter((id: string) => {
-          const excludeKeywords = ["dall-e"];
+          const excludeKeywords = ["dall-e", "codex", "whisper"];
           return !excludeKeywords.some(keyword => id.includes(keyword));
         });
 
       return models;
     },
     enabled: (() => {
-      const apiBase = customForm.watch("api_base");
-      const apiKey = customForm.watch("api_key");
-      const isLocal = apiBase?.includes("localhost") || apiBase?.includes("127.0.0.1");
+      const isLocal = debouncedApiBase?.includes("localhost") || debouncedApiBase?.includes("127.0.0.1");
 
       try {
-        // Only enable if URL looks complete (ends with common patterns)
-        
-
-        return Boolean(apiBase && new URL(apiBase) && (isLocal || apiKey));
+        return Boolean(debouncedApiBase && new URL(debouncedApiBase) && (isLocal || debouncedApiKey));
       } catch {
         return false;
       }

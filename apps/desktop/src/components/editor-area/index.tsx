@@ -407,6 +407,9 @@ export function useEnhanceMutation({
             update_progress: tool({ parameters: z.any() }),
           },
         }),
+        onError: (error) => {
+          throw error;
+        },
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },

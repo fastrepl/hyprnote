@@ -38,6 +38,7 @@ const openrouterModels = [
   "openai/gpt-4o-mini",
   "openai/gpt-4o",
   "openai/gpt-4.1-nano",
+  "openai/chatgpt-4o-latest",
   "anthropic/claude-sonnet-4",
   "moonshotai/kimi-k2",
   "mistralai/mistral-small-3.2-24b-instruct",

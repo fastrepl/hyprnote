@@ -367,7 +367,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
                   <div className="flex-1 p-6">
                     <h3 className="text-sm font-medium text-neutral-600 mb-4 pl-3">Related Notes</h3>
-                    <div className="h-full overflow-y-auto">
+                    <div className="overflow-y-auto" style={{ maxHeight: '65vh' }}>
                       <div className="space-y-2">
                         {personSessions.length > 0
                           ? (

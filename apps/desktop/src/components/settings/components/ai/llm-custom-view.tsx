@@ -14,10 +14,10 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { SharedCustomEndpointProps } from "./shared";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useState } from "react";
+import { SharedCustomEndpointProps } from "./shared";
 
 const openaiModels = [
   "gpt-4o",
@@ -157,14 +157,14 @@ export function LLMCustomView({
       setDebouncedApiKey(apiKey);
     },
     [],
-    2000, 
+    2000,
   );
 
   // Watch for form changes
   useEffect(() => {
     const apiBase = customForm.watch("api_base");
     const apiKey = customForm.watch("api_key");
-    
+
     updateDebouncedValues(apiBase || "", apiKey || "");
   }, [customForm.watch("api_base"), customForm.watch("api_key"), updateDebouncedValues]);
 
@@ -175,11 +175,11 @@ export function LLMCustomView({
       const apiKey = debouncedApiKey;
 
       const url = new URL(apiBase);
-      
-      url.pathname += "/models"
 
-      console.log("onquery")
-      console.log(url.toString())
+      url.pathname += "/models";
+
+      console.log("onquery");
+      console.log(url.toString());
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",

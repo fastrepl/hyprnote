@@ -318,6 +318,7 @@ export default function LocalAI() {
     queryFn: () => connectorCommands.getCustomLlmModel(),
   });
 
+  /*
   const availableLLMModels = useQuery({
     queryKey: ["available-llm-models"],
     queryFn: async () => {
@@ -325,6 +326,7 @@ export default function LocalAI() {
       return await connectorCommands.listCustomLlmModels();
     },
   });
+  */
 
   const modelDownloadStatus = useQuery({
     queryKey: ["llm-model-download-status"],
@@ -775,7 +777,7 @@ export default function LocalAI() {
     setOpenAccordion,
     customLLMConnection,
     getCustomLLMModel,
-    //availableLLMModels,
+    // availableLLMModels,
     openaiForm,
     geminiForm,
     openrouterForm,

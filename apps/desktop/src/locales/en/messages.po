@@ -984,7 +984,7 @@ msgstr "More integrations coming soon..."
 #~ msgid "Much better AI performance"
 #~ msgstr "Much better AI performance"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:103
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -1277,7 +1277,7 @@ msgstr "Select Your Languages"
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:96
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr "Settings"
 
@@ -1342,7 +1342,7 @@ msgstr "Summarize meeting"
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:109
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 

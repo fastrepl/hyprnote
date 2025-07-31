@@ -984,7 +984,7 @@ msgstr ""
 #~ msgid "Much better AI performance"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:103
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr ""
 
@@ -1277,7 +1277,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:96
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr ""
 
@@ -1342,7 +1342,7 @@ msgstr ""
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:109
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
 msgid "Talk to Founders"
 msgstr ""
 

@@ -1,0 +1,23 @@
+{
+  "name": "@hypr/admin-server",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.18.0",
+    "@hono/zod-validator": "^0.7.2",
+    "better-auth": "^1.2.12",
+    "hono": "^4.8.10",
+    "ky": "^1.8.2",
+    "qs": "^6.14.0",
+    "zod": "^4.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

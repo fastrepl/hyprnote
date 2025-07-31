@@ -41,7 +41,12 @@ export function SettingsButton() {
 
   const handleClickProfile = () => {
     setOpen(false);
-    windowsCommands.windowShow({ type: "human", value: userId });
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowNavigate(
+        { type: "finder" },
+        `/app/finder?view=contact&personId=${userId}`,
+      );
+    });
   };
 
   const handleClickPlans = () => {

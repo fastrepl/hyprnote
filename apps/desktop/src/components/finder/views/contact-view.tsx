@@ -248,7 +248,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 id: newPersonId,
                 organization_id: selectedOrganization,
                 is_user: false,
-                full_name: null,
+                full_name: "New Contact",
                 email: null,
                 job_title: null,
                 linkedin_username: null,

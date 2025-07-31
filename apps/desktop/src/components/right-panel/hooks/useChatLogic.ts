@@ -69,7 +69,7 @@ export function useChatLogic({
     }
   };
 
-  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string, mentionedNotes?: Array<{ id: string; type: string; label: string }>) => {
+  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string, mentionedContent?: Array<{ id: string; type: string; label: string }>) => {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
 
@@ -123,32 +123,94 @@ export function useChatLogic({
       });
     });
 
-    currentUserMessage += "[[From here is an automatically appended content from the mentioned notes, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]" + "\n\n";
+    if (mentionedContent && mentionedContent.length > 0) {
+      currentUserMessage += "[[From here is an automatically appended content from the mentioned notes & people, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]" + "\n\n";
+    }
 
-    if (mentionedNotes && mentionedNotes.length > 0) {
+    if (mentionedContent && mentionedContent.length > 0) {
       // Fetch note content for each mentioned note
       const noteContents: string[] = [];
+      console.log("mentionedContent", mentionedContent);
       
-      for (const mention of mentionedNotes) {
+      for (const mention of mentionedContent) {
         try {
-          const sessionData = await dbCommands.getSession({ id: mention.id });
-          
-          if (sessionData) {
-            let noteContent = "";
+
+          if (mention.type === "note") {
+            const sessionData = await dbCommands.getSession({ id: mention.id });
             
-            if (sessionData.enhanced_memo_html && sessionData.enhanced_memo_html.trim() !== "") {
-              noteContent = sessionData.enhanced_memo_html;
-            } else if (sessionData.raw_memo_html && sessionData.raw_memo_html.trim() !== "") {
-              noteContent = sessionData.raw_memo_html;
-            } else {
-              continue;
+            if (sessionData) {
+              let noteContent = "";
+              
+              if (sessionData.enhanced_memo_html && sessionData.enhanced_memo_html.trim() !== "") {
+                noteContent = sessionData.enhanced_memo_html;
+              } else if (sessionData.raw_memo_html && sessionData.raw_memo_html.trim() !== "") {
+                noteContent = sessionData.raw_memo_html;
+              } else {
+                continue;
+              }
+              
+              // Add note content with header
+              noteContents.push(`\n\n--- Content from the note"${mention.label}" ---\n${noteContent}`);
+            }
+          } 
+
+          if (mention.type === "human") {
+            const humanData = await dbCommands.getHuman(mention.id);
+            console.log("humanData", humanData);
+
+            let humanContent = ""; 
+            humanContent += "Name: " + humanData?.full_name + "\n";
+            humanContent += "Email: " + humanData?.email + "\n";
+            humanContent += "Job Title: " + humanData?.job_title + "\n";
+            humanContent += "LinkedIn: " + humanData?.linkedin_username + "\n";
+            
+            if (humanData?.full_name) {
+              try {
+                // Search for sessions by person's name
+                const participantSessions = await dbCommands.listSessions({ 
+                  type: "search", 
+                  query: humanData.full_name, 
+                  user_id: userId || "", 
+                  limit: 5 
+                });
+                
+                if (participantSessions.length > 0) {
+                  humanContent += "\nNotes this person participated in:\n";
+                  
+                  for (const session of participantSessions.slice(0, 2)) { // Limit to 3 notes
+                    // Get session participants to verify this person was actually there
+                    const participants = await dbCommands.sessionListParticipants(session.id);
+                    const isParticipant = participants.some(p => 
+                      p.full_name === humanData.full_name || p.email === humanData.email
+                    );
+                    
+                    if (isParticipant) {
+                      // Get truncated content (first 200 characters)
+                      let briefContent = "";
+                      if (session.enhanced_memo_html && session.enhanced_memo_html.trim() !== "") {
+                        const div = document.createElement('div');
+                        div.innerHTML = session.enhanced_memo_html;
+                        briefContent = (div.textContent || div.innerText || '').slice(0, 200) + "...";
+                      } else if (session.raw_memo_html && session.raw_memo_html.trim() !== "") {
+                        const div = document.createElement('div');
+                        div.innerHTML = session.raw_memo_html;
+                        briefContent = (div.textContent || div.innerText || '').slice(0, 200) + "...";
+                      }
+                      
+                      humanContent += `- "${session.title || 'Untitled'}": ${briefContent}\n`;
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error(`Error fetching notes for person "${humanData.full_name}":`, error);
+              }
             }
             
-            // Add note content with header
-            noteContents.push(`\n\n--- Content from "${mention.label}" ---\n${noteContent}`);
-          } else {
-            console.log(`Could not fetch session data for "${mention.label}" (ID: ${mention.id})`);
+            if (humanData) {
+              noteContents.push(`\n\n--- Content about the person "${mention.label}" ---\n${humanContent}`);
+            }
           }
+
         } catch (error) {
           console.error(`Error fetching content for "${mention.label}":`, error);
         }
@@ -175,7 +237,7 @@ export function useChatLogic({
   const processUserMessage = async (
     content: string, 
     analyticsEvent: string, 
-    mentionedNotes?: Array<{ id: string; type: string; label: string }>
+    mentionedContent?: Array<{ id: string; type: string; label: string }>
   ) => {
    
     if (!content.trim() || isGenerating) {
@@ -244,7 +306,7 @@ export function useChatLogic({
 
       const { textStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content, mentionedNotes),
+        messages: await prepareMessageHistory(messages, content, mentionedContent),
       });
 
       let aiResponse = "";
@@ -300,8 +362,8 @@ export function useChatLogic({
     }
   };
 
-  const handleSubmit = async (mentionedNotes?: Array<{ id: string; type: string; label: string }>) => {
-    await processUserMessage(inputValue, "chat_message_sent", mentionedNotes);
+  const handleSubmit = async (mentionedContent?: Array<{ id: string; type: string; label: string }>) => {
+    await processUserMessage(inputValue, "chat_message_sent", mentionedContent);
   };
 
   const handleQuickAction = async (prompt: string) => {

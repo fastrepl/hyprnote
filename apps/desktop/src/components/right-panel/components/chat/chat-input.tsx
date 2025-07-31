@@ -15,7 +15,7 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 interface ChatInputProps {
   inputValue: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (mentionedNotes?: Array<{ id: string; type: string; label: string }>) => void;
+  onSubmit: (mentionedContent?: Array<{ id: string; type: string; label: string }>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
   entityId?: string;
@@ -77,7 +77,7 @@ export function ChatInput(
     }
   };
 
-  // Mention search function (same as main editor)
+  // Mention search function (notes + people)
   const handleMentionSearch = useCallback(async (query: string) => {
     const now = Date.now();
     const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
@@ -90,18 +90,35 @@ export function ChatInput(
       lastBacklinkSearchTime.current = now;
     }
 
+    // Search for notes/sessions
     const sessions = await dbCommands.listSessions({ 
       type: "search", 
       query, 
       user_id: userId, 
-      limit: 5 
+      limit: 3  // Reduced to make room for people
     });
 
-    return sessions.map((s) => ({
+    const noteResults = sessions.map((s) => ({
       id: s.id,
       type: "note" as const,
       label: s.title || "Untitled Note",
     }));
+
+    // Search for people/humans
+    const humans = await dbCommands.listHumans({ 
+      search: [3, query]  // Limit 3, search by query
+    });
+
+    const peopleResults = humans
+      .filter(h => h.full_name && h.full_name.toLowerCase().includes(query.toLowerCase()))
+      .map((h) => ({
+        id: h.id,
+        type: "human" as const,
+        label: h.full_name || "Unknown Person",
+      }));
+
+    // Combine and return results (notes first, then people)
+    return [...noteResults, ...peopleResults].slice(0, 5);
   }, [userId]);
 
   // Helper function to extract plain text from HTML
@@ -127,7 +144,7 @@ export function ChatInput(
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
   // Extract mentioned notes from editor content
-  const extractMentionedNotes = useCallback(() => {
+  const extractMentionedContent = useCallback(() => {
     if (!editorRef.current?.editor) return [];
     
     const doc = editorRef.current.editor.getJSON();
@@ -175,7 +192,7 @@ export function ChatInput(
 
   // Handle submit and clear editor
   const handleSubmit = useCallback(() => {
-    const mentionedNotes = extractMentionedNotes();
+    const mentionedContent = extractMentionedContent();
     
     /*
     if (mentionedNotes.length > 0) {
@@ -190,7 +207,7 @@ export function ChatInput(
     */
     
     // Call the original onSubmit with mentioned notes
-    onSubmit(mentionedNotes);
+    onSubmit(mentionedContent);
     
     // Clear the editor content
     if (editorRef.current?.editor) {
@@ -204,7 +221,7 @@ export function ChatInput(
       
       onChange(syntheticEvent);
     }
-  }, [onSubmit, onChange, extractMentionedNotes]);
+  }, [onSubmit, onChange, extractMentionedContent]);
 
   // Expose editor reference for compatibility
   useEffect(() => {

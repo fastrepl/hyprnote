@@ -9,7 +9,6 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { BadgeType } from "../../types/chat-types";
 
-// Only use what's actually available
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 
 interface ChatInputProps {
@@ -77,7 +76,6 @@ export function ChatInput(
     }
   };
 
-  // Mention search function (notes + people)
   const handleMentionSearch = useCallback(async (query: string) => {
     const now = Date.now();
     const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
@@ -90,12 +88,11 @@ export function ChatInput(
       lastBacklinkSearchTime.current = now;
     }
 
-    // Search for notes/sessions
     const sessions = await dbCommands.listSessions({
       type: "search",
       query,
       user_id: userId,
-      limit: 3, // Reduced to make room for people
+      limit: 3,
     });
 
     const noteResults = sessions.map((s) => ({
@@ -104,9 +101,8 @@ export function ChatInput(
       label: s.title || "Untitled Note",
     }));
 
-    // Search for people/humans
     const humans = await dbCommands.listHumans({
-      search: [3, query], // Limit 3, search by query
+      search: [3, query],
     });
 
     const peopleResults = humans
@@ -117,22 +113,18 @@ export function ChatInput(
         label: h.full_name || "Unknown Person",
       }));
 
-    // Combine and return results (notes first, then people)
     return [...noteResults, ...peopleResults].slice(0, 5);
   }, [userId]);
 
-  // Helper function to extract plain text from HTML
   const extractPlainText = useCallback((html: string) => {
     const div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
   }, []);
 
-  // Handle content changes from the Editor
   const handleContentChange = useCallback((html: string) => {
     const plainText = extractPlainText(html);
 
-    // Create synthetic event to maintain compatibility
     const syntheticEvent = {
       target: { value: plainText },
       currentTarget: { value: plainText },
@@ -143,7 +135,6 @@ export function ChatInput(
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
-  // Extract mentioned notes from editor content
   const extractMentionedContent = useCallback(() => {
     if (!editorRef.current?.editor) {
       return [];
@@ -152,9 +143,7 @@ export function ChatInput(
     const doc = editorRef.current.editor.getJSON();
     const mentions: Array<{ id: string; type: string; label: string }> = [];
 
-    // Recursive function to traverse the document tree
     const traverseNode = (node: any) => {
-      // Check for mention nodes
       if (node.type === "mention" || node.type === "mention-@") {
         if (node.attrs) {
           mentions.push({
@@ -165,7 +154,6 @@ export function ChatInput(
         }
       }
 
-      // Check for mention marks
       if (node.marks && Array.isArray(node.marks)) {
         node.marks.forEach((mark: any) => {
           if (mark.type === "mention" || mark.type === "mention-@") {
@@ -192,30 +180,14 @@ export function ChatInput(
     return mentions;
   }, []);
 
-  // Handle submit and clear editor
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
 
-    /*
-    if (mentionedNotes.length > 0) {
-      console.log("🔗 Mentioned notes in chat message:");
-      mentionedNotes.forEach((mention, index) => {
-        console.log(`  ${index + 1}. "${mention.label}" (ID: ${mention.id}, Type: ${mention.type})`);
-      });
-      console.log(`Total mentions: ${mentionedNotes.length}`);
-    } else {
-      console.log("No notes mentioned in this message");
-    }
-    */
-
-    // Call the original onSubmit with mentioned notes
     onSubmit(mentionedContent);
 
-    // Clear the editor content
     if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setContent("<p></p>");
 
-      // Trigger onChange with empty value
       const syntheticEvent = {
         target: { value: "" },
         currentTarget: { value: "" },
@@ -225,19 +197,16 @@ export function ChatInput(
     }
   }, [onSubmit, onChange, extractMentionedContent]);
 
-  // Expose editor reference for compatibility
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {
       (chatInputRef as any).current = editorRef.current.editor.view.dom;
     }
   }, [chatInputRef]);
 
-  // Disable rich text formatting and mention clicks
   useEffect(() => {
     const editor = editorRef.current?.editor;
     if (editor) {
       const handleKeyDown = (event: KeyboardEvent) => {
-        // Disable common rich text shortcuts
         if (event.metaKey || event.ctrlKey) {
           if (["b", "i", "u", "k"].includes(event.key.toLowerCase())) {
             event.preventDefault();
@@ -245,11 +214,9 @@ export function ChatInput(
           }
         }
 
-        // Handle Enter for submission
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
 
-          // Only submit if there's content
           if (inputValue.trim()) {
             handleSubmit();
           }
@@ -258,7 +225,6 @@ export function ChatInput(
 
       const handleClick = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
-        // Prevent clicks on mentions
         if (target && (target.classList.contains("mention") || target.closest(".mention"))) {
           event.preventDefault();
           event.stopPropagation();

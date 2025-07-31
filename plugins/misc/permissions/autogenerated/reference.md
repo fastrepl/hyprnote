@@ -7,10 +7,11 @@ Default permissions for the plugin
 - `allow-get-git-hash`
 - `allow-get-fingerprint`
 - `allow-opinionated-md-to-html`
-- `allow-audio-open`
-- `allow-audio-exist`
 - `allow-delete-session-folder`
 - `allow-parse-meeting-link`
+- `allow-audio-open`
+- `allow-audio-exist`
+- `allow-audio-delete`
 
 ## Permission Table
 
@@ -20,6 +21,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`misc:allow-audio-delete`
+
+</td>
+<td>
+
+Enables the audio_delete command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-audio-delete`
+
+</td>
+<td>
+
+Denies the audio_delete command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

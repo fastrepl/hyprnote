@@ -265,9 +265,9 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:208
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:209
-#: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/editor-area/note-header/listen-button.tsx:251
+#: src/components/editor-area/note-header/listen-button.tsx:216
+#: src/components/editor-area/note-header/listen-button.tsx:238
+#: src/components/editor-area/note-header/listen-button.tsx:258
 msgid "{0}"
 msgstr ""
 
@@ -1037,7 +1037,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:378
+#: src/components/editor-area/note-header/listen-button.tsx:501
 msgid "No Template (Default)"
 msgstr ""
 
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:401
+#: src/components/editor-area/note-header/listen-button.tsx:359
 msgid "Pause"
 msgstr ""
 
@@ -1191,7 +1191,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:142
 msgid "Resume"
 msgstr ""
 
@@ -1203,6 +1203,10 @@ msgstr ""
 #: src/components/settings/views/templates.tsx:193
 #~ msgid "Save and close"
 #~ msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:471
+msgid "Save current recording"
+msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:533
 msgid "Save Date"
@@ -1317,11 +1321,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:191
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:448
 msgid "Stop"
 msgstr ""
 
@@ -1356,6 +1360,10 @@ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:34
 msgid "Teamspace"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:492
+msgid "Template"
 msgstr ""
 
 #: src/routes/app.settings.tsx:74

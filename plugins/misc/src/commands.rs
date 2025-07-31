@@ -41,6 +41,19 @@ pub async fn audio_exist<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn audio_delete<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<(), String> {
+    let data_dir = app.path().app_data_dir().unwrap();
+    let audio_path = data_dir.join(session_id).join("audio.wav");
+
+    std::fs::remove_file(audio_path).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn audio_open<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,

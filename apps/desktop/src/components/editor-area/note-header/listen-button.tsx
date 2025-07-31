@@ -1,5 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -12,18 +13,24 @@ import {
   VolumeOffIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { TemplateService } from "@/utils/template-service";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Switch } from "@hypr/ui/components/ui/switch";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
@@ -319,7 +326,6 @@ function RecordingControls({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
   }));
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("auto");
 
   const toggleMicMuted = useMutation({
     mutationFn: () => listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted),
@@ -328,31 +334,6 @@ function RecordingControls({
   const toggleSpeakerMuted = useMutation({
     mutationFn: () => listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted),
   });
-
-  const configQuery = useQuery({
-    queryKey: ["config"],
-    queryFn: () => dbCommands.getConfig(),
-    refetchOnWindowFocus: true,
-  });
-
-  const templatesQuery = useQuery({
-    queryKey: ["templates"],
-    queryFn: () => TemplateService.getAllTemplates(),
-    refetchOnWindowFocus: true,
-  });
-
-  useEffect(() => {
-    if (configQuery.data?.general?.selected_template_id) {
-      setSelectedTemplate(configQuery.data.general.selected_template_id);
-    } else {
-      setSelectedTemplate("auto");
-    }
-  }, [configQuery.data]);
-
-  const handleStopWithTemplate = () => {
-    const actualTemplateId = selectedTemplate === "auto" ? null : selectedTemplate;
-    onStop(actualTemplateId);
-  };
 
   return (
     <>
@@ -368,48 +349,172 @@ function RecordingControls({
         />
       </div>
 
-      <div className="mb-3">
-        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-          <SelectTrigger className="w-full text-sm">
-            <SelectValue placeholder="Select template..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-44 overflow-y-auto w-[var(--radix-select-trigger-width)]">
-            <SelectItem value="auto">
-              <Trans>No Template (Default)</Trans>
-            </SelectItem>
-            {templatesQuery.data?.map((template) => {
-              const title = template.title || "Untitled";
-              const truncatedTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
-
-              return (
-                <SelectItem key={template.id} value={template.id} className="whitespace-nowrap">
-                  {truncatedTitle}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="flex gap-2">
         <Button
           variant="outline"
           onClick={onPause}
-          className="w-full"
+          className="flex-1 justify-center text-xs text-gray-700"
         >
-          <PauseIcon size={16} />
+          <PauseIcon className="w-4 h-4" />
           <Trans>Pause</Trans>
         </Button>
-        <Button
-          variant="destructive"
-          onClick={handleStopWithTemplate}
-          className="w-full"
-        >
-          <StopCircleIcon size={16} />
-          <Trans>Stop</Trans>
-        </Button>
+        <StopButton
+          sessionId={sessionId}
+          onStop={onStop}
+        />
       </div>
     </>
+  );
+}
+
+const stopButtonSchema = z.object({
+  saveAudio: z.boolean(),
+  selectedTemplate: z.string(),
+});
+
+type StopButtonFormData = z.infer<typeof stopButtonSchema>;
+
+function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templateId: string | null) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { userId } = useHypr();
+
+  useEffect(() => {
+    if (isOpen) {
+      analyticsCommands.event({
+        event: "stop_button_dropdown_opened",
+        distinct_id: userId,
+        session_id: sessionId,
+      });
+    }
+  }, [isOpen]);
+
+  const queryClient = useQueryClient();
+
+  const defaultTemplateQuery = useQuery({
+    queryKey: ["config"],
+    queryFn: () => dbCommands.getConfig().then((config) => config.general.selected_template_id),
+    refetchOnWindowFocus: true,
+  });
+
+  const templatesQuery = useQuery({
+    queryKey: ["templates"],
+    queryFn: () =>
+      TemplateService.getAllTemplates().then((templates) =>
+        templates.map((template) => {
+          const title = template.title || "Untitled";
+          const truncatedTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
+          return { id: template.id, title: truncatedTitle };
+        })
+      ),
+    refetchOnWindowFocus: true,
+  });
+
+  const form = useForm<StopButtonFormData>({
+    resolver: zodResolver(stopButtonSchema),
+    defaultValues: {
+      saveAudio: false,
+      selectedTemplate: "auto",
+    },
+  });
+
+  useEffect(() => {
+    if (defaultTemplateQuery.data) {
+      form.setValue("selectedTemplate", defaultTemplateQuery.data);
+    }
+  }, [defaultTemplateQuery.data, form]);
+
+  const handleSubmit = (data: StopButtonFormData) => {
+    const actualTemplateId = data.selectedTemplate === "auto" ? null : data.selectedTemplate;
+    if (!data.saveAudio) {
+      miscCommands.audioDelete(sessionId);
+    }
+    onStop(actualTemplateId);
+    queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === "audio" });
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-1">
+          <Button
+            type="submit"
+            variant="destructive"
+            className="flex-1 rounded-r-none justify-center w-[90px] text-xs"
+          >
+            <StopCircleIcon
+              color="white"
+              className="w-4 h-4"
+            />
+            <Trans>Stop</Trans>
+          </Button>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="destructive"
+              className="rounded-l-none px-2 flex-shrink-0 transition-all border-l border-red-600"
+            >
+              <ChevronDownIcon className="w-4 h-4 text-white" />
+            </Button>
+          </PopoverTrigger>
+        </form>
+      </Form>
+
+      <PopoverContent className="w-96">
+        <Form {...form}>
+          <div className="space-y-3">
+            <FormField
+              control={form.control}
+              name="saveAudio"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between space-y-0">
+                  <FormLabel className="text-sm font-medium">
+                    <Trans>Save current recording</Trans>
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="border-t border-gray-200" />
+
+            <FormField
+              control={form.control}
+              name="selectedTemplate"
+              render={({ field }) => (
+                <FormItem className="flex flex-row gap-4 items-center space-y-0">
+                  <FormLabel className="text-sm font-medium whitespace-nowrap">
+                    <Trans>Template</Trans>
+                  </FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full text-sm">
+                        <SelectValue placeholder="Select template..." />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-44 overflow-y-auto w-[var(--radix-select-trigger-width)]">
+                        <SelectItem value="auto">
+                          <Trans>No Template (Default)</Trans>
+                        </SelectItem>
+                        {templatesQuery.data?.map((template) => (
+                          <SelectItem key={template.id} value={template.id} className="whitespace-nowrap">
+                            {template.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </Form>
+      </PopoverContent>
+    </Popover>
   );
 }
 

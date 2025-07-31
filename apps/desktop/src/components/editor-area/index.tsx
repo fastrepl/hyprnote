@@ -104,7 +104,6 @@ export default function EditorArea({
     refetchOnWindowFocus: true,
   });
 
-
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
 
@@ -427,7 +426,7 @@ export function useEnhanceMutation({
             ),
             dismissible: true,
             duration: 5000,
-          })
+          });
           throw error;
         },
         messages: [
@@ -452,15 +451,14 @@ export function useEnhanceMutation({
         }),
       });
 
-
       let acc = "";
-      
+
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
           acc += chunk.textDelta;
         }
-        if (chunk.type === "error"){
-          if(originalContentRef.current !== "" && acc === ""){
+        if (chunk.type === "error") {
+          if (originalContentRef.current !== "" && acc === "") {
             setEnhancedContent(originalContentRef.current);
           }
           throw new Error("Error occured right away");
@@ -507,7 +505,6 @@ export function useEnhanceMutation({
       }
 
       setEnhanceController(null);
-
     },
   });
 

@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import {
   ChatHistoryView,
   ChatInput,
@@ -39,6 +41,12 @@ export function ChatView() {
     setHasChatStarted,
   });
 
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+    refetchOnWindowFocus: true,
+  });
+
   const { chatGroupsQuery, sessionData, getChatGroupId } = useChatQueries({
     sessionId,
     userId,
@@ -68,6 +76,7 @@ export function ChatView() {
     getChatGroupId,
     sessionData,
     chatInputRef,
+    llmConnectionQuery,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

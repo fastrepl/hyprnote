@@ -7,8 +7,9 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { modelProvider, streamText } from "@hypr/utils/ai";
+import { modelProvider, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
+import { z } from "zod";
 
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
@@ -26,6 +27,7 @@ interface UseChatLogicProps {
   getChatGroupId: () => Promise<string>;
   sessionData: any;
   chatInputRef: React.RefObject<HTMLTextAreaElement>;
+  llmConnectionQuery: any;
 }
 
 export function useChatLogic({
@@ -41,6 +43,7 @@ export function useChatLogic({
   getChatGroupId,
   sessionData,
   chatInputRef,
+  llmConnectionQuery,
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
@@ -282,11 +285,13 @@ export function useChatLogic({
       content: userMessage.content.trim(),
     });
 
+    // Declare aiMessageId outside try block so it's accessible in catch
+    const aiMessageId = (Date.now() + 1).toString();
+
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
         id: aiMessageId,
         content: "Generating...",
@@ -298,6 +303,17 @@ export function useChatLogic({
       const { textStream } = streamText({
         model,
         messages: await prepareMessageHistory(messages, content, mentionedContent),
+        // Add tools conditionally for local LLM (same as enhance)
+        ...(llmConnectionQuery.data?.type === "HyprLocal" && {
+          tools: {
+            update_progress: tool({ inputSchema: z.any() }),
+          },
+        }),
+        onError: (error) => {
+          console.error("On Error Catch:", error);
+          setIsGenerating(false);
+          throw error;
+        },
       });
 
       let aiResponse = "";
@@ -332,23 +348,37 @@ export function useChatLogic({
     } catch (error) {
       console.error("AI error:", error);
 
+      const errorMessage = (error as any)?.error || "Unknown error";
+
+      let finalErrorMesage = "";
+
+      if (String(errorMessage).includes("too large")) {
+        finalErrorMesage =
+          "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
+          + "\n\n" + errorMessage;
+      } else {
+        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMessage;
+      }
+
       setIsGenerating(false);
 
-      const errorMessageId = (Date.now() + 1).toString();
-      const aiMessage: Message = {
-        id: errorMessageId,
-        content: "Sorry, I encountered an error. Please try again.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) =>
+        prev.map(msg =>
+          msg.id === aiMessageId
+            ? {
+              ...msg,
+              content: finalErrorMesage,
+            }
+            : msg
+        )
+      );
 
       await dbCommands.upsertChatMessage({
-        id: errorMessageId,
+        id: aiMessageId,
         group_id: groupId,
         created_at: new Date().toISOString(),
         role: "Assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: finalErrorMesage,
       });
     }
   };

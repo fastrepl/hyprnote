@@ -119,7 +119,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   const displayPeople = (selectedOrganization
     ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
-    : allPeopleWithUser).filter(person => isValidName(person.full_name));
+    : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
 

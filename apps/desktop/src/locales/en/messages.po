@@ -1037,7 +1037,7 @@ msgstr "No recent notes for this organization"
 #~ msgid "No Template"
 #~ msgstr "No Template"
 
-#: src/components/editor-area/note-header/listen-button.tsx:501
+#: src/components/editor-area/note-header/listen-button.tsx:513
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
@@ -1208,7 +1208,7 @@ msgstr "Role"
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
 
-#: src/components/editor-area/note-header/listen-button.tsx:471
+#: src/components/editor-area/note-header/listen-button.tsx:483
 msgid "Save current recording"
 msgstr "Save current recording"
 
@@ -1329,7 +1329,7 @@ msgstr "Spoken languages"
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:448
+#: src/components/editor-area/note-header/listen-button.tsx:460
 msgid "Stop"
 msgstr "Stop"
 
@@ -1366,7 +1366,7 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/components/editor-area/note-header/listen-button.tsx:492
+#: src/components/editor-area/note-header/listen-button.tsx:504
 msgid "Template"
 msgstr "Template"
 

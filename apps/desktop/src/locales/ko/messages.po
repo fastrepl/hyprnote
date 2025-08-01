@@ -1037,7 +1037,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:501
+#: src/components/editor-area/note-header/listen-button.tsx:513
 msgid "No Template (Default)"
 msgstr ""
 
@@ -1208,7 +1208,7 @@ msgstr ""
 #~ msgid "Save and close"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:471
+#: src/components/editor-area/note-header/listen-button.tsx:483
 msgid "Save current recording"
 msgstr ""
 
@@ -1329,7 +1329,7 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:448
+#: src/components/editor-area/note-header/listen-button.tsx:460
 msgid "Stop"
 msgstr ""
 
@@ -1366,7 +1366,7 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:492
+#: src/components/editor-area/note-header/listen-button.tsx:504
 msgid "Template"
 msgstr ""
 

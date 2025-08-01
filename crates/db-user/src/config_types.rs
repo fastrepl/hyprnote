@@ -56,7 +56,7 @@ impl Default for ConfigGeneral {
             spoken_languages: vec![hypr_language::ISO639::En.into()],
             jargons: vec![],
             telemetry_consent: true,
-            save_recordings: Some(true),
+            save_recordings: Some(false),
             selected_template_id: None,
         }
     }

@@ -418,7 +418,7 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
   const form = useForm<StopButtonFormData>({
     resolver: zodResolver(stopButtonSchema),
     defaultValues: {
-      saveAudio: true, // Default fallback
+      saveAudio: false, // Default fallback
       selectedTemplate: "auto",
     },
   });
@@ -431,7 +431,7 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
 
   useEffect(() => {
     if (saveRecordingsQuery.data !== undefined) {
-      form.setValue("saveAudio", saveRecordingsQuery.data ?? true);
+      form.setValue("saveAudio", saveRecordingsQuery.data ?? false);
     }
   }, [saveRecordingsQuery.data, form]);
 

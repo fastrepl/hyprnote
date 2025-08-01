@@ -263,7 +263,7 @@ msgstr "(Optional for localhost)"
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
-#: src/components/settings/views/templates.tsx:208
+#: src/components/settings/views/templates.tsx:215
 #: src/components/settings/components/wer-modal.tsx:116
 #: src/components/editor-area/note-header/listen-button.tsx:216
 #: src/components/editor-area/note-header/listen-button.tsx:238
@@ -443,7 +443,7 @@ msgstr "Base URL"
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr "Billing features are currently under development and will be available in a future update."
 
-#: src/components/settings/views/templates.tsx:293
+#: src/components/settings/views/templates.tsx:300
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
@@ -608,7 +608,7 @@ msgstr "Create new note"
 msgid "Create Note"
 msgstr "Create Note"
 
-#: src/components/settings/views/templates.tsx:283
+#: src/components/settings/views/templates.tsx:290
 msgid "Create your first template to get started"
 msgstr "Create your first template to get started"
 
@@ -920,7 +920,7 @@ msgstr "Loading available models..."
 msgid "Loading events..."
 msgstr "Loading events..."
 
-#: src/components/settings/views/templates.tsx:231
+#: src/components/settings/views/templates.tsx:238
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
@@ -1041,7 +1041,7 @@ msgstr "No recent notes for this organization"
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
-#: src/components/settings/views/templates.tsx:280
+#: src/components/settings/views/templates.tsx:287
 msgid "No templates yet"
 msgstr "No templates yet"
 
@@ -1253,7 +1253,7 @@ msgstr "Sections"
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 
-#: src/components/settings/views/templates.tsx:248
+#: src/components/settings/views/templates.tsx:255
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
@@ -1571,7 +1571,7 @@ msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 msgid "Your Name"
 msgstr "Your Name"
 
-#: src/components/settings/views/templates.tsx:245
+#: src/components/settings/views/templates.tsx:252
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr "Your Templates"

@@ -89,9 +89,11 @@ export default function TemplatesView() {
       // Deselect by setting to null
       selectTemplateMutation.mutate("");
     } else {
-      // Select this template
+      const isCustomTemplate = customTemplates.some(t => t.id === template.id);
+      const eventName = isCustomTemplate ? "custom_template_selected" : "builtin_template_selected";
+
       analyticsCommands.event({
-        event: "template_selected",
+        event: eventName,
         distinct_id: userId,
       });
 
@@ -107,13 +109,18 @@ export default function TemplatesView() {
 
   const handleNewTemplate = () => {
     if (!getLicense.data?.valid) {
-      analyticsCommands.event({
-        event: "pro_license_required_template",
-        distinct_id: userId,
-      });
+      if (customTemplates.length > 1) {
+        analyticsCommands.event({
+          event: "pro_license_required_template",
+          distinct_id: userId,
+        });
 
-      message("Only default templates are allowed for free users.", { title: "Pro License Required", kind: "info" });
-      return;
+        message("Free users can create only two custom templates. Upgrade to Pro for unlimited templates.", {
+          title: "Pro License Required",
+          kind: "info",
+        });
+        return;
+      }
     }
 
     analyticsCommands.event({

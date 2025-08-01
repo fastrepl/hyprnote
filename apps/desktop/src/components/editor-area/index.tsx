@@ -353,6 +353,14 @@ export function useEnhanceMutation({
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
+      const eventName = selectedTemplate?.tags.includes("builtin")
+        ? "builtin_template_enhancement_started"
+        : "custom_template_enhancement_started";
+      analyticsCommands.event({
+        event: eventName,
+        distinct_id: userId,
+      });
+
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
       const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
 

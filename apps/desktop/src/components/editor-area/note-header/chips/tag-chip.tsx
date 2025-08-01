@@ -229,6 +229,20 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
     !existingSessionTagNames.has(suggestion.toLowerCase())
   );
 
+  const { data: recentTags = [] } = useQuery({
+    queryKey: ["recent-tags"],
+    queryFn: async () => {
+      const allTagsWithSessions = await dbCommands.listAllTags();
+      // Sort by name for now (you could add creation date to sort properly)
+      return allTagsWithSessions.slice(0, 10); // Get more than 5 to filter later
+    },
+  });
+
+  // Get recent tags that aren't already assigned to this session
+  const filteredRecentTags = recentTags
+    .filter(tag => !existingSessionTagNames.has(tag.name.toLowerCase()))
+    .slice(0, 5); // Limit to 5
+
   const parseAndSanitizeTags = (input: string): string[] => {
     const tags = input
       .split(",")
@@ -238,7 +252,6 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0 && tag.length <= 50);
 
-    // Remove duplicates within the input (case-insensitive)
     const uniqueTags = [];
     const seenTags = new Set();
 
@@ -426,6 +439,26 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         )}
       </div>
 
+      {/* Recent Tags Section */}
+      {filteredRecentTags.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="text-xs font-medium text-neutral-600">Recent Tags</div>
+          <div className="flex flex-wrap gap-1">
+            {filteredRecentTags.map((tag) => (
+              <button
+                key={tag.id}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md border border-neutral-200 transition-colors"
+                onClick={() => handleTagSelect(tag.name)}
+                disabled={createTagsMutation.isPending}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Existing AI suggestions section */}
       <div className="flex flex-col gap-2">
         <Button
           variant="ghost"

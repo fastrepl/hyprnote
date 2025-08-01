@@ -10,7 +10,6 @@ export const generateText = createServerFn({ method: "POST" })
       const openai = createOpenAI({
         baseURL: data.baseUrl,
         apiKey: data.apiKey,
-        compatibility: "compatible",
       });
 
       const result = await generateTextFn({

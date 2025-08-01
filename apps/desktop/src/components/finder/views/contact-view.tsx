@@ -53,7 +53,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     queryKey: ["all-people", userId],
     queryFn: async () => {
       try {
-        const allHumans = await dbCommands.listHumans({ search: [100, ""] });
+        const allHumans = await dbCommands.listHumans(null);
         return allHumans;
       } catch (error) {
         console.error("Error fetching all people:", error);
@@ -248,7 +248,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 id: newPersonId,
                 organization_id: selectedOrganization,
                 is_user: false,
-                full_name: null,
+                full_name: "New Contact",
                 email: null,
                 job_title: null,
                 linkedin_username: null,
@@ -367,7 +367,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
                   <div className="flex-1 p-6">
                     <h3 className="text-sm font-medium text-neutral-600 mb-4 pl-3">Related Notes</h3>
-                    <div className="h-full overflow-y-auto">
+                    <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
                       <div className="space-y-2">
                         {personSessions.length > 0
                           ? (

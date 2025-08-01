@@ -38,7 +38,6 @@ const trackVariants = cva(
 
 const rangeVariants = cva(
   "absolute h-full bg-primary",
-  {},
 );
 
 const thumbVariants = cva(

@@ -1,24 +1,32 @@
 [package]
-name = "owhisper"
+name = "owhisper-cli"
 version = "0.0.1"
 edition = "2024"
 
+[build-dependencies]
+owhisper-config = { path = "../owhisper-config" }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+
 [dependencies]
+owhisper-config = { path = "../owhisper-config" }
+
 hypr-transcribe-aws = { workspace = true }
 hypr-transcribe-azure = { workspace = true }
 hypr-transcribe-gcp = { workspace = true }
+hypr-transcribe-whisper-local = { workspace = true }
 
 axum = { workspace = true }
-serde = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tower = { workspace = true }
 tracing = { workspace = true }
 
 clap = { version = "4", features = ["derive", "env"] }
 colored = "3.0.0"
-config = "0.15.13"
 indicatif = "0.18.0"
 
 anyhow = { workspace = true }
+clap_autocomplete = "0.4.2"
 open = "5.3.2"
 rubato = "0.16.2"
+schemars = { workspace = true }

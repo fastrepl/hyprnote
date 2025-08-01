@@ -1,5 +1,5 @@
 inputs:
-  target:
+  platform:
     required: false
     type: string
 
@@ -8,23 +8,23 @@ runs:
   steps:
     - run: rustup toolchain install 1.88.0 --profile minimal --no-self-update
       shell: bash
-    - if: inputs.target == 'macos'
+    - if: inputs.platform == 'macos'
       run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
       shell: bash
-    - if: inputs.target == 'ios'
+    - if: inputs.platform == 'ios'
       run: rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
       shell: bash
-    - if: inputs.target == 'android'
+    - if: inputs.platform == 'android'
       run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
       shell: bash
-    - if: inputs.target == 'windows'
+    - if: inputs.platform == 'windows'
       run: |
         rustup target add x86_64-pc-windows-msvc
         # https://tauri.app/distribute/sign/windows/#install-trusted-signing-cli
         cargo install trusted-signing-cli
       shell: bash
-    - if: contains(inputs.target, 'linux-gnu') || contains(inputs.target, 'linux-musl')
-      run: rustup target add ${{ inputs.target }}
+    - if: inputs.platform == 'linux'
+      run: rustup target add linux-gnu linux-musl
       shell: bash
     - uses: Swatinem/rust-cache@v2
       with:

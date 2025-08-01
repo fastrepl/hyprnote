@@ -13,7 +13,7 @@ members = [
   "apps/app/server",
   "apps/desktop/src-tauri",
   "crates/*",
-  "owhisper",
+  "owhisper/*",
   "plugins/*",
 ]
 

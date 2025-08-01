@@ -1,4 +1,3 @@
-# https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
   release:
@@ -41,11 +40,7 @@ jobs:
           if [[ "${{ matrix.target }}" == *"musl"* ]]; then
             sudo apt-get install -y musl-tools musl-dev
           fi
-      - run: |
-          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "owhisper") | .version')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
       - uses: ./.github/actions/rust_install
         with:
-          target: ${{ matrix.target }}
-      - name: Build binary
-        run: cargo build --release --bin owhisper --target ${{ matrix.target }}
+          platform: ${{ matrix.platform }}
+      - run: cargo build --release --bin owhisper-cli --target ${{ matrix.target }}

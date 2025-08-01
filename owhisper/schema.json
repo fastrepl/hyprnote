@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "serve": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ServeConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "ServeConfig": {
+      "type": "object",
+      "properties": {
+        "aws": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ServeAwsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "azure": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ServeAzureConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "whisper_cpp": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ServeWhisperCppConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "ServeAwsConfig": {
+      "type": "object",
+      "required": [
+        "access_key_id",
+        "region",
+        "secret_access_key"
+      ],
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "access_key_id": {
+          "type": "string"
+        },
+        "secret_access_key": {
+          "type": "string"
+        }
+      }
+    },
+    "ServeAzureConfig": {
+      "type": "object",
+      "required": [
+        "access_key_id",
+        "region",
+        "secret_access_key"
+      ],
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "access_key_id": {
+          "type": "string"
+        },
+        "secret_access_key": {
+          "type": "string"
+        }
+      }
+    },
+    "ServeWhisperCppConfig": {
+      "type": "object",
+      "required": [
+        "model_path"
+      ],
+      "properties": {
+        "model_path": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

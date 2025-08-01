@@ -423,7 +423,7 @@ msgstr "Audio Permissions"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
-#: src/components/settings/views/ai.tsx:831
+#: src/components/settings/views/ai.tsx:828
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
@@ -579,7 +579,7 @@ msgstr "Continue"
 #~ msgid "Continue Setup"
 #~ msgstr "Continue Setup"
 
-#: src/components/settings/views/ai.tsx:834
+#: src/components/settings/views/ai.tsx:831
 msgid "Control how autonomous the AI enhancement should be"
 msgstr "Control how autonomous the AI enhancement should be"
 
@@ -904,11 +904,11 @@ msgstr "LinkedIn username"
 #~ msgid "Live summary of the meeting"
 #~ msgstr "Live summary of the meeting"
 
-#: src/components/settings/views/ai.tsx:807
+#: src/components/settings/views/ai.tsx:804
 msgid "LLM - Custom"
 msgstr "LLM - Custom"
 
-#: src/components/settings/views/ai.tsx:804
+#: src/components/settings/views/ai.tsx:801
 msgid "LLM - Local"
 msgstr "LLM - Local"
 
@@ -1170,8 +1170,8 @@ msgstr "Recent Notes"
 #~ msgstr "Recording Started"
 
 #: src/components/settings/views/ai.tsx:891
-msgid "Redemption Time"
-msgstr "Redemption Time"
+#~ msgid "Redemption Time"
+#~ msgstr "Redemption Time"
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
@@ -1403,8 +1403,8 @@ msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
 
 #: src/components/settings/views/ai.tsx:894
-msgid "Time window (in milliseconds) to allow redemption of failed requests"
-msgstr "Time window (in milliseconds) to allow redemption of failed requests"
+#~ msgid "Time window (in milliseconds) to allow redemption of failed requests"
+#~ msgstr "Time window (in milliseconds) to allow redemption of failed requests"
 
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
@@ -1426,7 +1426,7 @@ msgstr "Toggle widget panel"
 msgid "Transcribing"
 msgstr "Transcribing"
 
-#: src/components/settings/views/ai.tsx:801
+#: src/components/settings/views/ai.tsx:798
 msgid "Transcription"
 msgstr "Transcription"
 

@@ -840,7 +840,6 @@ export default function LocalAI() {
                                       type="button"
                                       onClick={() => {
                                         field.onChange(level);
-                                        const currentValues = aiConfigForm.getValues();
                                         aiConfigMutation.mutate({
                                           aiSpecificity: level,
                                         });

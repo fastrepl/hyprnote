@@ -6,7 +6,7 @@
     "codegen": "cargo test -p tauri-plugin-obsidian"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.6.0",
-    "@hypr/obsidian": "workspace:^"
+    "@hypr/obsidian": "workspace:^",
+    "@tauri-apps/api": "^2.7.0"
   }
 }

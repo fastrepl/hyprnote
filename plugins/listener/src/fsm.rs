@@ -207,7 +207,7 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, languages, jargons) = {
+        let (record, languages, jargons, redemption_time_ms) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -219,9 +219,15 @@ impl Session {
                 |c| c.general.spoken_languages.clone(),
             );
 
-            let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
+            let jargons = config
+                .as_ref()
+                .map_or_else(Vec::new, |c| c.general.jargons.clone());
 
-            (record, languages, jargons)
+            let redemption_time_ms = config
+                .as_ref()
+                .map_or_else(|| 500, |c| c.ai.redemption_time_ms.unwrap_or(500));
+
+            (record, languages, jargons, redemption_time_ms)
         };
 
         let session = self
@@ -248,6 +254,7 @@ impl Session {
             languages,
             jargons,
             session_id == onboarding_session_id,
+            redemption_time_ms,
         )
         .await?;
 
@@ -553,6 +560,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
     languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
     is_onboarding: bool,
+    redemption_time_ms: u32,
 ) -> Result<crate::client::ListenClientDual, crate::Error> {
     let api_base = {
         use tauri_plugin_connector::{Connection, ConnectorPluginExt};
@@ -578,7 +586,11 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .params(hypr_listener_interface::ListenParams {
             languages,
             static_prompt,
-            redemption_time_ms: if is_onboarding { 70 } else { 300 },
+            redemption_time_ms: if is_onboarding {
+                70
+            } else {
+                redemption_time_ms.into()
+            },
             ..Default::default()
         })
         .build_dual())

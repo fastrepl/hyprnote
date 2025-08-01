@@ -19,15 +19,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import {
-  generateText,
-  localProviderName,
-  markdownTransform,
-  modelProvider,
-  smoothStream,
-  streamText,
-  tool,
-} from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
@@ -409,7 +401,7 @@ export function useEnhanceMutation({
         model,
         ...(freshIsLocalLlm && {
           tools: {
-            update_progress: tool({ parameters: z.any() }),
+            update_progress: tool({ inputSchema: z.any() }),
           },
         }),
         onError: (error) => {
@@ -434,7 +426,6 @@ export function useEnhanceMutation({
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
         ...(freshIsLocalLlm && {
@@ -455,16 +446,16 @@ export function useEnhanceMutation({
 
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
-          acc += chunk.textDelta;
+          acc += chunk.text;
         }
         if (chunk.type === "error") {
           if (originalContentRef.current !== "" && acc === "") {
             setEnhancedContent(originalContentRef.current);
           }
-          throw new Error("Error occured right away");
+          throw new Error(String(chunk.error));
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
-          const chunkProgress = chunk.args?.progress ?? 0;
+          const chunkProgress = chunk.input?.progress ?? 0;
           setProgress(chunkProgress);
         }
 

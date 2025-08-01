@@ -23,8 +23,6 @@ interface ChatInputProps {
   isGenerating?: boolean;
 }
 
-
-
 export function ChatInput(
   {
     inputValue,
@@ -324,7 +322,7 @@ export function ChatInput(
       `}
       </style>
 
-      <div className={`relative chat-editor ${inputValue.trim() ? 'has-content' : ''}`}>
+      <div className={`relative chat-editor ${inputValue.trim() ? "has-content" : ""}`}>
         <Editor
           ref={editorRef}
           handleChange={handleContentChange}

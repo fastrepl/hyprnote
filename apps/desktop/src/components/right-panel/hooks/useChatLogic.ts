@@ -111,7 +111,6 @@ export function useChatLogic({
       event: eventInfo,
     });
 
-
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
       content: string;
@@ -222,7 +221,6 @@ export function useChatLogic({
         currentUserMessage = currentUserMessage + noteContents.join("");
       }
     }
-
 
     if (currentUserMessage) {
       conversationHistory.push({

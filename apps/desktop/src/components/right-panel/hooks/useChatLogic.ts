@@ -132,7 +132,6 @@ export function useChatLogic({
     }
 
     if (mentionedContent && mentionedContent.length > 0) {
-      // Fetch note content for each mentioned note
       const noteContents: string[] = [];
 
       for (const mention of mentionedContent) {
@@ -151,7 +150,6 @@ export function useChatLogic({
                 continue;
               }
 
-              // Add note content with header
               noteContents.push(`\n\n--- Content from the note"${mention.label}" ---\n${noteContent}`);
             }
           }
@@ -167,7 +165,6 @@ export function useChatLogic({
 
             if (humanData?.full_name) {
               try {
-                // Search for sessions by person's name
                 const participantSessions = await dbCommands.listSessions({
                   type: "search",
                   query: humanData.full_name,
@@ -178,15 +175,13 @@ export function useChatLogic({
                 if (participantSessions.length > 0) {
                   humanContent += "\nNotes this person participated in:\n";
 
-                  for (const session of participantSessions.slice(0, 2)) { // Limit to 3 notes
-                    // Get session participants to verify this person was actually there
+                  for (const session of participantSessions.slice(0, 2)) { 
                     const participants = await dbCommands.sessionListParticipants(session.id);
                     const isParticipant = participants.some(p =>
                       p.full_name === humanData.full_name || p.email === humanData.email
                     );
 
                     if (isParticipant) {
-                      // Get truncated content (first 200 characters)
                       let briefContent = "";
                       if (session.enhanced_memo_html && session.enhanced_memo_html.trim() !== "") {
                         const div = document.createElement("div");
@@ -216,7 +211,6 @@ export function useChatLogic({
         }
       }
 
-      // Append all note contents to the current user message
       if (noteContents.length > 0) {
         currentUserMessage = currentUserMessage + noteContents.join("");
       }
@@ -225,7 +219,7 @@ export function useChatLogic({
     if (currentUserMessage) {
       conversationHistory.push({
         role: "user" as const,
-        content: currentUserMessage, // This now includes the mentioned note content
+        content: currentUserMessage, 
       });
     }
 

@@ -2,7 +2,6 @@
 pub enum Error {
     #[error(transparent)]
     GenericError(#[from] aws_sdk_transcribestreaming::Error),
-    
     #[error(transparent)]
     TranscriptResultStreamError(
         #[from]

@@ -88,7 +88,7 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         res = request_with_range(url.clone(), None).await?;
     }
 
-    let total_size = res.content_length().map(|content_length| {
+    let total_size = get_content_length_from_headers(&res).map(|content_length| {
         if existing_size > 0 {
             existing_size + content_length
         } else {
@@ -138,8 +138,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
     }
 
     let head_response = get_client().head(url.clone()).send().await?;
-    let total_size = head_response
-        .content_length()
+    let total_size = get_content_length_from_headers(&head_response)
         .ok_or_else(|| crate::Error::OtherError("Content-Length header missing".to_string()))?;
 
     println!(
@@ -155,6 +154,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         == "bytes";
 
     if !supports_ranges || total_size <= DEFAULT_CHUNK_SIZE {
+        println!("+++Server does not support range requests or file is small, falling back to single download");
         return download_file_with_callback(url, output_path, move |progress| {
             progress_callback(progress)
         })
@@ -258,6 +258,17 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 pub fn file_size(path: impl AsRef<Path>) -> Result<u64, Error> {
     let metadata = std::fs::metadata(path.as_ref())?;
     Ok(metadata.len())
+}
+
+/// Manually parse content-length header from HTTP response
+/// This is a workaround for cases where reqwest's content_length() method returns incorrect values
+fn get_content_length_from_headers(response: &reqwest::Response) -> Option<u64> {
+    response
+        .headers()
+        .get("content-length")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.parse::<u64>().ok())
+        .or_else(|| response.content_length())
 }
 
 pub fn calculate_file_checksum(path: impl AsRef<Path>) -> Result<u32, Error> {
@@ -569,8 +580,8 @@ mod tests {
 
         // Use a larger file to make the performance difference more pronounced
         // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin";
-        // let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
-        let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
+        let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
+        // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
         
         // First check if server supports range requests
         // Try with a fresh client to avoid any cached configuration
@@ -587,18 +598,8 @@ mod tests {
             .await
             .unwrap();
             
-        println!("HEAD response status: {:#?}", head_response.status());
-        println!("HEAD response headers: {:#?}", head_response.headers());
-        let content_length = head_response.content_length();
-        println!("HEAD response content length: {:?}", content_length);
         
-        // Manually parse content-length header as fallback
-        let manual_content_length = head_response
-            .headers()
-            .get("content-length")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|s| s.parse::<u64>().ok());
-        println!("Manual content length parsing: {:?}", manual_content_length);
+        let file_size = get_content_length_from_headers(&head_response).unwrap_or(0);
         
         let supports_ranges = head_response
             .headers()
@@ -606,8 +607,6 @@ mod tests {
             .map(|v| v.to_str().unwrap_or(""))
             .unwrap_or("")
             == "bytes";
-
-        let file_size = manual_content_length.unwrap_or(content_length.unwrap_or(0));
         assert!(file_size > 0, "File size should be greater than 0");
         
         println!("Server supports ranges: {}, File size: {} MB", 

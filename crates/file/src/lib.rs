@@ -104,6 +104,7 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 
     let mut downloaded: u64 = existing_size;
     let mut stream = res.bytes_stream();
+    let mut last_logged_percent = 0u8;
 
     progress_callback(DownloadProgress::Started);
     while let Some(item) = stream.next().await {
@@ -111,10 +112,20 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
-        progress_callback(DownloadProgress::Progress(
-            downloaded,
-            total_size.unwrap_or(downloaded),
-        ));
+        let total = total_size.unwrap_or(downloaded);
+        let percent = if total > 0 {
+            (downloaded as f64 / total as f64 * 100.0) as u8
+        } else {
+            0
+        };
+        
+        // Only log every 5% to avoid spam
+        if percent >= last_logged_percent + 5 || percent == 100 {
+            println!("Download progress: {}% ({}/{} bytes)", percent, downloaded, total);
+            last_logged_percent = percent;
+        }
+        
+        progress_callback(DownloadProgress::Progress(downloaded, total));
     }
 
     progress_callback(DownloadProgress::Finished);
@@ -184,6 +195,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
     };
 
     let downloaded = Arc::new(Mutex::new(existing_size));
+    let last_logged_percent = Arc::new(Mutex::new(0u8));
     let mut tasks = FuturesUnordered::new();
 
     progress_callback(DownloadProgress::Started);
@@ -194,6 +206,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
         let url_clone = url.clone();
         let downloaded_clone = Arc::clone(&downloaded);
+        let last_logged_percent_clone = Arc::clone(&last_logged_percent);
         let progress_callback_clone = Arc::clone(&progress_callback);
 
         let task: JoinHandle<Result<(u64, Vec<u8>), crate::Error>> = tokio::spawn(async move {
@@ -222,6 +235,19 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                 *downloaded_guard += chunk.len() as u64;
                 let current_downloaded = *downloaded_guard;
                 drop(downloaded_guard);
+
+                let percent = if total_size > 0 {
+                    (current_downloaded as f64 / total_size as f64 * 100.0) as u8
+                } else {
+                    0
+                };
+                
+                // Only log every 5% to avoid spam
+                let mut last_percent = last_logged_percent_clone.lock().unwrap();
+                if percent >= *last_percent + 5 || percent == 100 {
+                    println!("Parallel download progress: {}% ({}/{} bytes)", percent, current_downloaded, total_size);
+                    *last_percent = percent;
+                }
 
                 progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
             }

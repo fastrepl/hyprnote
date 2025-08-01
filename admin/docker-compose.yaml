@@ -1,0 +1,50 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: admin-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks:
+      - admin-network
+
+  proxy:
+    build:
+      context: ../
+      dockerfile: admin/proxy/Dockerfile
+    container_name: admin-proxy
+    ports:
+      - "8080:8080"
+    environment:
+      - RUST_LOG=info
+    restart: unless-stopped
+    networks:
+      - admin-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: admin-server
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - admin-network
+    depends_on:
+      - proxy
+
+networks:
+  admin-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

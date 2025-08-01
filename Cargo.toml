@@ -10,9 +10,9 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
+  "admin/proxy",
   "apps/app/server",
   "apps/desktop/src-tauri",
-  "apps/proxy",
   "crates/*",
   "plugins/*",
 ]
@@ -52,7 +52,6 @@ hypr-notification2 = { path = "crates/notification2", package = "notification2" 
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
-hypr-proxy = { path = "apps/proxy", package = "proxy" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
 hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
@@ -74,7 +73,7 @@ hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
 
-tauri = "2.6"
+tauri = "2.7"
 tauri-build = "2.3"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin = "2.3"

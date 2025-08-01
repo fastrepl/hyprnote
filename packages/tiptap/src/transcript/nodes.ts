@@ -223,25 +223,21 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
         [SPEAKER_ID_ATTR]: {
           default: null,
           parseHTML: element => element.getAttribute(`data-${SPEAKER_ID_ATTR}`),
-          renderHTML: attributes => ({ [`data-${SPEAKER_ID_ATTR}`]: attributes[SPEAKER_ID_ATTR] }),
         },
         [SPEAKER_LABEL_ATTR]: {
           default: null,
-          parseHTML: element => element.getAttribute(`data-${SPEAKER_LABEL_ATTR}`),
-          renderHTML: attributes => ({ [`data-${SPEAKER_LABEL_ATTR}`]: attributes[SPEAKER_LABEL_ATTR] }),
         },
       };
     },
+
     parseHTML() {
-      return [{
-        tag: "div.transcript-speaker",
-        attrs: {
-          [`data-${SPEAKER_INDEX_ATTR}`]: 0,
-          [`data-${SPEAKER_ID_ATTR}`]: "",
-          [`data-${SPEAKER_LABEL_ATTR}`]: "",
+      return [
+        {
+          tag: `div[data-${SPEAKER_INDEX_ATTR}]`,
         },
-      }];
+      ];
     },
+
     renderHTML({ HTMLAttributes, node }) {
       return [
         "div",
@@ -257,7 +253,7 @@ export const SpeakerNode = (c: SpeakerViewInnerComponent) => {
       ];
     },
     addNodeView() {
-      return ReactNodeViewRenderer(createSpeakerView(c));
+      return ReactNodeViewRenderer(createSpeakerView(c) as any);
     },
     addCommands() {
       return implementCommands as any; // casting because util object is compatible

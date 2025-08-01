@@ -265,9 +265,9 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
 #: src/components/settings/views/templates.tsx:208
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:209
-#: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/editor-area/note-header/listen-button.tsx:251
+#: src/components/editor-area/note-header/listen-button.tsx:216
+#: src/components/editor-area/note-header/listen-button.tsx:238
+#: src/components/editor-area/note-header/listen-button.tsx:258
 msgid "{0}"
 msgstr ""
 
@@ -423,7 +423,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:827
+#: src/components/settings/views/ai.tsx:831
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -579,7 +579,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:830
+#: src/components/settings/views/ai.tsx:834
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -904,11 +904,11 @@ msgstr ""
 #~ msgid "Live summary of the meeting"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:804
+#: src/components/settings/views/ai.tsx:807
 msgid "LLM - Custom"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:801
+#: src/components/settings/views/ai.tsx:804
 msgid "LLM - Local"
 msgstr "<<<<<<< HEAD"
 
@@ -1037,7 +1037,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:378
+#: src/components/editor-area/note-header/listen-button.tsx:501
 msgid "No Template (Default)"
 msgstr ""
 
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:401
+#: src/components/editor-area/note-header/listen-button.tsx:359
 msgid "Pause"
 msgstr ""
 
@@ -1125,7 +1125,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:196
+#: src/components/settings/components/ai/stt-view.tsx:259
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1169,6 +1169,10 @@ msgstr ""
 #~ msgid "Recording Started"
 #~ msgstr ""
 
+#: src/components/settings/views/ai.tsx:891
+msgid "Redemption Time"
+msgstr ""
+
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
@@ -1191,7 +1195,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:142
 msgid "Resume"
 msgstr ""
 
@@ -1203,6 +1207,10 @@ msgstr ""
 #: src/components/settings/views/templates.tsx:193
 #~ msgid "Save and close"
 #~ msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:471
+msgid "Save current recording"
+msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:533
 msgid "Save Date"
@@ -1317,11 +1325,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:191
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:448
 msgid "Stop"
 msgstr ""
 
@@ -1358,6 +1366,10 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:492
+msgid "Template"
+msgstr ""
+
 #: src/routes/app.settings.tsx:74
 msgid "Templates"
 msgstr ""
@@ -1390,6 +1402,10 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:894
+msgid "Time window (in milliseconds) to allow redemption of failed requests"
+msgstr ""
+
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
 msgstr ""
@@ -1406,11 +1422,11 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:187
+#: src/components/settings/components/ai/stt-view.tsx:250
 msgid "Transcribing"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:798
+#: src/components/settings/views/ai.tsx:801
 msgid "Transcription"
 msgstr ""
 

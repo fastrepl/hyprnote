@@ -1,5 +1,0 @@
-apiVersion: v2
-name: hyprnote-admin
-description: hyprnote-admin
-version: 0.1.0
-appVersion: "latest"

@@ -1,10 +1,24 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@hypr/ui/components/ui/form";
+import { Slider } from "@hypr/ui/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { WERPerformanceModal } from "../wer-modal";
@@ -105,6 +119,11 @@ interface STTViewProps extends SharedSTTProps {
   setIsWerModalOpen: (open: boolean) => void;
 }
 
+const aiConfigSchema = z.object({
+  redemptionTimeMs: z.number().int().min(300).max(1200),
+});
+type AIConfigValues = z.infer<typeof aiConfigSchema>;
+
 export function STTView({
   selectedSTTModel,
   setSelectedSTTModel,
@@ -116,7 +135,8 @@ export function STTView({
   isWerModalOpen,
   setIsWerModalOpen,
 }: STTViewProps) {
-  // call backend for the current selected STT model and sets it
+  const queryClient = useQueryClient();
+
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -178,6 +198,49 @@ export function STTView({
     }
 
     return false;
+  });
+
+  const config = useQuery({
+    queryKey: ["config", "ai"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+  });
+
+  const aiConfigForm = useForm<AIConfigValues>({
+    resolver: zodResolver(aiConfigSchema),
+    defaultValues: {
+      redemptionTimeMs: 500,
+    },
+  });
+
+  useEffect(() => {
+    if (config.data) {
+      aiConfigForm.reset({
+        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 500,
+      });
+    }
+  }, [config.data, aiConfigForm]);
+
+  const aiConfigMutation = useMutation({
+    mutationFn: async (values: AIConfigValues) => {
+      if (!config.data) {
+        return;
+      }
+
+      await dbCommands.setConfig({
+        ...config.data,
+        ai: {
+          ...config.data.ai,
+          redemption_time_ms: values.redemptionTimeMs ?? 500,
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config", "ai"] });
+    },
+    onError: console.error,
   });
 
   return (
@@ -326,6 +389,47 @@ export function STTView({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="max-w-2xl">
+        <div className="border rounded-lg p-4">
+          <h3 className="text-sm font-semibold mb-4">
+            Configuration
+          </h3>
+          <Form {...aiConfigForm}>
+            <FormField
+              control={aiConfigForm.control}
+              name="redemptionTimeMs"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Redemption Time ({field.value ?? 500}ms)
+                  </FormLabel>
+                  <FormDescription className="text-xs">
+                    Lower value will cause model to output text more often, but may cause performance issues.
+                  </FormDescription>
+                  <FormControl>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        min={300}
+                        max={1200}
+                        step={100}
+                        value={[field.value || 500]}
+                        onValueChange={(value) => {
+                          const newValue = value[0];
+                          field.onChange(newValue);
+                          aiConfigMutation.mutate({ redemptionTimeMs: newValue });
+                        }}
+                        className="w-[60%]"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
         </div>
       </div>
 

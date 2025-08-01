@@ -199,7 +199,8 @@ const initialLlmModels: LLMModel[] = [
 ];
 
 const aiConfigSchema = z.object({
-  aiSpecificity: z.number().int().min(1).max(4).optional(),
+  aiSpecificity: z.number().int().min(1).max(4),
+  redemptionTimeMs: z.number().int().min(300).max(1200),
 });
 type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
@@ -717,6 +718,7 @@ export default function LocalAI() {
     if (config.data) {
       aiConfigForm.reset({
         aiSpecificity: config.data.ai.ai_specificity ?? 3,
+        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 500,
       });
     }
   }, [config.data, aiConfigForm]);
@@ -732,6 +734,7 @@ export default function LocalAI() {
         ai: {
           ...config.data.ai,
           ai_specificity: values.aiSpecificity ?? 3,
+          redemption_time_ms: values.redemptionTimeMs ?? 500,
         },
       });
     },
@@ -815,64 +818,111 @@ export default function LocalAI() {
 
           {/* AI Configuration - only show in custom tab */}
           {customLLMEnabled.data && (
-            <div className="max-w-2xl">
+            <div className="max-w-2xl space-y-4">
               <div className="border rounded-lg p-4">
                 <Form {...aiConfigForm}>
-                  <FormField
-                    control={aiConfigForm.control}
-                    name="aiSpecificity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>Autonomy Selector</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>Control how autonomous the AI enhancement should be</Trans>
-                        </FormDescription>
-                        <FormControl>
-                          <div className="space-y-3">
-                            <div className="w-full">
-                              <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
-                                {[1, 2, 3, 4].map((level) => (
-                                  <button
-                                    key={level}
-                                    type="button"
-                                    onClick={() => {
-                                      field.onChange(level);
-                                      aiConfigMutation.mutate({ aiSpecificity: level });
-                                      analyticsCommands.event({
-                                        event: "autonomy_selected",
-                                        distinct_id: userId,
-                                        level: level,
-                                      });
-                                    }}
-                                    disabled={!customLLMEnabled.data}
-                                    className={cn(
-                                      "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
-                                      field.value === level
-                                        ? "bg-white text-black shadow-sm"
-                                        : "text-white hover:bg-white/20",
-                                      !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
-                                    )}
-                                  >
-                                    {specificityLevels[level as keyof typeof specificityLevels]?.title}
-                                  </button>
-                                ))}
+                  <div className="space-y-4">
+                    <FormField
+                      control={aiConfigForm.control}
+                      name="aiSpecificity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Autonomy Selector</Trans>
+                          </FormLabel>
+                          <FormDescription className="text-xs">
+                            <Trans>Control how autonomous the AI enhancement should be</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <div className="space-y-3">
+                              <div className="w-full">
+                                <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
+                                  {[1, 2, 3, 4].map((level) => (
+                                    <button
+                                      key={level}
+                                      type="button"
+                                      onClick={() => {
+                                        field.onChange(level);
+                                        const currentValues = aiConfigForm.getValues();
+                                        aiConfigMutation.mutate({
+                                          aiSpecificity: level,
+                                          redemptionTimeMs: currentValues.redemptionTimeMs,
+                                        });
+                                        analyticsCommands.event({
+                                          event: "autonomy_selected",
+                                          distinct_id: userId,
+                                          level: level,
+                                        });
+                                      }}
+                                      disabled={!customLLMEnabled.data}
+                                      className={cn(
+                                        "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
+                                        field.value === level
+                                          ? "bg-white text-black shadow-sm"
+                                          : "text-white hover:bg-white/20",
+                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
+                                      )}
+                                    >
+                                      {specificityLevels[level as keyof typeof specificityLevels]?.title}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
-                              <div className="text-xs text-muted-foreground">
-                                {specificityLevels[field.value as keyof typeof specificityLevels]?.description
-                                  || specificityLevels[3].description}
+                              <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                                <div className="text-xs text-muted-foreground">
+                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description
+                                    || specificityLevels[3].description}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={aiConfigForm.control}
+                      name="redemptionTimeMs"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Redemption Time</Trans>
+                          </FormLabel>
+                          <FormDescription className="text-xs">
+                            <Trans>Time window (in milliseconds) to allow redemption of failed requests</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="range"
+                                min="1000"
+                                max="60000"
+                                step="1000"
+                                value={field.value || 5000}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  field.onChange(value);
+                                  const currentValues = aiConfigForm.getValues();
+                                  aiConfigMutation.mutate({
+                                    aiSpecificity: currentValues.aiSpecificity,
+                                    redemptionTimeMs: value,
+                                  });
+                                }}
+                                disabled={!customLLMEnabled.data}
+                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              />
+                              <span className="text-sm font-medium w-16 text-right">
+                                {field.value || 5000}ms
+                              </span>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </Form>
               </div>
             </div>

@@ -19,15 +19,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import {
-  generateText,
-  localProviderName,
-  markdownTransform,
-  modelProvider,
-  smoothStream,
-  streamText,
-  tool,
-} from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
@@ -309,6 +301,10 @@ export function useEnhanceMutation({
     setEnhancedContent: s.updateEnhancedNote,
   }));
 
+  const getCurrentEnhancedContent = useSession(sessionId, (s) => s.session?.enhanced_memo_html ?? "");
+
+  const originalContentRef = useRef<string>("");
+
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async ({
@@ -318,6 +314,7 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();
       setEnhanceController(abortController);
 
@@ -404,10 +401,24 @@ export function useEnhanceMutation({
         model,
         ...(freshIsLocalLlm && {
           tools: {
-            update_progress: tool({ parameters: z.any() }),
+            update_progress: tool({ inputSchema: z.any() }),
           },
         }),
         onError: (error) => {
+          toast({
+            id: "something went wrong",
+            title: "🚨 Something went wrong",
+            content: (
+              <div>
+                Please try again or contact the team.
+                <br />
+                <br />
+                <span className="text-xs">Error: {String(error.error)}</span>
+              </div>
+            ),
+            dismissible: true,
+            duration: 5000,
+          });
           throw error;
         },
         messages: [
@@ -415,7 +426,6 @@ export function useEnhanceMutation({
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
         ...(freshIsLocalLlm && {
@@ -433,12 +443,19 @@ export function useEnhanceMutation({
       });
 
       let acc = "";
+
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
-          acc += chunk.textDelta;
+          acc += chunk.text;
+        }
+        if (chunk.type === "error") {
+          if (originalContentRef.current !== "" && acc === "") {
+            setEnhancedContent(originalContentRef.current);
+          }
+          throw new Error(String(chunk.error));
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
-          const chunkProgress = chunk.args?.progress ?? 0;
+          const chunkProgress = chunk.input?.progress ?? 0;
           setProgress(chunkProgress);
         }
 

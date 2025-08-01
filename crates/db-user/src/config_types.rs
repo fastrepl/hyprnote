@@ -86,6 +86,7 @@ user_common_derives! {
         pub api_base: Option<String>,
         pub api_key: Option<String>,
         pub ai_specificity: Option<u8>,
+        pub redemption_time_ms: Option<u32>,
     }
 }
 
@@ -95,6 +96,7 @@ impl Default for ConfigAI {
             api_base: None,
             api_key: None,
             ai_specificity: Some(3),
+            redemption_time_ms: Some(500),
         }
     }
 }

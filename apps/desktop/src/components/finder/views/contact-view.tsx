@@ -53,7 +53,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     queryKey: ["all-people", userId],
     queryFn: async () => {
       try {
-        const allHumans = await dbCommands.listHumans({ search: [100, ""] });
+        const allHumans = await dbCommands.listHumans(null);
         return allHumans;
       } catch (error) {
         console.error("Error fetching all people:", error);

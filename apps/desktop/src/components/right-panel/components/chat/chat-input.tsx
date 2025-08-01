@@ -23,6 +23,8 @@ interface ChatInputProps {
   isGenerating?: boolean;
 }
 
+
+
 export function ChatInput(
   {
     inputValue,

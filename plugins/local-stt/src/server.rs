@@ -6,8 +6,6 @@ use std::{
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
 use tower_http::cors::{self, CorsLayer};
 
-use crate::{manager::ConnectionManager, service::WhisperStreamingService};
-
 #[derive(Default)]
 pub struct ServerStateBuilder {
     pub model_type: Option<crate::SupportedModel>,
@@ -29,7 +27,6 @@ impl ServerStateBuilder {
         ServerState {
             model_type: self.model_type.unwrap(),
             model_cache_dir: self.model_cache_dir.unwrap(),
-            connection_manager: ConnectionManager::default(),
         }
     }
 }
@@ -38,7 +35,12 @@ impl ServerStateBuilder {
 pub struct ServerState {
     model_type: crate::SupportedModel,
     model_cache_dir: PathBuf,
-    connection_manager: ConnectionManager,
+}
+
+impl ServerState {
+    pub fn builder() -> ServerStateBuilder {
+        ServerStateBuilder::default()
+    }
 }
 
 #[derive(Clone)]
@@ -76,10 +78,10 @@ pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error
 }
 
 fn make_service_router(state: ServerState) -> Router {
-    let whisper_service = WhisperStreamingService::builder()
-        .model_type(state.model_type)
-        .model_cache_dir(state.model_cache_dir)
-        .connection_manager(state.connection_manager)
+    let model_path = state.model_cache_dir.join(state.model_type.file_name());
+
+    let whisper_service = hypr_transcribe_whisper_local::WhisperStreamingService::builder()
+        .model_path(model_path)
         .build();
 
     Router::new()

@@ -24,8 +24,7 @@ use crate::manager::{ConnectionGuard, ConnectionManager};
 
 #[derive(Clone)]
 pub struct WhisperStreamingService {
-    model_type: crate::SupportedModel,
-    model_cache_dir: PathBuf,
+    model_path: PathBuf,
     connection_manager: ConnectionManager,
 }
 
@@ -37,31 +36,19 @@ impl WhisperStreamingService {
 
 #[derive(Default)]
 pub struct WhisperStreamingServiceBuilder {
-    model_type: Option<crate::SupportedModel>,
-    model_cache_dir: Option<PathBuf>,
+    model_path: Option<PathBuf>,
     connection_manager: Option<ConnectionManager>,
 }
 
 impl WhisperStreamingServiceBuilder {
-    pub fn model_type(mut self, model_type: crate::SupportedModel) -> Self {
-        self.model_type = Some(model_type);
-        self
-    }
-
-    pub fn model_cache_dir(mut self, model_cache_dir: PathBuf) -> Self {
-        self.model_cache_dir = Some(model_cache_dir);
-        self
-    }
-
-    pub fn connection_manager(mut self, connection_manager: ConnectionManager) -> Self {
-        self.connection_manager = Some(connection_manager);
+    pub fn model_path(mut self, model_path: PathBuf) -> Self {
+        self.model_path = Some(model_path);
         self
     }
 
     pub fn build(self) -> WhisperStreamingService {
         WhisperStreamingService {
-            model_type: self.model_type.unwrap(),
-            model_cache_dir: self.model_cache_dir.unwrap(),
+            model_path: self.model_path.unwrap(),
             connection_manager: self
                 .connection_manager
                 .unwrap_or_else(ConnectionManager::default),
@@ -82,8 +69,7 @@ where
     }
 
     fn call(&mut self, req: Request<B>) -> Self::Future {
-        let model_type = self.model_type.clone();
-        let model_cache_dir = self.model_cache_dir.clone();
+        let model_path = self.model_path.clone();
         let connection_manager = self.connection_manager.clone();
 
         Box::pin(async move {
@@ -107,8 +93,7 @@ where
             let guard = connection_manager.acquire_connection();
 
             let response = ws_upgrade.on_upgrade(move |socket| async move {
-                handle_websocket_connection(socket, params, model_type, model_cache_dir, guard)
-                    .await
+                handle_websocket_connection(socket, params, model_path, guard).await
             });
 
             Ok(response.into_response())
@@ -119,12 +104,9 @@ where
 async fn handle_websocket_connection(
     socket: WebSocket,
     params: ListenParams,
-    model_type: crate::SupportedModel,
-    model_cache_dir: PathBuf,
+    model_path: PathBuf,
     guard: ConnectionGuard,
 ) {
-    let model_path = model_cache_dir.join(model_type.file_name());
-
     let languages: Vec<hypr_whisper::Language> = params
         .languages
         .into_iter()

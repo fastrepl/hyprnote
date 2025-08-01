@@ -1,0 +1,38 @@
+[package]
+name = "transcribe-whisper-local"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+coreml = ["hypr-whisper-local/coreml"]
+directml = ["hypr-pyannote-local/directml"]
+cuda = ["hypr-whisper-local/cuda"]
+hipblas = ["hypr-whisper-local/hipblas"]
+openblas = ["hypr-whisper-local/openblas"]
+metal = ["hypr-whisper-local/metal"]
+vulkan = ["hypr-whisper-local/vulkan"]
+openmp = ["hypr-whisper-local/openmp"]
+load-dynamic = ["hypr-pyannote-local/load-dynamic"]
+
+[dependencies]
+hypr-audio-utils = { workspace = true }
+hypr-chunker = { workspace = true }
+hypr-listener-interface = { workspace = true }
+hypr-pyannote-local = { workspace = true }
+hypr-whisper = { workspace = true }
+hypr-whisper-local = { workspace = true }
+hypr-ws-utils = { workspace = true }
+
+serde_json = { workspace = true }
+serde_qs = { workspace = true }
+thiserror = { workspace = true }
+
+axum = { workspace = true, features = ["ws"] }
+futures-util = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+
+rodio = { workspace = true }

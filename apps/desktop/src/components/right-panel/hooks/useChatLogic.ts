@@ -175,7 +175,7 @@ export function useChatLogic({
                 if (participantSessions.length > 0) {
                   humanContent += "\nNotes this person participated in:\n";
 
-                  for (const session of participantSessions.slice(0, 2)) { 
+                  for (const session of participantSessions.slice(0, 2)) {
                     const participants = await dbCommands.sessionListParticipants(session.id);
                     const isParticipant = participants.some(p =>
                       p.full_name === humanData.full_name || p.email === humanData.email
@@ -219,7 +219,7 @@ export function useChatLogic({
     if (currentUserMessage) {
       conversationHistory.push({
         role: "user" as const,
-        content: currentUserMessage, 
+        content: currentUserMessage,
       });
     }
 

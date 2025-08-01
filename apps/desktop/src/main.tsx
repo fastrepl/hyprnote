@@ -74,12 +74,16 @@ declare module "@tanstack/react-router" {
 }
 
 commands.sentryDsn().then((dsn) => {
-  Sentry.init({
-    ...defaultOptions,
-    dsn,
-    // https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
-    integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
-    tracesSampleRate: 1.0,
+  dbCommands.getConfig().then((config) => {
+    if (config.general.telemetry_consent) {
+      Sentry.init({
+        ...defaultOptions,
+        dsn,
+        // https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/
+        integrations: [Sentry.tanstackRouterBrowserTracingIntegration(router)],
+        tracesSampleRate: 1.0,
+      });
+    }
   });
 });
 

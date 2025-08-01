@@ -1,3 +1,5 @@
+// AWS draft
+
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -28,7 +30,7 @@ use aws_sdk_transcribestreaming::primitives::Blob;
 use aws_sdk_transcribestreaming::types::{
     AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream,
 };
-use aws_sdk_transcribestreaming::{config::Region, Client, Error};
+use aws_sdk_transcribestreaming::{config::Region, Client};
 
 mod error;
 pub use error::*;
@@ -72,7 +74,7 @@ pub struct TranscribeService {
 }
 
 impl TranscribeService {
-    pub async fn new(config: TranscribeConfig) -> Result<Self, Error> {
+    pub async fn new(config: TranscribeConfig) -> Result<Self, crate::Error> {
         let region_provider =
             RegionProviderChain::first_try(config.region.clone().map(Region::new))
                 .or_default_provider()
@@ -143,7 +145,7 @@ impl TranscribeService {
         &self,
         mut audio_rx: mpsc::Receiver<Bytes>,
         result_tx: mpsc::Sender<WsMessage>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), crate::Error> {
         // Create audio stream for AWS Transcribe
         let input_stream = stream! {
             while let Some(chunk) = audio_rx.recv().await {
@@ -166,7 +168,6 @@ impl TranscribeService {
             .send()
             .await?;
 
-        // Process transcription results
         while let Some(event) = output.transcript_result_stream.recv().await? {
             match event {
                 TranscriptResultStream::TranscriptEvent(transcript_event) => {

@@ -15824,6 +15824,8 @@ dependencies = [
  "aws-config",
  "aws-sdk-transcribe",
  "aws-sdk-transcribestreaming",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
  "axum 0.8.4",
  "bytes",
  "data",

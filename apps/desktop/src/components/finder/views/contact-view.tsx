@@ -83,7 +83,6 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const { data: personSessions = [] } = useQuery({
     queryKey: ["person-sessions", selectedPerson || "none"],
     queryFn: async () => {
-      // Safety check - this should never run when selectedPerson is null
       if (!selectedPerson) {
         throw new Error("Query should not run when selectedPerson is null");
       }
@@ -114,15 +113,16 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     staleTime: 30 * 1000,
   });
 
-  // Client-side filtering: filter allPeopleWithUser by organization when one is selected
-  const displayPeople = selectedOrganization
+  const isValidName = (name: string | null): boolean => {
+    return name !== null && name !== "" && name !== "Null";
+  };
+
+  const displayPeople = (selectedOrganization
     ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
-    : allPeopleWithUser;
+    : allPeopleWithUser
+  ).filter(person => isValidName(person.full_name));
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
-
-  // Simple initialization - no complex useEffects needed
-  // Initial state is set directly in useState above
 
   const handleSessionClick = (sessionId: string) => {
     const path = { to: "/app/note/$id", params: { id: sessionId } } as const satisfies LinkProps;

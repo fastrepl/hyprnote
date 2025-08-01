@@ -123,7 +123,7 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 }
 
 const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024; // 8MB chunks
-const MAX_CONCURRENT_CHUNKS: usize = 4;
+const MAX_CONCURRENT_CHUNKS: usize = 8;
 
 pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
     url: impl reqwest::IntoUrl,

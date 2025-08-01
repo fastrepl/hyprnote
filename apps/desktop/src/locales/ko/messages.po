@@ -423,7 +423,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:827
+#: src/components/settings/views/ai.tsx:831
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -579,7 +579,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:830
+#: src/components/settings/views/ai.tsx:834
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -904,11 +904,11 @@ msgstr ""
 #~ msgid "Live summary of the meeting"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:804
+#: src/components/settings/views/ai.tsx:807
 msgid "LLM - Custom"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:801
+#: src/components/settings/views/ai.tsx:804
 msgid "LLM - Local"
 msgstr "<<<<<<< HEAD"
 
@@ -1125,7 +1125,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:196
+#: src/components/settings/components/ai/stt-view.tsx:259
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1168,6 +1168,10 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:346
 #~ msgid "Recording Started"
 #~ msgstr ""
+
+#: src/components/settings/views/ai.tsx:891
+msgid "Redemption Time"
+msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
@@ -1398,6 +1402,10 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:894
+msgid "Time window (in milliseconds) to allow redemption of failed requests"
+msgstr ""
+
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
 msgstr ""
@@ -1414,11 +1422,11 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:187
+#: src/components/settings/components/ai/stt-view.tsx:250
 msgid "Transcribing"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:798
+#: src/components/settings/views/ai.tsx:801
 msgid "Transcription"
 msgstr ""
 

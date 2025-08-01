@@ -200,7 +200,7 @@ const initialLlmModels: LLMModel[] = [
 
 const aiConfigSchema = z.object({
   aiSpecificity: z.number().int().min(1).max(4),
-  redemptionTimeMs: z.number().int().min(1000).max(60000),
+  redemptionTimeMs: z.number().int().min(300).max(1200),
 });
 type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
@@ -708,7 +708,7 @@ export default function LocalAI() {
   });
 
   const aiConfigForm = useForm<AIConfigValues>({
-    resolver: zodResolver(aiConfigSchema as any),
+    resolver: zodResolver(aiConfigSchema),
     defaultValues: {
       aiSpecificity: 3,
     },
@@ -718,7 +718,7 @@ export default function LocalAI() {
     if (config.data) {
       aiConfigForm.reset({
         aiSpecificity: config.data.ai.ai_specificity ?? 3,
-        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 5000,
+        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 500,
       });
     }
   }, [config.data, aiConfigForm]);
@@ -734,7 +734,7 @@ export default function LocalAI() {
         ai: {
           ...config.data.ai,
           ai_specificity: values.aiSpecificity ?? 3,
-          redemption_time_ms: values.redemptionTimeMs ?? 5000,
+          redemption_time_ms: values.redemptionTimeMs ?? 500,
         },
       });
     },

@@ -209,9 +209,9 @@ export function STTView({
   });
 
   const aiConfigForm = useForm<AIConfigValues>({
-    resolver: zodResolver(aiConfigSchema as any),
+    resolver: zodResolver(aiConfigSchema),
     defaultValues: {
-      redemptionTimeMs: 5000,
+      redemptionTimeMs: 500,
     },
   });
 
@@ -404,7 +404,7 @@ export function STTView({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium">
-                    Redemption Time ({field.value || 5000}ms)
+                    Redemption Time ({field.value ?? 500}ms)
                   </FormLabel>
                   <FormDescription className="text-xs">
                     Lower value will cause model to output text more often, but may cause performance issues.

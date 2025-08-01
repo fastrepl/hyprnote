@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:358
+#: src/components/settings/views/general.tsx:361
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -344,7 +344,7 @@ msgstr ""
 msgid "Add participant"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:349
+#: src/components/settings/views/general.tsx:352
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr ""
 
@@ -628,7 +628,7 @@ msgstr ""
 msgid "Custom Endpoints"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:346
+#: src/components/settings/views/general.tsx:349
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -658,7 +658,7 @@ msgstr ""
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:236
+#: src/components/settings/views/general.tsx:239
 msgid "Display language"
 msgstr ""
 
@@ -813,8 +813,8 @@ msgid "Grant both permissions to continue"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:212
-msgid "Help us improve Hyprnote by sharing anonymous usage data"
-msgstr ""
+#~ msgid "Help us improve Hyprnote by sharing anonymous usage data"
+#~ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:52
 #~ msgid "Help us improve the Hyprnote experience by providing feedback."
@@ -1137,7 +1137,7 @@ msgstr ""
 #~ msgid "Play video"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:239
+#: src/components/settings/views/general.tsx:242
 msgid "Primary language for the interface"
 msgstr ""
 
@@ -1269,7 +1269,7 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:268
+#: src/components/settings/views/general.tsx:271
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1313,7 +1313,7 @@ msgstr ""
 msgid "Sound"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:265
+#: src/components/settings/views/general.tsx:268
 msgid "Spoken languages"
 msgstr ""
 

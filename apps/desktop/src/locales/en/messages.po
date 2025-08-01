@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:358
+#: src/components/settings/views/general.tsx:361
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -344,7 +344,7 @@ msgstr "Add members"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:349
+#: src/components/settings/views/general.tsx:352
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -628,7 +628,7 @@ msgstr "Create your first template to get started"
 msgid "Custom Endpoints"
 msgstr "Custom Endpoints"
 
-#: src/components/settings/views/general.tsx:346
+#: src/components/settings/views/general.tsx:349
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -658,7 +658,7 @@ msgstr "Description"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
-#: src/components/settings/views/general.tsx:236
+#: src/components/settings/views/general.tsx:239
 msgid "Display language"
 msgstr "Display language"
 
@@ -813,8 +813,8 @@ msgid "Grant both permissions to continue"
 msgstr "Grant both permissions to continue"
 
 #: src/components/settings/views/general.tsx:212
-msgid "Help us improve Hyprnote by sharing anonymous usage data"
-msgstr "Help us improve Hyprnote by sharing anonymous usage data"
+#~ msgid "Help us improve Hyprnote by sharing anonymous usage data"
+#~ msgstr "Help us improve Hyprnote by sharing anonymous usage data"
 
 #: src/components/settings/views/feedback.tsx:52
 #~ msgid "Help us improve the Hyprnote experience by providing feedback."
@@ -1137,7 +1137,7 @@ msgstr "Performance difference between languages"
 #~ msgid "Play video"
 #~ msgstr "Play video"
 
-#: src/components/settings/views/general.tsx:239
+#: src/components/settings/views/general.tsx:242
 msgid "Primary language for the interface"
 msgstr "Primary language for the interface"
 
@@ -1269,7 +1269,7 @@ msgstr "Select at least one language"
 msgid "Select Calendars"
 msgstr "Select Calendars"
 
-#: src/components/settings/views/general.tsx:268
+#: src/components/settings/views/general.tsx:271
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1313,7 +1313,7 @@ msgstr "Some downloads failed, but you can continue"
 msgid "Sound"
 msgstr "Sound"
 
-#: src/components/settings/views/general.tsx:265
+#: src/components/settings/views/general.tsx:268
 msgid "Spoken languages"
 msgstr "Spoken languages"
 

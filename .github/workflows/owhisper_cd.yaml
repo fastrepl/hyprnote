@@ -1,0 +1,51 @@
+# https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+      - prereleased
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos"
+            target: "aarch64-apple-darwin"
+            runner: "macos-latest"
+          - platform: "macos"
+            target: "x86_64-apple-darwin"
+            runner: "macos-latest"
+          - platform: "windows"
+            target: "x86_64-pc-windows-msvc"
+            runner: "windows-latest"
+          - platform: "linux"
+            target: "x86_64-unknown-linux-gnu"
+            runner: "ubuntu-latest"
+          - platform: "linux"
+            target: "x86_64-unknown-linux-musl"
+            runner: "ubuntu-latest"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+          if [[ "${{ matrix.target }}" == *"musl"* ]]; then
+            sudo apt-get install -y musl-tools musl-dev
+          fi
+      - run: |
+          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "owhisper") | .version')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      - uses: ./.github/actions/rust_install
+        with:
+          target: ${{ matrix.target }}
+      - name: Build binary
+        run: cargo build --release --bin owhisper --target ${{ matrix.target }}

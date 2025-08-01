@@ -2808,6 +2808,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "console"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e09ced7ebbccb63b4c65413d821f2e00ce54c5ca4514ddc6b3c892fdbcbc69d"
+dependencies = [
+ "encode_unicode",
+ "libc",
+ "once_cell",
+ "unicode-width",
+ "windows-sys 0.60.2",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6821,7 +6834,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b780635574b3d92f036890d8373433d6f9fc7abb320ee42a5c25897fc8ed732"
 dependencies = [
  "dirs 5.0.1",
- "indicatif",
+ "indicatif 0.17.11",
  "log",
  "native-tls",
  "rand 0.8.5",
@@ -6840,7 +6853,7 @@ dependencies = [
  "dirs 6.0.0",
  "futures",
  "http 1.3.1",
- "indicatif",
+ "indicatif 0.17.11",
  "libc",
  "log",
  "native-tls",
@@ -7463,10 +7476,23 @@ version = "0.17.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "183b3088984b400f4cfac3620d5e076c84da5364016b4f49473de574b2586235"
 dependencies = [
- "console",
+ "console 0.15.11",
  "number_prefix",
  "portable-atomic",
  "unicode-width",
+ "web-time",
+]
+
+[[package]]
+name = "indicatif"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70a646d946d06bedbbc4cac4c218acf4bbf2d87757a784857025f4d447e4e1cd"
+dependencies = [
+ "console 0.16.0",
+ "portable-atomic",
+ "unicode-width",
+ "unit-prefix",
  "web-time",
 ]
 
@@ -7527,7 +7553,7 @@ version = "1.43.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "154934ea70c58054b556dd430b99a98c2a7ff5309ac9891597e339b5c28f4371"
 dependencies = [
- "console",
+ "console 0.15.11",
  "once_cell",
  "similar",
 ]
@@ -7860,7 +7886,7 @@ name = "kalosm-model-types"
 version = "0.4.0"
 source = "git+https://github.com/floneum/floneum?rev=52967ae#52967ae5dcd161e5cbe9507282b52df0946706f9"
 dependencies = [
- "indicatif",
+ "indicatif 0.17.11",
 ]
 
 [[package]]
@@ -10082,14 +10108,16 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 
 [[package]]
 name = "owhisper"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "axum 0.8.4",
  "clap",
  "colored",
  "config",
+ "indicatif 0.18.0",
  "open",
+ "rubato",
  "serde",
  "tokio",
  "tower 0.5.2",
@@ -15227,7 +15255,7 @@ dependencies = [
  "esaxx-rs",
  "fancy-regex 0.14.0",
  "getrandom 0.3.3",
- "indicatif",
+ "indicatif 0.17.11",
  "itertools 0.14.0",
  "log",
  "macro_rules_attribute",
@@ -16287,6 +16315,12 @@ name = "unicode_categories"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
+name = "unit-prefix"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "323402cff2dd658f39ca17c789b502021b3f18707c91cdf22e3838e1b4023817"
 
 [[package]]
 name = "universal-hash"

@@ -1,6 +1,6 @@
 [package]
 name = "owhisper"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 
 [dependencies]
@@ -14,8 +14,11 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tower = { workspace = true }
 tracing = { workspace = true }
 
-anyhow = { workspace = true }
 clap = { version = "4", features = ["derive", "env"] }
 colored = "3.0.0"
 config = "0.15.13"
+indicatif = "0.18.0"
+
+anyhow = { workspace = true }
 open = "5.3.2"
+rubato = "0.16.2"

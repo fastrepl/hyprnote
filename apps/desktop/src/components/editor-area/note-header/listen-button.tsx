@@ -396,6 +396,12 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
     refetchOnWindowFocus: true,
   });
 
+  const saveRecordingsQuery = useQuery({
+    queryKey: ["config", "save_recordings"],
+    queryFn: () => dbCommands.getConfig().then((config) => config.general.save_recordings),
+    refetchOnWindowFocus: true,
+  });
+
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: () =>
@@ -412,7 +418,7 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
   const form = useForm<StopButtonFormData>({
     resolver: zodResolver(stopButtonSchema),
     defaultValues: {
-      saveAudio: false,
+      saveAudio: true, // Default fallback
       selectedTemplate: "auto",
     },
   });
@@ -422,6 +428,12 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
       form.setValue("selectedTemplate", defaultTemplateQuery.data);
     }
   }, [defaultTemplateQuery.data, form]);
+
+  useEffect(() => {
+    if (saveRecordingsQuery.data !== undefined) {
+      form.setValue("saveAudio", saveRecordingsQuery.data ?? true);
+    }
+  }, [saveRecordingsQuery.data, form]);
 
   const handleSubmit = (data: StopButtonFormData) => {
     const actualTemplateId = data.selectedTemplate === "auto" ? null : data.selectedTemplate;

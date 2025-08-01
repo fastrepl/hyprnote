@@ -564,7 +564,8 @@ mod tests {
 
         // Use a larger file to make the performance difference more pronounced
         // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin";
-        let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
+        // let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
+        let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
         
         // First check if server supports range requests
         let head_response = get_client().head(url).send().await.unwrap();
@@ -601,17 +602,16 @@ mod tests {
         assert_eq!(serial_size, parallel_size, "Both downloads should produce files of the same size");
         
         // If server doesn't support ranges or file is small, parallel might fall back to serial
-        if !supports_ranges || file_size <= DEFAULT_CHUNK_SIZE {
-            println!("Parallel download likely fell back to serial due to server/file constraints");
-            // Just verify both methods work, don't assert performance difference
-            assert!(serial_duration.as_secs() > 0);
-            assert!(parallel_duration.as_secs() > 0);
-        } else {
-            // For large files with range support, parallel should be competitive or better
-            // Allow parallel to be slower due to network conditions, but not by more than 50%
-            assert!(speedup > 0.5, 
-                "Parallel download is significantly slower than expected: serial={:?}, parallel={:?}, speedup={:.2}x", 
+        // if !supports_ranges || file_size <= DEFAULT_CHUNK_SIZE {
+        //     println!("Parallel download likely fell back to serial due to server/file constraints");
+        //     // Just verify both methods work, don't assert performance difference
+        //     assert!(serial_duration.as_secs() > 0);
+        //     assert!(parallel_duration.as_secs() > 0);
+        // } else {
+            // For large files with range support, parallel should be at least 10% faster
+            assert!(speedup >= 1.1, 
+                "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", 
                 serial_duration, parallel_duration, speedup);
-        }
+        // }
     }
 }

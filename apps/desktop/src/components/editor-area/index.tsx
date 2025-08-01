@@ -107,7 +107,7 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
 
-  const { enhance, progress } = useEnhanceMutation({
+  const { enhance, progress, isCancelled } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -236,7 +236,7 @@ export default function EditorArea({
               handleEnhanceWithTemplate={handleEnhanceWithTemplate}
               templates={templatesQuery.data || []}
               session={sessionStore.session}
-              isError={enhance.status === "error"}
+              isError={enhance.status === "error" && !isCancelled}
               progress={progress}
               showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
             />
@@ -263,6 +263,7 @@ export function useEnhanceMutation({
   const { userId, onboardingSessionId } = useHypr();
   const [progress, setProgress] = useState(0);
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
+  const [isCancelled, setIsCancelled] = useState(false);
   const queryClient = useQueryClient();
 
   // Extract H1 headers at component level (always available)
@@ -314,6 +315,7 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      setIsCancelled(false);
       originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();
       setEnhanceController(abortController);
@@ -474,6 +476,7 @@ export function useEnhanceMutation({
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: (enhancedContent: string | undefined) => {
+      setIsCancelled(false);
       onSuccess(enhancedContent ?? "");
 
       analyticsCommands.event({
@@ -494,11 +497,17 @@ export function useEnhanceMutation({
     },
     onError: (error) => {
       console.error(error);
+
+      const isCancellationError = (error as unknown as string).includes("cancel")
+        || (error as any)?.name === "AbortError";
+
+      setIsCancelled(isCancellationError);
+
       if (actualIsLocalLlm) {
         setProgress(0);
       }
 
-      if (!(error as unknown as string).includes("cancel")) {
+      if (!isCancellationError) {
         enhanceFailedToast();
       }
 
@@ -506,7 +515,7 @@ export function useEnhanceMutation({
     },
   });
 
-  return { enhance, progress: actualIsLocalLlm ? progress : undefined };
+  return { enhance, progress: actualIsLocalLlm ? progress : undefined, isCancelled };
 }
 
 function useAutoEnhance({

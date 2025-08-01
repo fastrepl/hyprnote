@@ -301,17 +301,30 @@ export function ChatInput(
           background-color: rgba(59, 130, 246, 0.08) !important;
           text-decoration: none !important;
         }
-        .chat-editor .tiptap-normal .is-empty::before {
+        .chat-editor.has-content .tiptap-normal .is-empty::before {
+          display: none !important;
+        }
+        .chat-editor:not(.has-content) .tiptap-normal .is-empty::before {
           content: "Ask anything about this note..." !important;
           float: left;
           color: #9ca3af;
           pointer-events: none;
           height: 0;
         }
+        .chat-editor .placeholder-overlay {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          right: 40px;
+          color: #9ca3af;
+          pointer-events: none;
+          font-size: 14px;
+          line-height: 1.5;
+        }
       `}
       </style>
 
-      <div className="relative chat-editor">
+      <div className={`relative chat-editor ${inputValue.trim() ? 'has-content' : ''}`}>
         <Editor
           ref={editorRef}
           handleChange={handleContentChange}
@@ -322,6 +335,9 @@ export function ChatInput(
             handleSearch: handleMentionSearch,
           }}
         />
+        {isGenerating && !inputValue.trim() && (
+          <div className="placeholder-overlay">Ask anything about this note...</div>
+        )}
       </div>
 
       <div className="flex items-center justify-between pb-2 px-3">

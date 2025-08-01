@@ -111,7 +111,6 @@ export function useChatLogic({
       event: eventInfo,
     });
 
-    console.log("systemContent", systemContent);
 
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
@@ -136,7 +135,6 @@ export function useChatLogic({
     if (mentionedContent && mentionedContent.length > 0) {
       // Fetch note content for each mentioned note
       const noteContents: string[] = [];
-      console.log("mentionedContent", mentionedContent);
 
       for (const mention of mentionedContent) {
         try {
@@ -161,7 +159,6 @@ export function useChatLogic({
 
           if (mention.type === "human") {
             const humanData = await dbCommands.getHuman(mention.id);
-            console.log("humanData", humanData);
 
             let humanContent = "";
             humanContent += "Name: " + humanData?.full_name + "\n";
@@ -226,7 +223,6 @@ export function useChatLogic({
       }
     }
 
-    console.log("appended currentUserMessage", currentUserMessage);
 
     if (currentUserMessage) {
       conversationHistory.push({

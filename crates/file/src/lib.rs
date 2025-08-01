@@ -142,6 +142,11 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         .content_length()
         .ok_or_else(|| crate::Error::OtherError("Content-Length header missing".to_string()))?;
 
+    println!(
+        "+++Total size of the file to download: {} bytes",
+        total_size
+    );
+
     let supports_ranges = head_response
         .headers()
         .get("accept-ranges")
@@ -568,14 +573,42 @@ mod tests {
         let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
         
         // First check if server supports range requests
-        let head_response = get_client().head(url).send().await.unwrap();
+        // Try with a fresh client to avoid any cached configuration
+        let test_client = reqwest::Client::builder()
+            .http1_only()
+            .build()
+            .unwrap();
+            
+        let head_response = test_client
+            .head(url)
+            .header("User-Agent", "curl/8.14.1")
+            .header("Accept", "*/*")
+            .send()
+            .await
+            .unwrap();
+            
+        println!("HEAD response status: {:#?}", head_response.status());
+        println!("HEAD response headers: {:#?}", head_response.headers());
+        let content_length = head_response.content_length();
+        println!("HEAD response content length: {:?}", content_length);
+        
+        // Manually parse content-length header as fallback
+        let manual_content_length = head_response
+            .headers()
+            .get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.parse::<u64>().ok());
+        println!("Manual content length parsing: {:?}", manual_content_length);
+        
         let supports_ranges = head_response
             .headers()
             .get("accept-ranges")
             .map(|v| v.to_str().unwrap_or(""))
             .unwrap_or("")
             == "bytes";
-        let file_size = head_response.content_length().unwrap_or(0);
+
+        let file_size = manual_content_length.unwrap_or(content_length.unwrap_or(0));
+        assert!(file_size > 0, "File size should be greater than 0");
         
         println!("Server supports ranges: {}, File size: {} MB", 
                 supports_ranges, file_size / 1024 / 1024);

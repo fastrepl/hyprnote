@@ -669,7 +669,8 @@ mod tests {
             .await;
 
         // Mock range requests FIRST (more specific mocks should come first)
-        let expected_chunk_size = 2 * 1024 * 1024; // 2MB chunks
+        // Use the same chunk size calculation as the actual implementation
+        let expected_chunk_size = DEFAULT_CHUNK_SIZE as usize; // 8MB chunks
         
         for chunk_start in (0..content_length).step_by(expected_chunk_size) {
             let chunk_end = std::cmp::min(chunk_start + expected_chunk_size - 1, content_length - 1);

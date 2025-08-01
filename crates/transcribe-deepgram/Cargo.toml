@@ -1,0 +1,24 @@
+[package]
+name = "transcribe-deepgram"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+async-stream = { workspace = true }
+axum = { workspace = true, features = ["ws"] }
+bytes = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-stream = { workspace = true }
+tokio-tungstenite = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+
+deepgram = { version = "0.7.0", features = ["listen"] }
+
+[dev-dependencies]
+hypr-data = { workspace = true }

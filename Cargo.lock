@@ -3685,6 +3685,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "deepgram"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49bf11c4dc8fc1e7c94fc4198f82f64536fdb9eded7b5a076d9597d8b67e1fd1"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "futures",
+ "http 1.3.1",
+ "pin-project",
+ "reqwest 0.12.22",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sha256",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite 0.27.0",
+ "tokio-util",
+ "tracing",
+ "tungstenite 0.27.0",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "denoise"
 version = "0.1.0"
 dependencies = [
@@ -8057,7 +8084,7 @@ name = "language"
 version = "0.1.0"
 dependencies = [
  "codes-iso-639",
- "deepgram",
+ "deepgram 0.6.10",
  "schemars 0.8.22",
  "serde",
  "specta",
@@ -13645,7 +13672,7 @@ dependencies = [
  "bytes",
  "clova",
  "data",
- "deepgram",
+ "deepgram 0.6.10",
  "futures-util",
  "hound",
  "language",
@@ -16004,6 +16031,26 @@ dependencies = [
  "azure-speech",
  "bytes",
  "data",
+ "futures-util",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite 0.26.2",
+ "tower 0.5.2",
+ "tracing",
+]
+
+[[package]]
+name = "transcribe-deepgram"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "axum 0.8.4",
+ "bytes",
+ "data",
+ "deepgram 0.7.0",
  "futures-util",
  "serde",
  "serde_json",

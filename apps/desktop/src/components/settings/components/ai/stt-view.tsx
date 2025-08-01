@@ -410,7 +410,7 @@ export function STTView({
                     Lower value will cause model to output text more often, but may cause performance issues.
                   </FormDescription>
                   <FormControl>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-center gap-4">
                       <Slider
                         min={300}
                         max={1200}
@@ -421,7 +421,7 @@ export function STTView({
                           field.onChange(newValue);
                           aiConfigMutation.mutate({ redemptionTimeMs: newValue });
                         }}
-                        className="w-[60%]"
+                        className="w-[100%]"
                       />
                     </div>
                   </FormControl>

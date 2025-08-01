@@ -200,7 +200,6 @@ const initialLlmModels: LLMModel[] = [
 
 const aiConfigSchema = z.object({
   aiSpecificity: z.number().int().min(1).max(4),
-  redemptionTimeMs: z.number().int().min(300).max(1200),
 });
 type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
@@ -718,7 +717,6 @@ export default function LocalAI() {
     if (config.data) {
       aiConfigForm.reset({
         aiSpecificity: config.data.ai.ai_specificity ?? 3,
-        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 500,
       });
     }
   }, [config.data, aiConfigForm]);
@@ -734,7 +732,6 @@ export default function LocalAI() {
         ai: {
           ...config.data.ai,
           ai_specificity: values.aiSpecificity ?? 3,
-          redemption_time_ms: values.redemptionTimeMs ?? 500,
         },
       });
     },
@@ -846,7 +843,6 @@ export default function LocalAI() {
                                         const currentValues = aiConfigForm.getValues();
                                         aiConfigMutation.mutate({
                                           aiSpecificity: level,
-                                          redemptionTimeMs: currentValues.redemptionTimeMs,
                                         });
                                         analyticsCommands.event({
                                           event: "autonomy_selected",
@@ -875,47 +871,6 @@ export default function LocalAI() {
                                     || specificityLevels[3].description}
                                 </div>
                               </div>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={aiConfigForm.control}
-                      name="redemptionTimeMs"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>Redemption Time</Trans>
-                          </FormLabel>
-                          <FormDescription className="text-xs">
-                            <Trans>Time window (in milliseconds) to allow redemption of failed requests</Trans>
-                          </FormDescription>
-                          <FormControl>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min="1000"
-                                max="60000"
-                                step="1000"
-                                value={field.value || 5000}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value);
-                                  field.onChange(value);
-                                  const currentValues = aiConfigForm.getValues();
-                                  aiConfigMutation.mutate({
-                                    aiSpecificity: currentValues.aiSpecificity,
-                                    redemptionTimeMs: value,
-                                  });
-                                }}
-                                disabled={!customLLMEnabled.data}
-                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              />
-                              <span className="text-sm font-medium w-16 text-right">
-                                {field.value || 5000}ms
-                              </span>
                             </div>
                           </FormControl>
                           <FormMessage />

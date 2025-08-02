@@ -575,13 +575,7 @@ mod tests {
         use std::time::Instant;
         use tempfile::NamedTempFile;
 
-        // Use a larger file to make the performance difference more pronounced
-        // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin";
         let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
-        // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
-
-        // First check if server supports range requests
-        // Try with a fresh client to avoid any cached configuration
         let test_client = reqwest::Client::builder().http1_only().build().unwrap();
 
         let head_response = test_client
@@ -608,7 +602,6 @@ mod tests {
             file_size / 1024 / 1024
         );
 
-        // Test serial download
         let temp_file1 = NamedTempFile::new().unwrap();
         let start = Instant::now();
         download_file_with_callback(url, temp_file1.path(), |_| {})
@@ -616,7 +609,6 @@ mod tests {
             .unwrap();
         let serial_duration = start.elapsed();
 
-        // Test parallel download
         let temp_file2 = NamedTempFile::new().unwrap();
         let start = Instant::now();
         download_file_parallel(url, temp_file2.path(), |_| {})
@@ -631,7 +623,6 @@ mod tests {
         let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
         println!("Speedup: {:.2}x", speedup);
 
-        // Verify both files are the same size
         let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
         let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
         assert_eq!(
@@ -639,16 +630,7 @@ mod tests {
             "Both downloads should produce files of the same size"
         );
 
-        // If server doesn't support ranges or file is small, parallel might fall back to serial
-        // if !supports_ranges || file_size <= DEFAULT_CHUNK_SIZE {
-        //     println!("Parallel download likely fell back to serial due to server/file constraints");
-        //     // Just verify both methods work, don't assert performance difference
-        //     assert!(serial_duration.as_secs() > 0);
-        //     assert!(parallel_duration.as_secs() > 0);
-        // } else {
-        // For large files with range support, parallel should be at least 10% faster
         assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
-        // }
     }
 
     #[tokio::test]
@@ -660,11 +642,9 @@ mod tests {
 
         let mock_server = MockServer::start().await;
 
-        // Create a large mock file (16MB)
         let large_content = vec![0u8; 1024 * 1024 * 1024];
         let content_length = large_content.len();
 
-        // Mock HEAD request with range support
         Mock::given(method("HEAD"))
             .and(path("/large-file"))
             .respond_with(
@@ -675,9 +655,7 @@ mod tests {
             .mount(&mock_server)
             .await;
 
-        // Mock range requests FIRST (more specific mocks should come first)
-        // Use the same chunk size calculation as the actual implementation
-        let expected_chunk_size = DEFAULT_CHUNK_SIZE as usize; // 8MB chunks
+        let expected_chunk_size = DEFAULT_CHUNK_SIZE as usize;
 
         for chunk_start in (0..content_length).step_by(expected_chunk_size) {
             let chunk_end =
@@ -698,7 +676,6 @@ mod tests {
                 .await;
         }
 
-        // Mock full GET request for serial download (without Range header)
         Mock::given(method("GET"))
             .and(path("/large-file"))
             .respond_with(
@@ -706,13 +683,12 @@ mod tests {
                     .set_body_bytes(large_content.clone())
                     .insert_header("Content-Length", content_length.to_string().as_str()),
             )
-            .expect(1) // Only expect this to be called once (for serial download)
+            .expect(1)
             .mount(&mock_server)
             .await;
 
         let url = format!("{}/large-file", mock_server.uri());
 
-        // First check if server supports range requests
         let test_client = reqwest::Client::builder().http1_only().build().unwrap();
 
         let head_response = test_client
@@ -739,7 +715,6 @@ mod tests {
             file_size / 1024 / 1024
         );
 
-        // Test serial download
         let temp_file1 = NamedTempFile::new().unwrap();
         let start = Instant::now();
         download_file_with_callback(&url, temp_file1.path(), |_| {})
@@ -747,7 +722,6 @@ mod tests {
             .unwrap();
         let serial_duration = start.elapsed();
 
-        // Test parallel download
         let temp_file2 = NamedTempFile::new().unwrap();
         let start = Instant::now();
         download_file_parallel(&url, temp_file2.path(), |_| {})
@@ -762,7 +736,6 @@ mod tests {
         let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
         println!("Speedup: {:.2}x", speedup);
 
-        // Verify both files are the same size
         let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
         let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
         assert_eq!(
@@ -774,7 +747,6 @@ mod tests {
             "Downloaded file should match expected size"
         );
 
-        // For large files with range support, parallel should be at least 10% faster
         assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
     }
 }

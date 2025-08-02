@@ -104,8 +104,6 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 
     let mut downloaded: u64 = existing_size;
     let mut stream = res.bytes_stream();
-    let mut last_logged_percent = 0u8;
-
     progress_callback(DownloadProgress::Started);
     while let Some(item) = stream.next().await {
         let chunk = item?;
@@ -113,20 +111,6 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 
         downloaded += chunk.len() as u64;
         let total = total_size.unwrap_or(downloaded);
-        let percent = if total > 0 {
-            (downloaded as f64 / total as f64 * 100.0) as u8
-        } else {
-            0
-        };
-
-        // Only log every 5% to avoid spam
-        if percent >= last_logged_percent + 5 || percent == 100 {
-            println!(
-                "Download progress: {}% ({}/{} bytes)",
-                percent, downloaded, total
-            );
-            last_logged_percent = percent;
-        }
 
         progress_callback(DownloadProgress::Progress(downloaded, total));
     }
@@ -162,12 +146,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         .unwrap_or("")
         == "bytes";
 
-    println!(
-        "supports_ranges: {}, total_size: {} bytes, DEFAULT_CHUNK_SIZE: {} bytes",
-        supports_ranges, total_size, DEFAULT_CHUNK_SIZE
-    );
     if !supports_ranges || total_size <= DEFAULT_CHUNK_SIZE {
-        println!("+++Server does not support range requests or file is small, falling back to single download");
         return download_file_with_callback(url, output_path, move |progress| {
             progress_callback(progress)
         })
@@ -200,7 +179,6 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
     };
 
     let downloaded = Arc::new(Mutex::new(existing_size));
-    let last_logged_percent = Arc::new(Mutex::new(0u8));
     let mut tasks = FuturesUnordered::new();
 
     progress_callback(DownloadProgress::Started);
@@ -211,18 +189,11 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
         let url_clone = url.clone();
         let downloaded_clone = Arc::clone(&downloaded);
-        let last_logged_percent_clone = Arc::clone(&last_logged_percent);
         let progress_callback_clone = Arc::clone(&progress_callback);
 
         let task: JoinHandle<Result<(u64, Vec<u8>), crate::Error>> = tokio::spawn(async move {
             let client = get_client();
             let range_header = format!("bytes={}-{}", start, end);
-            let thread_id = chunk_idx;
-
-            println!(
-                "Thread #{}: Starting download of chunk {}",
-                thread_id, range_header
-            );
 
             let response = client
                 .get(url_clone)
@@ -231,73 +202,24 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                 .await?;
 
             if response.status() != StatusCode::PARTIAL_CONTENT {
-                println!(
-                    "Thread #{}: ERROR - Server returned status {}",
-                    thread_id,
-                    response.status()
-                );
                 return Err(crate::Error::OtherError(format!(
                     "Server does not support range requests. Got status: {}",
                     response.status()
                 )));
             }
-
-            println!(
-                "Thread #{}: Successfully got 206 response, starting data transfer",
-                thread_id
-            );
             let mut bytes = Vec::new();
             let mut stream = response.bytes_stream();
-            let mut thread_downloaded = 0u64;
 
             while let Some(chunk) = stream.try_next().await? {
                 bytes.extend_from_slice(&chunk);
-                thread_downloaded += chunk.len() as u64;
 
                 let mut downloaded_guard = downloaded_clone.lock().unwrap();
                 *downloaded_guard += chunk.len() as u64;
                 let current_downloaded = *downloaded_guard;
                 drop(downloaded_guard);
 
-                // Calculate thread-specific progress
-                let thread_size = end - start + 1;
-                let thread_percent = if thread_size > 0 {
-                    (thread_downloaded as f64 / thread_size as f64 * 100.0) as u8
-                } else {
-                    0
-                };
-
-                // Log thread progress every 25% to avoid spam
-                if thread_percent > 0 && (thread_percent % 25 == 0 || thread_percent >= 100) {
-                    println!(
-                        "Thread #{}: {}% complete ({}/{} bytes of chunk)",
-                        thread_id, thread_percent, thread_downloaded, thread_size
-                    );
-                }
-
-                let percent = if total_size > 0 {
-                    (current_downloaded as f64 / total_size as f64 * 100.0) as u8
-                } else {
-                    0
-                };
-
-                // Only log overall progress every 5% to avoid spam
-                let mut last_percent = last_logged_percent_clone.lock().unwrap();
-                if percent >= *last_percent + 5 || percent == 100 {
-                    println!(
-                        "Overall parallel download progress: {}% ({}/{} bytes)",
-                        percent, current_downloaded, total_size
-                    );
-                    *last_percent = percent;
-                }
-
                 progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
             }
-
-            println!(
-                "Thread #{}: Completed chunk download ({} bytes)",
-                thread_id, thread_downloaded
-            );
             Ok((start, bytes))
         });
 
@@ -309,15 +231,9 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                     Ok(Ok((offset, data))) => {
                         file.seek(SeekFrom::Start(offset))?;
                         file.write_all(&data)?;
-                        println!(
-                            "Successfully wrote chunk at offset {} ({} bytes)",
-                            offset,
-                            data.len()
-                        );
                     }
                     Ok(Err(e)) => return Err(e),
                     Err(join_err) => {
-                        println!("Thread failed with join error: {}", join_err);
                         return Err(crate::Error::JoinError(join_err));
                     }
                 }
@@ -330,15 +246,9 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
             Ok(Ok((offset, data))) => {
                 file.seek(SeekFrom::Start(offset))?;
                 file.write_all(&data)?;
-                println!(
-                    "Successfully wrote final chunk at offset {} ({} bytes)",
-                    offset,
-                    data.len()
-                );
             }
             Ok(Err(e)) => return Err(e),
             Err(join_err) => {
-                println!("Thread failed with join error: {}", join_err);
                 return Err(crate::Error::JoinError(join_err));
             }
         }

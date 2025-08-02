@@ -530,111 +530,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn test_download_file_parallel_s3() {
-        use std::sync::{Arc, Mutex};
-        use tempfile::NamedTempFile;
-
-        let temp_file = NamedTempFile::new().unwrap();
-        let temp_path = temp_file.path();
-
-        let s3_url =
-            "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
-
-        let progress_events = Arc::new(Mutex::new(Vec::new()));
-        let progress_events_clone = Arc::clone(&progress_events);
-
-        let result = download_file_parallel(s3_url, temp_path, move |progress| {
-            progress_events_clone.lock().unwrap().push(progress);
-        })
-        .await;
-
-        assert!(result.is_ok());
-
-        let file_size = std::fs::metadata(temp_path).unwrap().len();
-        assert!(file_size > 0, "File should have been downloaded");
-
-        let events = progress_events.lock().unwrap();
-        assert!(
-            !events.is_empty(),
-            "Progress events should have been recorded"
-        );
-
-        let has_started = events
-            .iter()
-            .any(|e| matches!(e, DownloadProgress::Started));
-        let has_finished = events
-            .iter()
-            .any(|e| matches!(e, DownloadProgress::Finished));
-        assert!(has_started, "Should have Started event");
-        assert!(has_finished, "Should have Finished event");
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn test_parallel_vs_serial_performance() {
-        use std::time::Instant;
-        use tempfile::NamedTempFile;
-
-        let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
-        let test_client = reqwest::Client::builder().http1_only().build().unwrap();
-
-        let head_response = test_client
-            .head(url)
-            .header("User-Agent", "curl/8.14.1")
-            .header("Accept", "*/*")
-            .send()
-            .await
-            .unwrap();
-
-        let file_size = get_content_length_from_headers(&head_response).unwrap_or(0);
-
-        let supports_ranges = head_response
-            .headers()
-            .get("accept-ranges")
-            .map(|v| v.to_str().unwrap_or(""))
-            .unwrap_or("")
-            == "bytes";
-        assert!(file_size > 0, "File size should be greater than 0");
-
-        println!(
-            "Server supports ranges: {}, File size: {} MB",
-            supports_ranges,
-            file_size / 1024 / 1024
-        );
-
-        let temp_file1 = NamedTempFile::new().unwrap();
-        let start = Instant::now();
-        download_file_with_callback(url, temp_file1.path(), |_| {})
-            .await
-            .unwrap();
-        let serial_duration = start.elapsed();
-
-        let temp_file2 = NamedTempFile::new().unwrap();
-        let start = Instant::now();
-        download_file_parallel(url, temp_file2.path(), |_| {})
-            .await
-            .unwrap();
-        let parallel_duration = start.elapsed();
-
-        println!(
-            "Serial: {:?}, Parallel: {:?}",
-            serial_duration, parallel_duration
-        );
-        let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
-        println!("Speedup: {:.2}x", speedup);
-
-        let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
-        let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
-        assert_eq!(
-            serial_size, parallel_size,
-            "Both downloads should produce files of the same size"
-        );
-
-        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
-    }
-
-    #[tokio::test]
-    async fn test_parallel_vs_serial_performance_mock() {
+    async fn test_download_file_parallel_mock() {
         use std::time::Instant;
         use tempfile::NamedTempFile;
         use wiremock::matchers::{header, method, path};
@@ -745,6 +641,70 @@ mod tests {
         assert_eq!(
             serial_size, content_length as u64,
             "Downloaded file should match expected size"
+        );
+
+        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_download_file_parallel_s3() {
+        use std::time::Instant;
+        use tempfile::NamedTempFile;
+
+        let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
+        let test_client = reqwest::Client::builder().http1_only().build().unwrap();
+
+        let head_response = test_client
+            .head(url)
+            .header("User-Agent", "curl/8.14.1")
+            .header("Accept", "*/*")
+            .send()
+            .await
+            .unwrap();
+
+        let file_size = get_content_length_from_headers(&head_response).unwrap_or(0);
+
+        let supports_ranges = head_response
+            .headers()
+            .get("accept-ranges")
+            .map(|v| v.to_str().unwrap_or(""))
+            .unwrap_or("")
+            == "bytes";
+        assert!(file_size > 0, "File size should be greater than 0");
+
+        println!(
+            "Server supports ranges: {}, File size: {} MB",
+            supports_ranges,
+            file_size / 1024 / 1024
+        );
+
+        let temp_file1 = NamedTempFile::new().unwrap();
+        let start = Instant::now();
+        download_file_with_callback(url, temp_file1.path(), |_| {})
+            .await
+            .unwrap();
+        let serial_duration = start.elapsed();
+
+        let temp_file2 = NamedTempFile::new().unwrap();
+        let start = Instant::now();
+        download_file_parallel(url, temp_file2.path(), |_| {})
+            .await
+            .unwrap();
+        let parallel_duration = start.elapsed();
+
+        println!(
+            "Serial: {:?}, Parallel: {:?}",
+            serial_duration, parallel_duration
+        );
+        let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
+        println!("Speedup: {:.2}x", speedup);
+
+        let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
+        let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
+        assert_eq!(
+            serial_size, parallel_size,
+            "Both downloads should produce files of the same size"
         );
 
         assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);

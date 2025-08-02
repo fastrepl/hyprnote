@@ -7,7 +7,7 @@ pub use remote::*;
 pub use types::*;
 
 use {
-    crate::Error::{JoinError, OtherError},
+    crate::Error::OtherError,
     futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
     reqwest::StatusCode,
     std::{
@@ -18,7 +18,6 @@ use {
         path::Path,
         sync::{Arc, Mutex, OnceLock},
     },
-    tokio::task::JoinHandle,
 };
 
 static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
@@ -123,24 +122,23 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 }
 
 fn process_task_result(
-    result: Result<Result<(u64, Vec<u8>), Error>, tokio::task::JoinError>,
+    result: Result<(u64, Vec<u8>), Error>,
     file: &mut File,
 ) -> Result<(), Error> {
     match result {
-        Ok(Ok((offset, data))) => {
+        Ok((offset, data)) => {
             file.seek(SeekFrom::Start(offset))?;
             file.write_all(&data)?;
             Ok(())
         }
-        Ok(Err(e)) => Err(e),
-        Err(join_err) => Err(JoinError(join_err)),
+        Err(e) => Err(e),
     }
 }
 
 const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
 const MAX_CONCURRENT_CHUNKS: usize = 8;
 
-pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
+pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
     url: impl reqwest::IntoUrl,
     output_path: impl AsRef<Path>,
     progress_callback: F,
@@ -209,7 +207,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         let downloaded_clone = Arc::clone(&downloaded);
         let progress_callback_clone = Arc::clone(&progress_callback);
 
-        let task: JoinHandle<Result<(u64, Vec<u8>), Error>> = tokio::spawn(async move {
+        let task = async move {
             let client = get_client();
             let range_header = format!("bytes={}-{}", start, end);
 
@@ -239,7 +237,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                 progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
             }
             Ok((start, bytes))
-        });
+        };
 
         tasks.push(task);
 

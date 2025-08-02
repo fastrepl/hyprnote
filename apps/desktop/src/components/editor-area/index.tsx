@@ -13,6 +13,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
@@ -491,6 +492,15 @@ export function useEnhanceMutation({
 
       if (actualIsLocalLlm) {
         setProgress(0);
+
+        // Show native notification for local AI model summarization completion
+        if (sessionId !== onboardingSessionId) {
+          notificationCommands.getSummarizationNotification().then(enabled => {
+            if (enabled) {
+              notificationCommands.showSummarizationCompleteNotification();
+            }
+          });
+        }
       }
 
       setEnhanceController(null);

@@ -260,7 +260,7 @@ msgstr ""
 msgid "(Optional for localhost)"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:528
+#: src/components/welcome-modal/custom-endpoint-view.tsx:521
 msgid "(Optional)"
 msgstr ""
 
@@ -390,15 +390,15 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:505
+#: src/components/welcome-modal/custom-endpoint-view.tsx:498
 #: src/components/settings/components/ai/llm-custom-view.tsx:576
 msgid "API Base URL"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:301
-#: src/components/welcome-modal/custom-endpoint-view.tsx:368
-#: src/components/welcome-modal/custom-endpoint-view.tsx:445
-#: src/components/welcome-modal/custom-endpoint-view.tsx:525
+#: src/components/welcome-modal/custom-endpoint-view.tsx:294
+#: src/components/welcome-modal/custom-endpoint-view.tsx:361
+#: src/components/welcome-modal/custom-endpoint-view.tsx:438
+#: src/components/welcome-modal/custom-endpoint-view.tsx:518
 #: src/components/settings/views/integrations.tsx:197
 #: src/components/settings/components/ai/llm-custom-view.tsx:284
 #: src/components/settings/components/ai/llm-custom-view.tsx:380
@@ -546,11 +546,11 @@ msgstr ""
 msgid "Company name"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:607
+#: src/components/welcome-modal/custom-endpoint-view.tsx:600
 msgid "Complete the configuration to continue"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:221
+#: src/components/welcome-modal/custom-endpoint-view.tsx:214
 msgid "Configure Your LLM"
 msgstr ""
 
@@ -597,7 +597,7 @@ msgstr ""
 #: src/components/welcome-modal/model-selection-view.tsx:137
 #: src/components/welcome-modal/llm-selection-view.tsx:94
 #: src/components/welcome-modal/download-progress-view.tsx:258
-#: src/components/welcome-modal/custom-endpoint-view.tsx:602
+#: src/components/welcome-modal/custom-endpoint-view.tsx:595
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
@@ -948,7 +948,7 @@ msgstr ""
 msgid "Loading events..."
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:557
+#: src/components/welcome-modal/custom-endpoint-view.tsx:550
 msgid "Loading models..."
 msgstr ""
 
@@ -994,16 +994,16 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:322
-#: src/components/welcome-modal/custom-endpoint-view.tsx:389
-#: src/components/welcome-modal/custom-endpoint-view.tsx:466
+#: src/components/welcome-modal/custom-endpoint-view.tsx:315
+#: src/components/welcome-modal/custom-endpoint-view.tsx:382
+#: src/components/welcome-modal/custom-endpoint-view.tsx:459
 #: src/components/settings/components/ai/llm-custom-view.tsx:304
 #: src/components/settings/components/ai/llm-custom-view.tsx:400
 #: src/components/settings/components/ai/llm-custom-view.tsx:506
 msgid "Model"
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:551
+#: src/components/welcome-modal/custom-endpoint-view.tsx:544
 #: src/components/settings/components/ai/llm-custom-view.tsx:623
 msgid "Model Name"
 msgstr ""
@@ -1289,7 +1289,7 @@ msgstr ""
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:278
+#: src/components/welcome-modal/custom-endpoint-view.tsx:271
 msgid "Select a provider above to configure"
 msgstr ""
 

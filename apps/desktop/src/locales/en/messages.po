@@ -260,7 +260,7 @@ msgstr "(Beta) Upcoming meeting notifications"
 msgid "(Optional for localhost)"
 msgstr "(Optional for localhost)"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:528
+#: src/components/welcome-modal/custom-endpoint-view.tsx:521
 msgid "(Optional)"
 msgstr "(Optional)"
 
@@ -390,15 +390,15 @@ msgstr "and {0} more members"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:505
+#: src/components/welcome-modal/custom-endpoint-view.tsx:498
 #: src/components/settings/components/ai/llm-custom-view.tsx:576
 msgid "API Base URL"
 msgstr "API Base URL"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:301
-#: src/components/welcome-modal/custom-endpoint-view.tsx:368
-#: src/components/welcome-modal/custom-endpoint-view.tsx:445
-#: src/components/welcome-modal/custom-endpoint-view.tsx:525
+#: src/components/welcome-modal/custom-endpoint-view.tsx:294
+#: src/components/welcome-modal/custom-endpoint-view.tsx:361
+#: src/components/welcome-modal/custom-endpoint-view.tsx:438
+#: src/components/welcome-modal/custom-endpoint-view.tsx:518
 #: src/components/settings/views/integrations.tsx:197
 #: src/components/settings/components/ai/llm-custom-view.tsx:284
 #: src/components/settings/components/ai/llm-custom-view.tsx:380
@@ -546,11 +546,11 @@ msgstr "Company description"
 msgid "Company name"
 msgstr "Company name"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:607
+#: src/components/welcome-modal/custom-endpoint-view.tsx:600
 msgid "Complete the configuration to continue"
 msgstr "Complete the configuration to continue"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:221
+#: src/components/welcome-modal/custom-endpoint-view.tsx:214
 msgid "Configure Your LLM"
 msgstr "Configure Your LLM"
 
@@ -597,7 +597,7 @@ msgstr "Contacts Access"
 #: src/components/welcome-modal/model-selection-view.tsx:137
 #: src/components/welcome-modal/llm-selection-view.tsx:94
 #: src/components/welcome-modal/download-progress-view.tsx:258
-#: src/components/welcome-modal/custom-endpoint-view.tsx:602
+#: src/components/welcome-modal/custom-endpoint-view.tsx:595
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
@@ -948,7 +948,7 @@ msgstr "Loading available models..."
 msgid "Loading events..."
 msgstr "Loading events..."
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:557
+#: src/components/welcome-modal/custom-endpoint-view.tsx:550
 msgid "Loading models..."
 msgstr "Loading models..."
 
@@ -994,16 +994,16 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:322
-#: src/components/welcome-modal/custom-endpoint-view.tsx:389
-#: src/components/welcome-modal/custom-endpoint-view.tsx:466
+#: src/components/welcome-modal/custom-endpoint-view.tsx:315
+#: src/components/welcome-modal/custom-endpoint-view.tsx:382
+#: src/components/welcome-modal/custom-endpoint-view.tsx:459
 #: src/components/settings/components/ai/llm-custom-view.tsx:304
 #: src/components/settings/components/ai/llm-custom-view.tsx:400
 #: src/components/settings/components/ai/llm-custom-view.tsx:506
 msgid "Model"
 msgstr "Model"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:551
+#: src/components/welcome-modal/custom-endpoint-view.tsx:544
 #: src/components/settings/components/ai/llm-custom-view.tsx:623
 msgid "Model Name"
 msgstr "Model Name"
@@ -1289,7 +1289,7 @@ msgstr "Sections"
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:278
+#: src/components/welcome-modal/custom-endpoint-view.tsx:271
 msgid "Select a provider above to configure"
 msgstr "Select a provider above to configure"
 

@@ -1,14 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { useEffect, useState } from "react";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@hypr/ui/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";

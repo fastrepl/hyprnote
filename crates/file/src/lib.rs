@@ -105,13 +105,11 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     let mut downloaded: u64 = existing_size;
     let mut stream = res.bytes_stream();
     progress_callback(DownloadProgress::Started);
-
     while let Some(item) = stream.next().await {
         let chunk = item?;
         file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
-
         progress_callback(DownloadProgress::Progress(
             downloaded,
             total_size.unwrap_or(downloaded),
@@ -123,14 +121,14 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     Ok(())
 }
 
-const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024; // 8MB chunks
+const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
 const MAX_CONCURRENT_CHUNKS: usize = 8;
 
 pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
     url: impl reqwest::IntoUrl,
     output_path: impl AsRef<Path>,
     progress_callback: F,
-) -> Result<(), crate::Error> {
+) -> Result<(), Error> {
     let url = url.into_url()?;
     let progress_callback = Arc::new(progress_callback);
 
@@ -140,7 +138,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
     let head_response = get_client().head(url.clone()).send().await?;
     let total_size = get_content_length_from_headers(&head_response)
-        .ok_or_else(|| crate::Error::OtherError("Content-Length header missing".to_string()))?;
+        .ok_or_else(|| Error::OtherError("Content-Length header missing".to_string()))?;
 
     let supports_ranges = head_response
         .headers()

@@ -681,14 +681,48 @@ mod tests {
 
         let temp_file1 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_with_callback(url, temp_file1.path(), |_| {})
+        download_file_with_callback(url, temp_file1.path(), {
+            use std::cell::RefCell;
+            let last_percent = RefCell::new(0u8);
+            move |progress| {
+                match progress {
+                    DownloadProgress::Started => println!("Serial download started"),
+                    DownloadProgress::Progress(downloaded, total) => {
+                        let percent = (downloaded as f64 / total as f64 * 100.0) as u8;
+                        let mut last = last_percent.borrow_mut();
+                        if percent >= *last + 10 {
+                            println!("Serial download: {}% ({}/{} bytes)", percent, downloaded, total);
+                            *last = percent;
+                        }
+                    }
+                    DownloadProgress::Finished => println!("Serial download finished"),
+                }
+            }
+        })
             .await
             .unwrap();
         let serial_duration = start.elapsed();
 
         let temp_file2 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_parallel(url, temp_file2.path(), |_| {})
+        download_file_parallel(url, temp_file2.path(), {
+            use std::sync::{Arc, Mutex};
+            let last_percent = Arc::new(Mutex::new(0u8));
+            move |progress| {
+                match progress {
+                    DownloadProgress::Started => println!("Parallel download started"),
+                    DownloadProgress::Progress(downloaded, total) => {
+                        let percent = (downloaded as f64 / total as f64 * 100.0) as u8;
+                        let mut last = last_percent.lock().unwrap();
+                        if percent >= *last + 10 {
+                            println!("Parallel download: {}% ({}/{} bytes)", percent, downloaded, total);
+                            *last = percent;
+                        }
+                    }
+                    DownloadProgress::Finished => println!("Parallel download finished"),
+                }
+            }
+        })
             .await
             .unwrap();
         let parallel_duration = start.elapsed();

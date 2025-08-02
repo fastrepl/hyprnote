@@ -66,11 +66,7 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         std::fs::create_dir_all(parent)?;
     }
 
-    let mut existing_size = if output_path.as_ref().exists() {
-        file_size(&output_path)?
-    } else {
-        0
-    };
+    let mut existing_size = file_size(&output_path).unwrap_or(0);
 
     let mut res = request_with_range(
         url.clone(),
@@ -154,11 +150,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         .await;
     }
 
-    let existing_size = if output_path.as_ref().exists() {
-        file_size(&output_path)?
-    } else {
-        0
-    };
+    let existing_size = file_size(&output_path).unwrap_or(0);
 
     if existing_size >= total_size {
         progress_callback(DownloadProgress::Finished);

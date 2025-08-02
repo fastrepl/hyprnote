@@ -3,7 +3,7 @@ use std::{future::Future, path::PathBuf};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
-use hypr_file::{download_file_with_callback, DownloadProgress};
+use hypr_file::{download_file_parallel, DownloadProgress};
 
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -108,7 +108,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
                 }
             };
 
-            if let Err(e) = download_file_with_callback(m.model_url(), path, callback).await {
+            if let Err(e) = download_file_parallel(m.model_url(), path, callback).await {
                 tracing::error!("model_download_error: {}", e);
                 let _ = channel.send(-1);
             }

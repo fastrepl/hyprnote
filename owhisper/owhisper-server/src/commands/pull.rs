@@ -27,5 +27,6 @@ pub struct PullArgs {
 }
 
 pub async fn handle_pull(_args: PullArgs) -> anyhow::Result<()> {
+    // hypr_file::download_file_with_callback(url, output_path, progress_callback)
     Ok(())
 }

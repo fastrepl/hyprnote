@@ -4,7 +4,7 @@ use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
 
-use hypr_file::{download_file_with_callback, DownloadProgress};
+use hypr_file::{download_file_parallel, DownloadProgress};
 use owhisper_interface::Word;
 
 use crate::events::RecordedProcessingEvent;
@@ -168,7 +168,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 }
             };
 
-            if let Err(e) = download_file_with_callback(m.model_url(), model_path, callback).await {
+            if let Err(e) = download_file_parallel(m.model_url(), model_path, callback).await {
                 tracing::error!("model_download_error: {}", e);
                 let _ = channel.send(-1);
             }

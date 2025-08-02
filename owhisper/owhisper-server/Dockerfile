@@ -11,12 +11,12 @@ WORKDIR /app
 
 FROM chef AS planner
 COPY . .
-RUN cd owhisper/owhisper-server && cargo chef prepare --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json --bin owhisper-server
 
 FROM chef AS builder
-COPY --from=planner /app/owhisper/owhisper-server/recipe.json owhisper/owhisper-server/recipe.json
+COPY --from=planner /app/recipe.json recipe.json
 COPY . .
-RUN cd owhisper/owhisper-server && cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 
 RUN cargo build --release --bin owhisper-server
 

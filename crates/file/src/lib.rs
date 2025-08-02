@@ -105,14 +105,17 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     let mut downloaded: u64 = existing_size;
     let mut stream = res.bytes_stream();
     progress_callback(DownloadProgress::Started);
+
     while let Some(item) = stream.next().await {
         let chunk = item?;
         file.write_all(&chunk)?;
 
         downloaded += chunk.len() as u64;
-        let total = total_size.unwrap_or(downloaded);
 
-        progress_callback(DownloadProgress::Progress(downloaded, total));
+        progress_callback(DownloadProgress::Progress(
+            downloaded,
+            total_size.unwrap_or(downloaded),
+        ));
     }
 
     progress_callback(DownloadProgress::Finished);

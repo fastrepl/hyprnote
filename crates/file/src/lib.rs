@@ -118,13 +118,16 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
         } else {
             0
         };
-        
+
         // Only log every 5% to avoid spam
         if percent >= last_logged_percent + 5 || percent == 100 {
-            println!("Download progress: {}% ({}/{} bytes)", percent, downloaded, total);
+            println!(
+                "Download progress: {}% ({}/{} bytes)",
+                percent, downloaded, total
+            );
             last_logged_percent = percent;
         }
-        
+
         progress_callback(DownloadProgress::Progress(downloaded, total));
     }
 
@@ -152,7 +155,6 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
     let total_size = get_content_length_from_headers(&head_response)
         .ok_or_else(|| crate::Error::OtherError("Content-Length header missing".to_string()))?;
 
-
     let supports_ranges = head_response
         .headers()
         .get("accept-ranges")
@@ -160,7 +162,10 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         .unwrap_or("")
         == "bytes";
 
-    println!("supports_ranges: {}, total_size: {} bytes, DEFAULT_CHUNK_SIZE: {} bytes", supports_ranges, total_size, DEFAULT_CHUNK_SIZE);
+    println!(
+        "supports_ranges: {}, total_size: {} bytes, DEFAULT_CHUNK_SIZE: {} bytes",
+        supports_ranges, total_size, DEFAULT_CHUNK_SIZE
+    );
     if !supports_ranges || total_size <= DEFAULT_CHUNK_SIZE {
         println!("+++Server does not support range requests or file is small, falling back to single download");
         return download_file_with_callback(url, output_path, move |progress| {
@@ -214,22 +219,33 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
             let range_header = format!("bytes={}-{}", start, end);
             let thread_id = chunk_idx;
 
-            println!("Thread #{}: Starting download of chunk {}", thread_id, range_header);
+            println!(
+                "Thread #{}: Starting download of chunk {}",
+                thread_id, range_header
+            );
 
             let response = client
                 .get(url_clone)
                 .header("Range", range_header)
                 .send()
                 .await?;
-            
+
             if response.status() != StatusCode::PARTIAL_CONTENT {
-                println!("Thread #{}: ERROR - Server returned status {}", thread_id, response.status());
-                return Err(crate::Error::OtherError(
-                    format!("Server does not support range requests. Got status: {}", response.status()),
-                ));
+                println!(
+                    "Thread #{}: ERROR - Server returned status {}",
+                    thread_id,
+                    response.status()
+                );
+                return Err(crate::Error::OtherError(format!(
+                    "Server does not support range requests. Got status: {}",
+                    response.status()
+                )));
             }
 
-            println!("Thread #{}: Successfully got 206 response, starting data transfer", thread_id);
+            println!(
+                "Thread #{}: Successfully got 206 response, starting data transfer",
+                thread_id
+            );
             let mut bytes = Vec::new();
             let mut stream = response.bytes_stream();
             let mut thread_downloaded = 0u64;
@@ -253,8 +269,10 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
                 // Log thread progress every 25% to avoid spam
                 if thread_percent > 0 && (thread_percent % 25 == 0 || thread_percent >= 100) {
-                    println!("Thread #{}: {}% complete ({}/{} bytes of chunk)", 
-                        thread_id, thread_percent, thread_downloaded, thread_size);
+                    println!(
+                        "Thread #{}: {}% complete ({}/{} bytes of chunk)",
+                        thread_id, thread_percent, thread_downloaded, thread_size
+                    );
                 }
 
                 let percent = if total_size > 0 {
@@ -262,18 +280,24 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                 } else {
                     0
                 };
-                
+
                 // Only log overall progress every 5% to avoid spam
                 let mut last_percent = last_logged_percent_clone.lock().unwrap();
                 if percent >= *last_percent + 5 || percent == 100 {
-                    println!("Overall parallel download progress: {}% ({}/{} bytes)", percent, current_downloaded, total_size);
+                    println!(
+                        "Overall parallel download progress: {}% ({}/{} bytes)",
+                        percent, current_downloaded, total_size
+                    );
                     *last_percent = percent;
                 }
 
                 progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
             }
 
-            println!("Thread #{}: Completed chunk download ({} bytes)", thread_id, thread_downloaded);
+            println!(
+                "Thread #{}: Completed chunk download ({} bytes)",
+                thread_id, thread_downloaded
+            );
             Ok((start, bytes))
         });
 
@@ -285,7 +309,11 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                     Ok(Ok((offset, data))) => {
                         file.seek(SeekFrom::Start(offset))?;
                         file.write_all(&data)?;
-                        println!("Successfully wrote chunk at offset {} ({} bytes)", offset, data.len());
+                        println!(
+                            "Successfully wrote chunk at offset {} ({} bytes)",
+                            offset,
+                            data.len()
+                        );
                     }
                     Ok(Err(e)) => return Err(e),
                     Err(join_err) => {
@@ -302,7 +330,11 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
             Ok(Ok((offset, data))) => {
                 file.seek(SeekFrom::Start(offset))?;
                 file.write_all(&data)?;
-                println!("Successfully wrote final chunk at offset {} ({} bytes)", offset, data.len());
+                println!(
+                    "Successfully wrote final chunk at offset {} ({} bytes)",
+                    offset,
+                    data.len()
+                );
             }
             Ok(Err(e)) => return Err(e),
             Err(join_err) => {
@@ -645,14 +677,11 @@ mod tests {
         // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-base-q8_0.bin";
         let url = "https://storage2.hyprnote.com/v0/yujonglee/hypr-llm-sm/model_q4_k_m.gguf";
         // let url = "https://storage2.hyprnote.com/v0/ggerganov/whisper.cpp/main/ggml-tiny-q8_0.bin";
-        
+
         // First check if server supports range requests
         // Try with a fresh client to avoid any cached configuration
-        let test_client = reqwest::Client::builder()
-            .http1_only()
-            .build()
-            .unwrap();
-            
+        let test_client = reqwest::Client::builder().http1_only().build().unwrap();
+
         let head_response = test_client
             .head(url)
             .header("User-Agent", "curl/8.14.1")
@@ -660,10 +689,9 @@ mod tests {
             .send()
             .await
             .unwrap();
-            
-        
+
         let file_size = get_content_length_from_headers(&head_response).unwrap_or(0);
-        
+
         let supports_ranges = head_response
             .headers()
             .get("accept-ranges")
@@ -671,31 +699,44 @@ mod tests {
             .unwrap_or("")
             == "bytes";
         assert!(file_size > 0, "File size should be greater than 0");
-        
-        println!("Server supports ranges: {}, File size: {} MB", 
-                supports_ranges, file_size / 1024 / 1024);
-        
+
+        println!(
+            "Server supports ranges: {}, File size: {} MB",
+            supports_ranges,
+            file_size / 1024 / 1024
+        );
+
         // Test serial download
         let temp_file1 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_with_callback(url, temp_file1.path(), |_| {}).await.unwrap();
+        download_file_with_callback(url, temp_file1.path(), |_| {})
+            .await
+            .unwrap();
         let serial_duration = start.elapsed();
-        
+
         // Test parallel download
         let temp_file2 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_parallel(url, temp_file2.path(), |_| {}).await.unwrap();
+        download_file_parallel(url, temp_file2.path(), |_| {})
+            .await
+            .unwrap();
         let parallel_duration = start.elapsed();
-        
-        println!("Serial: {:?}, Parallel: {:?}", serial_duration, parallel_duration);
+
+        println!(
+            "Serial: {:?}, Parallel: {:?}",
+            serial_duration, parallel_duration
+        );
         let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
         println!("Speedup: {:.2}x", speedup);
-        
+
         // Verify both files are the same size
         let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
         let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
-        assert_eq!(serial_size, parallel_size, "Both downloads should produce files of the same size");
-        
+        assert_eq!(
+            serial_size, parallel_size,
+            "Both downloads should produce files of the same size"
+        );
+
         // If server doesn't support ranges or file is small, parallel might fall back to serial
         // if !supports_ranges || file_size <= DEFAULT_CHUNK_SIZE {
         //     println!("Parallel download likely fell back to serial due to server/file constraints");
@@ -703,10 +744,8 @@ mod tests {
         //     assert!(serial_duration.as_secs() > 0);
         //     assert!(parallel_duration.as_secs() > 0);
         // } else {
-            // For large files with range support, parallel should be at least 10% faster
-            assert!(speedup >= 1.1, 
-                "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", 
-                serial_duration, parallel_duration, speedup);
+        // For large files with range support, parallel should be at least 10% faster
+        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
         // }
     }
 
@@ -737,13 +776,14 @@ mod tests {
         // Mock range requests FIRST (more specific mocks should come first)
         // Use the same chunk size calculation as the actual implementation
         let expected_chunk_size = DEFAULT_CHUNK_SIZE as usize; // 8MB chunks
-        
+
         for chunk_start in (0..content_length).step_by(expected_chunk_size) {
-            let chunk_end = std::cmp::min(chunk_start + expected_chunk_size - 1, content_length - 1);
+            let chunk_end =
+                std::cmp::min(chunk_start + expected_chunk_size - 1, content_length - 1);
             let chunk_data = large_content[chunk_start..=chunk_end].to_vec();
             let range_header = format!("bytes={}-{}", chunk_start, chunk_end);
             let content_range = format!("bytes {}-{}/{}", chunk_start, chunk_end, content_length);
-            
+
             Mock::given(method("GET"))
                 .and(path("/large-file"))
                 .and(header("Range", range_header.as_str()))
@@ -769,13 +809,10 @@ mod tests {
             .await;
 
         let url = format!("{}/large-file", mock_server.uri());
-        
+
         // First check if server supports range requests
-        let test_client = reqwest::Client::builder()
-            .http1_only()
-            .build()
-            .unwrap();
-            
+        let test_client = reqwest::Client::builder().http1_only().build().unwrap();
+
         let head_response = test_client
             .head(&url)
             .header("User-Agent", "curl/8.14.1")
@@ -783,9 +820,9 @@ mod tests {
             .send()
             .await
             .unwrap();
-            
+
         let file_size = get_content_length_from_headers(&head_response).unwrap_or(0);
-        
+
         let supports_ranges = head_response
             .headers()
             .get("accept-ranges")
@@ -793,35 +830,49 @@ mod tests {
             .unwrap_or("")
             == "bytes";
         assert!(file_size > 0, "File size should be greater than 0");
-        
-        println!("Server supports ranges: {}, File size: {} MB", 
-                supports_ranges, file_size / 1024 / 1024);
-        
+
+        println!(
+            "Server supports ranges: {}, File size: {} MB",
+            supports_ranges,
+            file_size / 1024 / 1024
+        );
+
         // Test serial download
         let temp_file1 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_with_callback(&url, temp_file1.path(), |_| {}).await.unwrap();
+        download_file_with_callback(&url, temp_file1.path(), |_| {})
+            .await
+            .unwrap();
         let serial_duration = start.elapsed();
-        
+
         // Test parallel download
         let temp_file2 = NamedTempFile::new().unwrap();
         let start = Instant::now();
-        download_file_parallel(&url, temp_file2.path(), |_| {}).await.unwrap();
+        download_file_parallel(&url, temp_file2.path(), |_| {})
+            .await
+            .unwrap();
         let parallel_duration = start.elapsed();
-        
-        println!("Serial: {:?}, Parallel: {:?}", serial_duration, parallel_duration);
+
+        println!(
+            "Serial: {:?}, Parallel: {:?}",
+            serial_duration, parallel_duration
+        );
         let speedup = serial_duration.as_secs_f64() / parallel_duration.as_secs_f64();
         println!("Speedup: {:.2}x", speedup);
-        
+
         // Verify both files are the same size
         let serial_size = std::fs::metadata(temp_file1.path()).unwrap().len();
         let parallel_size = std::fs::metadata(temp_file2.path()).unwrap().len();
-        assert_eq!(serial_size, parallel_size, "Both downloads should produce files of the same size");
-        assert_eq!(serial_size, content_length as u64, "Downloaded file should match expected size");
-        
+        assert_eq!(
+            serial_size, parallel_size,
+            "Both downloads should produce files of the same size"
+        );
+        assert_eq!(
+            serial_size, content_length as u64,
+            "Downloaded file should match expected size"
+        );
+
         // For large files with range support, parallel should be at least 10% faster
-        assert!(speedup >= 1.1, 
-            "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", 
-            serial_duration, parallel_duration, speedup);
+        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
     }
 }

@@ -1,7 +1,8 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, SearchIcon, SparklesIcon, TagsIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { clsx } from "clsx";
 
 import { generateTagsForSession } from "@/utils/tag-generation";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -174,14 +175,19 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   const [newTagName, setNewTagName] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1); 
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Create a unique instance ID for this component to prevent state sharing
   const instanceId = useMemo(() => crypto.randomUUID(), []);
 
-  // Get session content
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   const sessionContent = useSession(sessionId, (s) => s.session.raw_memo_html);
 
-  // Get transcript words
   const { data: transcriptWords = [] } = useQuery({
     queryKey: ["session", "words", sessionId],
     queryFn: () => dbCommands.getWords(sessionId),
@@ -341,10 +347,12 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    // Don't handle Enter here if we have a selection - let the global handler handle it
+    if (e.key === "Enter" && selectedIndex === -1) {
       e.preventDefault();
       handleCreateTags();
     }
+    // Don't prevent default for arrow keys - let the global handler handle them
   };
 
   const handleGetSuggestions = () => {
@@ -361,6 +369,9 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
     await createTagsMutation.mutateAsync(tagNames);
     setNewTagName("");
     setShowDropdown(false);
+    setSelectedIndex(-1);
+    // Refocus input after mutation
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleInputChange = (value: string) => {
@@ -376,8 +387,54 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
 
   const handleInputBlur = () => {
     // Delay hiding dropdown to allow clicks on dropdown items
-    setTimeout(() => setShowDropdown(false), 200);
+    setTimeout(() => {
+      setShowDropdown(false);
+      setSelectedIndex(-1);
+    }, 200);
   };
+
+  // Calculate total dropdown items for navigation
+  const totalDropdownItems = filteredExistingTags.length + (shouldShowCreateOption ? 1 : 0);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showDropdown || totalDropdownItems === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex < totalDropdownItems - 1 ? selectedIndex + 1 : 0);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : totalDropdownItems - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        if (selectedIndex < filteredExistingTags.length) {
+          // Select existing tag
+          const tag = filteredExistingTags[selectedIndex];
+          handleTagSelect(tag.name);
+        } else {
+          // Create new tag
+          handleTagSelect(newTagName.trim());
+        }
+      } else if (e.key === "Escape") {
+        setSelectedIndex(-1);
+        setShowDropdown(false);
+        inputRef.current?.focus();
+      }
+    };
+
+    // Only add listener when input is focused and dropdown is shown
+    if (inputRef.current === document.activeElement && showDropdown && totalDropdownItems > 0) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedIndex, totalDropdownItems, filteredExistingTags, showDropdown, newTagName]);
+
+  // Reset selection when dropdown content changes
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [newTagName, showDropdown]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -387,6 +444,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             <SearchIcon className="size-4" />
           </span>
           <input
+            ref={inputRef}
             type="text"
             value={newTagName}
             onChange={(e) => handleInputChange(e.target.value)}
@@ -395,7 +453,6 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             onBlur={handleInputBlur}
             placeholder="Search or add tags..."
             className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
-            autoFocus
           />
           {newTagName.trim() && (
             <button
@@ -414,10 +471,13 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         {showDropdown && (filteredExistingTags.length > 0 || shouldShowCreateOption) && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
             {/* Existing tags that match */}
-            {filteredExistingTags.map((tag) => (
+            {filteredExistingTags.map((tag, index) => (
               <button
                 key={tag.id}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 border-b border-neutral-100 last:border-b-0 flex items-center gap-2"
+                className={clsx(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 border-b border-neutral-100 last:border-b-0 flex items-center gap-2 transition-colors",
+                  selectedIndex === index && "bg-neutral-100"
+                )}
                 onClick={() => handleTagSelect(tag.name)}
               >
                 <TagsIcon className="size-3 text-neutral-400" />
@@ -428,7 +488,10 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             {/* Create new tag option */}
             {shouldShowCreateOption && (
               <button
-                className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-700 flex items-center gap-2 font-medium"
+                className={clsx(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 text-blue-700 flex items-center gap-2 font-medium transition-colors",
+                  selectedIndex === filteredExistingTags.length && "bg-neutral-100"
+                )}
                 onClick={() => handleTagSelect(newTagName.trim())}
               >
                 <PlusIcon className="size-3" />

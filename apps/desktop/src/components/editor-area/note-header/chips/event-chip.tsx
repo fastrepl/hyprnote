@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { format, isSameDay, subDays } from "date-fns";
 import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { clsx } from "clsx";
 
 import { useHypr } from "@/contexts";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
@@ -306,6 +307,14 @@ function EventTab({
   queryClient: any;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1); 
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const eventsInPastWithoutAssignedSession = useQuery({
     queryKey: ["events-in-past-without-assigned-session", userId, sessionId],
@@ -360,14 +369,6 @@ function EventTab({
     },
   });
 
-  const handleSelectEvent = async (eventIdToLink: string) => {
-    assignEvent.mutate(eventIdToLink, {
-      onError: (error) => {
-        console.error("Failed to set session event:", error);
-      },
-    });
-  };
-
   const filteredEvents = (eventsInPastWithoutAssignedSession.data || [])
     .filter((ev: Event) => ev.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
@@ -385,6 +386,50 @@ function EventTab({
       return dateB.getTime() - dateA.getTime();
     });
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (filteredEvents.length === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex < filteredEvents.length - 1 ? selectedIndex + 1 : 0);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : filteredEvents.length - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        const selectedEvent = filteredEvents[selectedIndex];
+        if (selectedEvent) {
+          handleSelectEvent(selectedEvent.id);
+        }
+      } else if (e.key === "Escape") {
+        setSelectedIndex(-1);
+        inputRef.current?.focus();
+      }
+    };
+
+    if (inputRef.current === document.activeElement && filteredEvents.length > 0) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedIndex, filteredEvents]);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchQuery]);
+
+  const handleSelectEvent = async (eventIdToLink: string) => {
+    assignEvent.mutate(eventIdToLink, {
+      onError: (error) => {
+        console.error("Failed to set session event:", error);
+      },
+    });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <div>
       <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-md bg-neutral-50 border border-neutral-200 transition-colors mb-2">
@@ -392,10 +437,11 @@ function EventTab({
           <SearchIcon className="size-4" />
         </span>
         <input
+          ref={inputRef}
           type="text"
           placeholder="Search past events..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchChange}
           className="w-full bg-transparent text-sm focus:outline-none focus:ring-0 focus:border-transparent placeholder:text-neutral-400"
         />
       </div>
@@ -419,11 +465,14 @@ function EventTab({
 
         return (
           <div className="max-h-60 overflow-y-auto pt-0">
-            {filteredEvents.map((linkableEv: Event) => (
+            {filteredEvents.map((linkableEv: Event, index) => (
               <button
                 key={linkableEv.id}
                 onClick={() => handleSelectEvent(linkableEv.id)}
-                className="flex flex-col items-start p-2 hover:bg-neutral-100 text-left w-full rounded-md focus:outline-none"
+                className={clsx(
+                  "flex flex-col items-start p-2 hover:bg-neutral-100 text-left w-full rounded-md focus:outline-none transition-colors",
+                  selectedIndex === index && "bg-neutral-100"
+                )}
               >
                 <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full">
                   {linkableEv.name}

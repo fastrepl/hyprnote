@@ -16,7 +16,6 @@ members = [
   "owhisper/*",
   "plugins/*",
 ]
-exclude = ["plugins/membership"]
 
 [workspace.package]
 rust-version = "1.88.0"

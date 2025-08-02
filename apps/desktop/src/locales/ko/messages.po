@@ -260,6 +260,10 @@ msgstr ""
 msgid "(Optional for localhost)"
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:528
+msgid "(Optional)"
+msgstr ""
+
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
@@ -365,7 +369,7 @@ msgstr ""
 #~ msgid "AI notepad for meetings"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:216
+#: src/components/welcome-modal/download-progress-view.tsx:224
 msgid "All models ready!"
 msgstr ""
 
@@ -386,10 +390,15 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:505
 #: src/components/settings/components/ai/llm-custom-view.tsx:576
 msgid "API Base URL"
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:301
+#: src/components/welcome-modal/custom-endpoint-view.tsx:368
+#: src/components/welcome-modal/custom-endpoint-view.tsx:445
+#: src/components/welcome-modal/custom-endpoint-view.tsx:525
 #: src/components/settings/views/integrations.tsx:197
 #: src/components/settings/components/ai/llm-custom-view.tsx:284
 #: src/components/settings/components/ai/llm-custom-view.tsx:380
@@ -425,6 +434,11 @@ msgstr ""
 
 #: src/components/settings/views/ai.tsx:828
 msgid "Autonomy Selector"
+msgstr ""
+
+#: src/components/welcome-modal/index.tsx:351
+#: src/components/welcome-modal/index.tsx:362
+msgid "Back"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:246
@@ -504,6 +518,10 @@ msgstr ""
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
+#: src/components/welcome-modal/llm-selection-view.tsx:40
+msgid "Choose Your LLM"
+msgstr ""
+
 #: src/components/settings/views/general.tsx:230
 #~ msgid "Choose your preferred language of use"
 #~ msgstr ""
@@ -526,6 +544,14 @@ msgstr ""
 
 #: src/components/settings/views/profile.tsx:160
 msgid "Company name"
+msgstr ""
+
+#: src/components/welcome-modal/custom-endpoint-view.tsx:607
+msgid "Complete the configuration to continue"
+msgstr ""
+
+#: src/components/welcome-modal/custom-endpoint-view.tsx:221
+msgid "Configure Your LLM"
 msgstr ""
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
@@ -569,7 +595,9 @@ msgid "Contacts Access"
 msgstr ""
 
 #: src/components/welcome-modal/model-selection-view.tsx:137
-#: src/components/welcome-modal/download-progress-view.tsx:248
+#: src/components/welcome-modal/llm-selection-view.tsx:94
+#: src/components/welcome-modal/download-progress-view.tsx:258
+#: src/components/welcome-modal/custom-endpoint-view.tsx:602
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
@@ -666,7 +694,7 @@ msgstr ""
 #~ msgid "Download {0}"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:196
+#: src/components/welcome-modal/download-progress-view.tsx:204
 msgid "Downloading AI Models"
 msgstr ""
 
@@ -860,7 +888,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:252
+#: src/components/welcome-modal/download-progress-view.tsx:262
 msgid "It's ok to move on, downloads will continue in the background"
 msgstr ""
 
@@ -920,6 +948,10 @@ msgstr ""
 msgid "Loading events..."
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:557
+msgid "Loading models..."
+msgstr ""
+
 #: src/components/settings/views/templates.tsx:238
 msgid "Loading templates..."
 msgstr ""
@@ -962,12 +994,16 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:322
+#: src/components/welcome-modal/custom-endpoint-view.tsx:389
+#: src/components/welcome-modal/custom-endpoint-view.tsx:466
 #: src/components/settings/components/ai/llm-custom-view.tsx:304
 #: src/components/settings/components/ai/llm-custom-view.tsx:400
 #: src/components/settings/components/ai/llm-custom-view.tsx:506
 msgid "Model"
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:551
 #: src/components/settings/components/ai/llm-custom-view.tsx:623
 msgid "Model Name"
 msgstr ""
@@ -1153,7 +1189,7 @@ msgstr ""
 msgid "Publish your note"
 msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:66
+#: src/components/welcome-modal/download-progress-view.tsx:67
 msgid "Ready"
 msgstr ""
 
@@ -1253,12 +1289,24 @@ msgstr ""
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:278
+msgid "Select a provider above to configure"
+msgstr ""
+
 #: src/components/settings/views/templates.tsx:255
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
 #: src/components/welcome-modal/model-selection-view.tsx:73
-msgid "Select a transcribing model"
+#~ msgid "Select a transcribing model"
+#~ msgstr ""
+
+#: src/components/welcome-modal/model-selection-view.tsx:73
+msgid "Select a transcribing model (STT)"
+msgstr ""
+
+#: src/components/welcome-modal/llm-selection-view.tsx:99
+msgid "Select an option to continue"
 msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:124
@@ -1267,6 +1315,10 @@ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:69
 msgid "Select Calendars"
+msgstr ""
+
+#: src/components/welcome-modal/llm-selection-view.tsx:44
+msgid "Select how you want to process your meeting notes"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:271
@@ -1305,7 +1357,7 @@ msgstr ""
 #~ msgid "Single sign-on for all users"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:222
+#: src/components/welcome-modal/download-progress-view.tsx:230
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 

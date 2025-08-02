@@ -260,6 +260,10 @@ msgstr "(Beta) Upcoming meeting notifications"
 msgid "(Optional for localhost)"
 msgstr "(Optional for localhost)"
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:528
+msgid "(Optional)"
+msgstr "(Optional)"
+
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
@@ -365,7 +369,7 @@ msgstr "AI"
 #~ msgid "AI notepad for meetings"
 #~ msgstr "AI notepad for meetings"
 
-#: src/components/welcome-modal/download-progress-view.tsx:216
+#: src/components/welcome-modal/download-progress-view.tsx:224
 msgid "All models ready!"
 msgstr "All models ready!"
 
@@ -386,10 +390,15 @@ msgstr "and {0} more members"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:505
 #: src/components/settings/components/ai/llm-custom-view.tsx:576
 msgid "API Base URL"
 msgstr "API Base URL"
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:301
+#: src/components/welcome-modal/custom-endpoint-view.tsx:368
+#: src/components/welcome-modal/custom-endpoint-view.tsx:445
+#: src/components/welcome-modal/custom-endpoint-view.tsx:525
 #: src/components/settings/views/integrations.tsx:197
 #: src/components/settings/components/ai/llm-custom-view.tsx:284
 #: src/components/settings/components/ai/llm-custom-view.tsx:380
@@ -426,6 +435,11 @@ msgstr "Audio Permissions"
 #: src/components/settings/views/ai.tsx:828
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
+
+#: src/components/welcome-modal/index.tsx:351
+#: src/components/welcome-modal/index.tsx:362
+msgid "Back"
+msgstr "Back"
 
 #: src/components/settings/views/integrations.tsx:246
 msgid "Base Folder"
@@ -504,6 +518,10 @@ msgstr "Choose the languages you speak for better transcription accuracy"
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
+#: src/components/welcome-modal/llm-selection-view.tsx:40
+msgid "Choose Your LLM"
+msgstr "Choose Your LLM"
+
 #: src/components/settings/views/general.tsx:230
 #~ msgid "Choose your preferred language of use"
 #~ msgstr "Choose your preferred language of use"
@@ -527,6 +545,14 @@ msgstr "Company description"
 #: src/components/settings/views/profile.tsx:160
 msgid "Company name"
 msgstr "Company name"
+
+#: src/components/welcome-modal/custom-endpoint-view.tsx:607
+msgid "Complete the configuration to continue"
+msgstr "Complete the configuration to continue"
+
+#: src/components/welcome-modal/custom-endpoint-view.tsx:221
+msgid "Configure Your LLM"
+msgstr "Configure Your LLM"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 #~ msgid "Connect"
@@ -569,7 +595,9 @@ msgid "Contacts Access"
 msgstr "Contacts Access"
 
 #: src/components/welcome-modal/model-selection-view.tsx:137
-#: src/components/welcome-modal/download-progress-view.tsx:248
+#: src/components/welcome-modal/llm-selection-view.tsx:94
+#: src/components/welcome-modal/download-progress-view.tsx:258
+#: src/components/welcome-modal/custom-endpoint-view.tsx:602
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
@@ -666,7 +694,7 @@ msgstr "Display language"
 #~ msgid "Download {0}"
 #~ msgstr "Download {0}"
 
-#: src/components/welcome-modal/download-progress-view.tsx:196
+#: src/components/welcome-modal/download-progress-view.tsx:204
 msgid "Downloading AI Models"
 msgstr "Downloading AI Models"
 
@@ -860,7 +888,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/welcome-modal/download-progress-view.tsx:252
+#: src/components/welcome-modal/download-progress-view.tsx:262
 msgid "It's ok to move on, downloads will continue in the background"
 msgstr "It's ok to move on, downloads will continue in the background"
 
@@ -920,6 +948,10 @@ msgstr "Loading available models..."
 msgid "Loading events..."
 msgstr "Loading events..."
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:557
+msgid "Loading models..."
+msgstr "Loading models..."
+
 #: src/components/settings/views/templates.tsx:238
 msgid "Loading templates..."
 msgstr "Loading templates..."
@@ -962,12 +994,16 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:322
+#: src/components/welcome-modal/custom-endpoint-view.tsx:389
+#: src/components/welcome-modal/custom-endpoint-view.tsx:466
 #: src/components/settings/components/ai/llm-custom-view.tsx:304
 #: src/components/settings/components/ai/llm-custom-view.tsx:400
 #: src/components/settings/components/ai/llm-custom-view.tsx:506
 msgid "Model"
 msgstr "Model"
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:551
 #: src/components/settings/components/ai/llm-custom-view.tsx:623
 msgid "Model Name"
 msgstr "Model Name"
@@ -1153,7 +1189,7 @@ msgstr "Primary language for the interface"
 msgid "Publish your note"
 msgstr "Publish your note"
 
-#: src/components/welcome-modal/download-progress-view.tsx:66
+#: src/components/welcome-modal/download-progress-view.tsx:67
 msgid "Ready"
 msgstr "Ready"
 
@@ -1253,13 +1289,25 @@ msgstr "Sections"
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 
+#: src/components/welcome-modal/custom-endpoint-view.tsx:278
+msgid "Select a provider above to configure"
+msgstr "Select a provider above to configure"
+
 #: src/components/settings/views/templates.tsx:255
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
 #: src/components/welcome-modal/model-selection-view.tsx:73
-msgid "Select a transcribing model"
-msgstr "Select a transcribing model"
+#~ msgid "Select a transcribing model"
+#~ msgstr "Select a transcribing model"
+
+#: src/components/welcome-modal/model-selection-view.tsx:73
+msgid "Select a transcribing model (STT)"
+msgstr "Select a transcribing model (STT)"
+
+#: src/components/welcome-modal/llm-selection-view.tsx:99
+msgid "Select an option to continue"
+msgstr "Select an option to continue"
 
 #: src/components/welcome-modal/language-selection-view.tsx:124
 msgid "Select at least one language"
@@ -1268,6 +1316,10 @@ msgstr "Select at least one language"
 #: src/components/settings/components/calendar/calendar-selector.tsx:69
 msgid "Select Calendars"
 msgstr "Select Calendars"
+
+#: src/components/welcome-modal/llm-selection-view.tsx:44
+msgid "Select how you want to process your meeting notes"
+msgstr "Select how you want to process your meeting notes"
 
 #: src/components/settings/views/general.tsx:271
 msgid "Select languages you speak for better transcription"
@@ -1305,7 +1357,7 @@ msgstr "Show notifications when you join a meeting."
 #~ msgid "Single sign-on for all users"
 #~ msgstr "Single sign-on for all users"
 
-#: src/components/welcome-modal/download-progress-view.tsx:222
+#: src/components/welcome-modal/download-progress-view.tsx:230
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 

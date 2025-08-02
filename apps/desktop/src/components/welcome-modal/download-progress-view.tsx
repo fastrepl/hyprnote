@@ -19,6 +19,7 @@ interface ModelDownloadProgress {
 
 interface DownloadProgressViewProps {
   selectedSttModel: SupportedModel;
+  llmSelection: "hyprllm" | "byom" | null;
   onContinue: () => void;
 }
 
@@ -86,6 +87,7 @@ const ModelProgressCard = ({
 
 export const DownloadProgressView = ({
   selectedSttModel,
+  llmSelection,
   onContinue,
 }: DownloadProgressViewProps) => {
   const [sttDownload, setSttDownload] = useState<ModelDownloadProgress>({
@@ -107,7 +109,11 @@ export const DownloadProgressView = ({
   useEffect(() => {
     localSttCommands.downloadModel(selectedSttModel, sttDownload.channel);
 
-    localLlmCommands.downloadModel("HyprLLM", llmDownload.channel);
+    if (llmSelection === "hyprllm") {
+      localLlmCommands.downloadModel("HyprLLM", llmDownload.channel);
+    } else {
+      setLlmDownload(prev => ({ ...prev, completed: true }));
+    }
 
     sttDownload.channel.onmessage = (progress) => {
       if (progress < 0) {
@@ -122,19 +128,21 @@ export const DownloadProgressView = ({
       }));
     };
 
-    llmDownload.channel.onmessage = (progress) => {
-      if (progress < 0) {
-        setLlmDownload(prev => ({ ...prev, error: true }));
-        return;
-      }
+    if (llmSelection === "hyprllm") {
+      llmDownload.channel.onmessage = (progress) => {
+        if (progress < 0) {
+          setLlmDownload(prev => ({ ...prev, error: true }));
+          return;
+        }
 
-      setLlmDownload(prev => ({
-        ...prev,
-        progress: Math.max(prev.progress, progress),
-        completed: progress >= 100,
-      }));
-    };
-  }, [selectedSttModel, sttDownload.channel, llmDownload.channel]);
+        setLlmDownload(prev => ({
+          ...prev,
+          progress: Math.max(prev.progress, progress),
+          completed: progress >= 100,
+        }));
+      };
+    }
+  }, [selectedSttModel, sttDownload.channel, llmDownload.channel, llmSelection]);
 
   const bothCompleted = sttDownload.completed && llmDownload.completed;
   const hasErrors = sttDownload.error || llmDownload.error;
@@ -174,7 +182,7 @@ export const DownloadProgressView = ({
     };
 
     const handleLlmCompletion = async () => {
-      if (llmDownload.completed) {
+      if (llmDownload.completed && llmSelection === "hyprllm") {
         try {
           await localLlmCommands.setCurrentModel("HyprLLM");
           await localLlmCommands.startServer();
@@ -186,7 +194,7 @@ export const DownloadProgressView = ({
 
     handleSttCompletion();
     handleLlmCompletion();
-  }, [sttDownload.completed, llmDownload.completed, selectedSttModel]);
+  }, [sttDownload.completed, llmDownload.completed, selectedSttModel, llmSelection]);
 
   const sttMetadata = sttModelMetadata[selectedSttModel];
 
@@ -233,12 +241,14 @@ export const DownloadProgressView = ({
           size={sttMetadata?.size || "250MB"}
         />
 
-        <ModelProgressCard
-          title="Language Model"
-          icon={BrainIcon}
-          download={llmDownload}
-          size="1.1GB"
-        />
+        {llmSelection === "hyprllm" && (
+          <ModelProgressCard
+            title="Language Model"
+            icon={BrainIcon}
+            download={llmDownload}
+            size="1.1GB"
+          />
+        )}
       </div>
 
       <PushableButton

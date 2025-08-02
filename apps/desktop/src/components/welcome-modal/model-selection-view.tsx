@@ -70,7 +70,7 @@ export const ModelSelectionView = ({
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-xl font-semibold mb-4 flex items-center justify-center">
-        <Trans>Select a transcribing model</Trans>
+        <Trans>Select a transcribing model (STT)</Trans>
       </h2>
 
       <div className="w-full mb-8 px-2 sm:px-4">

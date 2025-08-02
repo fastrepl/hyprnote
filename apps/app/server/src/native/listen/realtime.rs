@@ -11,8 +11,8 @@ use axum::{
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
 
-use hypr_listener_interface::{ListenInputChunk, ListenOutputChunk, ListenParams};
 use hypr_stt::realtime::RealtimeSpeechToText;
+use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams};
 
 use crate::state::STTState;
 

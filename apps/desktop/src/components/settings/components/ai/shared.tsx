@@ -127,7 +127,7 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;
   getCustomLLMModel: UseQueryResult<string | null>;
-  availableLLMModels: UseQueryResult<string[]>;
+  // availableLLMModels: UseQueryResult<string[]>;
 
   // Form instances for each provider
   openaiForm: UseFormReturn<OpenAIFormValues>;

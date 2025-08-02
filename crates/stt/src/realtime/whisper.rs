@@ -5,7 +5,7 @@ use std::error::Error;
 use hypr_whisper_cloud::WhisperClient;
 
 use super::RealtimeSpeechToText;
-use hypr_listener_interface::{ListenOutputChunk, Word};
+use owhisper_interface::{ListenOutputChunk, Word};
 
 impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
     async fn transcribe(

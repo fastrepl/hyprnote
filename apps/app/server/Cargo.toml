@@ -8,7 +8,7 @@ dotenv = { workspace = true }
 
 [dependencies]
 hypr-auth-interface = { workspace = true }
-hypr-listener-interface = { workspace = true }
+owhisper-interface = { workspace = true }
 
 futures-util = { workspace = true }
 hypr-analytics = { workspace = true }

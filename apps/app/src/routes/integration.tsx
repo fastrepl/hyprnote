@@ -31,7 +31,8 @@ function Component() {
   const [connect, setConnect] = useState<ConnectUI | null>(null);
 
   if (isLoaded && !userId) {
-    throw navigate({ to: "/auth/sign-in", search: undefined });
+    // TODO
+    throw navigate({ to: "/auth/sign-in", search: { c: provider, f: "web", p: 1 } });
   }
 
   const connectMutation = useMutation({

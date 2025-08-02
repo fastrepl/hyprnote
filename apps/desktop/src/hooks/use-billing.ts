@@ -5,7 +5,7 @@ import { fetch } from "@hypr/utils";
 
 const SERVER_BASE_URL = import.meta.env.DEV
   ? "http://localhost:8082"
-  : "https://server.hyprnote.com";
+  : "https://server2.hyprnote.com";
 
 export function useBilling({
   stripe_customer_id,

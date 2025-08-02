@@ -18,10 +18,12 @@ pub struct MicInput {
 
 impl MicInput {
     pub fn device_name(&self) -> String {
-        self.device.name().unwrap_or_default()
+        self.device
+            .name()
+            .unwrap_or("Unknown Microphone".to_string())
     }
 
-    pub fn new(device_name: Option<String>) -> Self {
+    pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
         let host = cpal::default_host();
 
         let default_input_device = host.default_input_device();
@@ -33,7 +35,7 @@ impl MicInput {
         let device = match device_name {
             None => default_input_device
                 .or_else(|| input_devices.into_iter().next())
-                .unwrap(),
+                .ok_or(crate::Error::NoInputDevice)?,
             Some(name) => input_devices
                 .into_iter()
                 .find(|d| d.name().unwrap_or_default() == name)
@@ -43,16 +45,16 @@ impl MicInput {
                         .ok()
                         .and_then(|mut devices| devices.next())
                 })
-                .unwrap(),
+                .ok_or(crate::Error::NoInputDevice)?,
         };
 
         let config = device.default_input_config().unwrap();
 
-        Self {
+        Ok(Self {
             host,
             device,
             config,
-        }
+        })
     }
 }
 
@@ -187,7 +189,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mic() {
-        let mic = MicInput::new(None);
+        let mic = MicInput::new(None).unwrap();
         let mut stream = mic.stream();
 
         let mut buffer = Vec::new();

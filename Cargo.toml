@@ -12,20 +12,22 @@ resolver = "2"
 members = [
   "apps/app/server",
   "apps/desktop/src-tauri",
-  "apps/restate",
   "crates/*",
+  "owhisper/*",
   "plugins/*",
 ]
 exclude = ["plugins/membership"]
 
 [workspace.package]
-rust-version = "1.86.0"
+rust-version = "1.88.0"
 
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
+hypr-audio-input = { path = "crates/audio-input", package = "audio-input" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
+hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-apple" }
 hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
@@ -61,6 +63,11 @@ hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template = { path = "crates/template", package = "template" }
+hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
+hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
+hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
+hypr-transcribe-gcp = { path = "crates/transcribe-gcp", package = "transcribe-gcp" }
+hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-cloud = { path = "crates/whisper-cloud", package = "whisper-cloud" }
@@ -68,10 +75,11 @@ hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" 
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
-hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
-hypr-listener-interface = { path = "plugins/listener-interface", package = "listener-interface" }
+owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-client" }
+owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
+owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
 
-tauri = "2.6"
+tauri = "2.7"
 tauri-build = "2.3"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin = "2.3"

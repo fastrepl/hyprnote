@@ -13,16 +13,22 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
+import { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
 
 const openaiModels = [
   "gpt-4o",
   "gpt-4o-mini",
+  "gpt-4.1-nano",
   "gpt-4.1",
   "chatgpt-4o-latest",
 ];
 
 const geminiModels = [
+  "gemini-2.5-pro",
   "gemini-1.5-pro",
   "gemini-1.5-flash",
 ];
@@ -32,6 +38,7 @@ const openrouterModels = [
   "openai/gpt-4o-mini",
   "openai/gpt-4o",
   "openai/gpt-4.1-nano",
+  "openai/chatgpt-4o-latest",
   "anthropic/claude-sonnet-4",
   "moonshotai/kimi-k2",
   "mistralai/mistral-small-3.2-24b-instruct",
@@ -47,7 +54,6 @@ export function LLMCustomView({
   setOpenAccordion,
   customLLMConnection,
   getCustomLLMModel,
-  availableLLMModels,
   openaiForm,
   geminiForm,
   openrouterForm,
@@ -141,6 +147,84 @@ export function LLMCustomView({
     setCustomLLMEnabledMutation.mutate(true);
     setSelectedLLMModel("");
   };
+
+  // temporary fix for fetching models smoothly
+  const [debouncedApiBase, setDebouncedApiBase] = useState("");
+  const [debouncedApiKey, setDebouncedApiKey] = useState("");
+
+  const updateDebouncedValues = useDebouncedCallback(
+    (apiBase: string, apiKey: string) => {
+      setDebouncedApiBase(apiBase);
+      setDebouncedApiKey(apiKey);
+    },
+    [],
+    2000,
+  );
+
+  // Watch for form changes
+  useEffect(() => {
+    const apiBase = customForm.watch("api_base");
+    const apiKey = customForm.watch("api_key");
+
+    updateDebouncedValues(apiBase || "", apiKey || "");
+  }, [customForm.watch("api_base"), customForm.watch("api_key"), updateDebouncedValues]);
+
+  const othersModels = useQuery({
+    queryKey: ["others-direct-models", debouncedApiBase, debouncedApiKey?.slice(0, 8)],
+    queryFn: async (): Promise<string[]> => {
+      const apiBase = debouncedApiBase;
+      const apiKey = debouncedApiKey;
+
+      const url = new URL(apiBase);
+      url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
+
+      console.log("onquery");
+      console.log(url.toString());
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (apiKey && apiKey.trim().length > 0) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      }
+
+      const response = await tauriFetch(url.toString(), {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.data || !Array.isArray(data.data)) {
+        throw new Error("Invalid response format");
+      }
+
+      const models = data.data
+        .map((model: any) => model.id)
+        .filter((id: string) => {
+          const excludeKeywords = ["dall-e", "codex", "whisper"];
+          return !excludeKeywords.some(keyword => id.includes(keyword));
+        });
+
+      return models;
+    },
+    enabled: (() => {
+      const isLocal = debouncedApiBase?.includes("localhost") || debouncedApiBase?.includes("127.0.0.1");
+
+      try {
+        return Boolean(debouncedApiBase && new URL(debouncedApiBase) && (isLocal || debouncedApiKey));
+      } catch {
+        return false;
+      }
+    })(),
+    retry: 1,
+    refetchInterval: false,
+  });
 
   return (
     <div className="space-y-6">
@@ -505,30 +589,30 @@ export function LLMCustomView({
                       )}
                     />
 
-                    {customForm.watch("api_base") && !isLocalEndpoint() && (
-                      <FormField
-                        control={customForm.control}
-                        name="api_key"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium">
-                              <Trans>API Key</Trans>
-                            </FormLabel>
-                            <FormDescription className="text-xs">
-                              <Trans>Enter the API key for your custom LLM endpoint</Trans>
-                            </FormDescription>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="password"
-                                placeholder="sk-..."
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={customForm.control}
+                      name="api_key"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>API Key</Trans>
+                            {customForm.watch("api_base") && isLocalEndpoint() && (
+                              <span className="text-xs font-normal text-neutral-500 ml-2">
+                                <Trans>(Optional for localhost)</Trans>
+                              </span>
+                            )}
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="sk-..."
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <FormField
                       control={customForm.control}
@@ -545,13 +629,13 @@ export function LLMCustomView({
                             </Trans>
                           </FormDescription>
                           <FormControl>
-                            {availableLLMModels.isLoading && !field.value
+                            {othersModels.isLoading && !field.value
                               ? (
                                 <div className="py-1 text-sm text-neutral-500">
                                   <Trans>Loading available models...</Trans>
                                 </div>
                               )
-                              : availableLLMModels.data && availableLLMModels.data.length > 0
+                              : othersModels.data && othersModels.data.length > 0
                               ? (
                                 <Select
                                   value={field.value}
@@ -561,7 +645,7 @@ export function LLMCustomView({
                                     <SelectValue placeholder="Select model" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {availableLLMModels.data.map((model) => (
+                                    {othersModels.data.map((model) => (
                                       <SelectItem key={model} value={model}>
                                         {model}
                                       </SelectItem>
@@ -572,7 +656,7 @@ export function LLMCustomView({
                               : (
                                 <Input
                                   {...field}
-                                  placeholder="Enter model name (e.g., gpt-4, llama3.2:3b)"
+                                  placeholder="Enter model name (endpoint has no discoverable models)"
                                 />
                               )}
                           </FormControl>

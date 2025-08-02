@@ -8,7 +8,7 @@ use deepgram::common::{
 use futures_util::{future, Stream, StreamExt};
 
 use super::RealtimeSpeechToText;
-use hypr_listener_interface::{ListenOutputChunk, SpeakerIdentity, Word};
+use owhisper_interface::{ListenOutputChunk, SpeakerIdentity, Word};
 
 impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
     async fn transcribe(

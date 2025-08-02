@@ -39,7 +39,7 @@ pub async fn onboarding_session_id(
 #[tracing::instrument(skip(state))]
 pub async fn get_words_onboarding(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<Vec<hypr_listener_interface::Word>, String> {
+) -> Result<Vec<owhisper_interface::Word>, String> {
     let guard = state.lock().await;
 
     let db = guard
@@ -58,7 +58,7 @@ pub async fn get_words_onboarding(
 pub async fn get_words(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
-) -> Result<Vec<hypr_listener_interface::Word>, String> {
+) -> Result<Vec<owhisper_interface::Word>, String> {
     let guard = state.lock().await;
 
     let db = guard

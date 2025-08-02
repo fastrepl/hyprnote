@@ -32,8 +32,8 @@ impl UserDatabase {
 
     pub async fn get_words_onboarding(
         &self,
-    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
-        let words: Vec<hypr_listener_interface::Word> =
+    ) -> Result<Vec<owhisper_interface::Word>, crate::Error> {
+        let words: Vec<owhisper_interface::Word> =
             serde_json::from_str(hypr_data::english_7::WORDS_JSON).unwrap();
         Ok(words)
     }
@@ -41,7 +41,7 @@ impl UserDatabase {
     pub async fn get_words(
         &self,
         session_id: impl Into<String>,
-    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+    ) -> Result<Vec<owhisper_interface::Word>, crate::Error> {
         let conn = self.conn()?;
         let mut rows = conn
             .query(
@@ -462,7 +462,7 @@ mod tests {
             raw_memo_html: "raw_memo_html_1".to_string(),
             enhanced_memo_html: None,
             conversations: vec![],
-            words: vec![hypr_listener_interface::Word {
+            words: vec![owhisper_interface::Word {
                 text: "hello 1".to_string(),
                 start_ms: None,
                 end_ms: None,

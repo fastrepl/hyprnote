@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
-import { memo, useEffect, useState } from "react";
+import { MessageCircleMore } from "lucide-react";
+import { memo, useEffect } from "react";
 
 import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -9,21 +10,8 @@ import Shortcut from "../../shortcut";
 
 function ChatPanelButtonBase() {
   const { isExpanded, currentView, togglePanel } = useRightPanel();
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const isActive = isExpanded && currentView === "chat";
-
-  useEffect(() => {
-    const animationInterval = setInterval(() => {
-      setIsAnimating(true);
-      const timeout = setTimeout(() => {
-        setIsAnimating(false);
-      }, 1625);
-      return () => clearTimeout(timeout);
-    }, 4625);
-
-    return () => clearInterval(animationInterval);
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -53,13 +41,7 @@ function ChatPanelButtonBase() {
           onClick={handleClick}
           className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isActive && "bg-neutral-200")}
         >
-          <div className="relative w-6 aspect-square flex items-center justify-center">
-            <img
-              src={isAnimating ? "/assets/dynamic.gif" : "/assets/static.png"}
-              alt="Chat Assistant"
-              className="w-full h-full"
-            />
-          </div>
+          <MessageCircleMore className="w-4 h-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

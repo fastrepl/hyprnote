@@ -102,7 +102,7 @@ export function TranscriptView() {
     {
       refetchInterval: 2500,
       enabled: !!sessionId,
-      queryKey: ["audioExist", sessionId],
+      queryKey: ["audio", sessionId, "exist"],
       queryFn: () => miscCommands.audioExist(sessionId!),
     },
     queryClient,

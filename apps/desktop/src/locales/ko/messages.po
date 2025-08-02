@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:358
+#: src/components/settings/views/general.tsx:361
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -256,14 +256,18 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
+#: src/components/settings/components/ai/llm-custom-view.tsx:601
+msgid "(Optional for localhost)"
+msgstr ""
+
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
-#: src/components/settings/views/templates.tsx:208
+#: src/components/settings/views/templates.tsx:215
 #: src/components/settings/components/wer-modal.tsx:116
-#: src/components/editor-area/note-header/listen-button.tsx:209
-#: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/editor-area/note-header/listen-button.tsx:251
+#: src/components/editor-area/note-header/listen-button.tsx:216
+#: src/components/editor-area/note-header/listen-button.tsx:238
+#: src/components/editor-area/note-header/listen-button.tsx:258
 msgid "{0}"
 msgstr ""
 
@@ -316,7 +320,7 @@ msgstr ""
 msgid "Access Granted"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:382
+#: src/components/settings/components/ai/llm-custom-view.tsx:466
 msgid "Access multiple AI models through OpenRouter with your API key"
 msgstr ""
 
@@ -336,11 +340,11 @@ msgstr ""
 msgid "Add members"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:311
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:317
 msgid "Add participant"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:349
+#: src/components/settings/views/general.tsx:352
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr ""
 
@@ -382,15 +386,15 @@ msgstr ""
 msgid "Anyone with the link can view this page"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:492
+#: src/components/settings/components/ai/llm-custom-view.tsx:576
 msgid "API Base URL"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:197
-#: src/components/settings/components/ai/llm-custom-view.tsx:200
-#: src/components/settings/components/ai/llm-custom-view.tsx:296
-#: src/components/settings/components/ai/llm-custom-view.tsx:402
-#: src/components/settings/components/ai/llm-custom-view.tsx:515
+#: src/components/settings/components/ai/llm-custom-view.tsx:284
+#: src/components/settings/components/ai/llm-custom-view.tsx:380
+#: src/components/settings/components/ai/llm-custom-view.tsx:486
+#: src/components/settings/components/ai/llm-custom-view.tsx:598
 msgid "API Key"
 msgstr ""
 
@@ -419,7 +423,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:826
+#: src/components/settings/views/ai.tsx:828
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -439,7 +443,7 @@ msgstr ""
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr ""
 
-#: src/components/settings/views/templates.tsx:293
+#: src/components/settings/views/templates.tsx:300
 #: src/components/settings/components/templates-sidebar.tsx:68
 msgid "Built-in Templates"
 msgstr ""
@@ -528,7 +532,7 @@ msgstr ""
 #~ msgid "Connect"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:472
+#: src/components/settings/components/ai/llm-custom-view.tsx:556
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)"
 msgstr ""
 
@@ -575,7 +579,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:829
+#: src/components/settings/views/ai.tsx:831
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -588,7 +592,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/routes/app.human.$id.tsx:535
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:399
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:405
 msgid "Create"
 msgstr ""
 
@@ -600,11 +604,11 @@ msgstr ""
 msgid "Create new note"
 msgstr ""
 
-#: src/components/workspace-calendar/event-card.tsx:151
+#: src/components/workspace-calendar/event-card.tsx:129
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:283
+#: src/components/settings/views/templates.tsx:290
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -620,11 +624,11 @@ msgstr ""
 #~ msgid "Custom Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:149
+#: src/components/settings/components/ai/llm-custom-view.tsx:233
 msgid "Custom Endpoints"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:346
+#: src/components/settings/views/general.tsx:349
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -654,7 +658,7 @@ msgstr ""
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:236
+#: src/components/settings/views/general.tsx:239
 msgid "Display language"
 msgstr ""
 
@@ -710,11 +714,11 @@ msgstr ""
 #~ msgid "Enter model name (e.g., gpt-4, llama3.2:3b)"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:518
-msgid "Enter the API key for your custom LLM endpoint"
-msgstr ""
+#: src/components/settings/components/ai/llm-custom-view.tsx:519
+#~ msgid "Enter the API key for your custom LLM endpoint"
+#~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:495
+#: src/components/settings/components/ai/llm-custom-view.tsx:579
 msgid "Enter the base URL for your custom LLM endpoint"
 msgstr ""
 
@@ -791,7 +795,7 @@ msgstr ""
 msgid "Get Started"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:272
+#: src/components/settings/components/ai/llm-custom-view.tsx:356
 msgid "Google Gemini"
 msgstr ""
 
@@ -809,8 +813,8 @@ msgid "Grant both permissions to continue"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:212
-msgid "Help us improve Hyprnote by sharing anonymous usage data"
-msgstr ""
+#~ msgid "Help us improve Hyprnote by sharing anonymous usage data"
+#~ msgstr ""
 
 #: src/components/settings/views/feedback.tsx:52
 #~ msgid "Help us improve the Hyprnote experience by providing feedback."
@@ -868,7 +872,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:241
+#: src/components/editor-area/note-header/chips/event-chip.tsx:191
 msgid "Join meeting"
 msgstr ""
 
@@ -900,23 +904,23 @@ msgstr ""
 #~ msgid "Live summary of the meeting"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:803
+#: src/components/settings/views/ai.tsx:804
 msgid "LLM - Custom"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:800
+#: src/components/settings/views/ai.tsx:801
 msgid "LLM - Local"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:551
+#: src/components/settings/components/ai/llm-custom-view.tsx:635
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:289
+#: src/components/editor-area/note-header/chips/event-chip.tsx:407
 msgid "Loading events..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:231
+#: src/components/settings/views/templates.tsx:238
 msgid "Loading templates..."
 msgstr ""
 
@@ -958,13 +962,13 @@ msgstr ""
 msgid "Microphone Access"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:220
-#: src/components/settings/components/ai/llm-custom-view.tsx:316
-#: src/components/settings/components/ai/llm-custom-view.tsx:422
+#: src/components/settings/components/ai/llm-custom-view.tsx:304
+#: src/components/settings/components/ai/llm-custom-view.tsx:400
+#: src/components/settings/components/ai/llm-custom-view.tsx:506
 msgid "Model"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:539
+#: src/components/settings/components/ai/llm-custom-view.tsx:623
 msgid "Model Name"
 msgstr ""
 
@@ -980,7 +984,7 @@ msgstr ""
 #~ msgid "Much better AI performance"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:103
+#: src/components/left-sidebar/top-area/settings-button.tsx:108
 msgid "My Profile"
 msgstr ""
 
@@ -1013,7 +1017,7 @@ msgstr ""
 #~ msgid "No models available for this endpoint."
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:314
+#: src/components/editor-area/note-header/chips/event-chip.tsx:415
 msgid "No past events found."
 msgstr ""
 
@@ -1033,11 +1037,11 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:378
+#: src/components/editor-area/note-header/listen-button.tsx:513
 msgid "No Template (Default)"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:280
+#: src/components/settings/views/templates.tsx:287
 msgid "No templates yet"
 msgstr ""
 
@@ -1073,7 +1077,7 @@ msgstr ""
 #~ msgid "Open calendar view"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/finder-button.tsx:41
+#: src/components/left-sidebar/top-area/finder-button.tsx:26
 msgid "Open finder view"
 msgstr ""
 
@@ -1088,11 +1092,11 @@ msgstr ""
 #~ msgid "Open Note"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:176
+#: src/components/settings/components/ai/llm-custom-view.tsx:260
 msgid "OpenAI"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:378
+#: src/components/settings/components/ai/llm-custom-view.tsx:462
 msgid "OpenRouter"
 msgstr ""
 
@@ -1104,7 +1108,7 @@ msgstr ""
 msgid "Optional for participant suggestions"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:469
+#: src/components/settings/components/ai/llm-custom-view.tsx:553
 msgid "Others"
 msgstr ""
 
@@ -1113,7 +1117,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:401
+#: src/components/editor-area/note-header/listen-button.tsx:359
 msgid "Pause"
 msgstr ""
 
@@ -1121,7 +1125,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:181
+#: src/components/settings/components/ai/stt-view.tsx:259
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1133,7 +1137,7 @@ msgstr ""
 #~ msgid "Play video"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:239
+#: src/components/settings/views/general.tsx:242
 msgid "Primary language for the interface"
 msgstr ""
 
@@ -1165,6 +1169,10 @@ msgstr ""
 #~ msgid "Recording Started"
 #~ msgstr ""
 
+#: src/components/settings/views/ai.tsx:891
+#~ msgid "Redemption Time"
+#~ msgstr ""
+
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
@@ -1187,7 +1195,7 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:135
+#: src/components/editor-area/note-header/listen-button.tsx:142
 msgid "Resume"
 msgstr ""
 
@@ -1200,8 +1208,20 @@ msgstr ""
 #~ msgid "Save and close"
 #~ msgstr ""
 
+#: src/components/editor-area/note-header/listen-button.tsx:483
+msgid "Save current recording"
+msgstr ""
+
+#: src/components/editor-area/note-header/chips/event-chip.tsx:533
+msgid "Save Date"
+msgstr ""
+
 #: src/components/settings/views/general.tsx:183
 msgid "Save recordings"
+msgstr ""
+
+#: src/components/editor-area/note-header/chips/event-chip.tsx:533
+msgid "Saving..."
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:51
@@ -1229,11 +1249,11 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:542
+#: src/components/settings/components/ai/llm-custom-view.tsx:626
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:248
+#: src/components/settings/views/templates.tsx:255
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1249,7 +1269,7 @@ msgstr ""
 msgid "Select Calendars"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:268
+#: src/components/settings/views/general.tsx:271
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1265,7 +1285,7 @@ msgstr ""
 msgid "Send invite"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:96
+#: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"
 msgstr ""
 
@@ -1293,7 +1313,7 @@ msgstr ""
 msgid "Sound"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:265
+#: src/components/settings/views/general.tsx:268
 msgid "Spoken languages"
 msgstr ""
 
@@ -1305,11 +1325,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:184
+#: src/components/editor-area/note-header/listen-button.tsx:191
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:460
 msgid "Stop"
 msgstr ""
 
@@ -1330,7 +1350,7 @@ msgstr ""
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:109
+#: src/components/left-sidebar/top-area/settings-button.tsx:114
 msgid "Talk to Founders"
 msgstr ""
 
@@ -1344,6 +1364,10 @@ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:34
 msgid "Teamspace"
+msgstr ""
+
+#: src/components/editor-area/note-header/listen-button.tsx:504
+msgid "Template"
 msgstr ""
 
 #: src/routes/app.settings.tsx:74
@@ -1378,11 +1402,15 @@ msgstr ""
 msgid "This is the name of the company you work for."
 msgstr ""
 
+#: src/components/settings/views/ai.tsx:894
+#~ msgid "Time window (in milliseconds) to allow redemption of failed requests"
+#~ msgstr ""
+
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
 msgstr ""
 
-#: src/components/toolbar/buttons/chat-panel-button.tsx:67
+#: src/components/toolbar/buttons/chat-panel-button.tsx:49
 msgid "Toggle chat panel"
 msgstr ""
 
@@ -1394,11 +1422,11 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:172
+#: src/components/settings/components/ai/stt-view.tsx:250
 msgid "Transcribing"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:797
+#: src/components/settings/views/ai.tsx:798
 msgid "Transcription"
 msgstr ""
 
@@ -1438,11 +1466,11 @@ msgstr ""
 #~ msgid "Upgrade"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:276
+#: src/components/settings/components/ai/llm-custom-view.tsx:360
 msgid "Use Google's Gemini models with your API key"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:180
+#: src/components/settings/components/ai/llm-custom-view.tsx:264
 msgid "Use OpenAI's GPT models with your API key"
 msgstr ""
 
@@ -1471,7 +1499,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:246
+#: src/components/editor-area/note-header/chips/event-chip.tsx:201
 msgid "View in calendar"
 msgstr ""
 
@@ -1543,7 +1571,7 @@ msgstr ""
 msgid "Your Name"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:245
+#: src/components/settings/views/templates.tsx:252
 #: src/components/settings/components/templates-sidebar.tsx:45
 msgid "Your Templates"
 msgstr ""

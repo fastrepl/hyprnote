@@ -10,7 +10,7 @@ hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-language = { workspace = true }
-hypr-listener-interface = { workspace = true }
+owhisper-interface = { workspace = true }
 
 libsql = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }

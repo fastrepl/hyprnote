@@ -81,7 +81,7 @@ const customSchema = z.object({
       }
       return true;
     },
-    { message: "Should end with '/v1'" },
+    { message: "Unless you are using a local endpoint, it should end with '/v1'" },
   ).refine(
     (value) => !value.includes("chat/completions"),
     { message: "`/chat/completions` will be appended automatically" },
@@ -199,7 +199,7 @@ const initialLlmModels: LLMModel[] = [
 ];
 
 const aiConfigSchema = z.object({
-  aiSpecificity: z.number().int().min(1).max(4).optional(),
+  aiSpecificity: z.number().int().min(1).max(4),
 });
 type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
@@ -318,12 +318,15 @@ export default function LocalAI() {
     queryFn: () => connectorCommands.getCustomLlmModel(),
   });
 
+  /*
   const availableLLMModels = useQuery({
     queryKey: ["available-llm-models"],
     queryFn: async () => {
-      return await localLlmCommands.listSupportedModels();
+      console.log("available models being loaded");
+      return await connectorCommands.listCustomLlmModels();
     },
   });
+  */
 
   const modelDownloadStatus = useQuery({
     queryKey: ["llm-model-download-status"],
@@ -566,9 +569,7 @@ export default function LocalAI() {
       setOpenrouterModelMutation.mutate(config.model);
     } else if (config.provider === "others") {
       setOthersApiBaseMutation.mutate(config.api_base);
-      if (config.api_key) {
-        setOthersApiKeyMutation.mutate(config.api_key);
-      }
+      setOthersApiKeyMutation.mutate(config.api_key || "");
       setOthersModelMutation.mutate(config.model);
     }
 
@@ -776,7 +777,7 @@ export default function LocalAI() {
     setOpenAccordion,
     customLLMConnection,
     getCustomLLMModel,
-    availableLLMModels,
+    // availableLLMModels,
     openaiForm,
     geminiForm,
     openrouterForm,
@@ -814,64 +815,68 @@ export default function LocalAI() {
 
           {/* AI Configuration - only show in custom tab */}
           {customLLMEnabled.data && (
-            <div className="max-w-2xl">
+            <div className="max-w-2xl space-y-4">
               <div className="border rounded-lg p-4">
                 <Form {...aiConfigForm}>
-                  <FormField
-                    control={aiConfigForm.control}
-                    name="aiSpecificity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>Autonomy Selector</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>Control how autonomous the AI enhancement should be</Trans>
-                        </FormDescription>
-                        <FormControl>
-                          <div className="space-y-3">
-                            <div className="w-full">
-                              <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
-                                {[1, 2, 3, 4].map((level) => (
-                                  <button
-                                    key={level}
-                                    type="button"
-                                    onClick={() => {
-                                      field.onChange(level);
-                                      aiConfigMutation.mutate({ aiSpecificity: level });
-                                      analyticsCommands.event({
-                                        event: "autonomy_selected",
-                                        distinct_id: userId,
-                                        level: level,
-                                      });
-                                    }}
-                                    disabled={!customLLMEnabled.data}
-                                    className={cn(
-                                      "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
-                                      field.value === level
-                                        ? "bg-white text-black shadow-sm"
-                                        : "text-white hover:bg-white/20",
-                                      !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
-                                    )}
-                                  >
-                                    {specificityLevels[level as keyof typeof specificityLevels]?.title}
-                                  </button>
-                                ))}
+                  <div className="space-y-4">
+                    <FormField
+                      control={aiConfigForm.control}
+                      name="aiSpecificity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">
+                            <Trans>Autonomy Selector</Trans>
+                          </FormLabel>
+                          <FormDescription className="text-xs">
+                            <Trans>Control how autonomous the AI enhancement should be</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <div className="space-y-3">
+                              <div className="w-full">
+                                <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
+                                  {[1, 2, 3, 4].map((level) => (
+                                    <button
+                                      key={level}
+                                      type="button"
+                                      onClick={() => {
+                                        field.onChange(level);
+                                        aiConfigMutation.mutate({
+                                          aiSpecificity: level,
+                                        });
+                                        analyticsCommands.event({
+                                          event: "autonomy_selected",
+                                          distinct_id: userId,
+                                          level: level,
+                                        });
+                                      }}
+                                      disabled={!customLLMEnabled.data}
+                                      className={cn(
+                                        "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
+                                        field.value === level
+                                          ? "bg-white text-black shadow-sm"
+                                          : "text-white hover:bg-white/20",
+                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
+                                      )}
+                                    >
+                                      {specificityLevels[level as keyof typeof specificityLevels]?.title}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
-                              <div className="text-xs text-muted-foreground">
-                                {specificityLevels[field.value as keyof typeof specificityLevels]?.description
-                                  || specificityLevels[3].description}
+                              <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                                <div className="text-xs text-muted-foreground">
+                                  {specificityLevels[field.value as keyof typeof specificityLevels]?.description
+                                    || specificityLevels[3].description}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </Form>
               </div>
             </div>

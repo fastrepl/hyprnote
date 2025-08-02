@@ -1,7 +1,7 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { type Human, type Organization } from "@hypr/plugin-db";
@@ -20,44 +20,71 @@ interface ContactViewProps {
 }
 
 export function ContactView({ userId, initialPersonId, initialOrgId }: ContactViewProps) {
+  // Simple state initialization - handles both normal and deep-link cases
   const [selectedOrganization, setSelectedOrganization] = useState<string | null>(initialOrgId || null);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(initialPersonId || null);
+
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
   const queryClient = useQueryClient();
 
+  // Load organizations once and keep cached (global data)
   const { data: organizations = [] } = useQuery({
-    queryKey: ["organizations", userId],
+    queryKey: ["organizations"],
     queryFn: () => dbCommands.listOrganizations(null),
   });
 
-  const { data: people = [] } = useQuery({
-    queryKey: ["organization-members", selectedOrganization],
-    queryFn: () =>
-      selectedOrganization ? dbCommands.listOrganizationMembers(selectedOrganization) : Promise.resolve([]),
-    enabled: !!selectedOrganization,
+  // Load user's own profile
+  const { data: userProfile } = useQuery({
+    queryKey: ["user-profile", userId],
+    queryFn: async () => {
+      try {
+        return await dbCommands.getHuman(userId);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
+      }
+    },
   });
 
+  // Load all people once and keep cached (user-specific data)
   const { data: allPeople = [] } = useQuery({
     queryKey: ["all-people", userId],
     queryFn: async () => {
       try {
-        const allHumans = await dbCommands.listHumans({ search: [100, ""] });
+        const allHumans = await dbCommands.listHumans(null);
         return allHumans;
       } catch (error) {
         console.error("Error fetching all people:", error);
         return [];
       }
     },
-    enabled: !selectedOrganization,
   });
 
+  // Merge user profile with all people, ensuring user's own profile is included
+  const allPeopleWithUser = React.useMemo(() => {
+    if (!userProfile) {
+      return allPeople;
+    }
+
+    // Check if user is already in the list
+    const userInList = allPeople.some(person => person.id === userId);
+
+    if (userInList) {
+      return allPeople;
+    } else {
+      // Add user profile to the beginning of the list
+      return [userProfile, ...allPeople];
+    }
+  }, [allPeople, userProfile, userId]);
+
+  // Person sessions - only runs when person is selected
   const { data: personSessions = [] } = useQuery({
-    queryKey: ["person-sessions", selectedPerson, userId],
+    queryKey: ["person-sessions", selectedPerson || "none"],
     queryFn: async () => {
       if (!selectedPerson) {
-        return [];
+        throw new Error("Query should not run when selectedPerson is null");
       }
 
       const sessions = await dbCommands.listSessions({
@@ -81,35 +108,20 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
       return sessionsWithPerson;
     },
-    enabled: !!selectedPerson,
+    enabled: selectedPerson !== null && selectedPerson !== undefined && selectedPerson !== "",
+    gcTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
-  const displayPeople = selectedOrganization ? people : allPeople;
+  const isValidName = (name: string | null): boolean => {
+    return name !== null && name !== "" && name !== "Null";
+  };
+
+  const displayPeople = (selectedOrganization
+    ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
+    : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
-
-  // Handle initial person selection
-  useEffect(() => {
-    if (initialPersonId && allPeople.length > 0) {
-      const person = allPeople.find(p => p.id === initialPersonId);
-      if (person) {
-        setSelectedPerson(initialPersonId);
-        if (person.organization_id) {
-          setSelectedOrganization(person.organization_id);
-        }
-      }
-    }
-  }, [initialPersonId, allPeople]);
-
-  // Handle initial organization selection
-  useEffect(() => {
-    if (initialOrgId && organizations.length > 0) {
-      const org = organizations.find(o => o.id === initialOrgId);
-      if (org) {
-        setSelectedOrganization(initialOrgId);
-      }
-    }
-  }, [initialOrgId, organizations]);
 
   const handleSessionClick = (sessionId: string) => {
     const path = { to: "/app/note/$id", params: { id: sessionId } } as const satisfies LinkProps;
@@ -128,6 +140,27 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
   const handleEditOrganization = (organizationId: string) => {
     setEditingOrg(organizationId);
+  };
+
+  const deletePersonMutation = useMutation({
+    mutationFn: (personId: string) => dbCommands.deleteHuman(personId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-people"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+
+      if (selectedPerson === selectedPersonData?.id) {
+        setSelectedPerson(null);
+      }
+    },
+  });
+
+  const handleDeletePerson = async (personId: string) => {
+    const userConfirmed = await confirm(
+      "Are you sure you want to delete this contact? This action cannot be undone.",
+    );
+    if (userConfirmed) {
+      deletePersonMutation.mutate(personId);
+    }
   };
 
   return (
@@ -214,13 +247,13 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 id: newPersonId,
                 organization_id: selectedOrganization,
                 is_user: false,
-                full_name: null,
+                full_name: "New Contact",
                 email: null,
                 job_title: null,
                 linkedin_username: null,
               }).then(() => {
                 queryClient.invalidateQueries({ queryKey: ["all-people"] });
-                queryClient.invalidateQueries({ queryKey: ["organization-members"] });
+                queryClient.invalidateQueries({ queryKey: ["user-profile"] });
                 setSelectedPerson(newPersonId);
                 setEditingPerson(newPersonId);
               });
@@ -247,7 +280,12 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{person.full_name || person.email || "Unnamed"}</div>
+                  <div className="font-medium truncate flex items-center gap-1">
+                    {person.full_name || person.email || "Unnamed"}
+                    {person.id === userId && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">You</span>
+                    )}
+                  </div>
                   {person.email && person.full_name && (
                     <div className="text-xs text-neutral-500 truncate">{person.email}</div>
                   )}
@@ -282,8 +320,11 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h2 className="text-lg font-semibold">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                               {selectedPersonData.full_name || "Unnamed Contact"}
+                              {selectedPersonData.id === userId && (
+                                <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">You</span>
+                              )}
                             </h2>
                             {selectedPersonData.job_title && (
                               <p className="text-sm text-neutral-600">{selectedPersonData.job_title}</p>
@@ -295,12 +336,29 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                               <OrganizationInfo organizationId={selectedPersonData.organization_id} />
                             )}
                           </div>
-                          <button
-                            onClick={() => handleEditPerson(selectedPersonData.id)}
-                            className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
-                          >
-                            <Pencil className="h-4 w-4 text-neutral-500" />
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditPerson(selectedPersonData.id)}
+                              className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
+                              title="Edit contact"
+                            >
+                              <Pencil className="h-4 w-4 text-neutral-500" />
+                            </button>
+                            {!selectedPersonData.is_user && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeletePerson(selectedPersonData.id);
+                                }}
+                                className="p-2 rounded-md hover:bg-red-50 transition-colors"
+                                disabled={deletePersonMutation.isPending}
+                                title="Delete contact"
+                              >
+                                <TrashIcon className="h-4 w-4 text-red-500 hover:text-red-600" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -308,7 +366,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
                   <div className="flex-1 p-6">
                     <h3 className="text-sm font-medium text-neutral-600 mb-4 pl-3">Related Notes</h3>
-                    <div className="h-full overflow-y-auto">
+                    <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
                       <div className="space-y-2">
                         {personSessions.length > 0
                           ? (
@@ -395,7 +453,7 @@ function EditPersonForm({
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-people"] });
-      queryClient.invalidateQueries({ queryKey: ["organization-members"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
       onSave();
     },
     onError: () => {

@@ -3,7 +3,7 @@ use futures_util::{stream::SplitStream, Stream, StreamExt};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 
 use hypr_audio_utils::bytes_to_f32_samples;
-use hypr_listener_interface::ListenInputChunk;
+use owhisper_interface::ListenInputChunk;
 
 enum AudioProcessResult {
     Samples(Vec<f32>),

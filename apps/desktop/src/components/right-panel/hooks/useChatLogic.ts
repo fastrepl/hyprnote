@@ -7,8 +7,9 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { modelProvider, streamText } from "@hypr/utils/ai";
+import { modelProvider, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
+import { z } from "zod";
 
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
@@ -26,6 +27,7 @@ interface UseChatLogicProps {
   getChatGroupId: () => Promise<string>;
   sessionData: any;
   chatInputRef: React.RefObject<HTMLTextAreaElement>;
+  llmConnectionQuery: any;
 }
 
 export function useChatLogic({
@@ -41,6 +43,7 @@ export function useChatLogic({
   getChatGroupId,
   sessionData,
   chatInputRef,
+  llmConnectionQuery,
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
@@ -69,7 +72,11 @@ export function useChatLogic({
     }
   };
 
-  const prepareMessageHistory = async (messages: Message[], currentUserMessage?: string) => {
+  const prepareMessageHistory = async (
+    messages: Message[],
+    currentUserMessage?: string,
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+  ) => {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
 
@@ -107,8 +114,6 @@ export function useChatLogic({
       event: eventInfo,
     });
 
-    console.log("systemContent", systemContent);
-
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
       content: string;
@@ -123,6 +128,97 @@ export function useChatLogic({
       });
     });
 
+    if (mentionedContent && mentionedContent.length > 0) {
+      currentUserMessage +=
+        "[[From here is an automatically appended content from the mentioned notes & people, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]"
+        + "\n\n";
+    }
+
+    if (mentionedContent && mentionedContent.length > 0) {
+      const noteContents: string[] = [];
+
+      for (const mention of mentionedContent) {
+        try {
+          if (mention.type === "note") {
+            const sessionData = await dbCommands.getSession({ id: mention.id });
+
+            if (sessionData) {
+              let noteContent = "";
+
+              if (sessionData.enhanced_memo_html && sessionData.enhanced_memo_html.trim() !== "") {
+                noteContent = sessionData.enhanced_memo_html;
+              } else if (sessionData.raw_memo_html && sessionData.raw_memo_html.trim() !== "") {
+                noteContent = sessionData.raw_memo_html;
+              } else {
+                continue;
+              }
+
+              noteContents.push(`\n\n--- Content from the note"${mention.label}" ---\n${noteContent}`);
+            }
+          }
+
+          if (mention.type === "human") {
+            const humanData = await dbCommands.getHuman(mention.id);
+
+            let humanContent = "";
+            humanContent += "Name: " + humanData?.full_name + "\n";
+            humanContent += "Email: " + humanData?.email + "\n";
+            humanContent += "Job Title: " + humanData?.job_title + "\n";
+            humanContent += "LinkedIn: " + humanData?.linkedin_username + "\n";
+
+            if (humanData?.full_name) {
+              try {
+                const participantSessions = await dbCommands.listSessions({
+                  type: "search",
+                  query: humanData.full_name,
+                  user_id: userId || "",
+                  limit: 5,
+                });
+
+                if (participantSessions.length > 0) {
+                  humanContent += "\nNotes this person participated in:\n";
+
+                  for (const session of participantSessions.slice(0, 2)) {
+                    const participants = await dbCommands.sessionListParticipants(session.id);
+                    const isParticipant = participants.some(p =>
+                      p.full_name === humanData.full_name || p.email === humanData.email
+                    );
+
+                    if (isParticipant) {
+                      let briefContent = "";
+                      if (session.enhanced_memo_html && session.enhanced_memo_html.trim() !== "") {
+                        const div = document.createElement("div");
+                        div.innerHTML = session.enhanced_memo_html;
+                        briefContent = (div.textContent || div.innerText || "").slice(0, 200) + "...";
+                      } else if (session.raw_memo_html && session.raw_memo_html.trim() !== "") {
+                        const div = document.createElement("div");
+                        div.innerHTML = session.raw_memo_html;
+                        briefContent = (div.textContent || div.innerText || "").slice(0, 200) + "...";
+                      }
+
+                      humanContent += `- "${session.title || "Untitled"}": ${briefContent}\n`;
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error(`Error fetching notes for person "${humanData.full_name}":`, error);
+              }
+            }
+
+            if (humanData) {
+              noteContents.push(`\n\n--- Content about the person "${mention.label}" ---\n${humanContent}`);
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching content for "${mention.label}":`, error);
+        }
+      }
+
+      if (noteContents.length > 0) {
+        currentUserMessage = currentUserMessage + noteContents.join("");
+      }
+    }
+
     if (currentUserMessage) {
       conversationHistory.push({
         role: "user" as const,
@@ -133,19 +229,23 @@ export function useChatLogic({
     return conversationHistory;
   };
 
-  const processUserMessage = async (content: string, analyticsEvent: string) => {
+  const processUserMessage = async (
+    content: string,
+    analyticsEvent: string,
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+  ) => {
     if (!content.trim() || isGenerating) {
       return;
     }
 
-    if (messages.length >= 2 && !getLicense.data?.valid) {
+    if (messages.length >= 14 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
           event: "pro_license_required_chat",
           distinct_id: userId,
         });
       }
-      await message("2 messages are allowed per session for free users.", {
+      await message("7 messages are allowed per conversation for free users.", {
         title: "Pro License Required",
         kind: "info",
       });
@@ -185,11 +285,13 @@ export function useChatLogic({
       content: userMessage.content.trim(),
     });
 
+    // Declare aiMessageId outside try block so it's accessible in catch
+    const aiMessageId = (Date.now() + 1).toString();
+
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
         id: aiMessageId,
         content: "Generating...",
@@ -200,7 +302,18 @@ export function useChatLogic({
 
       const { textStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content),
+        messages: await prepareMessageHistory(messages, content, mentionedContent),
+        // Add tools conditionally for local LLM (same as enhance)
+        ...(llmConnectionQuery.data?.type === "HyprLocal" && {
+          tools: {
+            update_progress: tool({ inputSchema: z.any() }),
+          },
+        }),
+        onError: (error) => {
+          console.error("On Error Catch:", error);
+          setIsGenerating(false);
+          throw error;
+        },
       });
 
       let aiResponse = "";
@@ -235,29 +348,43 @@ export function useChatLogic({
     } catch (error) {
       console.error("AI error:", error);
 
+      const errorMessage = (error as any)?.error || "Unknown error";
+
+      let finalErrorMesage = "";
+
+      if (String(errorMessage).includes("too large")) {
+        finalErrorMesage =
+          "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
+          + "\n\n" + errorMessage;
+      } else {
+        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMessage;
+      }
+
       setIsGenerating(false);
 
-      const errorMessageId = (Date.now() + 1).toString();
-      const aiMessage: Message = {
-        id: errorMessageId,
-        content: "Sorry, I encountered an error. Please try again.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+      setMessages((prev) =>
+        prev.map(msg =>
+          msg.id === aiMessageId
+            ? {
+              ...msg,
+              content: finalErrorMesage,
+            }
+            : msg
+        )
+      );
 
       await dbCommands.upsertChatMessage({
-        id: errorMessageId,
+        id: aiMessageId,
         group_id: groupId,
         created_at: new Date().toISOString(),
         role: "Assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: finalErrorMesage,
       });
     }
   };
 
-  const handleSubmit = async () => {
-    await processUserMessage(inputValue, "chat_message_sent");
+  const handleSubmit = async (mentionedContent?: Array<{ id: string; type: string; label: string }>) => {
+    await processUserMessage(inputValue, "chat_message_sent", mentionedContent);
   };
 
   const handleQuickAction = async (prompt: string) => {

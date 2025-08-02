@@ -1,8 +1,8 @@
 #[allow(deprecated)]
 pub mod conversation_to_words {
     fn transform(
-        conversation: Vec<hypr_listener_interface::ConversationChunk>,
-    ) -> Vec<hypr_listener_interface::Word> {
+        conversation: Vec<owhisper_interface::ConversationChunk>,
+    ) -> Vec<owhisper_interface::Word> {
         conversation
             .into_iter()
             .flat_map(|chunk| chunk.transcripts)
@@ -11,7 +11,7 @@ pub mod conversation_to_words {
                     .text
                     .split_whitespace()
                     .filter(|s| !s.is_empty())
-                    .map(|word| hypr_listener_interface::Word {
+                    .map(|word| owhisper_interface::Word {
                         text: word.trim().to_string(),
                         speaker: None,
                         confidence: transcript.confidence,
@@ -50,7 +50,7 @@ pub mod conversation_to_words {
                 Err(_) => continue,
             };
 
-            let conversations: Vec<hypr_listener_interface::ConversationChunk> =
+            let conversations: Vec<owhisper_interface::ConversationChunk> =
                 serde_json::from_str(&conversations_str).unwrap_or_default();
 
             sessions.push((id, conversations));

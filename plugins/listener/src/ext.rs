@@ -84,7 +84,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
         }
@@ -128,7 +128,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
             mic_sample_stream.next().await;
         }
 
@@ -151,7 +151,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         let stop = hypr_audio::AudioOutput::silence();
 
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         speaker_sample_stream.next().await;
 
         let _ = stop.send(());

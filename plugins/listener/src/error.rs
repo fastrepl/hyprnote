@@ -7,9 +7,9 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
+    HyprAudioError(#[from] hypr_audio::Error),
     #[error(transparent)]
-    ListenClientError(#[from] hypr_ws::Error),
+    CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
     #[error(transparent)]
     DatabaseError(#[from] tauri_plugin_db::Error),
     #[error(transparent)]

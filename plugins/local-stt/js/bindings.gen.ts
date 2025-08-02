@@ -42,9 +42,6 @@ async stopServer() : Promise<null> {
 },
 async restartServer() : Promise<string> {
     return await TAURI_INVOKE("plugin:local-stt|restart_server");
-},
-async processRecorded(audioPath: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|process_recorded", { audioPath });
 }
 }
 

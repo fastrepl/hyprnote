@@ -2,9 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -62,7 +60,6 @@ export function FloatingButton({
   progress = 0,
   showProgress,
 }: FloatingButtonProps) {
-  const { userId } = useHypr();
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
     s.setShowRaw,
@@ -142,14 +139,6 @@ export function FloatingButton({
 
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
-
-    if (templateId !== "auto") {
-      analyticsCommands.event({
-        event: "custom_template_enhancement_started",
-        distinct_id: userId,
-      });
-    }
-
     handleEnhanceWithTemplate(templateId);
   };
 

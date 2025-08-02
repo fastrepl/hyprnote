@@ -16,7 +16,7 @@ specta-typescript = { workspace = true }
 [dependencies]
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
-hypr-listener-interface = { workspace = true }
+owhisper-interface = { workspace = true }
 
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }

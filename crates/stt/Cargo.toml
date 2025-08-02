@@ -12,8 +12,8 @@ recorded = []
 hypr-audio-utils = { workspace = true }
 hypr-clova = { workspace = true }
 hypr-language = { workspace = true, features = ["deepgram", "whisper"] }
-hypr-listener-interface = { workspace = true }
 hypr-whisper-cloud = { workspace = true }
+owhisper-interface = { workspace = true }
 
 deepgram = { workspace = true, default-features = false, features = ["listen"] }
 

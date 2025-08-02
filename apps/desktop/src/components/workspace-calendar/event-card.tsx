@@ -1,5 +1,4 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, FileText, Pen } from "lucide-react";
@@ -7,65 +6,44 @@ import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { openURL } from "@/utils/shell";
-import type { Event } from "@hypr/plugin-db";
-import { commands as dbCommands } from "@hypr/plugin-db";
+import type { Event, Human, Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 export function EventCard({
   event,
   showTime = false,
+  session = null,
+  participants = [],
 }: {
   event: Event;
   showTime?: boolean;
+  session?: Session | null;
+  participants?: Human[];
 }) {
   const { userId } = useHypr();
-  const session = useQuery({
-    queryKey: ["event-session", event.id],
-    queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
-  });
-
-  const participants = useQuery({
-    queryKey: ["participants", session.data?.id],
-    queryFn: async () => {
-      if (!session.data?.id) {
-        return [];
-      }
-      const participants = await dbCommands.sessionListParticipants(session.data.id);
-      return participants.sort((a, b) => {
-        if (a.is_user && !b.is_user) {
-          return 1;
-        }
-        if (!a.is_user && b.is_user) {
-          return -1;
-        }
-        return 0;
-      });
-    },
-    enabled: !!session.data?.id,
-  });
 
   const participantsPreview = useMemo(() => {
-    const count = participants.data?.length ?? 0;
+    const count = participants?.length ?? 0;
     if (count === 0) {
       return null;
     }
 
-    return participants.data?.map(participant => {
+    return participants?.map(participant => {
       if (participant.id === userId && !participant.full_name) {
         return "You";
       }
       return participant.full_name ?? "??";
     });
-  }, [participants.data, userId]);
+  }, [participants, userId]);
 
   const [open, setOpen] = useState(false);
 
   const handleClick = () => {
     setOpen(false);
 
-    if (session.data) {
-      const id = session.data.id;
+    if (session) {
+      const id = session.id;
       const url = { to: "/app/note/$id", params: { id } } as const satisfies LinkProps;
       windowsCommands.windowShow({ type: "main" }).then(() => {
         windowsCommands.windowEmitNavigate({ type: "main" }, {
@@ -129,7 +107,7 @@ export function EventCard({
           </div>
         )}
 
-        {session.data
+        {session
           ? (
             <div
               className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
@@ -137,7 +115,7 @@ export function EventCard({
             >
               <FileText className="size-3 text-neutral-600 flex-shrink-0" />
               <div className="text-xs font-medium text-neutral-800 truncate">
-                {session.data.title || "Untitled Note"}
+                {session.title || "Untitled Note"}
               </div>
             </div>
           )

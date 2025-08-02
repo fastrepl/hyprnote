@@ -26,9 +26,10 @@ hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-language = { workspace = true }
-hypr-listener-interface = { workspace = true }
 hypr-tcc = { workspace = true }
-hypr-ws = { workspace = true }
+
+owhisper-client = { workspace = true }
+owhisper-interface = { workspace = true }
 
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }

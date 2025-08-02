@@ -39,10 +39,10 @@ fn bench_english_1() -> CustomBenchmarkResult {
 
         let api_base = format!("http://{}", &server.addr);
 
-        let client = tauri_plugin_listener::ListenClient::builder()
+        let client = owhisper_client::ListenClient::builder()
             .api_base(api_base)
             .api_key("")
-            .params(hypr_listener_interface::ListenParams::default())
+            .params(owhisper_interface::ListenParams::default())
             .build_single();
 
         let audio_stream = rodio::Decoder::new(std::io::BufReader::new(
@@ -69,7 +69,7 @@ fn bench_english_1() -> CustomBenchmarkResult {
             .collect::<Vec<_>>()
             .join(" ");
 
-        let expected: String = serde_json::from_str::<Vec<hypr_listener_interface::Word>>(
+        let expected: String = serde_json::from_str::<Vec<owhisper_interface::Word>>(
             hypr_data::english_1::TRANSCRIPTION_JSON,
         )
         .unwrap()

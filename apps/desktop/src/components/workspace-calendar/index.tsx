@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { addDays, eachDayOfInterval, format, getDay, isSameMonth, startOfMonth, subDays } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 
 import type { Event, Session } from "@hypr/plugin-db";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
 import { EventCard } from "./event-card";
@@ -26,6 +28,74 @@ export default function WorkspaceCalendar({
   const today = new Date();
 
   const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Batch fetch all participants for all sessions
+  const allSessionIds = sessions.map(s => s.id);
+  const batchParticipants = useQuery({
+    queryKey: ["batch-participants", allSessionIds],
+    queryFn: async () => {
+      if (allSessionIds.length === 0) {
+        return {};
+      }
+      const results = await Promise.all(
+        allSessionIds.map(async (sessionId) => {
+          const participants = await dbCommands.sessionListParticipants(sessionId);
+          return {
+            sessionId,
+            participants: participants.sort((a, b) => {
+              if (a.is_user && !b.is_user) {
+                return 1;
+              }
+              if (!a.is_user && b.is_user) {
+                return -1;
+              }
+              return 0;
+            }),
+          };
+        }),
+      );
+      return Object.fromEntries(results.map(r => [r.sessionId, r.participants]));
+    },
+    enabled: allSessionIds.length > 0,
+  });
+
+  // Batch fetch linked events for sessions that have calendar_event_id
+  const sessionsWithEventIds = sessions.filter(s => s.calendar_event_id);
+  const batchLinkedEvents = useQuery({
+    queryKey: ["batch-linked-events", sessionsWithEventIds.map(s => s.calendar_event_id)],
+    queryFn: async () => {
+      if (sessionsWithEventIds.length === 0) {
+        return {};
+      }
+      const results = await Promise.all(
+        sessionsWithEventIds.map(async (session) => {
+          const event = await dbCommands.getEvent(session.calendar_event_id!);
+          return { sessionId: session.id, event };
+        }),
+      );
+      return Object.fromEntries(results.map(r => [r.sessionId, r.event]));
+    },
+    enabled: sessionsWithEventIds.length > 0,
+  });
+
+  // Batch fetch sessions for events
+  const allEventIds = events.map(e => e.id);
+  const batchEventSessions = useQuery({
+    queryKey: ["batch-event-sessions", allEventIds],
+    queryFn: async () => {
+      if (allEventIds.length === 0) {
+        return {};
+      }
+      const results = await Promise.all(
+        allEventIds.map(async (eventId) => {
+          const session = await dbCommands.getSession({ calendarEventId: eventId });
+          return { eventId, session };
+        }),
+      );
+      return Object.fromEntries(results.map(r => [r.eventId, r.session]));
+    },
+    enabled: allEventIds.length > 0,
+  });
 
   const [currentMonth, setCurrentMonth] = useState(month);
   const [cellHeight, setCellHeight] = useState<number>(75);
@@ -228,13 +298,36 @@ export default function WorkspaceCalendar({
                 <>
                   {visibleItemsArray.length > 0 && (
                     <div className="px-1">
-                      {visibleItemsArray.map((item) => (
-                        <div key={"id" in item ? item.id : ""}>
-                          {"calendar_event_id" in item
-                            ? <NoteCard session={item as Session} />
-                            : <EventCard event={item as Event} />}
-                        </div>
-                      ))}
+                      {visibleItemsArray.map((item) => {
+                        const key = "id" in item ? item.id : "";
+                        if ("calendar_event_id" in item) {
+                          const session = item as Session;
+                          const participants = batchParticipants.data?.[session.id] || [];
+                          const linkedEvent = batchLinkedEvents.data?.[session.id] || null;
+                          return (
+                            <div key={key}>
+                              <NoteCard
+                                session={session}
+                                participants={participants}
+                                linkedEvent={linkedEvent}
+                              />
+                            </div>
+                          );
+                        } else {
+                          const event = item as Event;
+                          const session = batchEventSessions.data?.[event.id] || null;
+                          const participants = session ? (batchParticipants.data?.[session.id] || []) : [];
+                          return (
+                            <div key={key}>
+                              <EventCard
+                                event={event}
+                                session={session}
+                                participants={participants}
+                              />
+                            </div>
+                          );
+                        }
+                      })}
                     </div>
                   )}
 
@@ -263,16 +356,44 @@ export default function WorkspaceCalendar({
                               : new Date(b.start_date);
                             return aDate.getTime() - bDate.getTime();
                           })
-                          .map((item) => (
-                            <div
-                              key={item.id}
-                              className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
-                            >
-                              {"calendar_event_id" in item
-                                ? <NoteCard session={item as Session} showTime />
-                                : <EventCard event={item as Event} showTime />}
-                            </div>
-                          ))}
+                          .map((item) => {
+                            const key = item.id;
+                            if ("calendar_event_id" in item) {
+                              const session = item as Session;
+                              const participants = batchParticipants.data?.[session.id] || [];
+                              const linkedEvent = batchLinkedEvents.data?.[session.id] || null;
+                              return (
+                                <div
+                                  key={key}
+                                  className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                                >
+                                  <NoteCard
+                                    session={session}
+                                    showTime
+                                    participants={participants}
+                                    linkedEvent={linkedEvent}
+                                  />
+                                </div>
+                              );
+                            } else {
+                              const event = item as Event;
+                              const session = batchEventSessions.data?.[event.id] || null;
+                              const participants = session ? (batchParticipants.data?.[session.id] || []) : [];
+                              return (
+                                <div
+                                  key={key}
+                                  className="text-sm hover:bg-neutral-100 rounded cursor-pointer transition-colors"
+                                >
+                                  <EventCard
+                                    event={event}
+                                    showTime
+                                    session={session}
+                                    participants={participants}
+                                  />
+                                </div>
+                              );
+                            }
+                          })}
                       </PopoverContent>
                     </Popover>
                   )}

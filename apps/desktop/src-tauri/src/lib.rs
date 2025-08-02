@@ -27,7 +27,7 @@ pub async fn main() {
             .init();
     }
 
-    let client = tauri_plugin_sentry::sentry::init((
+    let sentry_client = tauri_plugin_sentry::sentry::init((
         {
             #[cfg(not(debug_assertions))]
             {
@@ -47,7 +47,7 @@ pub async fn main() {
         },
     ));
 
-    let _guard = tauri_plugin_sentry::minidump::init(&client);
+    let _guard = tauri_plugin_sentry::minidump::init(&sentry_client);
 
     let mut builder = tauri::Builder::default();
 
@@ -77,7 +77,7 @@ pub async fn main() {
         .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_connector::init())
         .plugin(tauri_plugin_flags::init())
-        .plugin(tauri_plugin_sentry::init_with_no_injection(&client))
+        .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
@@ -198,6 +198,15 @@ pub async fn main() {
                     let user_id = app_clone.db_user_id().await;
 
                     if let Ok(Some(ref user_id)) = user_id {
+                        let config = app_clone.db_get_config(user_id).await;
+
+                        if let Ok(Some(ref config)) = config {
+                            if !config.general.telemetry_consent {
+                                let _ =
+                                    sentry_client.close(Some(std::time::Duration::from_secs(1)));
+                            }
+                        }
+
                         tauri_plugin_sentry::sentry::configure_scope(|scope| {
                             scope.set_user(Some(tauri_plugin_sentry::sentry::User {
                                 id: Some(user_id.clone()),

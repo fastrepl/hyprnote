@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/owhisper/schema.json
+
+serve:
+  whisper_cpp:
+    model_path: "./tiny-en.gguf"

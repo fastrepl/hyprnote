@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useRef, useState } from "react"
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as flagsCommands } from "@hypr/plugin-flags";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 export type RightPanelView = "chat" | "transcript";
 
@@ -91,9 +92,13 @@ export function RightPanelProvider({
     [isExpanded, currentView],
   );
 
+  const windowLabel = getCurrentWebviewWindowLabel();
+  const isMainWindow = windowLabel === "main";
+
   const { data: chatPanelEnabled = false } = useQuery({
     queryKey: ["flags", "ChatRightPanel"],
     queryFn: () => flagsCommands.isEnabled("ChatRightPanel"),
+    enabled: isMainWindow,
   });
 
   useHotkeys(

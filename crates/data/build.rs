@@ -1,4 +1,4 @@
-use hypr_listener_interface::{SpeakerIdentity, Word};
+use owhisper_interface::{SpeakerIdentity, Word};
 
 fn run(name: &str) {
     let raw_path = format!("src/{}/raw.json", name);

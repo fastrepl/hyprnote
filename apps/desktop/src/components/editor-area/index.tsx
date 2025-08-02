@@ -19,15 +19,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import {
-  generateText,
-  localProviderName,
-  markdownTransform,
-  modelProvider,
-  smoothStream,
-  streamText,
-  tool,
-} from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
@@ -115,7 +107,7 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
 
-  const { enhance, progress } = useEnhanceMutation({
+  const { enhance, progress, isCancelled } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -244,7 +236,7 @@ export default function EditorArea({
               handleEnhanceWithTemplate={handleEnhanceWithTemplate}
               templates={templatesQuery.data || []}
               session={sessionStore.session}
-              isError={enhance.status === "error"}
+              isError={enhance.status === "error" && !isCancelled}
               progress={progress}
               showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
             />
@@ -271,6 +263,7 @@ export function useEnhanceMutation({
   const { userId, onboardingSessionId } = useHypr();
   const [progress, setProgress] = useState(0);
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
+  const [isCancelled, setIsCancelled] = useState(false);
   const queryClient = useQueryClient();
 
   // Extract H1 headers at component level (always available)
@@ -309,6 +302,10 @@ export function useEnhanceMutation({
     setEnhancedContent: s.updateEnhancedNote,
   }));
 
+  const getCurrentEnhancedContent = useSession(sessionId, (s) => s.session?.enhanced_memo_html ?? "");
+
+  const originalContentRef = useRef<string>("");
+
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async ({
@@ -318,6 +315,8 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      setIsCancelled(false);
+      originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();
       setEnhanceController(abortController);
 
@@ -338,11 +337,12 @@ export function useEnhanceMutation({
         setProgress(0);
       }
 
-      if (!words.length) {
+      const wordsThreshold = import.meta.env.DEV ? 5 : 100;
+      if (!words.length || words.length < wordsThreshold) {
         toast({
           id: "short-timeline",
           title: "Recording too short",
-          content: "The recording is too short to enhance",
+          content: `We need at least ${wordsThreshold} words to enhance your note.`,
           dismissible: true,
           duration: 5000,
         });
@@ -354,6 +354,14 @@ export function useEnhanceMutation({
         : config.general?.selected_template_id;
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
+
+      const eventName = selectedTemplate?.tags.includes("builtin")
+        ? "builtin_template_enhancement_started"
+        : "custom_template_enhancement_started";
+      analyticsCommands.event({
+        event: eventName,
+        distinct_id: userId,
+      });
 
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
       const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
@@ -403,15 +411,31 @@ export function useEnhanceMutation({
         model,
         ...(freshIsLocalLlm && {
           tools: {
-            update_progress: tool({ parameters: z.any() }),
+            update_progress: tool({ inputSchema: z.any() }),
           },
         }),
+        onError: (error) => {
+          toast({
+            id: "something went wrong",
+            title: "🚨 Something went wrong",
+            content: (
+              <div>
+                Please try again or contact the team.
+                <br />
+                <br />
+                <span className="text-xs">Error: {String(error.error)}</span>
+              </div>
+            ),
+            dismissible: true,
+            duration: 5000,
+          });
+          throw error;
+        },
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
         ...(freshIsLocalLlm && {
@@ -429,12 +453,19 @@ export function useEnhanceMutation({
       });
 
       let acc = "";
+
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
-          acc += chunk.textDelta;
+          acc += chunk.text;
+        }
+        if (chunk.type === "error") {
+          if (originalContentRef.current !== "" && acc === "") {
+            setEnhancedContent(originalContentRef.current);
+          }
+          throw new Error(String(chunk.error));
         }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
-          const chunkProgress = chunk.args?.progress ?? 0;
+          const chunkProgress = chunk.input?.progress ?? 0;
           setProgress(chunkProgress);
         }
 
@@ -445,6 +476,7 @@ export function useEnhanceMutation({
       return text.then(miscCommands.opinionatedMdToHtml);
     },
     onSuccess: (enhancedContent: string | undefined) => {
+      setIsCancelled(false);
       onSuccess(enhancedContent ?? "");
 
       analyticsCommands.event({
@@ -465,11 +497,17 @@ export function useEnhanceMutation({
     },
     onError: (error) => {
       console.error(error);
+
+      const isCancellationError = (error as unknown as string).includes("cancel")
+        || (error as any)?.name === "AbortError";
+
+      setIsCancelled(isCancellationError);
+
       if (actualIsLocalLlm) {
         setProgress(0);
       }
 
-      if (!(error as unknown as string).includes("cancel")) {
+      if (!isCancellationError) {
         enhanceFailedToast();
       }
 
@@ -477,7 +515,7 @@ export function useEnhanceMutation({
     },
   });
 
-  return { enhance, progress: actualIsLocalLlm ? progress : undefined };
+  return { enhance, progress: actualIsLocalLlm ? progress : undefined, isCancelled };
 }
 
 function useAutoEnhance({

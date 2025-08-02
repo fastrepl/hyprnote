@@ -1,8 +1,8 @@
 // https://docs.rs/minijinja/latest/minijinja/filters/trait.Filter.html
 
 use codes_iso_639::part_1::LanguageCode;
-use hypr_listener_interface::{SpeakerIdentity, Word};
 use itertools::Itertools;
+use owhisper_interface::{SpeakerIdentity, Word};
 use std::str::FromStr;
 
 pub fn language(value: String) -> String {

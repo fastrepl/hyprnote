@@ -160,7 +160,7 @@ function FreeSectionCheckout() {
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
         <a
-          href="https://docs.hyprnote.com/pro/what-is-this"
+          href="https://docs.hyprnote.com/pro"
           className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
           target="_blank"
           rel="noopener noreferrer"

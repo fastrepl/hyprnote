@@ -1,0 +1,14 @@
+[package]
+name = "audio-input"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+
+cpal = { workspace = true }
+dasp = { workspace = true }
+
+futures-channel = { workspace = true }
+futures-util = { workspace = true }
+tracing = { workspace = true }

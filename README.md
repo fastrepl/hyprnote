@@ -27,7 +27,7 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 
 - [macOS](https://hyprnote.com/download) (public beta)
 - [Windows](https://github.com/fastrepl/hyprnote/issues/66) (soon)
-- [Linux](https://github.com/fastrepl/hyprnote/issues/67) (maybe)
+- [Linux](https://github.com/fastrepl/hyprnote/issues/67) (of course)
 
 ## Highlights
 

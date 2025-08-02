@@ -4,7 +4,7 @@ import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
-import { BookText, ChevronDown, ChevronUp, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
+import { BookText, Check, ChevronDown, ChevronUp, Copy, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
 import { useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -38,6 +38,7 @@ function ShareButtonInNote() {
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
+  const [copySuccess, setCopySuccess] = useState(false);
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
   const isObsidianConfigured = useQuery({
@@ -71,6 +72,15 @@ function ShareButtonInNote() {
     enabled: false,
     staleTime: 5 * 60 * 1000,
   });
+
+  const directActions: DirectAction[] = [
+    {
+      id: "copy",
+      title: "Copy Note",
+      icon: <Copy size={20} />,
+      description: "",
+    },
+  ];
 
   const exportOptions: ExportCard[] = [
     {
@@ -124,6 +134,10 @@ function ShareButtonInNote() {
     setOpen(newOpen);
     setExpandedId(null);
 
+    if (!newOpen) {
+      setCopySuccess(false);
+    }
+
     if (newOpen) {
       isObsidianConfigured.refetch().then((configResult) => {
         if (configResult.data) {
@@ -143,7 +157,9 @@ function ShareButtonInNote() {
       const start = performance.now();
       let result: ExportResult | null = null;
 
-      if (optionId === "pdf") {
+      if (optionId === "copy") {
+        result = await exportHandlers.copy(session);
+      } else if (optionId === "pdf") {
         result = await exportHandlers.pdf(session);
       } else if (optionId === "email") {
         result = await exportHandlers.email(session);
@@ -187,7 +203,11 @@ function ShareButtonInNote() {
       });
     },
     onSuccess: (result) => {
-      if (result?.type === "pdf" && result.path) {
+      if (result?.type === "copy" && result.success) {
+        setCopySuccess(true);
+        // Reset after 2 seconds
+        setTimeout(() => setCopySuccess(false), 2000);
+      } else if (result?.type === "pdf" && result.path) {
         openPath(result.path);
       } else if (result?.type === "email" && result.url) {
         openUrl(result.url);
@@ -195,8 +215,10 @@ function ShareButtonInNote() {
         openUrl(result.url);
       }
     },
-    onSettled: () => {
-      setOpen(false);
+    onSettled: (result) => {
+      if (result?.type !== "copy") {
+        setOpen(false);
+      }
     },
     onError: (error) => {
       console.error(error);
@@ -238,6 +260,35 @@ function ShareButtonInNote() {
             </p>
           </div>
           <div className="space-y-2">
+            {/* Direct action buttons */}
+            {directActions.map((action) => {
+              const isLoading = exportMutation.isPending && exportMutation.variables?.optionId === action.id;
+              const isSuccess = action.id === "copy" && copySuccess;
+
+              return (
+                <div key={action.id} className="border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => handleExport(action.id)}
+                    disabled={exportMutation.isPending}
+                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`text-gray-700 transition-colors ${isSuccess ? "text-green-600" : ""}`}>
+                        {isSuccess ? <Check size={20} /> : action.icon}
+                      </div>
+                      <div className="text-left">
+                        <span className="font-medium text-sm block">{action.title}</span>
+                        <span className="text-xs text-gray-600">{action.description}</span>
+                      </div>
+                    </div>
+                    {isLoading && <span className="text-xs text-gray-500">Copying...</span>}
+                    {isSuccess && <span className="text-xs text-green-600">Copied!</span>}
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Expandable export options */}
             {exportOptions.map((option) => {
               const expanded = expandedId === option.id;
 
@@ -315,6 +366,13 @@ function ShareButtonInNote() {
   );
 }
 
+interface DirectAction {
+  id: "copy";
+  title: string;
+  icon: React.ReactNode;
+  description: string;
+}
+
 interface ExportCard {
   id: "pdf" | "email" | "obsidian";
   title: string;
@@ -324,9 +382,10 @@ interface ExportCard {
 }
 
 interface ExportResult {
-  type: "pdf" | "email" | "obsidian";
+  type: "copy" | "pdf" | "email" | "obsidian";
   path?: string;
   url?: string;
+  success?: boolean;
 }
 
 interface ObsidianFolder {
@@ -335,6 +394,26 @@ interface ObsidianFolder {
 }
 
 const exportHandlers = {
+  copy: async (session: Session): Promise<ExportResult> => {
+    try {
+      let textToCopy = "";
+
+      if (session.enhanced_memo_html) {
+        textToCopy = html2md(session.enhanced_memo_html);
+      } else if (session.raw_memo_html) {
+        textToCopy = html2md(session.raw_memo_html);
+      } else {
+        textToCopy = session.title || "No content available";
+      }
+
+      await navigator.clipboard.writeText(textToCopy);
+      return { type: "copy", success: true };
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      throw new Error("Failed to copy note to clipboard");
+    }
+  },
+
   pdf: async (session: Session): Promise<ExportResult> => {
     const path = await exportToPDF(session);
     return { type: "pdf", path };

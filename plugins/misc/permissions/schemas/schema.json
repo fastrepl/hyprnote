@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the audio_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-audio-delete",
+          "markdownDescription": "Enables the audio_delete command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the audio_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-audio-delete",
+          "markdownDescription": "Denies the audio_delete command without any pre-configured scope."
+        },
+        {
           "description": "Enables the audio_exist command without any pre-configured scope.",
           "type": "string",
           "const": "allow-audio-exist",
@@ -379,10 +391,10 @@
           "markdownDescription": "Denies the parse_meeting_link command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`"
         }
       ]
     }

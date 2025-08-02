@@ -207,7 +207,7 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, languages, jargons) = {
+        let (record, languages, jargons, redemption_time_ms) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -219,9 +219,15 @@ impl Session {
                 |c| c.general.spoken_languages.clone(),
             );
 
-            let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
+            let jargons = config
+                .as_ref()
+                .map_or_else(Vec::new, |c| c.general.jargons.clone());
 
-            (record, languages, jargons)
+            let redemption_time_ms = config
+                .as_ref()
+                .map_or_else(|| 500, |c| c.ai.redemption_time_ms.unwrap_or(500));
+
+            (record, languages, jargons, redemption_time_ms)
         };
 
         let session = self
@@ -248,11 +254,12 @@ impl Session {
             languages,
             jargons,
             session_id == onboarding_session_id,
+            redemption_time_ms,
         )
         .await?;
 
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone());
+            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
         };
         let mic_stream = mic_sample_stream
@@ -264,7 +271,7 @@ impl Session {
         // We need some delay here for Airpod transition.
         // But if the delay is too long, AEC will not work.
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         let speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -459,15 +466,17 @@ impl Session {
             .into_stream()
             .map(hypr_audio_utils::f32_to_i16_bytes);
 
-        let listen_stream = listen_client
-            .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
-            .await?;
-
         tasks.spawn({
             let app = self.app.clone();
             let stop_tx = stop_tx.clone();
+            let session = session.clone();
 
             async move {
+                let listen_stream = listen_client
+                    .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
+                    .await
+                    .unwrap();
+
                 futures_util::pin_mut!(listen_stream);
 
                 while let Some(result) = listen_stream.next().await {
@@ -553,7 +562,8 @@ async fn setup_listen_client<R: tauri::Runtime>(
     languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
     is_onboarding: bool,
-) -> Result<crate::client::ListenClientDual, crate::Error> {
+    redemption_time_ms: u32,
+) -> Result<owhisper_client::ListenClientDual, crate::Error> {
     let api_base = {
         use tauri_plugin_connector::{Connection, ConnectorPluginExt};
         let conn: Connection = app.get_stt_connection().await?.into();
@@ -572,13 +582,17 @@ async fn setup_listen_client<R: tauri::Runtime>(
     // Disabled static prompt since it seems to degrade transcription quality.
     let static_prompt = "".to_string();
 
-    Ok(crate::client::ListenClient::builder()
+    Ok(owhisper_client::ListenClient::builder()
         .api_base(api_base)
         .api_key(api_key)
-        .params(hypr_listener_interface::ListenParams {
+        .params(owhisper_interface::ListenParams {
             languages,
             static_prompt,
-            redemption_time_ms: if is_onboarding { 70 } else { 300 },
+            redemption_time_ms: if is_onboarding {
+                70
+            } else {
+                redemption_time_ms.into()
+            },
             ..Default::default()
         })
         .build_dual())
@@ -587,8 +601,8 @@ async fn setup_listen_client<R: tauri::Runtime>(
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
-    words: Vec<hypr_listener_interface::Word>,
-) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+    words: Vec<owhisper_interface::Word>,
+) -> Result<Vec<owhisper_interface::Word>, crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.

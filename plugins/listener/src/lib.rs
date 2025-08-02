@@ -2,19 +2,17 @@ use statig::awaitable::IntoStateMachineExt;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-mod client;
 mod commands;
 mod error;
 mod events;
 mod ext;
 mod fsm;
 
-pub use client::*;
 pub use error::*;
 pub use events::*;
 pub use ext::ListenerPluginExt;
 
-pub use hypr_listener_interface::*;
+pub use owhisper_interface::*;
 
 const PLUGIN_NAME: &str = "listener";
 

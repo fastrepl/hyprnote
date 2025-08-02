@@ -6,8 +6,8 @@ use axum::{
 
 use crate::state::STTState;
 
-use hypr_listener_interface::ListenParams;
 use hypr_stt::recorded::{RecordedSpeech, RecordedSpeechToText};
+use owhisper_interface::ListenParams;
 
 pub async fn handler(
     Query(params): Query<ListenParams>,

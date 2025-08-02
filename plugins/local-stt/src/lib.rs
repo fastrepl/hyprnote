@@ -5,11 +5,9 @@ mod commands;
 mod error;
 mod events;
 mod ext;
-mod manager;
 mod model;
+mod server;
 mod store;
-
-pub mod server;
 
 pub use error::*;
 pub use ext::*;
@@ -44,7 +42,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
             commands::restart_server::<Wry>,
-            commands::process_recorded::<Wry>,
         ])
         .events(tauri_specta::collect_events![
             events::RecordedProcessingEvent
@@ -123,16 +120,15 @@ mod test {
     // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
         use futures_util::StreamExt;
-        use tauri_plugin_listener::ListenClientBuilder;
 
         let app = create_app(tauri::test::mock_builder());
         app.start_server().await.unwrap();
         let api_base = app.api_base().await.unwrap();
 
-        let listen_client = ListenClientBuilder::default()
+        let listen_client = owhisper_client::ListenClient::builder()
             .api_base(api_base)
             .api_key("NONE")
-            .params(hypr_listener_interface::ListenParams {
+            .params(owhisper_interface::ListenParams {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
@@ -154,25 +150,5 @@ mod test {
         }
 
         app.stop_server().await.unwrap();
-    }
-
-    #[tokio::test]
-    #[ignore]
-    // cargo test test_local_stt2 -p tauri-plugin-local-stt -- --ignored --nocapture
-    async fn test_local_stt2() {
-        let app = create_app(tauri::test::mock_builder());
-
-        let model_path = dirs::data_dir()
-            .unwrap()
-            .join("com.hyprnote.dev/stt")
-            .join("ggml-tiny.en-q8_0.bin");
-
-        let words = app
-            .process_recorded(model_path, hypr_data::english_1::AUDIO_PATH, |event| {
-                println!("{:?}", event);
-            })
-            .unwrap();
-
-        println!("{:?}", words);
     }
 }

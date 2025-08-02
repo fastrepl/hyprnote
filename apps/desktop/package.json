@@ -88,7 +88,7 @@
     "react-hook-form": "^7.61.1",
     "react-hotkeys-hook": "^4.6.2",
     "react-resizable": "^3.0.5",
-    "react-scan": "^0.3.6",
+    "react-scan": "^0.4.3",
     "remixicon": "^4.6.0",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",

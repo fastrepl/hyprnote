@@ -118,9 +118,6 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     Ok(())
 }
 
-const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
-const MAX_CONCURRENT_CHUNKS: usize = 8;
-
 fn process_task_result(
     result: Result<Result<(u64, Vec<u8>), Error>, tokio::task::JoinError>,
     file: &mut File,
@@ -135,6 +132,9 @@ fn process_task_result(
         Err(join_err) => Err(JoinError(join_err)),
     }
 }
+
+const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
+const MAX_CONCURRENT_CHUNKS: usize = 8;
 
 pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
     url: impl reqwest::IntoUrl,

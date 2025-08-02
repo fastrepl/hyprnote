@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { auth } from "./auth";
+import { env } from "./env";
 
 const app = new Hono();
 
@@ -28,7 +29,7 @@ app.get("/", (c) => {
 
 serve({
   fetch: app.fetch,
-  port: 3000,
+  port: env.PORT,
 }, (info) => {
   console.log(`Server is running on http://localhost:${info.port}`);
 });

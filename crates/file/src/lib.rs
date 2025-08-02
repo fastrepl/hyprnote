@@ -7,6 +7,7 @@ pub use remote::*;
 pub use types::*;
 
 use {
+    crate::Error::{JoinError, OtherError},
     futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
     reqwest::StatusCode,
     std::{
@@ -38,7 +39,7 @@ pub enum DownloadProgress {
 pub async fn request_with_range(
     url: impl reqwest::IntoUrl,
     start_byte: Option<u64>,
-) -> Result<reqwest::Response, crate::Error> {
+) -> Result<reqwest::Response, Error> {
     let client = get_client();
     let url = url.into_url()?;
 
@@ -120,6 +121,21 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
 const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
 const MAX_CONCURRENT_CHUNKS: usize = 8;
 
+fn process_task_result(
+    result: Result<Result<(u64, Vec<u8>), Error>, tokio::task::JoinError>,
+    file: &mut File,
+) -> Result<(), Error> {
+    match result {
+        Ok(Ok((offset, data))) => {
+            file.seek(SeekFrom::Start(offset))?;
+            file.write_all(&data)?;
+            Ok(())
+        }
+        Ok(Err(e)) => Err(e),
+        Err(join_err) => Err(JoinError(join_err)),
+    }
+}
+
 pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'static>(
     url: impl reqwest::IntoUrl,
     output_path: impl AsRef<Path>,
@@ -134,7 +150,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
     let head_response = get_client().head(url.clone()).send().await?;
     let total_size = get_content_length_from_headers(&head_response)
-        .ok_or_else(|| Error::OtherError("Content-Length header missing".to_string()))?;
+        .ok_or_else(|| OtherError("Content-Length header missing".to_string()))?;
 
     let supports_ranges = head_response
         .headers()
@@ -154,6 +170,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
     if existing_size >= total_size {
         progress_callback(DownloadProgress::Finished);
+
         return Ok(());
     }
 
@@ -168,7 +185,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
     let mut file = if existing_size > 0 {
         OpenOptions::new().write(true).open(output_path.as_ref())?
     } else {
-        std::fs::File::create(output_path.as_ref())?
+        File::create(output_path.as_ref())?
     };
 
     let downloaded = Arc::new(Mutex::new(existing_size));
@@ -184,7 +201,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
         let downloaded_clone = Arc::clone(&downloaded);
         let progress_callback_clone = Arc::clone(&progress_callback);
 
-        let task: JoinHandle<Result<(u64, Vec<u8>), crate::Error>> = tokio::spawn(async move {
+        let task: JoinHandle<Result<(u64, Vec<u8>), Error>> = tokio::spawn(async move {
             let client = get_client();
             let range_header = format!("bytes={}-{}", start, end);
 
@@ -195,7 +212,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
                 .await?;
 
             if response.status() != StatusCode::PARTIAL_CONTENT {
-                return Err(crate::Error::OtherError(format!(
+                return Err(OtherError(format!(
                     "Server does not support range requests. Got status: {}",
                     response.status()
                 )));
@@ -220,31 +237,13 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync + 'sta
 
         if tasks.len() >= MAX_CONCURRENT_CHUNKS {
             if let Some(result) = tasks.next().await {
-                match result {
-                    Ok(Ok((offset, data))) => {
-                        file.seek(SeekFrom::Start(offset))?;
-                        file.write_all(&data)?;
-                    }
-                    Ok(Err(e)) => return Err(e),
-                    Err(join_err) => {
-                        return Err(crate::Error::JoinError(join_err));
-                    }
-                }
+                process_task_result(result, &mut file)?;
             }
         }
     }
 
     while let Some(result) = tasks.next().await {
-        match result {
-            Ok(Ok((offset, data))) => {
-                file.seek(SeekFrom::Start(offset))?;
-                file.write_all(&data)?;
-            }
-            Ok(Err(e)) => return Err(e),
-            Err(join_err) => {
-                return Err(crate::Error::JoinError(join_err));
-            }
-        }
+        process_task_result(result, &mut file)?;
     }
 
     file.flush()?;

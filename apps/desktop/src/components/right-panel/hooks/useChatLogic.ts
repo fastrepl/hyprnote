@@ -228,7 +228,6 @@ export function useChatLogic({
       });
     }
 
-    console.log("conversationHistory", conversationHistory);
     return conversationHistory;
   };
 

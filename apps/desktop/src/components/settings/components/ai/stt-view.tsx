@@ -1,10 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
-import { useEffect } from "react";
+import { DownloadIcon, FolderIcon, InfoIcon, CheckIcon, XIcon } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+// Add these imports for file operations
+import { writeFile } from "@tauri-apps/plugin-fs";
+import { message } from "@tauri-apps/plugin-dialog";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
@@ -137,6 +141,10 @@ export function STTView({
 }: STTViewProps) {
   const queryClient = useQueryClient();
 
+  // Add drag and drop state
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
     queryFn: () => localSttCommands.getCurrentModel(),
@@ -243,6 +251,69 @@ export function STTView({
     onError: console.error,
   });
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleFileDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files[0];
+    if (!file) {
+      return;
+    }
+
+    // Validate file extension
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.bin') && !fileName.endsWith('.ggml')) {
+      await message(
+        "Please drop a valid STT model file (.bin or .ggml format).", 
+        { title: "Invalid File Type", kind: "error" }
+      );
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Get the STT models directory
+      const modelsDir = await localSttCommands.modelsDir();
+      const targetPath = `${modelsDir}/${file.name}`;
+      
+      // Read the file content as array buffer
+      const fileContent = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(fileContent);
+      
+      // Write the file to the models directory
+      await writeFile(targetPath, uint8Array);
+      
+      await message(`Model file "${file.name}" copied successfully!`, {
+        title: "File Copied",
+        kind: "info"
+      });
+      
+      // This invalidation will trigger the automatic refresh
+      queryClient.invalidateQueries({ queryKey: ["stt-model-download-status"] });
+    } catch (error) {
+      console.error("Error copying model file:", error);
+      await message(`Failed to copy model file: ${error instanceof Error ? error.message : String(error)}`, {
+        title: "Copy Failed", 
+        kind: "error"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [queryClient]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -262,6 +333,9 @@ export function STTView({
       </div>
 
       <div className="max-w-2xl">
+        <h3 className="text-sm font-semibold mb-3 text-gray-700">
+          Default
+        </h3>
         <div className="space-y-2">
           {modelsToShow.map((model) => (
             <div
@@ -393,6 +467,37 @@ export function STTView({
       </div>
 
       <div className="max-w-2xl">
+        <h3 className="text-sm font-semibold mb-3 text-gray-700">
+          Custom
+        </h3>
+        <div 
+          className={cn(
+            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+            isDragOver 
+              ? "border-blue-400 bg-blue-50" 
+              : "border-gray-300 bg-gray-50 hover:border-gray-400",
+            isUploading && "opacity-50 pointer-events-none"
+          )}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleFileDrop}
+        >
+          {isUploading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <p className="text-gray-600 text-sm">
+                Copying model file...
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm">
+              Drag and drop your own STT mode file (.ggml or .bin format)
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-2xl">
         <div className="border rounded-lg p-4">
           <h3 className="text-sm font-semibold mb-4">
             Configuration
@@ -421,7 +526,7 @@ export function STTView({
                           field.onChange(newValue);
                           aiConfigMutation.mutate({ redemptionTimeMs: newValue });
                         }}
-                        className="w-[100%]"
+                        className="w-[100%] [&>.relative>.absolute]:bg-gray-400 [&>.relative>span[data-state='active']]:bg-gray-300 [&>.relative>span]:border-gray-200"
                       />
                     </div>
                   </FormControl>

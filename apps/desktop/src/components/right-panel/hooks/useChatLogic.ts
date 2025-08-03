@@ -9,6 +9,7 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { modelProvider, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
+import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
@@ -48,6 +49,7 @@ export function useChatLogic({
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
+  const queryClient = useQueryClient();
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -226,6 +228,7 @@ export function useChatLogic({
       });
     }
 
+    console.log("conversationHistory", conversationHistory);
     return conversationHistory;
   };
 
@@ -292,6 +295,9 @@ export function useChatLogic({
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
+      console.log("provider", provider);
+      console.log("model", model);
+
       const aiMessage: Message = {
         id: aiMessageId,
         content: "Generating...",
@@ -300,15 +306,22 @@ export function useChatLogic({
       };
       setMessages((prev) => [...prev, aiMessage]);
 
+      await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const { type } = await connectorCommands.getLlmConnection();
+
+      console.log("fresh data type", type);
+
       const { textStream } = streamText({
         model,
         messages: await prepareMessageHistory(messages, content, mentionedContent),
-        // Add tools conditionally for local LLM (same as enhance)
-        ...(llmConnectionQuery.data?.type === "HyprLocal" && {
+        ...(type === "HyprLocal" && {
           tools: {
             update_progress: tool({ inputSchema: z.any() }),
           },
         }),
+
         onError: (error) => {
           console.error("On Error Catch:", error);
           setIsGenerating(false);

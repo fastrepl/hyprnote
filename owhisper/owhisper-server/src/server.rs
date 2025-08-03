@@ -126,7 +126,7 @@ impl Server {
 
     async fn build_stt_router(&self, app_state: Arc<AppState>) -> anyhow::Result<Router> {
         let router = Router::new()
-            .route("/v1/stt/realtime", axum::routing::any(handle_transcription))
+            .route("/v1/listen", axum::routing::any(handle_transcription))
             .with_state(app_state);
 
         Ok(router)

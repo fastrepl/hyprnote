@@ -7,7 +7,7 @@ use owhisper_interface::ListenInputChunk;
 
 enum AudioProcessResult {
     Samples(Vec<f32>),
-    DualSamples { mic: Vec<f32>, speaker: Vec<f32> },
+    DualSamples(Vec<f32>),
     Empty,
     End,
 }
@@ -22,10 +22,9 @@ fn process_ws_message(message: Message) -> AudioProcessResult {
                     AudioProcessResult::Samples(bytes_to_f32_samples(&data))
                 }
             }
-            Ok(ListenInputChunk::DualAudio { mic, speaker }) => AudioProcessResult::DualSamples {
-                mic: bytes_to_f32_samples(&mic),
-                speaker: bytes_to_f32_samples(&speaker),
-            },
+            Ok(ListenInputChunk::DualAudio { data }) => {
+                AudioProcessResult::DualSamples(bytes_to_f32_samples(&data))
+            }
             Ok(ListenInputChunk::End) => AudioProcessResult::End,
             Err(_) => AudioProcessResult::Empty,
         },
@@ -67,8 +66,8 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
             match receiver.next().await {
                 Some(Ok(message)) => match process_ws_message(message) {
                     AudioProcessResult::Samples(samples) => Some((samples, receiver)),
-                    AudioProcessResult::DualSamples { mic, speaker } => {
-                        let mixed = mix_audio_channels(&mic, &speaker);
+                    AudioProcessResult::DualSamples(samples) => {
+                        let mixed = mix_audio_channels(&samples, &samples);
                         Some((mixed, receiver))
                     }
                     AudioProcessResult::Empty => Some((Vec::new(), receiver)),
@@ -92,7 +91,7 @@ pub struct ChannelAudioSource {
 }
 
 impl ChannelAudioSource {
-    fn new(receiver: UnboundedReceiver<Vec<f32>>, sample_rate: u32) -> Self {
+    pub fn new(receiver: UnboundedReceiver<Vec<f32>>, sample_rate: u32) -> Self {
         Self {
             receiver: Some(receiver),
             sample_rate,
@@ -128,9 +127,14 @@ pub fn split_dual_audio_sources(
                     let _ = mic_tx.send(samples.clone());
                     let _ = speaker_tx.send(samples);
                 }
-                AudioProcessResult::DualSamples { mic, speaker } => {
-                    let _ = mic_tx.send(mic);
-                    let _ = speaker_tx.send(speaker);
+                AudioProcessResult::DualSamples(samples) => {
+                    let (mic_samples, speaker_samples) = samples
+                        .chunks_exact(2)
+                        .map(|chunk| (chunk[0], chunk[1]))
+                        .unzip();
+
+                    let _ = mic_tx.send(mic_samples);
+                    let _ = speaker_tx.send(speaker_samples);
                 }
                 AudioProcessResult::End => break,
                 AudioProcessResult::Empty => continue,

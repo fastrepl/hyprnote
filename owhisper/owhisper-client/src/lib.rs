@@ -37,7 +37,14 @@ impl ListenClientBuilder {
             ..self.params.clone().unwrap_or_default()
         };
 
-        url.set_path("/api/desktop/listen/realtime");
+        {
+            let mut path = url.path().to_string();
+            if !path.ends_with('/') {
+                path.push('/');
+            }
+            path.push_str("listen");
+            url.set_path(&path);
+        }
 
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -71,7 +78,7 @@ impl ListenClientBuilder {
 
         let request = match self.api_key {
             Some(key) => ClientRequestBuilder::new(uri)
-                .with_header("Authorization", format!("Bearer {}", key)),
+                .with_header("Authorization", format!("Token {}", key)),
             None => ClientRequestBuilder::new(uri),
         };
 
@@ -86,7 +93,7 @@ impl ListenClientBuilder {
 
         let request = match self.api_key {
             Some(key) => ClientRequestBuilder::new(uri)
-                .with_header("Authorization", format!("Bearer {}", key)),
+                .with_header("Authorization", format!("Token {}", key)),
             None => ClientRequestBuilder::new(uri),
         };
 
@@ -94,7 +101,7 @@ impl ListenClientBuilder {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ListenClient {
     request: ClientRequestBuilder,
 }
@@ -128,14 +135,13 @@ pub struct ListenClientDual {
 }
 
 impl WebSocketIO for ListenClientDual {
-    type Data = (bytes::Bytes, bytes::Bytes);
+    type Data = bytes::Bytes;
     type Input = ListenInputChunk;
     type Output = ListenOutputChunk;
 
     fn to_input(data: Self::Data) -> Self::Input {
         ListenInputChunk::DualAudio {
-            mic: data.0.to_vec(),
-            speaker: data.1.to_vec(),
+            data: data.to_vec(),
         }
     }
 
@@ -172,7 +178,22 @@ impl ListenClientDual {
         mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
         speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
-        let dual_stream = mic_stream.zip(speaker_stream);
+        let dual_stream = mic_stream
+            .zip(speaker_stream)
+            .map(|(mic_chunk, speaker_chunk)| {
+                let mut interleaved = Vec::new();
+
+                let mic_samples = mic_chunk.chunks_exact(2);
+                let speaker_samples = speaker_chunk.chunks_exact(2);
+
+                for (mic_sample, speaker_sample) in mic_samples.zip(speaker_samples) {
+                    interleaved.extend_from_slice(mic_sample);
+                    interleaved.extend_from_slice(speaker_sample);
+                }
+
+                bytes::Bytes::from(interleaved)
+            });
+
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(dual_stream).await
     }
@@ -185,20 +206,23 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
+    // cargo test -p owhisper-client test_client_deepgram -- --nocapture --ignored
     async fn test_client_deepgram() {
+        println!("test_client_deepgram");
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
 
         let client = ListenClient::builder()
-            .api_base("wss://api.deepgram.com/v1/listen")
+            .api_base("wss://api.deepgram.com/v1")
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
             .params(owhisper_interface::ListenParams {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
             .build_single();
+        println!("client built: {:?}", client);
 
         let stream = client.from_realtime_audio(audio).await.unwrap();
         futures_util::pin_mut!(stream);
@@ -217,7 +241,7 @@ mod tests {
         .unwrap();
 
         let client = ListenClient::builder()
-            .api_base("ws://127.0.0.1:1234/v1/realtime")
+            .api_base("ws://127.0.0.1:1234/v1")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
                 languages: vec![hypr_language::ISO639::En.into()],

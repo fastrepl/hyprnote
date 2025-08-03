@@ -55,9 +55,7 @@ common_derives! {
         #[serde(rename = "dual_audio")]
         DualAudio {
             #[serde(serialize_with = "serde_bytes::serialize")]
-            mic: Vec<u8>,
-            #[serde(serialize_with = "serde_bytes::serialize")]
-            speaker: Vec<u8>,
+            data: Vec<u8>,
         },
         #[serde(rename = "end")]
         End,

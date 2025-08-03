@@ -47,6 +47,7 @@ hypr-audio-utils = { workspace = true }
 hypr-file = { workspace = true }
 hypr-transcribe-whisper-local = { workspace = true }
 hypr-whisper-local = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }

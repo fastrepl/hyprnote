@@ -71,6 +71,7 @@ hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-cloud = { path = "crates/whisper-cloud", package = "whisper-cloud" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
+hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
@@ -128,6 +129,7 @@ approx = "0.5.1"
 backon = "1.4.1"
 bytes = "1.9.0"
 cached = "0.55.1"
+clap = "4"
 codes-iso-639 = "0.1.5"
 derive_more = "2"
 dirs = "6.0.0"

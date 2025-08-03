@@ -3941,6 +3941,7 @@ dependencies = [
  "turso",
  "url",
  "uuid",
+ "whisper-local-model",
 ]
 
 [[package]]
@@ -10245,6 +10246,7 @@ dependencies = [
  "transcribe-azure",
  "transcribe-gcp",
  "transcribe-whisper-local",
+ "whisper-local-model",
 ]
 
 [[package]]
@@ -14597,6 +14599,7 @@ dependencies = [
  "tracing",
  "transcribe-whisper-local",
  "whisper-local",
+ "whisper-local-model",
 ]
 
 [[package]]
@@ -17204,6 +17207,16 @@ dependencies = [
  "tracing",
  "whisper",
  "whisper-rs",
+]
+
+[[package]]
+name = "whisper-local-model"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "specta",
+ "strum 0.26.3",
 ]
 
 [[package]]

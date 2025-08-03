@@ -15,6 +15,7 @@ owhisper-config = { workspace = true }
 
 hypr-audio-input = { workspace = true }
 hypr-file = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
 
 hypr-transcribe-aws = { workspace = true }
 hypr-transcribe-azure = { workspace = true }
@@ -28,7 +29,7 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tower = { workspace = true }
 tracing = { workspace = true }
 
-clap = { version = "4", features = ["derive", "env"] }
+clap = { workspace = true, features = ["derive", "env"] }
 indicatif = "0.18.0"
 
 cpal = { workspace = true }

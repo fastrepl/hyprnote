@@ -5,13 +5,11 @@ mod commands;
 mod error;
 mod events;
 mod ext;
-mod model;
 mod server;
 mod store;
 
 pub use error::*;
 pub use ext::*;
-pub use model::*;
 pub use server::*;
 pub use store::*;
 
@@ -21,7 +19,7 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
-    pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
+    pub download_task: HashMap<hypr_whisper_local_model::WhisperModel, tokio::task::JoinHandle<()>>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";

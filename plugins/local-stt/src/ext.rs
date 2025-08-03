@@ -5,9 +5,7 @@ use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
 
 use hypr_file::{download_file_parallel, DownloadProgress};
-use owhisper_interface::Word;
-
-use crate::events::RecordedProcessingEvent;
+use hypr_whisper_local_model::WhisperModel;
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
@@ -22,19 +20,19 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
-    fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
+    fn get_current_model(&self) -> Result<WhisperModel, crate::Error>;
+    fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error>;
 
     fn download_model(
         &self,
-        model: crate::SupportedModel,
+        model: WhisperModel,
         channel: Channel<i8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn is_model_downloading(&self, model: &crate::SupportedModel) -> impl Future<Output = bool>;
+    fn is_model_downloading(&self, model: &WhisperModel) -> impl Future<Output = bool>;
     fn is_model_downloaded(
         &self,
-        model: &crate::SupportedModel,
+        model: &WhisperModel,
     ) -> impl Future<Output = Result<bool, crate::Error>>;
 }
 
@@ -60,10 +58,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloaded(
-        &self,
-        model: &crate::SupportedModel,
-    ) -> Result<bool, crate::Error> {
+    async fn is_model_downloaded(&self, model: &WhisperModel) -> Result<bool, crate::Error> {
         let model_path = self.models_dir().join(model.file_name());
 
         for (path, expected) in [(model_path, model.model_size())] {
@@ -148,7 +143,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn download_model(
         &self,
-        model: crate::SupportedModel,
+        model: WhisperModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
         let m = model.clone();
@@ -188,7 +183,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloading(&self, model: &crate::SupportedModel) -> bool {
+    async fn is_model_downloading(&self, model: &WhisperModel) -> bool {
         let state = self.state::<crate::SharedState>();
 
         {
@@ -198,14 +193,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error> {
+    fn get_current_model(&self) -> Result<WhisperModel, crate::Error> {
         let store = self.local_stt_store();
         let model = store.get(crate::StoreKey::DefaultModel)?;
-        Ok(model.unwrap_or(crate::SupportedModel::QuantizedBaseEn))
+        Ok(model.unwrap_or(WhisperModel::QuantizedBaseEn))
     }
 
     #[tracing::instrument(skip_all)]
-    fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error> {
+    fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
         store.set(crate::StoreKey::DefaultModel, model)?;
         Ok(())

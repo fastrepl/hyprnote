@@ -27,6 +27,7 @@ hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-turso = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }

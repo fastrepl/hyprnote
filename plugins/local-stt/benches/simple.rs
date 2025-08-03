@@ -30,7 +30,7 @@ fn bench_english_1() -> CustomBenchmarkResult {
     rt.block_on(async {
         let server_state = tauri_plugin_local_stt::ServerStateBuilder::default()
             .model_cache_dir(dirs::data_dir().unwrap().join("com.hyprnote.dev/stt"))
-            .model_type(tauri_plugin_local_stt::SupportedModel::QuantizedTinyEn)
+            .model_type(hypr_whisper_local_model::WhisperModel::QuantizedTinyEn)
             .build();
 
         let server = tauri_plugin_local_stt::run_server(server_state)

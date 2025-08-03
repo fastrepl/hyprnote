@@ -6,9 +6,11 @@ use std::{
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
 use tower_http::cors::{self, CorsLayer};
 
+use hypr_whisper_local_model::WhisperModel;
+
 #[derive(Default)]
 pub struct ServerStateBuilder {
-    pub model_type: Option<crate::SupportedModel>,
+    pub model_type: Option<WhisperModel>,
     pub model_cache_dir: Option<PathBuf>,
 }
 
@@ -18,7 +20,7 @@ impl ServerStateBuilder {
         self
     }
 
-    pub fn model_type(mut self, model_type: crate::SupportedModel) -> Self {
+    pub fn model_type(mut self, model_type: WhisperModel) -> Self {
         self.model_type = Some(model_type);
         self
     }
@@ -33,7 +35,7 @@ impl ServerStateBuilder {
 
 #[derive(Clone)]
 pub struct ServerState {
-    model_type: crate::SupportedModel,
+    model_type: WhisperModel,
     model_cache_dir: PathBuf,
 }
 
@@ -102,15 +104,18 @@ async fn health() -> impl IntoResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
     use tower::ServiceExt;
+
+    use hypr_whisper_local_model::WhisperModel;
 
     #[tokio::test]
     async fn test_health_endpoint() {
         let state = ServerStateBuilder::default()
             .model_cache_dir(dirs::data_dir().unwrap().join("com.hyprnote.dev/stt"))
-            .model_type(crate::SupportedModel::QuantizedTinyEn)
+            .model_type(WhisperModel::QuantizedTinyEn)
             .build();
 
         let app = make_service_router(state);

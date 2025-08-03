@@ -23,9 +23,3 @@ tower = { workspace = true }
 tracing = { workspace = true }
 
 deepgram = { version = "0.7.0", features = ["listen"] }
-
-[dev-dependencies]
-hypr-data = { workspace = true }
-owhisper-client = { workspace = true }
-
-rodio = { workspace = true }

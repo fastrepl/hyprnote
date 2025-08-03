@@ -221,3 +221,37 @@ async fn auth_middleware(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_util::StreamExt;
+
+    use owhisper_client::ListenClient;
+    use owhisper_interface::ListenParams;
+
+    #[tokio::test]
+    async fn test_deepgram() {
+        let _server = Server::new(owhisper_config::Config::new(None), Some(1234));
+
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let client = ListenClient::builder()
+            .api_base("ws://127.0.0.1:1234/v1")
+            .api_key("".to_string())
+            .params(ListenParams {
+                ..Default::default()
+            })
+            .build_single();
+
+        let stream = client.from_realtime_audio(audio).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            println!("{:?}", result);
+        }
+    }
+}

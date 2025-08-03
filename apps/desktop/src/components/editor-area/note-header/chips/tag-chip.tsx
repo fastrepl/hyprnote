@@ -1,8 +1,8 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PlusIcon, SearchIcon, SparklesIcon, TagsIcon } from "lucide-react";
-import { useEffect, useMemo, useState, useRef } from "react";
 import { clsx } from "clsx";
+import { PlusIcon, SearchIcon, SparklesIcon, TagsIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { generateTagsForSession } from "@/utils/tag-generation";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -175,7 +175,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   const [newTagName, setNewTagName] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1); 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const instanceId = useMemo(() => crypto.randomUUID(), []);
@@ -399,7 +399,9 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showDropdown || totalDropdownItems === 0) return;
+      if (!showDropdown || totalDropdownItems === 0) {
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -476,7 +478,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
                 key={tag.id}
                 className={clsx(
                   "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 border-b border-neutral-100 last:border-b-0 flex items-center gap-2 transition-colors",
-                  selectedIndex === index && "bg-neutral-100"
+                  selectedIndex === index && "bg-neutral-100",
                 )}
                 onClick={() => handleTagSelect(tag.name)}
               >
@@ -490,7 +492,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
               <button
                 className={clsx(
                   "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 text-blue-700 flex items-center gap-2 font-medium transition-colors",
-                  selectedIndex === filteredExistingTags.length && "bg-neutral-100"
+                  selectedIndex === filteredExistingTags.length && "bg-neutral-100",
                 )}
                 onClick={() => handleTagSelect(newTagName.trim())}
               >

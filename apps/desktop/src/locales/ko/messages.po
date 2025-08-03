@@ -344,7 +344,7 @@ msgstr ""
 msgid "Add members"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:317
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:322
 msgid "Add participant"
 msgstr ""
 
@@ -620,7 +620,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/routes/app.human.$id.tsx:535
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:405
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:500
 msgid "Create"
 msgstr ""
 
@@ -900,7 +900,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:191
+#: src/components/editor-area/note-header/chips/event-chip.tsx:192
 msgid "Join meeting"
 msgstr ""
 
@@ -944,7 +944,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:407
+#: src/components/editor-area/note-header/chips/event-chip.tsx:455
 msgid "Loading events..."
 msgstr ""
 
@@ -1053,7 +1053,7 @@ msgstr ""
 #~ msgid "No models available for this endpoint."
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:415
+#: src/components/editor-area/note-header/chips/event-chip.tsx:463
 msgid "No past events found."
 msgstr ""
 
@@ -1248,7 +1248,7 @@ msgstr ""
 msgid "Save current recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:533
+#: src/components/editor-area/note-header/chips/event-chip.tsx:584
 msgid "Save Date"
 msgstr ""
 
@@ -1256,7 +1256,7 @@ msgstr ""
 msgid "Save recordings"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:533
+#: src/components/editor-area/note-header/chips/event-chip.tsx:584
 msgid "Saving..."
 msgstr ""
 
@@ -1551,7 +1551,7 @@ msgid "View calendar"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:193
-#: src/components/editor-area/note-header/chips/event-chip.tsx:201
+#: src/components/editor-area/note-header/chips/event-chip.tsx:202
 msgid "View in calendar"
 msgstr ""
 

@@ -2,10 +2,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { clsx } from "clsx";
 import { format, isSameDay, subDays } from "date-fns";
 import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { clsx } from "clsx";
+import { useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
@@ -307,7 +307,7 @@ function EventTab({
   queryClient: any;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(-1); 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -388,7 +388,9 @@ function EventTab({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (filteredEvents.length === 0) return;
+      if (filteredEvents.length === 0) {
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -471,7 +473,7 @@ function EventTab({
                 onClick={() => handleSelectEvent(linkableEv.id)}
                 className={clsx(
                   "flex flex-col items-start p-2 hover:bg-neutral-100 text-left w-full rounded-md focus:outline-none transition-colors",
-                  selectedIndex === index && "bg-neutral-100"
+                  selectedIndex === index && "bg-neutral-100",
                 )}
               >
                 <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full">

@@ -3,7 +3,7 @@ import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import { CircleMinus, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts/hypr";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
@@ -251,7 +251,7 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
   const { t } = useLingui();
   const queryClient = useQueryClient();
   const [newParticipantInput, setNewParticipantInput] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(-1); 
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -410,7 +410,9 @@ function ParticipantCandidates({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!query.trim() || totalItems === 0) return;
+      if (!query.trim() || totalItems === 0) {
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -440,7 +442,18 @@ function ParticipantCandidates({
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
-  }, [selectedIndex, totalItems, candidateCount, query, participants.data, onSelectedIndexChange, addParticipantMutation, addParticipantByIdMutation, onMutation, inputRef]);
+  }, [
+    selectedIndex,
+    totalItems,
+    candidateCount,
+    query,
+    participants.data,
+    onSelectedIndexChange,
+    addParticipantMutation,
+    addParticipantByIdMutation,
+    onMutation,
+    inputRef,
+  ]);
 
   useEffect(() => {
     onSelectedIndexChange(-1);
@@ -476,7 +489,7 @@ function ParticipantCandidates({
           type="button"
           className={clsx(
             "flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full",
-            selectedIndex === candidateCount && "bg-neutral-100"
+            selectedIndex === candidateCount && "bg-neutral-100",
           )}
           onClick={handleCreateClick}
         >
@@ -516,7 +529,7 @@ function ParticipantCandidate({
       type="button"
       className={clsx(
         "flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full",
-        isSelected && "bg-neutral-100"
+        isSelected && "bg-neutral-100",
       )}
       onClick={onSelect}
     >

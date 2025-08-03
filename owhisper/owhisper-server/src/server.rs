@@ -7,7 +7,6 @@ use axum::{
     http::StatusCode,
     middleware::{self, Next},
     response::Response,
-    routing::get,
     Router,
 };
 use axum_extra::{headers::authorization::Bearer, headers::Authorization, TypedHeader};
@@ -126,6 +125,7 @@ impl Server {
 
     async fn build_stt_router(&self, app_state: Arc<AppState>) -> anyhow::Result<Router> {
         let router = Router::new()
+            .route("/listen", axum::routing::any(handle_transcription))
             .route("/v1/listen", axum::routing::any(handle_transcription))
             .with_state(app_state);
 
@@ -161,10 +161,10 @@ async fn build_deepgram_service(
 
 async fn handle_transcription(
     State(state): State<Arc<AppState>>,
-    Path(model_id): Path<String>,
     req: Request,
 ) -> Result<Response, StatusCode> {
-    let service = state.services.get(&model_id).ok_or(StatusCode::NOT_FOUND)?;
+    // TODO
+    let service = state.services.get("test").ok_or(StatusCode::NOT_FOUND)?;
 
     match service {
         TranscriptionService::Aws(svc) => {
@@ -201,6 +201,7 @@ async fn auth_middleware(
     req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
+    println!("API key: {:?}", state.api_key);
     if state.api_key.is_none() {
         return Ok(next.run(req).await);
     }
@@ -225,27 +226,50 @@ async fn auth_middleware(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::misc::shutdown_signal;
+
     use futures_util::StreamExt;
 
     use owhisper_client::ListenClient;
     use owhisper_interface::ListenParams;
 
     #[tokio::test]
-    async fn test_deepgram() {
-        let _server = Server::new(owhisper_config::Config::new(None), Some(1234));
+    // cargo test -p owhisper-server test_whisper_cpp -- --nocapture
+    async fn test_whisper_cpp() {
+        let signal = shutdown_signal();
+
+        let addr = Server::new(
+            owhisper_config::Config {
+                models: vec![owhisper_config::ModelConfig::WhisperCpp(
+                    owhisper_config::WhisperCppModelConfig {
+                        id: "test".to_string(),
+                        model_path: dirs::data_dir()
+                            .unwrap()
+                            .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                    },
+                )],
+                ..Default::default()
+            },
+            None,
+        )
+        .run_with_shutdown(signal)
+        .await
+        .unwrap();
+
+        let client = ListenClient::builder()
+            .api_base(format!("http://{}", addr))
+            .params(ListenParams {
+                ..Default::default()
+            })
+            .build_single();
 
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
-
-        let client = ListenClient::builder()
-            .api_base("ws://127.0.0.1:1234/v1")
-            .api_key("".to_string())
-            .params(ListenParams {
-                ..Default::default()
-            })
-            .build_single();
 
         let stream = client.from_realtime_audio(audio).await.unwrap();
         futures_util::pin_mut!(stream);

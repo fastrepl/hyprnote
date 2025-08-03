@@ -10226,6 +10226,7 @@ dependencies = [
  "dirs 6.0.0",
  "schemars 0.8.22",
  "serde",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

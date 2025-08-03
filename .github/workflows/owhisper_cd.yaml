@@ -24,6 +24,9 @@ jobs:
           - platform: "linux"
             target: "x86_64-unknown-linux-gnu"
             runner: "ubuntu-latest"
+          - platform: "linux"
+            target: "aarch64-unknown-linux-gnu"
+            runner: "ubuntu-latest"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +41,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p artifacts
-          cp target/${{ matrix.target }}/release/owhisper-server* artifacts/
+          find target/${{ matrix.target }}/release -name 'owhisper-server*' ! -name '*.d' -type f -exec cp {} artifacts/ \;
           cd artifacts
           for file in owhisper-server*; do
             if [ -f "$file" ]; then
@@ -52,7 +55,7 @@ jobs:
           path: artifacts/*
           retention-days: 7
 
-      - if: github.event_name == 'release'
+      - if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'owhisper_v') && contains(github.event.release.tag_name, '.')
         uses: softprops/action-gh-release@v1
         with:
           files: artifacts/*

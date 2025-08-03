@@ -2,7 +2,7 @@ use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
 use tokio::signal;
 
-use crate::Server;
+use crate::{misc::shutdown_signal, Server};
 use hypr_audio_input::MicInput;
 
 #[derive(clap::Parser)]
@@ -12,7 +12,6 @@ pub struct RunArgs {
 }
 
 pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
-    // Set up shutdown signal handler
     let shutdown_signal = shutdown_signal();
 
     // Load config and create server
@@ -36,11 +35,13 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 
     let server = Server::new(config, None);
 
-    // Start server in background and get its address
-    let server_addr = server.run_with_shutdown(shutdown_signal).await?;
+    let _server_addr = server.run_with_shutdown(shutdown_signal).await?;
 
     // Wait a moment for server to be ready
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+    let input_devices: Vec<String> = hypr_audio_input::MicInput::list_devices();
+    log::info!("Input devices: {:#?}", input_devices);
 
     // Create mic input stream - convert to proper format
     // We need to create a wrapper that implements AsyncSource
@@ -111,27 +112,3 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 
 //     Ok(stream)
 // }
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
-    }
-}

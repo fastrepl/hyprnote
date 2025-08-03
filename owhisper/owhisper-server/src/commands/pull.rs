@@ -21,7 +21,7 @@ pub async fn handle_pull(args: PullArgs) -> anyhow::Result<()> {
     if output_path.exists() {
         let metadata = std::fs::metadata(&output_path)?;
         if metadata.len() == expected_size {
-            println!("Model {} already downloaded", args.model);
+            log::info!("Model {} already downloaded", args.model);
             return Ok(());
         }
     }
@@ -50,5 +50,6 @@ pub async fn handle_pull(args: PullArgs) -> anyhow::Result<()> {
     })
     .await?;
 
+    log::info!("Try running 'owhisper run {}' to get started", args.model);
     Ok(())
 }

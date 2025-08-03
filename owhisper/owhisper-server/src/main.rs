@@ -7,8 +7,7 @@ mod server;
 use server::*;
 
 #[derive(Parser)]
-#[command(name = "owhisper")]
-#[command(about = "A CLI tool for audio transcription")]
+#[command(version, name = "OWhisper", bin_name = "owhisper")]
 struct Args {
     #[command(subcommand)]
     cmd: Commands,
@@ -16,9 +15,13 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
+    #[command(about = "Redirect to the GitHub README")]
     Readme(commands::ReadmeArgs),
+    #[command(about = "Download the model")]
     Pull(commands::PullArgs),
+    #[command(about = "Run the server")]
     Run(commands::RunArgs),
+    #[command(about = "Start the server")]
     Serve(commands::ServeArgs),
 }
 
@@ -28,19 +31,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    match args.cmd {
-        Commands::Readme(args) => {
-            commands::handle_readme(args).await.unwrap();
-        }
-        Commands::Pull(args) => {
-            commands::handle_pull(args).await.unwrap();
-        }
-        Commands::Run(args) => {
-            commands::handle_run(args).await.unwrap();
-        }
-        Commands::Serve(args) => {
-            commands::handle_serve(args).await.unwrap();
-        }
+    let result = match args.cmd {
+        Commands::Readme(args) => commands::handle_readme(args).await,
+        Commands::Pull(args) => commands::handle_pull(args).await,
+        Commands::Run(args) => commands::handle_run(args).await,
+        Commands::Serve(args) => commands::handle_serve(args).await,
+    };
+
+    if result.is_err() {
+        log::error!("{}", result.unwrap_err());
     }
 
     Ok(())

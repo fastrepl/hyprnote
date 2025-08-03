@@ -1,7 +1,11 @@
+name: "Install Rust Toolchain"
+description: "Installs Rust toolchain with platform-specific targets"
+
 inputs:
   platform:
+    description: "Target platform (macos, ios, android, windows, linux)"
     required: false
-    type: string
+    default: ""
 
 runs:
   using: "composite"
@@ -24,7 +28,7 @@ runs:
         cargo install trusted-signing-cli
       shell: bash
     - if: inputs.platform == 'linux'
-      run: rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl
+      run: rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
       shell: bash
     - uses: Swatinem/rust-cache@v2
       with:

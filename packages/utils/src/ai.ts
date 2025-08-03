@@ -4,7 +4,7 @@ import { customProvider, extractReasoningMiddleware, wrapLanguageModel } from "a
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
 
-export { generateObject, generateText, type Provider, smoothStream, streamText, tool } from "ai";
+export { generateObject, generateText, type Provider, smoothStream, streamText, tool, stepCountIs } from "ai";
 
 export const localProviderName = "hypr-llm-local";
 export const remoteProviderName = "hypr-llm-remote";

@@ -295,9 +295,6 @@ export function useChatLogic({
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      console.log("provider", provider);
-      console.log("model", model);
-
       const aiMessage: Message = {
         id: aiMessageId,
         content: "Generating...",
@@ -310,8 +307,6 @@ export function useChatLogic({
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const { type } = await connectorCommands.getLlmConnection();
-
-      console.log("fresh data type", type);
 
       const { textStream } = streamText({
         model,

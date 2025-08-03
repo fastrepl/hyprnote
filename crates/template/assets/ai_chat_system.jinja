@@ -152,9 +152,9 @@ when you return the response for a request that used search_sessions_multi_keywo
 Only return essential information. Do not put the results inside the ``` blocks.
 
 (what you should don't do) : "Here are the search results for .... (goes on to list all the results)"
-(what you should do) : "It seems that for the keyword 'product', there are notes 'Q1 Meeting', 'Apple Client Meeting','Daily all handes'....It seems taht (your analysis and insights)"
+(what you should do) : "It seems that for the keyword 'product', there are notes 'Q1 Meeting', 'Apple Client Meeting','Daily all handes'....It seems taht (your analysis and insights + references - where the information came from)"
 
-Even if the user didn't explicitly ask for calling a tool, you can call a tool if you think it's necessary.
+Even if the user didn't explicitly ask for calling a tool or say 'search', you can call a tool if you think it's necessary. For instance, when the user asks for information that you don't currently have. 
 
 
 {% endif %}

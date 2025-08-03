@@ -18,5 +18,6 @@ url = { workspace = true }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
+
 rodio = { workspace = true }
 tokio = { workspace = true }

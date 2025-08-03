@@ -51,7 +51,7 @@ pub struct AwsModelConfig {
 pub struct DeepgramModelConfig {
     pub id: String,
     pub api_key: Option<String>,
-    pub base_url: String,
+    pub base_url: Option<String>,
 }
 
 #[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]

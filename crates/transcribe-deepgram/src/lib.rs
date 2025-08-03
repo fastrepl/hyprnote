@@ -40,7 +40,11 @@ pub struct TranscribeService {
 impl TranscribeService {
     pub async fn new(config: owhisper_config::DeepgramModelConfig) -> Result<Self, Error> {
         let deepgram = Deepgram::with_base_url_and_api_key(
-            config.base_url.parse::<url::Url>().unwrap(),
+            config
+                .base_url
+                .unwrap_or("https://api.deepgram.com/v1".to_string())
+                .parse::<url::Url>()
+                .unwrap(),
             config.api_key.unwrap_or_default(),
         )?;
 
@@ -70,29 +74,61 @@ impl Service<Request<Body>> for TranscribeService {
         let service = self.clone();
 
         Box::pin(async move {
-            // Check for WebSocket upgrade header
             if req.headers().get("upgrade").and_then(|v| v.to_str().ok()) == Some("websocket") {
                 let (parts, body) = req.into_parts();
                 let axum_req = axum::extract::Request::from_parts(parts, body);
 
                 match WebSocketUpgrade::from_request(axum_req, &()).await {
                     Ok(ws) => Ok(service.handle_websocket(ws).await),
-                    Err(_) => {
-                        let response = Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body(Body::from("Invalid WebSocket upgrade request"))
-                            .unwrap();
-                        Ok(response)
-                    }
+                    Err(_) => Ok(Response::builder()
+                        .status(StatusCode::BAD_REQUEST)
+                        .body(Body::from("Invalid WebSocket upgrade request"))
+                        .unwrap()),
                 }
             } else {
-                // Handle non-WebSocket requests
-                let response = Response::builder()
+                Ok(Response::builder()
                     .status(StatusCode::METHOD_NOT_ALLOWED)
                     .body(Body::from("Only WebSocket connections are supported"))
-                    .unwrap();
-                Ok(response)
+                    .unwrap())
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use owhisper_client::ListenClient;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_transcribe() {
+        let service = TranscribeService::new(owhisper_config::DeepgramModelConfig {
+            id: "test".to_string(),
+            api_key: Some("test".to_string()),
+            base_url: Some("https://api.deepgram.com/v1".to_string()),
+        })
+        .await
+        .unwrap();
+
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let client = ListenClient::builder()
+            .api_base("ws://127.0.0.1:1234/v1")
+            .api_key("".to_string())
+            .params(owhisper_interface::ListenParams {
+                ..Default::default()
+            })
+            .build_single();
+
+        let stream = client.from_realtime_audio(audio).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            println!("{:?}", result);
+        }
     }
 }

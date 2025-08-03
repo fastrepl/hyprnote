@@ -56,7 +56,8 @@ impl ListenClientBuilder {
                 .append_pair("audio_mode", params.audio_mode.as_ref())
                 .append_pair("static_prompt", &params.static_prompt)
                 .append_pair("dynamic_prompt", &params.dynamic_prompt)
-                .append_pair("redemption_time_ms", &params.redemption_time_ms.to_string());
+                .append_pair("redemption_time_ms", &params.redemption_time_ms.to_string())
+                .append_pair("model", params.model.as_ref().unwrap_or(&"".to_string()));
         }
 
         let host = url.host_str().unwrap();

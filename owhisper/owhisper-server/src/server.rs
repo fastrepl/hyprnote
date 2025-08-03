@@ -3,7 +3,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Request, State},
+    extract::{Query, Request, State},
     http::StatusCode,
     middleware::{self, Next},
     response::Response,
@@ -161,10 +161,20 @@ async fn build_deepgram_service(
 
 async fn handle_transcription(
     State(state): State<Arc<AppState>>,
+    Query(params): Query<owhisper_interface::ListenParams>,
     req: Request,
 ) -> Result<Response, StatusCode> {
-    // TODO
-    let service = state.services.get("test").ok_or(StatusCode::NOT_FOUND)?;
+    let model_id = match params.model {
+        Some(id) => id,
+        None => state
+            .services
+            .keys()
+            .next()
+            .ok_or(StatusCode::NOT_FOUND)?
+            .clone(),
+    };
+
+    let service = state.services.get(&model_id).ok_or(StatusCode::NOT_FOUND)?;
 
     match service {
         TranscriptionService::Aws(svc) => {
@@ -201,7 +211,6 @@ async fn auth_middleware(
     req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    println!("API key: {:?}", state.api_key);
     if state.api_key.is_none() {
         return Ok(next.run(req).await);
     }
@@ -238,11 +247,13 @@ mod tests {
     async fn test_whisper_cpp() {
         let signal = shutdown_signal();
 
+        let id = "test";
+
         let addr = Server::new(
             owhisper_config::Config {
                 models: vec![owhisper_config::ModelConfig::WhisperCpp(
                     owhisper_config::WhisperCppModelConfig {
-                        id: "test".to_string(),
+                        id: id.to_string(),
                         model_path: dirs::data_dir()
                             .unwrap()
                             .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
@@ -262,6 +273,7 @@ mod tests {
         let client = ListenClient::builder()
             .api_base(format!("http://{}", addr))
             .params(ListenParams {
+                model: Some(id.to_string()),
                 ..Default::default()
             })
             .build_single();

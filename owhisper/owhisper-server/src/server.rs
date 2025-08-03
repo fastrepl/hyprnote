@@ -76,29 +76,10 @@ impl Server {
         Ok(app)
     }
 
-    pub async fn run(self) -> anyhow::Result<()> {
-        let router = self.build_router().await?;
-
-        let listener = tokio::net::TcpListener::bind(if let Some(port) = self.port {
-            SocketAddr::from((Ipv4Addr::LOCALHOST, port))
-        } else {
-            SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0))
-        })
-        .await?;
-
-        log::info!(
-            "Server started on port {}",
-            listener.local_addr().unwrap().port()
-        );
-
-        axum::serve(listener, router.into_make_service()).await?;
-        Ok(())
-    }
-
     pub async fn run_with_shutdown(
         self,
         shutdown_signal: impl std::future::Future<Output = ()> + Send + 'static,
-    ) -> anyhow::Result<SocketAddr> {
+    ) -> anyhow::Result<()> {
         let router = self.build_router().await?;
 
         let listener = tokio::net::TcpListener::bind(if let Some(port) = self.port {
@@ -109,18 +90,17 @@ impl Server {
         .await?;
 
         let addr = listener.local_addr()?;
-        println!("Server started on {}", addr);
+        log::info!("Server started on {}", addr);
 
         let server = axum::serve(listener, router.into_make_service())
             .with_graceful_shutdown(shutdown_signal);
 
-        tokio::spawn(async move {
-            if let Err(e) = server.await {
-                eprintln!("Server error: {}", e);
-            }
-        });
+        if let Err(e) = server.await {
+            log::error!("{}", e);
+            return Err(anyhow::anyhow!(e));
+        }
 
-        Ok(addr)
+        Ok(())
     }
 
     async fn build_stt_router(&self, app_state: Arc<AppState>) -> anyhow::Result<Router> {
@@ -249,26 +229,46 @@ mod tests {
 
         let id = "test";
 
-        let addr = Server::new(
+        let server = Server::new(
             owhisper_config::Config {
-                models: vec![owhisper_config::ModelConfig::WhisperCpp(
-                    owhisper_config::WhisperCppModelConfig {
-                        id: id.to_string(),
-                        model_path: dirs::data_dir()
-                            .unwrap()
-                            .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                    },
-                )],
+                models: vec![
+                    owhisper_config::ModelConfig::WhisperCpp(
+                        owhisper_config::WhisperCppModelConfig {
+                            id: id.to_string(),
+                            model_path: dirs::data_dir()
+                                .unwrap()
+                                .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                        },
+                    ),
+                    owhisper_config::ModelConfig::WhisperCpp(
+                        owhisper_config::WhisperCppModelConfig {
+                            id: "something_else".to_string(),
+                            model_path: dirs::data_dir()
+                                .unwrap()
+                                .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                        },
+                    ),
+                ],
                 ..Default::default()
             },
             None,
-        )
-        .run_with_shutdown(signal)
-        .await
-        .unwrap();
+        );
+
+        let router = server.build_router().await.unwrap();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            let server =
+                axum::serve(listener, router.into_make_service()).with_graceful_shutdown(signal);
+            let _ = server.await;
+        });
 
         let client = ListenClient::builder()
             .api_base(format!("http://{}", addr))

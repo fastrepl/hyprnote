@@ -19,9 +19,11 @@ pub enum ModelConfig {
 }
 
 impl Config {
-    pub fn new(path: &str) -> Result<Self, crate::Error> {
+    pub fn new(path: Option<String>) -> Result<Self, crate::Error> {
         let settings = config::Config::builder()
-            .add_source(config::File::with_name(path))
+            .add_source(config::File::with_name(&path.unwrap_or_else(|| {
+                Config::base().join("config").to_str().unwrap().to_string()
+            })))
             .add_source(config::Environment::with_prefix("OWHISPER"))
             .build()?;
 
@@ -29,8 +31,8 @@ impl Config {
         Ok(config)
     }
 
-    pub fn global_path() -> std::path::PathBuf {
-        dirs::config_dir().unwrap().join(".owhisper").join("config")
+    pub fn base() -> std::path::PathBuf {
+        dirs::home_dir().unwrap().join(".owhisper")
     }
 }
 

@@ -71,6 +71,7 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
   "ta",
   "lv",
   "az",
+  "he",
 ];
 
 const schema = z.object({

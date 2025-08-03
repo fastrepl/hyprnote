@@ -1,7 +1,11 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Trans } from "@lingui/react/macro";
 import { memo, useCallback } from "react";
+
+import { useHypr } from "@/contexts";
+
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
@@ -9,11 +13,22 @@ interface EmptyChatStateProps {
 }
 
 export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatStateProps) => {
+
+  const { userId } = useHypr();
+
   const handleContainerClick = useCallback(() => {
     onFocusInput();
   }, [onFocusInput]);
 
-  const handleButtonClick = useCallback((prompt: string) => (e: React.MouseEvent) => {
+  const handleButtonClick = useCallback((prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => {
+    
+    if (userId) {
+      analyticsCommands.event({
+        event: analyticsEvent,
+        distinct_id: userId,
+      });
+    }
+    
     onQuickAction(prompt);
   }, [onQuickAction]);
 
@@ -55,28 +70,34 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
 
       <div className="flex flex-wrap gap-2 justify-center mb-4 max-w-[280px]">
         <button
-          onClick={handleButtonClick("Summarize this meeting")}
+          onClick={handleButtonClick("Make this meeting note more concise", "chat_shorten_summary")}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
-          <Trans>Summarize meeting</Trans>
+          <Trans>Shorten summary</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Identify key decisions made in this meeting")}
+          onClick={handleButtonClick("Tell me the most important questions asked in this meeting and the answers", "chat_important_qas")}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
-          <Trans>Key decisions</Trans>
+          <Trans>Important Q&As</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Extract action items from this meeting")}
+          onClick={handleButtonClick("Extract action items from this meeting", "chat_extract_action_items")}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
           <Trans>Extract action items</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Create an agenda for next meeting")}
+          onClick={handleButtonClick("Create an agenda for next meeting", "chat_next_meeting_prep")}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
-          <Trans>Create agenda</Trans>
+          <Trans>Next meeting prep</Trans>
+        </button>
+        <button
+          onClick={handleButtonClick("Add more direct quotes from the transcript to the summary", "chat_add_more_quotes")}
+          className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
+        >
+          <Trans>Add more quotes</Trans>
         </button>
       </div>
     </div>

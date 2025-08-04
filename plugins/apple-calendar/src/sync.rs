@@ -341,8 +341,6 @@ async fn list_system_events_for_calendars(
             results.insert(calendar_tracking_id.clone(), events);
         }
 
-        tracing::info!("results: {:?}", results);
-
         results
     })
     .await

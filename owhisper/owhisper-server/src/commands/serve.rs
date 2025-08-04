@@ -11,7 +11,7 @@ pub struct ServeArgs {
 pub async fn handle_serve(args: ServeArgs) -> anyhow::Result<()> {
     print_logo();
 
-    let config = owhisper_config::Config::new(&args.config);
+    let config = owhisper_config::Config::new(Some(&args.config));
     let server = Server::new(config, args.port);
     let handle = server.run().await;
 

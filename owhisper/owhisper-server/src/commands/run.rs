@@ -18,20 +18,6 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     let mut config = owhisper_config::Config::default();
 
     // Set the model path if provided
-    if let Some(serve_config) = &mut config.serve {
-        if let Some(whisper_config) = &mut serve_config.whisper_cpp {
-            whisper_config.model_path = args.model.clone();
-        }
-    } else {
-        // Create serve config if it doesn't exist
-        config.serve = Some(owhisper_config::ServeConfig {
-            aws: None,
-            azure: None,
-            whisper_cpp: Some(owhisper_config::ServeWhisperCppConfig {
-                model_path: args.model.clone(),
-            }),
-        });
-    }
 
     let server = Server::new(config, None);
 

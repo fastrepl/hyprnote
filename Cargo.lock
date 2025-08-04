@@ -10223,6 +10223,7 @@ name = "owhisper-config"
 version = "0.0.1"
 dependencies = [
  "config",
+ "dirs 6.0.0",
  "schemars 0.8.22",
  "serde",
 ]
@@ -10275,6 +10276,7 @@ dependencies = [
  "tracing",
  "transcribe-aws",
  "transcribe-azure",
+ "transcribe-deepgram",
  "transcribe-gcp",
  "transcribe-whisper-local",
  "whisper-local-model",
@@ -16139,6 +16141,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "url",
 ]
 
 [[package]]

@@ -10,6 +10,7 @@ use hypr_whisper_local_model::WhisperModel;
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn models_dir(&self) -> PathBuf;
+    fn list_custom_models(&self) -> Vec<String>;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
 
@@ -49,7 +50,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         hypr_whisper_local::list_ggml_backends()
     }
 
-    #[tracing::instrument(skip_all)]
     async fn api_base(&self) -> Option<String> {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
@@ -57,7 +57,34 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         s.api_base.clone()
     }
 
-    #[tracing::instrument(skip_all)]
+    fn list_custom_models(&self) -> Vec<String> {
+        let models_dir = self.models_dir();
+        let mut models = Vec::new();
+
+        for entry in models_dir.read_dir().unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+
+            if path.is_file() {
+                let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
+                let default_models = vec![
+                    WhisperModel::QuantizedTiny,
+                    WhisperModel::QuantizedSmall,
+                    WhisperModel::QuantizedLargeTurbo,
+                ]
+                .iter()
+                .map(|model| model.file_name().to_string())
+                .collect::<Vec<String>>();
+
+                if !default_models.contains(&file_name) {
+                    models.push(file_name);
+                }
+            }
+        }
+
+        models
+    }
+
     async fn is_model_downloaded(&self, model: &WhisperModel) -> Result<bool, crate::Error> {
         let model_path = self.models_dir().join(model.file_name());
 

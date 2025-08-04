@@ -28,7 +28,10 @@ runs:
         cargo install trusted-signing-cli
       shell: bash
     - if: inputs.platform == 'linux'
-      run: rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
+      run: |
+        rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu libasound2-dev
       shell: bash
     - uses: Swatinem/rust-cache@v2
       with:

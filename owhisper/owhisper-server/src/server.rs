@@ -1,18 +1,29 @@
+use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use axum::{
-    extract::{Request, State},
+    extract::{Path, Request, State},
     http::StatusCode,
     middleware::{self, Next},
     response::Response,
+    routing::get,
     Router,
 };
 use axum_extra::{headers::authorization::Bearer, headers::Authorization, TypedHeader};
+use tower::Service;
 
 #[derive(Clone)]
 pub struct AppState {
     pub api_key: Option<String>,
+    pub services: HashMap<String, TranscriptionService>,
+}
+
+#[derive(Clone)]
+pub enum TranscriptionService {
+    Aws(hypr_transcribe_aws::TranscribeService),
+    Deepgram(hypr_transcribe_deepgram::TranscribeService),
+    WhisperCpp(hypr_transcribe_whisper_local::WhisperStreamingService),
 }
 
 pub struct Server {
@@ -27,9 +38,33 @@ impl Server {
 
     pub async fn build_router(&self) -> anyhow::Result<Router> {
         let api_key = self.config.general.as_ref().and_then(|g| g.api_key.clone());
-        let app_state = Arc::new(AppState { api_key });
 
-        let stt_router = self.build_stt_router().await?;
+        let mut services = HashMap::new();
+        for model in &self.config.models {
+            let service = match model {
+                owhisper_config::ModelConfig::Aws(config) => {
+                    TranscriptionService::Aws(build_aws_service(config).await?)
+                }
+                owhisper_config::ModelConfig::Deepgram(config) => {
+                    TranscriptionService::Deepgram(build_deepgram_service(config).await?)
+                }
+                owhisper_config::ModelConfig::WhisperCpp(config) => {
+                    TranscriptionService::WhisperCpp(build_whisper_cpp_service(config)?)
+                }
+            };
+
+            let id = match model {
+                owhisper_config::ModelConfig::Aws(c) => &c.id,
+                owhisper_config::ModelConfig::Deepgram(c) => &c.id,
+                owhisper_config::ModelConfig::WhisperCpp(c) => &c.id,
+            };
+
+            services.insert(id.clone(), service);
+        }
+
+        let app_state = Arc::new(AppState { api_key, services });
+
+        let stt_router = self.build_stt_router(app_state.clone()).await?;
 
         let app = Router::new()
             .route("/health", axum::routing::get(health))
@@ -89,27 +124,17 @@ impl Server {
         Ok(addr)
     }
 
-    async fn build_stt_router(&self) -> anyhow::Result<Router> {
-        let mut router = Router::new();
-
-        if let Some(serve_config) = &self.config.serve {
-            if let Some(aws_config) = &serve_config.aws {
-                let aws_service = build_aws_service(aws_config).await?;
-                router = router.route_service("/aws", aws_service);
-            }
-
-            if let Some(whisper_config) = &serve_config.whisper_cpp {
-                let whisper_service = build_whisper_cpp_service(whisper_config)?;
-                router = router.route_service("/whisper-cpp", whisper_service);
-            }
-        }
+    async fn build_stt_router(&self, app_state: Arc<AppState>) -> anyhow::Result<Router> {
+        let router = Router::new()
+            .route("/v1/stt/realtime", axum::routing::any(handle_transcription))
+            .with_state(app_state);
 
         Ok(router)
     }
 }
 
 async fn build_aws_service(
-    _config: &owhisper_config::ServeAwsConfig,
+    _config: &owhisper_config::AwsModelConfig,
 ) -> anyhow::Result<hypr_transcribe_aws::TranscribeService> {
     hypr_transcribe_aws::TranscribeService::new(hypr_transcribe_aws::TranscribeConfig::default())
         .await
@@ -117,13 +142,53 @@ async fn build_aws_service(
 }
 
 fn build_whisper_cpp_service(
-    config: &owhisper_config::ServeWhisperCppConfig,
+    config: &owhisper_config::WhisperCppModelConfig,
 ) -> anyhow::Result<hypr_transcribe_whisper_local::WhisperStreamingService> {
     Ok(
         hypr_transcribe_whisper_local::WhisperStreamingService::builder()
             .model_path(config.model_path.clone().into())
             .build(),
     )
+}
+
+async fn build_deepgram_service(
+    config: &owhisper_config::DeepgramModelConfig,
+) -> anyhow::Result<hypr_transcribe_deepgram::TranscribeService> {
+    hypr_transcribe_deepgram::TranscribeService::new(config.clone())
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to create Deepgram service: {}", e))
+}
+
+async fn handle_transcription(
+    State(state): State<Arc<AppState>>,
+    Path(model_id): Path<String>,
+    req: Request,
+) -> Result<Response, StatusCode> {
+    let service = state.services.get(&model_id).ok_or(StatusCode::NOT_FOUND)?;
+
+    match service {
+        TranscriptionService::Aws(svc) => {
+            let mut svc_clone = svc.clone();
+            svc_clone
+                .call(req)
+                .await
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        }
+        TranscriptionService::Deepgram(svc) => {
+            let mut svc_clone = svc.clone();
+            svc_clone
+                .call(req)
+                .await
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        }
+        TranscriptionService::WhisperCpp(svc) => {
+            let mut svc_clone = svc.clone();
+            svc_clone
+                .call(req)
+                .await
+                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
 }
 
 async fn health() -> &'static str {

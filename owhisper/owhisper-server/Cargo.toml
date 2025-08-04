@@ -23,6 +23,7 @@ hypr-whisper-local-model = { workspace = true }
 
 hypr-transcribe-aws = { workspace = true }
 hypr-transcribe-azure = { workspace = true }
+hypr-transcribe-deepgram = { workspace = true }
 hypr-transcribe-gcp = { workspace = true }
 hypr-transcribe-whisper-local = { workspace = true }
 

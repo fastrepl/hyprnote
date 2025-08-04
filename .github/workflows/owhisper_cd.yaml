@@ -24,14 +24,9 @@ jobs:
           - platform: "linux"
             target: "x86_64-unknown-linux-gnu"
             runner: "ubuntu-latest"
-          - platform: "linux"
-            target: "aarch64-unknown-linux-gnu"
-            runner: "ubuntu-latest"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - if: matrix.platform == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.platform }}
@@ -83,10 +78,13 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=ref,event=tag
+            type=semver,pattern={{version}},prefix=owhisper_v
+            type=semver,pattern={{major}}.{{minor}},prefix=owhisper_v
+            type=semver,pattern={{major}},prefix=owhisper_v
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+
       - uses: Warpbuilds/build-push-action@v6
         env:
           DOCKER_BUILD_RECORD_UPLOAD: false

@@ -314,6 +314,7 @@ export function useChatLogic({
             update_progress: tool({ inputSchema: z.any() }),
           },
         }),
+<<<<<<< HEAD
         ...(type !== "HyprLocal" && {
           stopWhen: stepCountIs(3),
           tools: {
@@ -372,6 +373,8 @@ export function useChatLogic({
             }),
           },
         }),
+=======
+>>>>>>> c3cd38c331e319051827074bef0f7bdeabfa82bd
 
         onError: (error) => {
           console.error("On Error Catch:", error);

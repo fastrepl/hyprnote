@@ -185,14 +185,39 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn test_listen_client() {
+    async fn test_client_deepgram() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
 
         let client = ListenClient::builder()
-            .api_base("http://127.0.0.1:1234")
+            .api_base("wss://api.deepgram.com/v1/listen")
+            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
+            .params(owhisper_interface::ListenParams {
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        let stream = client.from_realtime_audio(audio).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            println!("{:?}", result);
+        }
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_client_owhisper() {
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let client = ListenClient::builder()
+            .api_base("ws://127.0.0.1:1234/v1/realtime")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
                 languages: vec![hypr_language::ISO639::En.into()],

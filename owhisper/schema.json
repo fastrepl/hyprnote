@@ -2,6 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Config",
   "type": "object",
+  "required": [
+    "models"
+  ],
   "properties": {
     "general": {
       "anyOf": [
@@ -13,15 +16,11 @@
         }
       ]
     },
-    "serve": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ServeConfig"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ModelConfig"
+      }
     }
   },
   "definitions": {
@@ -36,89 +35,89 @@
         }
       }
     },
-    "ServeConfig": {
-      "type": "object",
-      "properties": {
-        "aws": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ServeAwsConfig"
+    "ModelConfig": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "access_key_id",
+            "id",
+            "region",
+            "secret_access_key",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "aws"
+              ]
             },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "azure": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ServeAzureConfig"
+            "id": {
+              "type": "string"
             },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "whisper_cpp": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ServeWhisperCppConfig"
+            "region": {
+              "type": "string"
             },
-            {
-              "type": "null"
+            "access_key_id": {
+              "type": "string"
+            },
+            "secret_access_key": {
+              "type": "string"
             }
-          ]
-        }
-      }
-    },
-    "ServeAwsConfig": {
-      "type": "object",
-      "required": [
-        "access_key_id",
-        "region",
-        "secret_access_key"
-      ],
-      "properties": {
-        "region": {
-          "type": "string"
+          }
         },
-        "access_key_id": {
-          "type": "string"
+        {
+          "type": "object",
+          "required": [
+            "base_url",
+            "id",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "deepgram"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "api_key": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "base_url": {
+              "type": "string"
+            }
+          }
         },
-        "secret_access_key": {
-          "type": "string"
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "model_path",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "whisper-cpp"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "model_path": {
+              "type": "string"
+            }
+          }
         }
-      }
-    },
-    "ServeAzureConfig": {
-      "type": "object",
-      "required": [
-        "access_key_id",
-        "region",
-        "secret_access_key"
-      ],
-      "properties": {
-        "region": {
-          "type": "string"
-        },
-        "access_key_id": {
-          "type": "string"
-        },
-        "secret_access_key": {
-          "type": "string"
-        }
-      }
-    },
-    "ServeWhisperCppConfig": {
-      "type": "object",
-      "required": [
-        "model_path"
-      ],
-      "properties": {
-        "model_path": {
-          "type": "string"
-        }
-      }
+      ]
     }
   }
 }

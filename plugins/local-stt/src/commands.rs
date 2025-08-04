@@ -35,6 +35,14 @@ pub async fn list_supported_models() -> Result<Vec<WhisperModel>, String> {
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_custom_models<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    Ok(app.list_custom_models())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn is_server_running<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
     app.is_server_running().await
 }

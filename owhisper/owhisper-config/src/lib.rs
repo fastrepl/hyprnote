@@ -1,13 +1,31 @@
 #[derive(serde::Deserialize, schemars::JsonSchema, Default)]
 pub struct Config {
     pub general: Option<GeneralConfig>,
-    pub serve: Option<ServeConfig>,
+    pub models: Vec<ModelConfig>,
+}
+
+#[derive(serde::Deserialize, schemars::JsonSchema)]
+#[serde(tag = "type")]
+pub enum ModelConfig {
+    #[serde(rename = "aws")]
+    Aws(AwsModelConfig),
+    #[serde(rename = "deepgram")]
+    Deepgram(DeepgramModelConfig),
+    #[serde(rename = "whisper-cpp")]
+    WhisperCpp(WhisperCppModelConfig),
 }
 
 impl Config {
-    pub fn new(config_path: &str) -> Self {
+    pub fn new(config_path: Option<&str>) -> Self {
+        let default = dirs::config_dir()
+            .unwrap()
+            .join(".owhisper")
+            .join("config.json");
+
         let settings = config::Config::builder()
-            .add_source(config::File::with_name(config_path))
+            .add_source(config::File::with_name(
+                config_path.unwrap_or(default.to_str().unwrap()),
+            ))
             .add_source(config::Environment::with_prefix("OWHISPER"))
             .build()
             .unwrap();
@@ -16,39 +34,28 @@ impl Config {
     }
 }
 
-#[derive(serde::Deserialize, schemars::JsonSchema, Default)]
+#[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]
 pub struct GeneralConfig {
     pub api_key: Option<String>,
 }
 
-#[derive(serde::Deserialize, schemars::JsonSchema, Default)]
-pub struct ServeConfig {
-    pub aws: Option<ServeAwsConfig>,
-    pub azure: Option<ServeAzureConfig>,
-    pub whisper_cpp: Option<ServeWhisperCppConfig>,
-}
-
-#[derive(serde::Deserialize, schemars::JsonSchema)]
-pub struct ServeAwsConfig {
+#[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]
+pub struct AwsModelConfig {
+    pub id: String,
     pub region: String,
     pub access_key_id: String,
     pub secret_access_key: String,
 }
 
-#[derive(serde::Deserialize, schemars::JsonSchema)]
-pub struct ServeAzureConfig {
-    pub region: String,
-    pub access_key_id: String,
-    pub secret_access_key: String,
+#[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]
+pub struct DeepgramModelConfig {
+    pub id: String,
+    pub api_key: Option<String>,
+    pub base_url: String,
 }
 
-#[derive(serde::Deserialize, schemars::JsonSchema)]
-pub struct ServeDeepgramConfig {
-    pub api_key: String,
-    pub base_url: Option<String>,
-}
-
-#[derive(serde::Deserialize, schemars::JsonSchema)]
-pub struct ServeWhisperCppConfig {
+#[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]
+pub struct WhisperCppModelConfig {
+    pub id: String,
     pub model_path: String,
 }

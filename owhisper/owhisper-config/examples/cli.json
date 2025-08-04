@@ -1,8 +1,10 @@
 {
-  "$schema": "https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/owhisper/schema.json",
-  "serve": {
-    "whisper_cpp": {
-      "model_path": "./tiny-en.gguf"
+  "$schema": "../../schema.json",
+  "models": [
+    {
+      "type": "whisper-cpp",
+      "id": "whisper-1",
+      "model_path": "./ggml-base.bin"
     }
-  }
+  ]
 }

@@ -140,7 +140,6 @@ function ShareButtonInNote() {
 
     if (newOpen) {
       isObsidianConfigured.refetch().then((configResult) => {
-        console.log("is obsidian configured", configResult.data);
         if (configResult.data) {
           obsidianFolders.refetch();
         }

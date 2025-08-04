@@ -1,6 +1,6 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpAZ, Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -131,10 +131,8 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         return nameA.localeCompare(nameB);
       });
     } else if (sortOption === "newest") {
-      // Reverse the array to show newest first (assuming database order is oldest first)
       filtered = [...filtered].reverse();
     }
-    // For "oldest", keep the original database order (no additional sorting needed)
 
     return filtered;
   }, [selectedOrganization, allPeopleWithUser, userId, sortOption]);
@@ -259,7 +257,10 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between">
           <h3 className="text-xs font-medium text-neutral-600">People</h3>
           <div className="flex items-center gap-1">
-            <Select value={sortOption} onValueChange={(value: "alphabetical" | "oldest" | "newest") => setSortOption(value)}>
+            <Select
+              value={sortOption}
+              onValueChange={(value: "alphabetical" | "oldest" | "newest") => setSortOption(value)}
+            >
               <SelectTrigger className="w-[90px] h-6 text-xs border-0 bg-transparent hover:bg-neutral-100 focus:ring-0 focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>

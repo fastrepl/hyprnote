@@ -1173,7 +1173,7 @@ msgstr "Pause"
 msgid "people"
 msgstr "people"
 
-#: src/components/settings/components/ai/stt-view.tsx:330
+#: src/components/settings/components/ai/stt-view.tsx:332
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
@@ -1490,7 +1490,7 @@ msgstr "Toggle left sidebar"
 msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
-#: src/components/settings/components/ai/stt-view.tsx:321
+#: src/components/settings/components/ai/stt-view.tsx:323
 msgid "Transcribing"
 msgstr "Transcribing"
 

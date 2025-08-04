@@ -16076,6 +16076,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "transcribe-interface",
 ]
 
 [[package]]
@@ -16118,6 +16119,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "transcribe-interface",
  "url",
 ]
 
@@ -16145,9 +16147,14 @@ dependencies = [
 name = "transcribe-interface"
 version = "0.1.0"
 dependencies = [
- "serde",
- "serde_json",
- "thiserror 2.0.12",
+ "async-trait",
+ "axum 0.8.4",
+ "bytes",
+ "futures-util",
+ "owhisper-interface",
+ "serde_qs 1.0.0-rc.3",
+ "tokio",
+ "tower 0.5.2",
 ]
 
 [[package]]

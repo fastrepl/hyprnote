@@ -66,6 +66,7 @@ hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aw
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
 hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
 hypr-transcribe-gcp = { path = "crates/transcribe-gcp", package = "transcribe-gcp" }
+hypr-transcribe-interface = { path = "crates/transcribe-interface", package = "transcribe-interface" }
 hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
@@ -114,6 +115,7 @@ tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
 async-stream = "0.3.6"
+async-trait = "0.1.88"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"

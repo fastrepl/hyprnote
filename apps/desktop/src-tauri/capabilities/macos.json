@@ -4,7 +4,5 @@
   "description": "macos specific capabilities",
   "windows": ["*"],
   "platforms": ["macOS"],
-  "permissions": [
-    "apple-calendar:default"
-  ]
+  "permissions": ["apple-calendar:default"]
 }

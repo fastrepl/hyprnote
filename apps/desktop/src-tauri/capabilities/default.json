@@ -52,14 +52,15 @@
     "keygen:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://**" }, { "url": "mailto:*" }, { "url": "obsidian://**" }]
+      "allow": [
+        { "url": "https://**" },
+        { "url": "mailto:*" },
+        { "url": "obsidian://**" }
+      ]
     },
     {
       "identifier": "opener:allow-open-path",
-      "allow": [
-        { "path": "$APPDATA/*" },
-        { "path": "$APPDATA/**" }
-      ]
+      "allow": [{ "path": "$APPDATA/*" }, { "path": "$APPDATA/**" }]
     },
     {
       "identifier": "fs:allow-exists",
@@ -67,17 +68,11 @@
     },
     {
       "identifier": "fs:allow-watch",
-      "allow": [
-        { "path": "$APPDATA/*" },
-        { "path": "$APPDATA/**" }
-      ]
+      "allow": [{ "path": "$APPDATA/*" }, { "path": "$APPDATA/**" }]
     },
     {
       "identifier": "fs:allow-write-file",
-      "allow": [
-        { "path": "$APPDATA/*" },
-        { "path": "$APPDATA/**" }
-      ]
+      "allow": [{ "path": "$APPDATA/*" }, { "path": "$APPDATA/**" }]
     },
     {
       "identifier": "http:default",

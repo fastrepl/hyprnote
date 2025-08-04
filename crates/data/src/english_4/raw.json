@@ -6,9 +6,7 @@
     "created": "2025-04-09T11:06:10.609Z",
     "duration": 80.496,
     "channels": 1,
-    "models": [
-      "3b3aabe4-608a-46ac-9585-7960a25daf1a"
-    ],
+    "models": ["3b3aabe4-608a-46ac-9585-7960a25daf1a"],
     "model_info": {
       "3b3aabe4-608a-46ac-9585-7960a25daf1a": {
         "name": "general-nova-3",

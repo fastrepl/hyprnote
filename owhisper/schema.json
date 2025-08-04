@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Config",
   "type": "object",
-  "required": [
-    "models"
-  ],
+  "required": ["models"],
   "properties": {
     "general": {
       "anyOf": [
@@ -28,10 +26,7 @@
       "type": "object",
       "properties": {
         "api_key": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
@@ -61,49 +56,32 @@
             },
             "type": {
               "type": "string",
-              "enum": [
-                "aws"
-              ]
+              "enum": ["aws"]
             }
           }
         },
         {
           "type": "object",
-          "required": [
-            "id",
-            "type"
-          ],
+          "required": ["id", "type"],
           "properties": {
             "api_key": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "base_url": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "id": {
               "type": "string"
             },
             "type": {
               "type": "string",
-              "enum": [
-                "deepgram"
-              ]
+              "enum": ["deepgram"]
             }
           }
         },
         {
           "type": "object",
-          "required": [
-            "id",
-            "model_path",
-            "type"
-          ],
+          "required": ["id", "model_path", "type"],
           "properties": {
             "id": {
               "type": "string"
@@ -113,9 +91,7 @@
             },
             "type": {
               "type": "string",
-              "enum": [
-                "whisper-cpp"
-              ]
+              "enum": ["whisper-cpp"]
             }
           }
         }

@@ -5,9 +5,6 @@
   "markup": {
     "associations": ["!**/*.html", "!**/*.jinja", "**/*.wxs", "**/*.wxl"]
   },
-  "prettier": {
-    "associations": ["**/*.json"]
-  },
   "typescript": {
     "associations": ["**/*.{js,ts,jsx,tsx,mjs,mts}"],
     "singleBodyPosition": "nextLine"
@@ -48,10 +45,10 @@
     "https://plugins.dprint.dev/dockerfile-0.3.2.wasm",
     "https://plugins.dprint.dev/exec-0.5.1.json@492414e39dea4dccc07b4af796d2f4efdb89e84bae2bd4e1e924c0cc050855bf",
     "https://plugins.dprint.dev/ruff-0.3.9.wasm",
+    "https://plugins.dprint.dev/json-0.20.0.wasm",
     "https://plugins.dprint.dev/markdown-0.17.8.wasm",
     "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
     "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm",
-    "https://plugins.dprint.dev/typescript-0.94.0.wasm",
-    "https://plugins.dprint.dev/prettier-0.58.2.json@2fd8cc9c9773364848dc93735b01a00d55fcfa78a56a9230b4b63c014964c82d"
+    "https://plugins.dprint.dev/typescript-0.94.0.wasm"
   ]
 }

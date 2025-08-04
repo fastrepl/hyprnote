@@ -240,7 +240,7 @@ mod tests {
                             id: "whisper_cpp".to_string(),
                             model_path: dirs::data_dir()
                                 .unwrap()
-                                .join("com.hyprnote.dev/stt/ggml-tiny-q8_0.bin")
+                                .join("com.hyprnote.dev/stt/ggml-small-q8_0.bin")
                                 .to_str()
                                 .unwrap()
                                 .to_string(),
@@ -301,7 +301,9 @@ mod tests {
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {
-            println!("{:?}", result);
+            if let owhisper_interface::StreamResponse::TranscriptResponse { channel, .. } = result {
+                println!("{:?}", channel.alternatives.first().unwrap().transcript);
+            }
         }
     }
 

@@ -2,13 +2,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Add these imports for file operations
-import { message } from "@tauri-apps/plugin-dialog";
-import { writeFile } from "@tauri-apps/plugin-fs";
+// import { message } from "@tauri-apps/plugin-dialog";
+// import { writeFile } from "@tauri-apps/plugin-fs";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
@@ -142,8 +142,8 @@ export function STTView({
   const queryClient = useQueryClient();
 
   // Add drag and drop state
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  // const [isDragOver, setIsDragOver] = useState(false);
+  // const [isUploading, setIsUploading] = useState(false);
 
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
@@ -251,6 +251,7 @@ export function STTView({
     onError: console.error,
   });
 
+  /*
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -313,6 +314,7 @@ export function STTView({
       setIsUploading(false);
     }
   }, [queryClient]);
+  */
 
   return (
     <div className="space-y-6">
@@ -466,6 +468,8 @@ export function STTView({
         </div>
       </div>
 
+      {
+        /*
       <div className="max-w-2xl">
         <h3 className="text-sm font-semibold mb-3 text-gray-700">
           Custom
@@ -498,7 +502,8 @@ export function STTView({
             )}
         </div>
       </div>
-
+      */
+      }
       <div className="max-w-2xl">
         <div className="border rounded-lg p-4">
           <h3 className="text-sm font-semibold mb-4">

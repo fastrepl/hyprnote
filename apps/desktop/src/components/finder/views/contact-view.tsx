@@ -9,6 +9,7 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
 import { LinkProps } from "node_modules/@tanstack/react-router/dist/esm/link";
@@ -27,7 +28,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
-  const [sortAlphabetically, setSortAlphabetically] = useState(true);
+  const [sortOption, setSortOption] = useState<"alphabetical" | "oldest" | "newest">("alphabetical");
   const queryClient = useQueryClient();
 
   // Load organizations once and keep cached (global data)
@@ -123,16 +124,20 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
       ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
       : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
 
-    if (sortAlphabetically) {
+    if (sortOption === "alphabetical") {
       filtered = [...filtered].sort((a, b) => {
         const nameA = (a.full_name || a.email || "").toLowerCase();
         const nameB = (b.full_name || b.email || "").toLowerCase();
         return nameA.localeCompare(nameB);
       });
+    } else if (sortOption === "newest") {
+      // Reverse the array to show newest first (assuming database order is oldest first)
+      filtered = [...filtered].reverse();
     }
+    // For "oldest", keep the original database order (no additional sorting needed)
 
     return filtered;
-  }, [selectedOrganization, allPeopleWithUser, userId, sortAlphabetically]);
+  }, [selectedOrganization, allPeopleWithUser, userId, sortOption]);
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
 
@@ -254,16 +259,22 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between">
           <h3 className="text-xs font-medium text-neutral-600">People</h3>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setSortAlphabetically(!sortAlphabetically)}
-              className={cn(
-                "p-0.5 rounded hover:bg-neutral-100 transition-colors",
-                sortAlphabetically && "bg-neutral-100",
-              )}
-              title={sortAlphabetically ? "Sorted A-Z" : "Sort A-Z"}
-            >
-              <ArrowUpAZ className="h-3 w-3 text-neutral-500" />
-            </button>
+            <Select value={sortOption} onValueChange={(value: "alphabetical" | "oldest" | "newest") => setSortOption(value)}>
+              <SelectTrigger className="w-[90px] h-6 text-xs border-0 bg-transparent hover:bg-neutral-100 focus:ring-0 focus:ring-offset-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alphabetical" className="text-xs">
+                  A-Z
+                </SelectItem>
+                <SelectItem value="oldest" className="text-xs">
+                  Oldest
+                </SelectItem>
+                <SelectItem value="newest" className="text-xs">
+                  Newest
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <button
               onClick={() => {
                 const newPersonId = crypto.randomUUID();

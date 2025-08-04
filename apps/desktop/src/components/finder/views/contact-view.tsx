@@ -1,6 +1,6 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
+import { ArrowUpAZ, Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -27,6 +27,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
+  const [sortAlphabetically, setSortAlphabetically] = useState(true);
   const queryClient = useQueryClient();
 
   // Load organizations once and keep cached (global data)
@@ -117,9 +118,21 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     return name !== null && name !== "" && name !== "Null";
   };
 
-  const displayPeople = (selectedOrganization
-    ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
-    : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
+  const displayPeople = React.useMemo(() => {
+    let filtered = (selectedOrganization
+      ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
+      : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
+
+    if (sortAlphabetically) {
+      filtered = [...filtered].sort((a, b) => {
+        const nameA = (a.full_name || a.email || "").toLowerCase();
+        const nameB = (b.full_name || b.email || "").toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    }
+
+    return filtered;
+  }, [selectedOrganization, allPeopleWithUser, userId, sortAlphabetically]);
 
   const selectedPersonData = displayPeople.find(p => p.id === selectedPerson);
 
@@ -240,28 +253,40 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
       <div className="w-[250px] border-r border-neutral-200 flex flex-col">
         <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between">
           <h3 className="text-xs font-medium text-neutral-600">People</h3>
-          <button
-            onClick={() => {
-              const newPersonId = crypto.randomUUID();
-              dbCommands.upsertHuman({
-                id: newPersonId,
-                organization_id: selectedOrganization,
-                is_user: false,
-                full_name: "New Contact",
-                email: null,
-                job_title: null,
-                linkedin_username: null,
-              }).then(() => {
-                queryClient.invalidateQueries({ queryKey: ["all-people"] });
-                queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-                setSelectedPerson(newPersonId);
-                setEditingPerson(newPersonId);
-              });
-            }}
-            className="p-0.5 rounded hover:bg-neutral-100 transition-colors"
-          >
-            <Plus className="h-3 w-3 text-neutral-500" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSortAlphabetically(!sortAlphabetically)}
+              className={cn(
+                "p-0.5 rounded hover:bg-neutral-100 transition-colors",
+                sortAlphabetically && "bg-neutral-100",
+              )}
+              title={sortAlphabetically ? "Sorted A-Z" : "Sort A-Z"}
+            >
+              <ArrowUpAZ className="h-3 w-3 text-neutral-500" />
+            </button>
+            <button
+              onClick={() => {
+                const newPersonId = crypto.randomUUID();
+                dbCommands.upsertHuman({
+                  id: newPersonId,
+                  organization_id: selectedOrganization,
+                  is_user: false,
+                  full_name: "New Contact",
+                  email: null,
+                  job_title: null,
+                  linkedin_username: null,
+                }).then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["all-people"] });
+                  queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+                  setSelectedPerson(newPersonId);
+                  setEditingPerson(newPersonId);
+                });
+              }}
+              className="p-0.5 rounded hover:bg-neutral-100 transition-colors"
+            >
+              <Plus className="h-3 w-3 text-neutral-500" />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="p-2">

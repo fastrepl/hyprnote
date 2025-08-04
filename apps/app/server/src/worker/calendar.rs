@@ -100,6 +100,7 @@ pub async fn perform(job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
                         start_date: e.start_date,
                         end_date: e.end_date,
                         google_event_url: None,
+                        participants: Some(serde_json::to_string(&e.participants).unwrap_or_else(|_| "[]".to_string())),
                     };
 
                     let _ = user_db.upsert_event(event).await;

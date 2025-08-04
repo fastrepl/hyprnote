@@ -170,7 +170,7 @@ async fn handle_dual_channel(
     redemption_time: Duration,
 ) {
     let (mic_source, speaker_source) =
-        hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
+        hypr_ws_utils::split_interleaved_stereo_sources(ws_receiver, 16 * 1000);
 
     let mic_chunked = {
         let mic_vad_chunks = mic_source.vad_chunks(redemption_time);

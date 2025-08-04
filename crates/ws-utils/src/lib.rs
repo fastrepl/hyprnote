@@ -69,6 +69,58 @@ impl kalosm_sound::AsyncSource for ChannelAudioSource {
     }
 }
 
+pub fn split_interleaved_stereo_sources(
+    mut ws_receiver: SplitStream<WebSocket>,
+    sample_rate: u32,
+) -> (ChannelAudioSource, ChannelAudioSource) {
+    let (mic_tx, mic_rx) = unbounded_channel::<Vec<f32>>();
+    let (speaker_tx, speaker_rx) = unbounded_channel::<Vec<f32>>();
+
+    tokio::spawn(async move {
+        while let Some(Ok(message)) = ws_receiver.next().await {
+            match message {
+                Message::Binary(data) => {
+                    // Convert interleaved i16 stereo bytes to separate f32 channels
+                    let mut mic_samples = Vec::new();
+                    let mut speaker_samples = Vec::new();
+
+                    // Process 4 bytes at a time (2 bytes for mic, 2 bytes for speaker)
+                    let chunks = data.chunks_exact(4);
+                    let remainder = chunks.remainder();
+
+                    if !remainder.is_empty() {
+                        // TODO: Add logging
+                        // tracing::warn!(
+                        //     "Dropping {} bytes from interleaved audio (not multiple of 4)",
+                        //     remainder.len()
+                        // );
+                    }
+
+                    for chunk in chunks {
+                        // First 2 bytes: mic sample (i16 little-endian)
+                        let mic_i16 = i16::from_le_bytes([chunk[0], chunk[1]]);
+                        mic_samples.push(mic_i16 as f32 / 32768.0);
+
+                        // Next 2 bytes: speaker sample (i16 little-endian)
+                        let speaker_i16 = i16::from_le_bytes([chunk[2], chunk[3]]);
+                        speaker_samples.push(speaker_i16 as f32 / 32768.0);
+                    }
+
+                    let _ = mic_tx.send(mic_samples);
+                    let _ = speaker_tx.send(speaker_samples);
+                }
+                Message::Close(_) => break,
+                _ => continue,
+            }
+        }
+    });
+
+    (
+        ChannelAudioSource::new(mic_rx, sample_rate),
+        ChannelAudioSource::new(speaker_rx, sample_rate),
+    )
+}
+
 pub fn split_dual_audio_sources(
     mut ws_receiver: SplitStream<WebSocket>,
     sample_rate: u32,

@@ -179,12 +179,19 @@ impl ListenClientDual {
             .map(|(mic_chunk, speaker_chunk)| {
                 let mut interleaved = Vec::new();
 
-                let mic_samples = mic_chunk.chunks_exact(2);
-                let speaker_samples = speaker_chunk.chunks_exact(2);
+                // Ensure both chunks have even number of bytes (complete i16 samples)
+                let mic_len = mic_chunk.len() & !1; // Clear the least significant bit
+                let speaker_len = speaker_chunk.len() & !1;
 
-                for (mic_sample, speaker_sample) in mic_samples.zip(speaker_samples) {
-                    interleaved.extend_from_slice(mic_sample);
-                    interleaved.extend_from_slice(speaker_sample);
+                // Use the minimum length to ensure we have matching pairs
+                let min_len = mic_len.min(speaker_len);
+
+                // Process samples in pairs
+                for i in (0..min_len).step_by(2) {
+                    // Mic sample (2 bytes)
+                    interleaved.extend_from_slice(&mic_chunk[i..i + 2]);
+                    // Speaker sample (2 bytes)
+                    interleaved.extend_from_slice(&speaker_chunk[i..i + 2]);
                 }
 
                 bytes::Bytes::from(interleaved)

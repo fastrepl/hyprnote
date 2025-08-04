@@ -47,11 +47,8 @@
             "type"
           ],
           "properties": {
-            "type": {
-              "type": "string",
-              "enum": [
-                "aws"
-              ]
+            "access_key_id": {
+              "type": "string"
             },
             "id": {
               "type": "string"
@@ -59,11 +56,14 @@
             "region": {
               "type": "string"
             },
-            "access_key_id": {
-              "type": "string"
-            },
             "secret_access_key": {
               "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "aws"
+              ]
             }
           }
         },
@@ -74,15 +74,6 @@
             "type"
           ],
           "properties": {
-            "type": {
-              "type": "string",
-              "enum": [
-                "deepgram"
-              ]
-            },
-            "id": {
-              "type": "string"
-            },
             "api_key": {
               "type": [
                 "string",
@@ -93,6 +84,15 @@
               "type": [
                 "string",
                 "null"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "deepgram"
               ]
             }
           }
@@ -105,17 +105,17 @@
             "type"
           ],
           "properties": {
-            "type": {
-              "type": "string",
-              "enum": [
-                "whisper-cpp"
-              ]
-            },
             "id": {
               "type": "string"
             },
             "model_path": {
               "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "whisper-cpp"
+              ]
             }
           }
         }

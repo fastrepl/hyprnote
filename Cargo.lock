@@ -16137,6 +16137,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
+ "serde_qs 1.0.0-rc.3",
  "thiserror 2.0.12",
  "tokio",
  "tokio-stream",

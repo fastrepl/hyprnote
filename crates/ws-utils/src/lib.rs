@@ -14,6 +14,13 @@ enum AudioProcessResult {
 
 fn process_ws_message(message: Message) -> AudioProcessResult {
     match message {
+        Message::Binary(data) => {
+            if data.is_empty() {
+                AudioProcessResult::Empty
+            } else {
+                AudioProcessResult::Samples(bytes_to_f32_samples(&data))
+            }
+        }
         Message::Text(data) => match serde_json::from_str::<ListenInputChunk>(&data) {
             Ok(ListenInputChunk::Audio { data }) => {
                 if data.is_empty() {

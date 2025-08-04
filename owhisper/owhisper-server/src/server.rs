@@ -143,40 +143,49 @@ async fn handle_transcription(
     State(state): State<Arc<AppState>>,
     Query(params): Query<owhisper_interface::ListenParams>,
     req: Request,
-) -> Result<Response, StatusCode> {
+) -> Result<Response, (StatusCode, String)> {
     let model_id = match params.model {
         Some(id) => id,
         None => state
             .services
             .keys()
             .next()
-            .ok_or(StatusCode::NOT_FOUND)?
+            .ok_or((StatusCode::NOT_FOUND, "no_model_specified".to_string()))?
             .clone(),
     };
 
-    let service = state.services.get(&model_id).ok_or(StatusCode::NOT_FOUND)?;
+    let service = state
+        .services
+        .get(&model_id)
+        .ok_or((StatusCode::NOT_FOUND, "no_model_match".to_string()))?;
 
     match service {
         TranscriptionService::Aws(svc) => {
             let mut svc_clone = svc.clone();
-            svc_clone
-                .call(req)
-                .await
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+            svc_clone.call(req).await.map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "aws_server_error".to_string(),
+                )
+            })
         }
         TranscriptionService::Deepgram(svc) => {
             let mut svc_clone = svc.clone();
-            svc_clone
-                .call(req)
-                .await
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+            svc_clone.call(req).await.map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "deepgram_server_error".to_string(),
+                )
+            })
         }
         TranscriptionService::WhisperCpp(svc) => {
             let mut svc_clone = svc.clone();
-            svc_clone
-                .call(req)
-                .await
-                .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+            svc_clone.call(req).await.map_err(|_| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "whisper_cpp_server_error".to_string(),
+                )
+            })
         }
     }
 }

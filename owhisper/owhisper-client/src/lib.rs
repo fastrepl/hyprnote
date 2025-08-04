@@ -45,7 +45,6 @@ impl ListenClientBuilder {
             path.push_str("listen");
             url.set_path(&path);
         }
-
         {
             let mut query_pairs = url.query_pairs_mut();
 
@@ -53,11 +52,14 @@ impl ListenClientBuilder {
                 query_pairs.append_pair("languages", lang.iso639().code());
             }
             query_pairs
+                // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
+                .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
+                .append_pair("sample_rate", "16000")
+                .append_pair("encoding", "linear16")
                 .append_pair("audio_mode", params.audio_mode.as_ref())
                 .append_pair("static_prompt", &params.static_prompt)
                 .append_pair("dynamic_prompt", &params.dynamic_prompt)
-                .append_pair("redemption_time_ms", &params.redemption_time_ms.to_string())
-                .append_pair("model", params.model.as_ref().unwrap_or(&"".to_string()));
+                .append_pair("redemption_time_ms", &params.redemption_time_ms.to_string());
         }
 
         let host = url.host_str().unwrap();
@@ -106,17 +108,15 @@ pub struct ListenClient {
 
 impl WebSocketIO for ListenClient {
     type Data = bytes::Bytes;
-    type Input = ListenInputChunk;
+    type Input = bytes::Bytes;
     type Output = ListenOutputChunk;
 
     fn to_input(data: Self::Data) -> Self::Input {
-        ListenInputChunk::Audio {
-            data: data.to_vec(),
-        }
+        data
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Text(serde_json::to_string(&input).unwrap().into())
+        Message::Binary(input)
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -194,5 +194,38 @@ impl ListenClientDual {
 
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(dual_stream).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use futures_util::StreamExt;
+    use owhisper_interface::ListenParams;
+
+    #[tokio::test]
+    // cargo test -p owhisper-client test_deepgram_compat -- --nocapture
+    async fn test_deepgram_compat() {
+        let client = ListenClient::builder()
+            .api_base("https://api.deepgram.com/v1")
+            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
+            .params(ListenParams {
+                model: Some("nova-3".to_string()),
+                ..Default::default()
+            })
+            .build_single();
+
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let stream = client.from_realtime_audio(audio).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            println!("{:?}", result);
+        }
     }
 }

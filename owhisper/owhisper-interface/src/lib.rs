@@ -1,3 +1,6 @@
+mod stream;
+pub use stream::*;
+
 #[macro_export]
 macro_rules! common_derives {
     ($item:item) => {

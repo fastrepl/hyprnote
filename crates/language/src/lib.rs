@@ -137,7 +137,6 @@ impl TryInto<hypr_whisper::Language> for Language {
             ISO639::Yi => Ok(WL::Yi),
             ISO639::Yo => Ok(WL::Yo),
             ISO639::Zh => Ok(WL::Zh),
-            ISO639::He => Ok(WL::He),
             _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
     }
@@ -248,7 +247,6 @@ impl TryInto<Language> for hypr_whisper::Language {
             WL::Yi => ISO639::Yi,
             WL::Yo => ISO639::Yo,
             WL::Zh => ISO639::Zh,
-            WL::He => ISO639::He,
             _ => return Err(Error::NotSupportedLanguage(self.to_string())),
         };
 
@@ -300,7 +298,6 @@ impl Language {
             ISO639::Uk => Ok(DG::uk),
             ISO639::Vi => Ok(DG::vi),
             ISO639::Zh => Ok(DG::zh),
-            ISO639::He => Ok(DG::he),
             _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
     }

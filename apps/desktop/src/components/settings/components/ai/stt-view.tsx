@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadIcon, FolderIcon, InfoIcon, CheckIcon, XIcon } from "lucide-react";
+import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -277,7 +277,7 @@ export function STTView({
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith('.bin') && !fileName.endsWith('.ggml')) {
       await message(
-        "Please drop a valid STT model file (.bin or .ggml format).", 
+        "Please drop a valid STT model file (Comming Soon)", 
         { title: "Invalid File Type", kind: "error" }
       );
       return;

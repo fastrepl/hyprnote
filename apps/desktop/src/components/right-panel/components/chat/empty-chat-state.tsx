@@ -1,11 +1,10 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Trans } from "@lingui/react/macro";
 import { memo, useCallback } from "react";
 
 import { useHypr } from "@/contexts";
-
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
@@ -13,7 +12,6 @@ interface EmptyChatStateProps {
 }
 
 export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatStateProps) => {
-
   const { userId } = useHypr();
 
   const handleContainerClick = useCallback(() => {
@@ -21,14 +19,13 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
   }, [onFocusInput]);
 
   const handleButtonClick = useCallback((prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => {
-    
     if (userId) {
       analyticsCommands.event({
         event: analyticsEvent,
         distinct_id: userId,
       });
     }
-    
+
     onQuickAction(prompt);
   }, [onQuickAction]);
 
@@ -76,7 +73,10 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
           <Trans>Shorten summary</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Tell me the most important questions asked in this meeting and the answers", "chat_important_qas")}
+          onClick={handleButtonClick(
+            "Tell me the most important questions asked in this meeting and the answers",
+            "chat_important_qas",
+          )}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
           <Trans>Important Q&As</Trans>
@@ -94,7 +94,10 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
           <Trans>Next meeting prep</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Add more direct quotes from the transcript to the summary", "chat_add_more_quotes")}
+          onClick={handleButtonClick(
+            "Add more direct quotes from the transcript to the summary",
+            "chat_add_more_quotes",
+          )}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
           <Trans>Add more quotes</Trans>

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:361
+#: src/components/settings/views/general.tsx:362
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -344,11 +344,15 @@ msgstr ""
 msgid "Add members"
 msgstr ""
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:103
+msgid "Add more quotes"
+msgstr ""
+
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:322
 msgid "Add participant"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:352
+#: src/components/settings/views/general.tsx:353
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr ""
 
@@ -490,7 +494,7 @@ msgstr ""
 msgid "CEO"
 msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:43
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:55
 msgid "Chat feature is in beta. For best results, we recommend you to use <0>custom endpoints</0>."
 msgstr ""
 
@@ -498,7 +502,7 @@ msgstr ""
 #~ msgid "Chat with meeting notes"
 #~ msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:34
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:46
 msgid "Chat with this meeting"
 msgstr ""
 
@@ -514,7 +518,7 @@ msgstr ""
 msgid "Choose the languages you speak for better transcription accuracy"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:186
+#: src/components/settings/views/general.tsx:187
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
@@ -625,8 +629,8 @@ msgid "Create"
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:79
-msgid "Create agenda"
-msgstr ""
+#~ msgid "Create agenda"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/new-note-button.tsx:47
 msgid "Create new note"
@@ -656,7 +660,7 @@ msgstr ""
 msgid "Custom Endpoints"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:349
+#: src/components/settings/views/general.tsx:350
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -686,7 +690,7 @@ msgstr ""
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:239
+#: src/components/settings/views/general.tsx:240
 msgid "Display language"
 msgstr ""
 
@@ -770,7 +774,7 @@ msgstr ""
 #~ msgid "Extensions"
 #~ msgstr ""
 
-#: src/components/right-panel/components/chat/empty-chat-state.tsx:73
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:88
 msgid "Extract action items"
 msgstr ""
 
@@ -871,6 +875,10 @@ msgstr ""
 msgid "How did you hear about Hyprnote?"
 msgstr ""
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:82
+msgid "Important Q&As"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:38
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr ""
@@ -905,8 +913,8 @@ msgid "Join meeting"
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:67
-msgid "Key decisions"
-msgstr ""
+#~ msgid "Key decisions"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:120
 #~ msgid "Lab"
@@ -1037,6 +1045,10 @@ msgstr ""
 msgid "New window"
 msgstr ""
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:94
+msgid "Next meeting prep"
+msgstr ""
+
 #: src/components/settings/components/calendar/calendar-selector.tsx:101
 msgid "No calendars found"
 msgstr ""
@@ -1161,7 +1173,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:259
+#: src/components/settings/components/ai/stt-view.tsx:330
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1173,7 +1185,7 @@ msgstr ""
 #~ msgid "Play video"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:242
+#: src/components/settings/views/general.tsx:243
 msgid "Primary language for the interface"
 msgstr ""
 
@@ -1252,7 +1264,7 @@ msgstr ""
 msgid "Save Date"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:183
+#: src/components/settings/views/general.tsx:184
 msgid "Save recordings"
 msgstr ""
 
@@ -1321,7 +1333,7 @@ msgstr ""
 msgid "Select how you want to process your meeting notes"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:271
+#: src/components/settings/views/general.tsx:272
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1341,8 +1353,12 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:209
+#: src/components/settings/views/general.tsx:210
 msgid "Share usage data"
+msgstr ""
+
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:73
+msgid "Shorten summary"
 msgstr ""
 
 #: src/components/settings/views/notifications.tsx:135
@@ -1365,7 +1381,7 @@ msgstr ""
 msgid "Sound"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:268
+#: src/components/settings/views/general.tsx:269
 msgid "Spoken languages"
 msgstr ""
 
@@ -1390,8 +1406,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:61
-msgid "Summarize meeting"
-msgstr ""
+#~ msgid "Summarize meeting"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:42
 #~ msgid "Synchronization across multiple devices"
@@ -1474,7 +1490,7 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:250
+#: src/components/settings/components/ai/stt-view.tsx:321
 msgid "Transcribing"
 msgstr ""
 

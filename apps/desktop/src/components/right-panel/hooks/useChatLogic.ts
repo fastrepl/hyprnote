@@ -7,7 +7,7 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { modelProvider, streamText, tool, stepCountIs } from "@hypr/utils/ai";
+import { modelProvider, stepCountIs, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -306,7 +306,6 @@ export function useChatLogic({
 
       const { type } = await connectorCommands.getLlmConnection();
 
-
       const { textStream } = streamText({
         model,
         messages: await prepareMessageHistory(messages, content, mentionedContent),
@@ -319,12 +318,14 @@ export function useChatLogic({
           stopWhen: stepCountIs(3),
           tools: {
             search_sessions_multi_keywords: tool({
-              description: "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
+              description:
+                "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
               inputSchema: z.object({
-                keywords: z.array(z.string()).min(3).max(5).describe("List of 3-5 keywords to search for, each keyword should be concise"),
+                keywords: z.array(z.string()).min(3).max(5).describe(
+                  "List of 3-5 keywords to search for, each keyword should be concise",
+                ),
               }),
               execute: async ({ keywords }) => {
-
                 const searchPromises = keywords.map(keyword =>
                   dbCommands.listSessions({
                     type: "search",
@@ -337,7 +338,7 @@ export function useChatLogic({
                 const searchResults = await Promise.all(searchPromises);
 
                 const combinedResults = new Map();
-                
+
                 searchResults.forEach((sessions, index) => {
                   const keyword = keywords[index];
                   sessions.forEach(session => {
@@ -364,12 +365,12 @@ export function useChatLogic({
                       const count = session.matchedKeywords.length;
                       acc[count] = (acc[count] || 0) + 1;
                       return acc;
-                    }, {} as Record<number, number>)
-                  }
+                    }, {} as Record<number, number>),
+                  },
                 };
               },
             }),
-          }
+          },
         }),
 
         onError: (error) => {

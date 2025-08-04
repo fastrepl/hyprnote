@@ -3,53 +3,6 @@ use futures_util::{stream::SplitStream, Stream, StreamExt};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 
 use hypr_audio_utils::bytes_to_f32_samples;
-use owhisper_interface::ListenInputChunk;
-
-enum AudioProcessResult {
-    Samples(Vec<f32>),
-    DualSamples(Vec<f32>),
-    Empty,
-    End,
-}
-
-fn process_ws_message(message: Message) -> AudioProcessResult {
-    match message {
-        Message::Binary(data) => {
-            if data.is_empty() {
-                AudioProcessResult::Empty
-            } else {
-                AudioProcessResult::Samples(bytes_to_f32_samples(&data))
-            }
-        }
-        Message::Text(data) => match serde_json::from_str::<ListenInputChunk>(&data) {
-            Ok(ListenInputChunk::Audio { data }) => {
-                if data.is_empty() {
-                    AudioProcessResult::Empty
-                } else {
-                    AudioProcessResult::Samples(bytes_to_f32_samples(&data))
-                }
-            }
-            Ok(ListenInputChunk::DualAudio { data }) => {
-                AudioProcessResult::DualSamples(bytes_to_f32_samples(&data))
-            }
-            Ok(ListenInputChunk::End) => AudioProcessResult::End,
-            Err(_) => AudioProcessResult::Empty,
-        },
-        Message::Close(_) => AudioProcessResult::End,
-        _ => AudioProcessResult::Empty,
-    }
-}
-
-fn mix_audio_channels(mic: &[f32], speaker: &[f32]) -> Vec<f32> {
-    let max_len = mic.len().max(speaker.len());
-    (0..max_len)
-        .map(|i| {
-            let mic_sample = mic.get(i).copied().unwrap_or(0.0);
-            let speaker_sample = speaker.get(i).copied().unwrap_or(0.0);
-            (mic_sample + speaker_sample).clamp(-1.0, 1.0)
-        })
-        .collect()
-}
 
 pub struct WebSocketAudioSource {
     receiver: Option<SplitStream<WebSocket>>,
@@ -71,14 +24,10 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
 
         futures_util::stream::unfold(receiver, |receiver| async move {
             match receiver.next().await {
-                Some(Ok(message)) => match process_ws_message(message) {
-                    AudioProcessResult::Samples(samples) => Some((samples, receiver)),
-                    AudioProcessResult::DualSamples(samples) => {
-                        let mixed = mix_audio_channels(&samples, &samples);
-                        Some((mixed, receiver))
-                    }
-                    AudioProcessResult::Empty => Some((Vec::new(), receiver)),
-                    AudioProcessResult::End => None,
+                Some(Ok(message)) => match message {
+                    Message::Binary(data) => Some((bytes_to_f32_samples(&data), receiver)),
+                    Message::Close(_) => None,
+                    _ => Some((Vec::new(), receiver)),
                 },
                 Some(Err(_)) => None,
                 None => None,
@@ -129,12 +78,10 @@ pub fn split_dual_audio_sources(
 
     tokio::spawn(async move {
         while let Some(Ok(message)) = ws_receiver.next().await {
-            match process_ws_message(message) {
-                AudioProcessResult::Samples(samples) => {
-                    let _ = mic_tx.send(samples.clone());
-                    let _ = speaker_tx.send(samples);
-                }
-                AudioProcessResult::DualSamples(samples) => {
+            match message {
+                Message::Binary(data) => {
+                    let samples = bytes_to_f32_samples(&data);
+
                     let (mic_samples, speaker_samples) = samples
                         .chunks_exact(2)
                         .map(|chunk| (chunk[0], chunk[1]))
@@ -143,8 +90,8 @@ pub fn split_dual_audio_sources(
                     let _ = mic_tx.send(mic_samples);
                     let _ = speaker_tx.send(speaker_samples);
                 }
-                AudioProcessResult::End => break,
-                AudioProcessResult::Empty => continue,
+                Message::Close(_) => break,
+                _ => continue,
             }
         }
     });

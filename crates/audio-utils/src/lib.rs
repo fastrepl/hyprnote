@@ -116,3 +116,14 @@ where
 
     Ok(output)
 }
+
+pub fn mix_audio_channels(mic: &[f32], speaker: &[f32]) -> Vec<f32> {
+    let max_len = mic.len().max(speaker.len());
+    (0..max_len)
+        .map(|i| {
+            let mic_sample = mic.get(i).copied().unwrap_or(0.0);
+            let speaker_sample = speaker.get(i).copied().unwrap_or(0.0);
+            (mic_sample + speaker_sample).clamp(-1.0, 1.0)
+        })
+        .collect()
+}

@@ -94,11 +94,9 @@ where
 
             let guard = connection_manager.acquire_connection();
 
-            let response = ws_upgrade.on_upgrade(move |socket| async move {
+            Ok(ws_upgrade.on_upgrade(move |socket| async move {
                 handle_websocket_connection(socket, params, model_path, guard).await
-            });
-
-            Ok(response.into_response())
+            }))
         })
     }
 }

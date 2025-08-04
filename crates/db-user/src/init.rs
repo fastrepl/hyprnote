@@ -654,7 +654,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
                 .unwrap(),
             ),
             words: {
-                let words = serde_json::from_str::<Vec<owhisper_interface::Word>>(
+                let words = serde_json::from_str::<Vec<owhisper_interface::Word2>>(
                     &hypr_data::english_4::WORDS_JSON,
                 )
                 .unwrap();
@@ -676,7 +676,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
                 "### Week Highlights\n- Completed 3 major tasks\n- Fixed 5 bugs\n### Next Week\n- Focus on new features",
             )
             .unwrap(),
-            words: serde_json::from_str::<Vec<owhisper_interface::Word>>(
+            words: serde_json::from_str::<Vec<owhisper_interface::Word2>>(
                 &hypr_data::english_6::WORDS_JSON,
             )
             .unwrap(),

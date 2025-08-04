@@ -26,7 +26,7 @@ use deepgram::{
     Deepgram,
 };
 
-use owhisper_interface::Word;
+use owhisper_interface::Word2;
 
 mod error;
 pub use error::*;
@@ -133,10 +133,10 @@ impl TranscribeService {
                             if let Some(alternative) = channel.alternatives.first() {
                                 if !alternative.transcript.is_empty() {
                                     // Convert Deepgram response to ListenOutputChunk
-                                    let words: Vec<owhisper_interface::Word> = alternative
+                                    let words: Vec<owhisper_interface::Word2> = alternative
                                         .words
                                         .iter()
-                                        .map(|w| owhisper_interface::Word {
+                                        .map(|w| owhisper_interface::Word2 {
                                             text: w
                                                 .punctuated_word
                                                 .as_ref()

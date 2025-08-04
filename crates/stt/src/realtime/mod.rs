@@ -203,7 +203,7 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<owhisper_interface::Word> = vec![];
+        let mut acc: Vec<owhisper_interface::Word2> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);
@@ -232,7 +232,7 @@ mod tests {
 
         let mut transcript_stream = client.transcribe(audio_stream).await.unwrap();
 
-        let mut acc: Vec<owhisper_interface::Word> = vec![];
+        let mut acc: Vec<owhisper_interface::Word2> = vec![];
         while let Some(result) = transcript_stream.next().await {
             let data = result.unwrap();
             println!("{:?}", data);

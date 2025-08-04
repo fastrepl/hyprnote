@@ -5,7 +5,7 @@ use std::error::Error;
 use super::RealtimeSpeechToText;
 
 pub use hypr_clova::realtime::interface as clova;
-pub use owhisper_interface::{ListenOutputChunk, Word};
+pub use owhisper_interface::{ListenOutputChunk, Word2};
 
 impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
     async fn transcribe(
@@ -29,7 +29,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for hypr_clova::realtime::Client {
                         crate::Error::ClovaError(serde_json::to_string(&a).unwrap()),
                     )),
                     clova::StreamResponse::TranscribeSuccess(r) => Some(Ok(ListenOutputChunk {
-                        words: vec![Word {
+                        words: vec![Word2 {
                             text: r.transcription.text,
                             speaker: None,
                             start_ms: Some(r.transcription.start_timestamp * 1000),

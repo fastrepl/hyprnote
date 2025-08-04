@@ -8,7 +8,7 @@ use deepgram::common::{
 use futures_util::{future, Stream, StreamExt};
 
 use super::RealtimeSpeechToText;
-use owhisper_interface::{ListenOutputChunk, SpeakerIdentity, Word};
+use owhisper_interface::{ListenOutputChunk, SpeakerIdentity, Word2};
 
 impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
     async fn transcribe(
@@ -63,10 +63,10 @@ impl<S, E> RealtimeSpeechToText<S, E> for crate::deepgram::DeepgramClient {
                         if data.words.is_empty() {
                             None
                         } else {
-                            let words: Vec<Word> = data
+                            let words: Vec<Word2> = data
                                 .words
                                 .iter()
-                                .map(|w| Word {
+                                .map(|w| Word2 {
                                     text: w
                                         .punctuated_word
                                         .as_ref()

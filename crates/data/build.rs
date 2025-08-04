@@ -1,4 +1,4 @@
-use owhisper_interface::{SpeakerIdentity, Word};
+use owhisper_interface::{SpeakerIdentity, Word2};
 
 fn run(name: &str) {
     let raw_path = format!("src/{}/raw.json", name);
@@ -7,11 +7,11 @@ fn run(name: &str) {
     let raw: serde_json::Value = serde_json::from_str(&raw_content).unwrap();
     let raw_words = raw["results"]["channels"][0]["alternatives"][0]["words"].clone();
 
-    let words: Vec<Word> = raw_words
+    let words: Vec<Word2> = raw_words
         .as_array()
         .unwrap()
         .iter()
-        .map(|v| Word {
+        .map(|v| Word2 {
             text: v["word"].as_str().unwrap().trim().to_string(),
             speaker: Some(SpeakerIdentity::Unassigned {
                 index: v["speaker"].as_u64().unwrap() as u8,

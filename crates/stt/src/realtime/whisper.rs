@@ -5,7 +5,7 @@ use std::error::Error;
 use hypr_whisper_cloud::WhisperClient;
 
 use super::RealtimeSpeechToText;
-use owhisper_interface::{ListenOutputChunk, Word};
+use owhisper_interface::{ListenOutputChunk, Word2};
 
 impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
     async fn transcribe(
@@ -23,7 +23,7 @@ impl<S, E> RealtimeSpeechToText<S, E> for WhisperClient {
         let s1 = self.from_audio(audio_stream).await.unwrap();
         let s2 = s1.map(|output| {
             Ok(ListenOutputChunk {
-                words: vec![Word {
+                words: vec![Word2 {
                     text: output.text,
                     speaker: None,
                     end_ms: None,

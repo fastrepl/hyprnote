@@ -18,7 +18,7 @@ use futures_util::{SinkExt, StreamExt};
 use tower::Service;
 
 use hypr_chunker::VadExt;
-use owhisper_interface::{ListenOutputChunk, ListenParams, Word};
+use owhisper_interface::{ListenOutputChunk, ListenParams, Word2};
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
 
@@ -229,7 +229,7 @@ async fn process_transcription_stream(
                     words: text
                         .split_whitespace()
                         .filter(|w| !w.is_empty())
-                        .map(|w| Word {
+                        .map(|w| Word2 {
                             text: w.trim().to_string(),
                             speaker: speaker.clone(),
                             start_ms: Some(start),

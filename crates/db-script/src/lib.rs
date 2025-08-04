@@ -2,7 +2,7 @@
 pub mod conversation_to_words {
     fn transform(
         conversation: Vec<owhisper_interface::ConversationChunk>,
-    ) -> Vec<owhisper_interface::Word> {
+    ) -> Vec<owhisper_interface::Word2> {
         conversation
             .into_iter()
             .flat_map(|chunk| chunk.transcripts)
@@ -11,7 +11,7 @@ pub mod conversation_to_words {
                     .text
                     .split_whitespace()
                     .filter(|s| !s.is_empty())
-                    .map(|word| owhisper_interface::Word {
+                    .map(|word| owhisper_interface::Word2 {
                         text: word.trim().to_string(),
                         speaker: None,
                         confidence: transcript.confidence,

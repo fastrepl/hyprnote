@@ -15,7 +15,7 @@ user_common_derives! {
         #[specta(skip)]
         #[serde(skip)]
         pub conversations: Vec<()>,
-        pub words: Vec<owhisper_interface::Word>,
+        pub words: Vec<owhisper_interface::Word2>,
         pub record_start: Option<DateTime<Utc>>,
         pub record_end: Option<DateTime<Utc>>,
         pub pre_meeting_memo_html: Option<String>,

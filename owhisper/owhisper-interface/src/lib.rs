@@ -20,7 +20,7 @@ macro_rules! common_derives {
 
 common_derives! {
     #[derive(Default)]
-    pub struct Word {
+    pub struct Word2 {
         pub text: String,
         pub speaker: Option<SpeakerIdentity>,
         pub confidence: Option<f32>,
@@ -43,7 +43,7 @@ common_derives! {
     #[derive(Default)]
     pub struct ListenOutputChunk {
         pub meta: Option<serde_json::Value>,
-        pub words: Vec<Word>,
+        pub words: Vec<Word2>,
     }
 }
 

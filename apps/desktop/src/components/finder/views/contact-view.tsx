@@ -122,7 +122,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     let filtered = (selectedOrganization
       ? allPeopleWithUser.filter(person => person.organization_id === selectedOrganization)
       : allPeopleWithUser).filter(person => person.id === userId || isValidName(person.full_name));
-    
+
     if (sortAlphabetically) {
       filtered = [...filtered].sort((a, b) => {
         const nameA = (a.full_name || a.email || "").toLowerCase();
@@ -130,7 +130,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
         return nameA.localeCompare(nameB);
       });
     }
-    
+
     return filtered;
   }, [selectedOrganization, allPeopleWithUser, userId, sortAlphabetically]);
 
@@ -258,7 +258,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
               onClick={() => setSortAlphabetically(!sortAlphabetically)}
               className={cn(
                 "p-0.5 rounded hover:bg-neutral-100 transition-colors",
-                sortAlphabetically && "bg-neutral-100"
+                sortAlphabetically && "bg-neutral-100",
               )}
               title={sortAlphabetically ? "Sorted A-Z" : "Sort A-Z"}
             >

@@ -17,6 +17,7 @@ macro_rules! common_derives {
         $item
     };
 }
+
 // TODO: this is legacy format, but it works, and we already stored them in user db
 common_derives! {
     #[derive(Default)]

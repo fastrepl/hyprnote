@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 hypr-transcribe-interface = { workspace = true }
+owhisper-interface = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

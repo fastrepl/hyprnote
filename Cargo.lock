@@ -16068,6 +16068,7 @@ dependencies = [
  "bytes",
  "data",
  "futures-util",
+ "owhisper-interface",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -16133,6 +16134,7 @@ dependencies = [
  "data",
  "futures-util",
  "google-cloud-speech-v2",
+ "owhisper-interface",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -16141,6 +16143,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "transcribe-interface",
 ]
 
 [[package]]

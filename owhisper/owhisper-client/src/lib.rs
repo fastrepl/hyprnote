@@ -4,7 +4,7 @@ use hypr_audio::AsyncSource;
 use hypr_audio_utils::AudioFormatExt;
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
 
-use owhisper_interface::{ListenInputChunk, ListenOutputChunk};
+use owhisper_interface::StreamResponse;
 
 #[derive(Default)]
 pub struct ListenClientBuilder {
@@ -109,7 +109,7 @@ pub struct ListenClient {
 impl WebSocketIO for ListenClient {
     type Data = bytes::Bytes;
     type Input = bytes::Bytes;
-    type Output = ListenOutputChunk;
+    type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
         data
@@ -134,17 +134,15 @@ pub struct ListenClientDual {
 
 impl WebSocketIO for ListenClientDual {
     type Data = bytes::Bytes;
-    type Input = ListenInputChunk;
-    type Output = ListenOutputChunk;
+    type Input = bytes::Bytes;
+    type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
-        ListenInputChunk::DualAudio {
-            data: data.to_vec(),
-        }
+        data
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Text(serde_json::to_string(&input).unwrap().into())
+        Message::Binary(input)
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -163,7 +161,7 @@ impl ListenClient {
     pub async fn from_realtime_audio(
         &self,
         audio_stream: impl AsyncSource + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
+    ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
         let input_stream = audio_stream.to_i16_le_chunks(16 * 1000, 1024);
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(input_stream).await
@@ -175,7 +173,7 @@ impl ListenClientDual {
         &self,
         mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
         speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
+    ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
         let dual_stream = mic_stream
             .zip(speaker_stream)
             .map(|(mic_chunk, speaker_chunk)| {

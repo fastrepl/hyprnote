@@ -16168,6 +16168,7 @@ dependencies = [
  "tokio-util",
  "tower 0.5.2",
  "tracing",
+ "uuid",
  "whisper",
  "whisper-local",
  "ws-utils",

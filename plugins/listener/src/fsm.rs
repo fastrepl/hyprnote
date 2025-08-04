@@ -479,21 +479,28 @@ impl Session {
 
                 futures_util::pin_mut!(listen_stream);
 
+                // TODO
                 while let Some(result) = listen_stream.next().await {
-                    let _meta = result.meta.clone();
-
-                    // We don't have to do this, and inefficient. But this is what works at the moment.
+                    if let owhisper_interface::StreamResponse::TranscriptResponse {
+                        channel, ..
+                    } = result
                     {
-                        let updated_words = update_session(&app, &session.id, result.words)
-                            .await
-                            .unwrap();
+                        let words = channel.alternatives.first().unwrap().words.clone();
+                        let words2: Vec<owhisper_interface::Word2> =
+                            words.into_iter().map(|w| w.into()).collect();
 
-                        SessionEvent::Words {
-                            words: updated_words,
+                        // We don't have to do this, and inefficient. But this is what works at the moment.
+                        {
+                            let updated_words =
+                                update_session(&app, &session.id, words2).await.unwrap();
+
+                            SessionEvent::Words {
+                                words: updated_words,
+                            }
+                            .emit(&app)
                         }
-                        .emit(&app)
+                        .unwrap();
                     }
-                    .unwrap();
                 }
 
                 tracing::info!("listen_stream_ended");

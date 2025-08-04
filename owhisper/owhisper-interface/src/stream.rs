@@ -1,6 +1,7 @@
 use crate::common_derives;
 
 // https://github.com/deepgram/deepgram-rust-sdk/blob/0.7.0/src/common/stream_response.rs
+// https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#receive.receiveTranscription
 
 common_derives! {
     pub struct Word {

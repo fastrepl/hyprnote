@@ -18,7 +18,9 @@ use futures_util::{SinkExt, StreamExt};
 use tower::Service;
 
 use hypr_chunker::VadExt;
-use owhisper_interface::{ListenOutputChunk, ListenParams, Word2};
+use owhisper_interface::{
+    Alternatives, Channel, ListenParams, Metadata, ModelInfo, StreamResponse, Word,
+};
 
 use crate::manager::{ConnectionGuard, ConnectionManager};
 
@@ -206,38 +208,7 @@ async fn process_transcription_stream(
             }
             chunk_opt = stream.next() => {
                 let Some(chunk) = chunk_opt else { break };
-
-                let meta = chunk.meta();
-                let text = chunk.text().to_string();
-                let start = chunk.start() as u64;
-                let duration = chunk.duration() as u64;
-                let confidence = chunk.confidence();
-
-                let source = meta.and_then(|meta|
-                    meta.get("source")
-                        .and_then(|v| v.as_str())
-                        .map(|s| s.to_string())
-                );
-                let speaker = match source {
-                    Some(s) if s == "mic" => Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 0 }),
-                    Some(s) if s == "speaker" => Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 1 }),
-                    _ => None,
-                };
-
-                let data = ListenOutputChunk {
-                    meta: None,
-                    words: text
-                        .split_whitespace()
-                        .filter(|w| !w.is_empty())
-                        .map(|w| Word2 {
-                            text: w.trim().to_string(),
-                            speaker: speaker.clone(),
-                            start_ms: Some(start),
-                            end_ms: Some(start + duration),
-                            confidence: Some(confidence),
-                        })
-                        .collect(),
-                };
+                let data = segment_to_stream_response(chunk);
 
                 let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
                 if let Err(e) = ws_sender.send(msg).await {
@@ -249,6 +220,71 @@ async fn process_transcription_stream(
     }
 
     let _ = ws_sender.close().await;
+}
+
+fn segment_to_stream_response(segment: hypr_whisper_local::Segment) -> StreamResponse {
+    let meta = segment.meta();
+    let text = segment.text().to_string();
+    let start = segment.start() as u64;
+    let duration = segment.duration() as u64;
+    let confidence = segment.confidence();
+
+    let speaker = meta.as_ref().and_then(|m| {
+        m.get("source")
+            .and_then(|v| v.as_str())
+            .and_then(|s| match s {
+                "mic" => Some(0),
+                "speaker" => Some(1),
+                _ => None,
+            })
+    });
+
+    let words = text
+        .split_whitespace()
+        .filter(|w| !w.is_empty())
+        .enumerate()
+        .map(|(i, w)| {
+            let word_duration = duration as f64 / text.split_whitespace().count() as f64;
+            let word_start = start as f64 + (i as f64 * word_duration);
+
+            Word {
+                word: w.trim().to_string(),
+                start: word_start / 1000.0,
+                end: (word_start + word_duration) / 1000.0,
+                confidence: confidence as f64,
+                speaker,
+                punctuated_word: None,
+                language: None,
+            }
+        })
+        .collect();
+
+    StreamResponse::TranscriptResponse {
+        type_field: "transcript".to_string(),
+        start: start as f64 / 1000.0,
+        duration: duration as f64 / 1000.0,
+        is_final: true,
+        speech_final: true,
+        from_finalize: false,
+        channel: Channel {
+            alternatives: vec![Alternatives {
+                transcript: text.clone(),
+                words,
+                confidence: confidence as f64,
+                languages: vec![],
+            }],
+        },
+        metadata: Metadata {
+            request_id: uuid::Uuid::new_v4().to_string(),
+            model_info: ModelInfo {
+                name: "whisper-local".to_string(),
+                version: "1.0.0".to_string(),
+                arch: "local".to_string(),
+            },
+            model_uuid: uuid::Uuid::new_v4().to_string(),
+        },
+        channel_index: vec![0],
+    }
 }
 
 fn process_vad_stream<S, E>(

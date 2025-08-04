@@ -7,10 +7,6 @@ exclude = ["/js", "/node_modules"]
 links = "tauri-plugin-local-stt"
 description = ""
 
-[[bench]]
-name = "simple"
-harness = false
-
 [features]
 default = []
 coreml = ["hypr-transcribe-whisper-local/coreml"]

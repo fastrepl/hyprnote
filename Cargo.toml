@@ -214,7 +214,8 @@ kalosm-model-types = { git = "https://github.com/floneum/floneum", rev = "52967a
 kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", default-features = false }
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
-deepgram = { version = "0.6.8", default-features = false }
+deepgram = { version = "0.7.0", default-features = false }
+
 libsql = "0.9.17"
 
 block2 = "0.6"

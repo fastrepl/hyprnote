@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Config",
   "type": "object",
-  "required": [
-    "models"
-  ],
+  "required": ["models"],
   "properties": {
     "general": {
       "anyOf": [
@@ -28,10 +26,7 @@
       "type": "object",
       "properties": {
         "api_key": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
@@ -47,8 +42,9 @@
             "type"
           ],
           "properties": {
-            "access_key_id": {
-              "type": "string"
+            "type": {
+              "type": "string",
+              "enum": ["aws"]
             },
             "id": {
               "type": "string"
@@ -56,66 +52,46 @@
             "region": {
               "type": "string"
             },
-            "secret_access_key": {
+            "access_key_id": {
               "type": "string"
             },
-            "type": {
-              "type": "string",
-              "enum": [
-                "aws"
-              ]
+            "secret_access_key": {
+              "type": "string"
             }
           }
         },
         {
           "type": "object",
-          "required": [
-            "id",
-            "type"
-          ],
+          "required": ["id", "type"],
           "properties": {
-            "api_key": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "base_url": {
-              "type": [
-                "string",
-                "null"
-              ]
+            "type": {
+              "type": "string",
+              "enum": ["deepgram"]
             },
             "id": {
               "type": "string"
             },
-            "type": {
-              "type": "string",
-              "enum": [
-                "deepgram"
-              ]
+            "api_key": {
+              "type": ["string", "null"]
+            },
+            "base_url": {
+              "type": ["string", "null"]
             }
           }
         },
         {
           "type": "object",
-          "required": [
-            "id",
-            "model_path",
-            "type"
-          ],
+          "required": ["id", "model_path", "type"],
           "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["whisper-cpp"]
+            },
             "id": {
               "type": "string"
             },
             "model_path": {
               "type": "string"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "whisper-cpp"
-              ]
             }
           }
         }

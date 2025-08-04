@@ -77,6 +77,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         start_date: chrono::Utc::now() + chrono::Duration::minutes(3),
         end_date: chrono::Utc::now() + chrono::Duration::minutes(10),
         google_event_url: None,
+        participants: None,
     };
 
     let onboarding_session_id = db.onboarding_session_id();
@@ -238,6 +239,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::minutes(15),
             end_date: now + chrono::Duration::minutes(45),
             google_event_url: None,
+            participants: None,
         },
         // Event 2: Tomorrow - with session (top 3 test)
         Event {
@@ -250,6 +252,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(1),
             end_date: now + chrono::Duration::days(1) + chrono::Duration::hours(1),
             google_event_url: None,
+            participants: None,
         },
         // Event 3: In 2 days - without session (top 3 test)
         Event {
@@ -262,6 +265,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(2),
             end_date: now + chrono::Duration::days(2) + chrono::Duration::hours(2),
             google_event_url: None,
+            participants: None,
         },
         // Event 4: In 3 days - with session (top 3 test)
         Event {
@@ -274,6 +278,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(3),
             end_date: now + chrono::Duration::days(3) + chrono::Duration::hours(1),
             google_event_url: None,
+            participants: None,
         },
         // Event 5: In 7 days - with session (should NOT be in top 3, tests append logic when active)
         Event {
@@ -286,6 +291,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(7),
             end_date: now + chrono::Duration::days(7) + chrono::Duration::hours(2),
             google_event_url: None,
+            participants: None,
         },
         // Event 6: In 14 days - without session (should NOT be in top 3)
         Event {
@@ -298,6 +304,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(14),
             end_date: now + chrono::Duration::days(14) + chrono::Duration::hours(1),
             google_event_url: None,
+            participants: None,
         },
         // Event 7: In 4 hours - Video Call with session
         Event {
@@ -322,6 +329,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::hours(4),
             end_date: now + chrono::Duration::hours(5),
             google_event_url: Some("https://zoom.us/j/123456789?pwd=abc123".to_string()),
+            participants: None,
         },
         // Event 8: In 6 hours - Quick sync without session
         Event {
@@ -334,6 +342,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::hours(6),
             end_date: now + chrono::Duration::hours(6) + chrono::Duration::minutes(15),
             google_event_url: None,
+            participants: None,
         },
         // Event 9: Later today - Team retro with session
         Event {
@@ -356,6 +365,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::hours(8),
             end_date: now + chrono::Duration::hours(9),
             google_event_url: Some("https://teams.microsoft.com/l/meetup-join/meeting123".to_string()),
+            participants: None,
         },
         // Event 10: In 5 days - Client demo with session  
         Event {
@@ -380,6 +390,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(5),
             end_date: now + chrono::Duration::days(5) + chrono::Duration::hours(1) + chrono::Duration::minutes(30),
             google_event_url: Some("https://meet.google.com/abc-defg-hij".to_string()),
+            participants: None,
         },
         // Event 11: In 6 days - Workshop without session
         Event {
@@ -392,6 +403,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(6),
             end_date: now + chrono::Duration::days(6) + chrono::Duration::hours(3),
             google_event_url: None,
+            participants: None,
         },
         // Event 12: In 8 days - Interview with session
         Event {
@@ -417,6 +429,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(8),
             end_date: now + chrono::Duration::days(8) + chrono::Duration::hours(1) + chrono::Duration::minutes(30),
             google_event_url: Some("https://zoom.us/j/987654321?pwd=interview123".to_string()),
+            participants: None,
         },
         // Event 13: In 10 days - Board meeting without session
         Event {
@@ -429,6 +442,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(10),
             end_date: now + chrono::Duration::days(10) + chrono::Duration::hours(2),
             google_event_url: None,
+            participants: None,
         },
         // Event 14: In 12 days - Training session with session
         Event {
@@ -453,6 +467,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(12),
             end_date: now + chrono::Duration::days(12) + chrono::Duration::hours(2),
             google_event_url: Some("https://company.webex.com/meet/security.training".to_string()),
+            participants: None,
         },
         // Event 15: In 3 weeks - Conference without session
         Event {
@@ -465,6 +480,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now + chrono::Duration::days(21),
             end_date: now + chrono::Duration::days(23),
             google_event_url: None,
+            participants: None,
         },
         // === PAST EVENTS (for NotesList section testing) ===
         // Event 16: Yesterday - with session (should appear in notes)
@@ -478,6 +494,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now - chrono::Duration::days(1),
             end_date: now - chrono::Duration::days(1) + chrono::Duration::minutes(30),
             google_event_url: None,
+            participants: None,
         },
         // Event 17: Last week - with session (should appear in notes)
         Event {
@@ -490,6 +507,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now - chrono::Duration::days(7),
             end_date: now - chrono::Duration::days(7) + chrono::Duration::hours(1),
             google_event_url: None,
+            participants: None,
         },
         // Event 18: 10 days ago - with session (should appear in notes)
         Event {
@@ -502,6 +520,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now - chrono::Duration::days(10),
             end_date: now - chrono::Duration::days(10) + chrono::Duration::hours(2),
             google_event_url: None,
+            participants: None,
         },
         // Event 19: 2 weeks ago - without session (should not appear anywhere)
         Event {
@@ -514,6 +533,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             start_date: now - chrono::Duration::days(14),
             end_date: now - chrono::Duration::days(14) + chrono::Duration::hours(1),
             google_event_url: None,
+            participants: None,
         },
     ];
 

@@ -53,14 +53,11 @@ export const Route = createFileRoute("/app/new")({
               email: string | null;
             }>;
 
-            // Get all humans once for efficiency (instead of calling for each participant)
             const allHumans = await dbCommands.listHumans(null);
 
-            // Track processed emails to avoid duplicates in the event data
             const processedEmails = new Set<string>();
 
             for (const participant of eventParticipants) {
-              // Only skip if there's both no name AND no email
               if (!participant.name && !participant.email) {
                 continue;
               }
@@ -85,7 +82,6 @@ export const Route = createFileRoute("/app/new")({
 
               // If no existing human found, create new one
               if (!humanToAdd) {
-                // Determine name: use provided name, or email prefix if no name
                 let displayName = participant.name;
                 if (!displayName && participant.email) {
                   displayName = participant.email.split("@")[0];
@@ -104,7 +100,6 @@ export const Route = createFileRoute("/app/new")({
                 humanToAdd = await dbCommands.upsertHuman(newHuman);
               }
 
-              // Add the human to the session
               if (humanToAdd) {
                 await dbCommands.sessionAddParticipant(sessionId, humanToAdd.id);
               }

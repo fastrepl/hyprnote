@@ -140,7 +140,6 @@ impl Handle {
             .to_string();
 
         let email = if self.contacts_access_granted {
-            // Use contacts-based approach when we have contacts access
             let email_string = NSString::from_str("emailAddresses");
             let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
                 ProtocolObject::from_retained(email_string);

@@ -306,9 +306,6 @@ export function useChatLogic({
 
       const { type } = await connectorCommands.getLlmConnection();
 
-      console.log("model", model);
-      console.log("provider", provider);
-
       const { textStream } = streamText({
         model,
         messages: await prepareMessageHistory(messages, content, mentionedContent),

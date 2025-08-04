@@ -139,9 +139,32 @@ impl Handle {
             .unwrap_or_default()
             .to_string();
 
-        let email: Option<String> = unsafe {
-            let email_ns: *const NSString = msg_send![participant, emailAddress];
-            email_ns.as_ref().map(|s| s.to_string())
+        let email = if self.contacts_access_granted {
+            // Use contacts-based approach when we have contacts access
+            let email_string = NSString::from_str("emailAddresses");
+            let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
+                ProtocolObject::from_retained(email_string);
+            let keys = NSArray::from_vec(vec![cnkey_email]);
+
+            let contact_pred = unsafe { participant.contactPredicate() };
+            let contact = unsafe {
+                self.contacts_store
+                    .unifiedContactsMatchingPredicate_keysToFetch_error(&contact_pred, &keys)
+            }
+            .unwrap_or_default();
+
+            contact.first().and_then(|contact| {
+                let emails = unsafe { contact.emailAddresses() };
+
+                emails
+                    .first()
+                    .map(|email| unsafe { email.value() }.to_string())
+            })
+        } else {
+            unsafe {
+                let email_ns: *const NSString = msg_send![participant, emailAddress];
+                email_ns.as_ref().map(|s| s.to_string())
+            }
         };
 
         Participant { name, email }

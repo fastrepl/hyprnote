@@ -59,6 +59,7 @@ export const Route = createFileRoute("/app/note/$id")({
 
               const processedEmails = new Set<string>();
               let addedCount = 0;
+              const processedNames = new Set<string>();
 
               for (const participant of eventParticipants) {
                 if (!participant.name && !participant.email) {
@@ -70,6 +71,22 @@ export const Route = createFileRoute("/app/note/$id")({
                 if (participant.email && currentParticipantEmails.has(participant.email)) {
                   processedEmails.add(participant.email);
                   continue;
+                }
+
+                if (!participant.email && participant.name) {
+                  // For email-less participants, check by name
+                  if (processedNames.has(participant.name)) {
+                    continue;
+                  }
+
+                  // Check if this name already exists as a current participant
+                  const existingByName = currentParticipants.find(p =>
+                    p.full_name?.toLowerCase() === participant.name?.toLowerCase()
+                  );
+                  if (existingByName) {
+                    processedNames.add(participant.name);
+                    continue;
+                  }
                 }
 
                 let humanToAdd: Human | null = null;
@@ -109,6 +126,9 @@ export const Route = createFileRoute("/app/note/$id")({
                 if (humanToAdd) {
                   await dbCommands.sessionAddParticipant(id, humanToAdd.id);
                   addedCount++;
+                }
+                if (participant.name) {
+                  processedNames.add(participant.name);
                 }
               }
             }

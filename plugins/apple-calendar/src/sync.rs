@@ -338,6 +338,14 @@ async fn list_system_events_for_calendars(
                 }
             };
 
+            for event in &events {
+                tracing::info!(
+                    "System event: '{}' | participants: {:?}",
+                    event.name,
+                    event.participants
+                );
+            }
+
             results.insert(calendar_tracking_id.clone(), events);
         }
 

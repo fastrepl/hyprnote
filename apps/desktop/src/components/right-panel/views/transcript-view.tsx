@@ -6,7 +6,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
-import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
+import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
   getSpeakerLabel,
@@ -121,7 +121,7 @@ export function TranscriptView() {
     }
   }, [sessionId]);
 
-  const handleUpdate = (words: Word[]) => {
+  const handleUpdate = (words: Word2[]) => {
     if (!isLive) {
       dbCommands.getSession({ id: sessionId! }).then((session) => {
         if (session) {

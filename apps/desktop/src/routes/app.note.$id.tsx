@@ -44,7 +44,6 @@ export const Route = createFileRoute("/app/note/$id")({
                 email: string | null;
               }>;
 
-              // Use existing commands + new deleted IDs command
               const [allHumans, currentParticipants, deletedParticipantIds] = await Promise.all([
                 dbCommands.listHumans(null),
                 dbCommands.sessionListParticipants(id),
@@ -57,59 +56,32 @@ export const Route = createFileRoute("/app/note/$id")({
 
               const deletedIds = new Set(deletedParticipantIds);
 
-              const processedEmails = new Set<string>();
-              let addedCount = 0;
-              const processedNames = new Set<string>();
-
               for (const participant of eventParticipants) {
-                if (!participant.name && !participant.email) {
-                  continue;
-                }
-                if (participant.email && processedEmails.has(participant.email)) {
-                  continue;
-                }
-                if (participant.email && currentParticipantEmails.has(participant.email)) {
-                  processedEmails.add(participant.email);
+                // Skip if no email address
+                if (!participant.email) {
                   continue;
                 }
 
-                if (!participant.email && participant.name) {
-                  // For email-less participants, check by name
-                  if (processedNames.has(participant.name)) {
+                // Skip if already a current participant (not deleted)
+                if (currentParticipantEmails.has(participant.email)) {
+                  continue;
+                }
+
+                // Check if human already exists by email
+                let existingHuman = allHumans.find(h => h.email === participant.email);
+
+                if (existingHuman) {
+                  // Skip if this human is marked as deleted for this session
+                  if (deletedIds.has(existingHuman.id)) {
                     continue;
                   }
-
-                  // Check if this name already exists as a current participant
-                  const existingByName = currentParticipants.find(p =>
-                    p.full_name?.toLowerCase() === participant.name?.toLowerCase()
-                  );
-                  if (existingByName) {
-                    processedNames.add(participant.name);
-                    continue;
-                  }
-                }
-
-                let humanToAdd: Human | null = null;
-
-                if (participant.email) {
-                  const existingHuman = allHumans.find(h => h.email === participant.email);
-                  if (existingHuman) {
-                    if (deletedIds.has(existingHuman.id)) {
-                      processedEmails.add(participant.email);
-                      continue;
-                    }
-
-                    humanToAdd = existingHuman;
-                  }
-                  processedEmails.add(participant.email);
-                }
-
-                if (!humanToAdd) {
-                  let displayName = participant.name;
-                  if (!displayName && participant.email) {
-                    displayName = participant.email.split("@")[0];
-                  }
-
+                  
+                  // Use existing human
+                  await dbCommands.sessionAddParticipant(id, existingHuman.id);
+                } else {
+                  // Create new human
+                  const displayName = participant.name || participant.email;
+                  
                   const newHuman: Human = {
                     id: crypto.randomUUID(),
                     full_name: displayName,
@@ -120,15 +92,8 @@ export const Route = createFileRoute("/app/note/$id")({
                     linkedin_username: null,
                   };
 
-                  humanToAdd = await dbCommands.upsertHuman(newHuman);
-                }
-
-                if (humanToAdd) {
-                  await dbCommands.sessionAddParticipant(id, humanToAdd.id);
-                  addedCount++;
-                }
-                if (participant.name) {
-                  processedNames.add(participant.name);
+                  const createdHuman = await dbCommands.upsertHuman(newHuman);
+                  await dbCommands.sessionAddParticipant(id, createdHuman.id);
                 }
               }
             }

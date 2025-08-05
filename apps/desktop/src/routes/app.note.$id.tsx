@@ -75,13 +75,13 @@ export const Route = createFileRoute("/app/note/$id")({
                   if (deletedIds.has(existingHuman.id)) {
                     continue;
                   }
-                  
+
                   // Use existing human
                   await dbCommands.sessionAddParticipant(id, existingHuman.id);
                 } else {
                   // Create new human
                   const displayName = participant.name || participant.email;
-                  
+
                   const newHuman: Human = {
                     id: crypto.randomUUID(),
                     full_name: displayName,

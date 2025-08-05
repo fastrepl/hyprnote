@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-session-list-deleted-participant-ids"
+description = "Enables the session_list_deleted_participant_ids command without any pre-configured scope."
+commands.allow = ["session_list_deleted_participant_ids"]
+
+[[permission]]
+identifier = "deny-session-list-deleted-participant-ids"
+description = "Denies the session_list_deleted_participant_ids command without any pre-configured scope."
+commands.deny = ["session_list_deleted_participant_ids"]

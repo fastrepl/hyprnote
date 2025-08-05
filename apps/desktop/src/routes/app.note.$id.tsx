@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import EditorArea from "@/components/editor-area";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { commands as dbCommands, type Session, type Human } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
 import {
   commands as windowsCommands,
   events as windowsEvents,
@@ -34,37 +34,39 @@ export const Route = createFileRoute("/app/note/$id")({
           return redirect({ to: "/app/new" });
         }
 
-        // ✨ SYNC PARTICIPANTS WHEN VIEWING NOTE WITH EVENT
         if (session.calendar_event_id) {
           try {
-            console.log(`🔄 Syncing participants for session ${id} with event ${session.calendar_event_id}`);
-            
             const event = await dbCommands.getEvent(session.calendar_event_id);
-            
+
             if (event?.participants) {
-              console.log(`📋 Event has participants, syncing...`);
-              
               const eventParticipants = JSON.parse(event.participants) as Array<{
                 name: string | null;
                 email: string | null;
               }>;
 
-              // Use existing commands only
-              const [allHumans, currentParticipants] = await Promise.all([
+              // Use existing commands + new deleted IDs command
+              const [allHumans, currentParticipants, deletedParticipantIds] = await Promise.all([
                 dbCommands.listHumans(null),
-                dbCommands.sessionListParticipants(id)
+                dbCommands.sessionListParticipants(id),
+                dbCommands.sessionListDeletedParticipantIds(id),
               ]);
 
               const currentParticipantEmails = new Set(
-                currentParticipants.map(p => p.email).filter(Boolean)
+                currentParticipants.map(p => p.email).filter(Boolean),
               );
-              
+
+              const deletedIds = new Set(deletedParticipantIds);
+
               const processedEmails = new Set<string>();
               let addedCount = 0;
 
               for (const participant of eventParticipants) {
-                if (!participant.name && !participant.email) continue;
-                if (participant.email && processedEmails.has(participant.email)) continue;
+                if (!participant.name && !participant.email) {
+                  continue;
+                }
+                if (participant.email && processedEmails.has(participant.email)) {
+                  continue;
+                }
                 if (participant.email && currentParticipantEmails.has(participant.email)) {
                   processedEmails.add(participant.email);
                   continue;
@@ -75,6 +77,11 @@ export const Route = createFileRoute("/app/note/$id")({
                 if (participant.email) {
                   const existingHuman = allHumans.find(h => h.email === participant.email);
                   if (existingHuman) {
+                    if (deletedIds.has(existingHuman.id)) {
+                      processedEmails.add(participant.email);
+                      continue;
+                    }
+
                     humanToAdd = existingHuman;
                   }
                   processedEmails.add(participant.email);
@@ -104,11 +111,9 @@ export const Route = createFileRoute("/app/note/$id")({
                   addedCount++;
                 }
               }
-
-              console.log(`✅ Participant sync complete: ${addedCount} participants added`);
             }
           } catch (error) {
-            console.error("❌ Failed to sync participants:", error);
+            console.error("Failed to sync participants:", error);
           }
         }
 

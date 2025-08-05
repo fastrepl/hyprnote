@@ -40,6 +40,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::sessions::get_session,
             commands::sessions::set_session_event,
             commands::sessions::session_add_participant,
+            commands::sessions::session_list_deleted_participant_ids,
             commands::sessions::session_remove_participant,
             commands::sessions::session_list_participants,
             commands::sessions::session_get_event,

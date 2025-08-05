@@ -264,6 +264,27 @@ impl UserDatabase {
         Ok(items)
     }
 
+    pub async fn session_list_deleted_participant_ids(
+        &self,
+        session_id: impl Into<String>,
+    ) -> Result<Vec<String>, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn.query(
+            "SELECT sp.human_id FROM session_participants sp WHERE sp.session_id = ? AND sp.deleted = TRUE", 
+            vec![session_id.into()],
+        )
+        .await?;
+
+        let mut ids = Vec::new();
+        while let Some(row) = rows.next().await? {
+            if let Ok(id) = row.get::<String>(0) {
+                ids.push(id);
+            }
+        }
+        Ok(ids)
+    }
+
     pub async fn upsert_session(&self, session: Session) -> Result<Session, crate::Error> {
         let conn = self.conn()?;
 

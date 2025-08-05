@@ -55,6 +55,26 @@ pub async fn get_words_onboarding(
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
+pub async fn session_list_deleted_participant_ids(
+    state: tauri::State<'_, crate::ManagedState>,
+    session_id: String,
+) -> Result<Vec<String>, String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    db.session_list_deleted_participant_ids(session_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
 pub async fn get_words(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,

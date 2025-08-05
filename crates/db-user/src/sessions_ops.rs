@@ -363,7 +363,7 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         conn.execute(
-            "INSERT OR REPLACE INTO session_participants (session_id, human_id) VALUES (?, ?)",
+            "INSERT OR REPLACE INTO session_participants (session_id, human_id, deleted) VALUES (?, ?, FALSE)",
             vec![session_id.into(), human_id.into()],
         )
         .await?;
@@ -378,7 +378,7 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         conn.execute(
-            "DELETE FROM session_participants WHERE session_id = ? AND human_id = ?",
+            "UPDATE session_participants SET deleted = TRUE WHERE session_id = ? AND human_id = ?",
             vec![session_id.into(), human_id.into()],
         )
         .await?;
@@ -395,7 +395,7 @@ impl UserDatabase {
             .query(
                 "SELECT h.* FROM humans h
                 JOIN session_participants sp ON h.id = sp.human_id
-                WHERE sp.session_id = ?",
+                WHERE sp.session_id = ? AND (sp.deleted = FALSE OR sp.deleted IS NULL)",
                 vec![session_id.into()],
             )
             .await?;

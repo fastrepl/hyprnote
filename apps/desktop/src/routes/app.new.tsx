@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
-import { commands as dbCommands, type Human } from "@hypr/plugin-db";
+import { commands as dbCommands } from "@hypr/plugin-db";
 
 const schema = z.object({
   record: z.boolean().optional(),
@@ -44,70 +44,6 @@ export const Route = createFileRoute("/app/new")({
 
         // Add current user as participant
         await dbCommands.sessionAddParticipant(sessionId, userId);
-
-        // Add event participants automatically
-        if (event?.participants) {
-          try {
-            const eventParticipants = JSON.parse(event.participants) as Array<{
-              name: string | null;
-              email: string | null;
-            }>;
-
-            const allHumans = await dbCommands.listHumans(null);
-
-            const processedEmails = new Set<string>();
-
-            for (const participant of eventParticipants) {
-              if (!participant.name && !participant.email) {
-                continue;
-              }
-
-              // Skip duplicates in event data
-              if (participant.email && processedEmails.has(participant.email)) {
-                continue;
-              }
-
-              let humanToAdd: Human | null = null;
-
-              // If there's an email, search for existing user with same email
-              if (participant.email) {
-                const existingHuman = allHumans.find(h => h.email === participant.email);
-
-                if (existingHuman) {
-                  humanToAdd = existingHuman;
-                }
-
-                processedEmails.add(participant.email);
-              }
-
-              // If no existing human found, create new one
-              if (!humanToAdd) {
-                let displayName = participant.name;
-                if (!displayName && participant.email) {
-                  displayName = participant.email.split("@")[0];
-                }
-
-                const newHuman: Human = {
-                  id: crypto.randomUUID(),
-                  full_name: displayName,
-                  email: participant.email,
-                  organization_id: null,
-                  is_user: false,
-                  job_title: null,
-                  linkedin_username: null,
-                };
-
-                humanToAdd = await dbCommands.upsertHuman(newHuman);
-              }
-
-              if (humanToAdd) {
-                await dbCommands.sessionAddParticipant(sessionId, humanToAdd.id);
-              }
-            }
-          } catch (error) {
-            console.error("Failed to parse or add event participants:", error);
-          }
-        }
 
         const { insert } = sessionsStore.getState();
         insert(session);

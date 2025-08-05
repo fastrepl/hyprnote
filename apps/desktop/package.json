@@ -18,7 +18,6 @@
     "@date-fns/tz": "^1.2.0",
     "@hookform/resolvers": "^5.2.1",
     "@huggingface/languages": "^1.0.0",
-    "@hypr/client": "workspace:^",
     "@hypr/plugin-analytics": "workspace:^",
     "@hypr/plugin-apple-calendar": "workspace:^",
     "@hypr/plugin-auth": "workspace:^",

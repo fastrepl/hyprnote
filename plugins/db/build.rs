@@ -16,6 +16,7 @@ const COMMANDS: &[&str] = &[
     "session_add_participant",
     "session_remove_participant",
     "session_list_participants",
+    "session_list_deleted_participant_ids",
     "session_get_event",
     "get_words_onboarding",
     "get_words",

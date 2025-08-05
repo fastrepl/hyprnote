@@ -39,7 +39,8 @@ impl UserDatabase {
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url
+                    google_event_url = :google_event_url,
+                    participants = :participants
                 WHERE id = :id
                 RETURNING *",
                 libsql::named_params! {
@@ -51,6 +52,7 @@ impl UserDatabase {
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
+                    ":participants": event.participants,
                 },
             )
             .await?;
@@ -81,7 +83,8 @@ impl UserDatabase {
                     note,
                     start_date,
                     end_date,
-                    google_event_url
+                    google_event_url,
+                    participants
                 ) VALUES (
                     :id,
                     :user_id,
@@ -91,13 +94,15 @@ impl UserDatabase {
                     :note,
                     :start_date,
                     :end_date,
-                    :google_event_url
+                    :google_event_url,
+                    :participants
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url
+                    google_event_url = :google_event_url,
+                    participants = :participants
                 RETURNING *",
                 libsql::named_params! {
                     ":id": event.id,
@@ -109,6 +114,7 @@ impl UserDatabase {
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
+                    ":participants": event.participants,
                 },
             )
             .await?;
@@ -234,6 +240,7 @@ mod tests {
             start_date: chrono::Utc::now(),
             end_date: chrono::Utc::now(),
             google_event_url: None,
+            participants: None,
         };
 
         let event = db.upsert_event(event).await.unwrap();

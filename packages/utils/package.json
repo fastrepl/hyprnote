@@ -14,7 +14,6 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.0",
     "@date-fns/tz": "^1.2.0",
-    "@hypr/client": "workspace:^",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",

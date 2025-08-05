@@ -1,3 +1,6 @@
+mod error;
+pub use error::*;
+
 #[derive(serde::Deserialize, schemars::JsonSchema, Default)]
 pub struct Config {
     pub general: Option<GeneralConfig>,
@@ -16,21 +19,20 @@ pub enum ModelConfig {
 }
 
 impl Config {
-    pub fn new(config_path: Option<&str>) -> Self {
-        let default = dirs::config_dir()
-            .unwrap()
-            .join(".owhisper")
-            .join("config.json");
-
+    pub fn new(path: Option<String>) -> Result<Self, crate::Error> {
         let settings = config::Config::builder()
-            .add_source(config::File::with_name(
-                config_path.unwrap_or(default.to_str().unwrap()),
-            ))
+            .add_source(config::File::with_name(&path.unwrap_or_else(|| {
+                Config::base().join("config").to_str().unwrap().to_string()
+            })))
             .add_source(config::Environment::with_prefix("OWHISPER"))
-            .build()
-            .unwrap();
+            .build()?;
 
-        settings.try_deserialize::<Config>().unwrap()
+        let config = settings.try_deserialize::<Config>()?;
+        Ok(config)
+    }
+
+    pub fn base() -> std::path::PathBuf {
+        dirs::home_dir().unwrap().join(".owhisper")
     }
 }
 
@@ -51,7 +53,7 @@ pub struct AwsModelConfig {
 pub struct DeepgramModelConfig {
     pub id: String,
     pub api_key: Option<String>,
-    pub base_url: String,
+    pub base_url: Option<String>,
 }
 
 #[derive(serde::Deserialize, schemars::JsonSchema, Default, Clone)]

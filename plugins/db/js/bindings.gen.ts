@@ -61,6 +61,9 @@ async setSessionEvent(sessionId: string, eventId: string | null) : Promise<null>
 async sessionAddParticipant(sessionId: string, humanId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|session_add_participant", { sessionId, humanId });
 },
+async sessionListDeletedParticipantIds(sessionId: string) : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:db|session_list_deleted_participant_ids", { sessionId });
+},
 async sessionRemoveParticipant(sessionId: string, humanId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|session_remove_participant", { sessionId, humanId });
 },
@@ -70,10 +73,10 @@ async sessionListParticipants(sessionId: string) : Promise<Human[]> {
 async sessionGetEvent(sessionId: string) : Promise<Event | null> {
     return await TAURI_INVOKE("plugin:db|session_get_event", { sessionId });
 },
-async getWords(sessionId: string) : Promise<Word[]> {
+async getWords(sessionId: string) : Promise<Word2[]> {
     return await TAURI_INVOKE("plugin:db|get_words", { sessionId });
 },
-async getWordsOnboarding() : Promise<Word[]> {
+async getWordsOnboarding() : Promise<Word2[]> {
     return await TAURI_INVOKE("plugin:db|get_words_onboarding");
 },
 async getConfig() : Promise<Config> {
@@ -162,7 +165,7 @@ export type Config = { id: string; user_id: string; general: ConfigGeneral; noti
 export type ConfigAI = { api_base: string | null; api_key: string | null; ai_specificity: number | null; redemption_time_ms: number | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; spoken_languages?: string[]; jargons?: string[]; telemetry_consent: boolean; save_recordings: boolean | null; selected_template_id: string | null }
 export type ConfigNotification = { before: boolean; auto: boolean; ignoredPlatforms: string[] | null }
-export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null }
+export type Event = { id: string; user_id: string; tracking_id: string; calendar_id: string | null; name: string; note: string; start_date: string; end_date: string; google_event_url: string | null; participants: string | null }
 export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string }
 export type Human = { id: string; organization_id: string | null; is_user: boolean; full_name: string | null; email: string | null; job_title: string | null; linkedin_username: string | null }
 export type ListEventFilter = ({ user_id: string; limit: number | null }) & ({ type: "simple" } | { type: "search"; query: string } | { type: "dateRange"; start: string; end: string } | { type: "not-assigned-past" })
@@ -171,12 +174,12 @@ export type ListOrganizationFilter = { search: [number, string] }
 export type ListSessionFilter = ({ user_id: string; limit: number | null }) & ({ type: "search"; query: string } | { type: "recentlyVisited" } | { type: "dateRange"; start: string; end: string } | { type: "tagFilter"; tag_ids: string[] })
 export type Organization = { id: string; name: string; description: string | null }
 export type Platform = "Apple" | "Google" | "Outlook"
-export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; words: Word[]; record_start: string | null; record_end: string | null; pre_meeting_memo_html: string | null }
+export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; words: Word2[]; record_start: string | null; record_end: string | null; pre_meeting_memo_html: string | null }
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type Tag = { id: string; name: string }
 export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
 export type TemplateSection = { title: string; description: string }
-export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
+export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

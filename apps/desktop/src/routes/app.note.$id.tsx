@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import EditorArea from "@/components/editor-area";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
 import {
   commands as windowsCommands,
   events as windowsEvents,
@@ -14,7 +14,7 @@ import {
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app/note/$id")({
-  beforeLoad: ({ context: { queryClient, sessionsStore }, params: { id } }) => {
+  beforeLoad: ({ context: { queryClient, sessionsStore, userId }, params: { id } }) => {
     return queryClient.fetchQuery({
       queryKey: ["session", id],
       queryFn: async () => {
@@ -32,6 +32,89 @@ export const Route = createFileRoute("/app/note/$id")({
 
         if (!session) {
           return redirect({ to: "/app/new" });
+        }
+
+        if (session.calendar_event_id) {
+          try {
+            const event = await dbCommands.getEvent(session.calendar_event_id);
+
+            if (event?.participants) {
+              const eventParticipants = JSON.parse(event.participants) as Array<{
+                name: string | null;
+                email: string | null;
+              }>;
+
+              // Use existing commands + new deleted IDs command
+              const [allHumans, currentParticipants, deletedParticipantIds] = await Promise.all([
+                dbCommands.listHumans(null),
+                dbCommands.sessionListParticipants(id),
+                dbCommands.sessionListDeletedParticipantIds(id),
+              ]);
+
+              const currentParticipantEmails = new Set(
+                currentParticipants.map(p => p.email).filter(Boolean),
+              );
+
+              const deletedIds = new Set(deletedParticipantIds);
+
+              const processedEmails = new Set<string>();
+              let addedCount = 0;
+
+              for (const participant of eventParticipants) {
+                if (!participant.name && !participant.email) {
+                  continue;
+                }
+                if (participant.email && processedEmails.has(participant.email)) {
+                  continue;
+                }
+                if (participant.email && currentParticipantEmails.has(participant.email)) {
+                  processedEmails.add(participant.email);
+                  continue;
+                }
+
+                let humanToAdd: Human | null = null;
+
+                if (participant.email) {
+                  const existingHuman = allHumans.find(h => h.email === participant.email);
+                  if (existingHuman) {
+                    if (deletedIds.has(existingHuman.id)) {
+                      processedEmails.add(participant.email);
+                      continue;
+                    }
+
+                    humanToAdd = existingHuman;
+                  }
+                  processedEmails.add(participant.email);
+                }
+
+                if (!humanToAdd) {
+                  let displayName = participant.name;
+                  if (!displayName && participant.email) {
+                    displayName = participant.email.split("@")[0];
+                  }
+
+                  const newHuman: Human = {
+                    id: crypto.randomUUID(),
+                    full_name: displayName,
+                    email: participant.email,
+                    organization_id: null,
+                    is_user: false,
+                    job_title: null,
+                    linkedin_username: null,
+                  };
+
+                  humanToAdd = await dbCommands.upsertHuman(newHuman);
+                }
+
+                if (humanToAdd) {
+                  await dbCommands.sessionAddParticipant(id, humanToAdd.id);
+                  addedCount++;
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Failed to sync participants:", error);
+          }
         }
 
         const { insert } = sessionsStore.getState();

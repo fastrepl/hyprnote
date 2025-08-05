@@ -9,6 +9,10 @@ owhisper-config = { workspace = true }
 schemars = { workspace = true }
 serde_json = { workspace = true }
 
+[dev-dependencies]
+hypr-data = { workspace = true }
+rodio = { workspace = true }
+
 [dependencies]
 owhisper-client = { workspace = true }
 owhisper-config = { workspace = true }

@@ -13,6 +13,27 @@ user_common_derives! {
         pub start_date: DateTime<Utc>,
         pub end_date: DateTime<Utc>,
         pub google_event_url: Option<String>,
+        pub participants: Option<String>,
+    }
+}
+
+user_common_derives! {
+    pub struct EventParticipant {
+        pub name: Option<String>,
+        pub email: Option<String>,
+    }
+}
+
+impl Event {
+    pub fn get_participants(&self) -> Vec<EventParticipant> {
+        self.participants
+            .as_ref()
+            .and_then(|p| serde_json::from_str(p).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn set_participants(&mut self, participants: Vec<EventParticipant>) {
+        self.participants = Some(serde_json::to_string(&participants).unwrap());
     }
 }
 

@@ -50,6 +50,7 @@ Default permissions for the plugin
 - `allow-list-session-tags`
 - `allow-assign-tag-to-session`
 - `allow-unassign-tag-from-session`
+- `allow-session-list-deleted-participant-ids`
 
 ## Permission Table
 
@@ -862,6 +863,32 @@ Enables the session_get_event command without any pre-configured scope.
 <td>
 
 Denies the session_get_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-session-list-deleted-participant-ids`
+
+</td>
+<td>
+
+Enables the session_list_deleted_participant_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-session-list-deleted-participant-ids`
+
+</td>
+<td>
+
+Denies the session_list_deleted_participant_ids command without any pre-configured scope.
 
 </td>
 </tr>

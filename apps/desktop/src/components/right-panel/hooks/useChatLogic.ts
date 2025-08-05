@@ -314,7 +314,9 @@ export function useChatLogic({
             update_progress: tool({ inputSchema: z.any() }),
           },
         }),
-        ...(type !== "HyprLocal" && {
+        ...((type !== "HyprLocal"
+          && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
+            || model.modelId === "anthropic/claude-4-sonnet")) && {
           stopWhen: stepCountIs(3),
           tools: {
             search_sessions_multi_keywords: tool({

@@ -1,9 +1,9 @@
-use owhisper_interface::Word;
+use owhisper_interface::Word2;
 
 pub fn process_recorded(
     model_path: impl AsRef<std::path::Path>,
     audio_path: impl AsRef<std::path::Path>,
-) -> Result<Vec<Word>, crate::Error> {
+) -> Result<Vec<Word2>, crate::Error> {
     use rodio::Source;
 
     let decoder = rodio::Decoder::new(std::io::BufReader::new(
@@ -44,7 +44,7 @@ pub fn process_recorded(
             let start_ms = (start_sec * 1000.0) as u64;
             let end_ms = (end_sec * 1000.0) as u64;
 
-            let word = Word {
+            let word = Word2 {
                 text: whisper_segment.text().to_string(),
                 speaker: None,
                 confidence: Some(whisper_segment.confidence()),

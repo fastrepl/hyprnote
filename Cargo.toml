@@ -10,7 +10,6 @@ debug = false
 [workspace]
 resolver = "2"
 members = [
-  "apps/app/server",
   "apps/desktop/src-tauri",
   "crates/*",
   "owhisper/*",
@@ -59,7 +58,6 @@ hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-loca
 hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
-hypr-stt = { path = "crates/stt", package = "stt", features = ["realtime", "recorded"] }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template = { path = "crates/template", package = "template" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }

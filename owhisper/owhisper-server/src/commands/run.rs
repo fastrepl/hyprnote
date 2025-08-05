@@ -1,27 +1,20 @@
 use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
-use tokio::signal;
 
 use crate::{misc::shutdown_signal, Server};
-use hypr_audio_input::MicInput;
 
 #[derive(clap::Parser)]
 pub struct RunArgs {
+    #[arg(short, long)]
+    pub config: Option<String>,
     #[arg(short, long)]
     pub model: String,
 }
 
 pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
-    let shutdown_signal = shutdown_signal();
-
-    // Load config and create server
-    let mut config = owhisper_config::Config::default();
-
-    // Set the model path if provided
-
+    let config = owhisper_config::Config::new(args.config)?;
     let server = Server::new(config, None);
-
-    let _server_addr = server.run_with_shutdown(shutdown_signal).await?;
+    let addr = server.run_with_shutdown(shutdown_signal()).await?;
 
     // Wait a moment for server to be ready
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;

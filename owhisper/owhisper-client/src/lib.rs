@@ -37,7 +37,14 @@ impl ListenClientBuilder {
             ..self.params.clone().unwrap_or_default()
         };
 
-        url.set_path("/api/desktop/listen/realtime");
+        {
+            let mut path = url.path().to_string();
+            if !path.ends_with('/') {
+                path.push('/');
+            }
+            path.push_str("v1/listen");
+            url.set_path(&path);
+        }
 
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -46,6 +53,10 @@ impl ListenClientBuilder {
                 query_pairs.append_pair("languages", lang.iso639().code());
             }
             query_pairs
+                // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
+                .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
+                .append_pair("sample_rate", "16000")
+                .append_pair("encoding", "linear16")
                 .append_pair("audio_mode", params.audio_mode.as_ref())
                 .append_pair("static_prompt", &params.static_prompt)
                 .append_pair("dynamic_prompt", &params.dynamic_prompt)
@@ -63,33 +74,30 @@ impl ListenClientBuilder {
         url.to_string()
     }
 
-    pub fn build_single(self) -> ListenClient {
+    fn build_request(self) -> ClientRequestBuilder {
         let uri = self
             .build_uri(owhisper_interface::AudioMode::Single)
             .parse()
             .unwrap();
 
         let request = match self.api_key {
+            // https://github.com/deepgram/deepgram-rust-sdk/blob/d2f2723/src/lib.rs#L114-L115
+            // https://github.com/deepgram/deepgram-rust-sdk/blob/d2f2723/src/lib.rs#L323-L324
             Some(key) => ClientRequestBuilder::new(uri)
-                .with_header("Authorization", format!("Bearer {}", key)),
+                .with_header("Authorization", format!("Token {}", key)),
             None => ClientRequestBuilder::new(uri),
         };
 
+        request
+    }
+
+    pub fn build_single(self) -> ListenClient {
+        let request = self.build_request();
         ListenClient { request }
     }
 
     pub fn build_dual(self) -> ListenClientDual {
-        let uri = self
-            .build_uri(owhisper_interface::AudioMode::Dual)
-            .parse()
-            .unwrap();
-
-        let request = match self.api_key {
-            Some(key) => ClientRequestBuilder::new(uri)
-                .with_header("Authorization", format!("Bearer {}", key)),
-            None => ClientRequestBuilder::new(uri),
-        };
-
+        let request = self.build_request();
         ListenClientDual { request }
     }
 }
@@ -192,7 +200,7 @@ mod tests {
         .unwrap();
 
         let client = ListenClient::builder()
-            .api_base("wss://api.deepgram.com/v1/listen")
+            .api_base("https://api.deepgram.com")
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
             .params(owhisper_interface::ListenParams {
                 languages: vec![hypr_language::ISO639::En.into()],

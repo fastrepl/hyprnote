@@ -55,4 +55,5 @@ permissions = [
     "allow-list-session-tags",
     "allow-assign-tag-to-session",
     "allow-unassign-tag-from-session",
+    "allow-session-list-deleted-participant-ids",
 ]

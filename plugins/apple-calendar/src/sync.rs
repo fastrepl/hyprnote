@@ -1,4 +1,5 @@
 use chrono::Utc;
+use serde_json;
 
 use hypr_calendar_interface::{CalendarSource, EventFilter};
 use hypr_db_user::{
@@ -159,6 +160,10 @@ async fn _sync_events(
                         start_date: matching_event.start_date,
                         end_date: matching_event.end_date,
                         google_event_url: db_event.google_event_url.clone(),
+                        participants: Some(
+                            serde_json::to_string(&matching_event.participants)
+                                .unwrap_or_else(|_| "[]".to_string()),
+                        ),
                     };
                     state.to_update.push(updated_event);
 
@@ -183,6 +188,10 @@ async fn _sync_events(
                         start_date: rescheduled_event.start_date,
                         end_date: rescheduled_event.end_date,
                         google_event_url: db_event.google_event_url.clone(),
+                        participants: Some(
+                            serde_json::to_string(&rescheduled_event.participants)
+                                .unwrap_or_else(|_| "[]".to_string()),
+                        ),
                     };
                     state.to_update.push(updated_event);
 
@@ -232,6 +241,10 @@ async fn _sync_events(
                     start_date: system_event.start_date,
                     end_date: system_event.end_date,
                     google_event_url: None,
+                    participants: Some(
+                        serde_json::to_string(&system_event.participants)
+                            .unwrap_or_else(|_| "[]".to_string()),
+                    ),
                 };
                 state.to_upsert.push(new_event);
             }

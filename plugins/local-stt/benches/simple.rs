@@ -69,7 +69,7 @@ fn bench_english_1() -> CustomBenchmarkResult {
             .collect::<Vec<_>>()
             .join(" ");
 
-        let expected: String = serde_json::from_str::<Vec<owhisper_interface::Word>>(
+        let expected: String = serde_json::from_str::<Vec<owhisper_interface::Word2>>(
             hypr_data::english_1::TRANSCRIPTION_JSON,
         )
         .unwrap()

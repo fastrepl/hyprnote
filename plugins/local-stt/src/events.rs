@@ -10,6 +10,6 @@ common_event_derives! {
     #[serde(tag = "type")]
     pub enum RecordedProcessingEvent {
         #[serde(rename = "progress")]
-        Progress { current: usize, total: usize, word: owhisper_interface::Word },
+        Progress { current: usize, total: usize, word: owhisper_interface::Word2 },
     }
 }

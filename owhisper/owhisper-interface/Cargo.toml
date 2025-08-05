@@ -3,6 +3,9 @@ name = "owhisper-interface"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+deepgram = { workspace = true, default-features = false, features = ["listen"] }
+
 [dependencies]
 hypr-language = { workspace = true }
 

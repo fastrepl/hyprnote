@@ -2,7 +2,7 @@
 
 use codes_iso_639::part_1::LanguageCode;
 use itertools::Itertools;
-use owhisper_interface::{SpeakerIdentity, Word};
+use owhisper_interface::{SpeakerIdentity, Word2};
 use std::str::FromStr;
 
 pub fn language(value: String) -> String {
@@ -12,7 +12,7 @@ pub fn language(value: String) -> String {
 }
 
 pub fn timeline(words: String) -> String {
-    let words: Vec<Word> = serde_json::from_str(&words).unwrap();
+    let words: Vec<Word2> = serde_json::from_str(&words).unwrap();
 
     words
         .iter()

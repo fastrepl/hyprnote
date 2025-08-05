@@ -601,8 +601,8 @@ async fn setup_listen_client<R: tauri::Runtime>(
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
-    words: Vec<owhisper_interface::Word>,
-) -> Result<Vec<owhisper_interface::Word>, crate::Error> {
+    words: Vec<owhisper_interface::Word2>,
+) -> Result<Vec<owhisper_interface::Word2>, crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.

@@ -16,7 +16,7 @@ common_event_derives! {
         #[serde(rename = "running_paused")]
         RunningPaused {},
         #[serde(rename = "words")]
-        Words { words: Vec<owhisper_interface::Word>},
+        Words { words: Vec<owhisper_interface::Word2>},
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
         #[serde(rename = "micMuted")]

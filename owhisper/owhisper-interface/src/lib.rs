@@ -1,3 +1,6 @@
+mod stream;
+pub use stream::*;
+
 #[macro_export]
 macro_rules! common_derives {
     ($item:item) => {
@@ -15,14 +18,30 @@ macro_rules! common_derives {
     };
 }
 
+// TODO: this is legacy format, but it works, and we already stored them in user db
 common_derives! {
     #[derive(Default)]
-    pub struct Word {
+    pub struct Word2 {
         pub text: String,
         pub speaker: Option<SpeakerIdentity>,
         pub confidence: Option<f32>,
         pub start_ms: Option<u64>,
         pub end_ms: Option<u64>,
+    }
+}
+
+impl From<Word> for Word2 {
+    fn from(word: Word) -> Self {
+        Word2 {
+            text: word.word,
+            speaker: word.speaker.map(|s| SpeakerIdentity::Assigned {
+                id: s.to_string(),
+                label: s.to_string(),
+            }),
+            confidence: Some(word.confidence as f32),
+            start_ms: Some(word.start as u64),
+            end_ms: Some(word.end as u64),
+        }
     }
 }
 
@@ -40,7 +59,7 @@ common_derives! {
     #[derive(Default)]
     pub struct ListenOutputChunk {
         pub meta: Option<serde_json::Value>,
-        pub words: Vec<Word>,
+        pub words: Vec<Word2>,
     }
 }
 
@@ -85,6 +104,8 @@ impl Default for AudioMode {
 common_derives! {
     #[derive(Default)]
     pub struct ListenParams {
+        #[serde(default)]
+        pub model: Option<String>,
         pub audio_mode: AudioMode,
         // https://docs.rs/axum-extra/0.10.1/axum_extra/extract/struct.Query.html#example-1
         #[serde(default)]

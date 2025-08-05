@@ -88,7 +88,7 @@ fn make_service_router(state: ServerState) -> Router {
 
     Router::new()
         .route("/health", get(health))
-        .route_service("/api/desktop/listen/realtime", whisper_service)
+        .route_service("/v1/listen", whisper_service)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)

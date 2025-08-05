@@ -11,7 +11,7 @@ deepgram = ["dep:deepgram"]
 [dependencies]
 codes-iso-639 = { workspace = true }
 
-deepgram = { workspace = true, optional = true, features = ["listen"] }
+deepgram = { workspace = true, optional = true, default-features = false, features = ["listen"] }
 hypr-whisper = { workspace = true, optional = true }
 
 schemars = { workspace = true }

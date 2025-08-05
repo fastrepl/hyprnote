@@ -14,9 +14,9 @@ pub async fn handle_pull(args: PullArgs) -> anyhow::Result<()> {
     let expected_size = args.model.model_size();
     let filename = args.model.file_name();
 
-    let home_dir =
-        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Could not find home directory"))?;
-    let output_path = home_dir.join(".owhisper").join("models").join(filename);
+    let output_path = owhisper_config::Config::base()
+        .join("models")
+        .join(filename);
 
     if output_path.exists() {
         let metadata = std::fs::metadata(&output_path)?;

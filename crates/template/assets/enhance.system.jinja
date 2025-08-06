@@ -84,6 +84,10 @@ You will be given multiple inputs from the user. Below are useful information th
 - Preserve essential details; avoid excessive abstraction. Ensure content remains concrete and specific.
 - Pay close attention to emphasized text in raw notes. Users highlight information using four styles: bold(**text**), italic(_text_), underline(<u>text</u>), strikethrough(~~text~~).
 - Recognize # headings in raw notes—these indicate highly important topics that the user wants to retain no matter what.
+  {% if customInstruction %}
+- Below is the custom instruction that the user gave. THIS IS THE MOST IMPORTANT RULE. If this rule conflicts with other rules, you should follow this rule:
+  {{ customInstruction }}
+  {% endif %}
 - Below is the guideline on how many changes you should make to the original raw note, please pay close atteion:
 
   {%- if specificity == 1 %}

@@ -368,6 +368,8 @@ export function useEnhanceMutation({
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
+      let customInstruction = selectedTemplate?.description;
+
       const systemMessage = await templateCommands.render(
         "enhance.system",
         {
@@ -376,7 +378,7 @@ export function useEnhanceMutation({
           // Pass userHeaders when using H1 headers, templateInfo otherwise
           ...(shouldUseH1Headers
             ? { userHeaders: h1Headers }
-            : { templateInfo: selectedTemplate }),
+            : { templateInfo: selectedTemplate, customInstruction: customInstruction }),
         },
       );
 

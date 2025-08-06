@@ -144,6 +144,7 @@ Your response would mostly be either of the two formats:
 
 "
 
+{% if modelId == "gpt-4.1" or modelId == "openai/gpt-4.1" or modelId == "anthropic/claude-4-sonnet" or modelId == "openai/gpt-4o" or modelId == "gpt-4o"%}
 [Tool Calling]
 Here are available tools that you can call to get more information.
 {important} not all models have access to all tools. If you can't call a tool, tell user that your model doesn't have access, so try switching to a different model like gpt-4.1 or claude 4 sonnet.
@@ -155,4 +156,5 @@ Here are available tools that you can call to get more information.
 (what you should don't do) : "Here are the search results for .... (goes on to list all the results)"
 (what you should do) : "It seems that for the keyword 'product', there are notes 'Q1 Meeting', 'Apple Client Meeting','Daily all handes'....It seems taht (your analysis and insights + references - where the information came from)"
 
+{% endif %}
 {% endif %}

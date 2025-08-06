@@ -77,6 +77,7 @@ export function useChatLogic({
     messages: Message[],
     currentUserMessage?: string,
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    modelId?: string,
   ) => {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
@@ -113,6 +114,7 @@ export function useChatLogic({
       date: currentDateTime,
       participants: participants,
       event: eventInfo,
+      modelId: modelId,
     });
 
     const conversationHistory: Array<{
@@ -308,7 +310,7 @@ export function useChatLogic({
 
       const { textStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content, mentionedContent),
+        messages: await prepareMessageHistory(messages, content, mentionedContent, model.modelId),
         ...(type === "HyprLocal" && {
           tools: {
             update_progress: tool({ inputSchema: z.any() }),
@@ -316,7 +318,9 @@ export function useChatLogic({
         }),
         ...((type !== "HyprLocal"
           && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
-            || model.modelId === "anthropic/claude-4-sonnet")) && {
+            || model.modelId === "anthropic/claude-4-sonnet"
+            || model.modelId === "openai/gpt-4o"
+            || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
           tools: {
             search_sessions_multi_keywords: tool({

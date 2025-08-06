@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, WhisperModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
@@ -72,13 +72,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     | "custom-endpoint"
     | "language-selection"
   >("welcome");
-  const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
+  const [selectedSttModel, setSelectedSttModel] = useState<WhisperModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
   const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
   const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
   const selectSTTModel = useMutation({
-    mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
+    mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
   });
 
   const openaiForm = useForm<{ api_key: string; model: string }>({
@@ -253,7 +253,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     setCurrentStep("audio-permissions");
   };
 
-  const handleModelSelected = (model: SupportedModel) => {
+  const handleModelSelected = (model: WhisperModel) => {
     selectSTTModel.mutate(model);
     setSelectedSttModel(model);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
@@ -305,13 +305,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      localSttCommands.startServer();
+      localSttCommands.startServer("Internal");
 
       localLlmCommands.startServer();
 
       const checkAndShowToasts = async () => {
         try {
-          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as SupportedModel);
+          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as WhisperModel);
 
           if (!sttModelExists) {
             showSttModelDownloadToast(selectedSttModel, undefined, queryClient);

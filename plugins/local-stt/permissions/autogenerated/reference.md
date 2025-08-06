@@ -5,16 +5,15 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-models-dir`
-- `allow-is-server-running`
 - `allow-is-model-downloaded`
 - `allow-is-model-downloading`
 - `allow-download-model`
-- `allow-start-server`
-- `allow-stop-server`
-- `allow-restart-server`
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
+- `allow-start-server`
+- `allow-stop-server`
+- `allow-get-server`
 
 ## Permission Table
 
@@ -80,12 +79,12 @@ Denies the get_current_model command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:allow-get-status`
+`local-stt:allow-get-server`
 
 </td>
 <td>
 
-Enables the get_status command without any pre-configured scope.
+Enables the get_server command without any pre-configured scope.
 
 </td>
 </tr>
@@ -93,12 +92,12 @@ Enables the get_status command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:deny-get-status`
+`local-stt:deny-get-server`
 
 </td>
 <td>
 
-Denies the get_status command without any pre-configured scope.
+Denies the get_server command without any pre-configured scope.
 
 </td>
 </tr>

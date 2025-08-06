@@ -18,7 +18,8 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 #[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
-    pub server: Option<crate::server::ServerHandle>,
+    pub internal_server: Option<crate::server::ServerHandle>,
+    pub external_server: Option<tauri_plugin_shell::process::CommandChild>,
     pub download_task: HashMap<hypr_whisper_local_model::WhisperModel, tokio::task::JoinHandle<()>>,
 }
 
@@ -30,17 +31,17 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
             commands::list_ggml_backends::<Wry>,
-            commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
             commands::list_supported_models,
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
+            commands::get_server::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
-            commands::restart_server::<Wry>,
         ])
+        .typ::<hypr_whisper_local_model::WhisperModel>()
         .events(tauri_specta::collect_events![
             events::RecordedProcessingEvent
         ])
@@ -120,7 +121,7 @@ mod test {
         use futures_util::StreamExt;
 
         let app = create_app(tauri::test::mock_builder());
-        app.start_server().await.unwrap();
+        app.start_server(Some(ServerType::Internal)).await.unwrap();
         let api_base = app.api_base().await.unwrap();
 
         let listen_client = owhisper_client::ListenClient::builder()

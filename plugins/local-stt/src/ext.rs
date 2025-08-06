@@ -14,11 +14,11 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
     fn api_base(&self) -> impl Future<Output = Option<String>>;
 
-    fn start_external_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
-    fn stop_external_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
-
-    fn is_server_running(&self) -> impl Future<Output = bool>;
-    fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
+    fn get_server(&self) -> impl Future<Output = Option<ServerType>>;
+    fn start_server(
+        &self,
+        t: Option<ServerType>,
+    ) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn get_current_model(&self) -> Result<WhisperModel, crate::Error>;
@@ -35,6 +35,12 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
         model: &WhisperModel,
     ) -> impl Future<Output = Result<bool, crate::Error>>;
+}
+
+#[derive(specta::Type, serde::Deserialize, serde::Serialize)]
+pub enum ServerType {
+    Internal,
+    External,
 }
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
@@ -103,57 +109,80 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_external_server(&self) -> Result<String, crate::Error> {
-        let port = 8008;
-        let cmd = self
-            .shell()
-            .sidecar("pro-stt-server")?
-            .arg(format!("--port {}", port));
-
-        let (_rx, _child) = cmd.spawn()?;
-        Ok(format!("http://localhost:{}", port))
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn stop_external_server(&self) -> Result<(), crate::Error> {
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn is_server_running(&self) -> bool {
+    async fn get_server(&self) -> Option<ServerType> {
         let state = self.state::<crate::SharedState>();
         let s = state.lock().await;
 
-        s.server.is_some()
+        if s.internal_server.is_some() {
+            return Some(ServerType::Internal);
+        }
+
+        if s.external_server.is_some() {
+            return Some(ServerType::External);
+        }
+
+        None
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_server(&self) -> Result<String, crate::Error> {
-        let cache_dir = self.models_dir();
-        let model = self.get_current_model()?;
+    async fn start_server(&self, t: Option<ServerType>) -> Result<String, crate::Error> {
+        let server = t.unwrap_or(ServerType::Internal);
 
-        if !self.is_model_downloaded(&model).await? {
-            return Err(crate::Error::ModelNotDownloaded);
+        match server {
+            ServerType::Internal => {
+                let cache_dir = self.models_dir();
+                let model = self.get_current_model()?;
+
+                if !self.is_model_downloaded(&model).await? {
+                    return Err(crate::Error::ModelNotDownloaded);
+                }
+
+                let server_state = crate::ServerState::builder()
+                    .model_cache_dir(cache_dir)
+                    .model_type(model)
+                    .build();
+
+                let server = crate::run_server(server_state).await?;
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+                let api_base = format!("http://{}", &server.addr);
+
+                {
+                    let state = self.state::<crate::SharedState>();
+                    let mut s = state.lock().await;
+                    s.api_base = Some(api_base.clone());
+                    s.internal_server = Some(server);
+                }
+
+                Ok(api_base)
+            }
+            ServerType::External => {
+                let state = self.state::<crate::SharedState>();
+                let mut s = state.lock().await;
+
+                if s.external_server.is_some() {
+                    return Err(crate::Error::ServerAlreadyRunning);
+                }
+
+                let port = 50060;
+                let url = format!("http://127.0.0.1:{}", port);
+                let cmd = self
+                    .shell()
+                    .sidecar("stt")?
+                    .args(["serve", "--port", &port.to_string()]);
+
+                let (mut rx, child) = cmd.spawn().unwrap();
+                s.external_server = Some(child);
+
+                tauri::async_runtime::spawn(async move {
+                    while let Some(event) = rx.recv().await {
+                        tracing::debug!("stt_external: {:#?}", event);
+                    }
+                });
+
+                Ok(url)
+            }
         }
-
-        let server_state = crate::ServerState::builder()
-            .model_cache_dir(cache_dir)
-            .model_type(model)
-            .build();
-
-        let server = crate::run_server(server_state).await?;
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-        let api_base = format!("http://{}", &server.addr);
-
-        {
-            let state = self.state::<crate::SharedState>();
-            let mut s = state.lock().await;
-            s.api_base = Some(api_base.clone());
-            s.server = Some(server);
-        }
-
-        Ok(api_base)
     }
 
     #[tracing::instrument(skip_all)]
@@ -161,9 +190,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 
-        if let Some(server) = s.server.take() {
+        if let Some(server) = s.internal_server.take() {
             let _ = server.shutdown.send(());
         }
+        if let Some(child) = s.external_server.take() {
+            let _ = child.kill();
+        }
+
         Ok(())
     }
 

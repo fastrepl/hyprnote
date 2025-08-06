@@ -88,6 +88,68 @@
         { "url": "http://**" }
       ]
     },
-    "dialog:allow-save"
+    "dialog:allow-save",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "../../../internal/passthrough-aarch64-apple-darwin",
+          "sidecar": true,
+          "args": [
+            {
+              "validator": "^\\./(stt-aarch64-apple-darwin|stt-x86_64-pc-windows-msvc\\.exe|stt-x86_64-unknown-linux-gnu)$"
+            },
+            "serve",
+            "--any-token"
+          ]
+        },
+        {
+          "name": "../../../internal/passthrough-x86_64-pc-windows-msvc",
+          "sidecar": true,
+          "args": [
+            {
+              "validator": "^\\./(stt-aarch64-apple-darwin|stt-x86_64-pc-windows-msvc\\.exe|stt-x86_64-unknown-linux-gnu)$"
+            },
+            "serve",
+            "--any-token"
+          ]
+        },
+        {
+          "name": "../../../internal/passthrough-x86_64-unknown-linux-gnu",
+          "sidecar": true,
+          "args": [
+            {
+              "validator": "^\\./(stt-aarch64-apple-darwin|stt-x86_64-pc-windows-msvc\\.exe|stt-x86_64-unknown-linux-gnu)$"
+            },
+            "serve",
+            "--any-token"
+          ]
+        },
+        {
+          "name": "../../../internal/stt-aarch64-apple-darwin",
+          "sidecar": true,
+          "args": [
+            "serve",
+            "--any-token"
+          ]
+        },
+        {
+          "name": "../../../internal/stt-x86_64-pc-windows-msvc",
+          "sidecar": true,
+          "args": [
+            "serve",
+            "--any-token"
+          ]
+        },
+        {
+          "name": "../../../internal/stt-x86_64-unknown-linux-gnu",
+          "sidecar": true,
+          "args": [
+            "serve",
+            "--any-token"
+          ]
+        }
+      ]
+    }
   ]
 }

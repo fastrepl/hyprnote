@@ -97,6 +97,11 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
+        run: |
+          echo "placeholder" > apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
+          chmod +x apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
+          ./scripts/sidecar.sh "apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740

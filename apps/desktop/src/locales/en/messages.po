@@ -329,8 +329,12 @@ msgid "Access multiple AI models through OpenRouter with your API key"
 msgstr "Access multiple AI models through OpenRouter with your API key"
 
 #: src/components/settings/views/template.tsx:233
-msgid "Add a description..."
-msgstr "Add a description..."
+#~ msgid "Add a description..."
+#~ msgstr "Add a description..."
+
+#: src/components/settings/views/template.tsx:233
+msgid "Add a system instruction..."
+msgstr "Add a system instruction..."
 
 #: src/components/welcome-modal/language-selection-view.tsx:171
 #~ msgid "Add languages you speak to improve transcription accuracy"
@@ -683,8 +687,8 @@ msgstr "Describe the content and purpose of this section"
 #~ msgstr "Describe the issue"
 
 #: src/components/settings/views/template.tsx:227
-msgid "Description"
-msgstr "Description"
+#~ msgid "Description"
+#~ msgstr "Description"
 
 #: src/components/editor-area/note-header/listen-button.tsx:349
 #~ msgid "Did you get consent from everyone in the meeting?"
@@ -1421,6 +1425,10 @@ msgstr "Stop"
 #: src/components/settings/views/sound.tsx:137
 msgid "System Audio Access"
 msgstr "System Audio Access"
+
+#: src/components/settings/views/template.tsx:227
+msgid "System Instruction"
+msgstr "System Instruction"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:114
 msgid "Talk to Founders"

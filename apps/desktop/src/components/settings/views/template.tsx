@@ -224,13 +224,13 @@ export default function TemplateEditor({
 
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">
-          <Trans>Description</Trans>
+          <Trans>System Instruction</Trans>
         </h2>
         <Textarea
           disabled={isReadOnly}
           value={template.description}
           onChange={handleChangeDescription}
-          placeholder={t`Add a description...`}
+          placeholder={t`Add a system instruction...`}
           className="h-20 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>

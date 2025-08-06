@@ -5,7 +5,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-meeting-notes",
     user_id: "system",
     title: "📝 General Meeting",
-    description: "Comprehensive template for meeting notes with agenda, discussion points, and action items",
+    description:
+      "Capture attendee names and meeting purpose, list agenda items covered, document key discussion points and decisions, assign specific action items with owners and deadlines.",
     sections: [
       { title: "Meeting Details", description: "Date, time, attendees, and meeting purpose" },
       { title: "Agenda", description: "Topics to be discussed and objectives" },
@@ -19,7 +20,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-standup",
     user_id: "system",
     title: "🌞 Daily Standup",
-    description: "Template for daily standup meetings with progress updates and blockers",
+    description:
+      "List yesterday's completed tasks, specify today's work priorities, identify blockers with potential solutions, and note sprint goals and important updates.",
     sections: [
       { title: "Yesterday", description: "What was accomplished yesterday" },
       { title: "Today", description: "What will be worked on today" },
@@ -33,7 +35,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-weekly-review",
     user_id: "system",
     title: "📅 Weekly Review",
-    description: "Template for weekly reflection and planning",
+    description:
+      "Document specific achievements with metrics, describe challenges and solutions used, extract key lessons learned, set measurable goals for next week, and identify improvement areas.",
     sections: [
       { title: "Achievements", description: "What was accomplished this week" },
       { title: "Challenges", description: "Obstacles faced and how they were handled" },
@@ -47,7 +50,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-one-on-one",
     user_id: "system",
     title: "👥 1-on-1 Meeting",
-    description: "Template for one-on-one meetings with team members",
+    description:
+      "Record emotional check-ins and overall well-being, update on recent work progress, identify specific challenges and blockers, discuss career development opportunities and team feedback, then list concrete action items.",
     sections: [
       { title: "Check-in", description: "How are things going overall?" },
       { title: "Recent Work", description: "Updates on current projects and tasks" },
@@ -62,7 +66,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-user-interview",
     user_id: "system",
     title: "👤 User Interview",
-    description: "Template for conducting user research and feedback sessions",
+    description:
+      "Note participant background and role, define research goals clearly, document current user behavior workflows, capture exact quotes about pain points, record feature reactions, and synthesize key insights.",
     sections: [
       { title: "Participant Info", description: "Name, role, and background details" },
       { title: "Research Goals", description: "What we want to learn from this session" },
@@ -77,7 +82,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-b2b-discovery",
     user_id: "system",
     title: "🔍 B2B Customer: Discovery",
-    description: "Template for B2B sales discovery calls and needs assessment",
+    description:
+      "Document company size and industry context, identify specific business challenges with cost impact, note existing solutions and limitations, map decision-making process and stakeholders, list requirements and success criteria.",
     sections: [
       { title: "Company Background", description: "Organization size, industry, and context" },
       { title: "Current Challenges", description: "Problems they are trying to solve" },
@@ -92,7 +98,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-b2b-pilot",
     user_id: "system",
     title: "🚀 B2B Customer: Pilot",
-    description: "Template for B2B pilot program meetings and progress reviews",
+    description:
+      "Define pilot scope and success metrics, track progress against milestones, capture user feedback and adoption patterns, document challenges and solutions, quantify value delivered with ROI, plan next phase expansion.",
     sections: [
       { title: "Pilot Overview", description: "Goals, scope, and success metrics" },
       { title: "Progress Update", description: "Current status and milestones achieved" },
@@ -107,7 +114,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-job-interview",
     user_id: "system",
     title: "💼 Job Interview",
-    description: "Template for conducting job interviews and candidate assessment",
+    description:
+      "Record candidate profile and resume highlights, assess technical skills with specific examples, review past experience and projects, evaluate cultural fit and team alignment, note their questions and responses, provide overall hiring recommendation.",
     sections: [
       { title: "Candidate Profile", description: "Name, role, and resume highlights" },
       { title: "Technical Assessment", description: "Skills evaluation and problem-solving" },
@@ -122,7 +130,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-patient-visit",
     user_id: "system",
     title: "🏥 Patient Visit",
-    description: "Template for healthcare patient visits and medical consultations",
+    description:
+      "Document patient demographics and basic info, record chief complaint and primary concerns, note symptoms with timing and severity, conduct clinical assessment with objective findings, create treatment plan with specific medications, schedule follow-up care.",
     sections: [
       { title: "Patient Information", description: "Name, age, and basic demographics" },
       { title: "Chief Complaint", description: "Primary reason for visit" },
@@ -137,7 +146,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-client-meeting-legal",
     user_id: "system",
     title: "🏛️ Client Meeting (Legal)",
-    description: "Template for legal client meetings and case discussions",
+    description:
+      "Record client contact details and case reference, summarize current case status and key issues, outline legal strategy and recommended actions, list required documents and evidence, note important dates and deadlines, define next action items.",
     sections: [
       { title: "Client Details", description: "Name, contact info, and case reference" },
       { title: "Case Summary", description: "Current status and key issues" },
@@ -152,7 +162,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-therapy-session",
     user_id: "system",
     title: "💚 Therapy Session",
-    description: "Template for therapy and counseling sessions",
+    description:
+      "Note session duration and goals, assess client's current emotional state, document key topics and concerns discussed, capture insights and breakthrough moments, record coping strategies practiced, assign specific homework tasks.",
     sections: [
       { title: "Session Overview", description: "Date, duration, and session goals" },
       { title: "Current State", description: "How the client is feeling today" },
@@ -167,7 +178,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-brainstorming",
     user_id: "system",
     title: "💡 Brainstorming Session",
-    description: "Template for creative brainstorming and ideation sessions",
+    description:
+      "Define the challenge and objectives clearly, capture all ideas generated without judgment, identify promising concepts worth exploring, note constraints and limitations, outline development steps for selected ideas, assign action items with owners.",
     sections: [
       { title: "Challenge", description: "Problem statement and objectives" },
       { title: "Ideas Generated", description: "All concepts and suggestions" },
@@ -182,7 +194,8 @@ export const DEFAULT_TEMPLATES: Template[] = [
     id: "default-coffee-chat",
     user_id: "system",
     title: "☕ Coffee Chat",
-    description: "Template for informal networking and relationship building meetings",
+    description:
+      "Record person's name, role, and connection method, document their professional background and current focus, identify common interests and shared connections, capture valuable insights exchanged, explore potential collaboration opportunities, define follow-up actions.",
     sections: [
       { title: "Person Info", description: "Name, role, and how you connected" },
       { title: "Background", description: "Their experience and current focus" },

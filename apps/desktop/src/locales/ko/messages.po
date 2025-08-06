@@ -706,6 +706,10 @@ msgstr ""
 #~ msgid "Downloads will continue in the background"
 #~ msgstr ""
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:94
+msgid "Draft follow up"
+msgstr ""
+
 #: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
 msgstr ""
@@ -1046,8 +1050,8 @@ msgid "New window"
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:94
-msgid "Next meeting prep"
-msgstr ""
+#~ msgid "Next meeting prep"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:101
 msgid "No calendars found"

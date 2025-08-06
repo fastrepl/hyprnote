@@ -88,10 +88,10 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
           <Trans>Extract action items</Trans>
         </button>
         <button
-          onClick={handleButtonClick("Create an agenda for next meeting", "chat_next_meeting_prep")}
+          onClick={handleButtonClick("Draft a follow up email to the participants", "chat_draft_follow_up")}
           className="text-xs px-3 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors"
         >
-          <Trans>Next meeting prep</Trans>
+          <Trans>Draft follow up</Trans>
         </button>
         <button
           onClick={handleButtonClick(

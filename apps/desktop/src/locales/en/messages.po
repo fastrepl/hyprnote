@@ -706,6 +706,10 @@ msgstr "Downloading AI Models"
 #~ msgid "Downloads will continue in the background"
 #~ msgstr "Downloads will continue in the background"
 
+#: src/components/right-panel/components/chat/empty-chat-state.tsx:94
+msgid "Draft follow up"
+msgstr "Draft follow up"
+
 #: src/components/settings/views/template.tsx:203
 msgid "Duplicate"
 msgstr "Duplicate"
@@ -1046,8 +1050,8 @@ msgid "New window"
 msgstr "New window"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:94
-msgid "Next meeting prep"
-msgstr "Next meeting prep"
+#~ msgid "Next meeting prep"
+#~ msgstr "Next meeting prep"
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:101
 msgid "No calendars found"

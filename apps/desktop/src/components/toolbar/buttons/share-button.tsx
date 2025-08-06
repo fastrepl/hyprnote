@@ -599,9 +599,9 @@ function convertWordsToTranscript(words: any[]): string {
   for (const word of words) {
     const isSameSpeaker = (!currentSpeaker && !word.speaker)
       || (currentSpeaker?.type === "unassigned" && word.speaker?.type === "unassigned"
-        && currentSpeaker.value.index === word.speaker.value.index)
+        && currentSpeaker.value?.index === word.speaker.value?.index)
       || (currentSpeaker?.type === "assigned" && word.speaker?.type === "assigned"
-        && currentSpeaker.value.id === word.speaker.value.id);
+        && currentSpeaker.value?.id === word.speaker.value?.id);
 
     if (!isSameSpeaker) {
       if (currentText.trim()) {

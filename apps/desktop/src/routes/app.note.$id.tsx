@@ -39,6 +39,7 @@ export const Route = createFileRoute("/app/note/$id")({
             const event = await dbCommands.getEvent(session.calendar_event_id);
 
             if (event?.participants) {
+              // participants of events from the DB event table
               const eventParticipants = JSON.parse(event.participants) as Array<{
                 name: string | null;
                 email: string | null;
@@ -50,10 +51,12 @@ export const Route = createFileRoute("/app/note/$id")({
                 dbCommands.sessionListDeletedParticipantIds(id),
               ]);
 
+              // emails of current participants in the session
               const currentParticipantEmails = new Set(
                 currentParticipants.map(p => p.email).filter(Boolean),
               );
 
+              // list of participants who were marked as deleted in the session
               const deletedIds = new Set(deletedParticipantIds);
 
               for (const participant of eventParticipants) {

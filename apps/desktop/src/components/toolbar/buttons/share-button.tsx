@@ -38,6 +38,7 @@ function ShareButtonInNote() {
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
+  const [includeTranscript, setIncludeTranscript] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const hasEnhancedNote = !!session?.enhanced_memo_html;
 
@@ -185,6 +186,7 @@ function ShareButtonInNote() {
           selectedObsidianFolder,
           sessionTagsData,
           sessionParticipantsData,
+          includeTranscript,
         );
       }
 
@@ -320,27 +322,41 @@ function ShareButtonInNote() {
                       </div>
 
                       {option.id === "obsidian" && (
-                        <div className="mb-3">
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Target Folder
-                          </label>
-                          <Select value={selectedObsidianFolder} onValueChange={setSelectedObsidianFolder}>
-                            <SelectTrigger className="w-full h-8 text-xs">
-                              <SelectValue placeholder="Select folder" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {obsidianFolders.data?.map((folder) => (
-                                <SelectItem key={folder.value} value={folder.value} className="text-xs">
-                                  {folder.label}
-                                </SelectItem>
-                              )) || (
-                                <SelectItem value="default" className="text-xs">
-                                  Default (Root)
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <>
+                          <div className="mb-3">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Target Folder
+                            </label>
+                            <Select value={selectedObsidianFolder} onValueChange={setSelectedObsidianFolder}>
+                              <SelectTrigger className="w-full h-8 text-xs">
+                                <SelectValue placeholder="Select folder" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {obsidianFolders.data?.map((folder) => (
+                                  <SelectItem key={folder.value} value={folder.value} className="text-xs">
+                                    {folder.label}
+                                  </SelectItem>
+                                )) || (
+                                  <SelectItem value="default" className="text-xs">
+                                    Default (Root)
+                                  </SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="mb-3">
+                            <label className="flex items-center space-x-2 text-xs">
+                              <input
+                                type="checkbox"
+                                checked={includeTranscript}
+                                onChange={(e) => setIncludeTranscript(e.target.checked)}
+                                className="rounded border-gray-300 text-gray-800 focus:ring-gray-500 focus:ring-1"
+                              />
+                              <span className="text-gray-700">Include transcript</span>
+                            </label>
+                          </div>
+                        </>
                       )}
 
                       <button
@@ -429,6 +445,7 @@ const exportHandlers = {
     selectedFolder: string,
     sessionTags: Tag[] | undefined,
     sessionParticipants: Array<{ full_name: string | null }> | undefined,
+    includeTranscript: boolean = false,
   ): Promise<ExportResult> => {
     const [baseFolder, apiKey, baseUrl] = await Promise.all([
       obsidianCommands.getBaseFolder(),
@@ -451,7 +468,15 @@ const exportHandlers = {
       finalPath = await join(selectedFolder, filename);
     }
 
-    const convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
+    let convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
+
+    // Add transcript if requested
+    if (includeTranscript && session.words && session.words.length > 0) {
+      const transcriptText = convertWordsToTranscript(session.words);
+      if (transcriptText) {
+        convertedMarkdown += "\n\n---\n\n## Full Transcript\n\n" + transcriptText;
+      }
+    }
 
     await putVaultByFilename({
       client,
@@ -560,4 +585,60 @@ async function fetchObsidianFolders(): Promise<ObsidianFolder[]> {
 
     return [{ value: "default", label: "Default (Root)" }];
   }
+}
+
+function convertWordsToTranscript(words: any[]): string {
+  if (!words || words.length === 0) {
+    return "";
+  }
+
+  const lines: string[] = [];
+  let currentSpeaker: any = null;
+  let currentText = "";
+
+  for (const word of words) {
+    const isSameSpeaker = (!currentSpeaker && !word.speaker)
+      || (currentSpeaker?.type === "unassigned" && word.speaker?.type === "unassigned"
+        && currentSpeaker.value?.index === word.speaker.value?.index)
+      || (currentSpeaker?.type === "assigned" && word.speaker?.type === "assigned"
+        && currentSpeaker.value?.id === word.speaker.value?.id);
+
+    if (!isSameSpeaker) {
+      if (currentText.trim()) {
+        const speakerLabel = getSpeakerLabel(currentSpeaker);
+        lines.push(`[${speakerLabel}]\n${currentText.trim()}`);
+      }
+
+      currentSpeaker = word.speaker;
+      currentText = word.text;
+    } else {
+      currentText += " " + word.text;
+    }
+  }
+
+  if (currentText.trim()) {
+    const speakerLabel = getSpeakerLabel(currentSpeaker);
+    lines.push(`[${speakerLabel}]\n${currentText.trim()}`);
+  }
+
+  return lines.join("\n\n");
+}
+
+function getSpeakerLabel(speaker: any): string {
+  if (!speaker) {
+    return "Speaker";
+  }
+
+  if (speaker.type === "assigned" && speaker.value?.label) {
+    return speaker.value.label;
+  }
+
+  if (speaker.type === "unassigned" && typeof speaker.value?.index === "number") {
+    if (speaker.value.index === 0) {
+      return "You";
+    }
+    return `Speaker ${speaker.value.index}`;
+  }
+
+  return "Speaker";
 }

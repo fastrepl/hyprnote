@@ -17,17 +17,5 @@ pub async fn handle_serve(args: ServeArgs) -> anyhow::Result<()> {
     let config = owhisper_config::Config::new(args.config)?;
     let server = Server::new(config, args.port);
     server.run_with_shutdown(shutdown_signal()).await?;
-
-    let api_base = "TODO";
-    let api_key = "TODO";
-
-    let client = owhisper_client::ListenClient::builder()
-        .api_base(api_base)
-        .api_key(api_key)
-        .params(owhisper_interface::ListenParams {
-            ..Default::default()
-        })
-        .build_single();
-
     Ok(())
 }

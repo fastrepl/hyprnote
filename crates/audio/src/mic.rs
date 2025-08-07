@@ -23,6 +23,14 @@ impl MicInput {
             .unwrap_or("Unknown Microphone".to_string())
     }
 
+    pub fn list_devices() -> Vec<String> {
+        cpal::default_host()
+            .input_devices()
+            .unwrap()
+            .map(|d| d.name().unwrap_or("Unknown Microphone".to_string()))
+            .collect()
+    }
+
     pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
         let host = cpal::default_host();
 

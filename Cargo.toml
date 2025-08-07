@@ -23,7 +23,6 @@ rust-version = "1.88.0"
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
-hypr-audio-input = { path = "crates/audio-input", package = "audio-input" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
@@ -43,6 +42,7 @@ hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-loops = { path = "crates/loops", package = "loops" }

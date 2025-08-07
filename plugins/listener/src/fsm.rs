@@ -14,6 +14,7 @@ use crate::SessionEvent;
 
 const SAMPLE_RATE: u32 = 16000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
+const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(60 * 15);
 
 const WAV_SPEC: hound::WavSpec = hound::WavSpec {
     channels: 1,
@@ -479,26 +480,40 @@ impl Session {
 
                 futures_util::pin_mut!(listen_stream);
 
-                while let Some(result) = listen_stream.next().await {
-                    let _meta = result.meta.clone();
+                loop {
+                    match tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()).await {
+                        Ok(Some(result)) => {
+                            let _meta = result.meta.clone();
 
-                    // We don't have to do this, and inefficient. But this is what works at the moment.
-                    {
-                        let updated_words = update_session(&app, &session.id, result.words)
-                            .await
+                            {
+                                let updated_words = update_session(&app, &session.id, result.words)
+                                    .await
+                                    .unwrap();
+
+                                SessionEvent::Words {
+                                    words: updated_words,
+                                }
+                                .emit(&app)
+                            }
                             .unwrap();
-
-                        SessionEvent::Words {
-                            words: updated_words,
                         }
-                        .emit(&app)
-                    }
-                    .unwrap();
-                }
+                        Ok(None) => {
+                            tracing::info!("listen_stream_ended");
 
-                tracing::info!("listen_stream_ended");
-                if stop_tx.send(()).await.is_err() {
-                    tracing::warn!("failed_to_send_stop_signal");
+                            if stop_tx.send(()).await.is_err() {
+                                tracing::warn!("failed_to_send_stop_signal");
+                            }
+                            break;
+                        }
+                        Err(_) => {
+                            tracing::info!("listen_stream_timeout");
+
+                            if let Some(state) = app.try_state::<crate::SharedState>() {
+                                let mut guard = state.lock().await;
+                                guard.fsm.handle(&crate::fsm::StateEvent::Pause).await;
+                            }
+                        }
+                    }
                 }
             }
         });

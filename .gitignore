@@ -12,7 +12,8 @@ Secrets*.toml
 .cache/
 restate-data
 
-.windsurfrules
+internal
 .turbo
 
+.windsurfrules
 CLAUDE.md 

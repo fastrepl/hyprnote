@@ -4,13 +4,21 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Query, Request, State},
-    http::StatusCode,
-    middleware::{self, Next},
+    http::{HeaderValue, StatusCode},
+    middleware::Next,
     response::Response,
     Router,
 };
-use axum_extra::{headers::authorization::Bearer, headers::Authorization, TypedHeader};
+use axum_extra::{
+    headers::{
+        authorization::{Bearer, Credentials},
+        Authorization,
+    },
+    TypedHeader,
+};
 use tower::Service;
+use tower_http::trace::{self, TraceLayer};
+use tracing::Level;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -63,15 +71,24 @@ impl Server {
 
         let app_state = Arc::new(AppState { api_key, services });
 
-        let stt_router = self.build_stt_router(app_state.clone()).await?;
+        let stt_router = self.build_stt_router(app_state.clone()).await;
 
         let app = Router::new()
             .route("/health", axum::routing::get(health))
             .merge(stt_router)
-            .layer(middleware::from_fn_with_state(
-                app_state.clone(),
-                auth_middleware,
-            ));
+            // .layer(middleware::from_fn_with_state(
+            //     app_state.clone(),
+            //     auth_middleware,
+            // ))
+            .layer(
+                TraceLayer::new_for_http()
+                    .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+                    .on_request(trace::DefaultOnRequest::new().level(Level::INFO))
+                    .on_response(trace::DefaultOnResponse::new().level(Level::INFO))
+                    .on_body_chunk(())
+                    .on_eos(())
+                    .on_failure(trace::DefaultOnFailure::new().level(Level::ERROR)),
+            );
 
         Ok(app)
     }
@@ -103,13 +120,11 @@ impl Server {
         Ok(())
     }
 
-    async fn build_stt_router(&self, app_state: Arc<AppState>) -> anyhow::Result<Router> {
-        let router = Router::new()
+    async fn build_stt_router(&self, app_state: Arc<AppState>) -> Router {
+        Router::new()
             .route("/listen", axum::routing::any(handle_transcription))
             .route("/v1/listen", axum::routing::any(handle_transcription))
-            .with_state(app_state);
-
-        Ok(router)
+            .with_state(app_state)
     }
 }
 
@@ -194,11 +209,15 @@ async fn health() -> &'static str {
 
 async fn auth_middleware(
     State(state): State<Arc<AppState>>,
-    auth_header: Option<TypedHeader<Authorization<Bearer>>>,
+    token_header: Option<TypedHeader<Authorization<Token>>>,
+    bearer_header: Option<TypedHeader<Authorization<Bearer>>>,
     req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
+    log::info!("Auth middleware");
+
     if state.api_key.is_none() {
+        log::warn!("API key is not set");
         return Ok(next.run(req).await);
     }
 
@@ -207,15 +226,59 @@ async fn auth_middleware(
         .as_ref()
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    match auth_header {
-        None => Err(StatusCode::UNAUTHORIZED),
-        Some(TypedHeader(Authorization(bearer))) => {
-            if bearer.token() == expected_token {
-                Ok(next.run(req).await)
-            } else {
-                Err(StatusCode::UNAUTHORIZED)
-            }
+    log::info!("Expected token: {}", expected_token);
+
+    // Check Token format first (what the client sends)
+    if let Some(TypedHeader(Authorization(token))) = token_header {
+        log::info!("Token authorization: {}", token.token());
+        if token.token() == expected_token {
+            return Ok(next.run(req).await);
+        } else {
+            log::info!("Token mismatch");
+            return Err(StatusCode::UNAUTHORIZED);
         }
+    }
+
+    // Check Bearer format as fallback
+    if let Some(TypedHeader(Authorization(bearer))) = bearer_header {
+        log::info!("Bearer authorization: {}", bearer.token());
+        if bearer.token() == expected_token {
+            return Ok(next.run(req).await);
+        } else {
+            log::info!("Bearer token mismatch");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+    }
+
+    log::info!("No valid authorization header found");
+    Err(StatusCode::UNAUTHORIZED)
+}
+
+pub struct Token(String);
+
+impl Token {
+    pub fn token(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Credentials for Token {
+    const SCHEME: &'static str = "Token";
+
+    fn decode(value: &HeaderValue) -> Option<Self> {
+        let bytes = value.as_bytes();
+        if bytes.len() > "Token ".len() && &bytes[.."Token ".len()] == b"Token " {
+            let token_bytes = &bytes["Token ".len()..];
+            String::from_utf8(token_bytes.to_vec())
+                .ok()
+                .map(|s| Token(s.trim().to_string()))
+        } else {
+            None
+        }
+    }
+
+    fn encode(&self) -> HeaderValue {
+        HeaderValue::from_str(&format!("Token {}", self.0)).unwrap()
     }
 }
 

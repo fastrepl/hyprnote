@@ -83,18 +83,60 @@ impl AudioInput {
 
         let devices: Vec<cpal::Device> = host
             .input_devices()
-            .map(|devices| devices.collect())
+            .map(|devices| {
+                let device_vec: Vec<cpal::Device> = devices.collect();
+                tracing::debug!("Found {} input devices in list_mic_devices", device_vec.len());
+                device_vec
+            })
+            .map_err(|e| {
+                tracing::error!("Failed to enumerate input devices in list_mic_devices: {:?}", e);
+                e
+            })
             .unwrap_or_else(|_| Vec::new());
 
-        devices
+        let mut result: Vec<String> = devices
             .into_iter()
-            .filter_map(|d| d.name().ok())
-            .filter(|d| d != "hypr-audio-tap")
-            .collect()
+            .filter_map(|d| {
+                let name = d.name();
+                match &name {
+                    Ok(n) => tracing::debug!("Processing device: {}", n),
+                    Err(e) => tracing::debug!("Processing device with error: {:?}", e),
+                }
+                name.ok()
+            })
+            .filter(|d| {
+                let filtered = d != "hypr-audio-tap";
+                if !filtered {
+                    tracing::debug!("Filtering out device: {}", d);
+                }
+                filtered
+            })
+            .collect();
+
+        // Add virtual echo-cancel device if it exists
+        if std::process::Command::new("pactl")
+            .args(["list", "sources", "short"])
+            .output()
+            .map(|output| {
+                String::from_utf8_lossy(&output.stdout)
+                    .contains("echo-cancel-source")
+            })
+            .unwrap_or(false)
+        {
+            if !result.contains(&"echo-cancel-source".to_string()) {
+                tracing::debug!("Adding virtual echo-cancel-source device");
+                result.push("echo-cancel-source".to_string());
+            }
+        }
+
+        tracing::debug!("Returning {} devices from list_mic_devices", result.len());
+        result
     }
 
     pub fn from_mic(device_name: Option<String>) -> Result<Self, crate::Error> {
+        tracing::info!("Creating AudioInput from microphone with device name: {:?}", device_name);
         let mic = MicInput::new(device_name)?;
+        tracing::debug!("Successfully created MicInput");
 
         Ok(Self {
             source: AudioSource::RealtimeMic,
@@ -105,10 +147,22 @@ impl AudioInput {
     }
 
     pub fn from_speaker() -> Self {
+        tracing::debug!("Creating AudioInput from speaker");
+        let speaker = match SpeakerInput::new() {
+            Ok(speaker) => {
+                tracing::debug!("Successfully created SpeakerInput");
+                Some(speaker)
+            }
+            Err(e) => {
+                tracing::error!("Failed to create SpeakerInput: {}", e);
+                None
+            }
+        };
+
         Self {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
-            speaker: Some(SpeakerInput::new().unwrap()),
+            speaker,
             data: None,
         }
     }

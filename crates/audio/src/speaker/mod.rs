@@ -29,26 +29,26 @@ pub struct SpeakerInput {
 }
 
 impl SpeakerInput {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn new() -> Result<Self> {
         let inner = PlatformSpeakerInput::new()?;
         Ok(Self { inner })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     pub fn new() -> Result<Self> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::new' is not supported on this platform"
         ))
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
         Ok(SpeakerStream { inner })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     pub fn stream(self) -> Result<SpeakerStream> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::stream' is not supported on this platform"
@@ -65,15 +65,15 @@ impl Stream for SpeakerStream {
     type Item = f32;
 
     fn poll_next(
-        mut self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
-            self.inner.poll_next_unpin(cx)
+            self.get_mut().inner.poll_next_unpin(_cx)
         }
 
-        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
         {
             std::task::Poll::Pending
         }
@@ -85,12 +85,12 @@ impl kalosm_sound::AsyncSource for SpeakerStream {
         self
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     fn sample_rate(&self) -> u32 {
         self.inner.sample_rate()
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     fn sample_rate(&self) -> u32 {
         0
     }

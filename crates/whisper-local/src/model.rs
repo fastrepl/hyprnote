@@ -46,19 +46,61 @@ impl WhisperBuilder {
     pub fn build(self) -> Whisper {
         unsafe { Self::suppress_log() };
 
+        let model_path = self.model_path.unwrap();
+
+        // Log the model path for debugging
+        tracing::info!("Loading whisper model from: {}", model_path);
+
+        // Check if model file exists
+        if !std::path::Path::new(&model_path).exists() {
+            panic!("Model file does not exist: {}", model_path);
+        }
+
+        // Try to initialize with GPU first, fall back to CPU if GPU fails
+        let backends = crate::list_ggml_backends();
+        let has_gpu = backends.iter().any(|b| b.kind != "CPU");
+
+        tracing::info!("Available backends: {:?}, has_gpu: {}", backends, has_gpu);
+
+        let use_gpu = has_gpu;
         let context_param = {
             let mut p = WhisperContextParameters::default();
             p.gpu_device = 0;
-            p.use_gpu = true;
+            p.use_gpu = has_gpu;  // Only use GPU if available
             p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };
 
-        let model_path = self.model_path.unwrap();
+        let ctx = match WhisperContext::new_with_params(&model_path, context_param) {
+            Ok(ctx) => ctx,
+            Err(e) => {
+                tracing::warn!("Failed to initialize WhisperContext with GPU (use_gpu={}): {:?}. Falling back to CPU.", use_gpu, e);
+                // Try again with CPU only
+                let mut p = WhisperContextParameters::default();
+                p.gpu_device = 0;
+                p.use_gpu = false;
+                p.flash_attn = false;
+                p.dtw_parameters.mode = whisper_rs::DtwMode::None;
 
-        let ctx = WhisperContext::new_with_params(&model_path, context_param).unwrap();
-        let state = ctx.create_state().unwrap();
+                match WhisperContext::new_with_params(&model_path, p) {
+                    Ok(ctx) => ctx,
+                    Err(e) => {
+                        tracing::error!("Failed to initialize WhisperContext with CPU: {:?}. Model path: {}, File exists: {}", e, model_path, std::path::Path::new(&model_path).exists());
+                        panic!("Failed to initialize WhisperContext: {:?}. Model path: {}, File exists: {}", e, model_path, std::path::Path::new(&model_path).exists());
+                    }
+                }
+            }
+        };
+
+        let state = match ctx.create_state() {
+            Ok(state) => state,
+            Err(e) => {
+                tracing::error!("Failed to create WhisperState: {:?}", e);
+                panic!("Failed to create WhisperState: {:?}", e);
+            }
+        };
+
         let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();
 

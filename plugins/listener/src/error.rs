@@ -15,16 +15,18 @@ pub enum Error {
     #[error(transparent)]
     ConnectorError(#[from] tauri_plugin_connector::Error),
     #[error("no session")]
-    NoneSession,
-    #[error("start session failed")]
-    StartSessionFailed,
-    #[error("stop session failed")]
-    StopSessionFailed,
-    #[error("pause session failed")]
-    PauseSessionFailed,
-    #[error("resume session failed")]
-    ResumeSessionFailed,
-}
+        NoneSession,
+        #[error("missing user id")]
+        MissingUserId,
+        #[error("start session failed")]
+        StartSessionFailed,
+        #[error("stop session failed")]
+        StopSessionFailed,
+        #[error("pause session failed")]
+        PauseSessionFailed,
+        #[error("resume session failed")]
+        ResumeSessionFailed,
+    }
 
 impl Serialize for Error {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>

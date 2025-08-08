@@ -2,6 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { open } from "@tauri-apps/plugin-shell";
+import { InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,6 +15,7 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
   FormControl,
@@ -23,6 +26,7 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "../../toast/shared";
 
@@ -824,9 +828,26 @@ export default function LocalAI() {
                       name="aiSpecificity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>Autonomy Selector</Trans>
-                          </FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormLabel className="text-sm font-medium">
+                              <Trans>Autonomy Selector</Trans>
+                            </FormLabel>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  onClick={() => open("https://docs.hyprnote.com/features/ai-autonomy")}
+                                  className="h-8 w-8"
+                                >
+                                  <InfoIcon className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <Trans>Learn more about AI autonomy</Trans>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                           <FormDescription className="text-xs">
                             <Trans>Control how autonomous the AI enhancement should be</Trans>
                           </FormDescription>

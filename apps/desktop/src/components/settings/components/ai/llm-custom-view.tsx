@@ -24,6 +24,7 @@ const openaiModels = [
   "gpt-4o-mini",
   "gpt-4.1-nano",
   "gpt-4.1",
+  "gpt-5-chat-latest",
   "chatgpt-4o-latest",
 ];
 

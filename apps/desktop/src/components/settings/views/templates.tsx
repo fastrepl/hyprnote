@@ -1,7 +1,8 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { ArrowLeftIcon, CheckIcon, Loader2Icon, PlusIcon } from "lucide-react";
+import { open } from "@tauri-apps/plugin-shell";
+import { ArrowLeftIcon, CheckIcon, InfoIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -11,6 +12,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import TemplateEditor from "./template";
 
@@ -248,8 +250,25 @@ export default function TemplatesView() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              <Trans>Your Templates</Trans>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                <Trans>Your Templates</Trans>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => open("https://docs.hyprnote.com/features/templates.mdx")}
+                    className="h-8 w-8"
+                  >
+                    <InfoIcon className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <Trans>Learn more about templates</Trans>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <div className="text-sm text-muted-foreground">
               <Trans>Select a template to enhance your meeting notes</Trans>

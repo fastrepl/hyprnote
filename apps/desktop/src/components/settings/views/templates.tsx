@@ -256,9 +256,9 @@ export default function TemplatesView() {
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     onClick={() => open("https://docs.hyprnote.com/features/templates.mdx")}
                     className="h-8 w-8"
                   >

@@ -56,7 +56,13 @@ impl MicInput {
                 .ok_or(crate::Error::NoInputDevice)?,
         };
 
-        let config = device.default_input_config().unwrap();
+            let config = match device.default_input_config() {
+                Ok(config) => config,
+                Err(e) => {
+                    tracing::error!("Failed to get default input config for device {:?}: {:?}", device.name().unwrap_or_default(), e);
+                    return Err(crate::Error::NoInputDevice);
+                }
+            };
 
         Ok(Self {
             host,

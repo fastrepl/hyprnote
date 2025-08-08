@@ -31,11 +31,17 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     log::info!("server_handle");
 
     let input_devices: Vec<String> = hypr_audio::MicInput::list_devices();
-    log::info!("input_devices: {:#?}", input_devices);
+        log::info!("input_devices: {:#?}", input_devices);
 
-    let input_device = hypr_audio::MicInput::new(args.device).unwrap();
-    log::info!("input_device: {}", input_device.device_name());
-    let audio_stream = input_device.stream();
+        let input_device = match hypr_audio::MicInput::new(args.device) {
+            Ok(device) => device,
+            Err(e) => {
+                log::error!("Failed to initialize microphone: {:?}", e);
+                std::process::exit(1);
+            }
+        };
+        log::info!("input_device: {}", input_device.device_name());
+        let audio_stream = input_device.stream();
 
     let api_base = format!("ws://127.0.0.1:{}", port);
 

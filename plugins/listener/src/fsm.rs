@@ -205,7 +205,13 @@ impl Session {
         let session_id = id.into();
         let onboarding_session_id = self.app.db_onboarding_session_id().await?;
 
-        let user_id = self.app.db_user_id().await?.unwrap();
+                let user_id = match self.app.db_user_id().await? {
+                    Some(id) => id,
+                    None => {
+                        tracing::error!("No user ID found for session");
+                        return Err(crate::Error::MissingUserId);
+                    }
+                };
         self.session_id = Some(session_id.clone());
 
         let (record, languages, jargons, redemption_time_ms) = {
@@ -298,7 +304,10 @@ impl Session {
             channels.speaker_tx.clone(),
         ));
 
-        let app_dir = self.app.path().app_data_dir().unwrap();
+        let app_dir = self.app.path().app_data_dir().map_err(|e| {
+                    tracing::error!("Failed to get app data directory: {:?}", e);
+                    crate::Error::IoError(std::io::Error::new(std::io::ErrorKind::Other, format!("{:?}", e)))
+                })?;
 
         tasks.spawn({
             let app = self.app.clone();
@@ -311,7 +320,13 @@ impl Session {
             let process_speaker_tx = channels.process_speaker_tx.clone();
 
             async move {
-                let mut aec = hypr_aec::AEC::new().unwrap();
+                            let mut aec = match hypr_aec::AEC::new() {
+                                Ok(aec) => aec,
+                                Err(e) => {
+                                    tracing::error!("Failed to initialize AEC: {:?}", e);
+                                    return;
+                                }
+                            };
                 let mut last_broadcast = Instant::now();
 
                 // TODO: AGC might be needed.
@@ -473,10 +488,17 @@ impl Session {
             let session = session.clone();
 
             async move {
-                let listen_stream = listen_client
+                            let listen_stream = match listen_client
                     .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
                     .await
-                    .unwrap();
+                            {
+                                Ok(stream) => stream,
+                                Err(e) => {
+                                    tracing::error!("Failed to create listen stream: {:?}", e);
+                                    let _ = stop_tx.send(()).await;
+                                    return;
+                                }
+                            };
 
                 futures_util::pin_mut!(listen_stream);
 
@@ -486,16 +508,24 @@ impl Session {
                             let _meta = result.meta.clone();
 
                             {
-                                let updated_words = update_session(&app, &session.id, result.words)
+                                                            let updated_words = match update_session(&app, &session.id, result.words)
                                     .await
-                                    .unwrap();
+                                                            {
+                                                                Ok(words) => words,
+                                                                Err(e) => {
+                                                                    tracing::error!("Failed to update session: {:?}", e);
+                                                                    continue;
+                                                                }
+                                                            };
 
                                 SessionEvent::Words {
                                     words: updated_words,
                                 }
                                 .emit(&app)
                             }
-                            .unwrap();
+                                                                                        .unwrap_or_else(|e| {
+                                                                                            tracing::error!("Failed to emit Words event: {:?}", e);
+                                                                                        });
                         }
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");
@@ -628,7 +658,9 @@ async fn update_session<R: tauri::Runtime>(
         .ok_or(crate::Error::NoneSession)?;
 
     session.words.extend(words);
-    app.db_upsert_session(session.clone()).await.unwrap();
+        if let Err(e) = app.db_upsert_session(session.clone()).await {
+            tracing::error!("Failed to upsert session: {:?}", e);
+        }
 
     Ok(session.words)
 }
@@ -672,7 +704,10 @@ impl Session {
                 if self.session_id.is_some() && self.tasks.is_some() {
                     if let Some(session_id) = self.session_id.clone() {
                         self.teardown_resources().await;
-                        self.setup_resources(&session_id).await.unwrap();
+                                                if let Err(e) = self.setup_resources(&session_id).await {
+                                                    tracing::error!("Failed to setup resources: {:?}", e);
+                                                    // Handle the error appropriately - maybe transition to inactive state
+                                                }
                     }
                 }
 
@@ -788,9 +823,15 @@ impl Session {
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
         match target {
-            State::RunningActive {} => SessionEvent::RunningActive {}.emit(&self.app).unwrap(),
-            State::RunningPaused {} => SessionEvent::RunningPaused {}.emit(&self.app).unwrap(),
-            State::Inactive {} => SessionEvent::Inactive {}.emit(&self.app).unwrap(),
+            State::RunningActive {} => {
+                let _ = SessionEvent::RunningActive {}.emit(&self.app);
+            }
+            State::RunningPaused {} => {
+                let _ = SessionEvent::RunningPaused {}.emit(&self.app);
+            }
+            State::Inactive {} => {
+                let _ = SessionEvent::Inactive {}.emit(&self.app);
+            }
         }
 
         if let Some(tx) = &self.session_state_tx {

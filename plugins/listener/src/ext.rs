@@ -45,8 +45,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
+        let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
+        let s = state.inner().lock().await;
         Ok(s.fsm.get_current_mic_device())
     }
 
@@ -55,10 +55,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        let state = self.state::<crate::SharedState>();
+        let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
 
         {
-            let mut guard = state.lock().await;
+            let mut guard = state.inner().lock().await;
             let event = crate::fsm::StateEvent::MicChange(Some(device_name.into()));
             guard.fsm.handle(&event).await;
         }
@@ -83,11 +83,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         }
 
         #[cfg(not(target_os = "macos"))]
-        {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
-            let sample = mic_sample_stream.next().await;
-            Ok(sample.is_some())
-        }
+                {
+                    match hypr_audio::AudioInput::from_mic(None) {
+                        Ok(mut input) => {
+                            let mut mic_sample_stream = input.stream();
+                            let sample = mic_sample_stream.next().await;
+                            Ok(sample.is_some())
+                        }
+                        Err(e) => {
+                            tracing::warn!("Failed to access microphone for checking: {:?}", e);
+                            Ok(false)
+                        }
+                    }
+                }
     }
 
     #[tracing::instrument(skip_all)]
@@ -127,10 +135,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         }
 
         #[cfg(not(target_os = "macos"))]
-        {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
-            mic_sample_stream.next().await;
-        }
+                {
+                    match hypr_audio::AudioInput::from_mic(None) {
+                        Ok(mut input) => {
+                            let mut mic_sample_stream = input.stream();
+                            mic_sample_stream.next().await;
+                        }
+                        Err(e) => {
+                            tracing::warn!("Failed to access microphone for request: {:?}", e);
+                        }
+                    }
+                }
 
         Ok(())
     }
@@ -162,8 +177,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn open_microphone_access_settings(&self) -> Result<(), crate::Error> {
         std::process::Command::new("open")
             .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")
-            .spawn()?
-            .wait()?;
+            .spawn()
+            .map_err(|e| crate::Error::IoError(e))?
+            .wait()
+            .map_err(|e| crate::Error::IoError(e))?;
         Ok(())
     }
 
@@ -171,34 +188,36 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn open_system_audio_access_settings(&self) -> Result<(), crate::Error> {
         std::process::Command::new("open")
             .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
-            .spawn()?
-            .wait()?;
+            .spawn()
+            .map_err(|e| crate::Error::IoError(e))?
+            .wait()
+            .map_err(|e| crate::Error::IoError(e))?;
         Ok(())
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
+        let guard = state.inner().lock().await;
         guard.fsm.state().clone()
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
+        let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
 
         {
-            let guard = state.lock().await;
+            let guard = state.inner().lock().await;
             guard.fsm.is_mic_muted()
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
+        let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
 
         {
-            let guard = state.lock().await;
+            let guard = state.inner().lock().await;
             guard.fsm.is_speaker_muted()
         }
     }

@@ -444,8 +444,8 @@ msgstr "Audio Permissions"
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
-#: src/components/welcome-modal/index.tsx:351
-#: src/components/welcome-modal/index.tsx:362
+#: src/components/welcome-modal/index.tsx:350
+#: src/components/welcome-modal/index.tsx:361
 msgid "Back"
 msgstr "Back"
 
@@ -1189,7 +1189,7 @@ msgstr "Pause"
 msgid "people"
 msgstr "people"
 
-#: src/components/settings/components/ai/stt-view.tsx:332
+#: src/components/settings/components/ai/stt-view.tsx:328
 msgid "Performance difference between languages"
 msgstr "Performance difference between languages"
 
@@ -1510,7 +1510,7 @@ msgstr "Toggle left sidebar"
 msgid "Toggle widget panel"
 msgstr "Toggle widget panel"
 
-#: src/components/settings/components/ai/stt-view.tsx:323
+#: src/components/settings/components/ai/stt-view.tsx:319
 msgid "Transcribing"
 msgstr "Transcribing"
 

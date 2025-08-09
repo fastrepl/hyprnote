@@ -106,7 +106,7 @@ mod test {
     #[test]
     fn ensure_types() {
         let dg = DG::StreamResponse::TranscriptResponse {
-            type_field: "transcript".to_string(),
+            type_field: "Results".to_string(),
             start: 0.0,
             duration: 0.0,
             is_final: false,

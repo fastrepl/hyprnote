@@ -213,7 +213,7 @@ mod tests {
     use hypr_audio_utils::AudioFormatExt;
 
     #[tokio::test]
-    #[ignore]
+    // cargo test -p owhisper-client test_client_deepgram -- --nocapture
     async fn test_client_deepgram() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -225,12 +225,46 @@ mod tests {
             .api_base("https://api.deepgram.com")
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
             .params(owhisper_interface::ListenParams {
+                model: Some("nova-2".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
             .build_single();
 
         let stream = client.from_realtime_audio(audio).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            println!("{:?}", result);
+        }
+    }
+
+    #[tokio::test]
+    // cargo test -p owhisper-client test_client_ag -- --nocapture
+    async fn test_client_ag() {
+        let audio_1 = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap()
+        .to_i16_le_chunks(16000, 512);
+
+        let audio_2 = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap()
+        .to_i16_le_chunks(16000, 512);
+
+        let client = ListenClient::builder()
+            .api_base("ws://localhost:50060")
+            .api_key("".to_string())
+            .params(owhisper_interface::ListenParams {
+                model: Some("tiny.en".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        let stream = client.from_realtime_audio(audio_1, audio_2).await.unwrap();
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {
@@ -251,6 +285,7 @@ mod tests {
             .api_base("ws://127.0.0.1:1234/v1/realtime")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
+                model: Some("whisper-cpp".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })

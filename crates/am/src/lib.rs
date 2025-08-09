@@ -10,9 +10,11 @@ pub use types::*;
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_client_creation() {
-        let _client = AmClient::default();
+    #[tokio::test]
+    async fn test_client_creation() {
+        let client = AmClient::new("http://localhost:50060");
+        let status = client.status().await;
+        println!("{:?}", status);
         assert!(true);
     }
 }

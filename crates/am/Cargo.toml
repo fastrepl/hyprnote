@@ -3,6 +3,9 @@ name = "am"
 version = "0.1.0"
 edition = "2021"
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
 [dependencies]
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }

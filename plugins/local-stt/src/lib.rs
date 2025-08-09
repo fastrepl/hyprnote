@@ -17,6 +17,7 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
 #[derive(Default)]
 pub struct State {
+    pub ag_api_key: Option<String>,
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
     pub download_task: HashMap<hypr_whisper_local_model::WhisperModel, tokio::task::JoinHandle<()>>,
@@ -79,7 +80,23 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             }
 
-            app.manage(SharedState::default());
+            let api_key = {
+                #[cfg(not(debug_assertions))]
+                {
+                    Some(env!("AG_API_KEY").to_string())
+                }
+
+                #[cfg(debug_assertions)]
+                {
+                    option_env!("AG_API_KEY").map(|s| s.to_string())
+                }
+            };
+
+            app.manage(SharedState::new(tokio::sync::Mutex::new(State {
+                ag_api_key: api_key,
+                ..Default::default()
+            })));
+
             Ok(())
         })
         .build()

@@ -151,8 +151,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
     }
 
     let head_response = get_client().head(url.clone()).send().await?;
-    let total_size = get_content_length_from_headers(&head_response)
-        .ok_or_else(|| OtherError("Content-Length header missing".to_string()))?;
+    let total_size = get_content_length_from_headers(&head_response);
 
     let supports_ranges = head_response
         .headers()
@@ -161,12 +160,14 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
         .unwrap_or("")
         == "bytes";
 
-    if !supports_ranges || total_size <= DEFAULT_CHUNK_SIZE {
+    if !supports_ranges || total_size.unwrap_or(0) <= DEFAULT_CHUNK_SIZE {
         return download_file_with_callback(url, output_path, move |progress| {
             progress_callback(progress)
         })
         .await;
     }
+
+    let total_size = total_size.unwrap();
 
     let existing_size = if output_path.as_ref().exists() {
         file_size(&output_path)?

@@ -42,7 +42,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                 .unwrap_or(hypr_whisper_local_model::WhisperModel::QuantizedBaseEn);
 
             if let Ok(true) = self.is_model_downloaded(&current_model).await {
-                if let Err(e) = self.start_server().await {
+                if let Err(e) = self.start_server(None).await {
                     tracing::error!("start_local_stt_server: {}", e);
                 }
             }

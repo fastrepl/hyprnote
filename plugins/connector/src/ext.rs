@@ -214,12 +214,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         {
             use tauri_plugin_local_stt::{LocalSttPluginExt, SharedState};
 
-            let api_base = if self.is_server_running().await {
+            let api_base = if self.get_server().await.is_some() {
                 let state = self.state::<SharedState>();
                 let guard = state.lock().await;
                 guard.api_base.clone().unwrap()
             } else {
-                self.start_server().await?
+                self.start_server(None).await?
             };
 
             let conn = ConnectionSTT::HyprLocal(Connection {

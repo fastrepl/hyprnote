@@ -5,7 +5,7 @@ import React, { useState } from "react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 
-import { SupportedModel } from "@hypr/plugin-local-stt";
+import { type WhisperModel } from "@hypr/plugin-local-stt";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -45,9 +45,9 @@ const RatingDisplay = (
 export const ModelSelectionView = ({
   onContinue,
 }: {
-  onContinue: (model: SupportedModel) => void;
+  onContinue: (model: WhisperModel) => void;
 }) => {
-  const [selectedModel, setSelectedModel] = useState<SupportedModel>("QuantizedSmall");
+  const [selectedModel, setSelectedModel] = useState<WhisperModel>("QuantizedSmall");
 
   const supportedSTTModels = useQuery<ModelInfo[]>({
     queryKey: ["local-stt", "supported-models"],
@@ -82,7 +82,7 @@ export const ModelSelectionView = ({
             })
             ?.map(modelInfo => {
               const model = modelInfo.model;
-              const metadata = sttModelMetadata[model as SupportedModel];
+              const metadata = sttModelMetadata[model as WhisperModel];
               if (!metadata) {
                 return null;
               }
@@ -99,7 +99,7 @@ export const ModelSelectionView = ({
                           ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50"
                           : "hover:border-gray-400",
                       )}
-                      onClick={() => setSelectedModel(model as SupportedModel)}
+                      onClick={() => setSelectedModel(model as WhisperModel)}
                     >
                       <CardContent className="flex flex-col gap-2 sm:gap-4 justify-between p-3 sm:p-5 h-48 sm:h-56">
                         <div className="flex-1 text-center">

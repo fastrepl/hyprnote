@@ -166,7 +166,8 @@ function RestartSTT() {
     const sttPath = await localSttCommands.modelsDir();
 
     return watch(sttPath, (_event) => {
-      localSttCommands.restartServer();
+      localSttCommands.stopServer();
+      localSttCommands.startServer("Internal");
     }, { delayMs: 1000 });
   };
 

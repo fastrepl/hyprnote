@@ -4,12 +4,12 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
 
 import { ViewSelector } from "@/components/finder/view-selector";
-import { CalendarView, ContactView, FolderView, TableView } from "@/components/finder/views";
+import { CalendarView, ContactView, FolderView, TableView, TagsView } from "@/components/finder/views";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
-  view: z.enum(["folder", "calendar", "table", "contact"]).default("calendar"),
+  view: z.enum(["folder", "calendar", "table", "contact", "tags"]).default("calendar"),
   date: z.string().optional(),
   sessionId: z.string().optional(),
   personId: z.string().optional(),
@@ -153,11 +153,15 @@ export const Route = createFileRoute("/app/finder")({
       return baseData;
     }
 
+    if (search.view === "tags") {
+      return baseData;
+    }
+
     return baseData;
   },
 });
 
-export type ViewType = "folder" | "calendar" | "table" | "contact";
+export type ViewType = "folder" | "calendar" | "table" | "contact" | "tags";
 
 interface LoaderData {
   view: ViewType;
@@ -228,6 +232,7 @@ function FinderView() {
             initialOrgId={searchParams.orgId}
           />
         )}
+        {view === "tags" && <TagsView userId={userId} />}
       </div>
     </div>
   );

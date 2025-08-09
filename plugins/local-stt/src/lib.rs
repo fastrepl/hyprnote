@@ -42,6 +42,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_server::<Wry>,
             commands::restart_server::<Wry>,
         ])
+        .typ::<hypr_whisper_local_model::WhisperModel>()
         .events(tauri_specta::collect_events![
             events::RecordedProcessingEvent
         ])

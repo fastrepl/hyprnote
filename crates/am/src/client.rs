@@ -1,22 +1,23 @@
 use crate::{
     ComputeUnits, Error, ErrorResponse, GenericResponse, InitRequest, InitResponse, ServerStatus,
 };
-use reqwest::{Client, Response, StatusCode};
+use reqwest::{Response, StatusCode};
 
+#[derive(Clone)]
 pub struct AmClient {
-    client: Client,
+    client: reqwest::Client,
     base_url: String,
 }
 
 impl AmClient {
     pub fn new(base_url: impl Into<String>) -> Self {
         Self {
-            client: Client::new(),
+            client: reqwest::Client::new(),
             base_url: base_url.into(),
         }
     }
 
-    pub fn with_client(client: Client, base_url: impl Into<String>) -> Self {
+    pub fn with_client(client: reqwest::Client, base_url: impl Into<String>) -> Self {
         Self {
             client,
             base_url: base_url.into(),

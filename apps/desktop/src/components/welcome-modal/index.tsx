@@ -304,7 +304,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      localSttCommands.startServer();
+      localSttCommands.startServer(null);
 
       localLlmCommands.startServer();
 

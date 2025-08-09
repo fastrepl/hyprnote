@@ -77,7 +77,7 @@ export function showSttModelDownloadToast(model: WhisperModel, onComplete?: () =
             onComplete={() => {
               sonnerToast.dismiss(id);
               localSttCommands.setCurrentModel(model);
-              localSttCommands.startServer();
+              localSttCommands.startServer(null);
               if (onComplete) {
                 onComplete();
               }

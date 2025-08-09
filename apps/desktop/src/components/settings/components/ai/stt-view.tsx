@@ -6,10 +6,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-// Add these imports for file operations
-// import { message } from "@tauri-apps/plugin-dialog";
-// import { writeFile } from "@tauri-apps/plugin-fs";
-
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -354,7 +350,8 @@ export function STTView({
                 if (model.downloaded) {
                   setSelectedSTTModel(model.key);
                   localSttCommands.setCurrentModel(model.key as WhisperModel);
-                  localSttCommands.restartServer();
+                  localSttCommands.stopServer(null);
+                  localSttCommands.startServer(null);
                 }
               }}
             >

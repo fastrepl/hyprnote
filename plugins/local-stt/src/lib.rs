@@ -10,16 +10,15 @@ mod store;
 
 pub use error::*;
 pub use ext::*;
-pub use server::*;
 pub use store::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
 #[derive(Default)]
 pub struct State {
-    pub ag_api_key: Option<String>,
-    pub api_base: Option<String>,
-    pub server: Option<crate::server::ServerHandle>,
+    pub am_api_key: Option<String>,
+    pub internal_server: Option<server::internal::ServerHandle>,
+    pub external_server: Option<server::external::ServerHandle>,
     pub download_task: HashMap<hypr_whisper_local_model::WhisperModel, tokio::task::JoinHandle<()>>,
 }
 
@@ -31,7 +30,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
             commands::list_ggml_backends::<Wry>,
-            commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
@@ -40,7 +38,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_current_model::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
-            commands::restart_server::<Wry>,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
         .events(tauri_specta::collect_events![
@@ -84,17 +81,17 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let api_key = {
                 #[cfg(not(debug_assertions))]
                 {
-                    Some(env!("AG_API_KEY").to_string())
+                    Some(env!("AM_API_KEY").to_string())
                 }
 
                 #[cfg(debug_assertions)]
                 {
-                    option_env!("AG_API_KEY").map(|s| s.to_string())
+                    option_env!("AM_API_KEY").map(|s| s.to_string())
                 }
             };
 
             app.manage(SharedState::new(tokio::sync::Mutex::new(State {
-                ag_api_key: api_key,
+                am_api_key: api_key,
                 ..Default::default()
             })));
 
@@ -139,8 +136,8 @@ mod test {
         use futures_util::StreamExt;
 
         let app = create_app(tauri::test::mock_builder());
-        app.start_server().await.unwrap();
-        let api_base = app.api_base().await.unwrap();
+        app.start_server(None).await.unwrap();
+        let api_base = app.get_api_base(None).await.unwrap().unwrap();
 
         let listen_client = owhisper_client::ListenClient::builder()
             .api_base(api_base)
@@ -167,6 +164,6 @@ mod test {
             println!("{:?}", chunk);
         }
 
-        app.stop_server().await.unwrap();
+        app.stop_server(None).await.unwrap();
     }
 }

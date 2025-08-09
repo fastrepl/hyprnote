@@ -34,14 +34,11 @@ async getCurrentModel() : Promise<WhisperModel> {
 async setCurrentModel(model: WhisperModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
 },
-async startServer() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|start_server");
+async startServer(serverType: ServerType | null) : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|start_server", { serverType });
 },
-async stopServer() : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|stop_server");
-},
-async restartServer() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|restart_server");
+async stopServer(serverType: ServerType | null) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType });
 }
 }
 
@@ -62,6 +59,7 @@ recordedProcessingEvent: "plugin:local-stt:recorded-processing-event"
 
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word2 }
+export type ServerType = "internal" | "external"
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }

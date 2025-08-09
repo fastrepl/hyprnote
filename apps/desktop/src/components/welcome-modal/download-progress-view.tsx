@@ -174,7 +174,7 @@ export const DownloadProgressView = ({
       if (sttDownload.completed) {
         try {
           await localSttCommands.setCurrentModel(selectedSttModel);
-          await localSttCommands.startServer();
+          await localSttCommands.startServer(null);
         } catch (error) {
           console.error("Error setting up STT:", error);
         }

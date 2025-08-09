@@ -40,6 +40,7 @@ tokio-tungstenite = { workspace = true }
 tower = { workspace = true }
 
 [dependencies]
+hypr-am = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-file = { workspace = true }
 hypr-transcribe-moonshine = { workspace = true }

@@ -34,9 +34,8 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     log::set_max_level(log::LevelFilter::Off);
 
     let config = owhisper_config::Config::new(args.config.clone())?;
-
     let api_key = config.general.as_ref().and_then(|g| g.api_key.clone());
-    let server = Server::new(config, None);
+    let server = Server::new(config.clone(), None);
 
     let router = server.build_router().await?;
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;

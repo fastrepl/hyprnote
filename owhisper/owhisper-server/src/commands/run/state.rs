@@ -56,13 +56,28 @@ impl RunState {
         self.event_sender = Some(sender);
     }
 
-    pub fn process_chunk(&mut self, chunk: owhisper_interface::ListenOutputChunk) {
-        if chunk.words.is_empty() {
+    pub fn process_chunk(&mut self, chunk: owhisper_interface::StreamResponse) {
+        let words = match chunk {
+            owhisper_interface::StreamResponse::TranscriptResponse { channel, .. } => channel
+                .alternatives
+                .first()
+                .map(|alt| {
+                    alt.words
+                        .iter()
+                        .map(|w| owhisper_interface::Word2::from(w.clone()))
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default(),
+            _ => {
+                return;
+            }
+        };
+
+        if words.is_empty() {
             return;
         }
 
-        let text = chunk
-            .words
+        let text = words
             .iter()
             .map(|w| w.text.as_str())
             .collect::<Vec<_>>()

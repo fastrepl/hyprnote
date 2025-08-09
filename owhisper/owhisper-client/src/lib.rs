@@ -1,7 +1,30 @@
 use futures_util::{Stream, StreamExt};
 
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
-use owhisper_interface::{ListenInputChunk, ListenOutputChunk};
+use owhisper_interface::StreamResponse;
+
+fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
+    let mic_samples: Vec<i16> = mic
+        .chunks_exact(2)
+        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
+        .collect();
+    let speaker_samples: Vec<i16> = speaker
+        .chunks_exact(2)
+        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
+        .collect();
+
+    let max_len = mic_samples.len().max(speaker_samples.len());
+    let mut interleaved = Vec::with_capacity(max_len * 2 * 2);
+
+    for i in 0..max_len {
+        let mic_sample = mic_samples.get(i).copied().unwrap_or(0);
+        let speaker_sample = speaker_samples.get(i).copied().unwrap_or(0);
+        interleaved.extend_from_slice(&mic_sample.to_le_bytes());
+        interleaved.extend_from_slice(&speaker_sample.to_le_bytes());
+    }
+
+    interleaved
+}
 
 #[derive(Default)]
 pub struct ListenClientBuilder {
@@ -49,11 +72,18 @@ impl ListenClientBuilder {
             for (i, lang) in params.languages.iter().enumerate() {
                 query_pairs.append_pair(&format!("languages[{}]", i), lang.iso639().code());
             }
+
+            let channels = match params.audio_mode {
+                owhisper_interface::AudioMode::Single => "1",
+                owhisper_interface::AudioMode::Dual => "2",
+            };
+
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
+                .append_pair("channels", channels)
                 .append_pair("audio_mode", params.audio_mode.as_ref())
                 .append_pair("static_prompt", &params.static_prompt)
                 .append_pair("dynamic_prompt", &params.dynamic_prompt)
@@ -103,17 +133,15 @@ pub struct ListenClient {
 
 impl WebSocketIO for ListenClient {
     type Data = bytes::Bytes;
-    type Input = ListenInputChunk;
-    type Output = ListenOutputChunk;
+    type Input = bytes::Bytes;
+    type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
-        ListenInputChunk::Audio {
-            data: data.to_vec(),
-        }
+        data
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Text(serde_json::to_string(&input).unwrap().into())
+        Message::Binary(input)
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -131,18 +159,16 @@ pub struct ListenClientDual {
 
 impl WebSocketIO for ListenClientDual {
     type Data = (bytes::Bytes, bytes::Bytes);
-    type Input = ListenInputChunk;
-    type Output = ListenOutputChunk;
+    type Input = bytes::Bytes;
+    type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
-        ListenInputChunk::DualAudio {
-            mic: data.0.to_vec(),
-            speaker: data.1.to_vec(),
-        }
+        let interleaved = interleave_audio(&data.0, &data.1);
+        bytes::Bytes::from(interleaved)
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Text(serde_json::to_string(&input).unwrap().into())
+        Message::Binary(input)
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -161,7 +187,7 @@ impl ListenClient {
     pub async fn from_realtime_audio(
         &self,
         audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
+    ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(audio_stream).await
     }
@@ -172,7 +198,7 @@ impl ListenClientDual {
         &self,
         mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
         speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = ListenOutputChunk>, hypr_ws::Error> {
+    ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
         let dual_stream = mic_stream.zip(speaker_stream);
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(dual_stream).await

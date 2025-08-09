@@ -8,7 +8,6 @@ pub use service::*;
 // cargo test -p transcribe-whisper-local test_service -- --nocapture
 mod tests {
     use super::*;
-    use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
 
     #[tokio::test]
@@ -44,16 +43,6 @@ mod tests {
 
         let stream = client.from_realtime_audio(audio).await.unwrap();
         futures_util::pin_mut!(stream);
-
-        while let Some(result) = stream.next().await {
-            let owhisper_interface::ListenOutputChunk { words, .. } = result;
-            let text = words
-                .iter()
-                .map(|w| w.text.clone())
-                .collect::<Vec<_>>()
-                .join(" ");
-            println!("- {}", text);
-        }
 
         server_handle.abort();
         Ok(())

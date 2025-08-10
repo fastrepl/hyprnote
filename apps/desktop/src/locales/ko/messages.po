@@ -332,7 +332,7 @@ msgstr ""
 #~ msgid "Add a description..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:233
+#: src/components/settings/views/template.tsx:236
 msgid "Add a system instruction..."
 msgstr ""
 
@@ -672,7 +672,7 @@ msgstr ""
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:215
+#: src/components/settings/views/template.tsx:218
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:336
 msgid "Delete"
@@ -714,7 +714,7 @@ msgstr ""
 msgid "Draft follow up"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:203
+#: src/components/settings/views/template.tsx:206
 msgid "Duplicate"
 msgstr ""
 
@@ -730,7 +730,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:163
+#: src/components/settings/views/template.tsx:168
 msgid "Emoji"
 msgstr ""
 
@@ -1309,7 +1309,7 @@ msgstr ""
 #~ msgid "Searching..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:240
+#: src/components/settings/views/template.tsx:243
 msgid "Sections"
 msgstr ""
 
@@ -1434,7 +1434,7 @@ msgstr ""
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:227
+#: src/components/settings/views/template.tsx:230
 msgid "System Instruction"
 msgstr ""
 
@@ -1538,7 +1538,7 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:188
+#: src/components/settings/views/template.tsx:192
 msgid "Untitled Template"
 msgstr ""
 

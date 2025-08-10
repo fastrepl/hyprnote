@@ -33,7 +33,8 @@ The user has provided a custom template that defines the structure and sections 
 Your response must strictly follow this template's format and section headers.
 The sections and their order in your output must exactly match those defined in the template below.
 Sections in the template should be the only existing sections in the enhanced note, as markdown 1 headers h1 (#).
-Contents of each section should be following the section description that the user provided.
+Each section's content must strictly adhere to the section description provided by the user. Extract and organize relevant information from the raw notes and transcript to fulfill each section's requirements.
+CRITICAL: Only include information that exists in the source material. If the transcript or raw notes do not contain information relevant to a specific section, explicitly say so. Do not generate, infer, or create content that is not directly supported by the source material.
 
 ---Template Structure---
 {{ templateInfo }}

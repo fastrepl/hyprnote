@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { CopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 
 interface TemplateEditorProps {
@@ -111,7 +111,7 @@ export default function TemplateEditor({
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitleText(newTitle); // Update local state immediately
-    
+
     const fullTitle = selectedEmoji + " " + newTitle;
     onTemplateUpdate({ ...template, title: fullTitle });
   };
@@ -126,7 +126,7 @@ export default function TemplateEditor({
   const handleChangeDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newDescription = e.target.value;
     setDescriptionText(newDescription); // Update local state immediately
-    
+
     onTemplateUpdate({ ...template, description: newDescription });
   };
 
@@ -186,8 +186,8 @@ export default function TemplateEditor({
 
             <Input
               disabled={isReadOnly}
-              value={titleText} 
-              onChange={handleChangeTitle} 
+              value={titleText}
+              onChange={handleChangeTitle}
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
               placeholder={t`Untitled Template`}
             />
@@ -231,8 +231,8 @@ export default function TemplateEditor({
         </h2>
         <Textarea
           disabled={isReadOnly}
-          value={descriptionText} 
-          onChange={handleChangeDescription} 
+          value={descriptionText}
+          onChange={handleChangeDescription}
           placeholder={t`Add a system instruction...`}
           className="h-20 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />

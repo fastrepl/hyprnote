@@ -332,7 +332,7 @@ msgstr "Access multiple AI models through OpenRouter with your API key"
 #~ msgid "Add a description..."
 #~ msgstr "Add a description..."
 
-#: src/components/settings/views/template.tsx:233
+#: src/components/settings/views/template.tsx:236
 msgid "Add a system instruction..."
 msgstr "Add a system instruction..."
 
@@ -672,7 +672,7 @@ msgstr "Custom Vocabulary"
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr "Default (llama-3.2-3b-q4)"
 
-#: src/components/settings/views/template.tsx:215
+#: src/components/settings/views/template.tsx:218
 #: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:336
 msgid "Delete"
@@ -714,7 +714,7 @@ msgstr "Downloading AI Models"
 msgid "Draft follow up"
 msgstr "Draft follow up"
 
-#: src/components/settings/views/template.tsx:203
+#: src/components/settings/views/template.tsx:206
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -730,7 +730,7 @@ msgstr "Email addresses"
 msgid "Email separated by commas"
 msgstr "Email separated by commas"
 
-#: src/components/settings/views/template.tsx:163
+#: src/components/settings/views/template.tsx:168
 msgid "Emoji"
 msgstr "Emoji"
 
@@ -1309,7 +1309,7 @@ msgstr "Search..."
 #~ msgid "Searching..."
 #~ msgstr "Searching..."
 
-#: src/components/settings/views/template.tsx:240
+#: src/components/settings/views/template.tsx:243
 msgid "Sections"
 msgstr "Sections"
 
@@ -1434,7 +1434,7 @@ msgstr "Stop"
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/settings/views/template.tsx:227
+#: src/components/settings/views/template.tsx:230
 msgid "System Instruction"
 msgstr "System Instruction"
 
@@ -1538,7 +1538,7 @@ msgstr "Type to search..."
 msgid "Untitled"
 msgstr "Untitled"
 
-#: src/components/settings/views/template.tsx:188
+#: src/components/settings/views/template.tsx:192
 msgid "Untitled Template"
 msgstr "Untitled Template"
 

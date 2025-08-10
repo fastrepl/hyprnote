@@ -6,7 +6,7 @@ import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
-import { useHypr, useRightPanel } from "@/contexts";
+import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -198,22 +198,6 @@ export default function EditorArea({
 
   const isEnhancedNote = !showRaw && !!enhancedContent;
 
-  const { isExpanded, currentView, togglePanel } = useRightPanel();
-
-  const handleAskAI = (selectedText: string) => {
-    // Open chat panel first
-    const shouldOpenChat = !isExpanded || currentView !== "chat";
-    
-    if (shouldOpenChat) {
-      togglePanel("chat");
-    }
-    
-    // Dispatch custom event with text
-    window.dispatchEvent(new CustomEvent('setChatText', { 
-      detail: { text: selectedText } 
-    }));
-  };
-
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -258,7 +242,6 @@ export default function EditorArea({
       <TextSelectionPopover
         isEnhancedNote={isEnhancedNote}
         onAnnotate={handleAnnotate}
-        onAskAI={handleAskAI}
         isAnnotationBoxOpen={!!annotationBox}
       />
 

@@ -134,54 +134,6 @@ export function ChatView() {
     }
   }, [isExpanded, chatInputRef]);
 
-  const pendingTextRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const handleSetChatText = (event: CustomEvent) => {
-      const { text } = event.detail;
-      if (text && isExpanded) {
-        console.log('🔥 Setting text:', text);
-        
-        // Set the text multiple times to fight against resets
-        setInputValue(text);
-        
-        // Set again after a delay to fight against useActiveEntity reset
-        setTimeout(() => {
-          console.log('�� Setting text again (50ms):', text);
-          setInputValue(text);
-        }, 50);
-        
-        // And once more after hooks have settled
-        setTimeout(() => {
-          console.log('🔥 Setting text final (250ms):', text);
-          setInputValue(text);
-          focusInput(chatInputRef);
-        }, 250);
-      }
-    };
-    
-    window.addEventListener('setChatText', handleSetChatText as EventListener);
-    
-    return () => {
-      window.removeEventListener('setChatText', handleSetChatText as EventListener);
-    };
-  }, [isExpanded, chatInputRef]);
-
-  // Apply pending text when panel becomes expanded
-  useEffect(() => {
-    if (isExpanded && pendingTextRef.current) {
-      const pendingText = pendingTextRef.current;
-      pendingTextRef.current = null;
-      
-      setTimeout(() => {
-        setInputValue(pendingText);
-        setTimeout(() => {
-          focusInput(chatInputRef);
-        }, 50);
-      }, 300); // Wait for all panel opening effects to complete
-    }
-  }, [isExpanded, chatInputRef]);
-
   if (showHistory) {
     return (
       <ChatHistoryView

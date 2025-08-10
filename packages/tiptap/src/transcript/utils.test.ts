@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
 
-import { fromEditorToWords, fromWordsToEditor, type Word } from "./utils";
+import { fromEditorToWords, fromWordsToEditor, type Word2 } from "./utils";
 
 test("conversion", () => {
-  const words: Word[] = [
+  const words: Word2[] = [
     {
       text: "Hello",
       speaker: {
@@ -38,8 +38,32 @@ test("conversion", () => {
         "type": "speaker",
         "content": [
           {
-            "text": "Hello world",
+            "text": "Hello",
             "type": "text",
+            "marks": [
+              {
+                "attrs": {
+                  "confidence": 0.5,
+                },
+                "type": "confidence",
+              },
+            ],
+          },
+          {
+            "text": " ",
+            "type": "text",
+          },
+          {
+            "text": "world",
+            "type": "text",
+            "marks": [
+              {
+                "attrs": {
+                  "confidence": 0.8,
+                },
+                "type": "confidence",
+              },
+            ],
           },
         ],
         "attrs": {
@@ -61,7 +85,7 @@ test("conversion", () => {
           index: 0,
         },
       },
-      confidence: null,
+      confidence: 0.5,
       start_ms: null,
       end_ms: null,
     },
@@ -73,7 +97,7 @@ test("conversion", () => {
           index: 0,
         },
       },
-      confidence: null,
+      confidence: 0.8,
       start_ms: null,
       end_ms: null,
     },

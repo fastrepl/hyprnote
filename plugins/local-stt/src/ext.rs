@@ -130,7 +130,28 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 Ok(api_base)
             }
             ServerType::External => {
-                let cmd = self.shell().sidecar("stt")?;
+                let cmd: tauri_plugin_shell::process::Command = {
+                    #[cfg(debug_assertions)]
+                    {
+                        let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("../../internal/passthrough-aarch64-apple-darwin");
+                        let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("../../internal/stt-aarch64-apple-darwin");
+
+                        if !passthrough_path.exists() || !stt_path.exists() {
+                            return Err(crate::Error::BinaryNotFound);
+                        }
+
+                        self.shell().command(passthrough_path).arg(stt_path).args([
+                            "serve",
+                            "--any-token",
+                            "--verbose",
+                        ])
+                    }
+
+                    #[cfg(not(debug_assertions))]
+                    self.shell().sidecar("stt")?.args(["serve"])
+                };
 
                 let server = external::run_server(cmd).await?;
                 let api_base = server.api_base.clone();

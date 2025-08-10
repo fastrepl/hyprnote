@@ -8,7 +8,7 @@ pub struct ServerHandle {
 pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
 ) -> Result<ServerHandle, crate::Error> {
-    let (_rx, _child) = cmd.args(["serve", "--port", "6942"]).spawn()?;
+    let (_rx, _child) = cmd.args(["--port", "6942"]).spawn()?;
 
     let api_base = "http://localhost:6942";
     let client = hypr_am::AmClient::new(api_base);

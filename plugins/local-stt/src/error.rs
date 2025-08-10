@@ -18,6 +18,8 @@ pub enum Error {
     StoreError(#[from] tauri_plugin_store2::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
+    #[error("Binary not found")]
+    BinaryNotFound,
 }
 
 impl Serialize for Error {

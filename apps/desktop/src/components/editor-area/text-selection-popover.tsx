@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { MessageSquare, Sparkles } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;
@@ -14,7 +14,9 @@ interface SelectionInfo {
   rect: DOMRect;
 }
 
-export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen }: TextSelectionPopoverProps) {
+export function TextSelectionPopover(
+  { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen }: TextSelectionPopoverProps,
+) {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -36,7 +38,7 @@ export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAn
       }
 
       const sel = window.getSelection();
-      
+
       if (!sel || sel.isCollapsed || sel.toString().trim().length === 0) {
         setSelection(null);
         return;
@@ -44,7 +46,7 @@ export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAn
 
       const range = sel.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      
+
       const selectedText = sel.toString().trim();
       if (selectedText.length > 0) {
         delayTimeoutRef.current = setTimeout(() => {
@@ -60,7 +62,7 @@ export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAn
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.text-selection-popover')) {
+      if (!target.closest(".text-selection-popover")) {
         setSelection(null);
         if (delayTimeoutRef.current) {
           clearTimeout(delayTimeoutRef.current);
@@ -68,15 +70,15 @@ export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAn
       }
     };
 
-    document.addEventListener('selectionchange', handleSelectionChange);
-    document.addEventListener('mouseup', handleSelectionChange);
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("selectionchange", handleSelectionChange);
+    document.addEventListener("mouseup", handleSelectionChange);
+    document.addEventListener("click", handleClickOutside);
 
     return () => {
-      document.removeEventListener('selectionchange', handleSelectionChange);
-      document.removeEventListener('mouseup', handleSelectionChange);
-      document.removeEventListener('click', handleClickOutside);
-      
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      document.removeEventListener("mouseup", handleSelectionChange);
+      document.removeEventListener("click", handleClickOutside);
+
       if (delayTimeoutRef.current) {
         clearTimeout(delayTimeoutRef.current);
       }
@@ -141,17 +143,19 @@ export function TextSelectionPopover({ isEnhancedNote, onAnnotate, onAskAI, isAn
         <MessageSquare className="h-2.5 w-2.5" />
         <span className="text-[11px]">Source</span>
       </Button>
-      
+
       <div className="w-px h-3 bg-neutral-200 mx-0.5" />
-      
+
       <Button
         size="sm"
         variant="ghost"
         onClick={handleAskAIClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal"
+        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal opacity-60 cursor-not-allowed"
+        disabled
       >
         <Sparkles className="h-2.5 w-2.5" />
         <span className="text-[11px]">Ask AI</span>
+        <span className="text-[9px] text-neutral-400 ml-0.5">coming soon</span>
       </Button>
     </div>
   );

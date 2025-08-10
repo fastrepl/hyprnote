@@ -1,6 +1,6 @@
 // apps/desktop/src/components/editor-area/annotation-box.tsx
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { X, Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -21,8 +21,8 @@ export function AnnotationBox({ selectedText, selectedRect, sessionId, onCancel 
   const boxRef = useRef<HTMLDivElement>(null);
   const [streamedContent, setStreamedContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const { userId, onboardingSessionId } = useHypr();
-  
+  const { onboardingSessionId } = useHypr();
+
   // Store abort controller reference
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -57,51 +57,52 @@ export function AnnotationBox({ selectedText, selectedRect, sessionId, onCancel 
       ]);
 
       const freshIsLocalLlm = type === "HyprLocal";
-      
+
       // Create transcript text from words
-      const transcriptText = words.map(word => word.text).join(' ');
+      const transcriptText = words.map(word => word.text).join(" ");
 
-      const systemMessage = `You are an assistant that helps users understand where content in their notes came from in the original transcript.
+      const systemMessage =
+        `You are an assistant that helps users understand where content in their notes came from in the original transcript.
 
-Your task:
-1. Look at the provided transcript
-2. Find where the selected text would have been derived from
-3. Quote the specific section from the transcript that relates to the selected text
-4. Provide a simple explanation (max 3 sentences)
+            Your task:
+            1. Look at the provided transcript
+            2. Find where the selected text would have been derived from
+            3. Quote the specific section from the transcript that relates to the selected text. If it doesn't exist, say so. 
+            4. Provide a simple explanation (max 3 sentences)
 
-Format your response as:
-**Source Section:**
-"[exact quote from transcript]"
+            Format your response as:
+            **Source Section:**
+            "[exact quote from transcript (only if it exists)]"
 
-**Explanation:**
-[Your brief explanation of how this content relates to the selected text]`;
+            **Explanation:**
+            [Your brief explanation of how this content relates to the selected text]`;
 
       const userMessage = `Selected text from notes: "${selectedText}"
 
-Full transcript:
-${transcriptText}
+        Full transcript:
+        ${transcriptText}
 
-Please find the source section in the transcript that this selected text was derived from and explain the connection.`;
+        Please find the source section in the transcript that this selected text was derived from and explain the connection.`;
 
       // CRITICAL: Create abort signal that combines controller + timeout
       const abortSignal = AbortSignal.any([
         abortController.signal,
-        AbortSignal.timeout(60000)
+        AbortSignal.timeout(60000),
       ]);
 
       const provider = await modelProvider();
       const model = sessionId === onboardingSessionId
-        ? provider.languageModel("onboardingModel") 
+        ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
 
       // CRITICAL: Pass abortSignal to streamText
-      const { text, fullStream } = streamText({
-        abortSignal,  // ← This makes cancellation actually work!
+      const { fullStream } = streamText({
+        abortSignal, // ← This makes cancellation actually work!
         model,
         ...(freshIsLocalLlm && {
-            tools: {
-              update_progress: tool({ inputSchema: z.any() }),
-            },
+          tools: {
+            update_progress: tool({ inputSchema: z.any() }),
+          },
         }),
         onError: (error) => {
           toast({
@@ -144,11 +145,11 @@ Please find the source section in the transcript that this selected text was der
       console.error("Source analysis error:", error);
       setIsStreaming(false);
       abortControllerRef.current = null; // Clear reference
-      
+
       // Check if it was cancelled (not a real error)
-      const wasCancelled = error.name === 'AbortError' || 
-                           String(error).includes('aborted');
-      
+      const wasCancelled = error.name === "AbortError"
+        || String(error).includes("aborted");
+
       if (!wasCancelled) {
         setStreamedContent("Failed to analyze source. Please try again.");
       }
@@ -183,30 +184,30 @@ Please find the source section in the transcript that this selected text was der
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [onCancel]);
 
   const getPosition = () => {
-    const popoverWidth = 400;        // Keep wider width
-    const maxPopoverHeight = 200;    // Restore original height
+    const popoverWidth = 400; // Keep wider width
+    const maxPopoverHeight = 200; // Restore original height
     const margin = 20;
     const minDistanceFromText = 15;
 
     // Calculate available space above and below the selected text
     const spaceAbove = selectedRect.top - margin;
     const spaceBelow = window.innerHeight - selectedRect.bottom - margin;
-    
+
     // Determine if we have enough space above or below for maximum possible height
     const canFitAbove = spaceAbove >= (maxPopoverHeight + minDistanceFromText);
     const canFitBelow = spaceBelow >= (maxPopoverHeight + minDistanceFromText);
-    
+
     let top: number;
-    
+
     if (canFitBelow) {
       // Prefer below if there's space for max height
       top = selectedRect.bottom + minDistanceFromText;
@@ -219,25 +220,25 @@ Please find the source section in the transcript that this selected text was der
         // More space below - position to fit in available space
         top = Math.max(
           selectedRect.bottom + minDistanceFromText,
-          window.innerHeight - Math.min(maxPopoverHeight, spaceBelow) - margin
+          window.innerHeight - Math.min(maxPopoverHeight, spaceBelow) - margin,
         );
       } else {
-        // More space above - position to fit in available space  
+        // More space above - position to fit in available space
         top = Math.min(
           selectedRect.top - minDistanceFromText - maxPopoverHeight,
-          margin
+          margin,
         );
       }
     }
-    
+
     // Horizontal positioning
     let left = selectedRect.left + (selectedRect.width / 2) - (popoverWidth / 2);
-    
+
     // Adjust if going off the right edge
     if (left + popoverWidth > window.innerWidth - margin) {
       left = window.innerWidth - popoverWidth - margin;
     }
-    
+
     // Ensure it doesn't go off the left edge
     if (left < margin) {
       left = margin;
@@ -247,9 +248,6 @@ Please find the source section in the transcript that this selected text was der
   };
 
   const position = getPosition();
-  const truncateText = (text: string, maxLength: number = 50) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-  };
 
   // Cancel function
   const cancelGeneration = () => {
@@ -261,7 +259,7 @@ Please find the source section in the transcript that this selected text was der
 
   const handleCloseClick = () => {
     cancelGeneration(); // Cancel any ongoing generation
-    
+
     const selection = window.getSelection();
     if (selection) {
       selection.removeAllRanges();
@@ -276,8 +274,8 @@ Please find the source section in the transcript that this selected text was der
       style={{
         left: position.left,
         top: position.top,
-        width: '400px',          
-        height: '200px',         // Fixed height instead of maxHeight
+        width: "400px",
+        height: "200px", // Fixed height instead of maxHeight
       }}
     >
       <div className="p-4 h-full flex flex-col">
@@ -296,32 +294,34 @@ Please find the source section in the transcript that this selected text was der
 
         {/* Streaming content - takes remaining space */}
         <div className="flex-1 overflow-hidden">
-          {isStreaming && !streamedContent ? (
-            <div className="flex items-center gap-2 text-neutral-500">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span className="text-xs">Analyzing transcript...</span>
-            </div>
-          ) : (
-            <div className="text-xs text-neutral-700 leading-relaxed h-full overflow-y-auto">
-              {streamedContent ? (
-                <div 
-                  className="prose prose-xs max-w-none"
-                  dangerouslySetInnerHTML={{ 
-                    __html: streamedContent
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/\n/g, '<br>')
-                  }} 
-                />
-              ) : (
-                <div className="text-neutral-400 italic">
-                  Waiting for analysis...
-                </div>
-              )}
-              {isStreaming && (
-                <span className="inline-block w-2 h-3 bg-neutral-400 animate-pulse ml-1" />
-              )}
-            </div>
-          )}
+          {isStreaming && !streamedContent
+            ? (
+              <div className="flex items-center gap-2 text-neutral-500">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span className="text-xs">Analyzing transcript...</span>
+              </div>
+            )
+            : (
+              <div className="text-xs text-neutral-700 leading-relaxed h-full overflow-y-auto">
+                {streamedContent
+                  ? (
+                    <div
+                      className="prose prose-xs max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: streamedContent
+                          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                          .replace(/\n/g, "<br>"),
+                      }}
+                    />
+                  )
+                  : (
+                    <div className="text-neutral-400 italic">
+                      Waiting for analysis...
+                    </div>
+                  )}
+                {isStreaming && <span className="inline-block w-2 h-3 bg-neutral-400 animate-pulse ml-1" />}
+              </div>
+            )}
         </div>
       </div>
     </div>

@@ -22,10 +22,10 @@ import { cn } from "@hypr/ui/lib/utils";
 import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
+import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
-import { AnnotationBox } from "./annotation-box";
 
 async function generateTitleDirect(enhancedContent: string, targetSessionId: string, sessions: Record<string, any>) {
   const [config, { type }, provider] = await Promise.all([
@@ -183,10 +183,12 @@ export default function EditorArea({
     }));
   };
 
-  const [annotationBox, setAnnotationBox] = useState<{
-    selectedText: string;
-    selectedRect: DOMRect;
-  } | null>(null);
+  const [annotationBox, setAnnotationBox] = useState<
+    {
+      selectedText: string;
+      selectedRect: DOMRect;
+    } | null
+  >(null);
 
   const handleAnnotate = (selectedText: string, selectedRect: DOMRect) => {
     setAnnotationBox({ selectedText, selectedRect });
@@ -238,12 +240,14 @@ export default function EditorArea({
           : <Renderer ref={editorRef} initialContent={noteContent} />}
       </div>
 
-      {/* Add the text selection popover */}
-      <TextSelectionPopover
-        isEnhancedNote={isEnhancedNote}
-        onAnnotate={handleAnnotate}
-        isAnnotationBoxOpen={!!annotationBox}
-      />
+      {/* Add the text selection popover - but not for onboarding sessions */}
+      {sessionId !== onboardingSessionId && (
+        <TextSelectionPopover
+          isEnhancedNote={isEnhancedNote}
+          onAnnotate={handleAnnotate}
+          isAnnotationBoxOpen={!!annotationBox}
+        />
+      )}
 
       {annotationBox && (
         <AnnotationBox

@@ -249,7 +249,7 @@ export default function EditorArea({
         />
       )}
 
-      {annotationBox && (
+      {sessionId !== onboardingSessionId && annotationBox && (
         <AnnotationBox
           selectedText={annotationBox.selectedText}
           selectedRect={annotationBox.selectedRect}

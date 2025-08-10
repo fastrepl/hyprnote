@@ -147,7 +147,8 @@ export function AnnotationBox({ selectedText, selectedRect, sessionId, onCancel 
       abortControllerRef.current = null; // Clear reference
 
       // Check if it was cancelled (not a real error)
-      const wasCancelled = error.name === "AbortError"
+      const wasCancelled = (error instanceof DOMException && error.name === "AbortError")
+        || (typeof error === "object" && error !== null && "name" in error && (error as any).name === "AbortError")
         || String(error).includes("aborted");
 
       if (!wasCancelled) {

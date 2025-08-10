@@ -2,6 +2,9 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { MessageSquare, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;
   onAnnotate: (selectedText: string, selectedRect: DOMRect) => void;
@@ -19,6 +22,7 @@ export function TextSelectionPopover(
 ) {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout>();
+  const { userId } = useHypr();
 
   useEffect(() => {
     if (!isEnhancedNote) {
@@ -91,6 +95,11 @@ export function TextSelectionPopover(
   }
 
   const handleAnnotateClick = () => {
+    analyticsCommands.event({
+      event: "source_view_clicked",
+      distinct_id: userId,
+    });
+
     onAnnotate(selection.text, selection.rect);
     setSelection(null); // Hide the popover
   };

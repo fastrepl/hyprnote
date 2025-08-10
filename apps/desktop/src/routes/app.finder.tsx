@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { ViewSelector } from "@/components/finder/view-selector";
 import { CalendarView, ContactView, FolderView, TableView, TagsView } from "@/components/finder/views";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -177,6 +178,23 @@ function FinderView() {
   const searchParams = Route.useSearch();
 
   const handleViewChange = (newView: ViewType) => {
+    if (newView === "tags") {
+      analyticsCommands.event({
+        event: "finder_tags_view",
+        distinct_id: userId,
+      });
+    } else if (newView === "contact") {
+      analyticsCommands.event({
+        event: "finder_contact_view",
+        distinct_id: userId,
+      });
+    } else if (newView === "table") {
+      analyticsCommands.event({
+        event: "finder_table_view",
+        distinct_id: userId,
+      });
+    }
+
     navigate({
       search: (prev) => ({
         ...prev,

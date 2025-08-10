@@ -3,22 +3,21 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { zodValidator } from "@tanstack/zod-adapter";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
-import { useEffect } from "react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
 import { type Tab, TABS } from "@/components/settings/components/types";
 import {
+  AILLM,
+  AISTT,
   Billing,
   Calendar,
   General,
   Integrations,
-  LocalAI,
   Notifications,
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -39,19 +38,6 @@ function Component() {
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
 
-  // TODO: this is a hack
-  useEffect(() => {
-    if (search.baseUrl && search.apiKey) {
-      connectorCommands.setCustomLlmConnection({
-        api_base: search.baseUrl,
-        api_key: search.apiKey,
-      }).then(() => {
-        connectorCommands.setCustomLlmEnabled(true);
-        navigate({ to: PATH, search: { tab: "ai" } });
-      });
-    }
-  }, [search.baseUrl, search.apiKey]);
-
   const handleClickTab = (tab: Tab) => {
     if (tab === "feedback") {
       openUrl("https://hyprnote.canny.io/feature-requests");
@@ -64,8 +50,10 @@ function Component() {
     switch (tab) {
       case "general":
         return t`General`;
-      case "ai":
-        return t`AI`;
+      case "ai-llm":
+        return t`Summarization`;
+      case "ai-stt":
+        return t`Transcription`;
       case "calendar":
         return t`Calendar`;
       case "notifications":
@@ -143,7 +131,8 @@ function Component() {
               {search.tab === "calendar" && <Calendar />}
               {search.tab === "notifications" && <Notifications />}
               {search.tab === "sound" && <Sound />}
-              {search.tab === "ai" && <LocalAI />}
+              {search.tab === "ai-stt" && <AISTT />}
+              {search.tab === "ai-llm" && <AILLM />}
               {search.tab === "templates" && <TemplatesView />}
               {search.tab === "integrations" && <Integrations />}
               {search.tab === "billing" && <Billing />}

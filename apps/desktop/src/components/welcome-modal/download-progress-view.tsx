@@ -8,7 +8,7 @@ import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-lo
 import { Progress } from "@hypr/ui/components/ui/progress";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { sttModelMetadata } from "../settings/components/ai/stt-view";
+import { sttModelMetadata } from "../settings/components/ai/stt-view-local";
 
 interface ModelDownloadProgress {
   channel: Channel<number>;

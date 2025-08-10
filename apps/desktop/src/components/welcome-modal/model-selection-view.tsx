@@ -9,7 +9,7 @@ import { type WhisperModel } from "@hypr/plugin-local-stt";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { sttModelMetadata } from "../settings/components/ai/stt-view";
+import { sttModelMetadata } from "../settings/components/ai/stt-view-local";
 
 interface ModelInfo {
   model: string;

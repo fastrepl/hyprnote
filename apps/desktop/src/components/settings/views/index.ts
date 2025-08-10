@@ -1,4 +1,5 @@
-export { default as LocalAI } from "./ai";
+export { default as AILLM } from "./ai-llm";
+export { default as AISTT } from "./ai-stt";
 export { default as Billing } from "./billing";
 export { default as Calendar } from "./calendar";
 export { default as General } from "./general";

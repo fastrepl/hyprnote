@@ -265,10 +265,9 @@ msgid "(Optional)"
 msgstr ""
 
 #. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
-#. placeholder {0}: lang.language
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? "Resume" : "Ended"
+#. placeholder {0}: disabled ? "Wait..." : "Play video"
 #: src/components/settings/views/templates.tsx:217
-#: src/components/settings/components/wer-modal.tsx:116
 #: src/components/editor-area/note-header/listen-button.tsx:216
 #: src/components/editor-area/note-header/listen-button.tsx:238
 #: src/components/editor-area/note-header/listen-button.tsx:258
@@ -286,8 +285,8 @@ msgid "{buttonText}"
 msgstr ""
 
 #: src/components/settings/components/wer-modal.tsx:103
-msgid "{category}"
-msgstr ""
+#~ msgid "{category}"
+#~ msgstr ""
 
 #: src/components/settings/views/lab.tsx:77
 msgid "{description}"
@@ -370,8 +369,8 @@ msgid "After you grant system audio access, app will restart to apply the change
 msgstr ""
 
 #: src/routes/app.settings.tsx:68
-msgid "AI"
-msgstr ""
+#~ msgid "AI"
+#~ msgstr ""
 
 #: src/components/login-modal.tsx:97
 #~ msgid "AI notepad for meetings"
@@ -440,7 +439,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:833
+#: src/components/settings/views/ai-llm.tsx:674
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -470,7 +469,7 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:58
 msgid "Calendar"
 msgstr ""
 
@@ -535,8 +534,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/wer-modal.tsx:126
-msgid "Close"
-msgstr ""
+#~ msgid "Close"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:52
 #~ msgid "Collaborate with others in meetings"
@@ -615,7 +614,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:852
+#: src/components/settings/views/ai-llm.tsx:693
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -786,8 +785,8 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:80
-#: src/routes/app.settings.tsx:115
+#: src/routes/app.settings.tsx:68
+#: src/routes/app.settings.tsx:103
 msgid "Feedback"
 msgstr ""
 
@@ -823,7 +822,7 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:52
 msgid "General"
 msgstr ""
 
@@ -891,7 +890,7 @@ msgstr ""
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:78
+#: src/routes/app.settings.tsx:66
 #: src/components/settings/views/integrations.tsx:118
 msgid "Integrations"
 msgstr ""
@@ -932,7 +931,11 @@ msgstr ""
 #~ msgid "Language"
 #~ msgstr ""
 
-#: src/components/settings/views/ai.tsx:847
+#: src/routes/app.settings.tsx:54
+#~ msgid "Language Model"
+#~ msgstr ""
+
+#: src/components/settings/views/ai-llm.tsx:688
 msgid "Learn more about AI autonomy"
 msgstr ""
 
@@ -944,7 +947,7 @@ msgstr ""
 msgid "Learn more about templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:82
+#: src/routes/app.settings.tsx:70
 msgid "License"
 msgstr ""
 
@@ -957,12 +960,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:808
-msgid "LLM - Custom"
-msgstr ""
+#~ msgid "LLM - Custom"
+#~ msgstr ""
 
 #: src/components/settings/views/ai.tsx:805
-msgid "LLM - Local"
-msgstr ""
+#~ msgid "LLM - Local"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:637
 msgid "Loading available models..."
@@ -982,6 +985,11 @@ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
+msgstr ""
+
+#: src/components/settings/views/ai-stt.tsx:70
+#: src/components/settings/views/ai-llm.tsx:649
+msgid "Local"
 msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:87
@@ -1121,7 +1129,7 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:72
+#: src/routes/app.settings.tsx:60
 msgid "Notifications"
 msgstr ""
 
@@ -1189,7 +1197,7 @@ msgstr ""
 msgid "people"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:328
+#: src/components/settings/components/ai/stt-view-local.tsx:258
 msgid "Performance difference between languages"
 msgstr ""
 
@@ -1236,6 +1244,11 @@ msgstr ""
 #: src/components/settings/views/ai.tsx:891
 #~ msgid "Redemption Time"
 #~ msgstr ""
+
+#: src/components/settings/views/ai-stt.tsx:73
+#: src/components/settings/views/ai-llm.tsx:652
+msgid "Remote"
+msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
@@ -1393,9 +1406,13 @@ msgstr ""
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 
-#: src/routes/app.settings.tsx:76
+#: src/routes/app.settings.tsx:64
 msgid "Sound"
 msgstr ""
+
+#: src/routes/app.settings.tsx:56
+#~ msgid "Speech to Text Model"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:269
 msgid "Spoken languages"
@@ -1420,6 +1437,10 @@ msgstr ""
 #: src/components/settings/views/feedback.tsx:107
 #~ msgid "Submit Feedback"
 #~ msgstr ""
+
+#: src/routes/app.settings.tsx:54
+msgid "Summarization"
+msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:61
 #~ msgid "Summarize meeting"
@@ -1458,7 +1479,7 @@ msgstr ""
 msgid "Template"
 msgstr ""
 
-#: src/routes/app.settings.tsx:74
+#: src/routes/app.settings.tsx:62
 msgid "Templates"
 msgstr ""
 
@@ -1510,11 +1531,11 @@ msgstr ""
 msgid "Toggle widget panel"
 msgstr ""
 
-#: src/components/settings/components/ai/stt-view.tsx:319
+#: src/components/settings/components/ai/stt-view-local.tsx:249
 msgid "Transcribing"
 msgstr ""
 
-#: src/components/settings/views/ai.tsx:802
+#: src/routes/app.settings.tsx:56
 msgid "Transcription"
 msgstr ""
 
@@ -1624,12 +1645,12 @@ msgid "Where Conversations Stay Yours"
 msgstr ""
 
 #: src/components/settings/components/wer-modal.tsx:69
-msgid "Whisper Model Language Performance (WER)"
-msgstr ""
+#~ msgid "Whisper Model Language Performance (WER)"
+#~ msgstr ""
 
 #: src/components/settings/components/wer-modal.tsx:72
-msgid "Word Error Rate (WER) indicates transcription accuracy (lower is better). Data based on the FLEURS dataset, measured with OpenAI's Whisper <0>large-v3-turbo</0> model. <1>More info</1>"
-msgstr ""
+#~ msgid "Word Error Rate (WER) indicates transcription accuracy (lower is better). Data based on the FLEURS dataset, measured with OpenAI's Whisper <0>large-v3-turbo</0> model. <1>More info</1>"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:25
 #~ msgid "Works both in-person and remotely"

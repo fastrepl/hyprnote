@@ -14,7 +14,8 @@ import {
 export type Tab =
   | "general"
   | "calendar"
-  | "ai"
+  | "ai-llm"
+  | "ai-stt"
   | "notifications"
   | "sound"
   | "templates"
@@ -25,7 +26,8 @@ export type Tab =
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "general", icon: Settings },
   { name: "calendar", icon: Calendar },
-  { name: "ai", icon: Sparkles },
+  { name: "ai-llm", icon: Sparkles },
+  { name: "ai-stt", icon: Sparkles },
   { name: "notifications", icon: Bell },
   { name: "sound", icon: Volume2 },
   { name: "templates", icon: LayoutTemplate },

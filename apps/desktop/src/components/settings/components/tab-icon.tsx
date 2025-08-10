@@ -1,6 +1,7 @@
 import {
   AudioLinesIcon,
   BellIcon,
+  BirdIcon,
   BlocksIcon,
   CalendarIcon,
   CreditCardIcon,
@@ -22,8 +23,10 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <AudioLinesIcon className="h-4 w-4" />;
     case "feedback":
       return <MessageSquareIcon className="h-4 w-4" />;
-    case "ai":
+    case "ai-llm":
       return <SparklesIcon className="h-4 w-4" />;
+    case "ai-stt":
+      return <BirdIcon className="h-4 w-4" />;
     case "calendar":
       return <CalendarIcon className="h-4 w-4" />;
     case "templates":

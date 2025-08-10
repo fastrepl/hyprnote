@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { CopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { SectionsList } from "../components/template-sections";
 
 interface TemplateEditorProps {
@@ -94,36 +94,41 @@ export default function TemplateEditor({
     return title.replace(/^(\p{Emoji})\s*/u, "");
   };
 
+  // Local state for both inputs
+  const [titleText, setTitleText] = useState(() => getTitleWithoutEmoji(template.title || ""));
+  const [descriptionText, setDescriptionText] = useState(template.description || "");
   const [selectedEmoji, setSelectedEmoji] = useState(() => extractEmojiFromTitle(template.title || ""));
-
   const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
 
-  const handleChangeTitle = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const titleWithoutEmoji = e.target.value;
-      const fullTitle = selectedEmoji + " " + titleWithoutEmoji;
-      onTemplateUpdate({ ...template, title: fullTitle });
-    },
-    [onTemplateUpdate, template, selectedEmoji],
-  );
+  // Sync local state when template ID changes (new template loaded)
+  useEffect(() => {
+    setTitleText(getTitleWithoutEmoji(template.title || ""));
+    setDescriptionText(template.description || "");
+    setSelectedEmoji(extractEmojiFromTitle(template.title || ""));
+  }, [template.id]);
 
-  const handleEmojiSelect = useCallback(
-    (emoji: string) => {
-      setSelectedEmoji(emoji);
-      const titleWithoutEmoji = getTitleWithoutEmoji(template.title || "");
-      const fullTitle = emoji + " " + titleWithoutEmoji;
-      onTemplateUpdate({ ...template, title: fullTitle });
-      setEmojiPopoverOpen(false);
-    },
-    [onTemplateUpdate, template],
-  );
+  // Simple handlers with local state
+  const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitleText(newTitle); // Update local state immediately
+    
+    const fullTitle = selectedEmoji + " " + newTitle;
+    onTemplateUpdate({ ...template, title: fullTitle });
+  };
 
-  const handleChangeDescription = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onTemplateUpdate({ ...template, description: e.target.value });
-    },
-    [onTemplateUpdate, template],
-  );
+  const handleEmojiSelect = (emoji: string) => {
+    setSelectedEmoji(emoji);
+    const fullTitle = emoji + " " + titleText; // Use local state
+    onTemplateUpdate({ ...template, title: fullTitle });
+    setEmojiPopoverOpen(false);
+  };
+
+  const handleChangeDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newDescription = e.target.value;
+    setDescriptionText(newDescription); // Update local state immediately
+    
+    onTemplateUpdate({ ...template, description: newDescription });
+  };
 
   const handleChangeSections = useCallback(
     (sections: Template["sections"]) => {
@@ -145,7 +150,7 @@ export default function TemplateEditor({
       <div className="flex flex-col gap-3 border-b pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
-            {/* Emoji Selector */}
+            {/* Emoji Selector - unchanged */}
             <Popover open={emojiPopoverOpen} onOpenChange={setEmojiPopoverOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -179,17 +184,15 @@ export default function TemplateEditor({
               </PopoverContent>
             </Popover>
 
-            {/* Title Input */}
             <Input
               disabled={isReadOnly}
-              value={getTitleWithoutEmoji(template.title || "")}
-              onChange={handleChangeTitle}
+              value={titleText} 
+              onChange={handleChangeTitle} 
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
               placeholder={t`Untitled Template`}
             />
           </div>
 
-          {/* Menu Button - Show for all templates with different options */}
           {isCreator && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -228,8 +231,8 @@ export default function TemplateEditor({
         </h2>
         <Textarea
           disabled={isReadOnly}
-          value={template.description}
-          onChange={handleChangeDescription}
+          value={descriptionText} 
+          onChange={handleChangeDescription} 
           placeholder={t`Add a system instruction...`}
           className="h-20 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />

@@ -41,7 +41,8 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
     if let Some(event) = latest_event.first() {
         tracing::info!("Found upcoming event - showing notification");
 
-        if let Err(e) = std::panic::catch_unwind(|| {
+        // Wrap in AssertUnwindSafe and handle the panic properly
+        if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hypr_notification2::show(hypr_notification2::Notification {
                 title: "Meeting starting in 5 minutes".to_string(),
                 message: event.name.clone(),
@@ -51,10 +52,18 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
                 )),
                 timeout: Some(std::time::Duration::from_secs(10)),
             });
-        }) {
-            tracing::error!(" Notification panic: {:?}", e);
+        })) {
+            // Convert panic payload to string for logging
+            let panic_msg = if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "Unknown panic".to_string()
+            };
+            tracing::error!("Notification panic: {}", panic_msg);
         } else {
-            tracing::info!(" Notification shown");
+            tracing::info!("Notification shown");
         }
     }
 

@@ -6,7 +6,7 @@ import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
-import { useHypr } from "@/contexts";
+import { useHypr, useRightPanel } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -24,6 +24,8 @@ import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts
 import { enhanceFailedToast } from "../toast/shared";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
+import { TextSelectionPopover } from "./text-selection-popover";
+import { AnnotationBox } from "./annotation-box";
 
 async function generateTitleDirect(enhancedContent: string, targetSessionId: string, sessions: Record<string, any>) {
   const [config, { type }, provider] = await Promise.all([
@@ -181,6 +183,37 @@ export default function EditorArea({
     }));
   };
 
+  const [annotationBox, setAnnotationBox] = useState<{
+    selectedText: string;
+    selectedRect: DOMRect;
+  } | null>(null);
+
+  const handleAnnotate = (selectedText: string, selectedRect: DOMRect) => {
+    setAnnotationBox({ selectedText, selectedRect });
+  };
+
+  const handleCancelAnnotation = () => {
+    setAnnotationBox(null);
+  };
+
+  const isEnhancedNote = !showRaw && !!enhancedContent;
+
+  const { isExpanded, currentView, togglePanel } = useRightPanel();
+
+  const handleAskAI = (selectedText: string) => {
+    // Open chat panel first
+    const shouldOpenChat = !isExpanded || currentView !== "chat";
+    
+    if (shouldOpenChat) {
+      togglePanel("chat");
+    }
+    
+    // Dispatch custom event with text
+    window.dispatchEvent(new CustomEvent('setChatText', { 
+      detail: { text: selectedText } 
+    }));
+  };
+
   return (
     <div className="relative flex h-full flex-col w-full">
       <NoteHeader
@@ -220,6 +253,23 @@ export default function EditorArea({
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}
       </div>
+
+      {/* Add the text selection popover */}
+      <TextSelectionPopover
+        isEnhancedNote={isEnhancedNote}
+        onAnnotate={handleAnnotate}
+        onAskAI={handleAskAI}
+        isAnnotationBoxOpen={!!annotationBox}
+      />
+
+      {annotationBox && (
+        <AnnotationBox
+          selectedText={annotationBox.selectedText}
+          selectedRect={annotationBox.selectedRect}
+          sessionId={sessionId}
+          onCancel={handleCancelAnnotation}
+        />
+      )}
 
       <AnimatePresence>
         <motion.div

@@ -10,6 +10,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
 import { SpeakerSplit } from "./extensions";
+import { ConfidenceMark } from "./marks";
 import { SpeakerNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word2 } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
@@ -51,6 +52,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       Document.configure({ content: "speaker+" }),
       History,
       Text,
+      ConfidenceMark,
       SpeakerNode(c),
       SpeakerSplit,
       SearchAndReplace.configure({

@@ -7,12 +7,11 @@ mod error;
 mod events;
 mod ext;
 mod fsm;
+mod manager;
 
 pub use error::*;
 pub use events::*;
-pub use ext::ListenerPluginExt;
-
-pub use owhisper_interface::*;
+pub use ext::*;
 
 const PLUGIN_NAME: &str = "listener";
 

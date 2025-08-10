@@ -44,3 +44,22 @@
 .ProseMirror-selectednode {
   outline: 2px solid #4a9af4;
 }
+
+span[data-confidence^="0.0"],
+span[data-confidence^="0.1"],
+span[data-confidence^="0.2"],
+span[data-confidence^="0.3"],
+span[data-confidence^="0.4"] {
+  opacity: 0.3;
+  color: #666;
+}
+
+span[data-confidence^="0.5"],
+span[data-confidence^="0.6"],
+span[data-confidence^="0.7"],
+span[data-confidence^="0.8"],
+span[data-confidence^="0.9"],
+span[data-confidence^="1"] {
+  opacity: 1;
+  color: #333;
+}

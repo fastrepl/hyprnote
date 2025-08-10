@@ -78,9 +78,9 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "running_paused" } | { type: "words"; words: Word[] } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "running_paused" } | { type: "finalWords"; words: Word2[] } | { type: "partialWords"; words: Word2[] } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean }
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
-export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
+export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

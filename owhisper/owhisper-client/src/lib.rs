@@ -81,7 +81,7 @@ impl ListenClientBuilder {
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
-                .append_pair("interim_results", "false")
+                .append_pair("interim_results", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
                 .append_pair("channels", channels)

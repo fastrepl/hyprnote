@@ -20,9 +20,18 @@ export type DocContent = {
   content: SpeakerContent[];
 };
 
+type TextContent = {
+  type: "text";
+  text: string;
+  marks?: Array<{
+    type: string;
+    attrs?: any;
+  }>;
+};
+
 type SpeakerContent = {
   type: "speaker";
-  content: { type: "text"; text: string }[];
+  content: TextContent[];
   attrs: SpeakerAttributes;
 };
 
@@ -54,9 +63,23 @@ export const fromWordsToEditor = (words: Word2[]): DocContent => {
 
       const lastSpeaker = state.acc[state.acc.length - 1];
 
-      // If there's already text content, add a space before the new word
-      if (lastSpeaker.content.length > 0 && lastSpeaker.content[0].text) {
-        lastSpeaker.content[0].text += " " + word.text;
+      if (lastSpeaker.content.length > 0) {
+        lastSpeaker.content.push({ type: "text", text: " " });
+      }
+
+      if (word.confidence !== null) {
+        lastSpeaker.content.push({
+          type: "text",
+          text: word.text,
+          marks: [
+            {
+              type: "confidence",
+              attrs: {
+                confidence: word.confidence,
+              },
+            },
+          ],
+        });
       } else {
         lastSpeaker.content.push({ type: "text", text: word.text });
       }
@@ -98,21 +121,25 @@ export const fromEditorToWords = (content: DocContent | JSONContent): Word2[] =>
       };
     }
 
-    const textContent = speakerBlock.content
-      .filter(node => node.type === "text")
-      .map(node => node.text || "")
-      .join("");
+    for (const node of speakerBlock.content) {
+      if (node.type !== "text" || !node.text) {
+        continue;
+      }
 
-    const wordTexts = textContent.split(/\s+/).filter(Boolean);
+      const confidenceMark = node.marks?.find((mark: any) => mark.type === "confidence");
+      const confidence = confidenceMark?.attrs?.confidence ?? null;
 
-    for (const wordText of wordTexts) {
-      words.push({
-        text: wordText,
-        speaker,
-        confidence: null,
-        start_ms: null,
-        end_ms: null,
-      });
+      const wordTexts = node.text.split(/\s+/).filter(Boolean);
+
+      for (const wordText of wordTexts) {
+        words.push({
+          text: wordText,
+          speaker,
+          confidence,
+          start_ms: null,
+          end_ms: null,
+        });
+      }
     }
   }
 

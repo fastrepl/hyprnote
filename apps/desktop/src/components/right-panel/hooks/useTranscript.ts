@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { events as listenerEvents, type Word } from "@hypr/plugin-listener";
+import { events as listenerEvents, type Word2 as Word } from "@hypr/plugin-listener";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { useQuery } from "@tanstack/react-query";
 
@@ -20,8 +20,13 @@ export function useTranscript(sessionId: string | null) {
     sessionId,
   ]);
 
-  const [words, setWords] = useState<Word[]>([]);
+  const [finalWords, setFinalWords] = useState<Word[]>([]);
+  const [partialWords, setPartialWords] = useState<Word[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
+
+  const words = useMemo(() => {
+    return [...finalWords, ...partialWords];
+  }, [finalWords, partialWords]);
 
   const existingWords = useQuery({
     enabled: !!sessionId,
@@ -37,7 +42,8 @@ export function useTranscript(sessionId: string | null) {
   });
 
   useEffect(() => {
-    setWords(existingWords.data ?? []);
+    setFinalWords(existingWords.data ?? []);
+    setPartialWords([]);
   }, [existingWords.data]);
 
   useEffect(() => {
@@ -48,8 +54,12 @@ export function useTranscript(sessionId: string | null) {
     let unlisten: (() => void) | null = null;
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
-      if (payload.type === "words") {
-        setWords(payload.words as Word[]);
+      if (payload.type === "finalWords") {
+        setFinalWords(
+          prev => [...prev, ...(payload.words as Word[]).map(w => ({ ...w, confidence: 1 }))],
+        );
+      } else if (payload.type === "partialWords") {
+        setPartialWords((payload.words as Word[]).map(w => ({ ...w, confidence: 0.1 })));
       }
     }).then((fn) => {
       unlisten = fn;

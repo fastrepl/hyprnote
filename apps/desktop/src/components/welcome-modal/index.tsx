@@ -1,29 +1,28 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
-import { ArrowLeft } from "lucide-react"; // Add this import
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
 import { ConfigureEndpointConfig } from "../settings/components/ai/shared";
 
+import { useHypr } from "@/contexts";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { Trans } from "@lingui/react/macro";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AudioPermissionsView } from "./audio-permissions-view";
-// import { CalendarPermissionsView } from "./calendar-permissions-view";
-import { useHypr } from "@/contexts";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { Trans } from "@lingui/react/macro";
 import { CustomEndpointView } from "./custom-endpoint-view";
 import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
@@ -72,13 +71,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     | "custom-endpoint"
     | "language-selection"
   >("welcome");
-  const [selectedSttModel, setSelectedSttModel] = useState<SupportedModel>("QuantizedSmall");
+  const [selectedSttModel, setSelectedSttModel] = useState<WhisperModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
   const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
   const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
   const selectSTTModel = useMutation({
-    mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
+    mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
   });
 
   const openaiForm = useForm<{ api_key: string; model: string }>({
@@ -253,7 +252,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     setCurrentStep("audio-permissions");
   };
 
-  const handleModelSelected = (model: SupportedModel) => {
+  const handleModelSelected = (model: WhisperModel) => {
     selectSTTModel.mutate(model);
     setSelectedSttModel(model);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
@@ -305,13 +304,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      localSttCommands.startServer();
+      localSttCommands.startServer(null);
 
       localLlmCommands.startServer();
 
       const checkAndShowToasts = async () => {
         try {
-          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as SupportedModel);
+          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as WhisperModel);
 
           if (!sttModelExists) {
             showSttModelDownloadToast(selectedSttModel, undefined, queryClient);

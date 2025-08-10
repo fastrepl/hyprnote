@@ -107,14 +107,13 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        run: |
-          chmod +x apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          ./scripts/sidecar.sh "apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
+        run: chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} && ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AM_API_KEY: ${{ secrets.AM_API_KEY }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}

@@ -50,8 +50,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Serve(args) => commands::handle_serve(args).await,
     };
 
-    if result.is_err() {
-        log::error!("{}", result.unwrap_err());
+    if let Err(e) = result {
+        log::error!("{}", e);
+        std::process::exit(1);
     }
 
     Ok(())

@@ -19,7 +19,7 @@ use tower::Service;
 
 use hypr_chunker::VadExt;
 use hypr_ws_utils::{ConnectionGuard, ConnectionManager};
-use owhisper_interface::{ListenOutputChunk, ListenParams, Word2};
+use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
 
 #[derive(Clone)]
 pub struct TranscribeService {
@@ -200,37 +200,57 @@ async fn process_transcription_stream(
 
                 let meta = chunk.meta();
                 let text = chunk.text().to_string();
-                let start = chunk.start() as u64;
-                let duration = chunk.duration() as u64;
-                let confidence = chunk.confidence();
+                let language = chunk.language().map(|s| s.to_string()).map(|s| vec![s]).unwrap_or_default();
+                let start_f64 = chunk.start() as f64;
+                let duration_f64 = chunk.duration() as f64;
+                let confidence = chunk.confidence() as f64;
 
                 let source = meta.and_then(|meta|
                     meta.get("source")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())
                 );
-                let speaker = match source {
-                    Some(s) if s == "mic" => Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 0 }),
-                    Some(s) if s == "speaker" => Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 1 }),
-                    _ => None,
+
+                let (speaker, channel_index) = match source.as_deref() {
+                    Some("mic") => (Some(0), vec![0]),
+                    Some("speaker") => (Some(1), vec![1]),
+                    _ => (None, vec![0]),
                 };
 
-                let data = ListenOutputChunk {
-                    meta: None,
-                    words: text
-                        .split_whitespace()
-                        .filter(|w| !w.is_empty())
-                        .map(|w| Word2 {
-                            text: w.trim().to_string(),
-                            speaker: speaker.clone(),
-                            start_ms: Some(start),
-                            end_ms: Some(start + duration),
-                            confidence: Some(confidence),
-                        })
-                        .collect(),
+                let words: Vec<Word> = text
+                    .split_whitespace()
+                    .filter(|w| !w.is_empty())
+                    .map(|w| Word {
+                        word: w.to_string(),
+                        start: start_f64,
+                        end: start_f64 + duration_f64,
+                        confidence,
+                        speaker: speaker.clone(),
+                        punctuated_word: None,
+                        language: None,
+                    })
+                    .collect();
+
+                let response = StreamResponse::TranscriptResponse {
+                    type_field: "Results".to_string(),
+                    start: start_f64,
+                    duration: duration_f64,
+                    is_final: true,
+                    speech_final: true,
+                    from_finalize: false,
+                    channel: Channel{
+                        alternatives: vec![Alternatives{
+                            transcript: text.clone(),
+                            languages: language.clone(),
+                            words,
+                            confidence,
+                        }],
+                    },
+                    metadata: Metadata::default(),
+                    channel_index,
                 };
 
-                let msg = Message::Text(serde_json::to_string(&data).unwrap().into());
+                let msg = Message::Text(serde_json::to_string(&response).unwrap().into());
                 if let Err(e) = ws_sender.send(msg).await {
                     tracing::warn!("websocket_send_error: {}", e);
                     break;

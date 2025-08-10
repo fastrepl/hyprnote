@@ -15,8 +15,38 @@ enum AudioProcessResult {
     End,
 }
 
-fn process_ws_message(message: Message) -> AudioProcessResult {
+fn deinterleave_audio(data: &[u8]) -> (Vec<f32>, Vec<f32>) {
+    let samples: Vec<i16> = data
+        .chunks_exact(2)
+        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
+        .collect();
+
+    let mut mic = Vec::with_capacity(samples.len() / 2);
+    let mut speaker = Vec::with_capacity(samples.len() / 2);
+
+    for chunk in samples.chunks_exact(2) {
+        mic.push(chunk[0] as f32 / 32768.0);
+        speaker.push(chunk[1] as f32 / 32768.0);
+    }
+
+    (mic, speaker)
+}
+
+fn process_ws_message(message: Message, channels: Option<u32>) -> AudioProcessResult {
     match message {
+        Message::Binary(data) => {
+            if data.is_empty() {
+                return AudioProcessResult::Empty;
+            }
+
+            match channels {
+                Some(2) => {
+                    let (mic, speaker) = deinterleave_audio(&data);
+                    AudioProcessResult::DualSamples { mic, speaker }
+                }
+                _ => AudioProcessResult::Samples(bytes_to_f32_samples(&data)),
+            }
+        }
         Message::Text(data) => match serde_json::from_str::<ListenInputChunk>(&data) {
             Ok(ListenInputChunk::Audio { data }) => {
                 if data.is_empty() {
@@ -68,7 +98,7 @@ impl kalosm_sound::AsyncSource for WebSocketAudioSource {
 
         futures_util::stream::unfold(receiver, |receiver| async move {
             match receiver.next().await {
-                Some(Ok(message)) => match process_ws_message(message) {
+                Some(Ok(message)) => match process_ws_message(message, None) {
                     AudioProcessResult::Samples(samples) => Some((samples, receiver)),
                     AudioProcessResult::DualSamples { mic, speaker } => {
                         let mixed = mix_audio_channels(&mic, &speaker);
@@ -126,7 +156,7 @@ pub fn split_dual_audio_sources(
 
     tokio::spawn(async move {
         while let Some(Ok(message)) = ws_receiver.next().await {
-            match process_ws_message(message) {
+            match process_ws_message(message, Some(2)) {
                 AudioProcessResult::Samples(samples) => {
                     let _ = mic_tx.send(samples.clone());
                     let _ = speaker_tx.send(samples);

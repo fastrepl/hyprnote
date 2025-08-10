@@ -100,6 +100,9 @@ async deleteHuman(id: string) : Promise<null> {
 async getOrganization(id: string) : Promise<Organization | null> {
     return await TAURI_INVOKE("plugin:db|get_organization", { id });
 },
+async deleteOrganization(id: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|delete_organization", { id });
+},
 async getOrganizationByUserId(userId: string) : Promise<Organization | null> {
     return await TAURI_INVOKE("plugin:db|get_organization_by_user_id", { userId });
 },

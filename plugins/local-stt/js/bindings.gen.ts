@@ -16,32 +16,29 @@ async listGgmlBackends() : Promise<GgmlBackend[]> {
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_server_running");
 },
-async isModelDownloaded(model: SupportedModel) : Promise<boolean> {
+async isModelDownloaded(model: WhisperModel) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model });
 },
-async isModelDownloading(model: SupportedModel) : Promise<boolean> {
+async isModelDownloading(model: WhisperModel) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_model_downloading", { model });
 },
-async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
+async downloadModel(model: WhisperModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
-async listSupportedModels() : Promise<SupportedModel[]> {
+async listSupportedModels() : Promise<WhisperModel[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_models");
 },
-async getCurrentModel() : Promise<SupportedModel> {
+async getCurrentModel() : Promise<WhisperModel> {
     return await TAURI_INVOKE("plugin:local-stt|get_current_model");
 },
-async setCurrentModel(model: SupportedModel) : Promise<null> {
+async setCurrentModel(model: WhisperModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
 },
-async startServer() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|start_server");
+async startServer(serverType: ServerType | null) : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|start_server", { serverType });
 },
-async stopServer() : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|stop_server");
-},
-async restartServer() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|restart_server");
+async stopServer(serverType: ServerType | null) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType });
 }
 }
 
@@ -61,10 +58,11 @@ recordedProcessingEvent: "plugin:local-stt:recorded-processing-event"
 /** user-defined types **/
 
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word }
+export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word2 }
+export type ServerType = "internal" | "external"
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
-export type SupportedModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
-export type Word = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
+export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
+export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

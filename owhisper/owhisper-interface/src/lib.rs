@@ -33,11 +33,10 @@ common_derives! {
 impl From<Word> for Word2 {
     fn from(word: Word) -> Self {
         Word2 {
-            text: word.word,
-            speaker: word.speaker.map(|s| SpeakerIdentity::Assigned {
-                id: s.to_string(),
-                label: s.to_string(),
-            }),
+            text: word.word.trim().to_string(),
+            speaker: word
+                .speaker
+                .map(|s| SpeakerIdentity::Unassigned { index: s as u8 }),
             confidence: Some(word.confidence as f32),
             start_ms: Some(word.start as u64),
             end_ms: Some(word.end as u64),

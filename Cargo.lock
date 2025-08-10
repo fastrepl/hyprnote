@@ -185,6 +185,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "am"
+version = "0.1.0"
+dependencies = [
+ "reqwest 0.12.22",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+]
+
+[[package]]
 name = "analytics"
 version = "0.1.0"
 dependencies = [
@@ -4526,6 +4537,7 @@ dependencies = [
  "testcontainers-modules",
  "thiserror 2.0.12",
  "tokio",
+ "tracing",
  "wiremock",
 ]
 
@@ -8964,6 +8976,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonshine"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "dirs 6.0.0",
+ "onnx",
+ "owhisper-config",
+ "rodio",
+ "thiserror 2.0.12",
+ "tokenizers",
+]
+
+[[package]]
 name = "moshi"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10195,6 +10220,7 @@ dependencies = [
  "serde_json",
  "specta",
  "strum 0.26.3",
+ "uuid",
 ]
 
 [[package]]
@@ -14605,6 +14631,7 @@ dependencies = [
 name = "tauri-plugin-local-stt"
 version = "0.1.0"
 dependencies = [
+ "am",
  "audio-utils",
  "axum 0.8.4",
  "axum-extra",
@@ -16193,19 +16220,14 @@ dependencies = [
  "axum 0.8.4",
  "bytes",
  "chunker",
- "data",
- "dirs 6.0.0",
  "futures-util",
- "kalosm-sound",
- "onnx",
+ "moonshine",
  "owhisper-config",
  "owhisper-interface",
- "rodio",
  "serde",
  "serde_json",
  "serde_qs 1.0.0-rc.3",
  "thiserror 2.0.12",
- "tokenizers",
  "tokio",
  "tokio-stream",
  "tokio-tungstenite 0.26.2",

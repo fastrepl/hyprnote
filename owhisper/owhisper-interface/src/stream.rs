@@ -47,6 +47,20 @@ common_derives! {
     }
 }
 
+impl Default for Metadata {
+    fn default() -> Self {
+        Self {
+            request_id: uuid::Uuid::new_v4().to_string(),
+            model_uuid: uuid::Uuid::new_v4().to_string(),
+            model_info: ModelInfo {
+                name: "".to_string(),
+                version: "".to_string(),
+                arch: "".to_string(),
+            },
+        }
+    }
+}
+
 common_derives! {
     #[serde(untagged)]
     #[non_exhaustive]
@@ -92,7 +106,7 @@ mod test {
     #[test]
     fn ensure_types() {
         let dg = DG::StreamResponse::TranscriptResponse {
-            type_field: "transcript".to_string(),
+            type_field: "Results".to_string(),
             start: 0.0,
             duration: 0.0,
             is_final: false,

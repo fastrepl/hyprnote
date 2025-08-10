@@ -161,6 +161,7 @@ impl Whisper {
 
             segments.push(Segment {
                 text,
+                language: language.clone(),
                 start: start as f32 / 1000.0,
                 end: end as f32 / 1000.0,
                 confidence,
@@ -177,6 +178,7 @@ impl Whisper {
             .join(" ");
 
         if !full_text.is_empty() {
+            tracing::info!(text = ?full_text, "transcribe_completed");
             self.dynamic_prompt = full_text;
         }
 
@@ -304,6 +306,7 @@ impl Whisper {
 #[derive(Debug, Default)]
 pub struct Segment {
     pub text: String,
+    pub language: Option<String>,
     pub start: f32,
     pub end: f32,
     pub confidence: f32,
@@ -313,6 +316,10 @@ pub struct Segment {
 impl Segment {
     pub fn text(&self) -> &str {
         &self.text
+    }
+
+    pub fn language(&self) -> Option<&str> {
+        self.language.as_deref()
     }
 
     pub fn start(&self) -> f32 {

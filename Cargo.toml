@@ -22,6 +22,7 @@ rust-version = "1.88.0"
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-agc = { path = "crates/agc", package = "agc" }
+hypr-am = { path = "crates/am", package = "am" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
@@ -47,6 +48,7 @@ hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-loops = { path = "crates/loops", package = "loops" }
+hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
 hypr-notification = { path = "crates/notification", package = "notification" }

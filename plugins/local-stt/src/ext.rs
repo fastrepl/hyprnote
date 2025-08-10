@@ -7,19 +7,25 @@ use tauri_plugin_store2::StorePluginExt;
 use hypr_file::{download_file_parallel, DownloadProgress};
 use hypr_whisper_local_model::WhisperModel;
 
+use crate::server::{external, internal, ServerType};
+
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn models_dir(&self) -> PathBuf;
-    fn list_custom_models(&self) -> Vec<String>;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
-    fn api_base(&self) -> impl Future<Output = Option<String>>;
 
-    fn start_external_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
-    fn stop_external_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
-
-    fn is_server_running(&self) -> impl Future<Output = bool>;
-    fn start_server(&self) -> impl Future<Output = Result<String, crate::Error>>;
-    fn stop_server(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn get_api_base(
+        &self,
+        server_type: Option<ServerType>,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn start_server(
+        &self,
+        server_type: Option<ServerType>,
+    ) -> impl Future<Output = Result<String, crate::Error>>;
+    fn stop_server(
+        &self,
+        server_type: Option<ServerType>,
+    ) -> impl Future<Output = Result<bool, crate::Error>>;
 
     fn get_current_model(&self) -> Result<WhisperModel, crate::Error>;
     fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error>;
@@ -50,41 +56,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         hypr_whisper_local::list_ggml_backends()
     }
 
-    async fn api_base(&self) -> Option<String> {
-        let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
-
-        s.api_base.clone()
-    }
-
-    fn list_custom_models(&self) -> Vec<String> {
-        let models_dir = self.models_dir();
-        let mut models = Vec::new();
-
-        for entry in models_dir.read_dir().unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-
-            if path.is_file() {
-                let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-                let default_models = vec![
-                    WhisperModel::QuantizedTiny,
-                    WhisperModel::QuantizedSmall,
-                    WhisperModel::QuantizedLargeTurbo,
-                ]
-                .iter()
-                .map(|model| model.file_name().to_string())
-                .collect::<Vec<String>>();
-
-                if !default_models.contains(&file_name) {
-                    models.push(file_name);
-                }
-            }
-        }
-
-        models
-    }
-
     async fn is_model_downloaded(&self, model: &WhisperModel) -> Result<bool, crate::Error> {
         let model_path = self.models_dir().join(model.file_name());
 
@@ -103,68 +74,111 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_external_server(&self) -> Result<String, crate::Error> {
-        let port = 8008;
-        let cmd = self
-            .shell()
-            .sidecar("pro-stt-server")?
-            .arg(format!("--port {}", port));
-
-        let (_rx, _child) = cmd.spawn()?;
-        Ok(format!("http://localhost:{}", port))
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn stop_external_server(&self) -> Result<(), crate::Error> {
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn is_server_running(&self) -> bool {
+    async fn get_api_base(
+        &self,
+        server_type: Option<ServerType>,
+    ) -> Result<Option<String>, crate::Error> {
         let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
+        let guard = state.lock().await;
 
-        s.server.is_some()
+        let internal_api_base = guard.internal_server.as_ref().map(|s| s.api_base.clone());
+        let external_api_base = guard.external_server.as_ref().map(|s| s.api_base.clone());
+
+        match server_type {
+            Some(ServerType::Internal) => Ok(internal_api_base),
+            Some(ServerType::External) => Ok(external_api_base),
+            None => {
+                if let Some(external_api_base) = external_api_base {
+                    Ok(Some(external_api_base))
+                } else if let Some(internal_api_base) = internal_api_base {
+                    Ok(Some(internal_api_base))
+                } else {
+                    Ok(None)
+                }
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_server(&self) -> Result<String, crate::Error> {
-        let cache_dir = self.models_dir();
-        let model = self.get_current_model()?;
+    async fn start_server(&self, server_type: Option<ServerType>) -> Result<String, crate::Error> {
+        let t = server_type.unwrap_or(ServerType::Internal);
 
-        if !self.is_model_downloaded(&model).await? {
-            return Err(crate::Error::ModelNotDownloaded);
+        match t {
+            ServerType::Internal => {
+                let cache_dir = self.models_dir();
+                let model = self.get_current_model()?;
+
+                if !self.is_model_downloaded(&model).await? {
+                    return Err(crate::Error::ModelNotDownloaded);
+                }
+
+                let server_state = internal::ServerState::builder()
+                    .model_cache_dir(cache_dir)
+                    .model_type(model)
+                    .build();
+
+                let server = internal::run_server(server_state).await?;
+                let api_base = server.api_base.clone();
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+                {
+                    let state = self.state::<crate::SharedState>();
+                    let mut s = state.lock().await;
+                    s.internal_server = Some(server);
+                }
+
+                Ok(api_base)
+            }
+            ServerType::External => {
+                let cmd = self.shell().sidecar("stt")?;
+
+                let server = external::run_server(cmd).await?;
+                let api_base = server.api_base.clone();
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+                {
+                    let state = self.state::<crate::SharedState>();
+                    let mut s = state.lock().await;
+                    s.external_server = Some(server);
+                }
+
+                Ok(api_base)
+            }
         }
-
-        let server_state = crate::ServerState::builder()
-            .model_cache_dir(cache_dir)
-            .model_type(model)
-            .build();
-
-        let server = crate::run_server(server_state).await?;
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-        let api_base = format!("http://{}", &server.addr);
-
-        {
-            let state = self.state::<crate::SharedState>();
-            let mut s = state.lock().await;
-            s.api_base = Some(api_base.clone());
-            s.server = Some(server);
-        }
-
-        Ok(api_base)
     }
 
     #[tracing::instrument(skip_all)]
-    async fn stop_server(&self) -> Result<(), crate::Error> {
+    async fn stop_server(&self, server_type: Option<ServerType>) -> Result<bool, crate::Error> {
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 
-        if let Some(server) = s.server.take() {
-            let _ = server.shutdown.send(());
+        let mut stopped = false;
+        match server_type {
+            Some(ServerType::External) => {
+                if let Some(server) = s.external_server.take() {
+                    let _ = server.shutdown.send(());
+                    stopped = true;
+                }
+            }
+            Some(ServerType::Internal) => {
+                if let Some(server) = s.internal_server.take() {
+                    let _ = server.shutdown.send(());
+                    stopped = true;
+                }
+            }
+            None => {
+                if let Some(server) = s.external_server.take() {
+                    let _ = server.shutdown.send(());
+                    stopped = true;
+                }
+                if let Some(server) = s.internal_server.take() {
+                    let _ = server.shutdown.send(());
+                    stopped = true;
+                }
+            }
         }
-        Ok(())
+
+        Ok(stopped)
     }
 
     #[tracing::instrument(skip_all)]

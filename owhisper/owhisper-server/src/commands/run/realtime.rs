@@ -23,7 +23,7 @@ pub async fn handle_realtime_input(
     let (event_tx, mut event_rx) = create_event_channel();
 
     let (transcript_tx, transcript_rx) =
-        mpsc::unbounded_channel::<owhisper_interface::ListenOutputChunk>();
+        mpsc::unbounded_channel::<owhisper_interface::StreamResponse>();
 
     let amplitude_data = Arc::new(Mutex::new(AmplitudeData::new()));
 
@@ -93,7 +93,7 @@ fn start_audio_task(
     port: u16,
     api_key: Option<String>,
     model: String,
-    transcript_tx: mpsc::UnboundedSender<owhisper_interface::ListenOutputChunk>,
+    transcript_tx: mpsc::UnboundedSender<owhisper_interface::StreamResponse>,
     amplitude_data: Arc<Mutex<AmplitudeData>>,
 ) -> std::sync::Arc<std::sync::atomic::AtomicBool> {
     let should_stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -123,7 +123,7 @@ async fn run_audio_stream_with_stop(
     port: u16,
     api_key: Option<String>,
     model: String,
-    transcript_tx: mpsc::UnboundedSender<owhisper_interface::ListenOutputChunk>,
+    transcript_tx: mpsc::UnboundedSender<owhisper_interface::StreamResponse>,
     amplitude_data: Arc<Mutex<AmplitudeData>>,
     should_stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> anyhow::Result<()> {
@@ -183,7 +183,7 @@ async fn run_tui_with_events(
     available_devices: Vec<String>,
     amplitude_data: Arc<Mutex<AmplitudeData>>,
     event_tx: TuiEventSender,
-    mut transcript_rx: mpsc::UnboundedReceiver<owhisper_interface::ListenOutputChunk>,
+    mut transcript_rx: mpsc::UnboundedReceiver<owhisper_interface::StreamResponse>,
 ) -> anyhow::Result<()> {
     use ratatui::crossterm::event::{self, Event, KeyCode};
     use std::time::{Duration, Instant};

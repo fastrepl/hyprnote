@@ -18,10 +18,10 @@ use futures_util::{SinkExt, StreamExt};
 use tower::Service;
 
 use hypr_chunker::VadExt;
-use owhisper_interface::{ListenOutputChunk, ListenParams, Word2};
+use hypr_moonshine::MoonshineOnnxModel;
 
-use crate::MoonshineOnnxModel;
 use owhisper_config::MoonshineModelSize;
+use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
 
 #[derive(Clone)]
 pub struct TranscribeService {
@@ -205,10 +205,10 @@ async fn handle_dual_channel(
 
 async fn process_transcription_stream(
     mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
-    mut stream: Pin<Box<dyn futures_util::Stream<Item = ListenOutputChunk> + Send>>,
+    mut stream: Pin<Box<dyn futures_util::Stream<Item = StreamResponse> + Send>>,
 ) {
-    while let Some(chunk) = stream.next().await {
-        let msg = Message::Text(serde_json::to_string(&chunk).unwrap().into());
+    while let Some(response) = stream.next().await {
+        let msg = Message::Text(serde_json::to_string(&response).unwrap().into());
         if let Err(e) = ws_sender.send(msg).await {
             tracing::warn!("websocket_send_error: {}", e);
             break;
@@ -222,7 +222,7 @@ fn process_vad_stream<S, E>(
     stream: S,
     model: Arc<Mutex<MoonshineOnnxModel>>,
     source_name: &str,
-) -> impl futures_util::Stream<Item = ListenOutputChunk>
+) -> impl futures_util::Stream<Item = StreamResponse>
 where
     S: futures_util::Stream<Item = Result<hypr_chunker::AudioChunk, E>>,
     E: std::fmt::Display,
@@ -252,32 +252,50 @@ where
                             model_guard.transcribe(chunk.samples).unwrap()
                         };
 
-                        let speaker = match source_name.as_str() {
-                            "mic" => {
-                                Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 0 })
-                            }
-                            "speaker" => {
-                                Some(owhisper_interface::SpeakerIdentity::Unassigned { index: 1 })
-                            }
-                            _ => None,
+                        let (speaker, channel_index) = match source_name.as_str() {
+                            "mic" => (Some(0), vec![0]),
+                            "speaker" => (Some(1), vec![1]),
+                            _ => (None, vec![0]),
                         };
 
-                        let data = ListenOutputChunk {
-                            meta: None,
-                            words: text
-                                .split_whitespace()
-                                .filter(|w| !w.is_empty())
-                                .map(|w| Word2 {
-                                    text: w.trim().to_string(),
-                                    speaker: speaker.clone(),
-                                    start_ms: None,
-                                    end_ms: None,
-                                    confidence: None,
-                                })
-                                .collect(),
+                        let start_f64 = 0.0;
+                        let duration_f64 = 0.0;
+                        let confidence = 1.0;
+
+                        let words: Vec<Word> = text
+                            .split_whitespace()
+                            .filter(|w| !w.is_empty())
+                            .map(|w| Word {
+                                word: w.to_string(),
+                                start: start_f64,
+                                end: start_f64 + duration_f64,
+                                confidence,
+                                speaker: speaker.clone(),
+                                punctuated_word: None,
+                                language: None,
+                            })
+                            .collect();
+
+                        let response = StreamResponse::TranscriptResponse {
+                            type_field: "Results".to_string(),
+                            start: start_f64,
+                            duration: duration_f64,
+                            is_final: true,
+                            speech_final: true,
+                            from_finalize: false,
+                            channel: Channel {
+                                alternatives: vec![Alternatives {
+                                    transcript: text.clone(),
+                                    languages: vec![],
+                                    words,
+                                    confidence,
+                                }],
+                            },
+                            metadata: Metadata::default(),
+                            channel_index,
                         };
 
-                        Some(data)
+                        Some(response)
                     }
                 }
             }

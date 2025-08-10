@@ -1,4 +1,4 @@
-use crate::LocalSttPluginExt;
+use crate::{server::ServerType, LocalSttPluginExt};
 
 use hypr_whisper_local_model::WhisperModel;
 use tauri::ipc::Channel;
@@ -31,20 +31,6 @@ pub async fn list_supported_models() -> Result<Vec<WhisperModel>, String> {
     ];
 
     Ok(models)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn list_custom_models<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<Vec<String>, String> {
-    Ok(app.list_custom_models())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn is_server_running<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
-    app.is_server_running().await
 }
 
 #[tauri::command]
@@ -98,19 +84,22 @@ pub fn set_current_model<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn start_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.start_server().await.map_err(|e| e.to_string())
+pub async fn start_server<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    server_type: Option<ServerType>,
+) -> Result<String, String> {
+    app.start_server(server_type)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn stop_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.stop_server().await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn restart_server<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
-    app.stop_server().await.map_err(|e| e.to_string())?;
-    app.start_server().await.map_err(|e| e.to_string())
+pub async fn stop_server<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    server_type: Option<ServerType>,
+) -> Result<bool, String> {
+    app.stop_server(server_type)
+        .await
+        .map_err(|e| e.to_string())
 }

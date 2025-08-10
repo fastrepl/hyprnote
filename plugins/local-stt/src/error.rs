@@ -5,6 +5,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
+    AmError(#[from] hypr_am::Error),
+    #[error(transparent)]
     HyprFileError(#[from] hypr_file::Error),
     #[error(transparent)]
     ShellError(#[from] tauri_plugin_shell::Error),

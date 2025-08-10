@@ -473,19 +473,35 @@ impl Session {
                 loop {
                     match tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()).await {
                         Ok(Some(result)) => {
-                            let _meta = result.meta.clone();
+                            let words = match result {
+                                owhisper_interface::StreamResponse::TranscriptResponse {
+                                    channel,
+                                    ..
+                                } => channel
+                                    .alternatives
+                                    .first()
+                                    .map(|alt| {
+                                        alt.words
+                                            .iter()
+                                            .map(|w| owhisper_interface::Word2::from(w.clone()))
+                                            .collect::<Vec<_>>()
+                                    })
+                                    .unwrap_or_default(),
+                                _ => {
+                                    continue;
+                                }
+                            };
 
-                            {
-                                let updated_words = update_session(&app, &session.id, result.words)
-                                    .await
-                                    .unwrap();
+                            if !words.is_empty() {
+                                let updated_words =
+                                    update_session(&app, &session.id, words).await.unwrap();
 
                                 SessionEvent::Words {
                                     words: updated_words,
                                 }
                                 .emit(&app)
+                                .unwrap();
                             }
-                            .unwrap();
                         }
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");

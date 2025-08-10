@@ -6,12 +6,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-// Add these imports for file operations
-// import { message } from "@tauri-apps/plugin-dialog";
-// import { writeFile } from "@tauri-apps/plugin-fs";
-
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Form,
@@ -28,7 +24,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { WERPerformanceModal } from "../wer-modal";
 import { SharedSTTProps } from "./shared";
 
-export const sttModelMetadata: Record<SupportedModel, {
+export const sttModelMetadata: Record<WhisperModel, {
   name: string;
   description: string;
   intelligence: number;
@@ -353,8 +349,9 @@ export function STTView({
               onClick={() => {
                 if (model.downloaded) {
                   setSelectedSTTModel(model.key);
-                  localSttCommands.setCurrentModel(model.key as SupportedModel);
-                  localSttCommands.restartServer();
+                  localSttCommands.setCurrentModel(model.key as WhisperModel);
+                  localSttCommands.stopServer(null);
+                  localSttCommands.startServer(null);
                 }
               }}
             >

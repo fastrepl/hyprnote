@@ -4,7 +4,10 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error(transparent)]
-    Moonshine(#[from] hypr_moonshine::Error),
+    HyprOnnx(#[from] hypr_onnx::Error),
+
+    #[error(transparent)]
+    Ort(#[from] hypr_onnx::ort::Error),
 
     #[error("invalid model name: {0}")]
     InvalidModelName(String),

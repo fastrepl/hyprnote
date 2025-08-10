@@ -4,7 +4,7 @@ import { BrainIcon, CheckCircle2Icon, MicIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Progress } from "@hypr/ui/components/ui/progress";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -18,7 +18,7 @@ interface ModelDownloadProgress {
 }
 
 interface DownloadProgressViewProps {
-  selectedSttModel: SupportedModel;
+  selectedSttModel: WhisperModel;
   llmSelection: "hyprllm" | "byom" | null;
   onContinue: () => void;
 }
@@ -174,7 +174,7 @@ export const DownloadProgressView = ({
       if (sttDownload.completed) {
         try {
           await localSttCommands.setCurrentModel(selectedSttModel);
-          await localSttCommands.startServer();
+          await localSttCommands.startServer(null);
         } catch (error) {
           console.error("Error setting up STT:", error);
         }

@@ -1,5 +1,8 @@
-pub static SUPPORTED_MODELS: &[SupportedModel] =
-    &[SupportedModel::Llama3p2_3bQ4, SupportedModel::HyprLLM, SupportedModel::Gemma3_4bQ4];
+pub static SUPPORTED_MODELS: &[SupportedModel] = &[
+    SupportedModel::Llama3p2_3bQ4,
+    SupportedModel::HyprLLM,
+    SupportedModel::Gemma3_4bQ4,
+];
 
 #[derive(serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ModelInfo {

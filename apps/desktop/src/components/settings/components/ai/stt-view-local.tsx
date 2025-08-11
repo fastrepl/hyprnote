@@ -229,10 +229,14 @@ function BasicModelsManagement({
 
   return (
     <div className="max-w-2xl">
-      <h3 className={cn(["text-sm font-semibold mb-3 text-gray-700", "flex items-center gap-2"])}>
-        <span>Basic Models</span>
-        <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
-      </h3>
+      <div className="flex flex-col mb-3">
+        <div className={cn(["text-sm font-semibold text-gray-700 flex items-center gap-2"])}>
+          <h3>Basic Models</h3>
+          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+        </div>
+        <p className="text-xs text-gray-500">Default inference mode powered by Whisper.cpp.</p>
+      </div>
+
       <div className="space-y-2">
         {modelsToShow.map((model) => (
           <ModelEntry
@@ -259,14 +263,21 @@ function ProModelsManagement({ on }: { on: boolean }) {
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
-        <h3 className="text-sm font-semibold mb-3 text-gray-700 flex items-center gap-2">
-          <span>Pro Models</span>
-          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
-        </h3>
+        <div className="flex flex-col mb-3">
+          <div className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <h3>Pro Models</h3>
+            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+          </div>
+          <p className="text-xs text-gray-500">
+            Only for pro plan users. Latency and resource optimized. (will be shipped in next few days)
+          </p>
+        </div>
+
         <div className="space-y-2">
           {proModels.data?.map((model) => (
             <ModelEntry
               key={model.key}
+              disabled={true}
               model={{
                 name: model.name,
                 key: model.key,
@@ -294,6 +305,7 @@ function ModelEntry({
   downloadingModels,
   handleModelDownload,
   handleShowFileLocation,
+  disabled,
 }: {
   model: STTModel;
   selectedSTTModel: string;
@@ -301,6 +313,7 @@ function ModelEntry({
   downloadingModels: Set<string>;
   handleModelDownload: (model: string) => void;
   handleShowFileLocation: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div
@@ -363,6 +376,7 @@ function ModelEntry({
             <Button
               size="sm"
               variant="outline"
+              disabled={disabled}
               onClick={(e) => {
                 e.stopPropagation();
                 handleModelDownload(model.key);

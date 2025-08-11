@@ -27,7 +27,6 @@ import { CustomEndpointView } from "./custom-endpoint-view";
 import { DownloadProgressView } from "./download-progress-view";
 import { LanguageSelectionView } from "./language-selection-view";
 import { LLMSelectionView } from "./llm-selection-view";
-import { ModelSelectionView } from "./model-selection-view";
 import { WelcomeView } from "./welcome-view";
 
 interface WelcomeModalProps {
@@ -64,7 +63,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [port, setPort] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<
     | "welcome"
-    | "model-selection"
     | "download-progress"
     | "audio-permissions"
     | "llm-selection"
@@ -74,7 +72,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [selectedSttModel, setSelectedSttModel] = useState<WhisperModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
   const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
-  const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
+  // const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
   const selectSTTModel = useMutation({
     mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
@@ -213,15 +211,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [currentStep, userId]);
 
   useEffect(() => {
-    if (currentStep === "model-selection" && userId) {
-      analyticsCommands.event({
-        event: "onboarding_reached_model_selection",
-        distinct_id: userId,
-      });
-    }
-  }, [currentStep, userId]);
-
-  useEffect(() => {
     if (currentStep === "download-progress" && userId) {
       analyticsCommands.event({
         event: "onboarding_reached_download_progress",
@@ -252,12 +241,14 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     setCurrentStep("audio-permissions");
   };
 
+  /*
   const handleModelSelected = (model: WhisperModel) => {
     selectSTTModel.mutate(model);
     setSelectedSttModel(model);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
     setCurrentStep("download-progress");
   };
+  */
 
   const handleDownloadProgressContinue = () => {
     setWentThroughDownloads(true);
@@ -268,20 +259,28 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     setCurrentStep("llm-selection");
   };
 
-  const handleLLMSelectionContinue = (selection: "hyprllm" | "byom") => {
+  const handleLLMSelectionContinue = async (selection: "hyprllm" | "byom") => {
     setLlmSelection(selection);
     if (selection === "hyprllm") {
-      setCameFromLlmSelection(true);
-      setCurrentStep("model-selection");
+      // Automatically select the 'small' model and proceed to download
+      const smallModel = "QuantizedSmall" as WhisperModel;
+      await selectSTTModel.mutateAsync(smallModel);
+      setSelectedSttModel(smallModel);
+      sessionStorage.setItem("model-download-toast-dismissed", "true");
+      setCurrentStep("download-progress");
     } else {
-      setCameFromLlmSelection(false);
+      // setCameFromLlmSelection(false);
       setCurrentStep("custom-endpoint");
     }
   };
 
-  const handleCustomEndpointContinue = () => {
-    setCameFromLlmSelection(false);
-    setCurrentStep("model-selection");
+  const handleCustomEndpointContinue = async () => {
+    // Automatically select the 'small' model and proceed to download
+    const smallModel = "QuantizedSmall" as WhisperModel;
+    await selectSTTModel.mutateAsync(smallModel);
+    setSelectedSttModel(smallModel);
+    sessionStorage.setItem("model-download-toast-dismissed", "true");
+    setCurrentStep("download-progress");
   };
 
   const handleLanguageSelectionContinue = async (languages: string[]) => {
@@ -351,27 +350,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           </button>
         )}
 
-        {/* Back button for model-selection (only when coming from llm-selection) */}
-        {currentStep === "model-selection" && cameFromLlmSelection && (
-          <button
-            onClick={() => setCurrentStep("llm-selection")}
-            className="absolute top-6 left-6 z-20 flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 hover:bg-white/90"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <Trans>Back</Trans>
-          </button>
-        )}
-
         <div className="z-10">
           {currentStep === "welcome" && (
             <WelcomeView
               portReady={port !== null}
               onGetStarted={handleStartLocal}
-            />
-          )}
-          {currentStep === "model-selection" && (
-            <ModelSelectionView
-              onContinue={handleModelSelected}
             />
           )}
           {currentStep === "download-progress" && (

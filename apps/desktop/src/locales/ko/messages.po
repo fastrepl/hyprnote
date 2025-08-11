@@ -443,8 +443,7 @@ msgstr ""
 msgid "Autonomy Selector"
 msgstr ""
 
-#: src/components/welcome-modal/index.tsx:350
-#: src/components/welcome-modal/index.tsx:361
+#: src/components/welcome-modal/index.tsx:349
 msgid "Back"
 msgstr ""
 

@@ -15,6 +15,7 @@ Default permissions for the plugin
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-downloaded-model`
+- `allow-list-supported-model`
 
 ## Permission Table
 
@@ -203,6 +204,32 @@ Enables the list_downloaded_model command without any pre-configured scope.
 <td>
 
 Denies the list_downloaded_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-list-supported-model`
+
+</td>
+<td>
+
+Enables the list_supported_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-list-supported-model`
+
+</td>
+<td>
+
+Denies the list_supported_model command without any pre-configured scope.
 
 </td>
 </tr>

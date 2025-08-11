@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
+import { openPath } from "@tauri-apps/plugin-opener";
+import { DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,7 +19,6 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Slider } from "@hypr/ui/components/ui/slider";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps } from "./shared";
 
@@ -130,9 +129,6 @@ export function STTViewLocal({
   setSttModels,
   downloadingModels,
   handleModelDownload,
-  handleShowFileLocation,
-  isWerModalOpen,
-  setIsWerModalOpen,
 }: STTViewProps) {
   const queryClient = useQueryClient();
 
@@ -186,6 +182,10 @@ export function STTViewLocal({
 
   const defaultModelKeys = ["QuantizedTiny", "QuantizedSmall", "QuantizedLargeTurbo"];
   const otherModelKeys = ["QuantizedTinyEn", "QuantizedBase", "QuantizedBaseEn", "QuantizedSmallEn"];
+
+  const handleShowFileLocation = async () => {
+    localSttCommands.modelsDir().then((path) => openPath(path));
+  };
 
   const modelsToShow = sttModels.filter(model => {
     if (defaultModelKeys.includes(model.key)) {
@@ -244,22 +244,6 @@ export function STTViewLocal({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">
-          <Trans>Transcribing</Trans>
-        </h2>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" variant="ghost" onClick={() => setIsWerModalOpen(true)}>
-              <InfoIcon className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Trans>Performance difference between languages</Trans>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
       <div className="max-w-2xl">
         <h3 className="text-sm font-semibold mb-3 text-gray-700">
           Default
@@ -354,10 +338,7 @@ export function STTViewLocal({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShowFileLocation("stt");
-                      }}
+                      onClick={handleShowFileLocation}
                       className="text-xs h-7 px-2 flex items-center gap-1"
                     >
                       <FolderIcon className="w-3 h-3" />

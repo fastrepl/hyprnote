@@ -1,12 +1,12 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect } from "react";
 
-import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands, type SupportedModel } from "@hypr/plugin-local-llm";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { SharedLLMProps } from "./shared";
+import { type LLMModel, SharedLLMProps } from "./shared";
 
 export function LLMLocalView({
   customLLMEnabled,
@@ -16,13 +16,15 @@ export function LLMLocalView({
   downloadingModels,
   llmModelsState,
   handleModelDownload,
-  handleShowFileLocation,
 }: SharedLLMProps) {
-  // call backend for the current selected LLM model and sets it
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
   });
+
+  const handleShowFileLocation = async () => {
+    localLlmCommands.modelsDir().then((path) => openPath(path));
+  };
 
   useEffect(() => {
     if (currentLLMModel.data && !customLLMEnabled.data) {
@@ -30,19 +32,24 @@ export function LLMLocalView({
     }
   }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
 
+  const handleLocalModelSelection = (model: LLMModel) => {
+    if (model.available && model.downloaded) {
+      setSelectedLLMModel(model.key);
+      localLlmCommands.setCurrentModel(model.key as SupportedModel);
+      // CRITICAL: Disable custom LLM when local model is selected
+      setCustomLLMEnabledMutation.mutate(false);
+      localLlmCommands.restartServer();
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">
-          <Trans>Local Models</Trans>
-        </h2>
-      </div>
-
       <div className="max-w-2xl">
         <div className="space-y-2">
           {llmModelsState.map((model) => (
             <div
               key={model.key}
+              onClick={() => handleLocalModelSelection(model)}
               className={cn(
                 "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
                 selectedLLMModel === model.key && model.available && model.downloaded && !customLLMEnabled.data
@@ -51,15 +58,6 @@ export function LLMLocalView({
                   ? "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer"
                   : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
               )}
-              onClick={() => {
-                if (model.available && model.downloaded) {
-                  setSelectedLLMModel(model.key);
-                  localLlmCommands.setCurrentModel(model.key as SupportedModel);
-                  // CRITICAL: Disable custom LLM when local model is selected
-                  setCustomLLMEnabledMutation.mutate(false);
-                  localLlmCommands.restartServer();
-                }
-              }}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-4">
@@ -96,10 +94,7 @@ export function LLMLocalView({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShowFileLocation("llm");
-                      }}
+                      onClick={handleShowFileLocation}
                       className="text-xs h-7 px-2 flex items-center gap-1"
                     >
                       <FolderIcon className="w-3 h-3" />
@@ -132,15 +127,6 @@ export function LLMLocalView({
                     </Button>
                   )}
               </div>
-
-              {!model.available && (
-                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="text-center">
-                    <div className="text-base font-semibold text-gray-700 mb-1">Coming Soon</div>
-                    <div className="text-sm text-gray-500">Feature in development</div>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>

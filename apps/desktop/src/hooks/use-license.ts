@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as keygen from "tauri-plugin-keygen-api";
 
 const LICENSE_QUERY_KEY = ["license"] as const;
+const LICENSE_TTL_SECONDS = 60 * 60 * 24 * 7;
+const REFRESH_THRESHOLD_DAYS = 3;
 
-// https://github.com/bagindo/tauri-plugin-keygen
 export function useLicense() {
   const queryClient = useQueryClient();
 
@@ -16,8 +17,7 @@ export function useLicense() {
       }
       return null;
     },
-    refetchInterval: 1000 * 60 * 1,
-    // This is important for immediate refresh
+    refetchInterval: 1000 * 60 * 5,
     refetchIntervalInBackground: true,
   });
 
@@ -31,7 +31,7 @@ export function useLicense() {
       const license = await keygen.validateCheckoutKey({
         key: cachedKey,
         entitlements: [],
-        ttlSeconds: 60 * 60 * 24 * 7, // 7 days
+        ttlSeconds: LICENSE_TTL_SECONDS,
         ttlForever: false,
       });
 
@@ -46,21 +46,20 @@ export function useLicense() {
     },
   });
 
-  const shouldRefresh = () => {
+  const getLicenseStatus = () => {
     const license = getLicense.data;
-    if (!license || !license.valid) {
-      return false;
+    if (!license?.valid || !license.expiry) {
+      return { needsRefresh: false, isValid: false };
     }
 
-    if (!license.expiry) {
-      throw new Error("license.expiry is null");
-    }
+    const now = Date.now();
+    const expiryTime = new Date(license.expiry).getTime();
+    const daysUntilExpiry = Math.floor((expiryTime - now) / (1000 * 60 * 60 * 24));
 
-    const daysUntilExpiry = Math.floor(
-      (new Date(license.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-    );
-
-    return daysUntilExpiry <= 3 && daysUntilExpiry > 0;
+    return {
+      needsRefresh: daysUntilExpiry <= REFRESH_THRESHOLD_DAYS && daysUntilExpiry > 0,
+      isValid: expiryTime > now,
+    };
   };
 
   const activateLicense = useMutation({
@@ -68,7 +67,7 @@ export function useLicense() {
       const license = await keygen.validateCheckoutKey({
         key,
         entitlements: [],
-        ttlSeconds: 60 * 60 * 24 * 7, // 7 days
+        ttlSeconds: LICENSE_TTL_SECONDS,
         ttlForever: false,
       });
       return license;
@@ -97,7 +96,7 @@ export function useLicense() {
     getLicense,
     activateLicense,
     deactivateLicense,
-    shouldRefresh,
+    getLicenseStatus,
     refreshLicense,
   };
 }

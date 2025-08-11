@@ -312,8 +312,8 @@ impl HyprWindow {
                 .build()?,
             Self::Settings => self
                 .window_builder(app, "/app/settings")
+                .resizable(false)
                 .inner_size(800.0, 600.0)
-                .min_inner_size(800.0, 600.0)
                 .build()?,
             Self::Video(id) => self
                 .window_builder(app, &format!("/video?id={}", id))

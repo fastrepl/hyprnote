@@ -95,7 +95,6 @@ export interface SharedSTTProps {
   setSttModels: React.Dispatch<React.SetStateAction<STTModel[]>>;
   downloadingModels: Set<string>;
   handleModelDownload: (modelKey: string) => Promise<void>;
-  handleShowFileLocation: (modelType: "stt" | "llm") => Promise<void>;
 }
 
 export interface SharedLLMProps {
@@ -113,7 +112,6 @@ export interface SharedLLMProps {
 
   // Functions
   handleModelDownload: (modelKey: string) => Promise<void>;
-  handleShowFileLocation: (modelType: "stt" | "llm") => Promise<void>;
 }
 
 export interface SharedCustomEndpointProps extends SharedLLMProps {

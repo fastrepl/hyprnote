@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { open } from "@tauri-apps/plugin-shell";
 import { InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -187,11 +186,6 @@ export default function LlmAI() {
 
   const handleModelDownload = async (modelKey: string) => {
     await handleLlmModelDownload(modelKey);
-  };
-
-  const handleShowFileLocation = async (modelType: "stt" | "llm") => {
-    const path = await localLlmCommands.modelsDir();
-    await openPath(path);
   };
 
   const customLLMEnabled = useQuery({
@@ -620,7 +614,6 @@ export default function LlmAI() {
     downloadingModels,
     llmModelsState,
     handleModelDownload,
-    handleShowFileLocation,
   };
 
   const customEndpointProps: SharedCustomEndpointProps = {

@@ -14,7 +14,7 @@ export async function showModelSelectToast(language: string) {
   }
 
   const handleClick = () => {
-    const url = { to: "/app/settings", search: { tab: "ai" } } as const satisfies LinkProps;
+    const url = { to: "/app/settings", search: { tab: "ai-stt" } } as const satisfies LinkProps;
 
     windowsCommands.windowShow({ type: "settings" }).then(() => {
       setTimeout(() => {

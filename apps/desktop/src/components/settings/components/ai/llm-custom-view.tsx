@@ -1,4 +1,7 @@
 import { Trans } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useEffect } from "react";
 
 import {
@@ -13,9 +16,6 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
 
@@ -48,14 +48,11 @@ const openrouterModels = [
 
 export function LLMCustomView({
   customLLMEnabled,
-  selectedLLMModel,
   setSelectedLLMModel,
   setCustomLLMEnabledMutation,
   configureCustomEndpoint,
   openAccordion,
   setOpenAccordion,
-  customLLMConnection,
-  getCustomLLMModel,
   openaiForm,
   geminiForm,
   openrouterForm,
@@ -230,12 +227,6 @@ export function LLMCustomView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">
-          <Trans>Custom Endpoints</Trans>
-        </h2>
-      </div>
-
       <div className="max-w-2xl space-y-4">
         {/* OpenAI Accordion */}
         <div

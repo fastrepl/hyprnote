@@ -1,4 +1,4 @@
-use crate::LocalLlmPluginExt;
+use crate::{LocalLlmPluginExt, ModelInfo};
 
 use tauri::ipc::Channel;
 
@@ -10,8 +10,26 @@ pub async fn models_dir<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<S
 
 #[tauri::command]
 #[specta::specta]
-pub async fn list_supported_models() -> Result<Vec<crate::SupportedModel>, String> {
-    Ok(crate::SUPPORTED_MODELS.to_vec())
+pub async fn list_supported_model() -> Result<Vec<ModelInfo>, String> {
+    Ok(vec![
+        ModelInfo {
+            name: "Llama 3.2 3B Q4".to_string(),
+            description: "Not recommended. Exist only for backward compatibility.".to_string(),
+            size_bytes: crate::SupportedModel::Llama3p2_3bQ4.model_size(),
+        },
+        ModelInfo {
+            name: "Gemma 3 4B Q4".to_string(),
+            description: "Recommended for general use.".to_string(),
+            size_bytes: crate::SupportedModel::Gemma3_4bQ4.model_size(),
+        },
+        ModelInfo {
+            name: "HyprLLM".to_string(),
+            description:
+                "Experimental model trained by Hyprnote team. English & Summarization only."
+                    .to_string(),
+            size_bytes: crate::SupportedModel::HyprLLM.model_size(),
+        },
+    ])
 }
 
 #[tauri::command]

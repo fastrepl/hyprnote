@@ -37,7 +37,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
-            commands::list_supported_models,
+            commands::list_supported_model,
             commands::is_server_running::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,

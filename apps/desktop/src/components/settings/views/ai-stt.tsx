@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import { useQueryClient } from "@tanstack/react-query";
-import { openPath } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -41,11 +40,6 @@ export default function SttAI() {
     }, queryClient);
   };
 
-  const handleShowFileLocation = async (modelType: "stt" | "llm") => {
-    const path = await localSttCommands.modelsDir();
-    await openPath(path);
-  };
-
   const sttProps: SharedSTTProps & { isWerModalOpen: boolean; setIsWerModalOpen: (open: boolean) => void } = {
     selectedSTTModel,
     setSelectedSTTModel,
@@ -53,7 +47,6 @@ export default function SttAI() {
     setSttModels,
     downloadingModels,
     handleModelDownload,
-    handleShowFileLocation,
     isWerModalOpen,
     setIsWerModalOpen,
   };

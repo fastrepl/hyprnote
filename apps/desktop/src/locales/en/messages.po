@@ -655,6 +655,11 @@ msgstr "Create your first template to get started"
 #~ msgid "Current Plan"
 #~ msgstr "Current Plan"
 
+#: src/components/settings/views/ai-stt.tsx:66
+#: src/components/settings/views/ai-llm.tsx:620
+msgid "Custom"
+msgstr "Custom"
+
 #: src/components/settings/views/ai.tsx:747
 #~ msgid "Custom Endpoint"
 #~ msgstr "Custom Endpoint"
@@ -1251,8 +1256,8 @@ msgstr "Recent Notes"
 
 #: src/components/settings/views/ai-stt.tsx:66
 #: src/components/settings/views/ai-llm.tsx:620
-msgid "Remote"
-msgstr "Remote"
+#~ msgid "Remote"
+#~ msgstr "Remote"
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"

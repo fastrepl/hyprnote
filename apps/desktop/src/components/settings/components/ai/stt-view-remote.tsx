@@ -6,7 +6,7 @@ export function STTViewRemote() {
       <div className="text-center mb-6">
         <CloudIcon className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-          Remote Transcription
+          Custom Transcription
         </h2>
         <p className="text-base text-gray-600 dark:text-gray-400">
           Coming Soon

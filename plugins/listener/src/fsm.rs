@@ -587,7 +587,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
     let static_prompt = "".to_string();
 
     Ok(owhisper_client::ListenClient::builder()
-        .api_base("http://localhost:50060")
+        .api_base(api_base)
         .api_key(api_key)
         .params(owhisper_interface::ListenParams {
             languages,

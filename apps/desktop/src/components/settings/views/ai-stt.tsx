@@ -11,7 +11,7 @@ import { STTViewRemote } from "../components/ai/stt-view-remote";
 
 export default function SttAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"local" | "remote">("local");
+  const [activeTab, setActiveTab] = useState<"local" | "custom">("local");
 
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
@@ -55,21 +55,21 @@ export default function SttAI() {
     <div className="space-y-8">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "local" | "remote")}
+        onValueChange={(value) => setActiveTab(value as "local" | "custom")}
         className="w-full"
       >
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="local">
             <Trans>Local</Trans>
           </TabsTrigger>
-          <TabsTrigger value="remote">
-            <Trans>Remote</Trans>
+          <TabsTrigger value="custom">
+            <Trans>Custom</Trans>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="local">
           <STTViewLocal {...sttProps} />
         </TabsContent>
-        <TabsContent value="remote">
+        <TabsContent value="custom">
           <STTViewRemote />
         </TabsContent>
       </Tabs>

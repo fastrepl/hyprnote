@@ -113,7 +113,7 @@ const specificityLevels = {
 
 export default function LlmAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"local" | "remote">("local");
+  const [activeTab, setActiveTab] = useState<"local" | "custom">("local");
 
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
@@ -609,21 +609,21 @@ export default function LlmAI() {
     <div className="space-y-8">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "local" | "remote")}
+        onValueChange={(value) => setActiveTab(value as "local" | "custom")}
         className="w-full"
       >
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="local">
             <Trans>Local</Trans>
           </TabsTrigger>
-          <TabsTrigger value="remote">
-            <Trans>Remote</Trans>
+          <TabsTrigger value="custom">
+            <Trans>Custom</Trans>
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {activeTab === "local" && <LLMLocalView {...localLlmProps} />}
-      {activeTab === "remote" && (
+      {activeTab === "custom" && (
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 

@@ -655,6 +655,11 @@ msgstr ""
 #~ msgid "Current Plan"
 #~ msgstr ""
 
+#: src/components/settings/views/ai-stt.tsx:66
+#: src/components/settings/views/ai-llm.tsx:620
+msgid "Custom"
+msgstr ""
+
 #: src/components/settings/views/ai.tsx:747
 #~ msgid "Custom Endpoint"
 #~ msgstr ""
@@ -1251,8 +1256,8 @@ msgstr ""
 
 #: src/components/settings/views/ai-stt.tsx:66
 #: src/components/settings/views/ai-llm.tsx:620
-msgid "Remote"
-msgstr ""
+#~ msgid "Remote"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"

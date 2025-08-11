@@ -1,7 +1,9 @@
 import { Connection } from "@hypr/plugin-connector";
-import { cn } from "@hypr/ui/lib/utils";
+import { type SupportedModel } from "@hypr/plugin-local-llm";
 import { UseMutationResult, UseQueryResult } from "@tanstack/react-query";
 import { UseFormReturn } from "react-hook-form";
+
+import { cn } from "@hypr/ui/lib/utils";
 
 export const RatingDisplay = (
   { label, rating, maxRating = 3, icon: Icon }: {
@@ -42,7 +44,7 @@ export const LanguageDisplay = ({ support }: { support: "multilingual" | "englis
 };
 
 export interface LLMModel {
-  key: string;
+  key: SupportedModel;
   name: string;
   description: string;
   available: boolean;

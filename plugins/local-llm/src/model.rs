@@ -3,6 +3,7 @@ pub static SUPPORTED_MODELS: &[SupportedModel] =
 
 #[derive(serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ModelInfo {
+    pub key: SupportedModel,
     pub name: String,
     pub description: String,
     pub size_bytes: u64,

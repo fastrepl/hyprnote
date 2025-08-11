@@ -83,49 +83,6 @@ const customSchema = z.object({
   api_key: z.string().optional(),
 });
 
-const initialLlmModels: LLMModel[] = [
-  {
-    key: "Llama3p2_3bQ4",
-    name: "Llama 3 (3B, Q4)",
-    description: "Basic",
-    available: true,
-    downloaded: false,
-    size: "2.0 GB",
-  },
-  {
-    key: "HyprLLM",
-    name: "HyprLLM v1",
-    description: "English only",
-    available: true,
-    downloaded: false,
-    size: "1.1 GB",
-  },
-  {
-    key: "HyprLLMv2",
-    name: "HyprLLM v2",
-    description: "Multilingual support",
-    available: false,
-    downloaded: false,
-    size: "1.1 GB",
-  },
-  {
-    key: "HyprLLMv3",
-    name: "HyprLLM v3",
-    description: "Cross-language support",
-    available: false,
-    downloaded: false,
-    size: "1.1 GB",
-  },
-  {
-    key: "HyprLLMv4",
-    name: "HyprLLM v4",
-    description: "Professional domains",
-    available: false,
-    downloaded: false,
-    size: "1.1 GB",
-  },
-];
-
 const aiConfigSchema = z.object({
   aiSpecificity: z.number().int().min(1).max(4),
 });
@@ -160,7 +117,22 @@ export default function LlmAI() {
 
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
-  const [llmModelsState, setLlmModels] = useState(initialLlmModels);
+  const [llmModelsState, setLlmModels] = useState<LLMModel[]>([]);
+
+  useEffect(() => {
+    localLlmCommands.listSupportedModel().then((ms) => {
+      const models: LLMModel[] = ms.map((model) => ({
+        key: model.key as SupportedModel,
+        name: model.name,
+        description: model.description,
+        available: true,
+        downloaded: false,
+        size: `${(model.size_bytes / 1024 / 1024 / 1024).toFixed(2)} GB`,
+      }));
+
+      setLlmModels(models);
+    });
+  }, []);
 
   const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | null>(null);
 
@@ -214,13 +186,16 @@ export default function LlmAI() {
     queryKey: ["llm-model-download-status"],
     queryFn: async () => {
       const statusChecks = await Promise.all([
-        localLlmCommands.isModelDownloaded("Llama3p2_3bQ4" as SupportedModel),
-        localLlmCommands.isModelDownloaded("HyprLLM" as SupportedModel),
+        localLlmCommands.isModelDownloaded("Llama3p2_3bQ4" satisfies SupportedModel),
+        localLlmCommands.isModelDownloaded("HyprLLM" satisfies SupportedModel),
+        localLlmCommands.isModelDownloaded("Gemma3_4bQ4" satisfies SupportedModel),
       ]);
+
       return {
         "Llama3p2_3bQ4": statusChecks[0],
         "HyprLLM": statusChecks[1],
-      } as Record<string, boolean>;
+        "Gemma3_4bQ4": statusChecks[2],
+      } satisfies Record<SupportedModel, boolean>;
     },
     refetchInterval: 3000,
   });

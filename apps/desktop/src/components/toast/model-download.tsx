@@ -83,6 +83,7 @@ export default function ModelDownloadNotification() {
       const results = await Promise.all([
         localLlmCommands.isModelDownloaded("Llama3p2_3bQ4"),
         localLlmCommands.isModelDownloaded("HyprLLM"),
+        localLlmCommands.isModelDownloaded("Gemma3_4bQ4"),
       ]);
 
       return results.some(Boolean);

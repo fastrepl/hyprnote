@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import * as keygen from "tauri-plugin-keygen-api";
 
 const LICENSE_QUERY_KEY = ["license"] as const;
@@ -46,7 +47,7 @@ export function useLicense() {
     },
   });
 
-  const getLicenseStatus = () => {
+  const getLicenseStatus = useCallback(() => {
     const license = getLicense.data;
     if (!license?.valid || !license.expiry) {
       return { needsRefresh: false, isValid: false };
@@ -54,13 +55,14 @@ export function useLicense() {
 
     const now = Date.now();
     const expiryTime = new Date(license.expiry).getTime();
-    const daysUntilExpiry = Math.floor((expiryTime - now) / (1000 * 60 * 60 * 24));
+    const msUntilExpiry = expiryTime - now;
 
     return {
-      needsRefresh: daysUntilExpiry <= REFRESH_THRESHOLD_DAYS && daysUntilExpiry > 0,
-      isValid: expiryTime > now,
+      needsRefresh: msUntilExpiry > 0
+        && msUntilExpiry <= REFRESH_THRESHOLD_DAYS * 24 * 60 * 60 * 1000,
+      isValid: msUntilExpiry > 0,
     };
-  };
+  }, [getLicense.data]);
 
   const activateLicense = useMutation({
     mutationFn: async (key: string) => {

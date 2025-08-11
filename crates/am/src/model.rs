@@ -23,9 +23,9 @@ impl Model {
 
     pub fn repo_name(&self) -> &str {
         match self {
-            Model::ParakeetV2 => "argmaxinc/whisperkit-pro",
-            Model::WhisperLargeV3 => "argmaxinc/parakeetkit-pro",
-            Model::WhisperSmallEn => "argmaxinc/parakeetkit-pro",
+            Model::ParakeetV2 => "argmaxinc/parakeetkit-pro",
+            Model::WhisperLargeV3 => "argmaxinc/whisperkit-pro",
+            Model::WhisperSmallEn => "argmaxinc/whisperkit-pro",
         }
     }
     pub fn model_key(&self) -> &str {

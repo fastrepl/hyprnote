@@ -19,17 +19,14 @@ export function LicenseRefreshProvider({ children }: { children: React.ReactNode
       const status = getLicenseStatus();
       const now = Date.now();
 
-      if (
-        !status.needsRefresh
-        || status.isValid
-        || refreshLicense.isPending
-        || now - lastRefreshAttempt.current < RATE_LIMIT
-      ) {
+      if (refreshLicense.isPending || now - lastRefreshAttempt.current < RATE_LIMIT) {
         return;
       }
 
-      lastRefreshAttempt.current = now;
-      refreshLicense.mutate();
+      if (!status.isValid || status.needsRefresh) {
+        lastRefreshAttempt.current = now;
+        refreshLicense.mutate();
+      }
     };
 
     const timeout = setTimeout(attemptRefresh, INITIAL_DELAY);
@@ -39,7 +36,7 @@ export function LicenseRefreshProvider({ children }: { children: React.ReactNode
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [getLicense.isLoading, getLicenseStatus, refreshLicense]);
+  }, [getLicense.isLoading, getLicenseStatus, refreshLicense.isPending]);
 
   return <>{children}</>;
 }

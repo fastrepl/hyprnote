@@ -51,7 +51,7 @@ function Component() {
       case "general":
         return t`General`;
       case "ai-llm":
-        return t`Summarization`;
+        return t`Intelligence`;
       case "ai-stt":
         return t`Transcription`;
       case "calendar":

@@ -1,7 +1,9 @@
 pub mod external;
 pub mod internal;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, specta::Type,
+)]
 pub enum ServerType {
     #[serde(rename = "internal")]
     Internal,

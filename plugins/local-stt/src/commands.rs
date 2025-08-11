@@ -1,7 +1,8 @@
-use crate::{server::ServerType, LocalSttPluginExt};
-
-use hypr_whisper_local_model::WhisperModel;
+use std::collections::HashMap;
 use tauri::ipc::Channel;
+
+use crate::{server::ServerType, LocalSttPluginExt};
+use hypr_whisper_local_model::WhisperModel;
 
 #[tauri::command]
 #[specta::specta]
@@ -31,6 +32,16 @@ pub async fn list_supported_models() -> Result<Vec<WhisperModel>, String> {
     ];
 
     Ok(models)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_pro_models() -> Result<Vec<hypr_am::ModelInfo>, String> {
+    Ok(vec![
+        hypr_am::Model::WhisperSmallEn.info(),
+        hypr_am::Model::WhisperLargeV3.info(),
+        hypr_am::Model::ParakeetV2.info(),
+    ])
 }
 
 #[tauri::command]
@@ -102,4 +113,12 @@ pub async fn stop_server<R: tauri::Runtime>(
     app.stop_server(server_type)
         .await
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_servers<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<HashMap<ServerType, Option<String>>, String> {
+    app.get_servers().await.map_err(|e| e.to_string())
 }

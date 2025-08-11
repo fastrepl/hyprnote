@@ -319,6 +319,18 @@
           "markdownDescription": "Denies the get_current_model command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_servers command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-servers",
+          "markdownDescription": "Enables the get_servers command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_servers command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-servers",
+          "markdownDescription": "Denies the get_servers command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_status command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-status",
@@ -377,6 +389,18 @@
           "type": "string",
           "const": "deny-list-ggml-backends",
           "markdownDescription": "Denies the list_ggml_backends command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_pro_models command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-pro-models",
+          "markdownDescription": "Enables the list_pro_models command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_pro_models command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-pro-models",
+          "markdownDescription": "Denies the list_pro_models command without any pre-configured scope."
         },
         {
           "description": "Enables the list_supported_models command without any pre-configured scope.",
@@ -451,10 +475,10 @@
           "markdownDescription": "Denies the stop_server command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-models-dir`\n- `allow-is-model-downloaded`\n- `allow-is-model-downloading`\n- `allow-download-model`\n- `allow-start-server`\n- `allow-stop-server`\n- `allow-get-current-model`\n- `allow-set-current-model`\n- `allow-list-supported-models`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-models-dir`\n- `allow-is-model-downloaded`\n- `allow-is-model-downloading`\n- `allow-download-model`\n- `allow-start-server`\n- `allow-stop-server`\n- `allow-get-servers`\n- `allow-get-current-model`\n- `allow-set-current-model`\n- `allow-list-supported-models`\n- `allow-list-pro-models`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-models-dir`\n- `allow-is-model-downloaded`\n- `allow-is-model-downloading`\n- `allow-download-model`\n- `allow-start-server`\n- `allow-stop-server`\n- `allow-get-current-model`\n- `allow-set-current-model`\n- `allow-list-supported-models`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-models-dir`\n- `allow-is-model-downloaded`\n- `allow-is-model-downloading`\n- `allow-download-model`\n- `allow-start-server`\n- `allow-stop-server`\n- `allow-get-servers`\n- `allow-get-current-model`\n- `allow-set-current-model`\n- `allow-list-supported-models`\n- `allow-list-pro-models`"
         }
       ]
     }

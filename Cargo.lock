@@ -191,6 +191,7 @@ dependencies = [
  "reqwest 0.12.22",
  "serde",
  "serde_json",
+ "specta",
  "thiserror 2.0.12",
  "tokio",
 ]

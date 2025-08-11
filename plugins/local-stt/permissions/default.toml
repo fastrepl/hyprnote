@@ -7,7 +7,9 @@ permissions = [
     "allow-download-model",
     "allow-start-server",
     "allow-stop-server",
+    "allow-get-servers",
     "allow-get-current-model",
     "allow-set-current-model",
     "allow-list-supported-models",
+    "allow-list-pro-models",
 ]

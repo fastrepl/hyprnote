@@ -207,7 +207,7 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, languages, jargons, redemption_time_ms) = {
+        let (record, languages, jargons) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -223,11 +223,7 @@ impl Session {
                 .as_ref()
                 .map_or_else(Vec::new, |c| c.general.jargons.clone());
 
-            let redemption_time_ms = config
-                .as_ref()
-                .map_or_else(|| 500, |c| c.ai.redemption_time_ms.unwrap_or(500));
-
-            (record, languages, jargons, redemption_time_ms)
+            (record, languages, jargons)
         };
 
         let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
@@ -248,7 +244,6 @@ impl Session {
             languages,
             jargons,
             session_id == onboarding_session_id,
-            redemption_time_ms,
         )
         .await?;
 
@@ -572,7 +567,6 @@ async fn setup_listen_client<R: tauri::Runtime>(
     languages: Vec<hypr_language::Language>,
     _jargons: Vec<String>,
     is_onboarding: bool,
-    redemption_time_ms: u32,
 ) -> Result<owhisper_client::ListenClientDual, crate::Error> {
     let api_base = {
         use tauri_plugin_connector::{Connection, ConnectorPluginExt};
@@ -593,16 +587,12 @@ async fn setup_listen_client<R: tauri::Runtime>(
     let static_prompt = "".to_string();
 
     Ok(owhisper_client::ListenClient::builder()
-        .api_base(api_base)
+        .api_base("http://localhost:50060")
         .api_key(api_key)
         .params(owhisper_interface::ListenParams {
             languages,
             static_prompt,
-            redemption_time_ms: if is_onboarding {
-                70
-            } else {
-                redemption_time_ms.into()
-            },
+            redemption_time_ms: if is_onboarding { 70 } else { 500 },
             ..Default::default()
         })
         .build_dual())

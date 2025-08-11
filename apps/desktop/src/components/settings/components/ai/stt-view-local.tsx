@@ -1,26 +1,13 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { DownloadIcon, FolderIcon } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useEffect, useMemo } from "react";
 
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@hypr/ui/components/ui/form";
-import { Slider } from "@hypr/ui/components/ui/slider";
 import { cn } from "@hypr/ui/lib/utils";
-import { SharedSTTProps } from "./shared";
+import { SharedSTTProps, STTModel } from "./shared";
 
 export const sttModelMetadata: Record<WhisperModel, {
   name: string;
@@ -117,11 +104,6 @@ interface STTViewProps extends SharedSTTProps {
   setIsWerModalOpen: (open: boolean) => void;
 }
 
-const aiConfigSchema = z.object({
-  redemptionTimeMs: z.number().int().min(300).max(1200),
-});
-type AIConfigValues = z.infer<typeof aiConfigSchema>;
-
 export function STTViewLocal({
   selectedSTTModel,
   setSelectedSTTModel,
@@ -130,7 +112,10 @@ export function STTViewLocal({
   downloadingModels,
   handleModelDownload,
 }: STTViewProps) {
-  const queryClient = useQueryClient();
+  const servers = useQuery({
+    queryKey: ["local-stt-servers"],
+    queryFn: () => localSttCommands.getServers(),
+  });
 
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
@@ -143,7 +128,8 @@ export function STTViewLocal({
     }
   }, [currentSTTModel.data, setSelectedSTTModel]);
 
-  // call backend for the download status of the STT models and sets it
+  const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
+
   const sttModelDownloadStatus = useQuery({
     queryKey: ["stt-model-download-status"],
     queryFn: async () => {
@@ -180,12 +166,15 @@ export function STTViewLocal({
     }
   }, [sttModelDownloadStatus.data, setSttModels]);
 
-  const defaultModelKeys = ["QuantizedTiny", "QuantizedSmall", "QuantizedLargeTurbo"];
-  const otherModelKeys = ["QuantizedTinyEn", "QuantizedBase", "QuantizedBaseEn", "QuantizedSmallEn"];
-
-  const handleShowFileLocation = async () => {
-    localSttCommands.modelsDir().then((path) => openPath(path));
-  };
+  const defaultModelKeys = ["QuantizedSmall"];
+  const otherModelKeys = [
+    "QuantizedTiny",
+    "QuantizedTinyEn",
+    "QuantizedBase",
+    "QuantizedBaseEn",
+    "QuantizedSmallEn",
+    "QuantizedLargeTurbo",
+  ];
 
   const modelsToShow = sttModels.filter(model => {
     if (defaultModelKeys.includes(model.key)) {
@@ -199,222 +188,190 @@ export function STTViewLocal({
     return false;
   });
 
-  const config = useQuery({
-    queryKey: ["config", "ai"],
-    queryFn: async () => {
-      const result = await dbCommands.getConfig();
-      return result;
-    },
-  });
+  return (
+    <div className="space-y-6">
+      <BasicModelsManagement
+        on={!!servers.data?.internal}
+        modelsToShow={modelsToShow}
+        selectedSTTModel={selectedSTTModel}
+        setSelectedSTTModel={setSelectedSTTModel}
+        downloadingModels={downloadingModels}
+        handleModelDownload={handleModelDownload}
+      />
+      {amAvailable && (
+        <ProModelsManagement
+          on={!!servers.data?.external}
+        />
+      )}
+    </div>
+  );
+}
 
-  const aiConfigForm = useForm<AIConfigValues>({
-    resolver: zodResolver(aiConfigSchema),
-    defaultValues: {
-      redemptionTimeMs: 500,
-    },
-  });
+function BasicModelsManagement({
+  on,
+  modelsToShow,
+  selectedSTTModel,
+  setSelectedSTTModel,
+  downloadingModels,
+  handleModelDownload,
+}: {
+  on: boolean;
+  modelsToShow: STTModel[];
+  selectedSTTModel: string;
+  setSelectedSTTModel: (model: string) => void;
+  downloadingModels: Set<string>;
+  handleModelDownload: (model: string) => void;
+}) {
+  const handleShowFileLocation = async () => {
+    localSttCommands.modelsDir().then((path) => openPath(path));
+  };
 
-  useEffect(() => {
-    if (config.data) {
-      aiConfigForm.reset({
-        redemptionTimeMs: config.data.ai.redemption_time_ms ?? 500,
-      });
-    }
-  }, [config.data, aiConfigForm]);
+  return (
+    <div className="max-w-2xl">
+      <h3 className={cn(["text-sm font-semibold mb-3 text-gray-700", "flex items-center gap-2"])}>
+        <span>Basic Models</span>
+        <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+      </h3>
+      <div className="space-y-2">
+        {modelsToShow.map((model) => (
+          <ModelEntry
+            key={model.key}
+            model={model}
+            selectedSTTModel={selectedSTTModel}
+            setSelectedSTTModel={setSelectedSTTModel}
+            downloadingModels={downloadingModels}
+            handleModelDownload={handleModelDownload}
+            handleShowFileLocation={handleShowFileLocation}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  const aiConfigMutation = useMutation({
-    mutationFn: async (values: AIConfigValues) => {
-      if (!config.data) {
-        return;
-      }
-
-      await dbCommands.setConfig({
-        ...config.data,
-        ai: {
-          ...config.data.ai,
-          redemption_time_ms: values.redemptionTimeMs ?? 500,
-        },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["config", "ai"] });
-    },
-    onError: console.error,
+function ProModelsManagement({ on }: { on: boolean }) {
+  const proModels = useQuery({
+    queryKey: ["pro-models"],
+    queryFn: () => localSttCommands.listProModels(),
   });
 
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
-        <h3 className="text-sm font-semibold mb-3 text-gray-700">
-          Default
+        <h3 className="text-sm font-semibold mb-3 text-gray-700 flex items-center gap-2">
+          <span>Pro Models</span>
+          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
         </h3>
         <div className="space-y-2">
-          {modelsToShow.map((model) => (
-            <div
+          {proModels.data?.map((model) => (
+            <ModelEntry
               key={model.key}
-              className={cn(
-                "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
-                selectedSTTModel === model.key && model.downloaded
-                  ? "border-solid border-blue-500 bg-blue-50"
-                  : model.downloaded
-                  ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
-                  : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
-              )}
-              onClick={() => {
-                if (model.downloaded) {
-                  setSelectedSTTModel(model.key);
-                  localSttCommands.setCurrentModel(model.key as WhisperModel);
-                  localSttCommands.stopServer(null);
-                  localSttCommands.startServer(null);
-                }
+              model={{
+                name: model.name,
+                key: model.key,
+                downloaded: false,
+                size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
+                fileName: "",
               }}
-            >
-              <div className="flex items-center gap-6 flex-1">
-                <div className="min-w-0">
-                  <h3
-                    className={cn(
-                      "font-semibold text-base",
-                      model.downloaded ? "text-gray-900" : "text-gray-400",
-                    )}
-                  >
-                    {model.name}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "text-xs font-medium",
-                        model.downloaded ? "text-gray-700" : "text-gray-400",
-                      )}
-                    >
-                      Accuracy
-                    </span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3].map((step) => (
-                        <div
-                          key={step}
-                          className={cn(
-                            "w-2 h-2 rounded-full",
-                            model.accuracy >= step
-                              ? "bg-green-500"
-                              : "bg-gray-200",
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        "text-xs font-medium",
-                        model.downloaded ? "text-gray-700" : "text-gray-400",
-                      )}
-                    >
-                      Speed
-                    </span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3].map((step) => (
-                        <div
-                          key={step}
-                          className={cn(
-                            "w-2 h-2 rounded-full",
-                            model.speed >= step
-                              ? "bg-blue-500"
-                              : "bg-gray-200",
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                {model.downloaded
-                  ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleShowFileLocation}
-                      className="text-xs h-7 px-2 flex items-center gap-1"
-                    >
-                      <FolderIcon className="w-3 h-3" />
-                      Show in Finder
-                    </Button>
-                  )
-                  : downloadingModels.has(model.key)
-                  ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                      className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
-                    >
-                      Downloading...
-                    </Button>
-                  )
-                  : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleModelDownload(model.key);
-                      }}
-                      className="text-xs h-7 px-2 flex items-center gap-1"
-                    >
-                      <DownloadIcon className="w-3 h-3" />
-                      {model.size}
-                    </Button>
-                  )}
-              </div>
-            </div>
+              selectedSTTModel={""}
+              setSelectedSTTModel={() => {}}
+              downloadingModels={new Set()}
+              handleModelDownload={() => {}}
+              handleShowFileLocation={() => {}}
+            />
           ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="max-w-2xl">
-        <div className="border rounded-lg p-4">
-          <h3 className="text-sm font-semibold mb-4">
-            Configuration
+function ModelEntry({
+  model,
+  selectedSTTModel,
+  setSelectedSTTModel,
+  downloadingModels,
+  handleModelDownload,
+  handleShowFileLocation,
+}: {
+  model: STTModel;
+  selectedSTTModel: string;
+  setSelectedSTTModel: (model: string) => void;
+  downloadingModels: Set<string>;
+  handleModelDownload: (model: string) => void;
+  handleShowFileLocation: () => void;
+}) {
+  return (
+    <div
+      key={model.key}
+      className={cn(
+        "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
+        selectedSTTModel === model.key && model.downloaded
+          ? "border-solid border-blue-500 bg-blue-50"
+          : model.downloaded
+          ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
+          : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+      )}
+      onClick={() => {
+        if (model.downloaded) {
+          setSelectedSTTModel(model.key as WhisperModel);
+          localSttCommands.setCurrentModel(model.key as WhisperModel);
+          localSttCommands.stopServer(null);
+          localSttCommands.startServer(null);
+        }
+      }}
+    >
+      <div className="flex items-center gap-6 flex-1">
+        <div className="min-w-0">
+          <h3
+            className={cn(
+              "font-semibold text-base",
+              model.downloaded ? "text-gray-900" : "text-gray-400",
+            )}
+          >
+            {model.name}
           </h3>
-          <Form {...aiConfigForm}>
-            <FormField
-              control={aiConfigForm.control}
-              name="redemptionTimeMs"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium">
-                    Redemption Time ({field.value ?? 500}ms)
-                  </FormLabel>
-                  <FormDescription className="text-xs">
-                    Lower value will cause model to output text more often, but may cause performance issues.
-                  </FormDescription>
-                  <FormControl>
-                    <div className="flex items-center justify-center gap-4">
-                      <Slider
-                        min={300}
-                        max={1200}
-                        step={100}
-                        value={[field.value || 500]}
-                        onValueChange={(value) => {
-                          const newValue = value[0];
-                          field.onChange(newValue);
-                          aiConfigMutation.mutate({ redemptionTimeMs: newValue });
-                        }}
-                        className="w-[100%] [&>.relative>.absolute]:bg-gray-400 [&>.relative>span[data-state='active']]:bg-gray-300 [&>.relative>span]:border-gray-200"
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Form>
         </div>
+      </div>
+
+      <div className="flex items-center">
+        {model.downloaded
+          ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleShowFileLocation}
+              className="text-xs h-7 px-2 flex items-center gap-1"
+            >
+              <FolderIcon className="w-3 h-3" />
+              Show in Finder
+            </Button>
+          )
+          : downloadingModels.has(model.key)
+          ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled
+              className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
+            >
+              Downloading...
+            </Button>
+          )
+          : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleModelDownload(model.key);
+              }}
+              className="text-xs h-7 px-2 flex items-center gap-1"
+            >
+              <DownloadIcon className="w-3 h-3" />
+              {model.size}
+            </Button>
+          )}
       </div>
     </div>
   );

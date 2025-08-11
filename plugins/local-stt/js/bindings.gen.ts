@@ -13,9 +13,6 @@ async modelsDir() : Promise<string> {
 async listGgmlBackends() : Promise<GgmlBackend[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
 },
-async isServerRunning() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-stt|is_server_running");
-},
 async isModelDownloaded(model: WhisperModel) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model });
 },
@@ -34,11 +31,17 @@ async getCurrentModel() : Promise<WhisperModel> {
 async setCurrentModel(model: WhisperModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
 },
+async getServers() : Promise<Partial<{ [key in ServerType]: string | null }>> {
+    return await TAURI_INVOKE("plugin:local-stt|get_servers");
+},
 async startServer(serverType: ServerType | null) : Promise<string> {
     return await TAURI_INVOKE("plugin:local-stt|start_server", { serverType });
 },
 async stopServer(serverType: ServerType | null) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType });
+},
+async listProModels() : Promise<ModelInfo[]> {
+    return await TAURI_INVOKE("plugin:local-stt|list_pro_models");
 }
 }
 
@@ -58,6 +61,7 @@ recordedProcessingEvent: "plugin:local-stt:recorded-processing-event"
 /** user-defined types **/
 
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
+export type ModelInfo = { key: string; name: string; size_bytes: number }
 export type RecordedProcessingEvent = { type: "progress"; current: number; total: number; word: Word2 }
 export type ServerType = "internal" | "external"
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }

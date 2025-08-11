@@ -36,8 +36,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_supported_models,
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
+            commands::get_servers::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
+            commands::list_pro_models,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
         .events(tauri_specta::collect_events![

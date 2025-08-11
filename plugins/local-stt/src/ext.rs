@@ -1,4 +1,4 @@
-use std::{future::Future, path::PathBuf};
+use std::{collections::HashMap, future::Future, path::PathBuf};
 
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
@@ -26,6 +26,9 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
         server_type: Option<ServerType>,
     ) -> impl Future<Output = Result<bool, crate::Error>>;
+    fn get_servers(
+        &self,
+    ) -> impl Future<Output = Result<HashMap<ServerType, Option<String>>, crate::Error>>;
 
     fn get_current_model(&self) -> Result<WhisperModel, crate::Error>;
     fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error>;
@@ -200,6 +203,25 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         }
 
         Ok(stopped)
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn get_servers(&self) -> Result<HashMap<ServerType, Option<String>>, crate::Error> {
+        let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
+
+        Ok([
+            (
+                ServerType::Internal,
+                guard.internal_server.as_ref().map(|s| s.api_base.clone()),
+            ),
+            (
+                ServerType::External,
+                guard.external_server.as_ref().map(|s| s.api_base.clone()),
+            ),
+        ]
+        .into_iter()
+        .collect())
     }
 
     #[tracing::instrument(skip_all)]

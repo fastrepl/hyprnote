@@ -55,8 +55,6 @@ export interface LLMModel {
 export interface STTModel {
   key: string;
   name: string;
-  accuracy: number;
-  speed: number;
   size: string;
   downloaded: boolean;
   fileName: string;

@@ -6,9 +6,11 @@ const COMMANDS: &[&str] = &[
     "download_model",
     "start_server",
     "stop_server",
+    "get_servers",
     "get_current_model",
     "set_current_model",
     "list_supported_models",
+    "list_pro_models",
 ];
 
 fn main() {

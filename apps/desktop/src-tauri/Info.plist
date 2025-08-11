@@ -10,7 +10,5 @@
   <string>This app requires contacts access to function properly.</string>
   <key>NSCalendarsFullAccessUsageDescription</key>
   <string>This app requires access to your calendar to read events.</string>
-  <key>NSUserNotificationsUsageDescription</key>
-  <string>This app uses notifications to keep you informed about meeting updates and important events.</string>
 </dict>
 </plist>

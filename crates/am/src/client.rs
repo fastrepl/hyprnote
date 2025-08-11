@@ -4,12 +4,12 @@ use crate::{
 use reqwest::{Response, StatusCode};
 
 #[derive(Clone)]
-pub struct AmClient {
+pub struct Client {
     client: reqwest::Client,
     base_url: String,
 }
 
-impl AmClient {
+impl Client {
     pub fn new(base_url: impl Into<String>) -> Self {
         Self {
             client: reqwest::Client::new(),
@@ -198,7 +198,7 @@ impl InitRequest {
     }
 }
 
-impl Default for AmClient {
+impl Default for Client {
     fn default() -> Self {
         Self::new("http://localhost:50060")
     }

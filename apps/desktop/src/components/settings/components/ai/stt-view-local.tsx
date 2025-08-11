@@ -115,6 +115,7 @@ export function STTViewLocal({
   const servers = useQuery({
     queryKey: ["local-stt-servers"],
     queryFn: () => localSttCommands.getServers(),
+    refetchInterval: 1000,
   });
 
   const currentSTTModel = useQuery({

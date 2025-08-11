@@ -48,7 +48,14 @@ impl ServerState {
 #[derive(Clone)]
 pub struct ServerHandle {
     pub api_base: String,
-    pub shutdown: tokio::sync::watch::Sender<()>,
+    shutdown: tokio::sync::watch::Sender<()>,
+}
+
+impl ServerHandle {
+    pub fn terminate(self) -> Result<(), crate::Error> {
+        let _ = self.shutdown.send(());
+        Ok(())
+    }
 }
 
 pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error> {

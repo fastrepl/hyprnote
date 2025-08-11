@@ -14,7 +14,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_client_creation() {
-        let client = AmClient::new("http://localhost:50060");
+        let client = Client::new("http://localhost:50060");
         let status = client.status().await;
         println!("{:?}", status);
         assert!(true);

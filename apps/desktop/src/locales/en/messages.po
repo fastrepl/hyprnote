@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:362
+#: src/components/settings/views/general.tsx:402
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -355,7 +355,7 @@ msgstr "Add more quotes"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:353
+#: src/components/settings/views/general.tsx:393
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -520,7 +520,7 @@ msgstr "Chat with this meeting"
 msgid "Choose the languages you speak for better transcription accuracy"
 msgstr "Choose the languages you speak for better transcription accuracy"
 
-#: src/components/settings/views/general.tsx:187
+#: src/components/settings/views/general.tsx:191
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
@@ -667,7 +667,7 @@ msgstr "Custom"
 #~ msgid "Custom Endpoints"
 #~ msgstr "Custom Endpoints"
 
-#: src/components/settings/views/general.tsx:350
+#: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -697,7 +697,7 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
-#: src/components/settings/views/general.tsx:240
+#: src/components/settings/views/general.tsx:280
 msgid "Display language"
 msgstr "Display language"
 
@@ -938,6 +938,10 @@ msgstr "Join meeting"
 #: src/components/settings/views/general.tsx:227
 #~ msgid "Language"
 #~ msgstr "Language"
+
+#: src/components/settings/views/general.tsx:247
+msgid "Language for AI-generated summaries"
+msgstr "Language for AI-generated summaries"
 
 #: src/routes/app.settings.tsx:54
 #~ msgid "Language Model"
@@ -1217,7 +1221,7 @@ msgstr "people"
 #~ msgid "Play video"
 #~ msgstr "Play video"
 
-#: src/components/settings/views/general.tsx:243
+#: src/components/settings/views/general.tsx:283
 msgid "Primary language for the interface"
 msgstr "Primary language for the interface"
 
@@ -1301,7 +1305,7 @@ msgstr "Save current recording"
 msgid "Save Date"
 msgstr "Save Date"
 
-#: src/components/settings/views/general.tsx:184
+#: src/components/settings/views/general.tsx:188
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1370,7 +1374,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:272
+#: src/components/settings/views/general.tsx:312
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1390,7 +1394,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:210
+#: src/components/settings/views/general.tsx:214
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1422,7 +1426,7 @@ msgstr "Sound"
 #~ msgid "Speech to Text Model"
 #~ msgstr "Speech to Text Model"
 
-#: src/components/settings/views/general.tsx:269
+#: src/components/settings/views/general.tsx:309
 msgid "Spoken languages"
 msgstr "Spoken languages"
 
@@ -1453,6 +1457,10 @@ msgstr "Stop"
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:61
 #~ msgid "Summarize meeting"
 #~ msgstr "Summarize meeting"
+
+#: src/components/settings/views/general.tsx:244
+msgid "Summary language"
+msgstr "Summary language"
 
 #: src/components/settings/views/billing.tsx:42
 #~ msgid "Synchronization across multiple devices"

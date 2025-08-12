@@ -59,12 +59,12 @@ export function NoteHeader(
   const containerRef = useRef<HTMLDivElement>(null);
   const headerWidth = useContainerWidth(containerRef);
 
-  const [isVeryNarrow, setIsVeryNarrow] = useState(headerWidth < 300);
+  const [isVeryNarrow, setIsVeryNarrow] = useState(headerWidth < 280);
   const [isNarrow, setIsNarrow] = useState(headerWidth < 450);
   const [isCompact, setIsCompact] = useState(headerWidth < 600);
 
   useEffect(() => {
-    setIsVeryNarrow(prev => headerWidth < (prev ? 320 : 300));
+    setIsVeryNarrow(prev => headerWidth < (prev ? 300 : 280));
     setIsNarrow(prev => headerWidth < (prev ? 470 : 450));
     setIsCompact(prev => headerWidth < (prev ? 620 : 600));
   }, [headerWidth]);

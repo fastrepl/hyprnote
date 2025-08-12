@@ -40,16 +40,16 @@ export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarr
     if (totalTags === 0) {
       return isVeryNarrow ? "Tags" : isNarrow ? "Tags" : "Add tags";
     }
-    
+
     if (isVeryNarrow) {
       return totalTags.toString();
     }
-    
+
     if (isNarrow && firstTag && firstTag.length > 8) {
       const truncated = firstTag.slice(0, 6) + "...";
       return additionalTags > 0 ? `${truncated} +${additionalTags}` : truncated;
     }
-    
+
     return additionalTags > 0 ? `${firstTag} +${additionalTags}` : firstTag;
   };
 
@@ -58,17 +58,15 @@ export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarr
       <PopoverTrigger>
         <div
           className={`relative flex flex-row items-center gap-2 rounded-md hover:bg-neutral-100 flex-shrink-0 text-xs transition-all duration-300 ${
-            isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
-          } ${
-            hasPendingActions ? "bg-gradient-to-r from-blue-50 to-purple-50 animate-pulse shadow-sm" : ""
-          }`}
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+          } ${hasPendingActions ? "bg-gradient-to-r from-blue-50 to-purple-50 animate-pulse shadow-sm" : ""}`}
         >
           <TagsIcon size={14} className="flex-shrink-0" />
           {hasPendingActions && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
           )}
           {!isVeryNarrow && (
-            <span className={`truncate ${totalTags === 0 ? 'text-neutral-500' : ''}`}>
+            <span className={`truncate ${totalTags === 0 ? "text-neutral-500" : ""}`}>
               {getTagText()}
             </span>
           )}

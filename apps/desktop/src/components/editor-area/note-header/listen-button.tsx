@@ -94,6 +94,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
 
   const sessionWords = useSession(sessionId, (s) => s.session.words);
 
+  // don't show consent notification if the session already has transcript 
   useEffect(() => {
     if (ongoingSessionStatus === "running_active" && sessionId === ongoingSessionId && !isOnboarding && sessionWords.length === 0) {
       showConsentNotification();

@@ -33,7 +33,7 @@ export function TranscriptPanelButton() {
       </TooltipTrigger>
       <TooltipContent>
         <p>
-          <Trans>Toggle widget panel</Trans> <Shortcut macDisplay="⌘R" windowsDisplay="Ctrl+R" />
+          <Trans>Toggle transcriptpanel</Trans> <Shortcut macDisplay="⌘R" windowsDisplay="Ctrl+R" />
         </p>
       </TooltipContent>
     </Tooltip>

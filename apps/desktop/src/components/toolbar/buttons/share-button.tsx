@@ -4,7 +4,7 @@ import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
-import { BookText, Check, ChevronDown, ChevronUp, Copy, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
+import { BookText, Check, ChevronDown, ChevronUp, Copy, FileText, HelpCircle, Mail, Share } from "lucide-react";
 import { useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -77,7 +77,7 @@ function ShareButtonInNote() {
   const directActions: DirectAction[] = [
     {
       id: "copy",
-      title: "Copy Note",
+      title: "Copy Note (Markdown)",
       icon: <Copy size={20} />,
       description: "",
     },
@@ -242,7 +242,7 @@ function ShareButtonInNote() {
           className="hover:bg-neutral-200"
           aria-label="Share"
         >
-          <Share2Icon className="size-4" />
+          <Share className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -272,7 +272,7 @@ function ShareButtonInNote() {
                   <button
                     onClick={() => handleExport(action.id)}
                     disabled={exportMutation.isPending}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-between p-3 hover:bg-white"
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`text-gray-700 transition-colors ${isSuccess ? "text-green-600" : ""}`}>
@@ -297,7 +297,7 @@ function ShareButtonInNote() {
               return (
                 <div key={option.id} className="border rounded-lg overflow-hidden">
                   <div
-                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-white transition-colors"
                     onClick={() => toggleExpanded(option.id)}
                   >
                     <div className="flex items-center space-x-3">
@@ -309,7 +309,7 @@ function ShareButtonInNote() {
                     </button>
                   </div>
                   {expanded && (
-                    <div className="px-3 pb-3 pt-2 border-t bg-gray-50">
+                    <div className="px-3 pb-3 pt-2 border-t bg-white">
                       <div className="flex items-center gap-1 mb-3">
                         <p className="text-xs text-gray-600">{option.description}</p>
                         <button
@@ -362,7 +362,7 @@ function ShareButtonInNote() {
                       <button
                         onClick={() => handleExport(option.id)}
                         disabled={exportMutation.isPending}
-                        className="w-full py-1.5 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-xs font-medium disabled:opacity-50"
+                        className="w-full py-1.5 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition-colors text-xs font-medium disabled:opacity-50"
                       >
                         {exportMutation.isPending
                           ? "Pending..."

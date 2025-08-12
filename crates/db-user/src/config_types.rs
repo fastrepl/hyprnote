@@ -47,6 +47,7 @@ user_common_derives! {
         pub selected_template_id: Option<String>,
         #[specta(type = String)]
         #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
+        #[serde(default)]
         pub summary_language: hypr_language::Language,
     }
 }

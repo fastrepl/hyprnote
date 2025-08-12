@@ -50,6 +50,7 @@
     "task:default",
     "obsidian:default",
     "keygen:default",
+    "webhook:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [{ "url": "https://**" }, { "url": "mailto:*" }, { "url": "obsidian://**" }]

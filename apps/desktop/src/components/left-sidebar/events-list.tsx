@@ -78,7 +78,7 @@ export default function EventsList({
         ? (
           <div>
             {events
-              .sort((a, b) => a.start_date.localeCompare(b.start_date))
+              // .sort((a, b) => a.start_date.localeCompare(b.start_date)) - commented out to show the closest events at the bottom
               .map((event) => (
                 <EventItem
                   key={event.id}

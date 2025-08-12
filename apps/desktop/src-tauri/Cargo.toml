@@ -48,6 +48,7 @@ tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tray = { workspace = true }
+tauri-plugin-webhook = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }

@@ -115,6 +115,7 @@ tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tray = { path = "plugins/tray" }
+tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
 async-stream = "0.3.6"

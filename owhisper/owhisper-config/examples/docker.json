@@ -3,8 +3,8 @@
   "models": [
     {
       "type": "whisper-cpp",
-      "id": "whisper-tiny",
-      "assets_dir": "/app/assets/whisper-cpp-tiny"
+      "id": "whisper-base",
+      "assets_dir": "/app/models/whisper-base"
     }
   ]
 }

@@ -34,9 +34,15 @@ COPY --from=builder /app/target/release/owhisper-server /usr/local/bin/owhisper-
 RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
 
-RUN mkdir -p /app/assets
+RUN mkdir -p /app/models /app/config
+
+ENV XDG_CACHE_HOME=/app/cache
+ENV XDG_CONFIG_HOME=/app/config
+ENV XDG_DATA_HOME=/app/data
+
+RUN mkdir -p /app/cache/com.fastrepl.owhisper
 
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/owhisper-server"]
-CMD ["serve", "--config", "/app/assets/config.json", "--port", "8080"]
+CMD ["serve", "--config", "/app/config/config.json", "--port", "8080"]

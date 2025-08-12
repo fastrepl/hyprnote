@@ -9,96 +9,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps, STTModel } from "./shared";
 
-export const sttModelMetadata: Record<WhisperModel, {
-  name: string;
-  description: string;
-  intelligence: number;
-  speed: number;
-  size: string;
-  inputType: string[];
-  outputType: string[];
-  languageSupport: "multilingual" | "english-only";
-  huggingface?: string;
-}> = {
-  "QuantizedTiny": {
-    name: "Tiny",
-    description: "Fastest, lowest accuracy. Good for offline, low-resource use.",
-    intelligence: 1,
-    speed: 3,
-    size: "44 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-tiny-q8_0.bin",
-  },
-  "QuantizedTinyEn": {
-    name: "Tiny - English",
-    description: "Fastest, English-only. Optimized for speed on English audio.",
-    intelligence: 1,
-    speed: 3,
-    size: "44 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-tiny.en-q8_0.bin",
-  },
-  "QuantizedBase": {
-    name: "Base",
-    description: "Good balance of speed and accuracy for multilingual use.",
-    intelligence: 2,
-    speed: 2,
-    size: "82 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base-q8_0.bin",
-  },
-  "QuantizedBaseEn": {
-    name: "Base - English",
-    description: "Balanced speed and accuracy, optimized for English audio.",
-    intelligence: 2,
-    speed: 2,
-    size: "82 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base.en-q8_0.bin",
-  },
-  "QuantizedSmall": {
-    name: "Small",
-    description: "Higher accuracy, moderate speed for multilingual transcription.",
-    intelligence: 2,
-    speed: 2,
-    size: "264 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-small-q8_0.bin",
-  },
-  "QuantizedSmallEn": {
-    name: "Small - English",
-    description: "Higher accuracy, moderate speed, optimized for English audio.",
-    intelligence: 3,
-    speed: 2,
-    size: "264 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-small.en-q8_0.bin",
-  },
-  "QuantizedLargeTurbo": {
-    name: "Large",
-    description: "Highest accuracy, resource intensive. Only for Mac Pro M4 and above.",
-    intelligence: 3,
-    speed: 1,
-    size: "874 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-large-v3-turbo-q8_0.bin",
-  },
-};
-
 interface STTViewProps extends SharedSTTProps {
   isWerModalOpen: boolean;
   setIsWerModalOpen: (open: boolean) => void;
@@ -257,7 +167,12 @@ function BasicModelsManagement({
 function ProModelsManagement({ on }: { on: boolean }) {
   const proModels = useQuery({
     queryKey: ["pro-models"],
-    queryFn: () => localSttCommands.listProModels(),
+    queryFn: async () => {
+      const models = await localSttCommands.listSupportedModels();
+      return models.filter((model) =>
+        model.key === "am-whisper-small-en" || model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2"
+      );
+    },
   });
 
   return (
@@ -269,7 +184,7 @@ function ProModelsManagement({ on }: { on: boolean }) {
             <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
           </div>
           <p className="text-xs text-gray-500">
-            Only for pro plan users. Latency and resource optimized. (will be shipped in next few days)
+            Latency and resource optimized. Only for pro plan users.
           </p>
         </div>
 
@@ -279,7 +194,7 @@ function ProModelsManagement({ on }: { on: boolean }) {
               key={model.key}
               disabled={true}
               model={{
-                name: model.name,
+                name: model.display_name,
                 key: model.key,
                 downloaded: false,
                 size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,

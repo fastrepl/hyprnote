@@ -71,16 +71,16 @@ pub async fn handle_pull(args: PullArgs) -> anyhow::Result<()> {
                 asset.url.clone(),
                 &asset_path,
                 |progress_update| match progress_update {
-                    hypr_file::DownloadProgress::Started => {
+                    hypr_download_interface::DownloadProgress::Started => {
                         pb.set_position(0);
                     }
-                    hypr_file::DownloadProgress::Progress(downloaded, total) => {
+                    hypr_download_interface::DownloadProgress::Progress(downloaded, total) => {
                         if pb.length().unwrap_or(0) != total {
                             pb.set_length(total);
                         }
                         pb.set_position(downloaded);
                     }
-                    hypr_file::DownloadProgress::Finished => {
+                    hypr_download_interface::DownloadProgress::Finished => {
                         pb.finish_with_message(format!("✓ {}", asset.name));
                     }
                 },

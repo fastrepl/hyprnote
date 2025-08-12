@@ -1,54 +1,64 @@
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub enum Model {
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    specta::Type,
+    strum::Display,
+    Eq,
+    Hash,
+    PartialEq,
+)]
+pub enum AmModel {
+    #[serde(rename = "am-parakeet-v2")]
+    #[strum(serialize = "am-parakeet-v2")]
     ParakeetV2,
+    #[serde(rename = "am-whisper-large-v3")]
+    #[strum(serialize = "am-whisper-large-v3")]
     WhisperLargeV3,
+    #[serde(rename = "am-whisper-small-en")]
+    #[strum(serialize = "am-whisper-small-en")]
     WhisperSmallEn,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct ModelInfo {
-    pub key: String,
-    pub name: String,
-    pub size_bytes: u64,
-}
-
-impl Model {
-    pub fn info(&self) -> ModelInfo {
-        ModelInfo {
-            key: self.model_key().to_string(),
-            name: self.display_name().to_string(),
-            size_bytes: self.model_size(),
-        }
-    }
-
+impl AmModel {
     pub fn repo_name(&self) -> &str {
         match self {
-            Model::ParakeetV2 => "argmaxinc/parakeetkit-pro",
-            Model::WhisperLargeV3 => "argmaxinc/whisperkit-pro",
-            Model::WhisperSmallEn => "argmaxinc/whisperkit-pro",
+            AmModel::ParakeetV2 => "argmaxinc/parakeetkit-pro",
+            AmModel::WhisperLargeV3 => "argmaxinc/whisperkit-pro",
+            AmModel::WhisperSmallEn => "argmaxinc/whisperkit-pro",
         }
     }
+
+    pub fn model_dir(&self) -> &str {
+        match self {
+            AmModel::ParakeetV2 => "nvidia_parakeet-v2_476MB",
+            AmModel::WhisperLargeV3 => "openai_whisper-large-v3-v20240930_626MB",
+            AmModel::WhisperSmallEn => "openai_whisper-small.en_217MB",
+        }
+    }
+
     pub fn model_key(&self) -> &str {
         match self {
-            Model::ParakeetV2 => "parakeet-v2_476MB",
-            Model::WhisperLargeV3 => "large-v3-v20240930_626MB",
-            Model::WhisperSmallEn => "small.en_217MB",
+            AmModel::ParakeetV2 => "parakeet-v2_476MB",
+            AmModel::WhisperLargeV3 => "large-v3-v20240930_626MB",
+            AmModel::WhisperSmallEn => "small.en_217MB",
         }
     }
 
     pub fn display_name(&self) -> &str {
         match self {
-            Model::ParakeetV2 => "Parakeet V2 (English)",
-            Model::WhisperLargeV3 => "Whisper Large V3 (English)",
-            Model::WhisperSmallEn => "Whisper Small (English)",
+            AmModel::ParakeetV2 => "Parakeet V2 (English)",
+            AmModel::WhisperLargeV3 => "Whisper Large V3 (English)",
+            AmModel::WhisperSmallEn => "Whisper Small (English)",
         }
     }
 
-    pub fn model_size(&self) -> u64 {
+    pub fn model_size_bytes(&self) -> u64 {
         match self {
-            Model::ParakeetV2 => 476 * 1024 * 1024,
-            Model::WhisperLargeV3 => 626 * 1024 * 1024,
-            Model::WhisperSmallEn => 217 * 1024 * 1024,
+            AmModel::ParakeetV2 => 476 * 1024 * 1024,
+            AmModel::WhisperLargeV3 => 626 * 1024 * 1024,
+            AmModel::WhisperSmallEn => 217 * 1024 * 1024,
         }
     }
 }

@@ -3,7 +3,7 @@ import { Channel } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
 import { commands as localLlmCommands, SupportedModel as SupportedModelLLM } from "@hypr/plugin-local-llm";
-import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Progress } from "@hypr/ui/components/ui/progress";
@@ -52,7 +52,11 @@ export const DownloadProgress = ({
   );
 };
 
-export function showSttModelDownloadToast(model: WhisperModel, onComplete?: () => void, queryClient?: QueryClient) {
+export function showSttModelDownloadToast(
+  model: SupportedSttModel,
+  onComplete?: () => void,
+  queryClient?: QueryClient,
+) {
   const sttChannel = new Channel();
 
   localSttCommands.downloadModel(model, sttChannel);

@@ -30,6 +30,7 @@ owhisper-model = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-language = { workspace = true }
 

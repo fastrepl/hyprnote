@@ -9,6 +9,7 @@ pub use types::*;
 use {
     crate::Error::OtherError,
     futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
+    hypr_download_interface::DownloadProgress,
     reqwest::StatusCode,
     std::{
         cmp::min,
@@ -24,13 +25,6 @@ static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_client() -> &'static reqwest::Client {
     CLIENT.get_or_init(|| reqwest::Client::new())
-}
-
-#[derive(Debug)]
-pub enum DownloadProgress {
-    Started,
-    Progress(u64, u64),
-    Finished,
 }
 
 /// Makes a request with optional range header and returns the response.

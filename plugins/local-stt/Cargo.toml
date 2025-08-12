@@ -42,6 +42,7 @@ tower = { workspace = true }
 [dependencies]
 hypr-am = { workspace = true }
 hypr-audio-utils = { workspace = true }
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-transcribe-moonshine = { workspace = true }
 hypr-transcribe-whisper-local = { workspace = true }

@@ -1,13 +1,13 @@
 import type { LinkProps } from "@tanstack/react-router";
 
-import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 
 export async function showModelSelectToast(language: string) {
   const currentModel = await localSttCommands.getCurrentModel();
-  const englishModels: WhisperModel[] = ["QuantizedTinyEn", "QuantizedBaseEn", "QuantizedSmallEn"];
+  const englishModels: SupportedSttModel[] = ["QuantizedTinyEn", "QuantizedBaseEn", "QuantizedSmallEn"];
 
   if (language === "en" || !englishModels.includes(currentModel)) {
     return;

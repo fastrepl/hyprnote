@@ -8,7 +8,6 @@ const COMMANDS: &[&str] = &[
     "get_custom_llm_connection",
     "set_custom_llm_connection",
     "get_llm_connection",
-    "get_stt_connection",
     "get_openai_api_key",
     "set_openai_api_key",
     "get_gemini_api_key",

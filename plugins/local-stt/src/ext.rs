@@ -4,20 +4,23 @@ use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
 
-use hypr_file::{download_file_parallel, DownloadProgress};
+use hypr_download_interface::DownloadProgress;
+use hypr_file::download_file_parallel;
 use hypr_whisper_local_model::WhisperModel;
 
-use crate::server::{external, internal, ServerType};
+use crate::{
+    model::SupportedSttModel,
+    server::{external, internal, ServerType},
+    Connection,
+};
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
     fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
 
-    fn get_api_base(
-        &self,
-        server_type: Option<ServerType>,
-    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn get_connection(&self) -> impl Future<Output = Result<Connection, crate::Error>>;
+
     fn start_server(
         &self,
         server_type: Option<ServerType>,
@@ -30,19 +33,19 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
     ) -> impl Future<Output = Result<HashMap<ServerType, Option<String>>, crate::Error>>;
 
-    fn get_current_model(&self) -> Result<WhisperModel, crate::Error>;
-    fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error>;
+    fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error>;
+    fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error>;
 
     fn download_model(
         &self,
-        model: WhisperModel,
+        model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn is_model_downloading(&self, model: &WhisperModel) -> impl Future<Output = bool>;
+    fn is_model_downloading(&self, model: &SupportedSttModel) -> impl Future<Output = bool>;
     fn is_model_downloaded(
         &self,
-        model: &WhisperModel,
+        model: &SupportedSttModel,
     ) -> impl Future<Output = Result<bool, crate::Error>>;
 }
 
@@ -59,45 +62,39 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         hypr_whisper_local::list_ggml_backends()
     }
 
-    async fn is_model_downloaded(&self, model: &WhisperModel) -> Result<bool, crate::Error> {
-        let model_path = self.models_dir().join(model.file_name());
+    async fn get_connection(&self) -> Result<Connection, crate::Error> {
+        let state = self.state::<crate::SharedState>();
+        let _guard = state.lock().await;
+        let model = self.get_current_model()?;
 
-        for (path, expected) in [(model_path, model.model_size())] {
-            if !path.exists() {
-                return Ok(false);
-            }
-
-            let actual = hypr_file::file_size(path)?;
-            if actual != expected {
-                return Ok(false);
-            }
-        }
-
-        Ok(true)
+        Ok(Connection {
+            base_url: "http://localhost:1240".to_string(),
+        })
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn get_api_base(
-        &self,
-        server_type: Option<ServerType>,
-    ) -> Result<Option<String>, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+    async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
+        match model {
+            SupportedSttModel::Am(model) => {
+                let repo_name = model.repo_name();
+                let model_dir = model.model_dir();
+                let v = hypr_am::is_folder_downloaded(repo_name, model_dir).await?;
+                Ok(v)
+            }
+            SupportedSttModel::Whisper(model) => {
+                let model_path = self.models_dir().join(model.file_name());
 
-        let internal_api_base = guard.internal_server.as_ref().map(|s| s.base_url.clone());
-        let external_api_base = guard.external_server.as_ref().map(|s| s.base_url.clone());
+                for (path, expected) in [(model_path, model.model_size_bytes())] {
+                    if !path.exists() {
+                        return Ok(false);
+                    }
 
-        match server_type {
-            Some(ServerType::Internal) => Ok(internal_api_base),
-            Some(ServerType::External) => Ok(external_api_base),
-            None => {
-                if let Some(external_api_base) = external_api_base {
-                    Ok(Some(external_api_base))
-                } else if let Some(internal_api_base) = internal_api_base {
-                    Ok(Some(internal_api_base))
-                } else {
-                    Ok(None)
+                    let actual = hypr_file::file_size(path)?;
+                    if actual != expected {
+                        return Ok(false);
+                    }
                 }
+
+                Ok(true)
             }
         }
     }
@@ -127,7 +124,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 let server_state = internal::ServerState::builder()
                     .model_cache_dir(cache_dir)
-                    .model_type(model)
+                    // TODO
+                    .model_type(WhisperModel::QuantizedBase)
                     .build();
 
                 let server = internal::run_server(server_state).await?;
@@ -252,47 +250,84 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn download_model(
         &self,
-        model: WhisperModel,
+        model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
-        let m = model.clone();
-        let model_path = self.models_dir().join(m.file_name());
+        match model.clone() {
+            SupportedSttModel::Am(m) => {
+                let task = tokio::spawn(async move {
+                    let channel_clone = channel.clone();
+                    let callback = move |progress: DownloadProgress| match progress {
+                        DownloadProgress::Started => {
+                            let _ = channel_clone.send(0);
+                        }
+                        DownloadProgress::Progress(downloaded, total_size) => {
+                            let percent = (downloaded as f64 / total_size as f64) * 100.0;
+                            let _ = channel_clone.send(percent as i8);
+                        }
+                        DownloadProgress::Finished => {
+                            let _ = channel_clone.send(100);
+                        }
+                    };
 
-        let task = tokio::spawn(async move {
-            let callback = |progress: DownloadProgress| match progress {
-                DownloadProgress::Started => {
-                    let _ = channel.send(0);
-                }
-                DownloadProgress::Progress(downloaded, total_size) => {
-                    let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                    let _ = channel.send(percent as i8);
-                }
-                DownloadProgress::Finished => {
-                    let _ = channel.send(100);
-                }
-            };
+                    let _ = hypr_am::download(m.repo_name(), m.model_dir(), callback).await;
+                });
 
-            if let Err(e) = download_file_parallel(m.model_url(), model_path, callback).await {
-                tracing::error!("model_download_error: {}", e);
-                let _ = channel.send(-1);
+                {
+                    let state = self.state::<crate::SharedState>();
+                    let mut s = state.lock().await;
+
+                    if let Some(existing_task) = s.download_task.remove(&model) {
+                        existing_task.abort();
+                    }
+                    s.download_task.insert(model.clone(), task);
+                }
+
+                Ok(())
             }
-        });
+            SupportedSttModel::Whisper(m) => {
+                let model_path = self.models_dir().join(m.file_name());
 
-        {
-            let state = self.state::<crate::SharedState>();
-            let mut s = state.lock().await;
+                let task = tokio::spawn(async move {
+                    let channel_clone = channel.clone();
+                    let callback = move |progress: DownloadProgress| match progress {
+                        DownloadProgress::Started => {
+                            let _ = channel_clone.send(0);
+                        }
+                        DownloadProgress::Progress(downloaded, total_size) => {
+                            let percent = (downloaded as f64 / total_size as f64) * 100.0;
+                            let _ = channel_clone.send(percent as i8);
+                        }
+                        DownloadProgress::Finished => {
+                            let _ = channel_clone.send(100);
+                        }
+                    };
 
-            if let Some(existing_task) = s.download_task.remove(&model) {
-                existing_task.abort();
+                    if let Err(e) =
+                        download_file_parallel(m.model_url(), model_path, callback).await
+                    {
+                        tracing::error!("model_download_error: {}", e);
+                        let _ = channel.send(-1);
+                    }
+                });
+
+                {
+                    let state = self.state::<crate::SharedState>();
+                    let mut s = state.lock().await;
+
+                    if let Some(existing_task) = s.download_task.remove(&model) {
+                        existing_task.abort();
+                    }
+                    s.download_task.insert(model.clone(), task);
+                }
+
+                Ok(())
             }
-            s.download_task.insert(model.clone(), task);
         }
-
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn is_model_downloading(&self, model: &WhisperModel) -> bool {
+    async fn is_model_downloading(&self, model: &SupportedSttModel) -> bool {
         let state = self.state::<crate::SharedState>();
 
         {
@@ -302,14 +337,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    fn get_current_model(&self) -> Result<WhisperModel, crate::Error> {
+    fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error> {
         let store = self.local_stt_store();
         let model = store.get(crate::StoreKey::DefaultModel)?;
-        Ok(model.unwrap_or(WhisperModel::QuantizedBaseEn))
+        Ok(model.unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedBase)))
     }
 
     #[tracing::instrument(skip_all)]
-    fn set_current_model(&self, model: WhisperModel) -> Result<(), crate::Error> {
+    fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
         store.set(crate::StoreKey::DefaultModel, model)?;
         Ok(())

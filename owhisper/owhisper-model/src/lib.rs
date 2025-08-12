@@ -115,7 +115,7 @@ impl Model {
                 vec![Asset {
                     name: "model.ggml".to_string(),
                     url: hypr_model.model_url().to_string(),
-                    size: hypr_model.model_size(),
+                    size: hypr_model.model_size_bytes(),
                     checksum: hypr_model.checksum(),
                 }]
             }

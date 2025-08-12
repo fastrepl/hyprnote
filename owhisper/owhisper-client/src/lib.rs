@@ -79,7 +79,11 @@ impl ListenClientBuilder {
                 .append_pair("interim_results", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
-                .append_pair("channels", &channels.to_string());
+                .append_pair("channels", &channels.to_string())
+                .append_pair(
+                    "redemption_time_ms",
+                    &params.redemption_time_ms.unwrap_or(500).to_string(),
+                );
         }
 
         let host = url.host_str().unwrap();

@@ -207,7 +207,7 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, languages, jargons) = {
+        let (record, languages) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -219,11 +219,7 @@ impl Session {
                 |c| c.general.spoken_languages.clone(),
             );
 
-            let jargons = config
-                .as_ref()
-                .map_or_else(Vec::new, |c| c.general.jargons.clone());
-
-            (record, languages, jargons)
+            (record, languages)
         };
 
         let session = self
@@ -245,14 +241,8 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(
-            &self.app,
-            languages,
-            jargons,
-            session_id == onboarding_session_id,
-        )
-        .await?;
-
+        let listen_client =
+            setup_listen_client(&self.app, languages, session_id == onboarding_session_id).await?;
         let mic_sample_stream = {
             let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
@@ -575,13 +565,12 @@ impl Session {
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     languages: Vec<hypr_language::Language>,
-    _jargons: Vec<String>,
     is_onboarding: bool,
 ) -> Result<owhisper_client::ListenClientDual, crate::Error> {
     let api_base = {
-        use tauri_plugin_connector::{Connection, ConnectorPluginExt};
-        let conn: Connection = app.get_stt_connection().await?.into();
-        conn.api_base
+        use tauri_plugin_local_stt::LocalSttPluginExt;
+        let conn = app.get_connection().await?;
+        conn.base_url
     };
 
     let api_key = {
@@ -598,6 +587,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_key(api_key)
         .params(owhisper_interface::ListenParams {
             languages,
+            redemption_time_ms: Some(if is_onboarding { 70 } else { 500 }),
             ..Default::default()
         })
         .build_dual())

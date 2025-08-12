@@ -22,8 +22,8 @@ impl ServerHandle {
             .client
             .init(
                 hypr_am::InitRequest::new(self.api_key.clone())
-                    .with_model(hypr_am::Model::WhisperSmallEn.model_key())
-                    .with_model_repo(hypr_am::Model::WhisperSmallEn.repo_name()),
+                    .with_model(hypr_am::AmModel::WhisperSmallEn.model_key())
+                    .with_model_repo(hypr_am::AmModel::WhisperSmallEn.repo_name()),
             )
             .await?;
 

@@ -14,7 +14,6 @@ Default permissions for the plugin
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
-- `allow-list-pro-models`
 
 ## Permission Table
 
@@ -281,6 +280,32 @@ Enables the list_supported_models command without any pre-configured scope.
 <td>
 
 Denies the list_supported_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-list-supported-models-info`
+
+</td>
+<td>
+
+Enables the list_supported_models_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-supported-models-info`
+
+</td>
+<td>
+
+Denies the list_supported_models_info command without any pre-configured scope.
 
 </td>
 </tr>

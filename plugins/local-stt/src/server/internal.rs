@@ -47,7 +47,7 @@ impl ServerState {
 
 #[derive(Clone)]
 pub struct ServerHandle {
-    pub api_base: String,
+    pub base_url: String,
     shutdown: tokio::sync::watch::Sender<()>,
 }
 
@@ -65,12 +65,12 @@ pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error
         tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))).await?;
 
     let server_addr = listener.local_addr()?;
-    let api_base = format!("http://{}", server_addr);
+    let base_url = format!("http://{}", server_addr);
 
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
 
     let server_handle = ServerHandle {
-        api_base,
+        base_url,
         shutdown: shutdown_tx,
     };
 

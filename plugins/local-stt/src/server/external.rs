@@ -1,7 +1,9 @@
 pub struct ServerHandle {
-    pub api_base: String,
-    pub shutdown: tokio::sync::watch::Sender<()>,
+    pub base_url: String,
+    api_key: String,
+    shutdown: tokio::sync::watch::Sender<()>,
     child: tauri_plugin_shell::process::CommandChild,
+    client: hypr_am::Client,
 }
 
 impl ServerHandle {
@@ -10,19 +12,46 @@ impl ServerHandle {
         self.child.kill().map_err(|e| crate::Error::ShellError(e))?;
         Ok(())
     }
+
+    pub async fn init(&self) -> Result<(), crate::Error> {
+        self.client
+            .init(hypr_am::InitRequest::new("ax_123"))
+            .await?;
+
+        let _init_result = self
+            .client
+            .init(
+                hypr_am::InitRequest::new(self.api_key.clone())
+                    .with_model(hypr_am::Model::WhisperSmallEn.model_key())
+                    .with_model_repo(hypr_am::Model::WhisperSmallEn.repo_name()),
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn status(&self) -> Result<(), crate::Error> {
+        self.client.status().await?;
+        Ok(())
+    }
 }
 
 pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
+    am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
-    let (_rx, child) = cmd.args(["--port", "6942"]).spawn()?;
+    let port = 6942;
+    let (_rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
 
-    let api_base = "http://localhost:6942";
+    let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, _shutdown_rx) = tokio::sync::watch::channel(());
+    let client = hypr_am::Client::new(&base_url);
 
     Ok(ServerHandle {
-        api_base: api_base.to_string(),
+        api_key: am_key,
+        base_url,
         shutdown: shutdown_tx,
         child,
+        client,
     })
 }

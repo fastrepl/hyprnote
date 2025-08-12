@@ -84,8 +84,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
-        let internal_api_base = guard.internal_server.as_ref().map(|s| s.api_base.clone());
-        let external_api_base = guard.external_server.as_ref().map(|s| s.api_base.clone());
+        let internal_api_base = guard.internal_server.as_ref().map(|s| s.base_url.clone());
+        let external_api_base = guard.external_server.as_ref().map(|s| s.base_url.clone());
 
         match server_type {
             Some(ServerType::Internal) => Ok(internal_api_base),
@@ -131,7 +131,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     .build();
 
                 let server = internal::run_server(server_state).await?;
-                let api_base = server.api_base.clone();
+                let base_url = server.base_url.clone();
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
                 {
@@ -140,7 +140,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     s.internal_server = Some(server);
                 }
 
-                Ok(api_base)
+                Ok(base_url)
             }
             ServerType::External => {
                 if self
@@ -182,22 +182,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     self.shell().sidecar("stt")?.args(["serve"])
                 };
 
-                let server = external::run_server(cmd).await?;
-                let api_base = server.api_base.clone();
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-                let client = hypr_am::Client::new(&api_base);
-                let status = client.status().await?;
-                println!("Status: {status:?}");
-
-                let init_result = client
-                    .init(
-                        hypr_am::InitRequest::new(am_key)
-                            .with_model(hypr_am::Model::WhisperSmallEn.model_key())
-                            .with_model_repo(hypr_am::Model::WhisperSmallEn.repo_name()),
-                    )
-                    .await?;
-                println!("Init result: {init_result:?}");
+                let server = external::run_server(cmd, am_key).await?;
+                let api_base = server.base_url.clone();
 
                 {
                     let state = self.state::<crate::SharedState>();
@@ -252,11 +238,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         Ok([
             (
                 ServerType::Internal,
-                guard.internal_server.as_ref().map(|s| s.api_base.clone()),
+                guard.internal_server.as_ref().map(|s| s.base_url.clone()),
             ),
             (
                 ServerType::External,
-                guard.external_server.as_ref().map(|s| s.api_base.clone()),
+                guard.external_server.as_ref().map(|s| s.base_url.clone()),
             ),
         ]
         .into_iter()

@@ -634,7 +634,7 @@ msgstr ""
 #~ msgid "Create agenda"
 #~ msgstr ""
 
-#: src/components/toolbar/buttons/new-note-button.tsx:47
+#: src/components/toolbar/buttons/new-note-button.tsx:46
 msgid "Create new note"
 msgstr ""
 
@@ -1536,8 +1536,12 @@ msgid "Toggle left sidebar"
 msgstr ""
 
 #: src/components/toolbar/buttons/transcript-panel-button.tsx:36
-msgid "Toggle widget panel"
+msgid "Toggle transcriptpanel"
 msgstr ""
+
+#: src/components/toolbar/buttons/transcript-panel-button.tsx:36
+#~ msgid "Toggle widget panel"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-local.tsx:249
 #~ msgid "Transcribing"

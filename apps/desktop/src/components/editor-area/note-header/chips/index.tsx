@@ -23,12 +23,12 @@ function StartChatButton({ isVeryNarrow }: { isVeryNarrow: boolean }) {
   );
 }
 
-export default function NoteHeaderChips({ 
-  sessionId, 
+export default function NoteHeaderChips({
+  sessionId,
   hashtags = [],
   isVeryNarrow = false,
   isNarrow = false,
-  isCompact = false
+  isCompact = false,
 }: {
   sessionId: string;
   hashtags?: string[];
@@ -37,9 +37,11 @@ export default function NoteHeaderChips({
   isCompact?: boolean;
 }) {
   return (
-    <div className={`flex flex-row items-center overflow-x-auto scrollbar-none whitespace-nowrap ${
-      isVeryNarrow ? '-mx-1' : '-mx-1.5'
-    }`}>
+    <div
+      className={`flex flex-row items-center overflow-x-auto scrollbar-none whitespace-nowrap ${
+        isVeryNarrow ? "-mx-1" : "-mx-1.5"
+      }`}
+    >
       <EventChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <ParticipantsChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <TagChip sessionId={sessionId} hashtags={hashtags} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />

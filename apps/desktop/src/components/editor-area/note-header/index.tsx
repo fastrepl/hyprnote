@@ -1,5 +1,5 @@
 import { useMatch } from "@tanstack/react-router";
-import { type ChangeEvent, useRef, useState, useEffect } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
@@ -16,14 +16,16 @@ function useContainerWidth(ref: React.RefObject<HTMLElement>) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedWidth(width);
-    }, 50); 
+    }, 50);
 
     return () => clearTimeout(timer);
   }, [width]);
 
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) {
+      return;
+    }
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -63,7 +65,7 @@ export function NoteHeader(
 
   useEffect(() => {
     setIsVeryNarrow(prev => headerWidth < (prev ? 320 : 300));
-    setIsNarrow(prev => headerWidth < (prev ? 470 : 450));  
+    setIsNarrow(prev => headerWidth < (prev ? 470 : 450));
     setIsCompact(prev => headerWidth < (prev ? 620 : 600));
   }, [headerWidth]);
 
@@ -76,10 +78,10 @@ export function NoteHeader(
   const isInNoteMain = windowLabel === "main" && noteMatch;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`flex items-center w-full pl-8 pr-6 pb-4 gap-4 min-w-0 ${
-        isVeryNarrow ? 'pl-4 pr-3' : isNarrow ? 'pl-6 pr-4' : 'pl-8 pr-6'
+        isVeryNarrow ? "pl-4 pr-3" : isNarrow ? "pl-6 pr-4" : "pl-8 pr-6"
       }`}
     >
       <div className="flex-1 space-y-1">
@@ -92,9 +94,9 @@ export function NoteHeader(
             isGenerating={isTitleGenerating}
           />
         </TitleShimmer>
-        <Chips 
-          sessionId={sessionId} 
-          hashtags={hashtags} 
+        <Chips
+          sessionId={sessionId}
+          hashtags={hashtags}
           isVeryNarrow={isVeryNarrow}
           isNarrow={isNarrow}
           isCompact={isCompact}

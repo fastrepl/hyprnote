@@ -105,9 +105,10 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
 
   if (onboardingSessionId === sessionId) {
     return (
-      <div className={`flex flex-row items-center gap-2 rounded-md ${
-        isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
-      }`} style={{ outline: "none" }}>
+      <div
+        className={`flex flex-row items-center gap-2 rounded-md ${isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"}`}
+        style={{ outline: "none" }}
+      >
         <CalendarIcon size={14} className="flex-shrink-0" />
         {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
       </div>
@@ -138,14 +139,14 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      `flex flex-row items-center gap-2 rounded-md ${
-                        isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
-                      }`,
+                      `flex flex-row items-center gap-2 rounded-md ${isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"}`,
                       "hover:bg-neutral-100",
                       "event-chip-container",
                     )}
                   >
-                    {event.data.meetingLink ? <VideoIcon size={14} className="flex-shrink-0" /> : <SpeechIcon size={14} className="flex-shrink-0" />}
+                    {event.data.meetingLink
+                      ? <VideoIcon size={14} className="flex-shrink-0" />
+                      : <SpeechIcon size={14} className="flex-shrink-0" />}
                     {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
                   </div>
                 </TooltipTrigger>
@@ -242,9 +243,11 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
         </style>
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
-            <div className={`flex flex-row items-center gap-2 rounded-md hover:bg-neutral-100 cursor-pointer event-chip-container ${
-              isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
-            }`}>
+            <div
+              className={`flex flex-row items-center gap-2 rounded-md hover:bg-neutral-100 cursor-pointer event-chip-container ${
+                isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+              }`}
+            >
               <CalendarIcon size={14} className="flex-shrink-0" />
               {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(sessionCreatedAt)}</p>}
             </div>

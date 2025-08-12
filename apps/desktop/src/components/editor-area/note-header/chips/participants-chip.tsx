@@ -50,11 +50,11 @@ export function useParticipantsWithOrg(sessionId: string) {
   return participants;
 }
 
-export function ParticipantsChip({ 
+export function ParticipantsChip({
   sessionId,
   isVeryNarrow = false,
-  isNarrow = false
-}: { 
+  isNarrow = false,
+}: {
   sessionId: string;
   isVeryNarrow?: boolean;
   isNarrow?: boolean;
@@ -76,7 +76,7 @@ export function ParticipantsChip({
     if (previewHuman.id === userId && !previewHuman.full_name) {
       return "You";
     }
-    
+
     const fullName = previewHuman.full_name ?? "??";
     return fullName;
   }, [participants, userId, isVeryNarrow, isNarrow, count]);
@@ -94,9 +94,11 @@ export function ParticipantsChip({
   return (
     <Popover>
       <PopoverTrigger>
-        <div className={`flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs ${
-          isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
-        }`}>
+        <div
+          className={`flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs ${
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+          }`}
+        >
           <Users2Icon size={14} className="flex-shrink-0" />
           <span className="truncate">{buttonText}</span>
           {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}

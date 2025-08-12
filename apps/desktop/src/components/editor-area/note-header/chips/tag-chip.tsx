@@ -13,9 +13,11 @@ import { useSession } from "@hypr/utils/contexts";
 interface TagChipProps {
   sessionId: string;
   hashtags?: string[];
+  isVeryNarrow?: boolean;
+  isNarrow?: boolean;
 }
 
-export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
+export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarrow = false }: TagChipProps) {
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
@@ -34,11 +36,31 @@ export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
   const firstTag = uniqueTags[0];
   const additionalTags = totalTags - 1;
 
+  // Determine what text to show based on responsiveness
+  const getTagText = () => {
+    if (totalTags === 0) {
+      return isVeryNarrow ? "Tags" : isNarrow ? "Add tags" : "Add tags";
+    }
+    
+    if (isVeryNarrow) {
+      return totalTags.toString();
+    }
+    
+    if (isNarrow && firstTag && firstTag.length > 8) {
+      const truncated = firstTag.slice(0, 6) + "...";
+      return additionalTags > 0 ? `${truncated} +${additionalTags}` : truncated;
+    }
+    
+    return additionalTags > 0 ? `${firstTag} +${additionalTags}` : firstTag;
+  };
+
   return (
     <Popover>
       <PopoverTrigger>
         <div
-          className={`relative flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs transition-all duration-300 ${
+          className={`relative flex flex-row items-center gap-2 rounded-md hover:bg-neutral-100 flex-shrink-0 text-xs transition-all duration-300 ${
+            isVeryNarrow ? 'px-1.5 py-1' : 'px-2 py-1.5'
+          } ${
             hasPendingActions ? "bg-gradient-to-r from-blue-50 to-purple-50 animate-pulse shadow-sm" : ""
           }`}
         >
@@ -46,15 +68,11 @@ export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
           {hasPendingActions && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
           )}
-          {totalTags > 0
-            ? (
-              <span className="truncate">
-                {additionalTags > 0
-                  ? `${firstTag} +${additionalTags}`
-                  : firstTag}
-              </span>
-            )
-            : <span className="text-neutral-500">Add tags</span>}
+          {!isVeryNarrow && (
+            <span className={`truncate ${totalTags === 0 ? 'text-neutral-500' : ''}`}>
+              {getTagText()}
+            </span>
+          )}
         </div>
       </PopoverTrigger>
 

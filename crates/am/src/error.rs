@@ -1,7 +1,13 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
+    IO(#[from] std::io::Error),
+
+    #[error(transparent)]
     Request(#[from] reqwest::Error),
+
+    #[error("Could not find home directory")]
+    NoHomeDir,
 
     #[error("Server returned error: {status} - {message}")]
     ServerError { status: String, message: String },

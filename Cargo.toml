@@ -40,6 +40,7 @@ hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-script = { path = "crates/db-script", package = "db-script" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
+hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }

@@ -7,8 +7,11 @@ edition = "2021"
 tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dependencies]
+hf-hub = "0.4.3"
+hypr-download-interface = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
 
+dirs = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }

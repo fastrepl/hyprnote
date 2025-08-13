@@ -13,21 +13,22 @@ impl ServerHandle {
         Ok(())
     }
 
-    pub async fn init(&self) -> Result<(), crate::Error> {
-        let _init_result = self
+    pub async fn init(
+        &self,
+        model: hypr_am::AmModel,
+        models_dir: impl AsRef<std::path::Path>,
+    ) -> Result<hypr_am::InitResponse, crate::Error> {
+        let r = self
             .client
-            .init(
-                hypr_am::InitRequest::new(self.api_key.clone())
-                    .with_model(hypr_am::AmModel::WhisperSmallEn),
-            )
+            .init(hypr_am::InitRequest::new(self.api_key.clone()).with_model(model, models_dir))
             .await?;
 
-        Ok(())
+        Ok(r)
     }
 
-    pub async fn status(&self) -> Result<(), crate::Error> {
-        self.client.status().await?;
-        Ok(())
+    pub async fn status(&self) -> Result<hypr_am::ServerStatus, crate::Error> {
+        let status = self.client.status().await?;
+        Ok(status)
     }
 }
 
@@ -36,11 +37,44 @@ pub async fn run_server(
     am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
     let port = 6942;
-    let (_rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
+    let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
 
     let base_url = format!("http://localhost:{}", port);
-    let (shutdown_tx, _shutdown_rx) = tokio::sync::watch::channel(());
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);
+
+    tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                _ = shutdown_rx.changed() => {
+                    tracing::info!("external_server_shutdown");
+                    break;
+                }
+                event = rx.recv() => {
+                    if event.is_none() {
+                        break;
+                    }
+
+                    match event.unwrap() {
+                        tauri_plugin_shell::process::CommandEvent::Stdout(bytes) => {
+                            if let Ok(text) = String::from_utf8(bytes) {
+                                let text = text.trim();
+                                tracing::info!("{}", text);
+                            }
+                        }
+                        tauri_plugin_shell::process::CommandEvent::Stderr(bytes) => {
+                            if let Ok(text) = String::from_utf8(bytes) {
+                                let text = text.trim();
+                                tracing::info!("{}", text);
+                            }
+                        }
+                        _ => {}
+
+                    }
+                }
+            }
+        }
+    });
 
     Ok(ServerHandle {
         api_key: am_key,

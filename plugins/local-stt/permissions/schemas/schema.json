@@ -319,6 +319,18 @@
           "markdownDescription": "Denies the get_current_model command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_external_server_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-external-server-status",
+          "markdownDescription": "Enables the get_external_server_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_external_server_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-external-server-status",
+          "markdownDescription": "Denies the get_external_server_status command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_servers command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-servers",

@@ -490,6 +490,7 @@ impl Session {
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");
 
+                            // TODO: this not work - session still on ACTIVE
                             if stop_tx.send(()).await.is_err() {
                                 tracing::warn!("failed_to_send_stop_signal");
                             }

@@ -112,6 +112,10 @@ export function STTViewLocal({
       {amAvailable && (
         <ProModelsManagement
           on={!!servers.data?.external}
+          selectedSTTModel={selectedSTTModel}
+          setSelectedSTTModel={setSelectedSTTModel}
+          downloadingModels={downloadingModels}
+          handleModelDownload={handleModelDownload}
         />
       )}
     </div>
@@ -142,7 +146,7 @@ function BasicModelsManagement({
       <div className="flex flex-col mb-3">
         <div className={cn(["text-sm font-semibold text-gray-700 flex items-center gap-2"])}>
           <h3>Basic Models</h3>
-          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
         </div>
         <p className="text-xs text-gray-500">Default inference mode powered by Whisper.cpp.</p>
       </div>
@@ -164,14 +168,36 @@ function BasicModelsManagement({
   );
 }
 
-function ProModelsManagement({ on }: { on: boolean }) {
+function ProModelsManagement(
+  { on, selectedSTTModel, setSelectedSTTModel, downloadingModels, handleModelDownload }: {
+    on: boolean;
+    selectedSTTModel: string;
+    setSelectedSTTModel: (model: string) => void;
+    downloadingModels: Set<string>;
+    handleModelDownload: (model: string) => void;
+  },
+) {
+  const handleShowFileLocation = async () => {
+    localSttCommands.modelsDir().then((path) => openPath(path));
+  };
+
   const proModels = useQuery({
     queryKey: ["pro-models"],
     queryFn: async () => {
-      const models = await localSttCommands.listSupportedModels();
-      return models.filter((model) =>
-        model.key === "am-whisper-small-en" || model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2"
+      const models = await localSttCommands.listSupportedModels().then((models) =>
+        models.filter((model) => model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2")
       );
+      const downloaded = await Promise.all(
+        models.map(({ key }) => localSttCommands.isModelDownloaded(key)),
+      );
+
+      return models.map((model, index) => ({
+        name: model.display_name,
+        key: model.key,
+        downloaded: downloaded[index],
+        size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
+        fileName: "",
+      }));
     },
   });
 
@@ -181,7 +207,7 @@ function ProModelsManagement({ on }: { on: boolean }) {
         <div className="flex flex-col mb-3">
           <div className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <h3>Pro Models</h3>
-            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
           </div>
           <p className="text-xs text-gray-500">
             Latency and resource optimized. Only for pro plan users.
@@ -192,19 +218,13 @@ function ProModelsManagement({ on }: { on: boolean }) {
           {proModels.data?.map((model) => (
             <ModelEntry
               key={model.key}
-              disabled={true}
-              model={{
-                name: model.display_name,
-                key: model.key,
-                downloaded: false,
-                size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
-                fileName: "",
-              }}
-              selectedSTTModel={""}
-              setSelectedSTTModel={() => {}}
-              downloadingModels={new Set()}
-              handleModelDownload={() => {}}
-              handleShowFileLocation={() => {}}
+              disabled={false}
+              model={model}
+              selectedSTTModel={selectedSTTModel}
+              setSelectedSTTModel={setSelectedSTTModel}
+              downloadingModels={downloadingModels}
+              handleModelDownload={handleModelDownload}
+              handleShowFileLocation={handleShowFileLocation}
             />
           ))}
         </div>

@@ -34,7 +34,10 @@ pub trait LocalSttPluginExt<R: Runtime> {
     ) -> impl Future<Output = Result<HashMap<ServerType, Option<String>>, crate::Error>>;
 
     fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error>;
-    fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error>;
+    fn set_current_model(
+        &self,
+        model: SupportedSttModel,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn download_model(
         &self,
@@ -67,13 +70,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         match model {
             SupportedSttModel::Am(_model) => {
-                tracing::info!("got am model");
                 let existing_api_base = {
                     let state = self.state::<crate::SharedState>();
                     let guard = state.lock().await;
                     guard.external_server.as_ref().map(|s| s.base_url.clone())
                 };
-                tracing::info!("existing_api_base: {:#?}", existing_api_base);
 
                 let conn = match existing_api_base {
                     Some(api_base) => Connection { base_url: api_base },
@@ -82,20 +83,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         Connection { base_url: api_base }
                     }
                 };
-                tracing::info!("am conn: {:#?}", conn);
                 Ok(conn)
             }
             SupportedSttModel::Whisper(_model) => {
-                tracing::info!("got whisper model");
                 let existing_api_base = {
-                    tracing::info!("checking 1");
                     let state = self.state::<crate::SharedState>();
-                    tracing::info!("checking 2");
                     let guard = state.lock().await;
-                    tracing::info!("checking 3");
                     guard.internal_server.as_ref().map(|s| s.base_url.clone())
                 };
-                tracing::info!("existing_api_base: {:#?}", existing_api_base);
 
                 let conn = match existing_api_base {
                     Some(api_base) => Connection { base_url: api_base },
@@ -104,7 +99,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         Connection { base_url: api_base }
                     }
                 };
-                tracing::info!("whisper conn: {:#?}", conn);
                 Ok(conn)
             }
         }
@@ -112,12 +106,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
         match model {
-            SupportedSttModel::Am(model) => {
-                let repo_name = model.repo_name();
-                let model_dir = model.model_dir();
-                let v = hypr_am::is_folder_downloaded(repo_name, model_dir).await?;
-                Ok(v)
-            }
+            SupportedSttModel::Am(model) => Ok(model.is_downloaded(self.models_dir())?),
             SupportedSttModel::Whisper(model) => {
                 let model_path = self.models_dir().join(model.file_name());
 
@@ -141,11 +130,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn start_server(&self, server_type: Option<ServerType>) -> Result<String, crate::Error> {
         let t = server_type.unwrap_or(ServerType::Internal);
 
+        let cache_dir = self.models_dir();
+        let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
+        let model = self.get_current_model()?;
+
         match t {
             ServerType::Internal => {
-                let cache_dir = self.models_dir();
-                let model = self.get_current_model()?;
-
                 if !self.is_model_downloaded(&model).await? {
                     return Err(crate::Error::ModelNotDownloaded);
                 }
@@ -195,6 +185,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     return Err(crate::Error::ServerAlreadyRunning);
                 }
 
+                let am_model = match model {
+                    SupportedSttModel::Am(m) => m,
+                    SupportedSttModel::Whisper(_) => {
+                        return Err(crate::Error::UnsupportedModelType);
+                    }
+                };
+
                 let am_key = {
                     let state = self.state::<crate::SharedState>();
                     let key = state.lock().await.am_api_key.clone();
@@ -213,18 +210,23 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                             return Err(crate::Error::AmBinaryNotFound);
                         }
 
-                        self.shell().command(passthrough_path).arg(stt_path).args([
-                            "serve",
-                            "--any-token",
-                            "--verbose",
-                        ])
+                        self.shell()
+                            .command(passthrough_path)
+                            .current_dir(dirs::home_dir().unwrap())
+                            .arg(stt_path)
+                            .args(["serve", "--any-token", "-v", "-d"])
                     }
 
                     #[cfg(not(debug_assertions))]
-                    self.shell().sidecar("stt")?.args(["serve"])
+                    self.shell()
+                        .sidecar("stt")?
+                        .current_dir(dirs::home_dir().unwrap())
+                        .args(["serve"])
                 };
 
                 let server = external::run_server(cmd, am_key).await?;
+                tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+                let _ = server.init(am_model, data_dir).await;
                 let api_base = server.base_url.clone();
 
                 {
@@ -314,9 +316,22 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         match model.clone() {
             SupportedSttModel::Am(m) => {
+                let tar_path = self.models_dir().join(format!("{}.tar", m.model_dir()));
+                let final_path = self.models_dir();
+
                 let task = tokio::spawn(async move {
                     let callback = create_progress_callback(channel.clone());
-                    let _ = hypr_am::download(m.repo_name(), m.model_dir(), callback).await;
+
+                    if let Err(e) = download_file_parallel(m.tar_url(), &tar_path, callback).await {
+                        tracing::error!("model_download_error: {}", e);
+                        let _ = channel.send(-1);
+                        return;
+                    }
+
+                    if let Err(e) = m.tar_verify_and_unpack(&tar_path, &final_path) {
+                        tracing::error!("model_unpack_error: {}", e);
+                        let _ = channel.send(-1);
+                    }
                 });
 
                 {
@@ -338,7 +353,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     let callback = create_progress_callback(channel.clone());
 
                     if let Err(e) =
-                        download_file_parallel(m.model_url(), model_path, callback).await
+                        download_file_parallel(m.model_url(), &model_path, callback).await
                     {
                         tracing::error!("model_download_error: {}", e);
                         let _ = channel.send(-1);
@@ -378,9 +393,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
+    async fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(crate::StoreKey::DefaultModel, model)?;
+        store.set(crate::StoreKey::DefaultModel, model.clone())?;
+        self.stop_server(None).await?;
+        match model {
+            SupportedSttModel::Am(_) => {
+                self.start_server(Some(ServerType::External)).await?;
+            }
+            SupportedSttModel::Whisper(_) => {
+                self.start_server(Some(ServerType::Internal)).await?;
+            }
+        }
         Ok(())
     }
 }

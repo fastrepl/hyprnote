@@ -28,8 +28,6 @@ pub struct InitRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub download_base: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub model_repo: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model_folder: Option<String>,

@@ -1,12 +1,10 @@
 mod client;
 mod error;
-mod hf;
 mod model;
 mod types;
 
 pub use client::*;
 pub use error::*;
-pub use hf::*;
 pub use model::*;
 pub use types::*;
 

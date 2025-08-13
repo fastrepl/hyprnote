@@ -214,7 +214,7 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
 
             if response.status() != StatusCode::PARTIAL_CONTENT {
                 return Err(OtherError(format!(
-                    "Server does not support range requests. Got status: {}",
+                    "Something went wrong. Please try again. (status: {})",
                     response.status()
                 )));
             }

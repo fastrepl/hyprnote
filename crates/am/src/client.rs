@@ -100,15 +100,25 @@ impl InitRequest {
         Self {
             api_key: api_key.into(),
             model: None,
-            download_base: None,
             model_repo: None,
             model_folder: None,
         }
     }
 
-    pub fn with_model(mut self, model: crate::AmModel) -> Self {
-        self.model = Some(model.model_key().to_string());
+    pub fn with_model(
+        mut self,
+        model: crate::AmModel,
+        base_dir: impl AsRef<std::path::Path>,
+    ) -> Self {
+        self.model = Some(model.model_dir().to_string());
         self.model_repo = Some(model.repo_name().to_string());
+        self.model_folder = Some(
+            base_dir
+                .as_ref()
+                .join(model.model_dir())
+                .to_string_lossy()
+                .to_string(),
+        );
         self
     }
 }

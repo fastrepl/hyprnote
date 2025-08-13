@@ -6,6 +6,9 @@ pub enum Error {
     #[error(transparent)]
     Request(#[from] reqwest::Error),
 
+    #[error(transparent)]
+    HyprFile(#[from] hypr_file::Error),
+
     #[error("Could not find home directory")]
     NoHomeDir,
 
@@ -17,4 +20,7 @@ pub enum Error {
 
     #[error("Unexpected response from server")]
     UnexpectedResponse,
+
+    #[error("Checksum mismatch")]
+    ChecksumMismatch,
 }

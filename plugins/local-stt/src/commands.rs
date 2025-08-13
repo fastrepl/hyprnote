@@ -67,11 +67,13 @@ pub fn get_current_model<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_current_model<R: tauri::Runtime>(
+pub async fn set_current_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<(), String> {
-    app.set_current_model(model).map_err(|e| e.to_string())
+    app.set_current_model(model)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

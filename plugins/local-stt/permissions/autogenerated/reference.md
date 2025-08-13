@@ -79,6 +79,32 @@ Denies the get_current_model command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-get-external-server-status`
+
+</td>
+<td>
+
+Enables the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-external-server-status`
+
+</td>
+<td>
+
+Denies the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-get-servers`
 
 </td>

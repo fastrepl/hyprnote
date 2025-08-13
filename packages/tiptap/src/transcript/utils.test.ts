@@ -40,14 +40,6 @@ test("conversion", () => {
           {
             "text": "Hello",
             "type": "text",
-            "marks": [
-              {
-                "attrs": {
-                  "confidence": 0.5,
-                },
-                "type": "confidence",
-              },
-            ],
           },
           {
             "text": " ",
@@ -56,14 +48,6 @@ test("conversion", () => {
           {
             "text": "world",
             "type": "text",
-            "marks": [
-              {
-                "attrs": {
-                  "confidence": 0.8,
-                },
-                "type": "confidence",
-              },
-            ],
           },
         ],
         "attrs": {
@@ -85,7 +69,7 @@ test("conversion", () => {
           index: 0,
         },
       },
-      confidence: 0.5,
+      confidence: null,
       start_ms: null,
       end_ms: null,
     },
@@ -97,7 +81,7 @@ test("conversion", () => {
           index: 0,
         },
       },
-      confidence: 0.8,
+      confidence: null,
       start_ms: null,
       end_ms: null,
     },

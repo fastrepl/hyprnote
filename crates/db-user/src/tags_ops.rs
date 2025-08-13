@@ -24,9 +24,12 @@ impl UserDatabase {
         let conn = self.conn()?;
         let tag_id = tag_id.into();
 
-        // delete tags from sessions first 
-        conn.execute("DELETE FROM tags_sessions WHERE tag_id = ?", vec![tag_id.clone()])
-            .await?;
+        // delete tags from sessions first
+        conn.execute(
+            "DELETE FROM tags_sessions WHERE tag_id = ?",
+            vec![tag_id.clone()],
+        )
+        .await?;
 
         conn.query("DELETE FROM tags WHERE id = ?", vec![tag_id])
             .await?;

@@ -72,9 +72,9 @@ export function TagsView({ userId }: TagsViewProps) {
     e.stopPropagation(); // Prevent tag selection
 
     const userConfirmed = await confirm(
-      `Are you sure you want to delete the tag "${tag.name}"?\n\n⚠️ This action cannot be undone.\n\nDon't worry - this only deletes the tag itself. All your notes will remain completely untouched.`
+      `Are you sure you want to delete the tag "${tag.name}"?\n\n⚠️ This action cannot be undone.\n\nDon't worry - this only deletes the tag itself. All your notes will remain completely untouched.`,
     );
-    
+
     if (userConfirmed) {
       deleteTagMutation.mutate(tag.id);
     }
@@ -140,7 +140,7 @@ export function TagsView({ userId }: TagsViewProps) {
                       {tag.name}
                     </span>
                   </button>
-                  
+
                   {/* Delete button - appears on hover */}
                   <button
                     onClick={(e) => handleDeleteTag(e, tag)}

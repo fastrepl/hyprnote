@@ -25,7 +25,8 @@ export function useTranscript(sessionId: string | null) {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
 
   const words = useMemo(() => {
-    return [...finalWords, ...partialWords];
+    const allWords = [...finalWords, ...partialWords];
+    return allWords.sort((a, b) => (a.start_ms ?? 0) - (b.start_ms ?? 0));
   }, [finalWords, partialWords]);
 
   const existingWords = useQuery({

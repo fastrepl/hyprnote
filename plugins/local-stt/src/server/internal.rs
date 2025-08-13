@@ -52,6 +52,11 @@ pub struct ServerHandle {
 }
 
 impl ServerHandle {
+    pub async fn health(&self) -> bool {
+        let response = reqwest::get(format!("{}/health", self.base_url)).await;
+        response.is_ok()
+    }
+
     pub fn terminate(self) -> Result<(), crate::Error> {
         let _ = self.shutdown.send(());
         Ok(())

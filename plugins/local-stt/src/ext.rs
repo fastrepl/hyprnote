@@ -286,15 +286,29 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
+        let internal_url = if let Some(server) = &guard.internal_server {
+            if server.health().await {
+                Some(server.base_url.clone())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        let external_url = if let Some(server) = &guard.external_server {
+            if server.health().await {
+                Some(server.base_url.clone())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         Ok([
-            (
-                ServerType::Internal,
-                guard.internal_server.as_ref().map(|s| s.base_url.clone()),
-            ),
-            (
-                ServerType::External,
-                guard.external_server.as_ref().map(|s| s.base_url.clone()),
-            ),
+            (ServerType::Internal, internal_url),
+            (ServerType::External, external_url),
         ]
         .into_iter()
         .collect())

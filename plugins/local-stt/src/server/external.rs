@@ -7,6 +7,15 @@ pub struct ServerHandle {
 }
 
 impl ServerHandle {
+    pub async fn health(&self) -> bool {
+        let res = self.client.status().await;
+        if res.is_err() {
+            return false;
+        }
+
+        matches!(res.unwrap().status, hypr_am::ServerStatusType::Ready)
+    }
+
     pub fn terminate(self) -> Result<(), crate::Error> {
         let _ = self.shutdown.send(());
         self.child.kill().map_err(|e| crate::Error::ShellError(e))?;
@@ -24,11 +33,6 @@ impl ServerHandle {
             .await?;
 
         Ok(r)
-    }
-
-    pub async fn status(&self) -> Result<hypr_am::ServerStatus, crate::Error> {
-        let status = self.client.status().await?;
-        Ok(status)
     }
 }
 

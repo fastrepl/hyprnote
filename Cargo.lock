@@ -14616,6 +14616,7 @@ dependencies = [
  "data",
  "db-core",
  "db-user",
+ "dirs 6.0.0",
  "flume",
  "futures-util",
  "hound",

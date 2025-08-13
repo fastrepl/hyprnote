@@ -22,7 +22,8 @@ pub fn process_recorded(
     let mut model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.as_ref().to_str().unwrap())
         .languages(vec![])
-        .build();
+        .build()
+        .unwrap();
 
     let mut segmenter = hypr_pyannote_local::segmentation::Segmenter::new(16000).unwrap();
     let segments = segmenter.process(&samples, 16000).unwrap();

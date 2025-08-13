@@ -4,6 +4,8 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     LocalWhisperError(#[from] whisper_rs::WhisperError),
+    #[error("model_not_found")]
+    ModelNotFound,
 }
 
 impl Serialize for Error {

@@ -69,17 +69,20 @@ impl ListenClientBuilder {
         {
             let mut query_pairs = url.query_pairs_mut();
 
-            for (i, lang) in params.languages.iter().enumerate() {
-                query_pairs.append_pair(&format!("languages[{}]", i), lang.iso639().code());
+            for lang in &params.languages {
+                query_pairs.append_pair("languages", lang.iso639().code());
             }
-
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
                 .append_pair("interim_results", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
-                .append_pair("channels", &channels.to_string());
+                .append_pair("channels", &channels.to_string())
+                .append_pair(
+                    "redemption_time_ms",
+                    &params.redemption_time_ms.unwrap_or(500).to_string(),
+                );
         }
 
         let host = url.host_str().unwrap();

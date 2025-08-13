@@ -1,213 +1,260 @@
 use serde::{Deserialize, Serialize};
-
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
     Modify, OpenApi, ToSchema,
 };
 
-// Webhook event types that we send to external systems
+// Core webhook event structure
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct WebhookEvent {
-    /// Unique identifier for this webhook event
+    /// Unique event identifier
     #[schema(example = "evt_01234567890")]
     pub id: String,
 
-    /// Type of the webhook event
+    /// Event type
     #[schema(example = "note.created")]
-    pub event_type: WebhookEventType,
+    pub event_type: String,
 
-    /// ISO 8601 timestamp when the event occurred
+    /// ISO 8601 timestamp
     #[schema(example = "2024-01-10T10:30:00Z")]
     pub timestamp: String,
 
-    /// Version of the webhook API
-    #[schema(example = "1.0")]
-    pub api_version: String,
-
-    /// The actual event data
-    pub data: WebhookEventData,
+    /// Event payload
+    pub data: serde_json::Value,
 }
 
+// Simplified event payloads
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum WebhookEventType {
-    /// Triggered when a new note is created
-    NoteCreated,
-    /// Triggered when a note is updated
-    NoteUpdated,
-    /// Triggered when a note is deleted
-    NoteDeleted,
-    /// Triggered when a recording starts
-    RecordingStarted,
-    /// Triggered when a recording completes
-    RecordingCompleted,
-    /// Triggered when transcription is ready
-    TranscriptionReady,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-#[serde(untagged)]
-pub enum WebhookEventData {
-    Note(NoteEventData),
-    Recording(RecordingEventData),
-    Transcription(TranscriptionEventData),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct NoteEventData {
-    /// Unique identifier of the note
+pub struct NoteEvent {
     #[schema(example = "note_abc123")]
     pub note_id: String,
 
-    /// Title of the note
-    #[schema(example = "Meeting Notes - Q1 Planning")]
+    #[schema(example = "Meeting Notes")]
     pub title: String,
 
-    /// Content of the note (may be truncated for large notes)
-    #[schema(example = "Today we discussed...")]
-    pub content: Option<String>,
-
-    /// Tags associated with the note
-    #[schema(example = json!(["meeting", "planning", "q1"]))]
-    pub tags: Vec<String>,
-
-    /// ISO 8601 timestamp when the note was created
-    #[schema(example = "2024-01-10T10:00:00Z")]
-    pub created_at: String,
-
-    /// ISO 8601 timestamp when the note was last updated
-    #[schema(example = "2024-01-10T10:30:00Z")]
-    pub updated_at: Option<String>,
+    #[schema(example = "Discussion points...")]
+    pub content: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct RecordingEventData {
-    /// Unique identifier of the recording
+pub struct RecordingEvent {
     #[schema(example = "rec_xyz789")]
     pub recording_id: String,
 
-    /// Duration of the recording in seconds
     #[schema(example = 300)]
-    pub duration_seconds: Option<u32>,
+    pub duration_seconds: u32,
 
-    /// File size in bytes
-    #[schema(example = 1048576)]
-    pub file_size_bytes: Option<u64>,
-
-    /// Status of the recording
     #[schema(example = "completed")]
-    pub status: RecordingStatus,
-
-    /// ISO 8601 timestamp when recording started
-    #[schema(example = "2024-01-10T10:00:00Z")]
-    pub started_at: String,
-
-    /// ISO 8601 timestamp when recording completed
-    #[schema(example = "2024-01-10T10:05:00Z")]
-    pub completed_at: Option<String>,
+    pub status: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum RecordingStatus {
-    Started,
-    InProgress,
-    Completed,
-    Failed,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct TranscriptionEventData {
-    /// ID of the recording that was transcribed
+pub struct TranscriptionEvent {
     #[schema(example = "rec_xyz789")]
     pub recording_id: String,
 
-    /// ID of the transcription
     #[schema(example = "trans_qwe456")]
     pub transcription_id: String,
 
-    /// Transcribed text
-    #[schema(example = "Hello, this is the transcribed text from the recording.")]
+    #[schema(example = "Hello, this is the transcribed text.")]
     pub text: String,
-
-    /// Language detected in the transcription
-    #[schema(example = "en")]
-    pub language: Option<String>,
-
-    /// Confidence score of the transcription (0.0 to 1.0)
-    #[schema(example = 0.95)]
-    pub confidence: Option<f32>,
-
-    /// Duration in milliseconds to complete transcription
-    #[schema(example = 1500)]
-    pub processing_time_ms: u32,
 }
 
-// Webhook request/response types
+// Webhook configuration
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct WebhookDeliveryRequest {
-    /// The webhook event being delivered
-    pub event: WebhookEvent,
+pub struct WebhookConfig {
+    /// Your webhook endpoint URL
+    #[schema(example = "https://your-app.com/webhooks")]
+    pub url: String,
 
-    /// Signature for webhook verification (HMAC-SHA256)
+    /// Events to subscribe to
+    #[schema(example = json!(["note.created", "note.updated", "recording.completed"]))]
+    pub events: Vec<String>,
+
+    /// Whether the webhook is active
+    #[schema(example = true)]
+    pub active: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct CreateWebhookRequest {
+    pub config: WebhookConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct WebhookResponse {
+    #[schema(example = "webhook_123")]
+    pub id: String,
+
+    pub config: WebhookConfig,
+
+    /// Secret for verifying webhook signatures
+    #[schema(example = "whsec_1234567890abcdef")]
+    pub secret: String,
+
+    #[schema(example = "2024-01-10T10:00:00Z")]
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct WebhookListResponse {
+    pub webhooks: Vec<WebhookResponse>,
+    pub total: usize,
+}
+
+// Webhook verification example
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct WebhookVerification {
+    /// HMAC-SHA256 signature
     #[schema(example = "sha256=abcdef1234567890")]
     pub signature: String,
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
-pub struct WebhookDeliveryResponse {
-    /// Whether the webhook was successfully processed
-    pub success: bool,
-
-    /// Optional message from the receiver
-    pub message: Option<String>,
+    /// Unix timestamp
+    #[schema(example = "1704880200")]
+    pub timestamp: String,
 }
 
 #[derive(OpenApi)]
 #[openapi(
     info(
-        title = "Hyprnote Webhook API",
+        title = "Webhook API Documentation",
         version = "1.0.0",
-        description = "Webhook events sent by Hyprnote to external systems",
+        description = "Webhook system for receiving real-time events",
         contact(
-            name = "Hyprnote Team",
-            email = "support@hyprnote.com",
-            url = "https://hyprnote.com"
-        ),
-        license(
-            name = "MIT",
-            url = "https://opensource.org/licenses/MIT"
+            name = "API Support",
+            email = "api@example.com"
         )
     ),
-    servers(
-        (url = "https://your-server.example.com", description = "Your webhook endpoint")
+    paths(
+        create_webhook,
+        list_webhooks,
+        delete_webhook,
+        test_webhook,
+        webhook_receiver_example
     ),
     components(
         schemas(
             WebhookEvent,
-            WebhookEventType,
-            WebhookEventData,
-            NoteEventData,
-            RecordingEventData,
-            RecordingStatus,
-            TranscriptionEventData,
-            WebhookDeliveryRequest,
-            WebhookDeliveryResponse
+            NoteEvent,
+            RecordingEvent,
+            TranscriptionEvent,
+            WebhookConfig,
+            CreateWebhookRequest,
+            WebhookResponse,
+            WebhookListResponse,
+            WebhookVerification
         )
     ),
     modifiers(&SecurityAddon),
-    external_docs(
-        url = "https://docs.hyprnote.com/webhooks",
-        description = "More information about Hyprnote webhooks"
+    tags(
+        (name = "Webhooks", description = "Webhook management endpoints"),
+        (name = "Events", description = "Event types and payloads")
     )
 )]
 pub struct ApiDoc;
+
+#[utoipa::path(
+    post,
+    path = "/api/webhooks",
+    tag = "Webhooks",
+    request_body = CreateWebhookRequest,
+    responses(
+        (status = 201, description = "Webhook created", body = WebhookResponse),
+        (status = 400, description = "Invalid configuration")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
+#[allow(dead_code)]
+async fn create_webhook() -> WebhookResponse {
+    unimplemented!()
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/webhooks",
+    tag = "Webhooks",
+    responses(
+        (status = 200, description = "List of webhooks", body = WebhookListResponse)
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
+#[allow(dead_code)]
+async fn list_webhooks() -> WebhookListResponse {
+    unimplemented!()
+}
+
+#[utoipa::path(
+    delete,
+    path = "/api/webhooks/{id}",
+    tag = "Webhooks",
+    params(
+        ("id" = String, Path, description = "Webhook ID")
+    ),
+    responses(
+        (status = 204, description = "Webhook deleted"),
+        (status = 404, description = "Webhook not found")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
+#[allow(dead_code)]
+async fn delete_webhook() {
+    unimplemented!()
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/webhooks/{id}/test",
+    tag = "Webhooks",
+    params(
+        ("id" = String, Path, description = "Webhook ID")
+    ),
+    responses(
+        (status = 200, description = "Test event sent"),
+        (status = 404, description = "Webhook not found")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
+#[allow(dead_code)]
+async fn test_webhook() {
+    unimplemented!()
+}
+
+#[utoipa::path(
+    post,
+    path = "/your-webhook-endpoint",
+    tag = "Events",
+    request_body = WebhookEvent,
+    responses(
+        (status = 200, description = "Event processed successfully"),
+        (status = 401, description = "Invalid signature"),
+        (status = 500, description = "Processing error")
+    ),
+    security(
+        ("webhook_signature" = [])
+    )
+)]
+#[allow(dead_code)]
+async fn webhook_receiver_example() {
+    unimplemented!()
+}
 
 struct SecurityAddon;
 
 impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "api_key",
+                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("X-API-Key"))),
+            );
             components.add_security_scheme(
                 "webhook_signature",
                 SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("X-Webhook-Signature"))),

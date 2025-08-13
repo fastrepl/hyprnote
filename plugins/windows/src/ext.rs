@@ -310,11 +310,19 @@ impl HyprWindow {
                 .inner_size(900.0, 650.0)
                 .min_inner_size(800.0, 600.0)
                 .build()?,
-            Self::Settings => self
-                .window_builder(app, "/app/settings")
-                .resizable(false)
-                .inner_size(800.0, 600.0)
-                .build()?,
+            Self::Settings => {
+                let window = self
+                    .window_builder(app, "/app/settings")
+                    .resizable(true)
+                    .min_inner_size(800.0, 600.0)
+                    .build()?;
+
+                let desired_size = LogicalSize::new(800.0, 600.0);
+                window.set_size(LogicalSize::new(1.0, 1.0))?;
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                window.set_size(desired_size)?;
+                window
+            }
             Self::Video(id) => self
                 .window_builder(app, &format!("/video?id={}", id))
                 .maximizable(false)

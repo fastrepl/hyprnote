@@ -14,16 +14,11 @@ impl ServerHandle {
     }
 
     pub async fn init(&self) -> Result<(), crate::Error> {
-        self.client
-            .init(hypr_am::InitRequest::new("ax_123"))
-            .await?;
-
         let _init_result = self
             .client
             .init(
                 hypr_am::InitRequest::new(self.api_key.clone())
-                    .with_model(hypr_am::AmModel::WhisperSmallEn.model_key())
-                    .with_model_repo(hypr_am::AmModel::WhisperSmallEn.repo_name()),
+                    .with_model(hypr_am::AmModel::WhisperSmallEn),
             )
             .await?;
 

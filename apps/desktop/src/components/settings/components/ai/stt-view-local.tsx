@@ -4,6 +4,7 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+import { useLicense } from "@/hooks/use-license";
 import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -177,6 +178,7 @@ function ProModelsManagement(
     handleModelDownload: (model: string) => void;
   },
 ) {
+  const { getLicense } = useLicense();
   const handleShowFileLocation = async () => {
     localSttCommands.modelsDir().then((path) => openPath(path));
   };
@@ -218,7 +220,7 @@ function ProModelsManagement(
           {proModels.data?.map((model) => (
             <ModelEntry
               key={model.key}
-              disabled={false}
+              disabled={!getLicense.data?.valid}
               model={model}
               selectedSTTModel={selectedSTTModel}
               setSelectedSTTModel={setSelectedSTTModel}
@@ -257,12 +259,12 @@ function ModelEntry({
         "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
         selectedSTTModel === model.key && model.downloaded
           ? "border-solid border-blue-500 bg-blue-50"
-          : model.downloaded
+          : (model.downloaded && !disabled)
           ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
           : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
       )}
       onClick={() => {
-        if (model.downloaded) {
+        if (model.downloaded && !disabled) {
           setSelectedSTTModel(model.key as WhisperModel);
           localSttCommands.setCurrentModel(model.key as WhisperModel);
           localSttCommands.stopServer(null);
@@ -288,6 +290,7 @@ function ModelEntry({
           ? (
             <Button
               size="sm"
+              disabled={disabled}
               variant="outline"
               onClick={handleShowFileLocation}
               className="text-xs h-7 px-2 flex items-center gap-1"

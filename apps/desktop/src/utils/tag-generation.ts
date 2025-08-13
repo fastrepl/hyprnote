@@ -5,6 +5,11 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import { generateText, localProviderName, modelProvider } from "@hypr/utils/ai";
 
+const extractHashtags = (text: string): string[] => {
+  const hashtagRegex = /#(\w+)/g;
+  return Array.from(text.matchAll(hashtagRegex), match => match[1]);
+};
+
 export async function generateTagsForSession(sessionId: string): Promise<string[]> {
   try {
     const { type: connectionType } = await connectorCommands.getLlmConnection();
@@ -17,11 +22,6 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
 
     const historicalTags = await dbCommands.listAllTags();
     const currentTags = await dbCommands.listSessionTags(sessionId);
-
-    const extractHashtags = (text: string): string[] => {
-      const hashtagRegex = /#(\w+)/g;
-      return Array.from(text.matchAll(hashtagRegex), match => match[1]);
-    };
 
     const existingHashtags = extractHashtags(session.raw_memo_html);
 
@@ -88,11 +88,6 @@ export async function autoTagGeneration(sessionId: string): Promise<string[]> {
 
     const historicalTags = await dbCommands.listAllTags();
     const currentTags = await dbCommands.listSessionTags(sessionId);
-
-    const extractHashtags = (text: string): string[] => {
-      const hashtagRegex = /#(\w+)/g;
-      return Array.from(text.matchAll(hashtagRegex), match => match[1]);
-    };
 
     const existingHashtags = extractHashtags(session.raw_memo_html);
 

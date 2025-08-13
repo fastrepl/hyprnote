@@ -264,7 +264,7 @@ export function ChatInput(
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 50px !important;
-          max-height: 80px!important;  /* Remove fixed height */
+          max-height: 80px!important;  
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
@@ -282,7 +282,7 @@ export function ChatInput(
         }
         .chat-editor .tiptap-normal p {
           margin: 0 !important;
-          display: block !important;  /* Allow proper line breaks */
+          display: block !important;  
         }
         .chat-editor .mention {
           color: #3b82f6 !important;

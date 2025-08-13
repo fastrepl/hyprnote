@@ -257,15 +257,15 @@ export function ChatInput(
   const entityTitle = getEntityTitle();
 
   return (
-    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
+    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white h-20">
       {/* Custom styles to disable rich text features */}
       <style>
         {`
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 50px !important;
-          max-height: 50px !important;
-          overflow-y: auto !important;
+          max-height: none !important;  /* Remove fixed height */
+          overflow-y: visible !important;  /* Let parent handle overflow */
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
@@ -283,7 +283,7 @@ export function ChatInput(
         }
         .chat-editor .tiptap-normal p {
           margin: 0 !important;
-          display: inline !important;
+          display: block !important;  /* Allow proper line breaks */
         }
         .chat-editor .mention {
           color: #3b82f6 !important;
@@ -323,7 +323,8 @@ export function ChatInput(
       `}
       </style>
 
-      <div className={`relative chat-editor ${inputValue.trim() ? "has-content" : ""}`}>
+      {/* Make the editor area flex-grow and scrollable */}
+      <div className={`relative chat-editor flex-1 overflow-y-auto ${inputValue.trim() ? "has-content" : ""}`}>
         <Editor
           ref={editorRef}
           handleChange={handleContentChange}
@@ -339,7 +340,8 @@ export function ChatInput(
         )}
       </div>
 
-      <div className="flex items-center justify-between pb-2 px-3">
+      {/* Bottom area stays fixed */}
+      <div className="flex items-center justify-between pb-2 px-3 flex-shrink-0">
         {entityId
           ? (
             <Badge

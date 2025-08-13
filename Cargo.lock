@@ -10238,6 +10238,7 @@ dependencies = [
  "rodio",
  "serde_json",
  "tokio",
+ "tracing",
  "url",
  "ws",
 ]

@@ -24,6 +24,8 @@ pub enum Error {
     AmBinaryNotFound,
     #[error("AM API key not set")]
     AmApiKeyNotSet,
+    #[error("Internal server only supports Whisper models")]
+    UnsupportedModelType,
 }
 
 impl Serialize for Error {

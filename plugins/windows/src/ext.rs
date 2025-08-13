@@ -312,7 +312,7 @@ impl HyprWindow {
                 .build()?,
             Self::Settings => self
                 .window_builder(app, "/app/settings")
-                .resizable(false)
+                .resizable(true)
                 .inner_size(800.0, 600.0)
                 .build()?,
             Self::Video(id) => self

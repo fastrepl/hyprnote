@@ -133,6 +133,8 @@ mod test {
     #[ignore]
     // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
-        let _app = create_app(tauri::test::mock_builder());
+        let app = create_app(tauri::test::mock_builder());
+        let model = app.get_current_model();
+        println!("model: {:#?}", model);
     }
 }

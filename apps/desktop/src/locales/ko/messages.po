@@ -376,7 +376,7 @@ msgstr ""
 #~ msgid "AI notepad for meetings"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:224
+#: src/components/welcome-modal/download-progress-view.tsx:221
 msgid "All models ready!"
 msgstr ""
 
@@ -600,9 +600,9 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:137
+#: src/components/welcome-modal/model-selection-view.tsx:94
 #: src/components/welcome-modal/llm-selection-view.tsx:94
-#: src/components/welcome-modal/download-progress-view.tsx:258
+#: src/components/welcome-modal/download-progress-view.tsx:255
 #: src/components/welcome-modal/custom-endpoint-view.tsx:595
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
@@ -705,7 +705,7 @@ msgstr ""
 #~ msgid "Download {0}"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:204
+#: src/components/welcome-modal/download-progress-view.tsx:201
 msgid "Downloading AI Models"
 msgstr ""
 
@@ -911,7 +911,7 @@ msgstr ""
 msgid "Invite members"
 msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:262
+#: src/components/welcome-modal/download-progress-view.tsx:259
 msgid "It's ok to move on, downloads will continue in the background"
 msgstr ""
 
@@ -1233,7 +1233,7 @@ msgstr ""
 msgid "Publish your note"
 msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:67
+#: src/components/welcome-modal/download-progress-view.tsx:66
 msgid "Ready"
 msgstr ""
 
@@ -1350,7 +1350,7 @@ msgstr ""
 #~ msgid "Select a transcribing model"
 #~ msgstr ""
 
-#: src/components/welcome-modal/model-selection-view.tsx:73
+#: src/components/welcome-modal/model-selection-view.tsx:40
 msgid "Select a transcribing model (STT)"
 msgstr ""
 
@@ -1410,7 +1410,7 @@ msgstr ""
 #~ msgid "Single sign-on for all users"
 #~ msgstr ""
 
-#: src/components/welcome-modal/download-progress-view.tsx:230
+#: src/components/welcome-modal/download-progress-view.tsx:227
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 

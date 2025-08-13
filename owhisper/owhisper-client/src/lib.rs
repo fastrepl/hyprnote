@@ -69,8 +69,8 @@ impl ListenClientBuilder {
         {
             let mut query_pairs = url.query_pairs_mut();
 
-            for (i, lang) in params.languages.iter().enumerate() {
-                query_pairs.append_pair(&format!("languages[{}]", i), lang.iso639().code());
+            for lang in &params.languages {
+                query_pairs.append_pair("languages", lang.iso639().code());
             }
 
             query_pairs

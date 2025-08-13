@@ -90,11 +90,33 @@ where
                 }
             };
 
+            let model = match hypr_whisper_local::Whisper::builder()
+                .model_path(model_path.to_str().unwrap())
+                .languages(
+                    params
+                        .languages
+                        .iter()
+                        .filter_map(|lang| lang.clone().try_into().ok())
+                        .collect::<Vec<hypr_whisper::Language>>(),
+                )
+                .build()
+            {
+                Ok(model) => model,
+                Err(e) => {
+                    let res = (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("failed_to_build_whisper: {}", e),
+                    )
+                        .into_response();
+                    return Ok(res);
+                }
+            };
+
             let guard = connection_manager.acquire_connection();
 
             Ok(ws_upgrade
                 .on_upgrade(move |socket| async move {
-                    handle_websocket_connection(socket, params, model_path, guard).await
+                    handle_websocket_connection(socket, params, model, guard).await;
                 })
                 .into_response())
         })
@@ -104,20 +126,9 @@ where
 async fn handle_websocket_connection(
     socket: WebSocket,
     params: ListenParams,
-    model_path: PathBuf,
+    model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
 ) {
-    let languages: Vec<hypr_whisper::Language> = params
-        .languages
-        .into_iter()
-        .filter_map(|lang| lang.try_into().ok())
-        .collect();
-
-    let model = hypr_whisper_local::Whisper::builder()
-        .model_path(model_path.to_str().unwrap())
-        .languages(languages)
-        .build();
-
     let (ws_sender, ws_receiver) = socket.split();
 
     let redemption_time = Duration::from_millis(std::cmp::min(

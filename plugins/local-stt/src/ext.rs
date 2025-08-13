@@ -63,13 +63,51 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     async fn get_connection(&self) -> Result<Connection, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let _guard = state.lock().await;
         let model = self.get_current_model()?;
 
-        Ok(Connection {
-            base_url: "http://localhost:1240".to_string(),
-        })
+        match model {
+            SupportedSttModel::Am(_model) => {
+                tracing::info!("got am model");
+                let existing_api_base = {
+                    let state = self.state::<crate::SharedState>();
+                    let guard = state.lock().await;
+                    guard.external_server.as_ref().map(|s| s.base_url.clone())
+                };
+                tracing::info!("existing_api_base: {:#?}", existing_api_base);
+
+                let conn = match existing_api_base {
+                    Some(api_base) => Connection { base_url: api_base },
+                    None => {
+                        let api_base = self.start_server(Some(ServerType::External)).await?;
+                        Connection { base_url: api_base }
+                    }
+                };
+                tracing::info!("am conn: {:#?}", conn);
+                Ok(conn)
+            }
+            SupportedSttModel::Whisper(_model) => {
+                tracing::info!("got whisper model");
+                let existing_api_base = {
+                    tracing::info!("checking 1");
+                    let state = self.state::<crate::SharedState>();
+                    tracing::info!("checking 2");
+                    let guard = state.lock().await;
+                    tracing::info!("checking 3");
+                    guard.internal_server.as_ref().map(|s| s.base_url.clone())
+                };
+                tracing::info!("existing_api_base: {:#?}", existing_api_base);
+
+                let conn = match existing_api_base {
+                    Some(api_base) => Connection { base_url: api_base },
+                    None => {
+                        let api_base = self.start_server(Some(ServerType::Internal)).await?;
+                        Connection { base_url: api_base }
+                    }
+                };
+                tracing::info!("whisper conn: {:#?}", conn);
+                Ok(conn)
+            }
+        }
     }
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
@@ -122,10 +160,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     return Err(crate::Error::ServerAlreadyRunning);
                 }
 
+                let whisper_model = match model {
+                    SupportedSttModel::Whisper(m) => m,
+                    SupportedSttModel::Am(_) => {
+                        return Err(crate::Error::UnsupportedModelType);
+                    }
+                };
+
                 let server_state = internal::ServerState::builder()
                     .model_cache_dir(cache_dir)
-                    // TODO
-                    .model_type(WhisperModel::QuantizedBase)
+                    .model_type(whisper_model)
                     .build();
 
                 let server = internal::run_server(server_state).await?;
@@ -253,23 +297,25 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
+        let create_progress_callback = |channel: Channel<i8>| {
+            move |progress: DownloadProgress| match progress {
+                DownloadProgress::Started => {
+                    let _ = channel.send(0);
+                }
+                DownloadProgress::Progress(downloaded, total_size) => {
+                    let percent = (downloaded as f64 / total_size as f64) * 100.0;
+                    let _ = channel.send(percent as i8);
+                }
+                DownloadProgress::Finished => {
+                    let _ = channel.send(100);
+                }
+            }
+        };
+
         match model.clone() {
             SupportedSttModel::Am(m) => {
                 let task = tokio::spawn(async move {
-                    let channel_clone = channel.clone();
-                    let callback = move |progress: DownloadProgress| match progress {
-                        DownloadProgress::Started => {
-                            let _ = channel_clone.send(0);
-                        }
-                        DownloadProgress::Progress(downloaded, total_size) => {
-                            let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                            let _ = channel_clone.send(percent as i8);
-                        }
-                        DownloadProgress::Finished => {
-                            let _ = channel_clone.send(100);
-                        }
-                    };
-
+                    let callback = create_progress_callback(channel.clone());
                     let _ = hypr_am::download(m.repo_name(), m.model_dir(), callback).await;
                 });
 
@@ -289,19 +335,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let model_path = self.models_dir().join(m.file_name());
 
                 let task = tokio::spawn(async move {
-                    let channel_clone = channel.clone();
-                    let callback = move |progress: DownloadProgress| match progress {
-                        DownloadProgress::Started => {
-                            let _ = channel_clone.send(0);
-                        }
-                        DownloadProgress::Progress(downloaded, total_size) => {
-                            let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                            let _ = channel_clone.send(percent as i8);
-                        }
-                        DownloadProgress::Finished => {
-                            let _ = channel_clone.send(100);
-                        }
-                    };
+                    let callback = create_progress_callback(channel.clone());
 
                     if let Err(e) =
                         download_file_parallel(m.model_url(), model_path, callback).await

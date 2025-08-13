@@ -23,7 +23,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
 
     fn start_server(
         &self,
-        server_type: Option<ServerType>,
+        model: Option<SupportedSttModel>,
     ) -> impl Future<Output = Result<String, crate::Error>>;
     fn stop_server(
         &self,
@@ -69,7 +69,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let model = self.get_current_model()?;
 
         match model {
-            SupportedSttModel::Am(_model) => {
+            SupportedSttModel::Am(_) => {
                 let existing_api_base = {
                     let state = self.state::<crate::SharedState>();
                     let guard = state.lock().await;
@@ -79,13 +79,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let conn = match existing_api_base {
                     Some(api_base) => Connection { base_url: api_base },
                     None => {
-                        let api_base = self.start_server(Some(ServerType::External)).await?;
+                        let api_base = self.start_server(Some(model)).await?;
                         Connection { base_url: api_base }
                     }
                 };
                 Ok(conn)
             }
-            SupportedSttModel::Whisper(_model) => {
+            SupportedSttModel::Whisper(_) => {
                 let existing_api_base = {
                     let state = self.state::<crate::SharedState>();
                     let guard = state.lock().await;
@@ -95,7 +95,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let conn = match existing_api_base {
                     Some(api_base) => Connection { base_url: api_base },
                     None => {
-                        let api_base = self.start_server(Some(ServerType::Internal)).await?;
+                        let api_base = self.start_server(Some(model)).await?;
                         Connection { base_url: api_base }
                     }
                 };
@@ -127,12 +127,19 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_server(&self, server_type: Option<ServerType>) -> Result<String, crate::Error> {
-        let t = server_type.unwrap_or(ServerType::Internal);
+    async fn start_server(&self, model: Option<SupportedSttModel>) -> Result<String, crate::Error> {
+        let model = match model {
+            Some(m) => m,
+            None => self.get_current_model()?,
+        };
+
+        let t = match &model {
+            SupportedSttModel::Am(_) => ServerType::External,
+            SupportedSttModel::Whisper(_) => ServerType::Internal,
+        };
 
         let cache_dir = self.models_dir();
         let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
-        let model = self.get_current_model()?;
 
         match t {
             ServerType::Internal => {
@@ -397,14 +404,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let store = self.local_stt_store();
         store.set(crate::StoreKey::DefaultModel, model.clone())?;
         self.stop_server(None).await?;
-        match model {
-            SupportedSttModel::Am(_) => {
-                self.start_server(Some(ServerType::External)).await?;
-            }
-            SupportedSttModel::Whisper(_) => {
-                self.start_server(Some(ServerType::Internal)).await?;
-            }
-        }
+        self.start_server(Some(model)).await?;
         Ok(())
     }
 }

@@ -80,11 +80,9 @@ pub async fn set_current_model<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn start_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    server_type: Option<ServerType>,
+    model: Option<SupportedSttModel>,
 ) -> Result<String, String> {
-    app.start_server(server_type)
-        .await
-        .map_err(|e| e.to_string())
+    app.start_server(model).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

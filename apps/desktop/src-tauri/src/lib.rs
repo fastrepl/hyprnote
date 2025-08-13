@@ -217,6 +217,10 @@ pub async fn main() {
                         });
                     }
                 }
+
+                tokio::spawn(async move {
+                    app_clone.setup_local_ai().await.unwrap();
+                });
             });
 
             Ok(())

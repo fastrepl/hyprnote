@@ -31,8 +31,8 @@ async setCurrentModel(model: SupportedSttModel) : Promise<null> {
 async getServers() : Promise<Partial<{ [key in ServerType]: string | null }>> {
     return await TAURI_INVOKE("plugin:local-stt|get_servers");
 },
-async startServer(serverType: ServerType | null) : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|start_server", { serverType });
+async startServer(model: SupportedSttModel | null) : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|start_server", { model });
 },
 async stopServer(serverType: ServerType | null) : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType });

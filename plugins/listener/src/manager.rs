@@ -97,6 +97,7 @@ impl TranscriptManager {
             .open("~/out.jsonl")
         {
             if let Ok(json) = serde_json::to_string(response) {
+                println!("{}", json);
                 let _ = writeln!(file, "{}", json);
             }
         }

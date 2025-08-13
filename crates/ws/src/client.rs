@@ -38,15 +38,15 @@ impl WebSocketClient {
             .when(|e| {
                 tracing::error!("ws_connect_failed: {:?}", e);
 
-                if let crate::Error::Connection(tokio_tungstenite::tungstenite::Error::Http(
-                    response,
-                )) = e
-                {
-                    if response.status().as_u16() >= 500 && response.status().as_u16() < 600 {
-                        tracing::warn!("not_retrying_status_code: {}", response.status());
-                        return false;
-                    }
-                }
+                // if let crate::Error::Connection(tokio_tungstenite::tungstenite::Error::Http(
+                //     response,
+                // )) = e
+                // {
+                //     if response.status().as_u16() >= 500 && response.status().as_u16() < 600 {
+                //         tracing::warn!("not_retrying_status_code: {}", response.status());
+                //         return false;
+                //     }
+                // }
 
                 true
             })

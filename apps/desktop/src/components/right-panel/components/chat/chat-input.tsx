@@ -257,15 +257,14 @@ export function ChatInput(
   const entityTitle = getEntityTitle();
 
   return (
-    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white h-20">
+    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
       {/* Custom styles to disable rich text features */}
       <style>
         {`
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 50px !important;
-          max-height: none !important;  /* Remove fixed height */
-          overflow-y: visible !important;  /* Let parent handle overflow */
+          max-height: 80px!important;  /* Remove fixed height */
           font-size: 14px !important;
           line-height: 1.5 !important;
         }

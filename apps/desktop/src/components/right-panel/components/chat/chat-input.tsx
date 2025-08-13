@@ -263,8 +263,9 @@ export function ChatInput(
         {`
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
-          min-height: 40px !important;
-          max-height: 120px !important;
+          min-height: 50px !important;
+          max-height: 50px !important;
+          overflow-y: auto !important;
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
@@ -342,7 +343,7 @@ export function ChatInput(
         {entityId
           ? (
             <Badge
-              className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-neutral-100 cursor-pointer max-w-48"
+              className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-white max-w-48"
               onClick={onNoteBadgeClick}
             >
               {getBadgeIcon()}

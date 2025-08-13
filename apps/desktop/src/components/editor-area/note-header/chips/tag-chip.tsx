@@ -41,13 +41,9 @@ export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarr
       return isVeryNarrow ? "Tags" : isNarrow ? "Tags" : "Add tags";
     }
 
-    if (isVeryNarrow) {
+    // show just the number when narrow (matching participants-chip)
+    if (isVeryNarrow || isNarrow) {
       return totalTags.toString();
-    }
-
-    if (isNarrow && firstTag && firstTag.length > 8) {
-      const truncated = firstTag.slice(0, 6) + "...";
-      return additionalTags > 0 ? `${truncated} +${additionalTags}` : truncated;
     }
 
     return additionalTags > 0 ? `${firstTag} +${additionalTags}` : firstTag;

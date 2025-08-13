@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
 import { motion } from "motion/react";
@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
+import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
@@ -27,7 +28,12 @@ import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 
-async function generateTitleDirect(enhancedContent: string, targetSessionId: string, sessions: Record<string, any>) {
+async function generateTitleDirect(
+  enhancedContent: string,
+  targetSessionId: string,
+  sessions: Record<string, any>,
+  queryClient: QueryClient,
+) {
   const [config, { type }, provider] = await Promise.all([
     dbCommands.getConfig(),
     connectorCommands.getLlmConnection(),
@@ -58,6 +64,36 @@ async function generateTitleDirect(enhancedContent: string, targetSessionId: str
   if (!session?.title && sessions[targetSessionId]?.getState) {
     const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
     sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+
+    try {
+      const suggestedTags = await autoTagGeneration(targetSessionId);
+
+      if (suggestedTags.length > 1) {
+        const allExistingTags = await dbCommands.listAllTags();
+        const existingTagsMap = new Map(
+          allExistingTags.map(tag => [tag.name.toLowerCase(), tag]),
+        );
+
+        for (const tagName of suggestedTags.slice(0, 2)) {
+          try {
+            const existingTag = existingTagsMap.get(tagName.toLowerCase());
+
+            const tag = await dbCommands.upsertTag({
+              id: existingTag?.id || crypto.randomUUID(),
+              name: tagName,
+            });
+
+            await dbCommands.assignTagToSession(tag.id, targetSessionId);
+          } catch (error) {
+            console.error(`Failed to assign tag "${tagName}":`, error);
+          }
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["session-tags", targetSessionId] });
+      }
+    } catch (error) {
+      console.error("Failed to generate tags:", error);
+    }
   }
 }
 
@@ -108,7 +144,7 @@ export default function EditorArea({
   });
 
   const sessionsStore = useSessions((s) => s.sessions);
-
+  const queryClient = useQueryClient();
   const { enhance, progress, isCancelled } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
@@ -116,7 +152,7 @@ export default function EditorArea({
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       if (hasTranscriptWords) {
-        generateTitleDirect(content, sessionId, sessionsStore).catch(console.error);
+        generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
       }
     },
   });

@@ -226,6 +226,12 @@ impl CalendarSource for Handle {
                     return None;
                 }
 
+                // experiment: check if the event is recurring 
+                let is_recurring = unsafe {
+                    let has_rules: Bool = msg_send![event, hasRecurrenceRules];
+                    has_rules.as_bool()
+                };
+
                 let participants = unsafe { event.attendees().unwrap_or_default() };
                 let participant_list: Vec<Participant> = participants
                     .iter()
@@ -247,6 +253,7 @@ impl CalendarSource for Handle {
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
                     google_event_url: None,
+                    is_recurring,
                 })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))

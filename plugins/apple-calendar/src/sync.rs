@@ -150,6 +150,13 @@ async fn _sync_events(
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
                 // Check if event exists with same tracking_id
                 if let Some(matching_event) = events.iter().find(|e| e.id == db_event.tracking_id) {
+
+                    //temporary prevention 
+                    if matching_event.is_recurring {
+                        //tracing::info!("Skipping recurring event: {}", matching_event.id);
+                        continue;
+                    }
+
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: matching_event.id.clone(),
@@ -178,6 +185,12 @@ async fn _sync_events(
                     &all_system_events,
                     &db_selected_calendars,
                 ) {
+                    //temporary prevention 
+                    if rescheduled_event.is_recurring {
+                        //tracing::info!("Skipping recurring event: {}", rescheduled_event.id);
+                        continue;
+                    }
+                    
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: rescheduled_event.id.clone(),
@@ -213,6 +226,13 @@ async fn _sync_events(
     for db_calendar in db_selected_calendars {
         if let Some(fresh_events) = system_events_per_selected_calendar.get(&db_calendar.id) {
             for system_event in fresh_events {
+
+                //temporary prevention 
+                if system_event.is_recurring {
+                    //tracing::info!("Skipping recurring event: {}", system_event.id);
+                    continue;
+                }
+
                 // Skip if this event was already handled as an update
                 let already_handled = state
                     .to_update
@@ -270,6 +290,8 @@ fn find_potentially_rescheduled_event<'a>(
     system_events
         .iter()
         .find(|sys_event| {
+            //temporary prevention 
+            !sys_event.is_recurring &&
             // Must have the same name
             sys_event.name == db_event.name &&
             // Must belong to the same calendar (compare tracking IDs)
@@ -340,9 +362,12 @@ async fn list_system_events_for_calendars(
 
             for event in &events {
                 tracing::info!(
-                    "System event: '{}' | participants: {:?}",
+                    "System event: '{}' | participants: {:?} | is_recurring: {} | start_date: {} | tracking_id: {}",
                     event.name,
-                    event.participants
+                    event.participants,
+                    event.is_recurring,
+                    event.start_date,
+                    event.id,
                 );
             }
 

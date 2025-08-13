@@ -2,7 +2,6 @@
 pub struct TranscriptManager {
     id: uuid::Uuid,
     partial_words: Vec<owhisper_interface::Word>,
-    final_words: Vec<owhisper_interface::Word>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -36,8 +35,6 @@ impl TranscriptManager {
         #[cfg(debug_assertions)]
         Self::log(self.id, &response);
 
-        let mut diff = Diff::default();
-
         if let owhisper_interface::StreamResponse::TranscriptResponse {
             is_final, channel, ..
         } = response
@@ -57,36 +54,31 @@ impl TranscriptManager {
                 .collect::<Vec<_>>();
 
             if is_final {
-                self.process_final_words(&mut diff, words);
+                let last_final_word_end = words.last().unwrap().end;
+                let partial_words = self
+                    .partial_words
+                    .iter()
+                    .filter(|w| w.start > last_final_word_end)
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                return Diff {
+                    final_words: words.clone(),
+                    partial_words,
+                };
             } else {
-                self.process_partial_words(&mut diff, words);
+                self.partial_words = words.clone();
+
+                return Diff {
+                    final_words: vec![],
+                    partial_words: words.clone(),
+                };
             }
         }
 
-        diff
+        Diff::default()
     }
 
-    fn process_final_words(&mut self, diff: &mut Diff, words: &Vec<owhisper_interface::Word>) {
-        diff.final_words = words.clone();
-        self.final_words.extend(words.clone());
-        self.partial_words.clear();
-    }
-
-    fn process_partial_words(&mut self, diff: &mut Diff, words: &Vec<owhisper_interface::Word>) {
-        let last_final_end = self.get_last_final_end_time();
-
-        self.partial_words = words
-            .into_iter()
-            .filter(|w| w.end > last_final_end)
-            .cloned()
-            .collect();
-
-        diff.partial_words = self.partial_words.clone();
-    }
-
-    fn get_last_final_end_time(&self) -> f64 {
-        self.final_words.last().map(|w| w.end).unwrap_or(0.0)
-    }
     fn log(id: uuid::Uuid, response: &owhisper_interface::StreamResponse) {
         use std::fs::OpenOptions;
         use std::io::Write;

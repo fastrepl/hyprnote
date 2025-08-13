@@ -45,7 +45,7 @@
   outline: 2px solid #4a9af4;
 }
 
-span[data-confidence^="0"] {
+span[data-interim] {
   opacity: 0.3;
   color: #666;
 }

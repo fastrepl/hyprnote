@@ -108,7 +108,7 @@ export default function IntegrationsComponent() {
       }
     });
 
-    // store initial base url even if it's not by the user 
+    // store initial base url even if it's not by the user
     const currentValues = form.getValues();
     if (getBaseUrl.isSuccess && !getBaseUrl.data && currentValues.baseUrl) {
       obsidianCommands.setBaseUrl(currentValues.baseUrl);

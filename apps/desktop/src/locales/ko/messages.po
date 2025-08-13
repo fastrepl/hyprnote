@@ -407,7 +407,7 @@ msgstr ""
 #: src/components/welcome-modal/custom-endpoint-view.tsx:361
 #: src/components/welcome-modal/custom-endpoint-view.tsx:438
 #: src/components/welcome-modal/custom-endpoint-view.tsx:518
-#: src/components/settings/views/integrations.tsx:197
+#: src/components/settings/views/integrations.tsx:203
 #: src/components/settings/components/ai/llm-custom-view.tsx:277
 #: src/components/settings/components/ai/llm-custom-view.tsx:373
 #: src/components/settings/components/ai/llm-custom-view.tsx:479
@@ -448,11 +448,11 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:246
+#: src/components/settings/views/integrations.tsx:252
 msgid "Base Folder"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:173
+#: src/components/settings/views/integrations.tsx:179
 msgid "Base URL"
 msgstr ""
 
@@ -573,7 +573,7 @@ msgstr ""
 #~ msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:121
+#: src/components/settings/views/integrations.tsx:127
 msgid "Connect with external tools and services to enhance your workflow"
 msgstr ""
 
@@ -589,7 +589,7 @@ msgstr ""
 msgid "Connect your calendar and track events"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:133
+#: src/components/settings/views/integrations.tsx:139
 msgid "Connect your Obsidian vault to export notes"
 msgstr ""
 
@@ -742,7 +742,7 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:147
+#: src/components/settings/views/integrations.tsx:153
 msgid "Enable Integration"
 msgstr "Enable Integration"
 
@@ -896,7 +896,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/routes/app.settings.tsx:66
-#: src/components/settings/views/integrations.tsx:118
+#: src/components/settings/views/integrations.tsx:124
 msgid "Integrations"
 msgstr ""
 
@@ -1053,7 +1053,7 @@ msgstr ""
 #~ msgid "Monthly"
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:272
+#: src/components/settings/views/integrations.tsx:278
 msgid "More integrations coming soon..."
 msgstr ""
 
@@ -1142,7 +1142,7 @@ msgstr ""
 msgid "Notifications"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:130
+#: src/components/settings/views/integrations.tsx:136
 msgid "Obsidian"
 msgstr ""
 
@@ -1181,7 +1181,7 @@ msgstr ""
 msgid "OpenRouter"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:255
+#: src/components/settings/views/integrations.tsx:261
 msgid "Optional base folder path within your Obsidian vault."
 msgstr ""
 
@@ -1496,11 +1496,11 @@ msgstr ""
 #~ msgid "The AI Meeting Notepad"
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:182
+#: src/components/settings/views/integrations.tsx:188
 msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:231
+#: src/components/settings/views/integrations.tsx:237
 msgid "The name of your Obsidian vault."
 msgstr ""
 
@@ -1552,7 +1552,7 @@ msgstr ""
 msgid "Transcription"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:150
+#: src/components/settings/views/integrations.tsx:156
 msgid "Turn on Obsidian integration to export notes to Obsidian vault."
 msgstr ""
 
@@ -1612,7 +1612,7 @@ msgstr ""
 msgid "username"
 msgstr ""
 
-#: src/components/settings/views/integrations.tsx:222
+#: src/components/settings/views/integrations.tsx:228
 msgid "Vault Name"
 msgstr ""
 
@@ -1637,7 +1637,7 @@ msgstr ""
 #~ msgid "We'll only use this to follow up if needed."
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:275
+#: src/components/settings/views/integrations.tsx:281
 msgid "We're working on adding more tools and services to connect with your workflow"
 msgstr ""
 
@@ -1681,7 +1681,7 @@ msgstr ""
 #~ msgid "You can make Hyprnote takes these words into account when transcribing"
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:207
+#: src/components/settings/views/integrations.tsx:213
 msgid "Your API key for Obsidian local-rest-api plugin."
 msgstr ""
 

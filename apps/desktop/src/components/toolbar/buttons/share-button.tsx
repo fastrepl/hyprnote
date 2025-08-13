@@ -168,7 +168,7 @@ function ShareButtonInNote() {
           const freshParticipants = await dbCommands.sessionListParticipants(param.id);
           result = await exportHandlers.email(session, freshParticipants);
         } catch (participantError) {
-          console.warn('Failed to fetch participants, sending email without them:', participantError);
+          console.warn("Failed to fetch participants, sending email without them:", participantError);
           result = await exportHandlers.email(session, undefined);
         }
       } else if (optionId === "obsidian") {
@@ -447,7 +447,7 @@ const exportHandlers = {
 
   email: async (
     session: Session,
-    sessionParticipants?: Array<{ full_name: string | null; email: string | null }>
+    sessionParticipants?: Array<{ full_name: string | null; email: string | null }>,
   ): Promise<ExportResult> => {
     let bodyContent = "Here is the meeting summary: \n\n";
 
@@ -463,8 +463,8 @@ const exportHandlers = {
       const participantNames = sessionParticipants
         .filter(p => p.full_name)
         .map(p => p.full_name)
-        .join(', ');
-      
+        .join(", ");
+
       if (participantNames) {
         bodyContent += `\n\nMeeting Participants: ${participantNames}`;
       }
@@ -475,13 +475,13 @@ const exportHandlers = {
     const participantEmails = sessionParticipants
       ?.filter(participant => participant.email && participant.email.trim())
       ?.map(participant => participant.email!)
-      ?.join(',') || '';
+      ?.join(",") || "";
 
     const subject = encodeURIComponent(session.title);
     const body = encodeURIComponent(bodyContent);
-    
-    const to = participantEmails ? `&to=${encodeURIComponent(participantEmails)}` : '';
-    
+
+    const to = participantEmails ? `&to=${encodeURIComponent(participantEmails)}` : "";
+
     const url = `mailto:?subject=${subject}&body=${body}${to}`;
     return { type: "email", url };
   },

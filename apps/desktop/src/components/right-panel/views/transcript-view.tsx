@@ -148,7 +148,11 @@ export function TranscriptView() {
           />
         )
         : (
-          <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
+          <header
+            className={`flex items-center justify-between w-full px-4 py-1 my-1 ${
+              !showEmptyMessage ? "border-b border-neutral-100" : ""
+            }`}
+          >
             {!showEmptyMessage && (
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>

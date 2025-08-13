@@ -44,7 +44,6 @@ export function MainToolbar() {
             <LeftSidebarButton type="toolbar" />
             <NewNoteButton />
             <DeleteNoteButton />
-            <ShareButton />
           </>
         )}
       </div>
@@ -58,6 +57,7 @@ export function MainToolbar() {
         {isMain && (
           <>
             {(organizationMatch || humanMatch) && <NewWindowButton />}
+            {isNote && <ShareButton />}
             <ChatPanelButton />
             <TranscriptPanelButton />
           </>

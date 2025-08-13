@@ -5,6 +5,11 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import { generateText, localProviderName, modelProvider } from "@hypr/utils/ai";
 
+const extractHashtags = (text: string): string[] => {
+  const hashtagRegex = /#(\w+)/g;
+  return Array.from(text.matchAll(hashtagRegex), match => match[1]);
+};
+
 export async function generateTagsForSession(sessionId: string): Promise<string[]> {
   try {
     const { type: connectionType } = await connectorCommands.getLlmConnection();
@@ -18,11 +23,6 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
     const historicalTags = await dbCommands.listAllTags();
     const currentTags = await dbCommands.listSessionTags(sessionId);
 
-    const extractHashtags = (text: string): string[] => {
-      const hashtagRegex = /#(\w+)/g;
-      return Array.from(text.matchAll(hashtagRegex), match => match[1]);
-    };
-
     const existingHashtags = extractHashtags(session.raw_memo_html);
 
     const systemPrompt = await templateCommands.render(
@@ -30,11 +30,79 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
       { config, type: connectionType },
     );
 
+    let contentToUse = session.enhanced_memo_html ?? session.raw_memo_html;
+
     const userPrompt = await templateCommands.render(
       "suggest_tags.user",
       {
         title: session.title,
-        content: session.raw_memo_html,
+        content: contentToUse,
+        existing_hashtags: existingHashtags,
+        formal_tags: currentTags.map(t => t.name),
+        historical_tags: historicalTags.slice(0, 20).map(t => t.name),
+      },
+    );
+
+    const provider = await modelProvider();
+    const model = provider.languageModel("defaultModel");
+
+    const result = await generateText({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      providerOptions: {
+        [localProviderName]: {
+          metadata: {
+            grammar: {
+              task: "tags",
+            } satisfies Grammar,
+          },
+        },
+      },
+    });
+
+    const schema = z.preprocess(
+      (val) => (typeof val === "string" ? JSON.parse(val) : val),
+      z.array(z.string().min(1)).min(1).max(5),
+    );
+
+    const parsed = schema.safeParse(result.text);
+    return parsed.success ? parsed.data : [];
+  } catch (error) {
+    console.error("Tag generation failed:", error);
+    return [];
+  }
+}
+
+export async function autoTagGeneration(sessionId: string): Promise<string[]> {
+  try {
+    const { type: connectionType } = await connectorCommands.getLlmConnection();
+
+    const config = await dbCommands.getConfig();
+    const session = await dbCommands.getSession({ id: sessionId });
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
+    const historicalTags = await dbCommands.listAllTags();
+    const currentTags = await dbCommands.listSessionTags(sessionId);
+
+    const existingHashtags = extractHashtags(session.raw_memo_html);
+
+    const systemPrompt = await templateCommands.render(
+      "auto_generate_tags.system",
+      { config, type: connectionType },
+    );
+
+    let contentToUse = session.enhanced_memo_html ?? session.raw_memo_html;
+
+    const userPrompt = await templateCommands.render(
+      "auto_generate_tags.user",
+      {
+        title: session.title,
+        content: contentToUse,
         existing_hashtags: existingHashtags,
         formal_tags: currentTags.map(t => t.name),
         historical_tags: historicalTags.slice(0, 20).map(t => t.name),

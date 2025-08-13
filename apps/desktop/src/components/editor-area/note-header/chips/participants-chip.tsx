@@ -50,22 +50,36 @@ export function useParticipantsWithOrg(sessionId: string) {
   return participants;
 }
 
-export function ParticipantsChip({ sessionId }: { sessionId: string }) {
+export function ParticipantsChip({
+  sessionId,
+  isVeryNarrow = false,
+  isNarrow = false,
+}: {
+  sessionId: string;
+  isVeryNarrow?: boolean;
+  isNarrow?: boolean;
+}) {
   const participants = useParticipantsWithOrg(sessionId);
   const { userId } = useHypr();
 
   const count = participants.reduce((acc, group) => acc + (group.participants?.length ?? 0), 0);
   const buttonText = useMemo(() => {
     if (count === 0) {
-      return "Add participants";
+      return isVeryNarrow ? "Add" : isNarrow ? "Add people" : "Add participants";
+    }
+
+    if (isVeryNarrow || isNarrow) {
+      return count.toString();
     }
 
     const previewHuman = participants.find((group) => group.participants.length > 0)?.participants[0]!;
     if (previewHuman.id === userId && !previewHuman.full_name) {
       return "You";
     }
-    return previewHuman.full_name ?? "??";
-  }, [participants, userId]);
+
+    const fullName = previewHuman.full_name ?? "??";
+    return fullName;
+  }, [participants, userId, isVeryNarrow, isNarrow, count]);
 
   const handleClickHuman = (human: Human) => {
     // Open finder window and navigate to contact view with person selected
@@ -80,10 +94,14 @@ export function ParticipantsChip({ sessionId }: { sessionId: string }) {
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
-          <Users2Icon size={14} />
-          <span>{buttonText}</span>
-          {count > 1 && <span className="text-neutral-400">+ {count - 1}</span>}
+        <div
+          className={`flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs ${
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+          }`}
+        >
+          <Users2Icon size={14} className="flex-shrink-0" />
+          <span className="truncate">{buttonText}</span>
+          {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 

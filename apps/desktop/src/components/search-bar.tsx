@@ -1,13 +1,12 @@
 import { useLingui } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { LoaderIcon, SearchIcon, TagIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
 import { CommandPalette } from "@/components/command-palette";
 import { useHyprSearch } from "@/contexts/search";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+// import { commands as dbCommands } from "@hypr/plugin-db";
 import Shortcut from "./shortcut";
 
 export function SearchBar() {
@@ -22,7 +21,6 @@ export function SearchBar() {
     selectResult,
     searchHistory,
     clearSearchHistory,
-    addTagFilter,
     removeTagFilter,
     clearTagFilters,
   } = useHyprSearch((s) => ({
@@ -44,17 +42,17 @@ export function SearchBar() {
   const { t } = useLingui();
   const [isFocused, setIsFocused] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [showTagSelector, setShowTagSelector] = useState(false);
+  // const [showTagSelector, setShowTagSelector] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   // Get all available tags for filtering
-  const { data: allTags = [] } = useQuery({
-    queryKey: ["all-tags"],
-    queryFn: () => dbCommands.listAllTags(),
-  });
+  // const { data: allTags = [] } = useQuery({
+  //  queryKey: ["all-tags"],
+  //  queryFn: () => dbCommands.listAllTags(),
+  // });
 
   // Filter out already selected tags
-  const availableTags = allTags.filter(tag => !selectedTags.find(selected => selected.id === tag.id));
+  // const availableTags = allTags.filter(tag => !selectedTags.find(selected => selected.id === tag.id));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -146,6 +144,8 @@ export function SearchBar() {
           className="flex-1 bg-transparent outline-none text-xs"
         />
         {/* Tag selector */}
+        {
+          /*
         <Popover open={showTagSelector} onOpenChange={setShowTagSelector}>
           <PopoverTrigger asChild>
             <button className="h-4 w-4 text-neutral-400 hover:text-neutral-600">
@@ -183,6 +183,8 @@ export function SearchBar() {
             </div>
           </PopoverContent>
         </Popover>
+        */
+        }
 
         {searchQuery && (
           <XIcon

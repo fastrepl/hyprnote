@@ -4,7 +4,7 @@ import { join } from "@tauri-apps/api/path";
 import { message } from "@tauri-apps/plugin-dialog";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
-import { BookText, Check, ChevronDown, ChevronUp, Copy, FileText, HelpCircle, Mail, Share2Icon } from "lucide-react";
+import { BookText, Check, ChevronDown, ChevronUp, Copy, FileText, HelpCircle, Mail, Share } from "lucide-react";
 import { useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -239,15 +239,16 @@ function ShareButtonInNote() {
           disabled={!hasEnhancedNote}
           variant="ghost"
           size="icon"
-          className="hover:bg-neutral-200"
+          className={`hover:bg-neutral-200 ${open ? "bg-neutral-200" : ""}`}
           aria-label="Share"
         >
-          <Share2Icon className="size-4" />
+          <Share className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         className="w-80 p-3 focus:outline-none focus:ring-0 focus:ring-offset-0"
         align="end"
+        sideOffset={7}
       >
         <div className="space-y-3">
           <div>
@@ -268,11 +269,11 @@ function ShareButtonInNote() {
               const isSuccess = action.id === "copy" && copySuccess;
 
               return (
-                <div key={action.id} className="border rounded-lg overflow-hidden">
+                <div key={action.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
                   <button
                     onClick={() => handleExport(action.id)}
                     disabled={exportMutation.isPending}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`text-gray-700 transition-colors ${isSuccess ? "text-green-600" : ""}`}>
@@ -295,9 +296,11 @@ function ShareButtonInNote() {
               const expanded = expandedId === option.id;
 
               return (
-                <div key={option.id} className="border rounded-lg overflow-hidden">
+                <div key={option.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
                   <div
-                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
+                      expanded ? "bg-white" : "bg-white hover:bg-gray-50"
+                    }`}
                     onClick={() => toggleExpanded(option.id)}
                   >
                     <div className="flex items-center space-x-3">
@@ -309,7 +312,7 @@ function ShareButtonInNote() {
                     </button>
                   </div>
                   {expanded && (
-                    <div className="px-3 pb-3 pt-2 border-t bg-gray-50">
+                    <div className="px-3 pb-3 pt-2 border-t border-gray-100 bg-white">
                       <div className="flex items-center gap-1 mb-3">
                         <p className="text-xs text-gray-600">{option.description}</p>
                         <button
@@ -362,7 +365,7 @@ function ShareButtonInNote() {
                       <button
                         onClick={() => handleExport(option.id)}
                         disabled={exportMutation.isPending}
-                        className="w-full py-1.5 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-xs font-medium disabled:opacity-50"
+                        className="w-full py-1.5 bg-black text-white rounded-md hover:bg-gray-800 transition-all text-xs font-medium disabled:opacity-50"
                       >
                         {exportMutation.isPending
                           ? "Pending..."
@@ -436,7 +439,19 @@ const exportHandlers = {
   },
 
   email: async (session: Session): Promise<ExportResult> => {
-    const url = `mailto:?subject=${encodeURIComponent(session.title)}`;
+    let bodyContent = "Here is the meeting summary: \n\n";
+
+    if (session.enhanced_memo_html) {
+      bodyContent += html2md(session.enhanced_memo_html);
+    } else if (session.raw_memo_html) {
+      bodyContent += html2md(session.raw_memo_html);
+    } else {
+      bodyContent += "No content available";
+    }
+
+    bodyContent += "\n\nSent with Hyprnote (www.hyprnote.com)\n\n";
+
+    const url = `mailto:?subject=${encodeURIComponent(session.title)}&body=${encodeURIComponent(bodyContent)}`;
     return { type: "email", url };
   },
 

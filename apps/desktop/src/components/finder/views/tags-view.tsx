@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format, isToday } from "date-fns";
-import { Archive, FileText, Hash, Search } from "lucide-react";
+import { Archive, FileText, Hash, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -16,6 +16,8 @@ interface TagsViewProps {
 export function TagsView({ userId }: TagsViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
 
   // Load all tags
   const { data: allTags = [] } = useQuery({
@@ -41,6 +43,17 @@ export function TagsView({ userId }: TagsViewProps) {
     enabled: !!selectedTag,
   });
 
+  const deleteTagMutation = useMutation({
+    mutationFn: (tagId: string) => dbCommands.deleteTag(tagId),
+    onSuccess: (_, deletedTagId) => {
+      queryClient.invalidateQueries({ queryKey: ["all-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["session-tags"] });
+      if (selectedTag === deletedTagId) {
+        setSelectedTag(null);
+      }
+    },
+  });
+
   // Filter tags based on search
   const filteredTags = useMemo(() => {
     if (!searchTerm) {
@@ -53,6 +66,18 @@ export function TagsView({ userId }: TagsViewProps) {
   // Handle tag selection
   const selectTag = (tagId: string) => {
     setSelectedTag(tagId === selectedTag ? null : tagId);
+  };
+
+  const handleDeleteTag = async (e: React.MouseEvent, tag: { id: string; name: string }) => {
+    e.stopPropagation(); // Prevent tag selection
+
+    const userConfirmed = await confirm(
+      `Are you sure you want to delete the tag "${tag.name}"?\n\n⚠️ This action cannot be undone.\n\nDon't worry - this only deletes the tag itself. All your notes will remain completely untouched.`,
+    );
+
+    if (userConfirmed) {
+      deleteTagMutation.mutate(tag.id);
+    }
   };
 
   // Handle session click
@@ -96,22 +121,36 @@ export function TagsView({ userId }: TagsViewProps) {
           ? (
             <div className="flex flex-wrap gap-2">
               {filteredTags.map((tag) => (
-                <button
+                <div
                   key={tag.id}
-                  onClick={() => selectTag(tag.id)}
-                  className={cn(
-                    "rounded-full transition-all text-sm px-2.5 py-1.5",
-                    "border",
-                    selectedTag === tag.id
-                      ? "bg-blue-50 text-black border-blue-500 hover:bg-blue-50"
-                      : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300",
-                  )}
+                  className="relative group"
                 >
-                  <span className="flex items-center gap-1">
-                    <Hash className="h-3 w-3 opacity-60" />
-                    {tag.name}
-                  </span>
-                </button>
+                  <button
+                    onClick={() => selectTag(tag.id)}
+                    className={cn(
+                      "rounded-full transition-all text-sm px-2.5 py-1.5 pr-8",
+                      "border",
+                      selectedTag === tag.id
+                        ? "bg-blue-50 text-black border-blue-500 hover:bg-blue-50"
+                        : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300",
+                    )}
+                  >
+                    <span className="flex items-center gap-1">
+                      <Hash className="h-3 w-3 opacity-60" />
+                      {tag.name}
+                    </span>
+                  </button>
+
+                  {/* Delete button - appears on hover */}
+                  <button
+                    onClick={(e) => handleDeleteTag(e, tag)}
+                    disabled={deleteTagMutation.isPending}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={`Delete tag "${tag.name}"`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
               ))}
             </div>
           )

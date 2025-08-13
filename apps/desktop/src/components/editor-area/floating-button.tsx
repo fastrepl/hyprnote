@@ -74,6 +74,13 @@ export function FloatingButton({
   const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
   const isEnhancePending = useEnhancePendingState(session.id);
 
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+
+  const hasTranscript = session.words && session.words.length > 0;
+  const isSessionInactive = ongoingSessionStatus === "inactive" || session.id !== ongoingSessionId;
+  const canEnhanceTranscript = hasTranscript && isSessionInactive;
+
   const localLlmBaseUrl = useQuery({
     queryKey: ["local-llm"],
     queryFn: async () => {
@@ -181,8 +188,10 @@ export function FloatingButton({
     );
   }
 
-  if (!session.enhanced_memo_html && !isEnhancePending) {
-    return null;
+  const shouldShowButton = session.enhanced_memo_html || isEnhancePending || canEnhanceTranscript;
+
+  if (!shouldShowButton) {
+    return null; // don't show the button
   }
 
   const rawButtonClasses = cn(

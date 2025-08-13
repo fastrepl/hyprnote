@@ -182,7 +182,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
   return (
     <div className="flex h-full">
       <div className="w-[200px] border-r border-neutral-200 flex flex-col">
-        <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between">
+        <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between h-12">
           <h3 className="text-xs font-medium text-neutral-600">Organizations</h3>
           <button
             onClick={() => setShowNewOrg(true)}
@@ -254,7 +254,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
       </div>
 
       <div className="w-[250px] border-r border-neutral-200 flex flex-col">
-        <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between">
+        <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between h-12">
           <h3 className="text-xs font-medium text-neutral-600">People</h3>
           <div className="flex items-center gap-1">
             <Select

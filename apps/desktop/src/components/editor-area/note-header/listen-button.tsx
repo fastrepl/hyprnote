@@ -55,7 +55,7 @@ const showConsentNotification = () => {
   });
 };
 
-export default function ListenButton({ sessionId }: { sessionId: string }) {
+export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
   const { onboardingSessionId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 
@@ -92,11 +92,17 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     loading: s.loading,
   }));
 
+  const sessionWords = useSession(sessionId, (s) => s.session.words);
+
+  // don't show consent notification if the session already has transcript
   useEffect(() => {
-    if (ongoingSessionStatus === "running_active" && sessionId === ongoingSessionId && !isOnboarding) {
+    if (
+      ongoingSessionStatus === "running_active" && sessionId === ongoingSessionId && !isOnboarding
+      && sessionWords.length === 0
+    ) {
       showConsentNotification();
     }
-  }, [ongoingSessionStatus, sessionId, ongoingSessionId, isOnboarding]);
+  }, [ongoingSessionStatus, sessionId, ongoingSessionId, isOnboarding, sessionWords.length]);
 
   const isEnhancePending = useEnhancePendingState(sessionId);
   const nonEmptySession = useSession(
@@ -134,12 +140,14 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
         disabled={!modelDownloaded.data}
         onClick={handleResumeSession}
         className={cn(
-          "w-16 h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium",
+          `${
+            isCompact ? "w-12" : "w-16"
+          } h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium`,
           "bg-red-100 border-2 border-red-400 text-red-600",
           "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         )}
       >
-        <Trans>Resume</Trans>
+        <Trans>{isCompact ? "Go" : "Resume"}</Trans>
       </button>
     );
   }
@@ -159,7 +167,7 @@ export default function ListenButton({ sessionId }: { sessionId: string }) {
     } else {
       return isOnboarding
         ? <WhenInactiveAndMeetingEndedOnboarding {...buttonProps} />
-        : <WhenInactiveAndMeetingEnded {...buttonProps} />;
+        : <WhenInactiveAndMeetingEnded {...buttonProps} isCompact={isCompact} />;
     }
   }
 
@@ -195,7 +203,9 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
   );
 }
 
-function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+function WhenInactiveAndMeetingEnded(
+  { disabled, onClick, isCompact = false }: { disabled: boolean; onClick: () => void; isCompact?: boolean },
+) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -205,7 +215,9 @@ function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean;
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "w-16 h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium",
+        `${
+          isCompact ? "w-12" : "w-16"
+        } h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium`,
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         !disabled
@@ -213,7 +225,7 @@ function WhenInactiveAndMeetingEnded({ disabled, onClick }: { disabled: boolean;
           : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>{disabled ? "Wait..." : isHovered ? "Resume" : "Ended"}</Trans>
+      <Trans>{disabled ? "Wait..." : isHovered ? (isCompact ? "Go" : "Resume") : (isCompact ? "End" : "Ended")}</Trans>
     </button>
   );
 }

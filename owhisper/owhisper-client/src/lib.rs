@@ -72,7 +72,6 @@ impl ListenClientBuilder {
             for lang in &params.languages {
                 query_pairs.append_pair("languages", lang.iso639().code());
             }
-
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))

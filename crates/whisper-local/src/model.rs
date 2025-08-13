@@ -203,6 +203,7 @@ impl Whisper {
                     }
                 }
             }
+
             tracing::info!("predicted: {:#?}, from: {:#?}", best_lang, self.languages);
             best_lang
         };

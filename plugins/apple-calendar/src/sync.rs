@@ -129,7 +129,7 @@ async fn _sync_events(
     let mut handled_system_event_ids = std::collections::HashSet::<String>::new();
 
     // Collect all system events for rescheduled event detection
-    /* 
+    /*
     let all_system_events: Vec<&hypr_calendar_interface::Event> =
         system_events_per_selected_calendar
             .values()
@@ -139,8 +139,6 @@ async fn _sync_events(
 
     // Process existing events:
     for (db_event, session) in &db_events_with_session {
-
-
         let is_selected_cal = db_selected_calendars
             .iter()
             .any(|c| c.id == db_event.calendar_id.clone().unwrap_or_default());
@@ -157,15 +155,16 @@ async fn _sync_events(
                 // Check if event exists with same tracking_id
                 if let Some(matching_event) = events.iter().find(|e| {
                     let system_composite_id = if e.is_recurring {
-                        format!("{}@{}", e.id, e.occurrence_date.unwrap().format("%Y%m%d%H%M%S"))
+                        format!(
+                            "{}@{}",
+                            e.id,
+                            e.occurrence_date.unwrap().format("%Y%m%d%H%M%S")
+                        )
                     } else {
                         e.id.clone()
                     };
                     system_composite_id == db_event.tracking_id
                 }) {
-
-                    
-
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: db_event.tracking_id.clone(),
@@ -185,7 +184,14 @@ async fn _sync_events(
                     state.to_update.push(updated_event);
 
                     let composite_id = if matching_event.is_recurring {
-                        format!("{}@{}", matching_event.id, matching_event.occurrence_date.unwrap().format("%Y%m%d%H%M%S"))
+                        format!(
+                            "{}@{}",
+                            matching_event.id,
+                            matching_event
+                                .occurrence_date
+                                .unwrap()
+                                .format("%Y%m%d%H%M%S")
+                        )
                     } else {
                         matching_event.id.clone()
                     };
@@ -194,19 +200,19 @@ async fn _sync_events(
                     continue;
                 }
 
-                /* 
+                /*
                 // Check for rescheduled events
                 if let Some(rescheduled_event) = find_potentially_rescheduled_event(
                     &db_event,
                     &all_system_events,
                     &db_selected_calendars,
                 ) {
-                    //temporary prevention 
+                    //temporary prevention
                     if rescheduled_event.is_recurring {
                         //tracing::info!("Skipping recurring event: {}", rescheduled_event.id);
                         continue;
                     }
-                    
+
                     let updated_event = hypr_db_user::Event {
                         id: db_event.id.clone(),
                         tracking_id: rescheduled_event.id.clone(),
@@ -243,9 +249,12 @@ async fn _sync_events(
     for db_calendar in db_selected_calendars {
         if let Some(fresh_events) = system_events_per_selected_calendar.get(&db_calendar.id) {
             for system_event in fresh_events {
-
                 let composite_tracking_id = if system_event.is_recurring {
-                    format!("{}@{}", system_event.id, system_event.occurrence_date.unwrap().format("%Y%m%d%H%M%S"))
+                    format!(
+                        "{}@{}",
+                        system_event.id,
+                        system_event.occurrence_date.unwrap().format("%Y%m%d%H%M%S")
+                    )
                 } else {
                     system_event.id.clone()
                 };
@@ -292,7 +301,7 @@ async fn _sync_events(
     Ok(state)
 }
 
-/* 
+/*
 fn find_potentially_rescheduled_event<'a>(
     db_event: &hypr_db_user::Event,
     system_events: &'a [&hypr_calendar_interface::Event],
@@ -309,7 +318,7 @@ fn find_potentially_rescheduled_event<'a>(
     system_events
         .iter()
         .find(|sys_event| {
-            //temporary prevention 
+            //temporary prevention
             !sys_event.is_recurring &&
             // Must have the same name
             sys_event.name == db_event.name &&

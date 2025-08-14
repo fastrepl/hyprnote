@@ -227,7 +227,7 @@ impl CalendarSource for Handle {
                     return None;
                 }
 
-                // experiment: check if the event is recurring 
+                // experiment: check if the event is recurring
                 let is_recurring = unsafe {
                     let has_rules: Bool = msg_send![event, hasRecurrenceRules];
                     has_rules.as_bool()

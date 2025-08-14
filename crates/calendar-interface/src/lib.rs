@@ -45,7 +45,7 @@ pub struct Event {
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
     pub google_event_url: Option<String>,
-    pub is_recurring: bool, 
+    pub is_recurring: bool,
     pub occurrence_date: Option<DateTime<Utc>>,
 }
 

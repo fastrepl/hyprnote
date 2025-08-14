@@ -37,7 +37,7 @@ export function CalendarView({ date, sessions, events, onNavigate }: CalendarVie
     onNavigate({ date: today.toISOString() });
   };
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="flex flex-col h-full">

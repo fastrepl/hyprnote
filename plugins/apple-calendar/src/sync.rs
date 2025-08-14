@@ -150,7 +150,6 @@ async fn _sync_events(
             continue;
         }
 
-    
         if let Some(ref calendar_id) = db_event.calendar_id {
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
                 // Check if event exists with same tracking_id
@@ -273,18 +272,22 @@ async fn _sync_events(
                 // Check for backward compatibility: recurring event replacing old non-recurring
                 if system_event.is_recurring {
                     // Look for old format event with session
-                    if let Some((_, session)) = db_events_with_session.iter().find(|(db_event, session)| {
-                        db_event.tracking_id == system_event.id &&  // Old format used base ID only
+                    if let Some((_, session)) =
+                        db_events_with_session.iter().find(|(db_event, session)| {
+                            db_event.tracking_id == system_event.id &&  // Old format used base ID only
                         db_event.start_date == system_event.start_date &&
                         db_event.name == system_event.name &&
                         !db_event.is_recurring &&  // Was stored as non-recurring
-                        session.is_some()  // Has a session
-                    }) {
+                        session.is_some() // Has a session
+                        })
+                    {
                         // Store session ID for transfer after new event is created
                         if let Some(session) = session {
                             let new_event_id = uuid::Uuid::new_v4().to_string();
-                            state.session_transfers.push((session.id.clone(), new_event_id.clone()));
-                            
+                            state
+                                .session_transfers
+                                .push((session.id.clone(), new_event_id.clone()));
+
                             let new_event = hypr_db_user::Event {
                                 id: new_event_id,
                                 tracking_id: composite_tracking_id,
@@ -301,7 +304,7 @@ async fn _sync_events(
                                 ),
                                 is_recurring: system_event.is_recurring,
                             };
-                            
+
                             state.to_upsert.push(new_event);
                             continue;
                         }
@@ -326,7 +329,6 @@ async fn _sync_events(
                     is_recurring: system_event.is_recurring,
                 };
 
-               
                 state.to_upsert.push(new_event);
             }
         }

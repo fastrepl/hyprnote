@@ -401,7 +401,7 @@ async fn list_system_events_for_calendars(
             let filter = EventFilter {
                 calendar_tracking_id: calendar_tracking_id.clone(),
                 from: now,
-                to: now + chrono::Duration::days(90),
+                to: now + chrono::Duration::days(100),
             };
 
             // Add small delay between API calls to avoid overwhelming EventKit
@@ -484,7 +484,7 @@ async fn list_db_events(
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now(),
-                end: Utc::now() + chrono::Duration::days(90),
+                end: Utc::now() + chrono::Duration::days(100),
             },
         }))
         .await

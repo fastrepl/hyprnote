@@ -14,6 +14,7 @@ user_common_derives! {
         pub end_date: DateTime<Utc>,
         pub google_event_url: Option<String>,
         pub participants: Option<String>,
+        pub is_recurring: bool,
     }
 }
 

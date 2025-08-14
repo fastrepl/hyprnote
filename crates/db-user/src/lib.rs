@@ -129,7 +129,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 21] = [
+const MIGRATIONS: [&str; 22] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -150,6 +150,7 @@ const MIGRATIONS: [&str; 21] = [
     include_str!("./sessions_migration_4.sql"),
     include_str!("./chat_groups_migration_1.sql"),
     include_str!("./events_migration_1.sql"),
+    include_str!("./events_migration_2.sql"),
     include_str!("./session_participants_migration_1.sql"),
 ];
 

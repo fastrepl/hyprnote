@@ -220,6 +220,7 @@ impl CalendarSource for Handle {
 
                 let calendar = unsafe { event.calendar() }.unwrap();
                 let calendar_id = unsafe { calendar.calendarIdentifier() };
+                let occurrence_date = unsafe { event.occurrenceDate() };
 
                 // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
                 if !filter.calendar_tracking_id.eq(&calendar_id.to_string()) {
@@ -254,6 +255,7 @@ impl CalendarSource for Handle {
                     end_date: offset_date_time_from(end_date),
                     google_event_url: None,
                     is_recurring,
+                    occurrence_date: occurrence_date.map(|date| offset_date_time_from(date)),
                 })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))

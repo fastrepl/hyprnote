@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use tauri::ipc::Channel;
 
-use crate::{server::ServerType, LocalSttPluginExt};
-use hypr_whisper_local_model::WhisperModel;
+use crate::{
+    server::ServerType, LocalSttPluginExt, SttModelInfo, SupportedSttModel, SUPPORTED_MODELS,
+};
 
 #[tauri::command]
 #[specta::specta]
@@ -20,35 +21,15 @@ pub fn list_ggml_backends<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn list_supported_models() -> Result<Vec<WhisperModel>, String> {
-    let models = vec![
-        WhisperModel::QuantizedTiny,
-        WhisperModel::QuantizedTinyEn,
-        WhisperModel::QuantizedBase,
-        WhisperModel::QuantizedBaseEn,
-        WhisperModel::QuantizedSmall,
-        WhisperModel::QuantizedSmallEn,
-        WhisperModel::QuantizedLargeTurbo,
-    ];
-
-    Ok(models)
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn list_pro_models() -> Result<Vec<hypr_am::ModelInfo>, String> {
-    Ok(vec![
-        hypr_am::Model::WhisperSmallEn.info(),
-        hypr_am::Model::WhisperLargeV3.info(),
-        hypr_am::Model::ParakeetV2.info(),
-    ])
+pub async fn list_supported_models() -> Result<Vec<SttModelInfo>, String> {
+    Ok(SUPPORTED_MODELS.iter().map(|m| m.info()).collect())
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn is_model_downloaded<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    model: WhisperModel,
+    model: SupportedSttModel,
 ) -> Result<bool, String> {
     app.is_model_downloaded(&model)
         .await
@@ -59,7 +40,7 @@ pub async fn is_model_downloaded<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn is_model_downloading<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    model: WhisperModel,
+    model: SupportedSttModel,
 ) -> Result<bool, String> {
     Ok(app.is_model_downloading(&model).await)
 }
@@ -68,7 +49,7 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    model: WhisperModel,
+    model: SupportedSttModel,
     channel: Channel<i8>,
 ) -> Result<(), String> {
     app.download_model(model, channel)
@@ -80,28 +61,28 @@ pub async fn download_model<R: tauri::Runtime>(
 #[specta::specta]
 pub fn get_current_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<WhisperModel, String> {
+) -> Result<SupportedSttModel, String> {
     app.get_current_model().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_current_model<R: tauri::Runtime>(
+pub async fn set_current_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    model: WhisperModel,
+    model: SupportedSttModel,
 ) -> Result<(), String> {
-    app.set_current_model(model).map_err(|e| e.to_string())
+    app.set_current_model(model)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn start_server<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    server_type: Option<ServerType>,
+    model: Option<SupportedSttModel>,
 ) -> Result<String, String> {
-    app.start_server(server_type)
-        .await
-        .map_err(|e| e.to_string())
+    app.start_server(model).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

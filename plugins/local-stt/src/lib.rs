@@ -3,14 +3,17 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
-mod events;
 mod ext;
+mod model;
 mod server;
 mod store;
+mod types;
 
 pub use error::*;
 pub use ext::*;
+pub use model::*;
 pub use store::*;
+pub use types::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
@@ -19,7 +22,7 @@ pub struct State {
     pub am_api_key: Option<String>,
     pub internal_server: Option<server::internal::ServerHandle>,
     pub external_server: Option<server::external::ServerHandle>,
-    pub download_task: HashMap<hypr_whisper_local_model::WhisperModel, tokio::task::JoinHandle<()>>,
+    pub download_task: HashMap<SupportedSttModel, tokio::task::JoinHandle<()>>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";
@@ -33,18 +36,14 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
-            commands::list_supported_models,
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
             commands::get_servers::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
-            commands::list_pro_models,
+            commands::list_supported_models,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
-        .events(tauri_specta::collect_events![
-            events::RecordedProcessingEvent
-        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -99,13 +98,33 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             Ok(())
         })
+        .on_event(|app, event| {
+            if let tauri::RunEvent::Exit = event {
+                let state = app.state::<SharedState>();
+
+                tokio::task::block_in_place(|| {
+                    tokio::runtime::Handle::current().block_on(async {
+                        let mut guard = state.lock().await;
+
+                        if let Some(server) = guard.internal_server.take() {
+                            let _ = server.terminate();
+                        }
+                        if let Some(server) = guard.external_server.take() {
+                            let _ = server.terminate();
+                        }
+                        for (_, task) in guard.download_task.drain() {
+                            task.abort();
+                        }
+                    });
+                });
+            }
+        })
         .build()
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use hypr_audio_utils::AudioFormatExt;
 
     #[test]
     fn export_types() {
@@ -135,37 +154,8 @@ mod test {
     #[ignore]
     // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
-        use futures_util::StreamExt;
-
         let app = create_app(tauri::test::mock_builder());
-        app.start_server(None).await.unwrap();
-        let api_base = app.get_api_base(None).await.unwrap().unwrap();
-
-        let listen_client = owhisper_client::ListenClient::builder()
-            .api_base(api_base)
-            .api_key("NONE")
-            .params(owhisper_interface::ListenParams {
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        let audio_source = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let listen_stream = listen_client
-            .from_realtime_audio(audio_source)
-            .await
-            .unwrap();
-        let mut listen_stream = Box::pin(listen_stream);
-
-        while let Some(chunk) = listen_stream.next().await {
-            println!("{:?}", chunk);
-        }
-
-        app.stop_server(None).await.unwrap();
+        let model = app.get_current_model();
+        println!("model: {:#?}", model);
     }
 }

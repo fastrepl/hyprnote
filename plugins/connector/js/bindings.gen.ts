@@ -34,9 +34,6 @@ async getLocalLlmConnection() : Promise<ConnectionLLM> {
 async getLlmConnection() : Promise<ConnectionLLM> {
     return await TAURI_INVOKE("plugin:connector|get_llm_connection");
 },
-async getSttConnection() : Promise<ConnectionSTT> {
-    return await TAURI_INVOKE("plugin:connector|get_stt_connection");
-},
 async getOpenaiApiKey() : Promise<string> {
     return await TAURI_INVOKE("plugin:connector|get_openai_api_key");
 },
@@ -111,7 +108,6 @@ async setOpenrouterApiKey(apiKey: string) : Promise<null> {
 
 export type Connection = { api_base: string; api_key: string | null }
 export type ConnectionLLM = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection } | { type: "Custom"; connection: Connection }
-export type ConnectionSTT = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection }
 
 /** tauri-specta globals **/
 

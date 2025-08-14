@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use crate::{Connection, ConnectionLLM, ConnectionSTT, StoreKey};
+use crate::{Connection, ConnectionLLM, StoreKey};
 use tauri_plugin_store2::StorePluginExt;
 
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
@@ -21,7 +21,6 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 
     fn get_llm_connection(&self) -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
-    fn get_stt_connection(&self) -> impl Future<Output = Result<ConnectionSTT, crate::Error>>;
 
     fn get_admin_connection(&self) -> Result<Option<Connection>, crate::Error>;
     fn set_admin_connection(&self, connection: Connection) -> Result<(), crate::Error>;
@@ -108,47 +107,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
-        {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
-
-            if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
-            {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                return Ok(ConnectionLLM::HyprCloud(Connection {
-                    api_base,
-                    api_key: None,
-                }));
-            }
-        }
-
-        {
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
-
-            if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
-
-                let conn = ConnectionLLM::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
-            }
-        }
-
         let store = self.connector_store();
         let custom_enabled = self.get_custom_llm_enabled()?;
 
@@ -165,64 +123,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             Ok(conn)
         } else {
             let conn = self.get_local_llm_connection().await?;
-            Ok(conn)
-        }
-    }
-
-    async fn get_stt_connection(&self) -> Result<ConnectionSTT, crate::Error> {
-        {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
-
-            if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
-            {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                return Ok(ConnectionSTT::HyprCloud(Connection {
-                    api_base,
-                    api_key: None,
-                }));
-            }
-        }
-
-        {
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
-
-            if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
-
-                let conn = ConnectionSTT::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
-            }
-        }
-
-        {
-            use tauri_plugin_local_stt::LocalSttPluginExt;
-
-            let api_base = match self.get_api_base(None).await? {
-                Some(api_base) => api_base,
-                None => self.start_server(None).await?,
-            };
-
-            let conn = ConnectionSTT::HyprLocal(Connection {
-                api_base,
-                api_key: None,
-            });
             Ok(conn)
         }
     }

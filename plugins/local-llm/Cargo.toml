@@ -24,6 +24,7 @@ specta-typescript = { workspace = true }
 tauri-plugin-store = { workspace = true }
 
 [dependencies]
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
 hypr-llama = { workspace = true }

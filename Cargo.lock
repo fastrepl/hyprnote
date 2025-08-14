@@ -188,12 +188,19 @@ dependencies = [
 name = "am"
 version = "0.1.0"
 dependencies = [
+ "dirs 6.0.0",
+ "download-interface",
+ "file",
+ "hf-hub 0.4.3",
  "reqwest 0.12.22",
  "serde",
  "serde_json",
  "specta",
+ "strum 0.26.3",
+ "tar",
  "thiserror 2.0.12",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -1583,7 +1590,7 @@ dependencies = [
  "console 0.15.11",
  "content_inspector",
  "encoding_rs",
- "etcetera",
+ "etcetera 0.8.0",
  "flate2",
  "git2",
  "globset",
@@ -3815,7 +3822,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.67"
+version = "0.0.68"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4080,6 +4087,14 @@ name = "downcast-rs"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
+
+[[package]]
+name = "download-interface"
+version = "0.1.0"
+dependencies = [
+ "dirs 6.0.0",
+ "serde",
+]
 
 [[package]]
 name = "dpi"
@@ -4370,6 +4385,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "etcetera"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26c7b13d0780cb82722fd59f6f57f925e143427e4a75313a6c77243bf5326ae6"
+dependencies = [
+ "cfg-if",
+ "home",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4533,6 +4559,7 @@ dependencies = [
  "base64 0.22.1",
  "crc32fast",
  "dirs 6.0.0",
+ "download-interface",
  "futures-util",
  "reqwest 0.12.22",
  "s3",
@@ -10225,6 +10252,7 @@ dependencies = [
  "rodio",
  "serde_json",
  "tokio",
+ "tracing",
  "url",
  "ws",
 ]
@@ -10294,6 +10322,7 @@ dependencies = [
  "cpal",
  "data",
  "dirs 6.0.0",
+ "download-interface",
  "env_logger",
  "file",
  "futures-util",
@@ -10886,6 +10915,12 @@ dependencies = [
  "opaque-debug",
  "universal-hash",
 ]
+
+[[package]]
+name = "port-killer"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f8f8abaf06419461fc718f5a0929c18d06dd825f26c066e376f365f2d8c2ec2"
 
 [[package]]
 name = "portable-atomic"
@@ -14598,6 +14633,7 @@ dependencies = [
  "data",
  "db-core",
  "db-user",
+ "dirs 6.0.0",
  "flume",
  "futures-util",
  "hound",
@@ -14642,6 +14678,7 @@ dependencies = [
  "async-stream",
  "axum 0.8.4",
  "dirs 6.0.0",
+ "download-interface",
  "file",
  "futures-util",
  "gbnf",
@@ -14676,12 +14713,14 @@ dependencies = [
  "axum-extra",
  "data",
  "dirs 6.0.0",
+ "download-interface",
  "file",
  "futures-util",
  "inventory",
  "language",
  "owhisper-client",
  "owhisper-interface",
+ "port-killer",
  "reqwest 0.12.22",
  "rodio",
  "serde",
@@ -15377,9 +15416,9 @@ checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
 name = "testcontainers"
-version = "0.23.3"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59a4f01f39bb10fc2a5ab23eb0d888b1e2bb168c157f61a1b98e6c501c639c74"
+checksum = "23bb7577dca13ad86a78e8271ef5d322f37229ec83b8d98da6d996c588a1ddb1"
 dependencies = [
  "async-trait",
  "bollard",
@@ -15387,7 +15426,7 @@ dependencies = [
  "bytes",
  "docker_credential",
  "either",
- "etcetera",
+ "etcetera 0.10.0",
  "futures",
  "log",
  "memchr",
@@ -15406,9 +15445,9 @@ dependencies = [
 
 [[package]]
 name = "testcontainers-modules"
-version = "0.11.6"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d43ed4e8f58424c3a2c6c56dbea6643c3c23e8666a34df13c54f0a184e6c707"
+checksum = "eac95cde96549fc19c6bf19ef34cc42bd56e264c1cb97e700e21555be0ecf9e2"
 dependencies = [
  "testcontainers",
 ]

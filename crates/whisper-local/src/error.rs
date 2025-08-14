@@ -2,10 +2,10 @@ use serde::{ser::Serializer, Serialize};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error(transparent)]
-    LocalWhisperError(#[from] whisper_rs::WhisperError),
     #[error("model_not_found")]
     ModelNotFound,
+    #[error(transparent)]
+    LocalWhisperError(#[from] whisper_rs::WhisperError),
 }
 
 impl Serialize for Error {

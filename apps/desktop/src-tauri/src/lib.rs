@@ -17,8 +17,9 @@ pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     {
-        let env_filter =
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+        let env_filter = EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| EnvFilter::new("info"))
+            .add_directive("ort=warn".parse().unwrap());
 
         tracing_subscriber::Registry::default()
             .with(fmt::layer())

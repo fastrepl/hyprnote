@@ -12,13 +12,6 @@ pub enum ConnectionLLM {
     Custom(Connection),
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, specta::Type)]
-#[serde(tag = "type", content = "connection")]
-pub enum ConnectionSTT {
-    HyprCloud(Connection),
-    HyprLocal(Connection),
-}
-
 impl From<ConnectionLLM> for Connection {
     fn from(value: ConnectionLLM) -> Self {
         match value {
@@ -35,24 +28,6 @@ impl AsRef<Connection> for ConnectionLLM {
             ConnectionLLM::HyprCloud(conn) => conn,
             ConnectionLLM::HyprLocal(conn) => conn,
             ConnectionLLM::Custom(conn) => conn,
-        }
-    }
-}
-
-impl From<ConnectionSTT> for Connection {
-    fn from(value: ConnectionSTT) -> Self {
-        match value {
-            ConnectionSTT::HyprCloud(conn) => conn,
-            ConnectionSTT::HyprLocal(conn) => conn,
-        }
-    }
-}
-
-impl AsRef<Connection> for ConnectionSTT {
-    fn as_ref(&self) -> &Connection {
-        match self {
-            ConnectionSTT::HyprCloud(conn) => conn,
-            ConnectionSTT::HyprLocal(conn) => conn,
         }
     }
 }

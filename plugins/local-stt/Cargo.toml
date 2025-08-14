@@ -42,6 +42,7 @@ tower = { workspace = true }
 [dependencies]
 hypr-am = { workspace = true }
 hypr-audio-utils = { workspace = true }
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-transcribe-moonshine = { workspace = true }
 hypr-transcribe-whisper-local = { workspace = true }
@@ -70,6 +71,8 @@ axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }
+port-killer = "0.1.0"
+reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }

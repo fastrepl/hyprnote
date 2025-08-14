@@ -264,8 +264,7 @@ export function ChatInput(
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 50px !important;
-          max-height: 50px !important;
-          overflow-y: auto !important;
+          max-height: 80px!important;  
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
@@ -283,7 +282,7 @@ export function ChatInput(
         }
         .chat-editor .tiptap-normal p {
           margin: 0 !important;
-          display: inline !important;
+          display: block !important;  
         }
         .chat-editor .mention {
           color: #3b82f6 !important;
@@ -323,7 +322,8 @@ export function ChatInput(
       `}
       </style>
 
-      <div className={`relative chat-editor ${inputValue.trim() ? "has-content" : ""}`}>
+      {/* Make the editor area flex-grow and scrollable */}
+      <div className={`relative chat-editor flex-1 overflow-y-auto ${inputValue.trim() ? "has-content" : ""}`}>
         <Editor
           ref={editorRef}
           handleChange={handleContentChange}
@@ -339,7 +339,8 @@ export function ChatInput(
         )}
       </div>
 
-      <div className="flex items-center justify-between pb-2 px-3">
+      {/* Bottom area stays fixed */}
+      <div className="flex items-center justify-between pb-2 px-3 flex-shrink-0">
         {entityId
           ? (
             <Badge

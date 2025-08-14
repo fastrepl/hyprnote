@@ -163,7 +163,14 @@ function ShareButtonInNote() {
       } else if (optionId === "pdf") {
         result = await exportHandlers.pdf(session);
       } else if (optionId === "email") {
-        result = await exportHandlers.email(session);
+        try {
+          // fetch participants directly, bypassing cache
+          const freshParticipants = await dbCommands.sessionListParticipants(param.id);
+          result = await exportHandlers.email(session, freshParticipants);
+        } catch (participantError) {
+          console.warn("Failed to fetch participants, sending email without them:", participantError);
+          result = await exportHandlers.email(session, undefined);
+        }
       } else if (optionId === "obsidian") {
         sessionTags.refetch();
         sessionParticipants.refetch();
@@ -438,7 +445,10 @@ const exportHandlers = {
     return { type: "pdf", path };
   },
 
-  email: async (session: Session): Promise<ExportResult> => {
+  email: async (
+    session: Session,
+    sessionParticipants?: Array<{ full_name: string | null; email: string | null }>,
+  ): Promise<ExportResult> => {
     let bodyContent = "Here is the meeting summary: \n\n";
 
     if (session.enhanced_memo_html) {
@@ -449,9 +459,30 @@ const exportHandlers = {
       bodyContent += "No content available";
     }
 
+    if (sessionParticipants && sessionParticipants.length > 0) {
+      const participantNames = sessionParticipants
+        .filter(p => p.full_name)
+        .map(p => p.full_name)
+        .join(", ");
+
+      if (participantNames) {
+        bodyContent += `\n\nMeeting Participants: ${participantNames}`;
+      }
+    }
+
     bodyContent += "\n\nSent with Hyprnote (www.hyprnote.com)\n\n";
 
-    const url = `mailto:?subject=${encodeURIComponent(session.title)}&body=${encodeURIComponent(bodyContent)}`;
+    const participantEmails = sessionParticipants
+      ?.filter(participant => participant.email && participant.email.trim())
+      ?.map(participant => participant.email!)
+      ?.join(",") || "";
+
+    const subject = encodeURIComponent(session.title);
+    const body = encodeURIComponent(bodyContent);
+
+    const to = participantEmails ? `&to=${encodeURIComponent(participantEmails)}` : "";
+
+    const url = `mailto:?subject=${subject}&body=${body}${to}`;
     return { type: "email", url };
   },
 

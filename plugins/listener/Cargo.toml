@@ -11,8 +11,6 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-tauri-plugin-local-stt = { workspace = true }
-
 insta = { workspace = true }
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
@@ -36,6 +34,7 @@ owhisper-interface = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
+tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 tauri-plugin-windows = { workspace = true }
@@ -48,12 +47,14 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 bytes = { workspace = true }
 chrono = { workspace = true }
 codes-iso-639 = { workspace = true }
+dirs = { workspace = true }
 ordered-float = { version = "5", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 url = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

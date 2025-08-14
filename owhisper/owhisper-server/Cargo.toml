@@ -30,6 +30,7 @@ owhisper-model = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-language = { workspace = true }
 
@@ -43,7 +44,7 @@ hypr-transcribe-whisper-local = { workspace = true }
 
 aide = { version = "0.15.0", features = ["axum"] }
 axum = { workspace = true }
-axum-extra = { workspace = true, features = ["typed-header"] }
+axum-extra = { workspace = true, features = ["typed-header", "query"] }
 futures-util = { workspace = true }
 rustls = { version = "0.23.31", features = ["ring"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

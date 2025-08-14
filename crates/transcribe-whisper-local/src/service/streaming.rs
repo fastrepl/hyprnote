@@ -116,7 +116,7 @@ where
 
             Ok(ws_upgrade
                 .on_upgrade(move |socket| async move {
-                    handle_websocket_connection(socket, params, model, guard).await
+                    handle_websocket_connection(socket, params, model, guard).await;
                 })
                 .into_response())
         })

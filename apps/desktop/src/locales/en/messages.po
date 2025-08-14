@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:362
+#: src/components/settings/views/general.tsx:402
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -356,7 +356,7 @@ msgstr "Add more quotes"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:353
+#: src/components/settings/views/general.tsx:393
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -377,7 +377,7 @@ msgstr "After you grant system audio access, app will restart to apply the chang
 #~ msgid "AI notepad for meetings"
 #~ msgstr "AI notepad for meetings"
 
-#: src/components/welcome-modal/download-progress-view.tsx:224
+#: src/components/welcome-modal/download-progress-view.tsx:221
 msgid "All models ready!"
 msgstr "All models ready!"
 
@@ -407,7 +407,7 @@ msgstr "API Base URL"
 #: src/components/welcome-modal/custom-endpoint-view.tsx:361
 #: src/components/welcome-modal/custom-endpoint-view.tsx:438
 #: src/components/welcome-modal/custom-endpoint-view.tsx:518
-#: src/components/settings/views/integrations.tsx:197
+#: src/components/settings/views/integrations.tsx:203
 #: src/components/settings/components/ai/llm-custom-view.tsx:277
 #: src/components/settings/components/ai/llm-custom-view.tsx:373
 #: src/components/settings/components/ai/llm-custom-view.tsx:479
@@ -448,11 +448,11 @@ msgstr "Autonomy Selector"
 msgid "Back"
 msgstr "Back"
 
-#: src/components/settings/views/integrations.tsx:246
+#: src/components/settings/views/integrations.tsx:252
 msgid "Base Folder"
 msgstr "Base Folder"
 
-#: src/components/settings/views/integrations.tsx:173
+#: src/components/settings/views/integrations.tsx:179
 msgid "Base URL"
 msgstr "Base URL"
 
@@ -521,7 +521,7 @@ msgstr "Chat with this meeting"
 msgid "Choose the languages you speak for better transcription accuracy"
 msgstr "Choose the languages you speak for better transcription accuracy"
 
-#: src/components/settings/views/general.tsx:187
+#: src/components/settings/views/general.tsx:191
 msgid "Choose whether to save your recordings locally."
 msgstr "Choose whether to save your recordings locally."
 
@@ -573,7 +573,7 @@ msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compati
 #~ msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 #~ msgstr "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 
-#: src/components/settings/views/integrations.tsx:121
+#: src/components/settings/views/integrations.tsx:127
 msgid "Connect with external tools and services to enhance your workflow"
 msgstr "Connect with external tools and services to enhance your workflow"
 
@@ -589,7 +589,7 @@ msgstr "Connect your calendar and contacts for a better experience"
 msgid "Connect your calendar and track events"
 msgstr "Connect your calendar and track events"
 
-#: src/components/settings/views/integrations.tsx:133
+#: src/components/settings/views/integrations.tsx:139
 msgid "Connect your Obsidian vault to export notes"
 msgstr "Connect your Obsidian vault to export notes"
 
@@ -601,9 +601,9 @@ msgstr "Connect your Obsidian vault to export notes"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:137
+#: src/components/welcome-modal/model-selection-view.tsx:94
 #: src/components/welcome-modal/llm-selection-view.tsx:94
-#: src/components/welcome-modal/download-progress-view.tsx:258
+#: src/components/welcome-modal/download-progress-view.tsx:255
 #: src/components/welcome-modal/custom-endpoint-view.tsx:595
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
@@ -668,7 +668,7 @@ msgstr "Custom"
 #~ msgid "Custom Endpoints"
 #~ msgstr "Custom Endpoints"
 
-#: src/components/settings/views/general.tsx:350
+#: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -698,7 +698,7 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
-#: src/components/settings/views/general.tsx:240
+#: src/components/settings/views/general.tsx:280
 msgid "Display language"
 msgstr "Display language"
 
@@ -706,7 +706,7 @@ msgstr "Display language"
 #~ msgid "Download {0}"
 #~ msgstr "Download {0}"
 
-#: src/components/welcome-modal/download-progress-view.tsx:204
+#: src/components/welcome-modal/download-progress-view.tsx:201
 msgid "Downloading AI Models"
 msgstr "Downloading AI Models"
 
@@ -742,7 +742,7 @@ msgstr "Emoji"
 msgid "Enable"
 msgstr "Enable"
 
-#: src/components/settings/views/integrations.tsx:147
+#: src/components/settings/views/integrations.tsx:153
 msgid "Enable Integration"
 msgstr "Enable Integration"
 
@@ -896,7 +896,7 @@ msgstr "Important Q&As"
 #~ msgstr "Integration with other apps like Notion and Google Calendar"
 
 #: src/routes/app.settings.tsx:66
-#: src/components/settings/views/integrations.tsx:118
+#: src/components/settings/views/integrations.tsx:124
 msgid "Integrations"
 msgstr "Integrations"
 
@@ -912,7 +912,7 @@ msgstr "Invite"
 msgid "Invite members"
 msgstr "Invite members"
 
-#: src/components/welcome-modal/download-progress-view.tsx:262
+#: src/components/welcome-modal/download-progress-view.tsx:259
 msgid "It's ok to move on, downloads will continue in the background"
 msgstr "It's ok to move on, downloads will continue in the background"
 
@@ -939,6 +939,10 @@ msgstr "Join meeting"
 #: src/components/settings/views/general.tsx:227
 #~ msgid "Language"
 #~ msgstr "Language"
+
+#: src/components/settings/views/general.tsx:247
+msgid "Language for AI-generated summaries"
+msgstr "Language for AI-generated summaries"
 
 #: src/routes/app.settings.tsx:54
 #~ msgid "Language Model"
@@ -1053,7 +1057,7 @@ msgstr "Model Name"
 #~ msgid "Monthly"
 #~ msgstr "Monthly"
 
-#: src/components/settings/views/integrations.tsx:272
+#: src/components/settings/views/integrations.tsx:278
 msgid "More integrations coming soon..."
 msgstr "More integrations coming soon..."
 
@@ -1142,7 +1146,7 @@ msgstr "No upcoming events with this contact"
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/components/settings/views/integrations.tsx:130
+#: src/components/settings/views/integrations.tsx:136
 msgid "Obsidian"
 msgstr "Obsidian"
 
@@ -1181,7 +1185,7 @@ msgstr "OpenAI"
 msgid "OpenRouter"
 msgstr "OpenRouter"
 
-#: src/components/settings/views/integrations.tsx:255
+#: src/components/settings/views/integrations.tsx:261
 msgid "Optional base folder path within your Obsidian vault."
 msgstr "Optional base folder path within your Obsidian vault."
 
@@ -1218,7 +1222,7 @@ msgstr "people"
 #~ msgid "Play video"
 #~ msgstr "Play video"
 
-#: src/components/settings/views/general.tsx:243
+#: src/components/settings/views/general.tsx:283
 msgid "Primary language for the interface"
 msgstr "Primary language for the interface"
 
@@ -1234,7 +1238,7 @@ msgstr "Primary language for the interface"
 msgid "Publish your note"
 msgstr "Publish your note"
 
-#: src/components/welcome-modal/download-progress-view.tsx:67
+#: src/components/welcome-modal/download-progress-view.tsx:66
 msgid "Ready"
 msgstr "Ready"
 
@@ -1302,7 +1306,7 @@ msgstr "Save current recording"
 msgid "Save Date"
 msgstr "Save Date"
 
-#: src/components/settings/views/general.tsx:184
+#: src/components/settings/views/general.tsx:188
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1351,7 +1355,7 @@ msgstr "Select a template to enhance your meeting notes"
 #~ msgid "Select a transcribing model"
 #~ msgstr "Select a transcribing model"
 
-#: src/components/welcome-modal/model-selection-view.tsx:73
+#: src/components/welcome-modal/model-selection-view.tsx:40
 msgid "Select a transcribing model (STT)"
 msgstr "Select a transcribing model (STT)"
 
@@ -1371,7 +1375,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:272
+#: src/components/settings/views/general.tsx:312
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1391,7 +1395,7 @@ msgstr "Send invite"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:210
+#: src/components/settings/views/general.tsx:214
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1411,7 +1415,7 @@ msgstr "Show notifications when you join a meeting."
 #~ msgid "Single sign-on for all users"
 #~ msgstr "Single sign-on for all users"
 
-#: src/components/welcome-modal/download-progress-view.tsx:230
+#: src/components/welcome-modal/download-progress-view.tsx:227
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 
@@ -1423,7 +1427,7 @@ msgstr "Sound"
 #~ msgid "Speech to Text Model"
 #~ msgstr "Speech to Text Model"
 
-#: src/components/settings/views/general.tsx:269
+#: src/components/settings/views/general.tsx:309
 msgid "Spoken languages"
 msgstr "Spoken languages"
 
@@ -1454,6 +1458,10 @@ msgstr "Stop"
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:61
 #~ msgid "Summarize meeting"
 #~ msgstr "Summarize meeting"
+
+#: src/components/settings/views/general.tsx:244
+msgid "Summary language"
+msgstr "Summary language"
 
 #: src/components/settings/views/billing.tsx:42
 #~ msgid "Synchronization across multiple devices"
@@ -1496,11 +1504,11 @@ msgstr "Templates"
 #~ msgid "The AI Meeting Notepad"
 #~ msgstr "The AI Meeting Notepad"
 
-#: src/components/settings/views/integrations.tsx:182
+#: src/components/settings/views/integrations.tsx:188
 msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
 msgstr "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
 
-#: src/components/settings/views/integrations.tsx:231
+#: src/components/settings/views/integrations.tsx:237
 msgid "The name of your Obsidian vault."
 msgstr "The name of your Obsidian vault."
 
@@ -1552,7 +1560,7 @@ msgstr "Toggle transcriptpanel"
 msgid "Transcription"
 msgstr "Transcription"
 
-#: src/components/settings/views/integrations.tsx:150
+#: src/components/settings/views/integrations.tsx:156
 msgid "Turn on Obsidian integration to export notes to Obsidian vault."
 msgstr "Turn on Obsidian integration to export notes to Obsidian vault."
 
@@ -1612,7 +1620,7 @@ msgstr "User"
 msgid "username"
 msgstr "username"
 
-#: src/components/settings/views/integrations.tsx:222
+#: src/components/settings/views/integrations.tsx:228
 msgid "Vault Name"
 msgstr "Vault Name"
 
@@ -1637,7 +1645,7 @@ msgstr "We think different."
 #~ msgid "We'll only use this to follow up if needed."
 #~ msgstr "We'll only use this to follow up if needed."
 
-#: src/components/settings/views/integrations.tsx:275
+#: src/components/settings/views/integrations.tsx:281
 msgid "We're working on adding more tools and services to connect with your workflow"
 msgstr "We're working on adding more tools and services to connect with your workflow"
 
@@ -1681,7 +1689,7 @@ msgstr "Where Conversations Stay Yours"
 #~ msgid "You can make Hyprnote takes these words into account when transcribing"
 #~ msgstr "You can make Hyprnote takes these words into account when transcribing"
 
-#: src/components/settings/views/integrations.tsx:207
+#: src/components/settings/views/integrations.tsx:213
 msgid "Your API key for Obsidian local-rest-api plugin."
 msgstr "Your API key for Obsidian local-rest-api plugin."
 

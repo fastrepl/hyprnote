@@ -23,7 +23,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
@@ -75,7 +75,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     queryFn: async () => {
       const supportedModels = await localSttCommands.listSupportedModels();
       const sttDownloadStatuses = await Promise.all(
-        supportedModels.map((model) => localSttCommands.isModelDownloaded(model)),
+        supportedModels.map((model) => localSttCommands.isModelDownloaded(model.key as SupportedSttModel)),
       );
       return sttDownloadStatuses.some(Boolean);
     },

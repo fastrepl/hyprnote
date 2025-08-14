@@ -14,7 +14,6 @@ Default permissions for the plugin
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
-- `allow-list-pro-models`
 
 ## Permission Table
 
@@ -73,6 +72,32 @@ Enables the get_current_model command without any pre-configured scope.
 <td>
 
 Denies the get_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-external-server-status`
+
+</td>
+<td>
+
+Enables the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-external-server-status`
+
+</td>
+<td>
+
+Denies the get_external_server_status command without any pre-configured scope.
 
 </td>
 </tr>
@@ -281,6 +306,32 @@ Enables the list_supported_models command without any pre-configured scope.
 <td>
 
 Denies the list_supported_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-list-supported-models-info`
+
+</td>
+<td>
+
+Enables the list_supported_models_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-supported-models-info`
+
+</td>
+<td>
+
+Denies the list_supported_models_info command without any pre-configured scope.
 
 </td>
 </tr>

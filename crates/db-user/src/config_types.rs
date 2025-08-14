@@ -45,6 +45,10 @@ user_common_derives! {
         pub telemetry_consent: bool,
         pub save_recordings: Option<bool>,
         pub selected_template_id: Option<String>,
+        #[specta(type = String)]
+        #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
+        #[serde(default)]
+        pub summary_language: hypr_language::Language,
     }
 }
 
@@ -58,6 +62,7 @@ impl Default for ConfigGeneral {
             telemetry_consent: true,
             save_recordings: Some(false),
             selected_template_id: None,
+            summary_language: hypr_language::ISO639::En.into(),
         }
     }
 }

@@ -11,5 +11,4 @@ permissions = [
     "allow-get-current-model",
     "allow-set-current-model",
     "allow-list-supported-models",
-    "allow-list-pro-models",
 ]

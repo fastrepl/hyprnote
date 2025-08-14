@@ -40,6 +40,7 @@ hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-script = { path = "crates/db-script", package = "db-script" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
+hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
@@ -162,7 +163,7 @@ criterion = "0.6"
 insta = "1.42"
 inventory = "0.3.20"
 serial_test = "3"
-testcontainers-modules = "0.11.5"
+testcontainers-modules = "0.12.1"
 
 axum = "0.8.4"
 axum-extra = "0.10.1"

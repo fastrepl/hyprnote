@@ -24,7 +24,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Select, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
@@ -81,6 +81,7 @@ const schema = z.object({
   telemetryConsent: z.boolean().optional(),
   jargons: z.string(),
   saveRecordings: z.boolean().optional(),
+  summaryLanguage: z.enum(SUPPORTED_LANGUAGES as [string, ...string[]]),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -106,6 +107,7 @@ export default function General() {
       telemetryConsent: true,
       jargons: "",
       saveRecordings: true,
+      summaryLanguage: "en",
     },
   });
 
@@ -118,6 +120,7 @@ export default function General() {
         telemetryConsent: config.data.general.telemetry_consent ?? true,
         jargons: (config.data.general.jargons ?? []).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
+        summaryLanguage: config.data.general.summary_language ?? "en",
       });
     }
   }, [config.data, form]);
@@ -137,6 +140,7 @@ export default function General() {
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         selected_template_id: config.data.general.selected_template_id,
+        summary_language: v.summaryLanguage,
       };
 
       await dbCommands.setConfig({
@@ -225,6 +229,42 @@ export default function General() {
                     onCheckedChange={field.onChange}
                     color="gray"
                   />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="summaryLanguage"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                  <FormLabel>
+                    <Trans>Summary language</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>Language for AI-generated summaries</Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue>
+                        {LANGUAGES_ISO_639_1[field.value as ISO_639_1_CODE]?.name || "English"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[250px] overflow-auto">
+                      {SUPPORTED_LANGUAGES.map((lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {LANGUAGES_ISO_639_1[lang].name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
               </FormItem>
             )}

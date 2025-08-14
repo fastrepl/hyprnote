@@ -4,100 +4,11 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+import { useLicense } from "@/hooks/use-license";
 import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps, STTModel } from "./shared";
-
-export const sttModelMetadata: Record<WhisperModel, {
-  name: string;
-  description: string;
-  intelligence: number;
-  speed: number;
-  size: string;
-  inputType: string[];
-  outputType: string[];
-  languageSupport: "multilingual" | "english-only";
-  huggingface?: string;
-}> = {
-  "QuantizedTiny": {
-    name: "Tiny",
-    description: "Fastest, lowest accuracy. Good for offline, low-resource use.",
-    intelligence: 1,
-    speed: 3,
-    size: "44 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-tiny-q8_0.bin",
-  },
-  "QuantizedTinyEn": {
-    name: "Tiny - English",
-    description: "Fastest, English-only. Optimized for speed on English audio.",
-    intelligence: 1,
-    speed: 3,
-    size: "44 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-tiny.en-q8_0.bin",
-  },
-  "QuantizedBase": {
-    name: "Base",
-    description: "Good balance of speed and accuracy for multilingual use.",
-    intelligence: 2,
-    speed: 2,
-    size: "82 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base-q8_0.bin",
-  },
-  "QuantizedBaseEn": {
-    name: "Base - English",
-    description: "Balanced speed and accuracy, optimized for English audio.",
-    intelligence: 2,
-    speed: 2,
-    size: "82 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-base.en-q8_0.bin",
-  },
-  "QuantizedSmall": {
-    name: "Small",
-    description: "Higher accuracy, moderate speed for multilingual transcription.",
-    intelligence: 2,
-    speed: 2,
-    size: "264 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-small-q8_0.bin",
-  },
-  "QuantizedSmallEn": {
-    name: "Small - English",
-    description: "Higher accuracy, moderate speed, optimized for English audio.",
-    intelligence: 3,
-    speed: 2,
-    size: "264 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "english-only",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-small.en-q8_0.bin",
-  },
-  "QuantizedLargeTurbo": {
-    name: "Large",
-    description: "Highest accuracy, resource intensive. Only for Mac Pro M4 and above.",
-    intelligence: 3,
-    speed: 1,
-    size: "874 MB",
-    inputType: ["audio"],
-    outputType: ["text"],
-    languageSupport: "multilingual",
-    huggingface: "https://huggingface.co/ggerganov/whisper.cpp/blob/main/ggml-large-v3-turbo-q8_0.bin",
-  },
-};
 
 interface STTViewProps extends SharedSTTProps {
   isWerModalOpen: boolean;
@@ -202,6 +113,10 @@ export function STTViewLocal({
       {amAvailable && (
         <ProModelsManagement
           on={!!servers.data?.external}
+          selectedSTTModel={selectedSTTModel}
+          setSelectedSTTModel={setSelectedSTTModel}
+          downloadingModels={downloadingModels}
+          handleModelDownload={handleModelDownload}
         />
       )}
     </div>
@@ -232,7 +147,7 @@ function BasicModelsManagement({
       <div className="flex flex-col mb-3">
         <div className={cn(["text-sm font-semibold text-gray-700 flex items-center gap-2"])}>
           <h3>Basic Models</h3>
-          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
         </div>
         <p className="text-xs text-gray-500">Default inference mode powered by Whisper.cpp.</p>
       </div>
@@ -254,10 +169,38 @@ function BasicModelsManagement({
   );
 }
 
-function ProModelsManagement({ on }: { on: boolean }) {
+function ProModelsManagement(
+  { on, selectedSTTModel, setSelectedSTTModel, downloadingModels, handleModelDownload }: {
+    on: boolean;
+    selectedSTTModel: string;
+    setSelectedSTTModel: (model: string) => void;
+    downloadingModels: Set<string>;
+    handleModelDownload: (model: string) => void;
+  },
+) {
+  const { getLicense } = useLicense();
+  const handleShowFileLocation = async () => {
+    localSttCommands.modelsDir().then((path) => openPath(path));
+  };
+
   const proModels = useQuery({
     queryKey: ["pro-models"],
-    queryFn: () => localSttCommands.listProModels(),
+    queryFn: async () => {
+      const models = await localSttCommands.listSupportedModels().then((models) =>
+        models.filter((model) => model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2")
+      );
+      const downloaded = await Promise.all(
+        models.map(({ key }) => localSttCommands.isModelDownloaded(key)),
+      );
+
+      return models.map((model, index) => ({
+        name: model.display_name,
+        key: model.key,
+        downloaded: downloaded[index],
+        size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
+        fileName: "",
+      }));
+    },
   });
 
   return (
@@ -266,10 +209,10 @@ function ProModelsManagement({ on }: { on: boolean }) {
         <div className="flex flex-col mb-3">
           <div className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <h3>Pro Models</h3>
-            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-red-300"])} />
+            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
           </div>
           <p className="text-xs text-gray-500">
-            Only for pro plan users. Latency and resource optimized. (will be shipped in next few days)
+            Latency and resource optimized. Only for pro plan users.
           </p>
         </div>
 
@@ -277,19 +220,13 @@ function ProModelsManagement({ on }: { on: boolean }) {
           {proModels.data?.map((model) => (
             <ModelEntry
               key={model.key}
-              disabled={true}
-              model={{
-                name: model.name,
-                key: model.key,
-                downloaded: false,
-                size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
-                fileName: "",
-              }}
-              selectedSTTModel={""}
-              setSelectedSTTModel={() => {}}
-              downloadingModels={new Set()}
-              handleModelDownload={() => {}}
-              handleShowFileLocation={() => {}}
+              disabled={!getLicense.data?.valid}
+              model={model}
+              selectedSTTModel={selectedSTTModel}
+              setSelectedSTTModel={setSelectedSTTModel}
+              downloadingModels={downloadingModels}
+              handleModelDownload={handleModelDownload}
+              handleShowFileLocation={handleShowFileLocation}
             />
           ))}
         </div>
@@ -322,12 +259,12 @@ function ModelEntry({
         "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
         selectedSTTModel === model.key && model.downloaded
           ? "border-solid border-blue-500 bg-blue-50"
-          : model.downloaded
+          : (model.downloaded && !disabled)
           ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
           : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
       )}
       onClick={() => {
-        if (model.downloaded) {
+        if (model.downloaded && !disabled) {
           setSelectedSTTModel(model.key as WhisperModel);
           localSttCommands.setCurrentModel(model.key as WhisperModel);
           localSttCommands.stopServer(null);
@@ -353,6 +290,7 @@ function ModelEntry({
           ? (
             <Button
               size="sm"
+              disabled={disabled}
               variant="outline"
               onClick={handleShowFileLocation}
               className="text-xs h-7 px-2 flex items-center gap-1"

@@ -149,7 +149,10 @@ async fn handle_websocket_connection(
 
     let (ws_sender, ws_receiver) = socket.split();
 
-    let redemption_time = Duration::from_millis(500);
+    let redemption_time = Duration::from_millis(std::cmp::min(
+        std::cmp::max(params.redemption_time_ms.unwrap_or(500), 300),
+        1200,
+    ));
 
     match params.channels {
         1 => {

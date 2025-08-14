@@ -3,12 +3,14 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use axum::{
-    extract::{Query, Request, State},
+    extract::{Request, State},
     http::{HeaderValue, StatusCode},
     middleware::Next,
     response::Response,
     Router,
 };
+
+use axum_extra::extract::Query;
 use axum_extra::{
     headers::{
         authorization::{Bearer, Credentials},

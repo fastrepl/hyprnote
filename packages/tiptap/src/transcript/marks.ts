@@ -1,22 +1,22 @@
 import { Mark, mergeAttributes } from "@tiptap/core";
 
-export const ConfidenceMark = Mark.create({
-  name: "confidence",
+export const InterimMark = Mark.create({
+  name: "interim",
 
   addAttributes() {
     return {
-      confidence: {
+      interim: {
         default: null,
         parseHTML: element => {
-          const value = element.getAttribute("data-confidence");
+          const value = element.getAttribute("data-interim");
           return value ? parseFloat(value) : null;
         },
         renderHTML: attributes => {
-          if (attributes.confidence === null) {
+          if (attributes.interim === null) {
             return {};
           }
           return {
-            "data-confidence": attributes.confidence,
+            "data-interim": attributes.interim,
           };
         },
       },
@@ -26,7 +26,7 @@ export const ConfidenceMark = Mark.create({
   parseHTML() {
     return [
       {
-        tag: "span[data-confidence]",
+        tag: "span[data-interim]",
       },
     ];
   },

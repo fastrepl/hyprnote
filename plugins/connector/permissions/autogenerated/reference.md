@@ -13,7 +13,6 @@ Default permissions for the plugin
 - `allow-set-custom-llm-connection`
 - `allow-get-local-llm-connection`
 - `allow-get-llm-connection`
-- `allow-get-stt-connection`
 - `allow-get-openai-api-key`
 - `allow-set-openai-api-key`
 - `allow-get-gemini-api-key`

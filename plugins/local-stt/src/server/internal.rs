@@ -47,11 +47,17 @@ impl ServerState {
 
 #[derive(Clone)]
 pub struct ServerHandle {
-    pub api_base: String,
+    pub base_url: String,
+    pub api_key: Option<String>,
     shutdown: tokio::sync::watch::Sender<()>,
 }
 
 impl ServerHandle {
+    pub async fn health(&self) -> bool {
+        let response = reqwest::get(format!("{}/health", self.base_url)).await;
+        response.is_ok()
+    }
+
     pub fn terminate(self) -> Result<(), crate::Error> {
         let _ = self.shutdown.send(());
         Ok(())
@@ -65,12 +71,13 @@ pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error
         tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))).await?;
 
     let server_addr = listener.local_addr()?;
-    let api_base = format!("http://{}", server_addr);
+    let base_url = format!("http://{}", server_addr);
 
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
 
     let server_handle = ServerHandle {
-        api_base,
+        base_url,
+        api_key: None,
         shutdown: shutdown_tx,
     };
 

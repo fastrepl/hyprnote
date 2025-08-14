@@ -8,7 +8,6 @@ import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-lo
 import { Progress } from "@hypr/ui/components/ui/progress";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { sttModelMetadata } from "../settings/components/ai/stt-view-local";
 
 interface ModelDownloadProgress {
   channel: Channel<number>;
@@ -196,8 +195,6 @@ export const DownloadProgressView = ({
     handleLlmCompletion();
   }, [sttDownload.completed, llmDownload.completed, selectedSttModel, llmSelection]);
 
-  const sttMetadata = sttModelMetadata[selectedSttModel];
-
   return (
     <div className="flex flex-col items-center min-w-[30rem] w-full max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">
@@ -238,7 +235,7 @@ export const DownloadProgressView = ({
           title="Speech Recognition"
           icon={MicIcon}
           download={sttDownload}
-          size={sttMetadata?.size || "250MB"}
+          size={"??? MB"}
         />
 
         {llmSelection === "hyprllm" && (

@@ -67,15 +67,15 @@ export const fromWordsToEditor = (words: Word2[]): DocContent => {
         lastSpeaker.content.push({ type: "text", text: " " });
       }
 
-      if (word.confidence !== null) {
+      if (word.confidence !== null && word.confidence < 0) {
         lastSpeaker.content.push({
           type: "text",
           text: word.text,
           marks: [
             {
-              type: "confidence",
+              type: "interim",
               attrs: {
-                confidence: word.confidence,
+                interim: true,
               },
             },
           ],
@@ -126,16 +126,13 @@ export const fromEditorToWords = (content: DocContent | JSONContent): Word2[] =>
         continue;
       }
 
-      const confidenceMark = node.marks?.find((mark: any) => mark.type === "confidence");
-      const confidence = confidenceMark?.attrs?.confidence ?? null;
-
       const wordTexts = node.text.split(/\s+/).filter(Boolean);
 
       for (const wordText of wordTexts) {
         words.push({
           text: wordText,
           speaker,
-          confidence,
+          confidence: null,
           start_ms: null,
           end_ms: null,
         });

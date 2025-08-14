@@ -7,8 +7,8 @@ pub use remote::*;
 pub use types::*;
 
 use {
-    crate::Error::OtherError,
     futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
+    hypr_download_interface::DownloadProgress,
     reqwest::StatusCode,
     std::{
         cmp::min,
@@ -24,13 +24,6 @@ static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_client() -> &'static reqwest::Client {
     CLIENT.get_or_init(|| reqwest::Client::new())
-}
-
-#[derive(Debug)]
-pub enum DownloadProgress {
-    Started,
-    Progress(u64, u64),
-    Finished,
 }
 
 /// Makes a request with optional range header and returns the response.
@@ -218,12 +211,14 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
                 .send()
                 .await?;
 
-            if response.status() != StatusCode::PARTIAL_CONTENT {
-                return Err(OtherError(format!(
-                    "Server does not support range requests. Got status: {}",
-                    response.status()
-                )));
-            }
+            // https://community.cloudflare.com/t/public-r2-bucket-doesnt-handle-range-requests-well/434221/4
+            // if response.status() != StatusCode::PARTIAL_CONTENT {
+            //     return Err(OtherError(format!(
+            //         "Something went wrong. Please try again. (status: {})",
+            //         response.status()
+            //     )));
+            // }
+
             let mut bytes = Vec::new();
             let mut stream = response.bytes_stream();
 

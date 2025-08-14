@@ -28,36 +28,9 @@ pub struct InitRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub model_token: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub download_base: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub model_repo: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model_folder: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tokenizer_folder: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fast_load: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fast_load_encoder_compute_units: Option<ComputeUnits>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fast_load_decoder_compute_units: Option<ComputeUnits>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub model_vad: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verbose: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum ComputeUnits {
-    Cpu,
-    #[serde(rename = "cpuandgpu")]
-    CpuAndGpu,
-    #[serde(rename = "cpuandneuralengine")]
-    CpuAndNeuralEngine,
-    All,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

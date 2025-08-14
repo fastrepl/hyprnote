@@ -108,8 +108,14 @@ export default function IntegrationsComponent() {
       }
     });
 
+    // store initial base url even if it's not by the user
+    const currentValues = form.getValues();
+    if (getBaseUrl.isSuccess && !getBaseUrl.data && currentValues.baseUrl) {
+      obsidianCommands.setBaseUrl(currentValues.baseUrl);
+    }
+
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, getBaseUrl.isSuccess, getBaseUrl.data]);
 
   return (
     <div className="space-y-6">

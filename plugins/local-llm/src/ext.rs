@@ -3,7 +3,8 @@ use std::{future::Future, path::PathBuf};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
 
-use hypr_file::{download_file_parallel, DownloadProgress};
+use hypr_download_interface::DownloadProgress;
+use hypr_file::download_file_parallel;
 
 pub trait LocalLlmPluginExt<R: Runtime> {
     fn local_llm_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;

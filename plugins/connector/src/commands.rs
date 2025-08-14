@@ -1,4 +1,4 @@
-use crate::{Connection, ConnectionLLM, ConnectionSTT, ConnectorPluginExt, StoreKey};
+use crate::{Connection, ConnectionLLM, ConnectorPluginExt, StoreKey};
 
 #[tauri::command]
 #[specta::specta]
@@ -79,14 +79,6 @@ pub async fn get_llm_connection<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<ConnectionLLM, String> {
     app.get_llm_connection().await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn get_stt_connection<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<ConnectionSTT, String> {
-    app.get_stt_connection().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

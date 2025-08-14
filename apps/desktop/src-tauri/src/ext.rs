@@ -1,7 +1,9 @@
 use std::future::Future;
 
+use hypr_whisper_local_model::WhisperModel;
 use tauri::Manager;
 use tauri_plugin_db::DatabasePluginExt;
+use tauri_plugin_local_stt::SupportedSttModel;
 use tauri_plugin_store2::{ScopedStore, StorePluginExt};
 
 pub trait AppExt<R: tauri::Runtime> {
@@ -33,16 +35,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
+
     async fn setup_local_ai(&self) -> Result<(), String> {
         {
             use tauri_plugin_local_stt::LocalSttPluginExt;
 
             let current_model = self
                 .get_current_model()
-                .unwrap_or(hypr_whisper_local_model::WhisperModel::QuantizedBaseEn);
+                .unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedSmall));
 
             if let Ok(true) = self.is_model_downloaded(&current_model).await {
-                if let Err(e) = self.start_server(None).await {
+                if let Err(e) = self.start_server(Some(current_model)).await {
                     tracing::error!("start_local_stt_server: {}", e);
                 }
             }
@@ -51,9 +54,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         {
             use tauri_plugin_local_llm::{LocalLlmPluginExt, SupportedModel};
 
-            let current_model = self
-                .get_current_model()
-                .unwrap_or(SupportedModel::Llama3p2_3bQ4);
+            let current_model = self.get_current_model().unwrap_or(SupportedModel::HyprLLM);
 
             if let Ok(true) = self.is_model_downloaded(&current_model).await {
                 if let Err(e) = self.start_server().await {

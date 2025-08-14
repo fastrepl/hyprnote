@@ -1,7 +1,16 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
+    IO(#[from] std::io::Error),
+
+    #[error(transparent)]
     Request(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    HyprFile(#[from] hypr_file::Error),
+
+    #[error("Could not find home directory")]
+    NoHomeDir,
 
     #[error("Server returned error: {status} - {message}")]
     ServerError { status: String, message: String },
@@ -11,4 +20,7 @@ pub enum Error {
 
     #[error("Unexpected response from server")]
     UnexpectedResponse,
+
+    #[error("Checksum mismatch")]
+    ChecksumMismatch,
 }

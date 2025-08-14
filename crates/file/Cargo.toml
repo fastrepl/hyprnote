@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hypr-download-interface = { workspace = true }
+
 base64 = "0.22.1"
 crc32fast = "1.4.2"
 thiserror = { workspace = true }

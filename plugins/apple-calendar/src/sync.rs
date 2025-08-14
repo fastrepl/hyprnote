@@ -480,7 +480,7 @@ async fn list_db_events(
         .list_events(Some(ListEventFilter {
             common: ListEventFilterCommon {
                 user_id: user_id.into(),
-                limit: Some(200),
+                limit: Some(700),
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now(),

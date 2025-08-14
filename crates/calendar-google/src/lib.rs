@@ -104,6 +104,7 @@ impl CalendarSource for Handle {
                     start_date: start,
                     end_date: end,
                     google_event_url: Some(event.html_link.clone()),
+                    is_recurring: false,
                 }
             })
             .collect();

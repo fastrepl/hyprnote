@@ -46,7 +46,6 @@ pub struct Event {
     pub end_date: DateTime<Utc>,
     pub google_event_url: Option<String>,
     pub is_recurring: bool,
-    pub occurrence_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

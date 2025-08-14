@@ -155,11 +155,7 @@ async fn _sync_events(
                 // Check if event exists with same tracking_id
                 if let Some(matching_event) = events.iter().find(|e| {
                     let system_composite_id = if e.is_recurring {
-                        format!(
-                            "{}@{}",
-                            e.id,
-                            e.occurrence_date.unwrap().format("%Y%m%d%H%M%S")
-                        )
+                        format!("{}__HYPR__{}", e.id, e.start_date.format("%Y%m%d%H%M%S"))
                     } else {
                         e.id.clone()
                     };
@@ -185,12 +181,9 @@ async fn _sync_events(
 
                     let composite_id = if matching_event.is_recurring {
                         format!(
-                            "{}@{}",
+                            "{}__HYPR__{}",
                             matching_event.id,
-                            matching_event
-                                .occurrence_date
-                                .unwrap()
-                                .format("%Y%m%d%H%M%S")
+                            matching_event.start_date.format("%Y%m%d%H%M%S")
                         )
                     } else {
                         matching_event.id.clone()
@@ -251,9 +244,9 @@ async fn _sync_events(
             for system_event in fresh_events {
                 let composite_tracking_id = if system_event.is_recurring {
                     format!(
-                        "{}@{}",
+                        "{}__HYPR__{}",
                         system_event.id,
-                        system_event.occurrence_date.unwrap().format("%Y%m%d%H%M%S")
+                        system_event.start_date.format("%Y%m%d%H%M%S")
                     )
                 } else {
                     system_event.id.clone()
@@ -391,13 +384,12 @@ async fn list_system_events_for_calendars(
 
             for event in &events {
                 tracing::info!(
-                    "System event: '{}' | participants: {:?} | is_recurring: {} | start_date: {} | tracking_id: {} | occurence_date: {:?}",
+                    "System event: '{}' | participants: {:?} | is_recurring: {} | start_date: {} | tracking_id: {}",
                     event.name,
                     event.participants,
                     event.is_recurring,
                     event.start_date,
                     event.id,
-                    event.occurrence_date
                 );
             }
 

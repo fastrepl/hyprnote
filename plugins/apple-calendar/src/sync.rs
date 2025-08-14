@@ -270,6 +270,44 @@ async fn _sync_events(
                     continue;
                 }
 
+                // Check for backward compatibility: recurring event replacing old non-recurring
+                if system_event.is_recurring {
+                    // Look for old format event with session
+                    if let Some((_, session)) = db_events_with_session.iter().find(|(db_event, session)| {
+                        db_event.tracking_id == system_event.id &&  // Old format used base ID only
+                        db_event.start_date == system_event.start_date &&
+                        db_event.name == system_event.name &&
+                        !db_event.is_recurring &&  // Was stored as non-recurring
+                        session.is_some()  // Has a session
+                    }) {
+                        // Store session ID for transfer after new event is created
+                        if let Some(session) = session {
+                            let new_event_id = uuid::Uuid::new_v4().to_string();
+                            state.session_transfers.push((session.id.clone(), new_event_id.clone()));
+                            
+                            let new_event = hypr_db_user::Event {
+                                id: new_event_id,
+                                tracking_id: composite_tracking_id,
+                                user_id: user_id.clone(),
+                                calendar_id: Some(db_calendar.id.clone()),
+                                name: system_event.name.clone(),
+                                note: system_event.note.clone(),
+                                start_date: system_event.start_date,
+                                end_date: system_event.end_date,
+                                google_event_url: None,
+                                participants: Some(
+                                    serde_json::to_string(&system_event.participants)
+                                        .unwrap_or_else(|_| "[]".to_string()),
+                                ),
+                                is_recurring: system_event.is_recurring,
+                            };
+                            
+                            state.to_upsert.push(new_event);
+                            continue;
+                        }
+                    }
+                }
+
                 // This is a genuinely new event
                 let new_event = hypr_db_user::Event {
                     id: uuid::Uuid::new_v4().to_string(),
@@ -501,6 +539,7 @@ struct EventSyncState {
     to_delete: Vec<hypr_db_user::Event>,
     to_upsert: Vec<hypr_db_user::Event>,
     to_update: Vec<hypr_db_user::Event>,
+    session_transfers: Vec<(String, String)>, // (session_id, new_event_id)
 }
 
 impl CalendarSyncState {
@@ -521,21 +560,31 @@ impl CalendarSyncState {
 
 impl EventSyncState {
     async fn execute(self, db: &hypr_db_user::UserDatabase) {
-        for event in self.to_delete {
-            if let Err(e) = db.delete_event(&event.id).await {
-                tracing::error!("delete_event_error: {}", e);
+        // 1. Create new events first
+        for event in self.to_upsert {
+            if let Err(e) = db.upsert_event(event).await {
+                tracing::error!("upsert_event_error: {}", e);
             }
         }
 
+        // 2. Update existing events
         for event in self.to_update {
             if let Err(e) = db.update_event(event).await {
                 tracing::error!("update_event_error: {}", e);
             }
         }
 
-        for event in self.to_upsert {
-            if let Err(e) = db.upsert_event(event).await {
-                tracing::error!("upsert_event_error: {}", e);
+        // 3. Transfer sessions from old events to new events
+        for (session_id, new_event_id) in self.session_transfers {
+            if let Err(e) = db.session_set_event(session_id, Some(new_event_id)).await {
+                tracing::error!("session_transfer_error: {}", e);
+            }
+        }
+
+        // 4. Delete old events last (after sessions have been transferred)
+        for event in self.to_delete {
+            if let Err(e) = db.delete_event(&event.id).await {
+                tracing::error!("delete_event_error: {}", e);
             }
         }
     }

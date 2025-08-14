@@ -6,6 +6,7 @@ pub use service::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
 
     #[tokio::test]
@@ -38,8 +39,9 @@ mod tests {
         ))
         .unwrap()
         .to_i16_le_chunks(16000, 512);
+        let input = audio.map(|chunk| owhisper_interface::MixedMessage::Audio(chunk));
 
-        let stream = client.from_realtime_audio(audio).await.unwrap();
+        let stream = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);
 
         server_handle.abort();

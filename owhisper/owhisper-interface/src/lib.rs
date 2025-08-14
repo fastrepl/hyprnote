@@ -83,6 +83,23 @@ common_derives! {
 }
 
 common_derives! {
+    pub enum MixedMessage<A, C> {
+        Audio(A),
+        Control(C),
+    }
+}
+
+// https://github.com/deepgram/deepgram-rust-sdk/blob/d2f2723/src/listen/websocket.rs#L772-L778
+common_derives! {
+    #[serde(tag = "type")]
+    pub enum ControlMessage {
+        Finalize,
+        KeepAlive,
+        CloseStream,
+    }
+}
+
+common_derives! {
     #[derive(strum::AsRefStr)]
     pub enum AudioMode {
         #[serde(rename = "single")]

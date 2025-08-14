@@ -103,11 +103,18 @@ jobs:
           aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
+          aws s3 cp s3://hyprnote-cache2/v0/binaries/passthrough apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }} \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        run: chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} && ./scripts/sidecar.sh "./apps/desktop/src-tauri/tauri.conf.${{ env.RELEASE_CHANNEL }}.json" "binaries/stt"
+        run: |
+          chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
+          chmod +x ./apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }}
+          ./scripts/sidecar.sh "./apps/desktop/src-tauri/tauri.conf.${{ env.RELEASE_CHANNEL }}.json" "binaries/stt"
+          ./scripts/sidecar.sh "./apps/desktop/src-tauri/tauri.conf.${{ env.RELEASE_CHANNEL }}.json" "binaries/passthrough"
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740

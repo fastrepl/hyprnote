@@ -148,7 +148,9 @@ async fn run_audio_stream_with_stop(
                     data.update(rms);
                 }
 
-                hypr_audio_utils::f32_to_i16_bytes(samples.into_iter())
+                owhisper_interface::MixedMessage::Audio(
+                    hypr_audio_utils::f32_to_i16_bytes(samples.into_iter()).into(),
+                )
             })
     };
 

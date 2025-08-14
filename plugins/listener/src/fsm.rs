@@ -442,13 +442,20 @@ impl Session {
             .into_stream()
             .map(|v| hypr_audio_utils::f32_to_i16_bytes(v.into_iter()));
 
+        let combined_audio_stream =
+            mic_audio_stream
+                .zip(speaker_audio_stream)
+                .map(|(mic, speaker)| {
+                    owhisper_interface::MixedMessage::Audio((mic.into(), speaker.into()))
+                });
+
         tasks.spawn({
             let app = self.app.clone();
             let stop_tx = stop_tx.clone();
 
             async move {
                 let listen_stream = listen_client
-                    .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
+                    .from_realtime_audio(combined_audio_stream)
                     .await
                     .unwrap();
 

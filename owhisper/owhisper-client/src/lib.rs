@@ -1,7 +1,7 @@
-use futures_util::{Stream, StreamExt};
+use futures_util::Stream;
 
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
-use owhisper_interface::StreamResponse;
+use owhisper_interface::{ControlMessage, MixedMessage, StreamResponse};
 
 fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     let mic_samples: Vec<i16> = mic
@@ -126,9 +126,12 @@ pub struct ListenClient {
     request: ClientRequestBuilder,
 }
 
+type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
+type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
+
 impl WebSocketIO for ListenClient {
-    type Data = bytes::Bytes;
-    type Input = bytes::Bytes;
+    type Data = ListenClientInput;
+    type Input = ListenClientInput;
     type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
@@ -136,7 +139,12 @@ impl WebSocketIO for ListenClient {
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Binary(input)
+        match input {
+            MixedMessage::Audio(data) => Message::Binary(data),
+            MixedMessage::Control(control) => {
+                Message::Text(serde_json::to_string(&control).unwrap().into())
+            }
+        }
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -153,17 +161,27 @@ pub struct ListenClientDual {
 }
 
 impl WebSocketIO for ListenClientDual {
-    type Data = (bytes::Bytes, bytes::Bytes);
-    type Input = bytes::Bytes;
+    type Data = ListenClientDualInput;
+    type Input = ListenClientInput;
     type Output = StreamResponse;
 
     fn to_input(data: Self::Data) -> Self::Input {
-        let interleaved = interleave_audio(&data.0, &data.1);
-        bytes::Bytes::from(interleaved)
+        match data {
+            ListenClientDualInput::Audio((mic, speaker)) => {
+                let interleaved = interleave_audio(&mic, &speaker);
+                ListenClientInput::Audio(interleaved.into())
+            }
+            ListenClientDualInput::Control(control) => ListenClientInput::Control(control),
+        }
     }
 
     fn to_message(input: Self::Input) -> Message {
-        Message::Binary(input)
+        match input {
+            ListenClientInput::Audio(data) => Message::Binary(data),
+            ListenClientInput::Control(control) => {
+                Message::Text(serde_json::to_string(&control).unwrap().into())
+            }
+        }
     }
 
     fn from_message(msg: Message) -> Option<Self::Output> {
@@ -181,7 +199,7 @@ impl ListenClient {
 
     pub async fn from_realtime_audio(
         &self,
-        audio_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+        audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(audio_stream).await
@@ -191,12 +209,10 @@ impl ListenClient {
 impl ListenClientDual {
     pub async fn from_realtime_audio(
         &self,
-        mic_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
-        speaker_stream: impl Stream<Item = bytes::Bytes> + Send + Unpin + 'static,
+        stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
     ) -> Result<impl Stream<Item = StreamResponse>, hypr_ws::Error> {
-        let dual_stream = mic_stream.zip(speaker_stream);
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(dual_stream).await
+        ws.from_audio::<Self>(stream).await
     }
 }
 
@@ -215,6 +231,7 @@ mod tests {
         ))
         .unwrap()
         .to_i16_le_chunks(16000, 512);
+        let input = audio.map(|chunk| ListenClientInput::Audio(chunk));
 
         let client = ListenClient::builder()
             .api_base("https://api.deepgram.com")
@@ -226,7 +243,7 @@ mod tests {
             })
             .build_single();
 
-        let stream = client.from_realtime_audio(audio).await.unwrap();
+        let stream = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {
@@ -242,6 +259,7 @@ mod tests {
         ))
         .unwrap()
         .to_i16_le_chunks(16000, 512);
+        let input = audio.map(|chunk| ListenClientInput::Audio(chunk));
 
         let client = ListenClient::builder()
             .api_base("ws://127.0.0.1:52693")
@@ -253,7 +271,7 @@ mod tests {
             })
             .build_single();
 
-        let stream = client.from_realtime_audio(audio).await.unwrap();
+        let stream = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {
@@ -309,6 +327,10 @@ mod tests {
         .unwrap()
         .to_i16_le_chunks(16000, 512);
 
+        let input = audio_1
+            .zip(audio_2)
+            .map(|(mic, speaker)| ListenClientDualInput::Audio((mic, speaker)));
+
         let client = ListenClient::builder()
             .api_base("ws://localhost:50060")
             .api_key("".to_string())
@@ -319,7 +341,7 @@ mod tests {
             })
             .build_dual();
 
-        let stream = client.from_realtime_audio(audio_1, audio_2).await.unwrap();
+        let stream = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);
 
         while let Some(result) = stream.next().await {

@@ -88,6 +88,7 @@ impl AmModel {
         output_path: impl AsRef<std::path::Path>,
     ) -> Result<(), crate::Error> {
         if hypr_file::calculate_file_checksum(&input_path)? != self.tar_checksum() {
+            let _ = std::fs::remove_file(&input_path);
             return Err(crate::Error::ChecksumMismatch);
         }
 

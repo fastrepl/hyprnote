@@ -243,15 +243,26 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
 
                     #[cfg(not(debug_assertions))]
-                    self.shell()
-                        .command(
-                            tauri::utils::platform::current_exe()?
-                                .parent()
-                                .unwrap()
-                                .join("stt"),
-                        )
-                        .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve", "-v"])
+                    {
+                        let passthrough_path = tauri::utils::platform::current_exe()?
+                            .parent()
+                            .unwrap()
+                            .join("passthrough");
+                        let stt_path = tauri::utils::platform::current_exe()?
+                            .parent()
+                            .unwrap()
+                            .join("stt");
+
+                        if !passthrough_path.exists() || !stt_path.exists() {
+                            return Err(crate::Error::AmBinaryNotFound);
+                        }
+
+                        self.shell()
+                            .command(passthrough_path)
+                            .current_dir(dirs::home_dir().unwrap())
+                            .arg(stt_path)
+                            .args(["serve", "-v"])
+                    }
                 };
 
                 let server = external::run_server(cmd, am_key).await?;

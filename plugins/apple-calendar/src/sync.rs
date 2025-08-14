@@ -270,7 +270,6 @@ async fn _sync_events(
                     continue;
                 }
 
-
                 // This is a genuinely new event
                 let new_event = hypr_db_user::Event {
                     id: uuid::Uuid::new_v4().to_string(),
@@ -288,6 +287,8 @@ async fn _sync_events(
                     ),
                     is_recurring: system_event.is_recurring,
                 };
+
+               
                 state.to_upsert.push(new_event);
             }
         }

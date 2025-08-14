@@ -401,7 +401,7 @@ async fn list_system_events_for_calendars(
             let filter = EventFilter {
                 calendar_tracking_id: calendar_tracking_id.clone(),
                 from: now,
-                to: now + chrono::Duration::days(28),
+                to: now + chrono::Duration::days(90),
             };
 
             // Add small delay between API calls to avoid overwhelming EventKit
@@ -484,7 +484,7 @@ async fn list_db_events(
             },
             specific: ListEventFilterSpecific::DateRange {
                 start: Utc::now(),
-                end: Utc::now() + chrono::Duration::days(28),
+                end: Utc::now() + chrono::Duration::days(90),
             },
         }))
         .await
@@ -562,28 +562,24 @@ impl CalendarSyncState {
 
 impl EventSyncState {
     async fn execute(self, db: &hypr_db_user::UserDatabase) {
-        // 1. Create new events first
         for event in self.to_upsert {
             if let Err(e) = db.upsert_event(event).await {
                 tracing::error!("upsert_event_error: {}", e);
             }
         }
 
-        // 2. Update existing events
         for event in self.to_update {
             if let Err(e) = db.update_event(event).await {
                 tracing::error!("update_event_error: {}", e);
             }
         }
 
-        // 3. Transfer sessions from old events to new events
         for (session_id, new_event_id) in self.session_transfers {
             if let Err(e) = db.session_set_event(session_id, Some(new_event_id)).await {
                 tracing::error!("session_transfer_error: {}", e);
             }
         }
 
-        // 4. Delete old events last (after sessions have been transferred)
         for event in self.to_delete {
             if let Err(e) = db.delete_event(&event.id).await {
                 tracing::error!("delete_event_error: {}", e);

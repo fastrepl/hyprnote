@@ -150,6 +150,7 @@ async fn _sync_events(
             continue;
         }
 
+    
         if let Some(ref calendar_id) = db_event.calendar_id {
             if let Some(events) = system_events_per_selected_calendar.get(calendar_id) {
                 // Check if event exists with same tracking_id
@@ -268,6 +269,7 @@ async fn _sync_events(
                 if already_exists {
                     continue;
                 }
+
 
                 // This is a genuinely new event
                 let new_event = hypr_db_user::Event {

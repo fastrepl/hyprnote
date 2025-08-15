@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
@@ -74,9 +74,11 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
   // const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
+  /*
   const selectSTTModel = useMutation({
     mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
   });
+  */
 
   const openaiForm = useForm<{ api_key: string; model: string }>({
     resolver: zodResolver(openaiSchema),
@@ -264,7 +266,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     if (selection === "hyprllm") {
       // Automatically select the 'small' model and proceed to download
       const smallModel = "QuantizedSmall" as WhisperModel;
-      await selectSTTModel.mutateAsync(smallModel);
+      // await selectSTTModel.mutateAsync(smallModel);
       setSelectedSttModel(smallModel);
       sessionStorage.setItem("model-download-toast-dismissed", "true");
       setCurrentStep("download-progress");
@@ -277,7 +279,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const handleCustomEndpointContinue = async () => {
     // Automatically select the 'small' model and proceed to download
     const smallModel = "QuantizedSmall" as WhisperModel;
-    await selectSTTModel.mutateAsync(smallModel);
+    // await selectSTTModel.mutateAsync(smallModel);
     setSelectedSttModel(smallModel);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
     setCurrentStep("download-progress");

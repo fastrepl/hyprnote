@@ -66,7 +66,10 @@ async function generateTitleDirect(
     sessions[targetSessionId].getState().updateTitle(cleanedTitle);
   }
 
-  if (sessions[targetSessionId]?.getState) {
+  // check and run auto tag generation if the session has less than 2 tags
+  const sessionTags = await dbCommands.listSessionTags(targetSessionId);
+
+  if (sessions[targetSessionId]?.getState && sessionTags.length < 2) {
     try {
       const suggestedTags = await autoTagGeneration(targetSessionId);
 

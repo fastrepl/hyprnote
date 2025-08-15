@@ -444,7 +444,7 @@ msgstr "Audio Permissions"
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
-#: src/components/welcome-modal/index.tsx:349
+#: src/components/welcome-modal/index.tsx:351
 msgid "Back"
 msgstr "Back"
 

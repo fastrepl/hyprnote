@@ -444,7 +444,7 @@ msgstr ""
 msgid "Autonomy Selector"
 msgstr ""
 
-#: src/components/welcome-modal/index.tsx:349
+#: src/components/welcome-modal/index.tsx:351
 msgid "Back"
 msgstr ""
 

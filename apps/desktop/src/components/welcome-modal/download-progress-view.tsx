@@ -235,7 +235,7 @@ export const DownloadProgressView = ({
           title="Speech Recognition"
           icon={MicIcon}
           download={sttDownload}
-          size={"??? MB"}
+          size={"264 MB"}
         />
 
         {llmSelection === "hyprllm" && (

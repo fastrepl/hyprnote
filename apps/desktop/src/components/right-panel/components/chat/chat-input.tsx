@@ -214,7 +214,7 @@ export function ChatInput(
             if (event.key === "Enter" && !event.shiftKey) {
               const isEmpty = view.state.doc.textContent.trim() === "";
               if (isEmpty) {
-                return true; 
+                return true;
               }
               if (inputValue.trim()) {
                 event.preventDefault();
@@ -223,8 +223,8 @@ export function ChatInput(
               }
             }
             return false;
-          }
-        }
+          },
+        },
       });
     }
   }, [editorRef.current?.editor, inputValue, handleSubmit]);

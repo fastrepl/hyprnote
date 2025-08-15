@@ -35,12 +35,12 @@ turndown.addRule("taskItem", {
     return parent.nodeName === "UL" && parent.getAttribute("data-type") === "taskList";
   },
   replacement: function(content, node) {
-    const checkbox = node.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const checkbox = node.querySelector("input[type=\"checkbox\"]") as HTMLInputElement;
     const isChecked = checkbox ? checkbox.checked : false;
     const checkboxSymbol = isChecked ? "[x]" : "[ ]";
-    
+
     const cleanContent = content.replace(/^\s*\[[\sx]\]\s*/, "").trim();
-    
+
     return `- ${checkboxSymbol} ${cleanContent}\n`;
   },
 });

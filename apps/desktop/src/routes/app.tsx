@@ -3,7 +3,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { createFileRoute, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
@@ -38,13 +38,13 @@ export const Route = createFileRoute("/app")({
   },
 });
 
-// still experimental 
+// still experimental
 function ResponsivePanelsManager() {
   const { isExpanded: leftExpanded, setIsExpanded: setLeftExpanded } = useLeftSidebar();
   const { isExpanded: rightExpanded, setIsExpanded: setRightExpanded } = useRightPanel();
-  
+
   const [wasAutoCollapsed, setWasAutoCollapsed] = useState(false);
-  
+
   const originalStates = useRef<{ left: boolean; right: boolean } | null>(null);
   const userOverrodeLeft = useRef(false);
   const userOverrodeRight = useRef(false);
@@ -71,7 +71,7 @@ function ResponsivePanelsManager() {
           originalStates.current = { left: leftExpanded, right: rightExpanded };
           userOverrodeLeft.current = false;
           userOverrodeRight.current = false;
-          
+
           setLeftExpanded(false);
           setRightExpanded(false);
           setWasAutoCollapsed(true);
@@ -84,7 +84,7 @@ function ResponsivePanelsManager() {
           if (!userOverrodeRight.current) {
             setRightExpanded(originalStates.current.right);
           }
-          
+
           setWasAutoCollapsed(false);
           originalStates.current = null;
           userOverrodeLeft.current = false;
@@ -94,8 +94,8 @@ function ResponsivePanelsManager() {
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [leftExpanded, rightExpanded, wasAutoCollapsed, setLeftExpanded, setRightExpanded]);
 
   return null;

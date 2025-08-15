@@ -7,6 +7,7 @@ import {
   CreditCardIcon,
   LayoutTemplateIcon,
   MessageSquareIcon,
+  NetworkIcon,
   SettingsIcon,
   SparklesIcon,
 } from "lucide-react";
@@ -35,6 +36,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <BlocksIcon className="h-4 w-4" />;
     case "billing":
       return <CreditCardIcon className="h-4 w-4" />;
+    case "mcp":
+      return <NetworkIcon className="h-4 w-4" />;
     default:
       return null;
   }

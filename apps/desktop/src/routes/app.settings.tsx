@@ -14,6 +14,7 @@ import {
   Calendar,
   General,
   Integrations,
+  MCP,
   Notifications,
   Sound,
   TemplatesView,
@@ -68,6 +69,8 @@ function Component() {
         return t`Feedback`;
       case "billing":
         return t`License`;
+      case "mcp":
+        return t`MCP`;
       default:
         return tab;
     }
@@ -135,6 +138,7 @@ function Component() {
               {search.tab === "ai-llm" && <AILLM />}
               {search.tab === "templates" && <TemplatesView />}
               {search.tab === "integrations" && <Integrations />}
+              {search.tab === "mcp" && <MCP />}
               {search.tab === "billing" && <Billing />}
             </div>
           </div>

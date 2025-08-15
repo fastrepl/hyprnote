@@ -6,6 +6,7 @@ import {
   CreditCard,
   LayoutTemplate,
   MessageSquare,
+  NetworkIcon,
   Settings,
   Sparkles,
   Volume2,
@@ -21,6 +22,7 @@ export type Tab =
   | "templates"
   | "feedback"
   | "integrations"
+  | "mcp"
   | "billing";
 
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
@@ -32,6 +34,7 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "sound", icon: Volume2 },
   { name: "templates", icon: LayoutTemplate },
   { name: "integrations", icon: MessageSquare },
+  { name: "mcp", icon: NetworkIcon },
   { name: "billing", icon: CreditCard },
   { name: "feedback", icon: BlocksIcon },
 ];

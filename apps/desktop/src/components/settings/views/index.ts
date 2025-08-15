@@ -8,6 +8,7 @@ export { default as Lab } from "./lab";
 export { default as Notifications } from "./notifications";
 export { default as Profile } from "./profile";
 export { default as Sound } from "./sound";
+export { default as MCP } from "./mcp";
 export { default as Team } from "./team";
 export { default as TemplateEditor } from "./template";
 export { default as TemplatesView } from "./templates";

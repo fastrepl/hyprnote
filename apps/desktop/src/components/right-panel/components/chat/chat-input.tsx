@@ -206,6 +206,32 @@ export function ChatInput(
   useEffect(() => {
     const editor = editorRef.current?.editor;
     if (editor) {
+      // override TipTap's Enter behavior completely
+      editor.setOptions({
+        editorProps: {
+          ...editor.options.editorProps,
+          handleKeyDown: (view, event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              const isEmpty = view.state.doc.textContent.trim() === "";
+              if (isEmpty) {
+                return true; 
+              }
+              if (inputValue.trim()) {
+                event.preventDefault();
+                handleSubmit();
+                return true;
+              }
+            }
+            return false;
+          }
+        }
+      });
+    }
+  }, [editorRef.current?.editor, inputValue, handleSubmit]);
+
+  useEffect(() => {
+    const editor = editorRef.current?.editor;
+    if (editor) {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.metaKey || event.ctrlKey) {
           if (["b", "i", "u", "k"].includes(event.key.toLowerCase())) {
@@ -215,6 +241,7 @@ export function ChatInput(
         }
 
         if (event.key === "Enter" && !event.shiftKey) {
+          console.log("Enter pressed, inputValue:", inputValue);
           event.preventDefault();
 
           if (inputValue.trim()) {
@@ -264,7 +291,7 @@ export function ChatInput(
         .chat-editor .tiptap-normal {
           padding: 12px 40px 12px 12px !important;
           min-height: 50px !important;
-          max-height: 80px!important;  
+          max-height: 90px !important;  
           font-size: 14px !important;
           line-height: 1.5 !important;
         }

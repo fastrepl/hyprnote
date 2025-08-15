@@ -64,7 +64,9 @@ async function generateTitleDirect(
   if (!session?.title && sessions[targetSessionId]?.getState) {
     const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
     sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+  }
 
+  if (sessions[targetSessionId]?.getState) {
     try {
       const suggestedTags = await autoTagGeneration(targetSessionId);
 

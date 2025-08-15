@@ -3,7 +3,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { createFileRoute, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { watch } from "@tauri-apps/plugin-fs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { IndividualizationModal } from "@/components/individualization-modal";
 import LeftSidebar from "@/components/left-sidebar";
@@ -37,6 +37,69 @@ export const Route = createFileRoute("/app")({
     return { sessionsStore, ongoingSessionStore, isOnboardingNeeded, isIndividualizationNeeded };
   },
 });
+
+// still experimental 
+function ResponsivePanelsManager() {
+  const { isExpanded: leftExpanded, setIsExpanded: setLeftExpanded } = useLeftSidebar();
+  const { isExpanded: rightExpanded, setIsExpanded: setRightExpanded } = useRightPanel();
+  
+  const [wasAutoCollapsed, setWasAutoCollapsed] = useState(false);
+  
+  const originalStates = useRef<{ left: boolean; right: boolean } | null>(null);
+  const userOverrodeLeft = useRef(false);
+  const userOverrodeRight = useRef(false);
+
+  // trackmanual changes during auto-collapse
+  useEffect(() => {
+    if (wasAutoCollapsed && originalStates.current) {
+      if (leftExpanded !== false) {
+        userOverrodeLeft.current = true;
+      }
+      if (rightExpanded !== false) {
+        userOverrodeRight.current = true;
+      }
+    }
+  }, [leftExpanded, rightExpanded, wasAutoCollapsed]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const BREAKPOINT = 670;
+      const currentWidth = window.innerWidth;
+
+      if (currentWidth < BREAKPOINT) {
+        if (!wasAutoCollapsed) {
+          originalStates.current = { left: leftExpanded, right: rightExpanded };
+          userOverrodeLeft.current = false;
+          userOverrodeRight.current = false;
+          
+          setLeftExpanded(false);
+          setRightExpanded(false);
+          setWasAutoCollapsed(true);
+        }
+      } else {
+        if (wasAutoCollapsed && originalStates.current) {
+          if (!userOverrodeLeft.current) {
+            setLeftExpanded(originalStates.current.left);
+          }
+          if (!userOverrodeRight.current) {
+            setRightExpanded(originalStates.current.right);
+          }
+          
+          setWasAutoCollapsed(false);
+          originalStates.current = null;
+          userOverrodeLeft.current = false;
+          userOverrodeRight.current = false;
+        }
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [leftExpanded, rightExpanded, wasAutoCollapsed, setLeftExpanded, setRightExpanded]);
+
+  return null;
+}
 
 function Component() {
   const router = useRouter();
@@ -88,6 +151,7 @@ function Component() {
                             </ResizablePanelGroup>
                           </div>
                         </div>
+                        <ResponsivePanelsManager />
                         <WelcomeModal
                           isOpen={shouldShowWelcomeModal}
                           onClose={() => {

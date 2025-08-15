@@ -308,7 +308,7 @@ export function useChatLogic({
 
       const { type } = await connectorCommands.getLlmConnection();
 
-      const { textStream } = streamText({
+      const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(messages, content, mentionedContent, model.modelId),
         ...(type === "HyprLocal" && {
@@ -388,22 +388,35 @@ export function useChatLogic({
 
       let aiResponse = "";
 
-      for await (const chunk of textStream) {
-        aiResponse += chunk;
+      for await (const chunk of fullStream) {
 
-        const parts = parseMarkdownBlocks(aiResponse);
+        if(chunk.type === "text-delta") {
+          aiResponse += chunk.text;
 
-        setMessages((prev) =>
-          prev.map(msg =>
-            msg.id === aiMessageId
-              ? {
-                ...msg,
-                content: aiResponse,
-                parts: parts,
-              }
-              : msg
-          )
-        );
+          const parts = parseMarkdownBlocks(aiResponse);
+
+          setMessages((prev) =>
+            prev.map(msg =>
+              msg.id === aiMessageId
+                ? {
+                  ...msg,
+                  content: aiResponse,
+                  parts: parts,
+                }
+                : msg
+            )
+          );
+        }
+
+        if(chunk.type === "tool-call"){
+          console.log("Tool Call:", chunk);
+        }
+
+        if(chunk.type === "tool-result"){
+          console.log("Tool Result:", chunk);
+        }
+
+     
       }
 
       await dbCommands.upsertChatMessage({

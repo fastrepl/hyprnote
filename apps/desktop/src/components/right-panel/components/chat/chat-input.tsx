@@ -241,7 +241,6 @@ export function ChatInput(
         }
 
         if (event.key === "Enter" && !event.shiftKey) {
-          console.log("Enter pressed, inputValue:", inputValue);
           event.preventDefault();
 
           if (inputValue.trim()) {

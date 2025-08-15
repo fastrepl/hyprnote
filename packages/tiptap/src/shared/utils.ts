@@ -39,7 +39,7 @@ turndown.addRule("taskItem", {
     const isChecked = checkbox ? checkbox.checked : false;
     const checkboxSymbol = isChecked ? "[x]" : "[ ]";
 
-    const cleanContent = content.replace(/^\s*\[[\sx]\]\s*/, "").trim();
+    const cleanContent = content.replace(/^\s*\[[\sxX]\]\s*/, "").trim();
 
     return `- ${checkboxSymbol} ${cleanContent}\n`;
   },

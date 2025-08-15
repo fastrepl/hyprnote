@@ -51,6 +51,7 @@
     "obsidian:default",
     "keygen:default",
     "webhook:default",
+    "mcp:default",
     {
       "identifier": "opener:allow-open-url",
       "allow": [{ "url": "https://**" }, { "url": "mailto:*" }, { "url": "obsidian://**" }]

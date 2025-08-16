@@ -20,9 +20,11 @@ RUN pnpm --filter="@hypr/pro" run build
 
 FROM base AS runtime
 WORKDIR /app
+ENV NODE_ENV=production
 
 COPY --from=build /app/apps/pro/dist ./dist
 COPY --from=build /app/apps/pro/package.json ./package.json
+COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
 RUN pnpm install --prod --frozen-lockfile
 

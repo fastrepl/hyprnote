@@ -25,12 +25,7 @@ const extractCredentials = (c: any) => {
 export const keygenAuth = (options: KeygenAuthOptions = {}) => {
   const { ttlMs = 30 * 60 * 1000 } = options;
 
-  return createMiddleware<{
-    Variables: {
-      license_id: string;
-      licenseKey: string;
-    };
-  }>(async (c, next) => {
+  return createMiddleware(async (c, next) => {
     const credentials = extractCredentials(c);
 
     if (!credentials) {

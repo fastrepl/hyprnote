@@ -2,7 +2,7 @@
   "name": "@hypr/pro",
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS='--conditions=development' tsx watch src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

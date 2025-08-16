@@ -37,10 +37,12 @@ mcpServer.registerTool(
 mcpServer.registerTool("read-url", {
   title: "Read URL",
   description: "Visit a URL and return the content as markdown.",
-  inputSchema: { url: z.string() },
+  inputSchema: z.object({ url: z.string() }).shape,
 }, async ({ url }) => {
-  const text = await fetch(`https://r.jina.ai/${url}`, { headers: { "Authorization": `Bearer ${env.JINA_API_KEY}` } })
-    .then((res) => res.text());
+  const encoded = encodeURIComponent(url);
+  const text = await fetch(`https://r.jina.ai/${encoded}`, {
+    headers: { "Authorization": `Bearer ${env.JINA_API_KEY}` },
+  }).then((res) => res.text());
 
   return {
     content: [{ type: "text", text }],

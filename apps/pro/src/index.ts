@@ -46,7 +46,7 @@ app.post("/chat/completions", keygenAuth(), async (c) => {
         model: env.OPENAI_DEFAULT_MODEL,
       }),
       headers: {
-        Authorization: env.OPENAI_API_KEY,
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
       },
     },
   );

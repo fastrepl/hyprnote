@@ -6,12 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function MCP() {
   const [servers, setServers] = useState<McpServer[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [loading, setLoading] = useState(true);
-
+  const queryClient = useQueryClient();
   // Load servers on mount
   useEffect(() => {
     loadServers();
@@ -29,16 +30,23 @@ export default function MCP() {
     }
   };
 
-  const saveServers = async (updatedServers: McpServer[]) => {
-    try {
+  const saveServersMutation = useMutation({
+    mutationFn: async (updatedServers: McpServer[]) => {
       await commands.setServers(updatedServers);
+      return updatedServers;
+    },
+    onSuccess: (updatedServers) => {
       setServers(updatedServers);
-    } catch (error) {
+    
+      // activate broadcast by updating cache data 
+      queryClient.setQueryData(["mcp-tools"], "servers updated");
+    },
+    onError: (error) => {
       console.error("Failed to save MCP servers:", error);
-    }
-  };
+    },
+  });
 
-  const handleAddServer = async () => {
+  const handleAddServer = () => {
     if (!newUrl.trim()) return;
     
     const newServer: McpServer = {
@@ -48,22 +56,22 @@ export default function MCP() {
     };
     
     const updatedServers = [...servers, newServer];
-    await saveServers(updatedServers);
+    saveServersMutation.mutate(updatedServers);
     setNewUrl("");
   };
 
-  const handleToggleServer = async (index: number) => {
+  const handleToggleServer = (index: number) => {
     const updatedServers = servers.map((server, i) => 
       i === index 
         ? { ...server, enabled: !server.enabled }
         : server
     );
-    await saveServers(updatedServers);
+    saveServersMutation.mutate(updatedServers);
   };
 
-  const handleDeleteServer = async (index: number) => {
+  const handleDeleteServer = (index: number) => {
     const updatedServers = servers.filter((_, i) => i !== index);
-    await saveServers(updatedServers);
+    saveServersMutation.mutate(updatedServers);
   };
 
   if (loading) {

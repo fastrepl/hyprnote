@@ -74,6 +74,12 @@ export function broadcastQueryClient(queryClient: QueryClient) {
           queryKey: ["org", keys[1]],
         });
       }
+
+      if (keys[0] === "mcp-tools") {
+        queryClient.invalidateQueries({
+          queryKey: ["mcp-tools"],
+        });
+      }
     });
   };
 

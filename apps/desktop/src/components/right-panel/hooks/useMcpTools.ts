@@ -1,18 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery  } from "@tanstack/react-query";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
 import { experimental_createMCPClient, dynamicTool } from "@hypr/utils/ai";
 import z from "zod";
 
+
 // Cache MCP client connections to avoid recreating them
 const mcpClientCache = new Map<string, any>();
 
-// Track how many times the hook is called
-let hookCallCount = 0;
 
 // fetch mcp servers and extract tools from them
 export function useMcpTools() {
-    hookCallCount++;
-    console.log(`[MCP Hook] useMcpTools called ${hookCallCount} times at`, new Date().toISOString());
     
     return useQuery({
         queryKey: ["mcp-tools"],
@@ -51,7 +48,14 @@ export function useMcpTools() {
                             transport: {
                                 type: "sse",
                                 url: server.url,
+                                onerror: (error) => {
+                                    console.error(`[MCP] Error from ${server.url}:`, error);
+                                },
+                                onclose: () => {
+                                    console.log(`[MCP] Connection closed for ${server.url}`);
+                                },
                             },
+                            
                         });
                         
                         // Cache the client for future use
@@ -72,6 +76,10 @@ export function useMcpTools() {
                             description: tool.description,
                             inputSchema: tool.inputSchema || z.any(),
                             execute: tool.execute,
+                            toModelOutput: (result: any) => {
+                                console.log(`[MCP] Tool result:`, result);
+                                return result;
+                            }
                         });
                     }
 
@@ -97,17 +105,17 @@ export function useMcpTools() {
               
             }
 
+
             const totalTools = Object.keys(allTools).length;
             console.log(`[MCP] Completed fetching. Total tools loaded: ${totalTools}`);
             console.log(`[MCP] Tool names:`, Object.keys(allTools));
 
             return allTools; // Return the object, not Object.values(allTools)
         },
-        // Add caching configuration
-        staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+        // Minimal caching to ensure immediate updates when settings change
+        staleTime: 0, // Always consider data stale to allow immediate refetch on invalidation
         gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
         refetchOnWindowFocus: false, // Don't refetch when window gains focus
-        refetchOnMount: false, // Don't refetch if data exists in cache
         refetchOnReconnect: false, // Don't refetch on reconnect
     })
 
@@ -118,4 +126,15 @@ export function useMcpTools() {
 // Optional: Export function to clear cache when needed (e.g., when settings change)
 export function clearMcpClientCache() {
     mcpClientCache.clear();
+}
+
+export function closeMcpClients() {
+    for (const client of mcpClientCache.values()) {
+
+        try{
+            client.close();
+        } catch (error) {
+            console.error(`[MCP] Error closing client:`, error);
+        }
+    }
 }

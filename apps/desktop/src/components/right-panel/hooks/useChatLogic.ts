@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
+import { closeMcpClients } from "./useMcpTools";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -51,8 +52,6 @@ export function useChatLogic({
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
-
-  console.log("mcpTools", mcpTools);
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -112,6 +111,7 @@ export function useChatLogic({
       ? Object.entries(mcpTools).map(([name, tool]) => ({
           name,
           description: tool.description || `Tool: ${name}`,
+          inputSchema: tool.inputSchema || "No input schema provided",
         }))
       : [];
 
@@ -129,6 +129,8 @@ export function useChatLogic({
       modelId: modelId,
       mcpTools: mcpToolsArray,
     });
+
+    console.log("system prompt", systemContent);
 
     const conversationHistory: Array<{
       role: "system" | "user" | "assistant";
@@ -321,6 +323,7 @@ export function useChatLogic({
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const { type } = await connectorCommands.getLlmConnection();
+      console.log("model id", model.modelId);
 
       const { fullStream } = streamText({
         model,
@@ -332,7 +335,7 @@ export function useChatLogic({
         }),
         ...((type !== "HyprLocal"
           && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
-            || model.modelId === "anthropic/claude-4-sonnet"
+            || model.modelId === "anthropic/claude-sonnet-4"
             || model.modelId === "openai/gpt-4o"
             || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
@@ -399,6 +402,10 @@ export function useChatLogic({
           setIsGenerating(false);
           throw error;
         },
+        onFinish: () => {
+          console.log("On Finish Catch");
+          //closeMcpClients();
+        },
       });
 
       let aiResponse = "";
@@ -421,6 +428,10 @@ export function useChatLogic({
                 : msg
             )
           );
+        }
+
+        if(chunk.type === "tool-error"){
+          console.log("Tool Error:", chunk);
         }
 
         if(chunk.type === "tool-call"){

@@ -18,6 +18,7 @@ import { useChatLogic } from "../hooks/useChatLogic";
 import { useChatQueries } from "../hooks/useChatQueries";
 import type { Message } from "../types/chat-types";
 import { focusInput, formatDate } from "../utils/chat-utils";
+import { useMcpTools } from "../hooks/useMcpTools";
 
 export function ChatView() {
   const navigate = useNavigate();
@@ -57,6 +58,8 @@ export function ChatView() {
     prevIsGenerating,
   });
 
+  const { data: mcpTools } = useMcpTools();
+
   const {
     isGenerating,
     handleSubmit,
@@ -77,6 +80,7 @@ export function ChatView() {
     sessionData,
     chatInputRef,
     llmConnectionQuery,
+    mcpTools: mcpTools || {},
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

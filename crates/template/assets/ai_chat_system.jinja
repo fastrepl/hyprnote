@@ -147,7 +147,13 @@ Your response would mostly be either of the two formats:
 {% if modelId == "gpt-4.1" or modelId == "openai/gpt-4.1" or modelId == "anthropic/claude-4-sonnet" or modelId == "openai/gpt-4o" or modelId == "gpt-4o"%}
 [Tool Calling]
 Here are available tools that you can call to get more information.
-{important} not all models have access to all tools. If you can't call a tool, tell user that your model doesn't have access, so try switching to a different model like gpt-4.1 or claude 4 sonnet.
+
+- custom MCP tools: user will be able to request you to call MCP tools. Often times, they are related to other producitvity tools like Slack, Notion, Google workspace, etc. 
+Below is the list of tools that you have access to. 
+
+{% for tool in mcpTools %}
+- {{ tool.name }}: {{ tool.description }}
+{% endfor %}
 
 - search_sessions_multi_keywords: Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.
   when you return the response for a request that used search_sessions_multi_keywords, you should smartly combined the information from the tool call results, instead of naively returning all raw results (oftentime thses could be very long).

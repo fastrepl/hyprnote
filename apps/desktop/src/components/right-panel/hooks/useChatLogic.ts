@@ -28,6 +28,7 @@ interface UseChatLogicProps {
   sessionData: any;
   chatInputRef: React.RefObject<HTMLTextAreaElement>;
   llmConnectionQuery: any;
+  mcpTools?: Record<string, any>;
 }
 
 export function useChatLogic({
@@ -44,11 +45,14 @@ export function useChatLogic({
   sessionData,
   chatInputRef,
   llmConnectionQuery,
+  mcpTools = {},
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
+
+  console.log("mcpTools", mcpTools);
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -103,6 +107,14 @@ export function useChatLogic({
       }`
       : "";
 
+    // Convert mcpTools object to array format for the template
+    const mcpToolsArray = Object.keys(mcpTools).length > 0 
+      ? Object.entries(mcpTools).map(([name, tool]) => ({
+          name,
+          description: tool.description || `Tool: ${name}`,
+        }))
+      : [];
+
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,
       words: JSON.stringify(freshSessionData?.words || []),
@@ -115,6 +127,7 @@ export function useChatLogic({
       participants: participants,
       event: eventInfo,
       modelId: modelId,
+      mcpTools: mcpToolsArray,
     });
 
     const conversationHistory: Array<{
@@ -290,6 +303,7 @@ export function useChatLogic({
 
     // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = (Date.now() + 1).toString();
+    console.log("base mcp tools", mcpTools);
 
     try {
       const provider = await modelProvider();
@@ -322,7 +336,8 @@ export function useChatLogic({
             || model.modelId === "openai/gpt-4o"
             || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
-          tools: {
+          tools: mcpTools,
+          /*tools: {
             search_sessions_multi_keywords: tool({
               description:
                 "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
@@ -376,7 +391,7 @@ export function useChatLogic({
                 };
               },
             }),
-          },
+          },*/
         }),
 
         onError: (error) => {

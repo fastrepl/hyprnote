@@ -29,9 +29,6 @@ importers:
       hono:
         specifier: ^4.8.10
         version: 4.8.10
-      ky:
-        specifier: ^1.8.2
-        version: 1.8.2
       qs:
         specifier: ^6.14.0
         version: 6.14.0
@@ -551,9 +548,6 @@ importers:
       hono-rate-limiter:
         specifier: ^0.4.2
         version: 0.4.2(hono@4.9.2)
-      ky:
-        specifier: ^1.8.2
-        version: 1.8.2
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -561,6 +555,9 @@ importers:
       '@types/node':
         specifier: ^20.11.17
         version: 20.19.9
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
       tsx:
         specifier: ^4.7.1
         version: 4.20.3
@@ -7108,10 +7105,6 @@ packages:
   ky@0.33.3:
     resolution: {integrity: sha512-CasD9OCEQSFIam2U8efFK81Yeg8vNMTBUqtMOHlrcWQHqUX3HeCl9Dr31u4toV7emlH8Mymk5+9p0lL6mKb/Xw==}
     engines: {node: '>=14.16'}
-
-  ky@1.8.2:
-    resolution: {integrity: sha512-XybQJ3d4Ea1kI27DoelE5ZCT3bSJlibYTtQuMsyzKox3TMyayw1asgQdl54WroAm+fIA3ZCr8zXW2RpR7qWVpA==}
-    engines: {node: '>=18'}
 
   kysely@0.28.3:
     resolution: {integrity: sha512-svKnkSH72APRdjfVCCOknxaC9Eb3nA2StHG9d5/sKOqRvHRp2Dtf1XwDvc92b4B5v6LV+EAGWXQbZ5jMOvHaDw==}
@@ -16907,8 +16900,6 @@ snapshots:
   kuler@2.0.0: {}
 
   ky@0.33.3: {}
-
-  ky@1.8.2: {}
 
   kysely@0.28.3: {}
 

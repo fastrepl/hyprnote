@@ -3,15 +3,17 @@ import { serve } from "@hono/node-server";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
+import { logger } from "hono/logger";
 import { proxy } from "hono/proxy";
 
-import { env } from "@env";
-import { mcpServer } from "@mcp";
 import { contextCache } from "./context.js";
+import { env } from "./env.js";
+import { mcpServer } from "./mcp.js";
 import { keygenAuth } from "./middleware/keygen.js";
 
 const app = new Hono();
 
+app.use(logger());
 app.use(contextCache());
 app.use(
   rateLimiter({
@@ -33,12 +35,16 @@ app.get("/health", (c) => {
   return c.text("OK");
 });
 
-app.get("/chat/completions", keygenAuth(), async (c) => {
-  const { Authorization, ...rest } = c.req.header();
-
+app.post("/chat/completions", keygenAuth(), async (c) => {
+  const data = await c.req.json();
   const res = await proxy(
     `${env.OPENAI_BASE_URL}/chat/completions`,
     {
+      method: "POST",
+      body: JSON.stringify({
+        ...data,
+        model: env.OPENAI_DEFAULT_MODEL,
+      }),
       headers: {
         Authorization: env.OPENAI_API_KEY,
       },

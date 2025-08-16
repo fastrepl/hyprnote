@@ -6,11 +6,6 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "@mcp": ["./src/mcp.ts"],
-      "@env": ["./src/env.ts"],
-      "@exa": ["./src/exa.ts"]
-    },
     "types": [
       "node"
     ],

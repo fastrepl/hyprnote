@@ -1,7 +1,7 @@
 import { Exa } from "exa-js";
 import { z } from "zod";
 
-import { env } from "@env";
+import { env } from "./env.js";
 
 export const exa = new Exa(env.EXA_API_KEY);
 

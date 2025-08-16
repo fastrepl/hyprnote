@@ -1,9 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import ky from "ky";
 import { z } from "zod";
 
-import { env } from "@env";
-import { exa, searchAndContentsInputSchema } from "@exa";
+import { env } from "./env.js";
+import { exa, searchAndContentsInputSchema } from "./exa.js";
 
 export const mcpServer = new McpServer({
   name: "hyprnote-mcp-server",
@@ -40,9 +39,8 @@ mcpServer.registerTool("read-url", {
   description: "Visit a URL and return the content as markdown.",
   inputSchema: { url: z.string() },
 }, async ({ url }) => {
-  const text = await ky
-    .get(`https://r.jina.ai/${url}`, { headers: { "Authorization": `Bearer ${env.JINA_API_KEY}` } })
-    .text();
+  const text = await fetch(`https://r.jina.ai/${url}`, { headers: { "Authorization": `Bearer ${env.JINA_API_KEY}` } })
+    .then((res) => res.text());
 
   return {
     content: [{ type: "text", text }],

@@ -4,16 +4,16 @@ import { HTTPException } from "hono/http-exception";
 import { validateKey } from "../keygen.js";
 
 interface KeygenAuthOptions {
-  cacheTTL?: number; // Cache TTL in milliseconds (default: 5 minutes)
+  ttlMs?: number;
 }
 
 const extractCredentials = (c: any) => {
   const authHeader = c.req.header("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!authHeader?.startsWith("License ")) {
     return null;
   }
 
-  const licenseKey = authHeader.substring(7);
+  const licenseKey = authHeader.substring(8);
 
   if (!licenseKey) {
     return null;
@@ -22,13 +22,8 @@ const extractCredentials = (c: any) => {
   return { licenseKey };
 };
 
-/**
- * KEygen license validation middleware with caching
- *
- * Usage: app.use('/api/*', keygenAuth())
- */
 export const keygenAuth = (options: KeygenAuthOptions = {}) => {
-  const { cacheTTL = 5 * 60 * 1000 } = options; // 5 minutes default
+  const { ttlMs = 30 * 60 * 1000 } = options;
 
   return createMiddleware<{
     Variables: {
@@ -39,32 +34,27 @@ export const keygenAuth = (options: KeygenAuthOptions = {}) => {
     const credentials = extractCredentials(c);
 
     if (!credentials) {
-      throw new HTTPException(401, {
-        message: "Invalid authorization header. Use: Bearer license_id:licenseKey",
-      });
+      throw new HTTPException(401, { message: "invalid authorization header" });
     }
 
     const { licenseKey } = credentials;
     const cacheKey = `keygen:${licenseKey}`;
 
-    // Check cache first
     let isValid = c.var.cacheGet<boolean>(cacheKey);
 
     if (isValid === undefined) {
       isValid = await validateKey(licenseKey);
+      console.log("isValid", isValid);
 
-      const ttl = isValid ? cacheTTL : cacheTTL / 10;
+      const ttl = isValid ? ttlMs : ttlMs / 10;
       c.var.cacheSet(cacheKey, isValid, ttl);
     }
 
     if (!isValid) {
-      throw new HTTPException(403, {
-        message: "Invalid or expired license",
-      });
+      throw new HTTPException(401, { message: "invalid license key" });
     }
 
     c.set("licenseKey", licenseKey);
-
     await next();
   });
 };

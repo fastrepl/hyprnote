@@ -39,7 +39,7 @@ export default function MCP() {
       setServers(updatedServers);
     
       // activate broadcast by updating cache data 
-      queryClient.setQueryData(["mcp-tools"], "servers updated");
+      //queryClient.setQueryData(["mcp-tools"], "servers updated");
     },
     onError: (error) => {
       console.error("Failed to save MCP servers:", error);

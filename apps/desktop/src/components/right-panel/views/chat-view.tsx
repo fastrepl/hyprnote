@@ -58,7 +58,6 @@ export function ChatView() {
     prevIsGenerating,
   });
 
-  const { data: mcpTools } = useMcpTools();
 
   const {
     isGenerating,
@@ -80,7 +79,6 @@ export function ChatView() {
     sessionData,
     chatInputRef,
     llmConnectionQuery,
-    mcpTools: mcpTools || {},
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

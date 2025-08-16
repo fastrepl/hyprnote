@@ -7,13 +7,14 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { modelProvider, stepCountIs, streamText, tool } from "@hypr/utils/ai";
+import { dynamicTool, experimental_createMCPClient, modelProvider, stepCountIs, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import { closeMcpClients } from "./useMcpTools";
+import { commands as mcpCommands } from "@hypr/plugin-mcp";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -29,7 +30,6 @@ interface UseChatLogicProps {
   sessionData: any;
   chatInputRef: React.RefObject<HTMLTextAreaElement>;
   llmConnectionQuery: any;
-  mcpTools?: Record<string, any>;
 }
 
 export function useChatLogic({
@@ -46,12 +46,13 @@ export function useChatLogic({
   sessionData,
   chatInputRef,
   llmConnectionQuery,
-  mcpTools = {},
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
+
+  console.log("use chat logic being called!")
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -81,6 +82,7 @@ export function useChatLogic({
     currentUserMessage?: string,
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
     modelId?: string,
+    mcpToolsArray?: Array<{ name: string; description: string; inputSchema: string }>,
   ) => {
     const refetchResult = await sessionData.refetch();
     let freshSessionData = refetchResult.data;
@@ -106,14 +108,7 @@ export function useChatLogic({
       }`
       : "";
 
-    // Convert mcpTools object to array format for the template
-    const mcpToolsArray = Object.keys(mcpTools).length > 0 
-      ? Object.entries(mcpTools).map(([name, tool]) => ({
-          name,
-          description: tool.description || `Tool: ${name}`,
-          inputSchema: tool.inputSchema || "No input schema provided",
-        }))
-      : [];
+
 
     const systemContent = await templateCommands.render("ai_chat.system", {
       session: freshSessionData,
@@ -256,7 +251,12 @@ export function useChatLogic({
       return;
     }
 
-    if (messages.length >= 6 && !getLicense.data?.valid) {
+    let didResponseFinish = false; 
+
+    // Count only user messages
+    const userMessageCount = messages.filter(msg => msg.isUser || msg.type === "user").length;
+    
+    if (userMessageCount >= 3 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
           event: "pro_license_required_chat",
@@ -290,6 +290,7 @@ export function useChatLogic({
       content: content,
       isUser: true,
       timestamp: new Date(),
+      type: "user",
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -305,7 +306,46 @@ export function useChatLogic({
 
     // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = (Date.now() + 1).toString();
-    console.log("base mcp tools", mcpTools);
+
+    console.log("we are now going to get tools from the mcp server and generate text streams!")
+    //try creating a new set of tools 
+    const newMcpTools: Record<string, any> = {};
+    const mcpServers = await mcpCommands.getServers();
+    const enabledSevers = mcpServers.filter((server) => server.enabled);
+    const allMcpClients: any[] = [];
+
+    for (const server of enabledSevers) {
+      const mcpClient = await experimental_createMCPClient({
+        transport: {
+          type: "sse",
+          url: server.url,
+          onerror: (error) => {
+            console.log("mcp client error: ",error)
+          },
+          onclose: () => {
+            console.log("mcp client closed")
+          }
+        },
+  
+      });
+      allMcpClients.push(mcpClient);
+      const tools = await mcpClient.tools();
+      for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
+        newMcpTools[toolName] = dynamicTool({
+          description: tool.description,
+          inputSchema: tool.inputSchema || z.any(),
+          execute: tool.execute,
+        });
+      }
+    }
+
+    const mcpToolsArray = Object.keys(newMcpTools).length > 0 
+      ? Object.entries(newMcpTools).map(([name, tool]) => ({
+          name,
+          description: tool.description || `Tool: ${name}`,
+          inputSchema: tool.inputSchema || "No input schema provided",
+        }))
+      : [];
 
     try {
       const provider = await modelProvider();
@@ -316,6 +356,7 @@ export function useChatLogic({
         content: "Generating...",
         isUser: false,
         timestamp: new Date(),
+        type: "generating",
       };
       setMessages((prev) => [...prev, aiMessage]);
 
@@ -327,7 +368,7 @@ export function useChatLogic({
 
       const { fullStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content, mentionedContent, model.modelId),
+        messages: await prepareMessageHistory(messages, content, mentionedContent, model.modelId, mcpToolsArray),
         ...(type === "HyprLocal" && {
           tools: {
             update_progress: tool({ inputSchema: z.any() }),
@@ -339,7 +380,7 @@ export function useChatLogic({
             || model.modelId === "openai/gpt-4o"
             || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
-          tools: mcpTools,
+          tools: newMcpTools,
           /*tools: {
             search_sessions_multi_keywords: tool({
               description:
@@ -403,46 +444,141 @@ export function useChatLogic({
           throw error;
         },
         onFinish: () => {
-          console.log("On Finish Catch");
-          //closeMcpClients();
+          didResponseFinish = true;
+          console.log("closing all mcp clients");
+          for (const client of allMcpClients) {
+            client.close();
+          }
         },
       });
 
       let aiResponse = "";
+      let didInitializeAiResponse = false;
 
       for await (const chunk of fullStream) {
 
         if(chunk.type === "text-delta") {
-          aiResponse += chunk.text;
+          
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            
+            // ✅ Simple rule: same type = append, different type = new message
+            if (lastMessage && (lastMessage.type === "text-delta" || lastMessage.type === "generating")) {
+              // Same type (text) -> update existing message
+              
+              aiResponse += chunk.text; 
+              const parts = parseMarkdownBlocks(aiResponse);
+        
+              return prev.map(msg =>
+                msg.id === lastMessage.id
+                  ? { ...msg, content: aiResponse, parts, type: "text-delta" }
+                  : msg
+              );
+            } else {
 
-          const parts = parseMarkdownBlocks(aiResponse);
-
-          setMessages((prev) =>
-            prev.map(msg =>
-              msg.id === aiMessageId
-                ? {
-                  ...msg,
-                  content: aiResponse,
-                  parts: parts,
-                }
-                : msg
-            )
-          );
-        }
-
-        if(chunk.type === "tool-error"){
-          console.log("Tool Error:", chunk);
+              if(!didInitializeAiResponse){
+                aiResponse = "";
+                didInitializeAiResponse = true;
+              }
+              
+              aiResponse += chunk.text; 
+              const parts = parseMarkdownBlocks(aiResponse);
+        
+              // Different type -> create new message
+              const newTextMessage: Message = {
+                id: Date.now().toString() + "-text-delta",
+                content: aiResponse,
+                isUser: false,
+                timestamp: new Date(),
+                type: "text-delta",
+                parts,
+              };
+              return [...prev, newTextMessage];
+            }
+          });
         }
 
         if(chunk.type === "tool-call"){
+          didInitializeAiResponse = false;
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            
+            const getInstructionText = (input: any) => {
+              if (!input) return "";
+              if (typeof input === 'object' && 'instruction' in input) {
+                return ` - ${input.instruction}`;
+              }
+              return "";
+            };
+
+            const toolStartMessage: Message = {
+              id: Date.now().toString() + "-tool-start",
+              content: `Executing tool: ${chunk.toolName}${getInstructionText(chunk.input)}`,
+              isUser: false,
+              timestamp: new Date(),
+              type: "tool-start",
+            };
+            
+            // ✅ ADD THIS: Replace "generating" message if it exists
+            if (lastMessage && lastMessage.type === "generating") {
+              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
+              return [...withoutGenerating, toolStartMessage];
+            } else {
+              return [...prev, toolStartMessage];
+            }
+          });
           console.log("Tool Call:", chunk);
         }
 
         if(chunk.type === "tool-result"){
+          didInitializeAiResponse = false;
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            const toolResultMessage: Message = {
+              id: Date.now().toString() + "-tool-result",
+              content: `Tool result: ${chunk.output}`,
+              isUser: false,
+              timestamp: new Date(),
+              type: "tool-result",
+            };
+            
+            // ✅ ADD THIS: Replace "generating" message if it exists
+            if (lastMessage && lastMessage.type === "generating") {
+              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
+              return [...withoutGenerating, toolResultMessage];
+            } else {
+              return [...prev, toolResultMessage];
+            }
+          });
           console.log("Tool Result:", chunk);
         }
 
-     
+        if(chunk.type === "tool-error"){
+          didInitializeAiResponse = false;
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            const toolErrorMessage: Message = {
+              id: Date.now().toString() + "-tool-error",
+              content: `Tool error: ${chunk.error}`,
+              isUser: false,
+              timestamp: new Date(),
+              type: "tool-error",
+            };
+            
+            // ✅ ADD THIS: Replace "generating" message if it exists
+            if (lastMessage && lastMessage.type === "generating") {
+              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
+              return [...withoutGenerating, toolErrorMessage];
+            } else {
+              return [...prev, toolErrorMessage];
+            }
+          });
+          console.log("Tool Error:", chunk);
+        }
+
+        if(chunk.type === "finish-step"){
+          console.log("streaming finished for this message")
+        }
       }
 
       await dbCommands.upsertChatMessage({

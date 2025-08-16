@@ -507,7 +507,7 @@ export function useChatLogic({
 
           const dummyWaitingMessage: Message = {
             id: crypto.randomUUID(),
-            content: "Waiting for tool result...",
+            content: "tool call started",
             isUser: false,
             timestamp: new Date(),
             type: "generating",
@@ -544,7 +544,7 @@ export function useChatLogic({
 
           const toolStartMessage: Message = {
             id: crypto.randomUUID(),
-            content: `Executing tool: ${chunk.toolName}${getInstructionText(chunk.input)}`,
+            content: `${chunk.toolName}`,
             isUser: false,
             timestamp: new Date(),
             type: "tool-start",
@@ -579,7 +579,7 @@ export function useChatLogic({
           didInitializeAiResponse = false;
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
-            content: `Tool result: ${chunk.output}`,
+            content: `Tool finished: ${chunk.toolName}`,
             isUser: false,
             timestamp: new Date(),
             type: "tool-result",

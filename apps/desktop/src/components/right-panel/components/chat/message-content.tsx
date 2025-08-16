@@ -122,7 +122,8 @@ function MarkdownText({ content }: { content: string }) {
 }
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
-  if (message.content === "Generating...") {
+  
+  if ((message.content === "Generating..." || message.content === "tool call started") && message.type === "generating") {
     return (
       <>
         <style>
@@ -142,12 +143,97 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
           `}
         </style>
         <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "4px 0" }}>
-          Thinking
+          <span>Thinking</span>
           <span className="thinking-dot">.</span>
           <span className="thinking-dot">.</span>
           <span className="thinking-dot">.</span>
         </div>
       </>
+    );
+  }
+
+
+  // ✅ Add special rendering for tool-call messages
+  if (message.type === "tool-start") {
+    return (
+      <div style={{ 
+        color: "rgb(115 115 115)", // Same grey as thinking/executing
+        fontSize: "0.875rem", 
+        padding: "8px 12px",
+        backgroundColor: "rgb(250 250 250)", // Very light grey background
+        border: "1px solid rgb(229 229 229)", // Subtle grey border
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px"
+      }}>
+        <div style={{
+          width: "4px",
+          height: "4px",
+          backgroundColor: "rgb(163 163 163)",
+          borderRadius: "50%",
+          flexShrink: 0
+        }} />
+        <span style={{ fontWeight: "400" }}>
+          Called tool: {message.content}
+        </span>
+      </div>
+    );
+  }
+
+  // ✅ Add special rendering for tool-result messages
+  if (message.type === "tool-result") {
+    return (
+      <div style={{ 
+        color: "rgb(115 115 115)", // Same grey as thinking/executing
+        fontSize: "0.875rem", 
+        padding: "8px 12px",
+        backgroundColor: "rgb(248 248 248)", // Slightly darker grey background
+        border: "1px solid rgb(224 224 224)", // Subtle grey border
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px"
+      }}>
+        <div style={{
+          width: "4px",
+          height: "4px",
+          backgroundColor: "rgb(163 163 163)",
+          borderRadius: "50%",
+          flexShrink: 0
+        }} />
+        <span style={{ fontWeight: "400" }}>
+          {message.content}
+        </span>
+      </div>
+    );
+  }
+
+  // ✅ Add special rendering for tool-error messages
+  if (message.type === "tool-error") {
+    return (
+      <div style={{ 
+        color: "rgb(115 115 115)", // Same grey as thinking/executing
+        fontSize: "0.875rem", 
+        padding: "8px 12px",
+        backgroundColor: "rgb(252 252 252)", // Very light background
+        border: "1px solid rgb(229 229 229)", // Subtle grey border
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px"
+      }}>
+        <div style={{
+          width: "4px",
+          height: "4px",
+          backgroundColor: "rgb(163 163 163)",
+          borderRadius: "50%",
+          flexShrink: 0
+        }} />
+        <span style={{ fontWeight: "400" }}>
+          Tool Error: {message.content}
+        </span>
+      </div>
     );
   }
 

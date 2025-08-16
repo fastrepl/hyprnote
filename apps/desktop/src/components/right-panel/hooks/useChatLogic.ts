@@ -13,7 +13,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
-import { closeMcpClients } from "./useMcpTools";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
 
 interface UseChatLogicProps {
@@ -251,10 +250,9 @@ export function useChatLogic({
       return;
     }
 
-    let didResponseFinish = false; 
 
     // Count only user messages
-    const userMessageCount = messages.filter(msg => msg.isUser || msg.type === "user").length;
+    const userMessageCount = messages.filter(msg => msg.isUser).length;
     
     if (userMessageCount >= 3 && !getLicense.data?.valid) {
       if (userId) {
@@ -286,11 +284,11 @@ export function useChatLogic({
     const groupId = await getChatGroupId();
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       content: content,
       isUser: true,
       timestamp: new Date(),
-      type: "user",
+      type: "text-delta",
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -302,10 +300,11 @@ export function useChatLogic({
       created_at: userMessage.timestamp.toISOString(),
       role: "User",
       content: userMessage.content.trim(),
+      type: "text-delta", 
     });
 
     // Declare aiMessageId outside try block so it's accessible in catch
-    const aiMessageId = (Date.now() + 1).toString();
+    const aiMessageId = crypto.randomUUID();
 
     console.log("we are now going to get tools from the mcp server and generate text streams!")
     //try creating a new set of tools 
@@ -444,7 +443,6 @@ export function useChatLogic({
           throw error;
         },
         onFinish: () => {
-          didResponseFinish = true;
           console.log("closing all mcp clients");
           for (const client of allMcpClients) {
             client.close();
@@ -454,6 +452,7 @@ export function useChatLogic({
 
       let aiResponse = "";
       let didInitializeAiResponse = false;
+      let currentAiTextMessageId: string | null = null; // ✅ Track current text message ID
 
       for await (const chunk of fullStream) {
 
@@ -467,6 +466,7 @@ export function useChatLogic({
               // Same type (text) -> update existing message
               
               aiResponse += chunk.text; 
+              currentAiTextMessageId = lastMessage.id; // ✅ Track this message ID
               const parts = parseMarkdownBlocks(aiResponse);
         
               return prev.map(msg =>
@@ -486,38 +486,71 @@ export function useChatLogic({
         
               // Different type -> create new message
               const newTextMessage: Message = {
-                id: Date.now().toString() + "-text-delta",
+                id: crypto.randomUUID(),
                 content: aiResponse,
                 isUser: false,
                 timestamp: new Date(),
                 type: "text-delta",
                 parts,
               };
+              
+              currentAiTextMessageId = newTextMessage.id; // ✅ Track this message ID
               return [...prev, newTextMessage];
             }
           });
+
+
         }
 
+        // ✅ Save AI text when switching to tool (text chunk is complete)
         if(chunk.type === "tool-call"){
+
+          const dummyWaitingMessage: Message = {
+            id: crypto.randomUUID(),
+            content: "Waiting for tool result...",
+            isUser: false,
+            timestamp: new Date(),
+            type: "generating",
+          }
+          // Save accumulated AI text before processing tool
+          if (currentAiTextMessageId && aiResponse.trim()) {
+            const saveAiText = async () => {
+              try {
+                await dbCommands.upsertChatMessage({
+                  id: currentAiTextMessageId!,
+                  group_id: groupId,
+                  created_at: new Date().toISOString(),
+                  role: "Assistant",
+                  type: "text-delta",
+                  content: aiResponse.trim(),
+                });
+              } catch (error) {
+                console.error("Failed to save AI text:", error);
+              }
+            };
+            saveAiText();
+            currentAiTextMessageId = null; // Reset
+          }
+
           didInitializeAiResponse = false;
+
+          const getInstructionText = (input: any) => {
+            if (!input) return "";
+            if (typeof input === 'object' && 'instruction' in input) {
+              return ` - ${input.instruction}`;
+            }
+            return "";
+          };
+
+          const toolStartMessage: Message = {
+            id: crypto.randomUUID(),
+            content: `Executing tool: ${chunk.toolName}${getInstructionText(chunk.input)}`,
+            isUser: false,
+            timestamp: new Date(),
+            type: "tool-start",
+          };
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
-            
-            const getInstructionText = (input: any) => {
-              if (!input) return "";
-              if (typeof input === 'object' && 'instruction' in input) {
-                return ` - ${input.instruction}`;
-              }
-              return "";
-            };
-
-            const toolStartMessage: Message = {
-              id: Date.now().toString() + "-tool-start",
-              content: `Executing tool: ${chunk.toolName}${getInstructionText(chunk.input)}`,
-              isUser: false,
-              timestamp: new Date(),
-              type: "tool-start",
-            };
             
             // ✅ ADD THIS: Replace "generating" message if it exists
             if (lastMessage && lastMessage.type === "generating") {
@@ -527,20 +560,33 @@ export function useChatLogic({
               return [...prev, toolStartMessage];
             }
           });
+
+          setMessages((prev) => [...prev, dummyWaitingMessage]);
+
+          //save message to db right away 
+          await dbCommands.upsertChatMessage({
+            id: toolStartMessage.id,
+            group_id: groupId,
+            created_at: toolStartMessage.timestamp.toISOString(),
+            role: "Assistant",
+            content: toolStartMessage.content,
+            type: "tool-start",
+          });
           console.log("Tool Call:", chunk);
         }
 
         if(chunk.type === "tool-result"){
           didInitializeAiResponse = false;
+          const toolResultMessage: Message = {
+            id: crypto.randomUUID(),
+            content: `Tool result: ${chunk.output}`,
+            isUser: false,
+            timestamp: new Date(),
+            type: "tool-result",
+          };
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
-            const toolResultMessage: Message = {
-              id: Date.now().toString() + "-tool-result",
-              content: `Tool result: ${chunk.output}`,
-              isUser: false,
-              timestamp: new Date(),
-              type: "tool-result",
-            };
+           
             
             // ✅ ADD THIS: Replace "generating" message if it exists
             if (lastMessage && lastMessage.type === "generating") {
@@ -550,20 +596,30 @@ export function useChatLogic({
               return [...prev, toolResultMessage];
             }
           });
+
+          await dbCommands.upsertChatMessage({
+            id: toolResultMessage.id,
+            group_id: groupId,
+            created_at: toolResultMessage.timestamp.toISOString(),
+            role: "Assistant",
+            content: toolResultMessage.content,
+            type: "tool-result",
+          });
           console.log("Tool Result:", chunk);
         }
 
         if(chunk.type === "tool-error"){
           didInitializeAiResponse = false;
+          const toolErrorMessage: Message = {
+            id: crypto.randomUUID(),
+            content: `Tool error: ${chunk.error}`,
+            isUser: false,
+            timestamp: new Date(),
+            type: "tool-error",
+          };
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
-            const toolErrorMessage: Message = {
-              id: Date.now().toString() + "-tool-error",
-              content: `Tool error: ${chunk.error}`,
-              isUser: false,
-              timestamp: new Date(),
-              type: "tool-error",
-            };
+           
             
             // ✅ ADD THIS: Replace "generating" message if it exists
             if (lastMessage && lastMessage.type === "generating") {
@@ -573,6 +629,15 @@ export function useChatLogic({
               return [...prev, toolErrorMessage];
             }
           });
+
+          await dbCommands.upsertChatMessage({
+            id: toolErrorMessage.id,
+            group_id: groupId,
+            created_at: toolErrorMessage.timestamp.toISOString(),
+            role: "Assistant",
+            content: toolErrorMessage.content,
+            type: "tool-error",
+          });
           console.log("Tool Error:", chunk);
         }
 
@@ -581,13 +646,19 @@ export function useChatLogic({
         }
       }
 
-      await dbCommands.upsertChatMessage({
-        id: aiMessageId,
-        group_id: groupId,
-        created_at: new Date().toISOString(),
-        role: "Assistant",
-        content: aiResponse.trim(),
-      });
+      // ✅ Save final AI text when streaming finishes
+      if (currentAiTextMessageId && aiResponse.trim()) {
+        await dbCommands.upsertChatMessage({
+          id: currentAiTextMessageId,
+          group_id: groupId,
+          created_at: new Date().toISOString(),
+          role: "Assistant",
+          type: "text-delta",
+          content: aiResponse.trim(),
+        });
+      }
+
+     
 
       setIsGenerating(false);
     } catch (error) {
@@ -624,6 +695,7 @@ export function useChatLogic({
         created_at: new Date().toISOString(),
         role: "Assistant",
         content: finalErrorMesage,
+        type: "text-delta",
       });
     }
   };

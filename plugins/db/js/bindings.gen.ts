@@ -162,8 +162,9 @@ async deleteTag(tagId: string) : Promise<null> {
 
 export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean; source: string | null }
 export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string; session_id: string }
-export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string }
+export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string; type: ChatMessageType }
 export type ChatMessageRole = "User" | "Assistant"
+export type ChatMessageType = "text-delta" | "tool-start" | "tool-result" | "tool-error"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification; ai: ConfigAI }
 export type ConfigAI = { api_base: string | null; api_key: string | null; ai_specificity: number | null; redemption_time_ms: number | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; spoken_languages?: string[]; jargons?: string[]; telemetry_consent: boolean; save_recordings: boolean | null; selected_template_id: string | null; summary_language?: string }

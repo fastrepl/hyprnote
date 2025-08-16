@@ -86,6 +86,7 @@ export function useChatQueries({
         content: msg.content,
         isUser: msg.role === "User",
         timestamp: new Date(msg.created_at),
+        type: msg.type || "text-delta",
         parts: msg.role === "Assistant" ? parseMarkdownBlocks(msg.content) : undefined,
       }));
     },

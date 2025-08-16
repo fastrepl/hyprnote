@@ -2,7 +2,7 @@ use crate::{Config, ConfigAI, ConfigGeneral, ConfigNotification};
 
 use super::{
     Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
-    Session, Tag, UserDatabase,
+    Session, Tag, UserDatabase, ChatMessageType,
 };
 
 const ONBOARDING_RAW_HTML: &str = include_str!("../assets/onboarding-raw.html");
@@ -794,6 +794,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             role: ChatMessageRole::User,
             content: "Hello, how are you?".to_string(),
             created_at: now,
+            r#type: ChatMessageType::TextDelta,
         };
 
         let _ = db.upsert_chat_message(chat_message_1).await?;

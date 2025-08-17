@@ -15,7 +15,7 @@ owhisper-config = { workspace = true }
 owhisper-interface = { workspace = true }
 
 hypr-audio-utils = { workspace = true }
-hypr-chunker = { workspace = true }
+hypr-vad = { workspace = true }
 hypr-ws-utils = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }

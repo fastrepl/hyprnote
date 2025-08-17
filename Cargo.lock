@@ -2444,21 +2444,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chunker"
-version = "0.1.0"
-dependencies = [
- "data",
- "futures-util",
- "hound",
- "kalosm-sound",
- "serde",
- "silero",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "ciborium"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14630,7 +14615,6 @@ dependencies = [
  "audio-utils",
  "bytes",
  "chrono",
- "chunker",
  "codes-iso-639",
  "data",
  "db-core",
@@ -14670,6 +14654,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+ "vad",
 ]
 
 [[package]]
@@ -16333,7 +16318,6 @@ dependencies = [
  "audio-utils",
  "axum 0.8.4",
  "bytes",
- "chunker",
  "futures-util",
  "moonshine",
  "owhisper-config",
@@ -16347,6 +16331,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "vad",
  "ws-utils",
 ]
 
@@ -16376,7 +16361,6 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "axum 0.8.4",
- "chunker",
  "data",
  "dirs 6.0.0",
  "futures-util",
@@ -16391,6 +16375,7 @@ dependencies = [
  "tokio-util",
  "tower 0.5.2",
  "tracing",
+ "vad",
  "whisper",
  "whisper-local",
  "ws-utils",
@@ -16941,6 +16926,21 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vad"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "futures-util",
+ "hound",
+ "kalosm-sound",
+ "serde",
+ "silero",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

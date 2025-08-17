@@ -1,5 +1,5 @@
 [package]
-name = "chunker"
+name = "vad"
 version = "0.1.0"
 edition = "2021"
 

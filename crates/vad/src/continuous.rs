@@ -157,14 +157,14 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
 }
 
 pub trait VadExt: AsyncSource + Sized {
-    fn continuous_vad(self, config: VadConfig) -> ContinuousVadStream<Self>
+    fn with_vad(self, config: VadConfig) -> ContinuousVadStream<Self>
     where
         Self: Unpin,
     {
         ContinuousVadStream::new(self, config).unwrap()
     }
 
-    fn vad_chunks(
+    fn speech_chunks(
         self,
         redemption_time: Duration,
     ) -> impl Stream<Item = Result<AudioChunk, crate::Error>>
@@ -179,7 +179,7 @@ pub trait VadExt: AsyncSource + Sized {
             ..Default::default()
         };
 
-        self.continuous_vad(config)
+        self.with_vad(config)
             .scan(
                 (false, Vec::new()),
                 |(is_speaking, buffer), item| match item {

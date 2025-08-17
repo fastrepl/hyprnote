@@ -171,7 +171,7 @@ async fn handle_single_channel(
     redemption_time: Duration,
 ) {
     let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
-    let vad_chunks = audio_source.vad_chunks(redemption_time);
+    let vad_chunks = audio_source.speech_chunks(redemption_time);
 
     let stream = process_vad_stream(vad_chunks, model, "mixed");
     let boxed_stream = Box::pin(stream);
@@ -188,12 +188,12 @@ async fn handle_dual_channel(
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
 
     let mic_stream = {
-        let mic_vad_chunks = mic_source.vad_chunks(redemption_time);
+        let mic_vad_chunks = mic_source.speech_chunks(redemption_time);
         process_vad_stream(mic_vad_chunks, model.clone(), "mic")
     };
 
     let speaker_stream = {
-        let speaker_vad_chunks = speaker_source.vad_chunks(redemption_time);
+        let speaker_vad_chunks = speaker_source.speech_chunks(redemption_time);
         process_vad_stream(speaker_vad_chunks, model.clone(), "speaker")
     };
 

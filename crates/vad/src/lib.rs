@@ -25,7 +25,7 @@ pub mod tests {
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap()
-        .continuous_vad(silero_rs::VadConfig::default());
+        .with_vad(silero_rs::VadConfig::default());
 
         let all_audio_from_vad = vad
             .filter_map(|item| async move {
@@ -49,7 +49,7 @@ pub mod tests {
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap()
-        .vad_chunks(std::time::Duration::from_millis(50));
+        .speech_chunks(std::time::Duration::from_millis(50));
 
         let all_audio_from_vad = vad
             .filter_map(|item| async move {

@@ -647,7 +647,7 @@ export default function LlmAI() {
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 
-          {customLLMEnabled.data && providerSourceQuery.data !== "hyprcloud" && (
+          {customLLMEnabled.data && (providerSourceQuery.data !== "hyprcloud" || openAccordion) && (
             <div className="max-w-2xl space-y-4">
               <div className="border rounded-lg p-4">
                 <Form {...aiConfigForm}>

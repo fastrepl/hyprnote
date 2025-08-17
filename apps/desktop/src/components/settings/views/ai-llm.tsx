@@ -342,6 +342,8 @@ export default function LlmAI() {
       openrouterModelQuery.refetch();
     },
   });
+  
+  // No need to force tab switching - user can view custom tab even with HyprCloud
 
   useEffect(() => {
     const handleMigration = async () => {
@@ -382,7 +384,13 @@ export default function LlmAI() {
 
   useEffect(() => {
     if (providerSourceQuery.data) {
-      setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
+      // Only set accordion if it's a valid custom provider (not hyprcloud)
+      if (["openai", "gemini", "openrouter", "others"].includes(providerSourceQuery.data)) {
+        setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
+      } else if (providerSourceQuery.data === "hyprcloud") {
+        // HyprCloud is selected, clear accordion
+        setOpenAccordion(null);
+      }
     } else if (customLLMEnabled.data) {
       setOpenAccordion("others");
     } else {
@@ -397,8 +405,11 @@ export default function LlmAI() {
       ? "https://generativelanguage.googleapis.com/v1beta/openai"
       : config.provider === "openrouter"
       ? "https://openrouter.ai/api/v1"
+      : config.provider === "hyprcloud"
+      ? "https://pro.hyprnote.com"
       : config.api_base;
 
+    // Set customLLMEnabled for all remote providers including HyprCloud
     setCustomLLMEnabledMutation.mutate(true);
 
     if (config.provider === "openai" && config.api_key) {
@@ -414,11 +425,18 @@ export default function LlmAI() {
       setOthersApiBaseMutation.mutate(config.api_base);
       setOthersApiKeyMutation.mutate(config.api_key || "");
       setOthersModelMutation.mutate(config.model);
+    } else if (config.provider === "hyprcloud") {
+      // HyprCloud doesn't need API key or model selection
+      // Just set the provider source and connection
     }
 
     setProviderSourceMutation.mutate(config.provider);
 
-    setCustomLLMModel.mutate(config.model);
+    // For HyprCloud, we don't set a specific model
+    if (config.provider !== "hyprcloud") {
+      setCustomLLMModel.mutate(config.model);
+    }
+    
     setCustomLLMConnection.mutate({
       api_base: finalApiBase,
       api_key: config.api_key || null,
@@ -629,7 +647,7 @@ export default function LlmAI() {
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 
-          {customLLMEnabled.data && (
+          {customLLMEnabled.data && providerSourceQuery.data !== "hyprcloud" && (
             <div className="max-w-2xl space-y-4">
               <div className="border rounded-lg p-4">
                 <Form {...aiConfigForm}>

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as localLlmCommands, type SupportedModel } from "@hypr/plugin-local-llm";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { type LLMModel, SharedLLMProps } from "./shared";
@@ -32,39 +33,55 @@ export function LLMLocalView({
     queryFn: () => localLlmCommands.getCurrentModel(),
   });
 
+  const providerSource = useQuery({
+    queryKey: ["provider-source"],
+    queryFn: () => connectorCommands.getProviderSource(),
+  });
+
   const handleShowFileLocation = async () => {
     localLlmCommands.modelsDir().then((path) => openPath(path));
   };
 
   useEffect(() => {
+    // Auto-select current local model when switching away from remote endpoints
     if (currentLLMModel.data && !customLLMEnabled.data) {
       setSelectedLLMModel(currentLLMModel.data);
     }
   }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
 
-  const handleLocalModelSelection = (model: LLMModel) => {
+  // Remove the effect that was forcing HyprCloud selection - it was preventing local model selection
+
+  const handleLocalModelSelection = async (model: LLMModel) => {
     if (model.available && model.downloaded) {
+      // Update UI state first for immediate feedback
       setSelectedLLMModel(model.key);
-      localLlmCommands.setCurrentModel(model.key as SupportedModel);
-      // CRITICAL: Disable custom LLM when local model is selected
+      
+      // Then update backend state
+      await localLlmCommands.setCurrentModel(model.key as SupportedModel);
+      
+      // Disable custom LLM (this will route to local model)
       setCustomLLMEnabledMutation.mutate(false);
       setOpenAccordion(null);
+      
+      // Restart server for local model
       localLlmCommands.restartServer();
     }
   };
 
   const handleHyprCloudSelection = () => {
     setSelectedLLMModel("hyprcloud");
+    // Enable customLLMEnabled for HyprCloud since it's a remote endpoint
     setCustomLLMEnabledMutation.mutate(true);
+    setOpenAccordion(null);
     configureCustomEndpoint({
       provider: "hyprcloud",
-      api_base: "https://pro.hyprnote.com/v1",
+      api_base: "https://pro.hyprnote.com",
       api_key: "",
       model: "",
     });
   };
 
-  const isHyprCloudSelected = selectedLLMModel === "hyprcloud" && customLLMEnabled.data;
+  const isHyprCloudSelected = providerSource.data === "hyprcloud" && customLLMEnabled.data;
 
   // Base button class to remove default styling
   const buttonResetClass = "appearance-none border-0 outline-0 bg-transparent p-0 m-0 font-inherit text-left w-full";
@@ -109,6 +126,7 @@ export function LLMLocalView({
                 href="https://docs.hyprnote.com/pro/cloud"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="text-blue-600 hover:text-blue-800 transition-colors relative z-10 ml-2"
               >
                 <HelpCircleIcon className="w-4 h-4" />
@@ -177,7 +195,10 @@ export function LLMLocalView({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleShowFileLocation}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowFileLocation();
+                      }}
                       className="text-xs h-7 px-2 flex items-center gap-1"
                     >
                       <FolderIcon className="w-3 h-3" />

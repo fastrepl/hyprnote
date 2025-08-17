@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useEffect } from "react";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 
 import {
   Form,
@@ -48,6 +49,7 @@ const openrouterModels = [
 
 export function LLMCustomView({
   customLLMEnabled,
+  selectedLLMModel,
   setSelectedLLMModel,
   setCustomLLMEnabledMutation,
   configureCustomEndpoint,
@@ -59,6 +61,18 @@ export function LLMCustomView({
   customForm,
   isLocalEndpoint,
 }: SharedCustomEndpointProps) {
+  // Get provider source to check if HyprCloud is active
+  const providerSource = useQuery({
+    queryKey: ["provider-source"],
+    queryFn: () => connectorCommands.getProviderSource(),
+  });
+
+  // Clear accordion when HyprCloud is selected to show deactivated state
+  useEffect(() => {
+    if (providerSource.data === "hyprcloud") {
+      setOpenAccordion(null);
+    }
+  }, [providerSource.data, setOpenAccordion]);
   // Watch forms and submit when complete and valid
   useEffect(() => {
     const subscription = openaiForm.watch((values) => {
@@ -130,6 +144,10 @@ export function LLMCustomView({
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
       setOpenAccordion(provider);
+      // Clear HyprCloud selection if it was active
+      if (selectedLLMModel === "hyprcloud") {
+        setSelectedLLMModel("");
+      }
       return;
     }
 
@@ -142,7 +160,7 @@ export function LLMCustomView({
     // Switch to the new provider
     setOpenAccordion(provider);
 
-    // Enable custom LLM and clear local model selection
+    // Enable custom LLM and clear local/HyprCloud model selection
     setCustomLLMEnabledMutation.mutate(true);
     setSelectedLLMModel("");
   };
@@ -232,10 +250,10 @@ export function LLMCustomView({
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
-            openAccordion === "openai" && customLLMEnabled.data
+            openAccordion === "openai" && customLLMEnabled.data && providerSource.data !== "hyprcloud"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || providerSource.data === "hyprcloud") && "opacity-60",
           )}
         >
           <div
@@ -258,12 +276,12 @@ export function LLMCustomView({
                 </p>
               </div>
               <div className="text-neutral-400">
-                {openAccordion === "openai" && customLLMEnabled.data ? "−" : "+"}
+                {openAccordion === "openai" && customLLMEnabled.data && providerSource.data !== "hyprcloud" ? "−" : "+"}
               </div>
             </div>
           </div>
 
-          {openAccordion === "openai" && customLLMEnabled.data && (
+          {openAccordion === "openai" && customLLMEnabled.data && providerSource.data !== "hyprcloud" && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
                 <Form {...openaiForm}>
@@ -328,10 +346,10 @@ export function LLMCustomView({
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
-            openAccordion === "gemini" && customLLMEnabled.data
+            openAccordion === "gemini" && customLLMEnabled.data && providerSource.data !== "hyprcloud"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || providerSource.data === "hyprcloud") && "opacity-60",
           )}
         >
           <div
@@ -354,12 +372,12 @@ export function LLMCustomView({
                 </p>
               </div>
               <div className="text-neutral-400">
-                {openAccordion === "gemini" && customLLMEnabled.data ? "−" : "+"}
+                {openAccordion === "gemini" && customLLMEnabled.data && providerSource.data !== "hyprcloud" ? "−" : "+"}
               </div>
             </div>
           </div>
 
-          {openAccordion === "gemini" && customLLMEnabled.data && (
+          {openAccordion === "gemini" && customLLMEnabled.data && providerSource.data !== "hyprcloud" && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
                 <Form {...geminiForm}>
@@ -424,10 +442,10 @@ export function LLMCustomView({
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
-            openAccordion === "openrouter" && customLLMEnabled.data
+            openAccordion === "openrouter" && customLLMEnabled.data && providerSource.data !== "hyprcloud"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || providerSource.data === "hyprcloud") && "opacity-60",
           )}
         >
           <div
@@ -460,12 +478,12 @@ export function LLMCustomView({
                 </p>
               </div>
               <div className="text-neutral-400">
-                {openAccordion === "openrouter" && customLLMEnabled.data ? "−" : "+"}
+                {openAccordion === "openrouter" && customLLMEnabled.data && providerSource.data !== "hyprcloud" ? "−" : "+"}
               </div>
             </div>
           </div>
 
-          {openAccordion === "openrouter" && customLLMEnabled.data && (
+          {openAccordion === "openrouter" && customLLMEnabled.data && providerSource.data !== "hyprcloud" && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
                 <Form {...openrouterForm}>
@@ -530,10 +548,10 @@ export function LLMCustomView({
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
-            openAccordion === "others" && customLLMEnabled.data
+            openAccordion === "others" && customLLMEnabled.data && providerSource.data !== "hyprcloud"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || providerSource.data === "hyprcloud") && "opacity-60",
           )}
         >
           <div
@@ -550,12 +568,12 @@ export function LLMCustomView({
                 </p>
               </div>
               <div className="text-neutral-400">
-                {openAccordion === "others" && customLLMEnabled.data ? "−" : "+"}
+                {openAccordion === "others" && customLLMEnabled.data && providerSource.data !== "hyprcloud" ? "−" : "+"}
               </div>
             </div>
           </div>
 
-          {openAccordion === "others" && customLLMEnabled.data && (
+          {openAccordion === "others" && customLLMEnabled.data && providerSource.data !== "hyprcloud" && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
                 <Form {...customForm}>

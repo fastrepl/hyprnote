@@ -18,7 +18,7 @@ import { useChatLogic } from "../hooks/useChatLogic";
 import { useChatQueries } from "../hooks/useChatQueries";
 import type { Message } from "../types/chat-types";
 import { focusInput, formatDate } from "../utils/chat-utils";
-import { useMcpTools } from "../hooks/useMcpTools";
+
 
 export function ChatView() {
   const navigate = useNavigate();
@@ -61,6 +61,7 @@ export function ChatView() {
 
   const {
     isGenerating,
+    isStreamingText,
     handleSubmit,
     handleQuickAction,
     handleApplyMarkdown,
@@ -172,6 +173,8 @@ export function ChatView() {
             sessionTitle={sessionData.data?.title || "Untitled"}
             hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
             onApplyMarkdown={handleApplyMarkdown}
+            isGenerating={isGenerating}
+            isStreamingText={isStreamingText}
           />
         )}
 

@@ -124,34 +124,7 @@ function MarkdownText({ content }: { content: string }) {
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
   const [toolAccordionOpen, setToolAccordionOpen] = useState(false);
   
-  if ((message.content === "Generating..." || message.content === "tool call started") && message.type === "generating") {
-    return (
-      <>
-        <style>
-          {`
-            @keyframes thinking-dots {
-              0%, 20% { opacity: 0; }
-              50% { opacity: 1; }
-              100% { opacity: 0; }
-            }
-            .thinking-dot:nth-child(1) { animation-delay: 0s; }
-            .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
-            .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
-            .thinking-dot {
-              animation: thinking-dots 1.2s infinite;
-              display: inline-block;
-            }
-          `}
-        </style>
-        <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "4px 0" }}>
-          <span>Thinking</span>
-          <span className="thinking-dot">.</span>
-          <span className="thinking-dot">.</span>
-          <span className="thinking-dot">.</span>
-        </div>
-      </>
-    );
-  }
+  // Remove generating type handling since it's now handled in UI state
 
   // ✅ Add special rendering for tool-call messages with accordion
   if (message.type === "tool-start") {

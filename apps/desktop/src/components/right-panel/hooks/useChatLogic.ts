@@ -47,12 +47,12 @@ export function useChatLogic({
   llmConnectionQuery,
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isStreamingText, setIsStreamingText] = useState(false);
   const isGeneratingRef = useRef(false); // ✅ Add this ref to track current state
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
 
-  console.log("use chat logic being called!")
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -142,25 +142,13 @@ export function useChatLogic({
       type: "text-delta", 
     });
 
+    // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = crypto.randomUUID();
 
-
-    const aiMessage: Message = {
-      id: aiMessageId,
-      content: "Generating...",
-      isUser: false,
-      timestamp: new Date(),
-      type: "generating",
-    };
-    setMessages((prev) => [...prev, aiMessage]);
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Declare aiMessageId outside try block so it's accessible in catch
-
-    console.log("we are now going to get tools from the mcp server and generate text streams!")
     //try creating a new set of tools 
     const newMcpTools: Record<string, any> = {};
+
+    
     const mcpServers = await mcpCommands.getServers();
     const enabledSevers = mcpServers.filter((server) => server.enabled);
     const allMcpClients: any[] = [];
@@ -211,7 +199,7 @@ export function useChatLogic({
       const { type } = await connectorCommands.getLlmConnection();
       console.log("model id", model.modelId);
 
-      let lastChunkType: string | null = null;
+
 
       const { fullStream } = streamText({
         model,
@@ -221,9 +209,9 @@ export function useChatLogic({
           mentionedContent, 
           model.modelId, 
           mcpToolsArray,
-          sessionData,  // ✅ Add missing parameter
-          sessionId,    // ✅ Add missing parameter  
-          userId        // ✅ Add missing parameter
+          sessionData,  
+          sessionId,    
+          userId       
         ),
         ...(type === "HyprLocal" && {
           tools: {
@@ -297,7 +285,7 @@ export function useChatLogic({
         onError: (error) => {
           console.error("On Error Catch:", error);
           setIsGenerating(false);
-          isGeneratingRef.current = false; // ✅ Update ref when setting state
+          isGeneratingRef.current = false; 
           throw error;
         },
         onFinish: () => {
@@ -317,19 +305,28 @@ export function useChatLogic({
 
       let aiResponse = "";
       let didInitializeAiResponse = false;
-      let currentAiTextMessageId: string | null = null; // ✅ Track current text message ID
-      let didFinishStreaming = false; 
+      let currentAiTextMessageId: string | null = null;
+      let lastChunkType: string | null = null; // ✅ Track previous chunk type
+ 
 
       for await (const chunk of fullStream) {
-
+  
+        // ✅ ROBUST: Check for transition FROM text-delta to something else
+        if (lastChunkType === "text-delta" && chunk.type !== "text-delta" && chunk.type !== "finish-step") {
+          setIsStreamingText(false); // Text streaming has stopped, more content coming
+          
+          // Give React a chance to render the thinking indicator
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
         
         if(chunk.type === "text-delta") {
+          setIsStreamingText(true); // ✅ Text is actively streaming
           
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
             
             // ✅ Simple rule: same type = append, different type = new message
-            if (didInitializeAiResponse && lastMessage && (lastMessage.type === "text-delta" || lastMessage.type === "generating")) {
+            if (didInitializeAiResponse && lastMessage && lastMessage.type === "text-delta") {
               // Same type (text) -> update existing message
               
               aiResponse += chunk.text; 
@@ -370,9 +367,9 @@ export function useChatLogic({
 
         }
 
-        // ✅ Save AI text when switching to tool (text chunk is complete)
-        if(chunk.type === "tool-call"){
-
+        // ✅ Save AI text when transitioning away from text-delta
+        if(chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
+          
           // Save accumulated AI text before processing tool
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
@@ -392,32 +389,13 @@ export function useChatLogic({
             saveAiText();
             currentAiTextMessageId = null; // Reset
 
-            
-            console.log("saved previous text block")  
-            if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
-              console.log("got into the if statement")
-              const thinkingMessage: Message = {
-                id: crypto.randomUUID(),
-                content: "Generating...",
-                isUser: false,
-                timestamp: new Date(),
-                type: "generating",
-              }
-              setMessages((prev) => [...prev, thinkingMessage]);
-            }
-            
+            console.log("saved previous text block")
 
           }
 
           didInitializeAiResponse = false;
 
-          const getInstructionText = (input: any) => {
-            if (!input) return "";
-            if (typeof input === 'object' && 'instruction' in input) {
-              return ` - ${input.instruction}`;
-            }
-            return "";
-          };
+
 
           const toolStartMessage: Message = {
             id: crypto.randomUUID(),
@@ -426,17 +404,7 @@ export function useChatLogic({
             timestamp: new Date(),
             type: "tool-start",
           };
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            
-            // ✅ ADD THIS: Replace "generating" message if it exists
-            if (lastMessage && lastMessage.type === "generating") {
-              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
-              return [...withoutGenerating, toolStartMessage];
-            } else {
-              return [...prev, toolStartMessage];
-            }
-          });
+          setMessages((prev) => [...prev, toolStartMessage]);
 
 
           //save message to db right away 
@@ -450,22 +418,10 @@ export function useChatLogic({
           });
           console.log("Tool Call:", chunk);
 
-          
-          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
-            const thinkingMessage: Message = {
-              id: crypto.randomUUID(),
-              content: "Generating...",
-              isUser: false,
-              timestamp: new Date(),
-              type: "generating",
-            }
-            setMessages((prev) => [...prev, thinkingMessage]);
-          }
-          
-
         }
 
-        if(chunk.type === "tool-result"){
+        if(chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
+          
           didInitializeAiResponse = false;
           
           const toolResultMessage: Message = {
@@ -476,17 +432,7 @@ export function useChatLogic({
             type: "tool-result",
           };
           
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            
-            // ✅ ADD THIS: Replace "generating" message if it exists
-            if (lastMessage && lastMessage.type === "generating") {
-              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
-              return [...withoutGenerating, toolResultMessage];
-            } else {
-              return [...prev, toolResultMessage];
-            }
-          });
+          setMessages((prev) => [...prev, toolResultMessage]);
 
       
 
@@ -500,22 +446,10 @@ export function useChatLogic({
           });
           console.log("Tool Result:", chunk);
 
-          
-          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
-            const thinkingMessage: Message = {
-              id: crypto.randomUUID(),
-              content: "Generating...",
-              isUser: false,
-              timestamp: new Date(),
-              type: "generating",
-            }
-            setMessages((prev) => [...prev, thinkingMessage]);
-          }
-          
-
         }
 
-        if(chunk.type === "tool-error"){
+        if(chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
+          
           didInitializeAiResponse = false;
           const toolErrorMessage: Message = {
             id: crypto.randomUUID(),
@@ -524,18 +458,7 @@ export function useChatLogic({
             timestamp: new Date(),
             type: "tool-error",
           };
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-           
-            
-            // ✅ ADD THIS: Replace "generating" message if it exists
-            if (lastMessage && lastMessage.type === "generating") {
-              const withoutGenerating = prev.filter(msg => msg.id !== lastMessage.id);
-              return [...withoutGenerating, toolErrorMessage];
-            } else {
-              return [...prev, toolErrorMessage];
-            }
-          });
+          setMessages((prev) => [...prev, toolErrorMessage]);
 
           await dbCommands.upsertChatMessage({
             id: toolErrorMessage.id,
@@ -546,26 +469,15 @@ export function useChatLogic({
             type: "tool-error",
           });
           console.log("Tool Error:", chunk);
-          
-          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
-            const thinkingMessage: Message = {
-              id: crypto.randomUUID(),
-              content: "Generating...",
-              isUser: false,
-              timestamp: new Date(),
-              type: "generating",
-            }
-            setMessages((prev) => [...prev, thinkingMessage]);
-          }
-          
 
         }
 
         if(chunk.type === "finish-step"){
           console.log("streaming finished for this message")
-          didFinishStreaming = true;
         }
 
+        // ✅ Update last chunk type at the end of loop
+        lastChunkType = chunk.type;
       }
 
       // ✅ Save final AI text when streaming finishes
@@ -583,36 +495,38 @@ export function useChatLogic({
      
 
       setIsGenerating(false);
+      setIsStreamingText(false); // ✅ Set both to false together
       isGeneratingRef.current = false; // ✅ Update ref when setting state
 
     } catch (error) {
       console.error("AI error:", error);
 
-      const errorMessage = (error as any)?.error || "Unknown error";
+      const errorMsg = (error as any)?.error || "Unknown error";
 
       let finalErrorMesage = "";
 
-      if (String(errorMessage).includes("too large")) {
+      if (String(errorMsg).includes("too large")) {
         finalErrorMesage =
           "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
-          + "\n\n" + errorMessage;
+          + "\n\n" + errorMsg;
       } else {
-        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMessage;
+        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
       }
 
       setIsGenerating(false);
+      setIsStreamingText(false); // ✅ Reset text streaming state
       isGeneratingRef.current = false; // ✅ Update ref when setting state
 
-      setMessages((prev) =>
-        prev.map(msg =>
-          msg.id === aiMessageId
-            ? {
-              ...msg,
-              content: finalErrorMesage,
-            }
-            : msg
-        )
-      );
+      // Create error message
+      const errorMessage: Message = {
+        id: aiMessageId,
+        content: finalErrorMesage,
+        isUser: false,
+        timestamp: new Date(),
+        type: "text-delta",
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
 
       await dbCommands.upsertChatMessage({
         id: aiMessageId,
@@ -647,6 +561,7 @@ export function useChatLogic({
 
   return {
     isGenerating,
+    isStreamingText,
     handleSubmit,
     handleQuickAction,
     handleApplyMarkdown,

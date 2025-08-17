@@ -16936,6 +16936,7 @@ dependencies = [
  "futures-util",
  "hound",
  "kalosm-sound",
+ "rodio",
  "serde",
  "silero",
  "thiserror 2.0.12",

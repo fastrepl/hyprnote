@@ -6,6 +6,7 @@ edition = "2021"
 [dev-dependencies]
 hound = { workspace = true }
 hypr-data = { workspace = true }
+rodio = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }

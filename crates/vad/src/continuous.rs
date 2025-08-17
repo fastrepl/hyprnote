@@ -1,4 +1,5 @@
 use std::{
+    collections::VecDeque,
     pin::Pin,
     task::{Context, Poll},
     time::Duration,
@@ -17,6 +18,7 @@ pub enum VadStreamItem {
     SpeechEnd {
         start_timestamp_ms: usize,
         end_timestamp_ms: usize,
+        samples: Vec<f32>,
     },
 }
 
@@ -30,7 +32,7 @@ pub struct ContinuousVadStream<S: AsyncSource> {
     vad_session: VadSession,
     chunk_samples: usize,
     buffer: Vec<f32>,
-    pending_items: Vec<VadStreamItem>,
+    pending_items: VecDeque<VadStreamItem>,
 }
 
 impl<S: AsyncSource> ContinuousVadStream<S> {
@@ -47,7 +49,7 @@ impl<S: AsyncSource> ContinuousVadStream<S> {
                 .map_err(|_| crate::Error::VadSessionCreationFailed)?,
             chunk_samples,
             buffer: Vec::with_capacity(chunk_samples),
-            pending_items: Vec::new(),
+            pending_items: VecDeque::new(),
         })
     }
 }
@@ -58,7 +60,7 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
 
-        if let Some(item) = this.pending_items.pop() {
+        if let Some(item) = this.pending_items.pop_front() {
             return Poll::Ready(Some(Ok(item)));
         }
 
@@ -79,8 +81,10 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
 
                         match this.vad_session.process(&chunk) {
                             Ok(transitions) => {
-                                // Queue transitions in reverse order (we pop from the end)
-                                for transition in transitions.into_iter().rev() {
+                                this.pending_items
+                                    .push_back(VadStreamItem::AudioSamples(chunk));
+
+                                for transition in transitions {
                                     let item = match transition {
                                         VadTransition::SpeechStart { timestamp_ms } => {
                                             VadStreamItem::SpeechStart { timestamp_ms }
@@ -88,17 +92,19 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
                                         VadTransition::SpeechEnd {
                                             start_timestamp_ms,
                                             end_timestamp_ms,
-                                            ..
+                                            samples,
                                         } => VadStreamItem::SpeechEnd {
                                             start_timestamp_ms,
                                             end_timestamp_ms,
+                                            samples,
                                         },
                                     };
-                                    this.pending_items.push(item);
+                                    this.pending_items.push_back(item);
                                 }
 
-                                // Always emit the audio chunk first
-                                return Poll::Ready(Some(Ok(VadStreamItem::AudioSamples(chunk))));
+                                if let Some(item) = this.pending_items.pop_front() {
+                                    return Poll::Ready(Some(Ok(item)));
+                                }
                             }
                             Err(e) => {
                                 return Poll::Ready(Some(Err(crate::Error::VadProcessingFailed(
@@ -112,14 +118,15 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
             }
         }
 
-        // We have a full chunk - process it
         let mut chunk = Vec::with_capacity(this.chunk_samples);
         chunk.extend(this.buffer.drain(..this.chunk_samples));
 
         match this.vad_session.process(&chunk) {
             Ok(transitions) => {
-                // Queue transitions in reverse order (we pop from the end)
-                for transition in transitions.into_iter().rev() {
+                this.pending_items
+                    .push_back(VadStreamItem::AudioSamples(chunk));
+
+                for transition in transitions {
                     let item = match transition {
                         VadTransition::SpeechStart { timestamp_ms } => {
                             VadStreamItem::SpeechStart { timestamp_ms }
@@ -127,17 +134,22 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
                         VadTransition::SpeechEnd {
                             start_timestamp_ms,
                             end_timestamp_ms,
-                            ..
+                            samples,
                         } => VadStreamItem::SpeechEnd {
                             start_timestamp_ms,
                             end_timestamp_ms,
+                            samples,
                         },
                     };
-                    this.pending_items.push(item);
+                    this.pending_items.push_back(item);
                 }
 
-                // Always emit the audio chunk first
-                Poll::Ready(Some(Ok(VadStreamItem::AudioSamples(chunk))))
+                if let Some(item) = this.pending_items.pop_front() {
+                    Poll::Ready(Some(Ok(item)))
+                } else {
+                    // Should never happen since we always push audio
+                    Poll::Pending
+                }
             }
             Err(e) => Poll::Ready(Some(Err(crate::Error::VadProcessingFailed(e.to_string())))),
         }
@@ -145,7 +157,6 @@ impl<S: AsyncSource + Unpin> Stream for ContinuousVadStream<S> {
 }
 
 pub trait VadExt: AsyncSource + Sized {
-    /// Creates a continuous stream that emits all audio samples along with VAD events
     fn continuous_vad(self, config: VadConfig) -> ContinuousVadStream<Self>
     where
         Self: Unpin,
@@ -153,7 +164,6 @@ pub trait VadExt: AsyncSource + Sized {
         ContinuousVadStream::new(self, config).unwrap()
     }
 
-    /// Creates a stream that only emits complete speech chunks
     fn vad_chunks(
         self,
         redemption_time: Duration,

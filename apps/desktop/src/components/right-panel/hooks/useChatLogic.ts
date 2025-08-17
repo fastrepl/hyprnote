@@ -142,8 +142,21 @@ export function useChatLogic({
       type: "text-delta", 
     });
 
-    // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = crypto.randomUUID();
+
+
+    const aiMessage: Message = {
+      id: aiMessageId,
+      content: "Generating...",
+      isUser: false,
+      timestamp: new Date(),
+      type: "generating",
+    };
+    setMessages((prev) => [...prev, aiMessage]);
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Declare aiMessageId outside try block so it's accessible in catch
 
     console.log("we are now going to get tools from the mcp server and generate text streams!")
     //try creating a new set of tools 
@@ -191,14 +204,6 @@ export function useChatLogic({
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
 
-      const aiMessage: Message = {
-        id: aiMessageId,
-        content: "Generating...",
-        isUser: false,
-        timestamp: new Date(),
-        type: "generating",
-      };
-      setMessages((prev) => [...prev, aiMessage]);
 
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));

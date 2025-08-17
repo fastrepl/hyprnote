@@ -77,6 +77,8 @@ mod test {
                 r#type: "sse".to_string(),
                 enabled: true,
                 url: "http://localhost:1420".to_string(),
+                header_key: None,
+                header_value: None,
             }];
             app.handle().set_servers(servers.clone()).unwrap();
             assert_eq!(app.handle().get_servers().unwrap(), servers);

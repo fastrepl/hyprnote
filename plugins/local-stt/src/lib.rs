@@ -3,6 +3,7 @@ use tauri::{Manager, Wry};
 
 mod commands;
 mod error;
+mod events;
 mod ext;
 mod model;
 mod server;
@@ -10,6 +11,7 @@ mod store;
 mod types;
 
 pub use error::*;
+use events::*;
 pub use ext::*;
 pub use model::*;
 pub use store::*;
@@ -98,30 +100,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             Ok(())
         })
-        .on_event(|app, event| match event {
-            tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
-                let state = app.state::<SharedState>();
-
-                tokio::task::block_in_place(|| {
-                    tokio::runtime::Handle::current().block_on(async {
-                        let mut guard = state.lock().await;
-
-                        if let Some(server) = guard.internal_server.take() {
-                            let _ = server.terminate();
-                            guard.internal_server = None;
-                        }
-                        if let Some(server) = guard.external_server.take() {
-                            let _ = server.terminate();
-                            guard.external_server = None;
-                        }
-                        for (_, task) in guard.download_task.drain() {
-                            task.abort();
-                        }
-                    });
-                });
-            }
-            _ => {}
-        })
+        .on_event(on_event)
         .build()
 }
 

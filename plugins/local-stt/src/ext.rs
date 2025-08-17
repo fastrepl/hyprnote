@@ -68,18 +68,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn get_connection(&self) -> Result<Connection, crate::Error> {
         let model = self.get_current_model()?;
 
-        let am_key = {
-            let state = self.state::<crate::SharedState>();
-            let key = state.lock().await.am_api_key.clone();
-            key.clone().ok_or(crate::Error::AmApiKeyNotSet)?
-        };
-
         match model {
             SupportedSttModel::Am(_) => {
                 let existing_api_base = {
                     let state = self.state::<crate::SharedState>();
                     let guard = state.lock().await;
                     guard.external_server.as_ref().map(|s| s.base_url.clone())
+                };
+
+                let am_key = {
+                    let state = self.state::<crate::SharedState>();
+                    let key = state.lock().await.am_api_key.clone();
+                    key.clone().ok_or(crate::Error::AmApiKeyNotSet)?
                 };
 
                 let conn = match existing_api_base {

@@ -58,6 +58,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
+tauri-plugin-windows = { workspace = true }
 
 dirs = { workspace = true }
 serde = { workspace = true }

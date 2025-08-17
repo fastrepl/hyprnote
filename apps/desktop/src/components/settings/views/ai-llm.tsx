@@ -113,7 +113,7 @@ const specificityLevels = {
 
 export default function LlmAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"local" | "custom">("local");
+  const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
 
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
@@ -589,6 +589,8 @@ export default function LlmAI() {
     downloadingModels,
     llmModelsState,
     handleModelDownload,
+    configureCustomEndpoint,
+    setOpenAccordion,
   };
 
   const customEndpointProps: SharedCustomEndpointProps = {
@@ -609,12 +611,12 @@ export default function LlmAI() {
     <div className="space-y-8">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "local" | "custom")}
+        onValueChange={(value) => setActiveTab(value as "default" | "custom")}
         className="w-full"
       >
         <TabsList className="grid grid-cols-2 mb-6">
-          <TabsTrigger value="local">
-            <Trans>Local</Trans>
+          <TabsTrigger value="default">
+            <Trans>Default</Trans>
           </TabsTrigger>
           <TabsTrigger value="custom">
             <Trans>Custom</Trans>
@@ -622,7 +624,7 @@ export default function LlmAI() {
         </TabsList>
       </Tabs>
 
-      {activeTab === "local" && <LLMLocalView {...localLlmProps} />}
+      {activeTab === "default" && <LLMLocalView {...localLlmProps} />}
       {activeTab === "custom" && (
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />

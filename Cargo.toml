@@ -32,7 +32,6 @@ hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-appl
 hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
 hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
-hypr-chunker = { path = "crates/chunker", package = "chunker" }
 hypr-clova = { path = "crates/clova", package = "clova" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
@@ -72,6 +71,7 @@ hypr-transcribe-moonshine = { path = "crates/transcribe-moonshine", package = "t
 hypr-transcribe-openai = { path = "crates/transcribe-openai", package = "transcribe-openai" }
 hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
+hypr-vad = { path = "crates/vad", package = "vad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
@@ -92,6 +92,7 @@ tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
 tauri-plugin-fs = "2.4"
 tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
+tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.4"
 tauri-plugin-shell = "2.3"

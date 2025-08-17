@@ -61,7 +61,7 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: "others" | "openai" | "gemini" | "openrouter";
+  provider: "others" | "openai" | "gemini" | "openrouter" | "hyprcloud";
   api_base: string;
   api_key?: string;
   model: string;
@@ -98,6 +98,8 @@ export interface SharedSTTProps {
 }
 
 export interface SharedLLMProps {
+  configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
+
   // Core State
   customLLMEnabled: UseQueryResult<boolean>;
   selectedLLMModel: string;
@@ -109,7 +111,7 @@ export interface SharedLLMProps {
   // Model State
   downloadingModels: Set<string>;
   llmModelsState: LLMModel[];
-
+  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | null) => void;
   // Functions
   handleModelDownload: (modelKey: string) => Promise<void>;
 }

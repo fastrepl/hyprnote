@@ -1,5 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { customProvider, extractReasoningMiddleware, wrapLanguageModel } from "ai";
+import { getLicenseKey } from "tauri-plugin-keygen-api";
 
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
@@ -25,6 +26,9 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
   const { type, connection: { api_base, api_key } } = await getter();
 
+  const ourCloud = api_base.includes("pro.hyprnote.com");
+  const licenseKey = await getLicenseKey();
+
   if (!api_base) {
     throw new Error("no_api_base");
   }
@@ -35,7 +39,8 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
     apiKey: api_key ?? "SOMETHING_NON_EMPTY",
     fetch: customFetch,
     headers: {
-      "Origin": "http://localhost:1420",
+      "origin": "http://localhost:1420",
+      ...((ourCloud && licenseKey) ? { "x-hyprnote-license-key": licenseKey } : {}),
     },
   });
 

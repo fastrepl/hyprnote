@@ -60,7 +60,7 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-http = { workspace = true }
-tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
+tauri-plugin-keygen = { workspace = true }
 tauri-plugin-os = "2"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
 tauri-plugin-process = "2"

@@ -440,7 +440,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:642
+#: src/components/settings/views/ai-llm.tsx:644
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -614,7 +614,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:661
+#: src/components/settings/views/ai-llm.tsx:663
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -656,7 +656,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-stt.tsx:66
-#: src/components/settings/views/ai-llm.tsx:620
+#: src/components/settings/views/ai-llm.tsx:622
 msgid "Custom"
 msgstr ""
 
@@ -670,6 +670,11 @@ msgstr ""
 
 #: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
+msgstr ""
+
+#: src/components/settings/views/ai-stt.tsx:63
+#: src/components/settings/views/ai-llm.tsx:619
+msgid "Default"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-view.tsx:149
@@ -948,7 +953,7 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:656
+#: src/components/settings/views/ai-llm.tsx:658
 msgid "Learn more about AI autonomy"
 msgstr ""
 
@@ -1002,8 +1007,8 @@ msgstr ""
 
 #: src/components/settings/views/ai-stt.tsx:63
 #: src/components/settings/views/ai-llm.tsx:617
-msgid "Local"
-msgstr ""
+#~ msgid "Local"
+#~ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:87
 #~ msgid "Local mode"

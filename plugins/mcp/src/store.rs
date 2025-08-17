@@ -12,6 +12,10 @@ common_derives! {
         pub r#type: String,
         pub enabled: bool,
         pub url: String,
+        #[serde(rename = "headerKey")]
+        pub header_key: Option<String>,
+        #[serde(rename = "headerValue")]
+        pub header_value: Option<String>,
     }
 }
 

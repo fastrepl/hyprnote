@@ -440,7 +440,7 @@ msgstr "Audio Permissions"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
-#: src/components/settings/views/ai-llm.tsx:642
+#: src/components/settings/views/ai-llm.tsx:644
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
@@ -614,7 +614,7 @@ msgstr "Continue"
 #~ msgid "Continue Setup"
 #~ msgstr "Continue Setup"
 
-#: src/components/settings/views/ai-llm.tsx:661
+#: src/components/settings/views/ai-llm.tsx:663
 msgid "Control how autonomous the AI enhancement should be"
 msgstr "Control how autonomous the AI enhancement should be"
 
@@ -656,7 +656,7 @@ msgstr "Create your first template to get started"
 #~ msgstr "Current Plan"
 
 #: src/components/settings/views/ai-stt.tsx:66
-#: src/components/settings/views/ai-llm.tsx:620
+#: src/components/settings/views/ai-llm.tsx:622
 msgid "Custom"
 msgstr "Custom"
 
@@ -671,6 +671,11 @@ msgstr "Custom"
 #: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
+
+#: src/components/settings/views/ai-stt.tsx:63
+#: src/components/settings/views/ai-llm.tsx:619
+msgid "Default"
+msgstr "Default"
 
 #: src/components/settings/components/ai/llm-view.tsx:149
 #~ msgid "Default (llama-3.2-3b-q4)"
@@ -948,7 +953,7 @@ msgstr "Language for AI-generated summaries"
 #~ msgid "Language Model"
 #~ msgstr "Language Model"
 
-#: src/components/settings/views/ai-llm.tsx:656
+#: src/components/settings/views/ai-llm.tsx:658
 msgid "Learn more about AI autonomy"
 msgstr "Learn more about AI autonomy"
 
@@ -1002,8 +1007,8 @@ msgstr "Loading..."
 
 #: src/components/settings/views/ai-stt.tsx:63
 #: src/components/settings/views/ai-llm.tsx:617
-msgid "Local"
-msgstr "Local"
+#~ msgid "Local"
+#~ msgstr "Local"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:87
 #~ msgid "Local mode"

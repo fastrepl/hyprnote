@@ -26,7 +26,8 @@
     "date-fns": "^4.1.0",
     "mutative": "^1.2.0",
     "p-debounce": "^4.0.0",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.7",
+    "tauri-plugin-keygen-api": "github:bagindo/tauri-plugin-keygen#v2"
   },
   "devDependencies": {
     "@types/react": "^18.3.23",

@@ -3,32 +3,43 @@ use tauri_specta::Event;
 
 use crate::{HyprWindow, WindowsPluginExt};
 
-pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
-    let app = window.app_handle();
+pub fn on_event(app: &tauri::AppHandle<tauri::Wry>, event: &tauri::RunEvent) {
+    let tauri::RunEvent::WindowEvent { event, label, .. } = event else {
+        return;
+    };
+
+    let hypr_window = match label.parse::<HyprWindow>() {
+        Ok(window) => window,
+        Err(e) => {
+            tracing::warn!("window_parse_error: {:?}", e);
+            return;
+        }
+    };
+
+    let Some(webview_window) = hypr_window.get(app) else {
+        return;
+    };
 
     match event {
-        tauri::WindowEvent::CloseRequested { api, .. } => {
-            match window.label().parse::<HyprWindow>() {
-                Err(e) => tracing::warn!("window_parse_error: {:?}", e),
-                Ok(w) => {
-                    if w == HyprWindow::Main {
-                        if window.hide().is_ok() {
-                            api.prevent_close();
+        tauri::WindowEvent::CloseRequested { api, .. } => match label.parse::<HyprWindow>() {
+            Err(e) => tracing::warn!("window_parse_error: {:?}", e),
+            Ok(w) => {
+                if w == HyprWindow::Main {
+                    if webview_window.hide().is_ok() {
+                        api.prevent_close();
 
-                            if let Err(e) = app.handle_main_window_visibility(false) {
-                                tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                            }
+                        if let Err(e) = app.handle_main_window_visibility(false) {
+                            tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
                         }
                     }
                 }
             }
-        }
+        },
 
         tauri::WindowEvent::Destroyed => {
-            let app = window.app_handle();
             let state = app.state::<crate::ManagedState>();
 
-            match window.label().parse::<HyprWindow>() {
+            match label.parse::<HyprWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
                     {
@@ -37,7 +48,7 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
                     }
 
                     let event = WindowDestroyed { window: w };
-                    let _ = event.emit(app);
+                    let _ = event.emit(&webview_window);
 
                     if let Err(e) = app.handle_main_window_visibility(false) {
                         tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);

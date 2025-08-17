@@ -25,7 +25,7 @@ async setServers(servers: McpServer[]) : Promise<null> {
 
 /** user-defined types **/
 
-export type McpServer = { type: string; enabled: boolean; url: string }
+export type McpServer = { type: string; enabled: boolean; url: string; headerKey: string | null; headerValue: string | null }
 
 /** tauri-specta globals **/
 

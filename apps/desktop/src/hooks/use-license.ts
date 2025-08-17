@@ -18,7 +18,8 @@ export function useLicense() {
       }
       return null;
     },
-    refetchInterval: 1000 * 60 * 5,
+    gcTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchIntervalInBackground: true,
   });
 

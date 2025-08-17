@@ -28,6 +28,8 @@ const COMMANDS: &[&str] = &[
     "set_openrouter_model",
     "get_openrouter_api_key",
     "set_openrouter_api_key",
+    "get_hyprcloud_enabled",
+    "set_hyprcloud_enabled",
 ];
 
 fn main() {

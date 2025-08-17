@@ -14,6 +14,9 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
 
+    fn get_hyprcloud_enabled(&self) -> Result<bool, crate::Error>;
+    fn set_hyprcloud_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
+
     fn get_local_llm_connection(&self)
         -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
 
@@ -59,6 +62,19 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error> {
         self.connector_store()
             .set(StoreKey::CustomEnabled, enabled)?;
+        Ok(())
+    }
+
+    fn get_hyprcloud_enabled(&self) -> Result<bool, crate::Error> {
+        Ok(self
+            .connector_store()
+            .get(StoreKey::HyprCloudEnabled)?
+            .unwrap_or(false))
+    }
+
+    fn set_hyprcloud_enabled(&self, enabled: bool) -> Result<(), crate::Error> {
+        self.connector_store()
+            .set(StoreKey::HyprCloudEnabled, enabled)?;
         Ok(())
     }
 

@@ -391,12 +391,23 @@ export default function LlmAI() {
         // HyprCloud is selected, clear accordion
         setOpenAccordion(null);
       }
-    } else if (customLLMEnabled.data) {
-      setOpenAccordion("others");
     } else {
-      setOpenAccordion(null);
+      // Only clear accordion if custom LLM is disabled
+      if (!customLLMEnabled.data) {
+        setOpenAccordion(null);
+      }
+      // Don't automatically set "others" when customLLMEnabled becomes true
+      // Let user interaction handle accordion selection
     }
-  }, [providerSourceQuery.data, customLLMEnabled.data, setOpenAccordion]);
+  }, [providerSourceQuery.data, setOpenAccordion]);  // Remove customLLMEnabled.data dependency
+
+  // Add a separate effect for initial load fallback
+  useEffect(() => {
+    // Only set default "others" if no provider is configured AND no accordion is open
+    if (!providerSourceQuery.data && customLLMEnabled.data && openAccordion === null) {
+      setOpenAccordion("others");
+    }
+  }, [providerSourceQuery.data, customLLMEnabled.data, openAccordion, setOpenAccordion]);
 
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
     const finalApiBase = config.provider === "openai"

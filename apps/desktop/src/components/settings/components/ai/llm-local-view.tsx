@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { CloudIcon, DownloadIcon, FolderIcon, HelpCircleIcon } from "lucide-react";
 import { useEffect } from "react";
@@ -27,7 +27,8 @@ export function LLMLocalView({
 }: ExtendedSharedLLMProps) {
   const { getLicense } = useLicense();
   const isPro = !!getLicense.data?.valid;
-
+  const queryClient = useQueryClient();
+  
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
@@ -58,6 +59,7 @@ export function LLMLocalView({
       
       // Then update backend state
       await localLlmCommands.setCurrentModel(model.key as SupportedModel);
+      queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
       
       // Disable custom LLM (this will route to local model)
       setCustomLLMEnabledMutation.mutate(false);
@@ -149,7 +151,7 @@ export function LLMLocalView({
             <button
               key={model.key}
               onClick={() => handleLocalModelSelection(model)}
-              disabled={!model.available || !model.downloaded}
+              disabled={!model.available }
               className={cn(
                 buttonResetClass,
                 "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
@@ -221,7 +223,9 @@ export function LLMLocalView({
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
+                        console.log("model download clicked"); 
                         e.stopPropagation();
+                        console.log("model download clicked 2"); 
                         handleModelDownload(model.key);
                       }}
                       className="text-xs h-7 px-2 flex items-center gap-1"

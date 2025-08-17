@@ -486,6 +486,7 @@ export function useEnhanceMutation({
         });
       }
 
+      console.log("using model: ", model);
       const { text, fullStream } = streamText({
         abortSignal,
         model,

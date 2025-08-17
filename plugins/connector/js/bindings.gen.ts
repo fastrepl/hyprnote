@@ -93,6 +93,12 @@ async getOpenrouterApiKey() : Promise<string> {
 },
 async setOpenrouterApiKey(apiKey: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:connector|set_openrouter_api_key", { apiKey });
+},
+async getHyprcloudEnabled() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:connector|get_hyprcloud_enabled");
+},
+async setHyprcloudEnabled(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_hyprcloud_enabled", { enabled });
 }
 }
 

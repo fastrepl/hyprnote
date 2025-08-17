@@ -30,4 +30,6 @@ permissions = [
     "allow-set-openrouter-api-key", 
     "allow-set-openrouter-model", 
     "allow-get-openrouter-model", 
+    "allow-get-hyprcloud-enabled", 
+    "allow-set-hyprcloud-enabled", 
 ]

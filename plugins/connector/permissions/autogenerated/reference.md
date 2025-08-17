@@ -33,6 +33,8 @@ Default permissions for the plugin
 - `allow-set-openrouter-api-key`
 - `allow-set-openrouter-model`
 - `allow-get-openrouter-model`
+- `allow-get-hyprcloud-enabled`
+- `allow-set-hyprcloud-enabled`
 
 ## Permission Table
 
@@ -169,6 +171,32 @@ Enables the get_gemini_model command without any pre-configured scope.
 <td>
 
 Denies the get_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-get-hyprcloud-enabled`
+
+</td>
+<td>
+
+Enables the get_hyprcloud_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-get-hyprcloud-enabled`
+
+</td>
+<td>
+
+Denies the get_hyprcloud_enabled command without any pre-configured scope.
 
 </td>
 </tr>
@@ -611,6 +639,32 @@ Enables the set_gemini_model command without any pre-configured scope.
 <td>
 
 Denies the set_gemini_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:allow-set-hyprcloud-enabled`
+
+</td>
+<td>
+
+Enables the set_hyprcloud_enabled command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`connector:deny-set-hyprcloud-enabled`
+
+</td>
+<td>
+
+Denies the set_hyprcloud_enabled command without any pre-configured scope.
 
 </td>
 </tr>

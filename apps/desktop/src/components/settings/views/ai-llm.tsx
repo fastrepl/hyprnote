@@ -153,6 +153,7 @@ export default function LlmAI() {
       setSelectedLLMModel(modelKey);
       localLlmCommands.setCurrentModel(modelKey as SupportedModel);
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
+      localLlmCommands.restartServer(); // is it necessary to restart the server? 
       setCustomLLMEnabledMutation.mutate(false);
       setHyprCloudEnabledMutation.mutate(false);
     }, queryClient);
@@ -445,6 +446,7 @@ export default function LlmAI() {
         api_base: finalApiBase,
         api_key: null,
       });
+      localLlmCommands.restartServer(); // is it necessary to restart the server? 
       return; // Early return for HyprCloud
     }
 
@@ -475,6 +477,7 @@ export default function LlmAI() {
       api_base: finalApiBase,
       api_key: config.api_key || null,
     });
+    localLlmCommands.restartServer(); // is it necessary to restart the server? 
   };
 
   const openaiForm = useForm<OpenAIFormValues>({
@@ -660,6 +663,18 @@ export default function LlmAI() {
     customForm,
     isLocalEndpoint,
   };
+
+  useEffect(() => {
+    // Set initial tab based on LLM configuration
+    if (customLLMEnabled.data !== undefined && hyprCloudEnabled.data !== undefined) {
+      // If custom is enabled but HyprCloud is not, show custom tab
+      if (customLLMEnabled.data && !hyprCloudEnabled.data) {
+        setActiveTab("custom");
+      } else {
+        setActiveTab("default");
+      }
+    }
+  }, [customLLMEnabled.data, hyprCloudEnabled.data]);
 
   return (
     <div className="space-y-8">

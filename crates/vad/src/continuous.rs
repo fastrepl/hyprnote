@@ -25,6 +25,8 @@ pub enum VadStreamItem {
 #[derive(Debug, Clone)]
 pub struct AudioChunk {
     pub samples: Vec<f32>,
+    pub start_timestamp_ms: usize,
+    pub end_timestamp_ms: usize,
 }
 
 pub struct ContinuousVadStream<S: AsyncSource> {
@@ -179,36 +181,21 @@ pub trait VadExt: AsyncSource + Sized {
             ..Default::default()
         };
 
-        self.with_vad(config)
-            .scan(
-                (false, Vec::new()),
-                |(is_speaking, buffer), item| match item {
-                    Ok(VadStreamItem::AudioSamples(samples)) => {
-                        if *is_speaking {
-                            buffer.extend(samples);
-                        }
-                        future::ready(Some(None))
-                    }
-                    Ok(VadStreamItem::SpeechStart { .. }) => {
-                        *is_speaking = true;
-                        buffer.clear();
-                        future::ready(Some(None))
-                    }
-                    Ok(VadStreamItem::SpeechEnd { .. }) => {
-                        *is_speaking = false;
-                        if !buffer.is_empty() {
-                            let chunk = AudioChunk {
-                                samples: std::mem::take(buffer),
-                            };
-                            future::ready(Some(Some(Ok(chunk))))
-                        } else {
-                            future::ready(Some(None))
-                        }
-                    }
-                    Err(e) => future::ready(Some(Some(Err(e)))),
-                },
-            )
-            .filter_map(future::ready)
+        self.with_vad(config).filter_map(|item| {
+            future::ready(match item {
+                Ok(VadStreamItem::SpeechEnd {
+                    samples,
+                    start_timestamp_ms,
+                    end_timestamp_ms,
+                }) => Some(Ok(AudioChunk {
+                    samples,
+                    start_timestamp_ms,
+                    end_timestamp_ms,
+                })),
+                Ok(_) => None,
+                Err(e) => Some(Err(e)),
+            })
+        })
     }
 }
 

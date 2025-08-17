@@ -125,18 +125,29 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
         let store = self.connector_store();
         let custom_enabled = self.get_custom_llm_enabled()?;
+        let hyprcloud_enabled = self.get_hyprcloud_enabled()?;
 
         if custom_enabled {
-            let api_base = store
-                .get::<Option<String>>(StoreKey::CustomApiBase)?
-                .flatten()
-                .unwrap_or_default();
-            let api_key = store
-                .get::<Option<String>>(StoreKey::CustomApiKey)?
-                .flatten();
+            // If HyprCloud is enabled, override with HyprCloud connection
+            if hyprcloud_enabled {
+                let conn = ConnectionLLM::Custom(Connection {
+                    api_base: "https://pro.hyprnote.com".to_string(),
+                    api_key: None,
+                });
+                Ok(conn)
+            } else {
+                // Regular custom endpoint
+                let api_base = store
+                    .get::<Option<String>>(StoreKey::CustomApiBase)?
+                    .flatten()
+                    .unwrap_or_default();
+                let api_key = store
+                    .get::<Option<String>>(StoreKey::CustomApiKey)?
+                    .flatten();
 
-            let conn = ConnectionLLM::Custom(Connection { api_base, api_key });
-            Ok(conn)
+                let conn = ConnectionLLM::Custom(Connection { api_base, api_key });
+                Ok(conn)
+            }
         } else {
             let conn = self.get_local_llm_connection().await?;
             Ok(conn)

@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useEffect } from "react";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
 
 import {
   Form,
@@ -60,19 +59,15 @@ export function LLMCustomView({
   openrouterForm,
   customForm,
   isLocalEndpoint,
+  hyprCloudEnabled,
+  setHyprCloudEnabledMutation,
 }: SharedCustomEndpointProps) {
-  // Get provider source to check if HyprCloud is active
-  const providerSource = useQuery({
-    queryKey: ["provider-source"],
-    queryFn: () => connectorCommands.getProviderSource(),
-  });
-
-  // Clear accordion when HyprCloud is selected to show deactivated state
+  // Clear accordion when HyprCloud is enabled
   useEffect(() => {
-    if (providerSource.data === "hyprcloud") {
+    if (hyprCloudEnabled?.data) {
       setOpenAccordion(null);
     }
-  }, [providerSource.data, setOpenAccordion]);
+  }, [hyprCloudEnabled?.data, setOpenAccordion]);
   // Watch forms and submit when complete and valid
   useEffect(() => {
     const subscription = openaiForm.watch((values) => {
@@ -141,10 +136,20 @@ export function LLMCustomView({
   }, [customForm, configureCustomEndpoint]);
 
   const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others") => {
+    // If HyprCloud is active, clicking an accordion should disable it
+    if (hyprCloudEnabled?.data) {
+      setHyprCloudEnabledMutation.mutate(false);
+      setCustomLLMEnabledMutation.mutate(true);
+      setOpenAccordion(provider);
+      if (selectedLLMModel === "hyprcloud") {
+        setSelectedLLMModel("");
+      }
+      return;
+    }
+
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
       setOpenAccordion(provider);
-      // Clear HyprCloud selection if it was active
       if (selectedLLMModel === "hyprcloud") {
         setSelectedLLMModel("");
       }
@@ -160,7 +165,7 @@ export function LLMCustomView({
     // Switch to the new provider
     setOpenAccordion(provider);
 
-    // Enable custom LLM and clear local/HyprCloud model selection
+    // Enable custom LLM and clear local model selection
     setCustomLLMEnabledMutation.mutate(true);
     setSelectedLLMModel("");
   };
@@ -253,7 +258,7 @@ export function LLMCustomView({
             openAccordion === "openai" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            (!customLLMEnabled.data || (providerSource.data === "hyprcloud" && !openAccordion)) && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -349,7 +354,7 @@ export function LLMCustomView({
             openAccordion === "gemini" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            (!customLLMEnabled.data || (providerSource.data === "hyprcloud" && !openAccordion)) && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -445,7 +450,7 @@ export function LLMCustomView({
             openAccordion === "openrouter" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            (!customLLMEnabled.data || (providerSource.data === "hyprcloud" && !openAccordion)) && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -551,7 +556,7 @@ export function LLMCustomView({
             openAccordion === "others" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            (!customLLMEnabled.data || (providerSource.data === "hyprcloud" && !openAccordion)) && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div

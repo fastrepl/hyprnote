@@ -473,6 +473,7 @@ export function useEnhanceMutation({
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 
       const provider = await modelProvider();
+      console.log("provider: ", provider);
       const model = sessionId === onboardingSessionId
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");

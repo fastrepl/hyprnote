@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as localLlmCommands, type SupportedModel } from "@hypr/plugin-local-llm";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { type LLMModel, SharedLLMProps } from "./shared";
@@ -24,6 +23,8 @@ export function LLMLocalView({
   handleModelDownload,
   configureCustomEndpoint,
   setOpenAccordion,
+  hyprCloudEnabled,
+  setHyprCloudEnabledMutation,
 }: ExtendedSharedLLMProps) {
   const { getLicense } = useLicense();
   const isPro = !!getLicense.data?.valid;
@@ -32,11 +33,6 @@ export function LLMLocalView({
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
-  });
-
-  const providerSource = useQuery({
-    queryKey: ["provider-source"],
-    queryFn: () => connectorCommands.getProviderSource(),
   });
 
   const handleShowFileLocation = async () => {
@@ -50,18 +46,18 @@ export function LLMLocalView({
     }
   }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
 
-  // Remove the effect that was forcing HyprCloud selection - it was preventing local model selection
-
   const handleLocalModelSelection = async (model: LLMModel) => {
     if (model.available && model.downloaded) {
       // Update UI state first for immediate feedback
       setSelectedLLMModel(model.key);
+    
       
       // Then update backend state
       await localLlmCommands.setCurrentModel(model.key as SupportedModel);
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
-      
-      // Disable custom LLM (this will route to local model)
+
+      // Disable BOTH HyprCloud and custom when selecting local
+      setHyprCloudEnabledMutation.mutate(false);
       setCustomLLMEnabledMutation.mutate(false);
       setOpenAccordion(null);
       
@@ -72,18 +68,17 @@ export function LLMLocalView({
 
   const handleHyprCloudSelection = () => {
     setSelectedLLMModel("hyprcloud");
-    // Enable customLLMEnabled for HyprCloud since it's a remote endpoint
-    setCustomLLMEnabledMutation.mutate(true);
-    setOpenAccordion(null);
+    // Just use the configureCustomEndpoint which handles the flags
     configureCustomEndpoint({
       provider: "hyprcloud",
       api_base: "https://pro.hyprnote.com",
       api_key: "",
       model: "",
     });
+    setOpenAccordion(null);
   };
 
-  const isHyprCloudSelected = providerSource.data === "hyprcloud" && customLLMEnabled.data;
+  const isHyprCloudSelected = hyprCloudEnabled.data;
 
   // Base button class to remove default styling
   const buttonResetClass = "appearance-none border-0 outline-0 bg-transparent p-0 m-0 font-inherit text-left w-full";

@@ -1,12 +1,11 @@
 import { message } from "@tauri-apps/plugin-dialog";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as templateCommands } from "@hypr/plugin-template";
 import { dynamicTool, experimental_createMCPClient, modelProvider, stepCountIs, streamText, tool } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
+import { prepareMessageHistory } from "../utils/chat-utils";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -47,6 +47,7 @@ export function useChatLogic({
   llmConnectionQuery,
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const isGeneratingRef = useRef(false); // ✅ Add this ref to track current state
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
@@ -76,170 +77,7 @@ export function useChatLogic({
     }
   };
 
-  const prepareMessageHistory = async (
-    messages: Message[],
-    currentUserMessage?: string,
-    mentionedContent?: Array<{ id: string; type: string; label: string }>,
-    modelId?: string,
-    mcpToolsArray?: Array<{ name: string; description: string; inputSchema: string }>,
-  ) => {
-    const refetchResult = await sessionData.refetch();
-    let freshSessionData = refetchResult.data;
 
-    const { type } = await connectorCommands.getLlmConnection();
-
-    const participants = sessionId ? await dbCommands.sessionListParticipants(sessionId) : [];
-
-    const calendarEvent = sessionId ? await dbCommands.sessionGetEvent(sessionId) : null;
-
-    const currentDateTime = new Date().toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-
-    const eventInfo = calendarEvent
-      ? `${calendarEvent.name} (${calendarEvent.start_date} - ${calendarEvent.end_date})${
-        calendarEvent.note ? ` - ${calendarEvent.note}` : ""
-      }`
-      : "";
-
-
-
-    const systemContent = await templateCommands.render("ai_chat.system", {
-      session: freshSessionData,
-      words: JSON.stringify(freshSessionData?.words || []),
-      title: freshSessionData?.title,
-      enhancedContent: freshSessionData?.enhancedContent,
-      rawContent: freshSessionData?.rawContent,
-      preMeetingContent: freshSessionData?.preMeetingContent,
-      type: type,
-      date: currentDateTime,
-      participants: participants,
-      event: eventInfo,
-      modelId: modelId,
-      mcpTools: mcpToolsArray,
-    });
-
-    console.log("system prompt", systemContent);
-
-    const conversationHistory: Array<{
-      role: "system" | "user" | "assistant";
-      content: string;
-    }> = [
-      { role: "system" as const, content: systemContent },
-    ];
-
-    messages.forEach(message => {
-      conversationHistory.push({
-        role: message.isUser ? ("user" as const) : ("assistant" as const),
-        content: message.content,
-      });
-    });
-
-    if (mentionedContent && mentionedContent.length > 0) {
-      currentUserMessage +=
-        "[[From here is an automatically appended content from the mentioned notes & people, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]"
-        + "\n\n";
-    }
-
-    if (mentionedContent && mentionedContent.length > 0) {
-      const noteContents: string[] = [];
-
-      for (const mention of mentionedContent) {
-        try {
-          if (mention.type === "note") {
-            const sessionData = await dbCommands.getSession({ id: mention.id });
-
-            if (sessionData) {
-              let noteContent = "";
-
-              if (sessionData.enhanced_memo_html && sessionData.enhanced_memo_html.trim() !== "") {
-                noteContent = sessionData.enhanced_memo_html;
-              } else if (sessionData.raw_memo_html && sessionData.raw_memo_html.trim() !== "") {
-                noteContent = sessionData.raw_memo_html;
-              } else {
-                continue;
-              }
-
-              noteContents.push(`\n\n--- Content from the note"${mention.label}" ---\n${noteContent}`);
-            }
-          }
-
-          if (mention.type === "human") {
-            const humanData = await dbCommands.getHuman(mention.id);
-
-            let humanContent = "";
-            humanContent += "Name: " + humanData?.full_name + "\n";
-            humanContent += "Email: " + humanData?.email + "\n";
-            humanContent += "Job Title: " + humanData?.job_title + "\n";
-            humanContent += "LinkedIn: " + humanData?.linkedin_username + "\n";
-
-            if (humanData?.full_name) {
-              try {
-                const participantSessions = await dbCommands.listSessions({
-                  type: "search",
-                  query: humanData.full_name,
-                  user_id: userId || "",
-                  limit: 5,
-                });
-
-                if (participantSessions.length > 0) {
-                  humanContent += "\nNotes this person participated in:\n";
-
-                  for (const session of participantSessions.slice(0, 2)) {
-                    const participants = await dbCommands.sessionListParticipants(session.id);
-                    const isParticipant = participants.some(p =>
-                      p.full_name === humanData.full_name || p.email === humanData.email
-                    );
-
-                    if (isParticipant) {
-                      let briefContent = "";
-                      if (session.enhanced_memo_html && session.enhanced_memo_html.trim() !== "") {
-                        const div = document.createElement("div");
-                        div.innerHTML = session.enhanced_memo_html;
-                        briefContent = (div.textContent || div.innerText || "").slice(0, 200) + "...";
-                      } else if (session.raw_memo_html && session.raw_memo_html.trim() !== "") {
-                        const div = document.createElement("div");
-                        div.innerHTML = session.raw_memo_html;
-                        briefContent = (div.textContent || div.innerText || "").slice(0, 200) + "...";
-                      }
-
-                      humanContent += `- "${session.title || "Untitled"}": ${briefContent}\n`;
-                    }
-                  }
-                }
-              } catch (error) {
-                console.error(`Error fetching notes for person "${humanData.full_name}":`, error);
-              }
-            }
-
-            if (humanData) {
-              noteContents.push(`\n\n--- Content about the person "${mention.label}" ---\n${humanContent}`);
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching content for "${mention.label}":`, error);
-        }
-      }
-
-      if (noteContents.length > 0) {
-        currentUserMessage = currentUserMessage + noteContents.join("");
-      }
-    }
-
-    if (currentUserMessage) {
-      conversationHistory.push({
-        role: "user" as const,
-        content: currentUserMessage,
-      });
-    }
-
-    return conversationHistory;
-  };
 
   const processUserMessage = async (
     content: string,
@@ -250,7 +88,7 @@ export function useChatLogic({
       return;
     }
 
-
+    
     // Count only user messages
     const userMessageCount = messages.filter(msg => msg.isUser).length;
     
@@ -280,6 +118,7 @@ export function useChatLogic({
     }
 
     setIsGenerating(true);
+    isGeneratingRef.current = true; // ✅ Update ref when setting state
 
     const groupId = await getChatGroupId();
 
@@ -328,6 +167,7 @@ export function useChatLogic({
   
       });
       allMcpClients.push(mcpClient);
+      
       const tools = await mcpClient.tools();
       for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
         newMcpTools[toolName] = dynamicTool({
@@ -336,6 +176,7 @@ export function useChatLogic({
           execute: tool.execute,
         });
       }
+      
     }
 
     const mcpToolsArray = Object.keys(newMcpTools).length > 0 
@@ -365,9 +206,20 @@ export function useChatLogic({
       const { type } = await connectorCommands.getLlmConnection();
       console.log("model id", model.modelId);
 
+      let lastChunkType: string | null = null;
+
       const { fullStream } = streamText({
         model,
-        messages: await prepareMessageHistory(messages, content, mentionedContent, model.modelId, mcpToolsArray),
+        messages: await prepareMessageHistory(
+          messages, 
+          content, 
+          mentionedContent, 
+          model.modelId, 
+          mcpToolsArray,
+          sessionData,  // ✅ Add missing parameter
+          sessionId,    // ✅ Add missing parameter  
+          userId        // ✅ Add missing parameter
+        ),
         ...(type === "HyprLocal" && {
           tools: {
             update_progress: tool({ inputSchema: z.any() }),
@@ -379,8 +231,7 @@ export function useChatLogic({
             || model.modelId === "openai/gpt-4o"
             || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
-          tools: newMcpTools,
-          /*tools: {
+          tools: {...newMcpTools,
             search_sessions_multi_keywords: tool({
               description:
                 "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
@@ -434,40 +285,52 @@ export function useChatLogic({
                 };
               },
             }),
-          },*/
+          
+          },
         }),
 
         onError: (error) => {
           console.error("On Error Catch:", error);
           setIsGenerating(false);
+          isGeneratingRef.current = false; // ✅ Update ref when setting state
           throw error;
         },
         onFinish: () => {
+          
           console.log("closing all mcp clients");
           for (const client of allMcpClients) {
             client.close();
           }
         },
+        onStepFinish: (step) => {
+          console.log("step finished", step)
+        },
+        onChunk: (chunk) => {
+          console.log("chunk finished", chunk)
+        }
       });
 
       let aiResponse = "";
       let didInitializeAiResponse = false;
       let currentAiTextMessageId: string | null = null; // ✅ Track current text message ID
+      let didFinishStreaming = false; 
 
       for await (const chunk of fullStream) {
 
+        
         if(chunk.type === "text-delta") {
           
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
             
             // ✅ Simple rule: same type = append, different type = new message
-            if (lastMessage && (lastMessage.type === "text-delta" || lastMessage.type === "generating")) {
+            if (didInitializeAiResponse && lastMessage && (lastMessage.type === "text-delta" || lastMessage.type === "generating")) {
               // Same type (text) -> update existing message
               
               aiResponse += chunk.text; 
               currentAiTextMessageId = lastMessage.id; // ✅ Track this message ID
               const parts = parseMarkdownBlocks(aiResponse);
+
         
               return prev.map(msg =>
                 msg.id === lastMessage.id
@@ -505,13 +368,6 @@ export function useChatLogic({
         // ✅ Save AI text when switching to tool (text chunk is complete)
         if(chunk.type === "tool-call"){
 
-          const dummyWaitingMessage: Message = {
-            id: crypto.randomUUID(),
-            content: "tool call started",
-            isUser: false,
-            timestamp: new Date(),
-            type: "generating",
-          }
           // Save accumulated AI text before processing tool
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
@@ -530,6 +386,22 @@ export function useChatLogic({
             };
             saveAiText();
             currentAiTextMessageId = null; // Reset
+
+            
+            console.log("saved previous text block")  
+            if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
+              console.log("got into the if statement")
+              const thinkingMessage: Message = {
+                id: crypto.randomUUID(),
+                content: "Generating...",
+                isUser: false,
+                timestamp: new Date(),
+                type: "generating",
+              }
+              setMessages((prev) => [...prev, thinkingMessage]);
+            }
+            
+
           }
 
           didInitializeAiResponse = false;
@@ -561,7 +433,6 @@ export function useChatLogic({
             }
           });
 
-          setMessages((prev) => [...prev, dummyWaitingMessage]);
 
           //save message to db right away 
           await dbCommands.upsertChatMessage({
@@ -573,10 +444,25 @@ export function useChatLogic({
             type: "tool-start",
           });
           console.log("Tool Call:", chunk);
+
+          
+          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
+            const thinkingMessage: Message = {
+              id: crypto.randomUUID(),
+              content: "Generating...",
+              isUser: false,
+              timestamp: new Date(),
+              type: "generating",
+            }
+            setMessages((prev) => [...prev, thinkingMessage]);
+          }
+          
+
         }
 
         if(chunk.type === "tool-result"){
           didInitializeAiResponse = false;
+          
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
             content: `Tool finished: ${chunk.toolName}`,
@@ -584,9 +470,9 @@ export function useChatLogic({
             timestamp: new Date(),
             type: "tool-result",
           };
+          
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
-           
             
             // ✅ ADD THIS: Replace "generating" message if it exists
             if (lastMessage && lastMessage.type === "generating") {
@@ -597,6 +483,8 @@ export function useChatLogic({
             }
           });
 
+      
+
           await dbCommands.upsertChatMessage({
             id: toolResultMessage.id,
             group_id: groupId,
@@ -606,6 +494,20 @@ export function useChatLogic({
             type: "tool-result",
           });
           console.log("Tool Result:", chunk);
+
+          
+          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
+            const thinkingMessage: Message = {
+              id: crypto.randomUUID(),
+              content: "Generating...",
+              isUser: false,
+              timestamp: new Date(),
+              type: "generating",
+            }
+            setMessages((prev) => [...prev, thinkingMessage]);
+          }
+          
+
         }
 
         if(chunk.type === "tool-error"){
@@ -639,11 +541,26 @@ export function useChatLogic({
             type: "tool-error",
           });
           console.log("Tool Error:", chunk);
+          
+          if(isGeneratingRef.current){ // ✅ Use ref instead of state variable
+            const thinkingMessage: Message = {
+              id: crypto.randomUUID(),
+              content: "Generating...",
+              isUser: false,
+              timestamp: new Date(),
+              type: "generating",
+            }
+            setMessages((prev) => [...prev, thinkingMessage]);
+          }
+          
+
         }
 
         if(chunk.type === "finish-step"){
           console.log("streaming finished for this message")
+          didFinishStreaming = true;
         }
+
       }
 
       // ✅ Save final AI text when streaming finishes
@@ -661,6 +578,8 @@ export function useChatLogic({
      
 
       setIsGenerating(false);
+      isGeneratingRef.current = false; // ✅ Update ref when setting state
+
     } catch (error) {
       console.error("AI error:", error);
 
@@ -677,6 +596,7 @@ export function useChatLogic({
       }
 
       setIsGenerating(false);
+      isGeneratingRef.current = false; // ✅ Update ref when setting state
 
       setMessages((prev) =>
         prev.map(msg =>
@@ -697,6 +617,7 @@ export function useChatLogic({
         content: finalErrorMesage,
         type: "text-delta",
       });
+
     }
   };
 

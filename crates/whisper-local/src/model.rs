@@ -5,7 +5,7 @@ use regex::Regex;
 
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
-    WhisperToken,
+    WhisperTokenId,
 };
 
 use hypr_whisper::Language;
@@ -50,14 +50,12 @@ impl WhisperBuilder {
 
         let ctx = WhisperContext::new_with_params(&model_path, context_param)?;
         let state = ctx.create_state()?;
-        let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();
 
         Ok(Whisper {
             languages: self.languages.unwrap_or_default(),
             dynamic_prompt: "".to_string(),
             state,
-            token_eot,
             token_beg,
         })
     }
@@ -77,8 +75,7 @@ pub struct Whisper {
     languages: Vec<Language>,
     dynamic_prompt: String,
     state: WhisperState,
-    token_eot: WhisperToken,
-    token_beg: WhisperToken,
+    token_beg: WhisperTokenId,
 }
 
 impl Whisper {
@@ -134,26 +131,33 @@ impl Whisper {
         };
 
         self.state.full(params, &audio[..])?;
-        let num_segments = self.state.full_n_segments()?;
+        let num_segments = self.state.full_n_segments();
 
         let mut segments = Vec::new();
         for i in 0..num_segments {
-            let text = TRAILING_DOTS
-                .replace(&self.state.full_get_segment_text_lossy(i)?, "")
-                .to_string();
+            let segment = match self.state.get_segment(i) {
+                Some(seg) => seg,
+                None => continue,
+            };
 
             let (start, end) = (
-                self.state.full_get_segment_t0(i)?,
-                self.state.full_get_segment_t1(i)?,
+                (segment.start_timestamp() as f64) / 100.0,
+                (segment.end_timestamp() as f64) / 100.0,
             );
-            let confidence = self.calculate_segment_confidence(i);
+
+            let text = {
+                let segment_text = segment.to_str_lossy()?;
+                TRAILING_DOTS.replace(&segment_text, "").to_string()
+            };
 
             segments.push(Segment {
                 text,
                 language: language.clone(),
-                start: start as f32 / 1000.0,
-                end: end as f32 / 1000.0,
-                confidence,
+                start,
+                end,
+                // https://github.com/ggml-org/whisper.cpp/pull/971/files#diff-2d3599a9fad195f2c3c60bd06691bc1815325b3560b5feda41a91fa71194e805R310-R327
+                // We previously implemented it based on above, but after updating to v1.7.6, the API has changed, and we're still unable to figure it out. We're not using it anyway.
+                confidence: 1.0,
                 ..Default::default()
             });
         }
@@ -232,45 +236,7 @@ impl Whisper {
             .collect()
     }
 
-    // https://github.com/ggml-org/whisper.cpp/pull/971/files#diff-2d3599a9fad195f2c3c60bd06691bc1815325b3560b5feda41a91fa71194e805R310-R327
-    fn calculate_segment_confidence(&self, segment_idx: i32) -> f32 {
-        let n_tokens = self.state.full_n_tokens(segment_idx).unwrap_or(0);
-        if n_tokens == 0 {
-            return 0.0;
-        }
-
-        let mut total_confidence = 0.0;
-        let mut valid_tokens = 0;
-
-        for j in 0..n_tokens {
-            let token_id = match self.state.full_get_token_id(segment_idx, j) {
-                Ok(id) => id,
-                Err(_) => continue,
-            };
-
-            if token_id >= self.token_eot {
-                continue;
-            }
-
-            let token_p = self
-                .state
-                .full_get_token_prob(segment_idx, j)
-                .unwrap_or(0.0);
-
-            let token_confidence = token_p.powi(3);
-
-            total_confidence += token_confidence;
-            valid_tokens += 1;
-        }
-
-        if valid_tokens == 0 {
-            return 0.0;
-        }
-
-        total_confidence / valid_tokens as f32
-    }
-
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
@@ -283,13 +249,13 @@ impl Whisper {
                 return;
             }
 
-            let token_beg = *(user_data as *const WhisperToken);
-            *logits.offset(token_beg as isize) = f32::NEG_INFINITY;
+            let token_beg_id = *(user_data as *const WhisperTokenId);
+            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
         params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperToken as *mut std::ffi::c_void,
+            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
         );
     }
 }
@@ -299,8 +265,8 @@ impl Whisper {
 pub struct Segment {
     pub text: String,
     pub language: Option<String>,
-    pub start: f32,
-    pub end: f32,
+    pub start: f64,
+    pub end: f64,
     pub confidence: f32,
     pub meta: Option<serde_json::Value>,
 }
@@ -314,15 +280,15 @@ impl Segment {
         self.language.as_deref()
     }
 
-    pub fn start(&self) -> f32 {
+    pub fn start(&self) -> f64 {
         self.start
     }
 
-    pub fn end(&self) -> f32 {
+    pub fn end(&self) -> f64 {
         self.end
     }
 
-    pub fn duration(&self) -> f32 {
+    pub fn duration(&self) -> f64 {
         self.end - self.start
     }
 
@@ -353,6 +319,7 @@ mod tests {
             .collect();
 
         let segments = whisper.transcribe(&audio).unwrap();
+        println!("segments: {:#?}", segments);
         assert!(segments.len() > 0);
     }
 

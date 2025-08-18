@@ -22,12 +22,12 @@ hypr-aec = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
-hypr-chunker = { workspace = true }
 hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-language = { workspace = true }
 hypr-tcc = { workspace = true }
+hypr-vad = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }

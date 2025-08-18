@@ -1703,6 +1703,8 @@ dependencies = [
  "cexpr",
  "clang-sys",
  "itertools 0.13.0",
+ "log",
+ "prettyplease",
  "proc-macro2",
  "quote",
  "regex",
@@ -2441,21 +2443,6 @@ dependencies = [
  "parse-zoneinfo",
  "phf 0.11.3",
  "phf_codegen 0.11.3",
-]
-
-[[package]]
-name = "chunker"
-version = "0.1.0"
-dependencies = [
- "data",
- "futures-util",
- "hound",
- "kalosm-sound",
- "serde",
- "silero",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -8545,8 +8532,8 @@ dependencies = [
 
 [[package]]
 name = "llama-cpp-2"
-version = "0.1.112"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-07-16#cba1797f6900fb946d4eb870b9caf01e8d5d76fb"
+version = "0.1.118"
+source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-08-16#51a6b46dcab8ef971255a8ffc0a16995f68d74ac"
 dependencies = [
  "enumflags2",
  "llama-cpp-sys-2",
@@ -8557,10 +8544,10 @@ dependencies = [
 
 [[package]]
 name = "llama-cpp-sys-2"
-version = "0.1.112"
-source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-07-16#cba1797f6900fb946d4eb870b9caf01e8d5d76fb"
+version = "0.1.118"
+source = "git+https://github.com/utilityai/llama-cpp-rs?branch=update-llama-cpp-2025-08-16#51a6b46dcab8ef971255a8ffc0a16995f68d74ac"
 dependencies = [
- "bindgen 0.69.5",
+ "bindgen 0.72.0",
  "cc",
  "cmake",
  "find_cuda_helper",
@@ -14630,7 +14617,6 @@ dependencies = [
  "audio-utils",
  "bytes",
  "chrono",
- "chunker",
  "codes-iso-639",
  "data",
  "db-core",
@@ -14670,6 +14656,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+ "vad",
 ]
 
 [[package]]
@@ -16333,7 +16320,6 @@ dependencies = [
  "audio-utils",
  "axum 0.8.4",
  "bytes",
- "chunker",
  "futures-util",
  "moonshine",
  "owhisper-config",
@@ -16347,6 +16333,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "vad",
  "ws-utils",
 ]
 
@@ -16376,7 +16363,6 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "axum 0.8.4",
- "chunker",
  "data",
  "dirs 6.0.0",
  "futures-util",
@@ -16391,6 +16377,7 @@ dependencies = [
  "tokio-util",
  "tower 0.5.2",
  "tracing",
+ "vad",
  "whisper",
  "whisper-local",
  "ws-utils",
@@ -16941,6 +16928,22 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vad"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "futures-util",
+ "hound",
+ "kalosm-sound",
+ "rodio",
+ "serde",
+ "silero",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -17526,17 +17529,20 @@ dependencies = [
 
 [[package]]
 name = "whisper-rs"
-version = "0.14.3"
-source = "git+https://github.com/tazz4843/whisper-rs?rev=e3d67d5#e3d67d513b86c6360f62e1f563bc4601c87946d6"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d4a5eb3a2a84d3adfb2e84b3ae783ee73428676582b2c91cb66c3091e737256"
 dependencies = [
+ "libc",
  "tracing",
  "whisper-rs-sys",
 ]
 
 [[package]]
 name = "whisper-rs-sys"
-version = "0.13.0"
-source = "git+https://github.com/tazz4843/whisper-rs?rev=e3d67d5#e3d67d513b86c6360f62e1f563bc4601c87946d6"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d0927ebac46387e6f3f705cc007c9ea40885f6d924071a918f1ee8b829cf5cd"
 dependencies = [
  "bindgen 0.71.1",
  "cfg-if",

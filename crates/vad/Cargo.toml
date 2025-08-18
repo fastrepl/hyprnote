@@ -1,11 +1,12 @@
 [package]
-name = "chunker"
+name = "vad"
 version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
 hound = { workspace = true }
 hypr-data = { workspace = true }
+rodio = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }

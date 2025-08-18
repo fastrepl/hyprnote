@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 pinger = { git = "https://github.com/orf/gping", package = "pinger" }
+reqwest.workspace = true

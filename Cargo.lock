@@ -9182,6 +9182,7 @@ name = "network"
 version = "0.1.0"
 dependencies = [
  "pinger",
+ "reqwest 0.12.22",
 ]
 
 [[package]]

@@ -4,6 +4,7 @@ runs:
     - uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+        cache: "poetry"
     # https://github.com/snok/install-poetry#running-on-windows
     - uses: snok/install-poetry@v1
       with:

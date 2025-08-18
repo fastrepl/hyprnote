@@ -2,19 +2,16 @@ use statig::awaitable::IntoStateMachineExt;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-mod client;
 mod commands;
 mod error;
 mod events;
 mod ext;
 mod fsm;
+mod manager;
 
-pub use client::*;
 pub use error::*;
 pub use events::*;
-pub use ext::ListenerPluginExt;
-
-pub use hypr_listener_interface::*;
+pub use ext::*;
 
 const PLUGIN_NAME: &str = "listener";
 
@@ -29,6 +26,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::list_microphone_devices::<tauri::Wry>,
+            commands::get_current_microphone_device::<tauri::Wry>,
+            commands::set_microphone_device::<tauri::Wry>,
             commands::check_microphone_access::<tauri::Wry>,
             commands::check_system_audio_access::<tauri::Wry>,
             commands::request_microphone_access::<tauri::Wry>,

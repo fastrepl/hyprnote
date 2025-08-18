@@ -3,7 +3,7 @@ import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import { CircleMinus, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts/hypr";
 import { commands as dbCommands, type Human } from "@hypr/plugin-db";
@@ -50,34 +50,58 @@ export function useParticipantsWithOrg(sessionId: string) {
   return participants;
 }
 
-export function ParticipantsChip({ sessionId }: { sessionId: string }) {
+export function ParticipantsChip({
+  sessionId,
+  isVeryNarrow = false,
+  isNarrow = false,
+}: {
+  sessionId: string;
+  isVeryNarrow?: boolean;
+  isNarrow?: boolean;
+}) {
   const participants = useParticipantsWithOrg(sessionId);
   const { userId } = useHypr();
 
   const count = participants.reduce((acc, group) => acc + (group.participants?.length ?? 0), 0);
   const buttonText = useMemo(() => {
     if (count === 0) {
-      return "Add participants";
+      return isVeryNarrow ? "Add" : isNarrow ? "Add people" : "Add participants";
+    }
+
+    if (isVeryNarrow || isNarrow) {
+      return count.toString();
     }
 
     const previewHuman = participants.find((group) => group.participants.length > 0)?.participants[0]!;
     if (previewHuman.id === userId && !previewHuman.full_name) {
       return "You";
     }
-    return previewHuman.full_name ?? "??";
-  }, [participants, userId]);
+
+    const fullName = previewHuman.full_name ?? "??";
+    return fullName;
+  }, [participants, userId, isVeryNarrow, isNarrow, count]);
 
   const handleClickHuman = (human: Human) => {
-    windowsCommands.windowShow({ type: "human", value: human.id });
+    // Open finder window and navigate to contact view with person selected
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowNavigate(
+        { type: "finder" },
+        `/app/finder?view=contact&personId=${human.id}`,
+      );
+    });
   };
 
   return (
     <Popover>
       <PopoverTrigger>
-        <div className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 text-xs">
-          <Users2Icon size={14} />
-          <span>{buttonText}</span>
-          {count > 1 && <span className="text-neutral-400">+ {count - 1}</span>}
+        <div
+          className={`flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs ${
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+          }`}
+        >
+          <Users2Icon size={14} className="flex-shrink-0" />
+          <span className="truncate">{buttonText}</span>
+          {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 
@@ -245,6 +269,14 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
   const { t } = useLingui();
   const queryClient = useQueryClient();
   const [newParticipantInput, setNewParticipantInput] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const addParticipantMutation = useMutation({
     mutationFn: async ({ name }: { name: string }) => {
@@ -281,29 +313,26 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && selectedIndex === -1) {
       e.preventDefault();
-
       const name = newParticipantInput.trim();
       if (name === "") {
         return;
       }
-
       addParticipantMutation.mutate({ name });
       setNewParticipantInput("");
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-    >
+    <form onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2">
         <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
           <span className="text-neutral-500 flex-shrink-0">
             <SearchIcon className="size-4" />
           </span>
           <input
+            ref={inputRef}
             type="text"
             value={newParticipantInput}
             onChange={(e) => setNewParticipantInput(e.target.value)}
@@ -324,16 +353,35 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
         <ParticipantCandidates
           query={newParticipantInput}
           sessionId={sessionId}
-          onMutation={() => setNewParticipantInput("")}
+          onMutation={() => {
+            setNewParticipantInput("");
+            setSelectedIndex(-1);
+            setTimeout(() => inputRef.current?.focus(), 0);
+          }}
+          selectedIndex={selectedIndex}
+          onSelectedIndexChange={setSelectedIndex}
+          inputRef={inputRef}
         />
       </div>
     </form>
   );
 }
 
-function ParticipantCandidates(
-  { query, sessionId, onMutation }: { query: string; sessionId: string; onMutation: () => void },
-) {
+function ParticipantCandidates({
+  query,
+  sessionId,
+  onMutation,
+  selectedIndex,
+  onSelectedIndexChange,
+  inputRef,
+}: {
+  query: string;
+  sessionId: string;
+  onMutation: () => void;
+  selectedIndex: number;
+  onSelectedIndexChange: (index: number) => void;
+  inputRef: React.RefObject<HTMLInputElement>;
+}) {
   const queryClient = useQueryClient();
 
   const participants = useQuery({
@@ -366,7 +414,70 @@ function ParticipantCandidates(
       }),
   });
 
-  const handleClick = () => {
+  const addParticipantByIdMutation = useMutation({
+    mutationFn: ({ id }: { id: string }) => dbCommands.sessionAddParticipant(sessionId, id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) => (query.queryKey[0] as string).includes("participants") && query.queryKey[1] === sessionId,
+      }),
+  });
+
+  const candidateCount = participants.data?.length || 0;
+  const hasCreateOption = candidateCount === 0 && query.trim();
+  const totalItems = candidateCount + (hasCreateOption ? 1 : 0);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!query.trim() || totalItems === 0) {
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        onSelectedIndexChange(selectedIndex < totalItems - 1 ? selectedIndex + 1 : 0);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        onSelectedIndexChange(selectedIndex > 0 ? selectedIndex - 1 : totalItems - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        if (selectedIndex < candidateCount) {
+          const participant = participants.data?.[selectedIndex];
+          if (participant) {
+            addParticipantByIdMutation.mutate({ id: participant.id });
+            onMutation();
+          }
+        } else {
+          addParticipantMutation.mutate({ name: query.trim() });
+          onMutation();
+        }
+      } else if (e.key === "Escape") {
+        onSelectedIndexChange(-1);
+        inputRef.current?.focus();
+      }
+    };
+
+    if (inputRef.current === document.activeElement && totalItems > 0) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [
+    selectedIndex,
+    totalItems,
+    candidateCount,
+    query,
+    participants.data,
+    onSelectedIndexChange,
+    addParticipantMutation,
+    addParticipantByIdMutation,
+    onMutation,
+    inputRef,
+  ]);
+
+  useEffect(() => {
+    onSelectedIndexChange(-1);
+  }, [query, onSelectedIndexChange]);
+
+  const handleCreateClick = () => {
     addParticipantMutation.mutate({ name: query.trim() });
     onMutation();
   };
@@ -377,20 +488,28 @@ function ParticipantCandidates(
 
   return (
     <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
-      {participants.data?.map((participant) => (
+      {participants.data?.map((participant, index) => (
         <ParticipantCandidate
           key={participant.id}
           participant={participant}
           sessionId={sessionId}
           onMutation={onMutation}
+          isSelected={selectedIndex === index}
+          onSelect={() => {
+            addParticipantByIdMutation.mutate({ id: participant.id });
+            onMutation();
+          }}
         />
       ))}
 
-      {(!participants.data || participants.data.length === 0) && (
+      {hasCreateOption && (
         <button
           type="button"
-          className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-          onClick={handleClick}
+          className={clsx(
+            "flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full",
+            selectedIndex === candidateCount && "bg-neutral-100",
+          )}
+          onClick={handleCreateClick}
         >
           <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
             <span className="text-xs">+</span>
@@ -405,35 +524,32 @@ function ParticipantCandidates(
   );
 }
 
-function ParticipantCandidate(
-  { participant, sessionId, onMutation }: { participant: Human; sessionId: string; onMutation: () => void },
-) {
-  const queryClient = useQueryClient();
-
+function ParticipantCandidate({
+  participant,
+  sessionId,
+  onMutation,
+  isSelected = false,
+  onSelect,
+}: {
+  participant: Human;
+  sessionId: string;
+  onMutation: () => void;
+  isSelected?: boolean;
+  onSelect: () => void;
+}) {
   const organization = useQuery({
     queryKey: ["org", participant.organization_id],
     queryFn: () => participant.organization_id ? dbCommands.getOrganization(participant.organization_id) : null,
   });
 
-  const addParticipantMutation = useMutation({
-    mutationFn: ({ id }: { id: string }) => dbCommands.sessionAddParticipant(sessionId, id),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        predicate: (query) => (query.queryKey[0] as string).includes("participants") && query.queryKey[1] === sessionId,
-      }),
-  });
-
-  const handleClick = (id: string) => {
-    addParticipantMutation.mutate({ id });
-    onMutation();
-  };
-
   return (
     <button
       type="button"
-      className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
-      key={participant.id}
-      onClick={() => handleClick(participant.id)}
+      className={clsx(
+        "flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full",
+        isSelected && "bg-neutral-100",
+      )}
+      onClick={onSelect}
     >
       <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
         <span className="text-xs">{participant.full_name ? getInitials(participant.full_name) : "?"}</span>

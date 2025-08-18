@@ -25,7 +25,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
         once
         className="mb-20 text-center text-2xl font-medium text-neutral-600"
       >
-        {t`The AI Meeting Notepad`}
+        {t`Where Conversations Stay Yours`}
       </TextAnimate>
 
       <PushableButton

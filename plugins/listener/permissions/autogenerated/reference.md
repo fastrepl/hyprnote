@@ -5,6 +5,8 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-list-microphone-devices`
+- `allow-get-current-microphone-device`
+- `allow-set-microphone-device`
 - `allow-check-microphone-access`
 - `allow-check-system-audio-access`
 - `allow-request-microphone-access`
@@ -78,6 +80,32 @@ Enables the check_system_audio_access command without any pre-configured scope.
 <td>
 
 Denies the check_system_audio_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-get-current-microphone-device`
+
+</td>
+<td>
+
+Enables the get_current_microphone_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-current-microphone-device`
+
+</td>
+<td>
+
+Denies the get_current_microphone_device command without any pre-configured scope.
 
 </td>
 </tr>
@@ -390,6 +418,32 @@ Enables the set_mic_muted command without any pre-configured scope.
 <td>
 
 Denies the set_mic_muted command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-set-microphone-device`
+
+</td>
+<td>
+
+Enables the set_microphone_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-set-microphone-device`
+
+</td>
+<td>
+
+Denies the set_microphone_device command without any pre-configured scope.
 
 </td>
 </tr>

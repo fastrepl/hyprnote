@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-base-url"
+description = "Enables the set_base_url command without any pre-configured scope."
+commands.allow = ["set_base_url"]
+
+[[permission]]
+identifier = "deny-set-base-url"
+description = "Denies the set_base_url command without any pre-configured scope."
+commands.deny = ["set_base_url"]

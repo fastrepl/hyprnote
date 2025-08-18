@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 
-import { useRightPanel } from "@/contexts";
-import { useMatch, useNavigate } from "@tanstack/react-router";
+import { useHypr, useRightPanel } from "@/contexts";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import {
   ChatHistoryView,
   ChatInput,
@@ -9,150 +11,96 @@ import {
   ChatSession,
   EmptyChatState,
   FloatingActionButtons,
-  Message,
 } from "../components/chat";
 
-interface ActiveEntityInfo {
-  id: string;
-  type: BadgeType;
-}
-
-export type BadgeType = "note" | "human" | "organization";
+import { useActiveEntity } from "../hooks/useActiveEntity";
+import { useChatLogic } from "../hooks/useChatLogic";
+import { useChatQueries } from "../hooks/useChatQueries";
+import type { Message } from "../types/chat-types";
+import { focusInput, formatDate } from "../utils/chat-utils";
 
 export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
+  const { userId } = useHypr();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-
-  const [activeEntity, setActiveEntity] = useState<ActiveEntityInfo | null>(null);
   const [hasChatStarted, setHasChatStarted] = useState(false);
-
+  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | null>(null);
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
-  const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
-  const humanMatch = useMatch({ from: "/app/human/$id", shouldThrow: false });
-  const organizationMatch = useMatch({ from: "/app/organization/$id", shouldThrow: false });
+  const prevIsGenerating = useRef(false);
 
-  useEffect(() => {
-    if (!hasChatStarted) {
-      if (noteMatch) {
-        const noteId = noteMatch.params.id;
-        setActiveEntity({
-          id: noteId,
-          type: "note",
-        });
-      } else if (humanMatch) {
-        const humanId = humanMatch.params.id;
-        setActiveEntity({
-          id: humanId,
-          type: "human",
-        });
-      } else if (organizationMatch) {
-        const orgId = organizationMatch.params.id;
-        setActiveEntity({
-          id: orgId,
-          type: "organization",
-        });
-      } else {
-        setActiveEntity(null);
-      }
-    }
-  }, [noteMatch, humanMatch, organizationMatch, hasChatStarted]);
+  const { activeEntity, sessionId } = useActiveEntity({
+    setMessages,
+    setInputValue,
+    setShowHistory,
+    setHasChatStarted,
+  });
 
-  useEffect(() => {
-    if (isExpanded) {
-      const focusTimeout = setTimeout(() => {
-        if (chatInputRef.current) {
-          chatInputRef.current.focus();
-        }
-      }, 200);
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+    refetchOnWindowFocus: true,
+  });
 
-      return () => clearTimeout(focusTimeout);
-    }
-  }, [isExpanded, chatInputRef]);
+  const { chatGroupsQuery, sessionData, getChatGroupId } = useChatQueries({
+    sessionId,
+    userId,
+    currentChatGroupId,
+    setCurrentChatGroupId,
+    setMessages,
+    setHasChatStarted,
+    prevIsGenerating,
+  });
+
+  const {
+    isGenerating,
+    isStreamingText,
+    handleSubmit,
+    handleQuickAction,
+    handleApplyMarkdown,
+    handleKeyDown,
+  } = useChatLogic({
+    sessionId,
+    userId,
+    activeEntity,
+    messages,
+    inputValue,
+    hasChatStarted,
+    setMessages,
+    setInputValue,
+    setHasChatStarted,
+    getChatGroupId,
+    sessionData,
+    chatInputRef,
+    llmConnectionQuery,
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
   };
 
-  const handleSubmit = () => {
-    if (!inputValue.trim()) {
+  const handleFocusInput = () => {
+    focusInput(chatInputRef);
+  };
+
+  const handleNewChat = async () => {
+    if (!sessionId || !userId) {
       return;
     }
 
-    if (!hasChatStarted && activeEntity) {
-      setHasChatStarted(true);
-    }
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
-  const handleQuickAction = (prompt: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: prompt,
-      isUser: true,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a sample response from the AI assistant.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
-
-    if (chatInputRef.current) {
-      chatInputRef.current.focus();
-    }
-  };
-
-  const handleFocusInput = () => {
-    if (chatInputRef.current) {
-      chatInputRef.current.focus();
-    }
-  };
-
-  const handleNewChat = () => {
+    setCurrentChatGroupId(null);
     setMessages([]);
-    setInputValue("");
-    setShowHistory(false);
     setHasChatStarted(false);
+    setInputValue("");
+  };
+
+  const handleSelectChatGroup = async (groupId: string) => {
+    setCurrentChatGroupId(groupId);
   };
 
   const handleViewHistory = () => {
@@ -171,34 +119,21 @@ export function ChatView() {
     setShowHistory(false);
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      if (weeks > 0) {
-        return `${weeks}w`;
-      }
-
-      return `${diffDays}d`;
-    } else {
-      const month = date.toLocaleString("default", { month: "short" });
-      const day = date.getDate();
-
-      if (date.getFullYear() === now.getFullYear()) {
-        return `${month} ${day}`;
-      }
-
-      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-    }
-  };
-
   const handleNoteBadgeClick = () => {
     if (activeEntity) {
       navigate({ to: `/app/${activeEntity.type}/$id`, params: { id: activeEntity.id } });
     }
   };
+
+  useEffect(() => {
+    if (isExpanded) {
+      const focusTimeout = setTimeout(() => {
+        focusInput(chatInputRef);
+      }, 200);
+
+      return () => clearTimeout(focusTimeout);
+    }
+  }, [isExpanded, chatInputRef]);
 
   if (showHistory) {
     return (
@@ -219,6 +154,8 @@ export function ChatView() {
       <FloatingActionButtons
         onNewChat={handleNewChat}
         onViewHistory={handleViewHistory}
+        chatGroups={chatGroupsQuery.data}
+        onSelectChatGroup={handleSelectChatGroup}
       />
 
       {messages.length === 0
@@ -228,17 +165,27 @@ export function ChatView() {
             onFocusInput={handleFocusInput}
           />
         )
-        : <ChatMessagesView messages={messages} />}
+        : (
+          <ChatMessagesView
+            messages={messages}
+            sessionTitle={sessionData.data?.title || "Untitled"}
+            hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
+            onApplyMarkdown={handleApplyMarkdown}
+            isGenerating={isGenerating}
+            isStreamingText={isStreamingText}
+          />
+        )}
 
       <ChatInput
         inputValue={inputValue}
         onChange={handleInputChange}
-        onSubmit={handleSubmit}
+        onSubmit={(mentionedContent) => handleSubmit(mentionedContent)}
         onKeyDown={handleKeyDown}
         autoFocus={true}
         entityId={activeEntity?.id}
         entityType={activeEntity?.type}
         onNoteBadgeClick={handleNoteBadgeClick}
+        isGenerating={isGenerating}
       />
     </div>
   );

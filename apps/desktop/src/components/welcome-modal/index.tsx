@@ -1,16 +1,32 @@
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
-import { commands as localSttCommands, SupportedModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
+import { ConfigureEndpointConfig } from "../settings/components/ai/shared";
 
-import { ModelSelectionView } from "./model-selection-view";
+import { useHypr } from "@/contexts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { Trans } from "@lingui/react/macro";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { AudioPermissionsView } from "./audio-permissions-view";
+import { CustomEndpointView } from "./custom-endpoint-view";
+import { DownloadProgressView } from "./download-progress-view";
+import { LanguageSelectionView } from "./language-selection-view";
+import { LLMSelectionView } from "./llm-selection-view";
 import { WelcomeView } from "./welcome-view";
 
 interface WelcomeModalProps {
@@ -18,14 +34,130 @@ interface WelcomeModalProps {
   onClose: () => void;
 }
 
+// Form schemas
+const openaiSchema = z.object({
+  api_key: z.string().min(1, "API key is required").startsWith("sk-", "OpenAI API key must start with 'sk-'"),
+  model: z.string().min(1, "Model selection is required"),
+});
+
+const geminiSchema = z.object({
+  api_key: z.string().min(1, "API key is required").startsWith("AIza", "Gemini API key must start with 'AIza'"),
+  model: z.string().min(1, "Model selection is required"),
+});
+
+const openrouterSchema = z.object({
+  api_key: z.string().min(1, "API key is required").startsWith("sk-", "OpenRouter API key must start with 'sk-'"),
+  model: z.string().min(1, "Model selection is required"),
+});
+
+const customSchema = z.object({
+  api_base: z.string().url("Must be a valid URL"),
+  api_key: z.string().optional(),
+  model: z.string().min(1, "Model is required"),
+});
+
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { userId } = useHypr();
   const [port, setPort] = useState<number | null>(null);
-  const [showModelSelection, setShowModelSelection] = useState(false);
+  const [currentStep, setCurrentStep] = useState<
+    | "welcome"
+    | "download-progress"
+    | "audio-permissions"
+    | "llm-selection"
+    | "custom-endpoint"
+    | "language-selection"
+  >("welcome");
+  const [selectedSttModel, setSelectedSttModel] = useState<WhisperModel>("QuantizedSmall");
+  const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
+  const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
+  // const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
+  /*
   const selectSTTModel = useMutation({
-    mutationFn: (model: SupportedModel) => localSttCommands.setCurrentModel(model),
+    mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
   });
+  */
+
+  const openaiForm = useForm<{ api_key: string; model: string }>({
+    resolver: zodResolver(openaiSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const geminiForm = useForm<{ api_key: string; model: string }>({
+    resolver: zodResolver(geminiSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const openrouterForm = useForm<{ api_key: string; model: string }>({
+    resolver: zodResolver(openrouterSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const customForm = useForm<{ api_base: string; api_key?: string; model: string }>({
+    resolver: zodResolver(customSchema),
+    mode: "onChange",
+    defaultValues: {
+      api_base: "",
+      api_key: "",
+      model: "",
+    },
+  });
+
+  const configureCustomEndpoint = async (config: ConfigureEndpointConfig) => {
+    const finalApiBase = config.provider === "openai"
+      ? "https://api.openai.com/v1"
+      : config.provider === "gemini"
+      ? "https://generativelanguage.googleapis.com/v1beta/openai"
+      : config.provider === "openrouter"
+      ? "https://openrouter.ai/api/v1"
+      : config.api_base;
+
+    try {
+      await connectorCommands.setCustomLlmEnabled(true);
+
+      await connectorCommands.setProviderSource(config.provider);
+
+      await connectorCommands.setCustomLlmModel(config.model);
+
+      await connectorCommands.setCustomLlmConnection({
+        api_base: finalApiBase,
+        api_key: config.api_key || null,
+      });
+
+      if (config.provider === "openai" && config.api_key) {
+        await connectorCommands.setOpenaiApiKey(config.api_key);
+        await connectorCommands.setOpenaiModel(config.model);
+      } else if (config.provider === "gemini" && config.api_key) {
+        await connectorCommands.setGeminiApiKey(config.api_key);
+        await connectorCommands.setGeminiModel(config.model);
+      } else if (config.provider === "openrouter" && config.api_key) {
+        await connectorCommands.setOpenrouterApiKey(config.api_key);
+        await connectorCommands.setOpenrouterModel(config.model);
+      } else if (config.provider === "others") {
+        await connectorCommands.setOthersApiBase(config.api_base);
+        if (config.api_key) {
+          await connectorCommands.setOthersApiKey(config.api_key);
+        }
+        await connectorCommands.setOthersModel(config.model);
+      }
+    } catch (error) {
+      console.error("Failed to configure custom endpoint:", error);
+    }
+  };
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -65,21 +197,140 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      commands.setOnboardingNeeded(false);
       sfxCommands.play("BGM");
     } else {
       sfxCommands.stop("BGM");
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (currentStep === "audio-permissions" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_audio",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "download-progress" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_download_progress",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "llm-selection" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_llm_selection",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
+  useEffect(() => {
+    if (currentStep === "language-selection" && userId) {
+      analyticsCommands.event({
+        event: "onboarding_reached_language_selection",
+        distinct_id: userId,
+      });
+    }
+  }, [currentStep, userId]);
+
   const handleStartLocal = () => {
-    setShowModelSelection(true);
+    setCurrentStep("audio-permissions");
   };
 
-  const handleModelSelected = (model: SupportedModel) => {
+  /*
+  const handleModelSelected = (model: WhisperModel) => {
     selectSTTModel.mutate(model);
+    setSelectedSttModel(model);
+    sessionStorage.setItem("model-download-toast-dismissed", "true");
+    setCurrentStep("download-progress");
+  };
+  */
+
+  const handleDownloadProgressContinue = () => {
+    setWentThroughDownloads(true);
+    setCurrentStep("language-selection");
+  };
+
+  const handleAudioPermissionsContinue = () => {
+    setCurrentStep("llm-selection");
+  };
+
+  const handleLLMSelectionContinue = async (selection: "hyprllm" | "byom") => {
+    setLlmSelection(selection);
+    if (selection === "hyprllm") {
+      // Automatically select the 'small' model and proceed to download
+      const smallModel = "QuantizedSmall" as WhisperModel;
+      // await selectSTTModel.mutateAsync(smallModel);
+      setSelectedSttModel(smallModel);
+      sessionStorage.setItem("model-download-toast-dismissed", "true");
+      setCurrentStep("download-progress");
+    } else {
+      // setCameFromLlmSelection(false);
+      setCurrentStep("custom-endpoint");
+    }
+  };
+
+  const handleCustomEndpointContinue = async () => {
+    // Automatically select the 'small' model and proceed to download
+    const smallModel = "QuantizedSmall" as WhisperModel;
+    // await selectSTTModel.mutateAsync(smallModel);
+    setSelectedSttModel(smallModel);
+    sessionStorage.setItem("model-download-toast-dismissed", "true");
+    setCurrentStep("download-progress");
+  };
+
+  const handleLanguageSelectionContinue = async (languages: string[]) => {
+    try {
+      const config = await dbCommands.getConfig();
+      await dbCommands.setConfig({
+        ...config,
+        general: {
+          ...config.general,
+          spoken_languages: languages,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to save language preferences:", error);
+    }
+
+    commands.setOnboardingNeeded(false);
     onClose();
   };
+
+  useEffect(() => {
+    if (!isOpen && wentThroughDownloads) {
+      localSttCommands.startServer(null);
+
+      localLlmCommands.startServer();
+
+      const checkAndShowToasts = async () => {
+        try {
+          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as WhisperModel);
+
+          if (!sttModelExists) {
+            showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
+          }
+
+          if (llmSelection === "hyprllm") {
+            const llmModelExists = await localLlmCommands.isModelDownloaded("HyprLLM");
+            if (!llmModelExists) {
+              showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
+            }
+          }
+        } catch (error) {
+          console.error("Error checking model download status:", error);
+        }
+      };
+
+      checkAndShowToasts();
+    }
+  }, [isOpen, wentThroughDownloads, selectedSttModel, llmSelection, queryClient]);
 
   return (
     <Modal
@@ -90,19 +341,56 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       preventClose
     >
       <ModalBody className="relative p-0 flex flex-col items-center justify-center overflow-hidden">
+        {/* Back button for custom-endpoint */}
+        {currentStep === "custom-endpoint" && (
+          <button
+            onClick={() => setCurrentStep("llm-selection")}
+            className="absolute top-6 left-6 z-20 flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 hover:bg-white/90"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <Trans>Back</Trans>
+          </button>
+        )}
+
         <div className="z-10">
-          {!showModelSelection
-            ? (
-              <WelcomeView
-                portReady={port !== null}
-                onGetStarted={handleStartLocal}
-              />
-            )
-            : (
-              <ModelSelectionView
-                onContinue={handleModelSelected}
-              />
-            )}
+          {currentStep === "welcome" && (
+            <WelcomeView
+              portReady={port !== null}
+              onGetStarted={handleStartLocal}
+            />
+          )}
+          {currentStep === "download-progress" && (
+            <DownloadProgressView
+              selectedSttModel={selectedSttModel}
+              llmSelection={llmSelection}
+              onContinue={handleDownloadProgressContinue}
+            />
+          )}
+          {currentStep === "audio-permissions" && (
+            <AudioPermissionsView
+              onContinue={handleAudioPermissionsContinue}
+            />
+          )}
+          {currentStep === "llm-selection" && (
+            <LLMSelectionView
+              onContinue={handleLLMSelectionContinue}
+            />
+          )}
+          {currentStep === "custom-endpoint" && (
+            <CustomEndpointView
+              onContinue={handleCustomEndpointContinue}
+              configureCustomEndpoint={configureCustomEndpoint}
+              openaiForm={openaiForm}
+              geminiForm={geminiForm}
+              openrouterForm={openrouterForm}
+              customForm={customForm}
+            />
+          )}
+          {currentStep === "language-selection" && (
+            <LanguageSelectionView
+              onContinue={handleLanguageSelectionContinue}
+            />
+          )}
         </div>
 
         <Particles

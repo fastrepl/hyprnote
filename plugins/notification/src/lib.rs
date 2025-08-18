@@ -55,15 +55,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             }
 
-            if app.get_event_notification().unwrap_or(false) {
-                let app_handle = app.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = app_handle.start_event_notification().await {
-                        tracing::error!("start_event_notification_failed: {:?}", e);
-                    }
-                });
-            }
-
             Ok(())
         })
         .build()

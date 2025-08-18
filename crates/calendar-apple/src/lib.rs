@@ -1,13 +1,11 @@
 use itertools::Itertools;
 use std::time::Duration;
 
+use objc2::msg_send;
+
 use block2::RcBlock;
-use objc2::{
-    rc::Retained,
-    runtime::{Bool, ProtocolObject},
-    ClassType,
-};
-use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType, CNKeyDescriptor};
+use objc2::{rc::Retained, runtime::Bool, ClassType};
+use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
 };
@@ -137,33 +135,32 @@ impl Handle {
             .unwrap_or_default()
             .to_string();
 
-        let email = {
-            if !self.contacts_access_granted {
-                None
-            } else {
-                let email_string = NSString::from_str("emailAddresses");
-                let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
-                    ProtocolObject::from_retained(email_string);
-                let keys = NSArray::from_vec(vec![cnkey_email]);
-
-                let contact_pred = unsafe { participant.contactPredicate() };
-                let contact = unsafe {
-                    self.contacts_store
-                        .unifiedContactsMatchingPredicate_keysToFetch_error(&contact_pred, &keys)
-                }
-                .unwrap_or_default();
-
-                let email = contact.first().and_then(|contact| {
-                    let emails = unsafe { contact.emailAddresses() };
-
-                    emails
-                        .first()
-                        .map(|email| unsafe { email.value() }.to_string())
-                });
-
-                email
-            }
+        let email = unsafe {
+            let email_ns: *const NSString = msg_send![participant, emailAddress];
+            email_ns.as_ref().map(|s| s.to_string())
         };
+
+        // let email = if self.contacts_access_granted {
+        //     let email_string = NSString::from_str("emailAddresses");
+        //     let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
+        //         ProtocolObject::from_retained(email_string);
+        //     let keys = NSArray::from_vec(vec![cnkey_email]);
+
+        //     let contact_pred = unsafe { participant.contactPredicate() };
+        //     let contact = unsafe {
+        //         self.contacts_store
+        //             .unifiedContactsMatchingPredicate_keysToFetch_error(&contact_pred, &keys)
+        //     }
+        //     .unwrap_or_default();
+
+        //     contact.first().and_then(|contact| {
+        //         let emails = unsafe { contact.emailAddresses() };
+
+        //         emails
+        //             .first()
+        //             .map(|email| unsafe { email.value() }.to_string())
+        //     })
+        // };
 
         Participant { name, email }
     }
@@ -229,9 +226,20 @@ impl CalendarSource for Handle {
                     return None;
                 }
 
+                // experiment: check if the event is recurring
+                let is_recurring = unsafe {
+                    let has_rules: Bool = msg_send![event, hasRecurrenceRules];
+                    has_rules.as_bool()
+                };
+
                 let participants = unsafe { event.attendees().unwrap_or_default() };
-                let participants = participants
+                let participant_list: Vec<Participant> = participants
                     .iter()
+                    .filter(|p| {
+                        // Skip the current user
+                        let is_current_user = unsafe { p.isCurrentUser() };
+                        !is_current_user
+                    })
                     .map(|p| self.transform_participant(p))
                     .collect();
 
@@ -241,10 +249,11 @@ impl CalendarSource for Handle {
                     platform: Platform::Apple,
                     name: title.to_string(),
                     note: note.to_string(),
-                    participants,
+                    participants: participant_list,
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
                     google_event_url: None,
+                    is_recurring,
                 })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))

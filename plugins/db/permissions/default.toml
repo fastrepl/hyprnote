@@ -3,6 +3,7 @@ description = "Default permissions for the plugin"
 permissions = [
     # session
     "allow-onboarding-session-id",
+    "allow-thank-you-session-id",
     "allow-upsert-session",
     "allow-list-sessions",
     "allow-get-session",
@@ -46,6 +47,7 @@ permissions = [
     "allow-list-chat-messages",
     "allow-create-chat-group",
     "allow-upsert-chat-message",
+    "allow-delete-chat-messages",
     # tag
     "allow-upsert-tag",
     "allow-delete-tag",
@@ -53,4 +55,5 @@ permissions = [
     "allow-list-session-tags",
     "allow-assign-tag-to-session",
     "allow-unassign-tag-from-session",
+    "allow-session-list-deleted-participant-ids",
 ]

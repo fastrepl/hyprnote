@@ -1,0 +1,13 @@
+[package]
+name = "owhisper-model"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hypr-file = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
+
+clap = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }

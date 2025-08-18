@@ -1,6 +1,24 @@
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
+pub async fn thank_you_session_id(
+    state: tauri::State<'_, crate::ManagedState>,
+) -> Result<String, String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    let id = db.thank_you_session_id();
+    Ok(id)
+}
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
 pub async fn onboarding_session_id(
     state: tauri::State<'_, crate::ManagedState>,
 ) -> Result<String, String> {
@@ -21,7 +39,7 @@ pub async fn onboarding_session_id(
 #[tracing::instrument(skip(state))]
 pub async fn get_words_onboarding(
     state: tauri::State<'_, crate::ManagedState>,
-) -> Result<Vec<hypr_listener_interface::Word>, String> {
+) -> Result<Vec<owhisper_interface::Word2>, String> {
     let guard = state.lock().await;
 
     let db = guard
@@ -37,10 +55,30 @@ pub async fn get_words_onboarding(
 #[tauri::command]
 #[specta::specta]
 #[tracing::instrument(skip(state))]
+pub async fn session_list_deleted_participant_ids(
+    state: tauri::State<'_, crate::ManagedState>,
+    session_id: String,
+) -> Result<Vec<String>, String> {
+    let guard = state.lock().await;
+
+    let db = guard
+        .db
+        .as_ref()
+        .ok_or(crate::Error::NoneDatabase)
+        .map_err(|e| e.to_string())?;
+
+    db.session_list_deleted_participant_ids(session_id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+#[tracing::instrument(skip(state))]
 pub async fn get_words(
     state: tauri::State<'_, crate::ManagedState>,
     session_id: String,
-) -> Result<Vec<hypr_listener_interface::Word>, String> {
+) -> Result<Vec<owhisper_interface::Word2>, String> {
     let guard = state.lock().await;
 
     let db = guard

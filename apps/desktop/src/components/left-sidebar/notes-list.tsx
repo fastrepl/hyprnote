@@ -24,7 +24,6 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession, useSessions } from "@hypr/utils/contexts";
 import { format, formatDate, formatRelative } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 interface NotesListProps {
   filter: (session: Session) => boolean;
@@ -235,14 +234,16 @@ function NoteItem({
   };
 
   const handleOpenCalendar = () => {
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(currentSession.created_at, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
+    const date = new Date(currentSession.created_at);
+    const formattedDate = format(date, "yyyy-MM-dd");
+    const url = { to: "/app/finder", search: { view: "calendar", date: formattedDate } } as const satisfies LinkProps;
 
-    const url = `${params.to}?date=${params.search.date}`;
-
-    safeNavigate({ type: "calendar" }, url);
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "finder" }, {
+        path: url.to,
+        search: url.search,
+      });
+    });
   };
 
   const buttonRef = useRef<HTMLButtonElement>(null);

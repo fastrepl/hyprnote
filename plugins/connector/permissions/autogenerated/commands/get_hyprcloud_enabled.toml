@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-hyprcloud-enabled"
+description = "Enables the get_hyprcloud_enabled command without any pre-configured scope."
+commands.allow = ["get_hyprcloud_enabled"]
+
+[[permission]]
+identifier = "deny-get-hyprcloud-enabled"
+description = "Denies the get_hyprcloud_enabled command without any pre-configured scope."
+commands.deny = ["get_hyprcloud_enabled"]

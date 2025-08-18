@@ -8,6 +8,10 @@ pub fn show(notif: Notification) {
         return;
     }
 
+    // ensure the notification system is initialized before showing
+    #[cfg(target_os = "macos")]
+    wezterm::macos_initialize();
+
     wezterm::show(notif);
 }
 

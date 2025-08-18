@@ -1,0 +1,74 @@
+[package]
+name = "owhisper-server"
+version = "0.0.3"
+edition = "2024"
+
+[features]
+macos-default = ["coreml", "metal"]
+linux-default = []
+
+cuda = ["hypr-transcribe-whisper-local/cuda", "hypr-transcribe-moonshine/cuda"]
+coreml = ["hypr-transcribe-whisper-local/coreml", "hypr-transcribe-moonshine/coreml"]
+metal = ["hypr-transcribe-whisper-local/metal"]
+
+[build-dependencies]
+owhisper-config = { workspace = true }
+
+schemars = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+rodio = { workspace = true }
+
+[dependencies]
+owhisper-client = { workspace = true }
+owhisper-config = { workspace = true }
+owhisper-interface = { workspace = true }
+owhisper-model = { workspace = true }
+
+hypr-agc = { workspace = true }
+hypr-audio = { workspace = true }
+hypr-audio-utils = { workspace = true }
+hypr-download-interface = { workspace = true }
+hypr-file = { workspace = true }
+hypr-language = { workspace = true }
+
+hypr-transcribe-aws = { workspace = true }
+hypr-transcribe-azure = { workspace = true }
+hypr-transcribe-deepgram = { workspace = true }
+hypr-transcribe-gcp = { workspace = true }
+hypr-transcribe-moonshine = { workspace = true }
+hypr-transcribe-openai = { workspace = true }
+hypr-transcribe-whisper-local = { workspace = true }
+
+aide = { version = "0.15.0", features = ["axum"] }
+axum = { workspace = true }
+axum-extra = { workspace = true, features = ["typed-header", "query"] }
+futures-util = { workspace = true }
+rustls = { version = "0.23.31", features = ["ring"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["trace"] }
+tracing = { workspace = true }
+
+bat = "0.25.0"
+bytes = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
+env_logger = { workspace = true }
+indicatif = "0.18.0"
+log = { workspace = true }
+ratatui = "0.29.0"
+similar = { workspace = true }
+termtree = "0.5.1"
+
+cpal = { workspace = true }
+
+anyhow = { workspace = true }
+dirs = { workspace = true }
+open = "5"
+schemars = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }

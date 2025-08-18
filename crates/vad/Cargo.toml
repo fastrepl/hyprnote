@@ -3,16 +3,18 @@ name = "vad"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = []
-load-dynamic = ["ort/load-dynamic"]
+[dev-dependencies]
+hound = { workspace = true }
+hypr-data = { workspace = true }
+rodio = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }
 thiserror = { workspace = true }
 
-ndarray = "0.16"
-ort = { version = "=2.0.0-rc.10", features = ["ndarray"] }
+kalosm-sound = { workspace = true, default-features = false }
+silero-rs = { workspace = true }
 
-[dev-dependencies]
-hypr-data = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing = { workspace = true }

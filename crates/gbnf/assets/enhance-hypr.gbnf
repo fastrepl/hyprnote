@@ -1,5 +1,0 @@
-root ::= think content
-
-line ::= "- " [A-Z] [^*.\n[(]+ ".\n"
-think ::= "<think>\n" line line? line? line? "</think>"
-content ::= .*

@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Config",
+  "type": "object",
+  "required": [
+    "models"
+  ],
+  "properties": {
+    "general": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/GeneralConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ModelConfig"
+      }
+    }
+  },
+  "definitions": {
+    "GeneralConfig": {
+      "type": "object",
+      "properties": {
+        "api_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModelConfig": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "access_key_id",
+            "id",
+            "region",
+            "secret_access_key",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "aws"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "access_key_id": {
+              "type": "string"
+            },
+            "secret_access_key": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "deepgram"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "api_key": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "base_url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "assets_dir",
+            "id",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "whisper-cpp"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "assets_dir": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "assets_dir",
+            "id",
+            "size",
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "moonshine"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "size": {
+              "$ref": "#/definitions/MoonshineModelSize"
+            },
+            "assets_dir": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "MoonshineModelSize": {
+      "type": "string",
+      "enum": [
+        "tiny",
+        "base"
+      ]
+    }
+  }
+}

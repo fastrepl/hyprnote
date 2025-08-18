@@ -17,6 +17,7 @@ pub mod english_3;
 pub mod english_4;
 pub mod english_5;
 pub mod english_6;
+pub mod english_7;
 
 pub mod korean_1;
 pub mod korean_2;

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hyprnote Staging",
+  "mainBinaryName": "Hyprnote Staging",
+  "identifier": "com.hyprnote.staging",
+  "plugins": {
+    "updater": {
+      "active": false
+    }
+  },
+  "bundle": {
+    "icon": [
+      "icons/staging/32x32.png",
+      "icons/staging/128x128.png",
+      "icons/staging/128x128@2x.png",
+      "icons/staging/icon.icns",
+      "icons/staging/icon.ico"
+    ],
+    "macOS": {
+      "dmg": {
+        "background": "assets/dmg-background-nightly.png"
+      }
+    }
+  }
+}

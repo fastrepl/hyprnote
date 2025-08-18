@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-gemini-model"
+description = "Enables the get_gemini_model command without any pre-configured scope."
+commands.allow = ["get_gemini_model"]
+
+[[permission]]
+identifier = "deny-get-gemini-model"
+description = "Denies the get_gemini_model command without any pre-configured scope."
+commands.deny = ["get_gemini_model"]

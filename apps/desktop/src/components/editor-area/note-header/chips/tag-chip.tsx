@@ -1,7 +1,8 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { clsx } from "clsx";
 import { PlusIcon, SearchIcon, SparklesIcon, TagsIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { generateTagsForSession } from "@/utils/tag-generation";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -12,9 +13,11 @@ import { useSession } from "@hypr/utils/contexts";
 interface TagChipProps {
   sessionId: string;
   hashtags?: string[];
+  isVeryNarrow?: boolean;
+  isNarrow?: boolean;
 }
 
-export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
+export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarrow = false }: TagChipProps) {
   const { data: tags = [] } = useQuery({
     queryKey: ["session-tags", sessionId],
     queryFn: () => dbCommands.listSessionTags(sessionId),
@@ -33,27 +36,36 @@ export function TagChip({ sessionId, hashtags = [] }: TagChipProps) {
   const firstTag = uniqueTags[0];
   const additionalTags = totalTags - 1;
 
+  const getTagText = () => {
+    if (totalTags === 0) {
+      return isVeryNarrow ? "Tags" : isNarrow ? "Tags" : "Add tags";
+    }
+
+    // show just the number when narrow (matching participants-chip)
+    if (isVeryNarrow || isNarrow) {
+      return totalTags.toString();
+    }
+
+    return additionalTags > 0 ? `${firstTag} +${additionalTags}` : firstTag;
+  };
+
   return (
     <Popover>
       <PopoverTrigger>
         <div
-          className={`relative flex flex-row items-center gap-2 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs transition-all duration-300 ${
-            hasPendingActions ? "bg-gradient-to-r from-blue-50 to-purple-50 animate-pulse shadow-sm" : ""
-          }`}
+          className={`relative flex flex-row items-center gap-2 rounded-md hover:bg-neutral-100 flex-shrink-0 text-xs transition-all duration-300 ${
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
+          } ${hasPendingActions ? "bg-gradient-to-r from-blue-50 to-purple-50 animate-pulse shadow-sm" : ""}`}
         >
           <TagsIcon size={14} className="flex-shrink-0" />
           {hasPendingActions && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
           )}
-          {totalTags > 0
-            ? (
-              <span className="truncate">
-                {additionalTags > 0
-                  ? `${firstTag} +${additionalTags}`
-                  : firstTag}
-              </span>
-            )
-            : <span className="text-neutral-500">Add tags</span>}
+          {!isVeryNarrow && (
+            <span className={`truncate ${totalTags === 0 ? "text-neutral-500" : ""}`}>
+              {getTagText()}
+            </span>
+          )}
         </div>
       </PopoverTrigger>
 
@@ -174,14 +186,19 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   const [newTagName, setNewTagName] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Create a unique instance ID for this component to prevent state sharing
   const instanceId = useMemo(() => crypto.randomUUID(), []);
 
-  // Get session content
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   const sessionContent = useSession(sessionId, (s) => s.session.raw_memo_html);
 
-  // Get transcript words
   const { data: transcriptWords = [] } = useQuery({
     queryKey: ["session", "words", sessionId],
     queryFn: () => dbCommands.getWords(sessionId),
@@ -229,6 +246,20 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
     !existingSessionTagNames.has(suggestion.toLowerCase())
   );
 
+  const { data: recentTags = [] } = useQuery({
+    queryKey: ["recent-tags"],
+    queryFn: async () => {
+      const allTagsWithSessions = await dbCommands.listAllTags();
+      // Sort by name for now (you could add creation date to sort properly)
+      return allTagsWithSessions.slice(0, 10); // Get more than 5 to filter later
+    },
+  });
+
+  // Get recent tags that aren't already assigned to this session
+  const filteredRecentTags = recentTags
+    .filter(tag => !existingSessionTagNames.has(tag.name.toLowerCase()))
+    .slice(0, 5); // Limit to 5
+
   const parseAndSanitizeTags = (input: string): string[] => {
     const tags = input
       .split(",")
@@ -238,7 +269,6 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0 && tag.length <= 50);
 
-    // Remove duplicates within the input (case-insensitive)
     const uniqueTags = [];
     const seenTags = new Set();
 
@@ -328,10 +358,12 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    // Don't handle Enter here if we have a selection - let the global handler handle it
+    if (e.key === "Enter" && selectedIndex === -1) {
       e.preventDefault();
       handleCreateTags();
     }
+    // Don't prevent default for arrow keys - let the global handler handle them
   };
 
   const handleGetSuggestions = () => {
@@ -348,6 +380,9 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
     await createTagsMutation.mutateAsync(tagNames);
     setNewTagName("");
     setShowDropdown(false);
+    setSelectedIndex(-1);
+    // Refocus input after mutation
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleInputChange = (value: string) => {
@@ -363,8 +398,56 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
 
   const handleInputBlur = () => {
     // Delay hiding dropdown to allow clicks on dropdown items
-    setTimeout(() => setShowDropdown(false), 200);
+    setTimeout(() => {
+      setShowDropdown(false);
+      setSelectedIndex(-1);
+    }, 200);
   };
+
+  // Calculate total dropdown items for navigation
+  const totalDropdownItems = filteredExistingTags.length + (shouldShowCreateOption ? 1 : 0);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showDropdown || totalDropdownItems === 0) {
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex < totalDropdownItems - 1 ? selectedIndex + 1 : 0);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(selectedIndex > 0 ? selectedIndex - 1 : totalDropdownItems - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        if (selectedIndex < filteredExistingTags.length) {
+          // Select existing tag
+          const tag = filteredExistingTags[selectedIndex];
+          handleTagSelect(tag.name);
+        } else {
+          // Create new tag
+          handleTagSelect(newTagName.trim());
+        }
+      } else if (e.key === "Escape") {
+        setSelectedIndex(-1);
+        setShowDropdown(false);
+        inputRef.current?.focus();
+      }
+    };
+
+    // Only add listener when input is focused and dropdown is shown
+    if (inputRef.current === document.activeElement && showDropdown && totalDropdownItems > 0) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedIndex, totalDropdownItems, filteredExistingTags, showDropdown, newTagName]);
+
+  // Reset selection when dropdown content changes
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [newTagName, showDropdown]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -374,6 +457,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             <SearchIcon className="size-4" />
           </span>
           <input
+            ref={inputRef}
             type="text"
             value={newTagName}
             onChange={(e) => handleInputChange(e.target.value)}
@@ -382,7 +466,6 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             onBlur={handleInputBlur}
             placeholder="Search or add tags..."
             className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
-            autoFocus
           />
           {newTagName.trim() && (
             <button
@@ -401,10 +484,13 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         {showDropdown && (filteredExistingTags.length > 0 || shouldShowCreateOption) && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
             {/* Existing tags that match */}
-            {filteredExistingTags.map((tag) => (
+            {filteredExistingTags.map((tag, index) => (
               <button
                 key={tag.id}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 border-b border-neutral-100 last:border-b-0 flex items-center gap-2"
+                className={clsx(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 border-b border-neutral-100 last:border-b-0 flex items-center gap-2 transition-colors",
+                  selectedIndex === index && "bg-neutral-100",
+                )}
                 onClick={() => handleTagSelect(tag.name)}
               >
                 <TagsIcon className="size-3 text-neutral-400" />
@@ -415,7 +501,10 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
             {/* Create new tag option */}
             {shouldShowCreateOption && (
               <button
-                className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50 text-blue-700 flex items-center gap-2 font-medium"
+                className={clsx(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 text-blue-700 flex items-center gap-2 font-medium transition-colors",
+                  selectedIndex === filteredExistingTags.length && "bg-neutral-100",
+                )}
                 onClick={() => handleTagSelect(newTagName.trim())}
               >
                 <PlusIcon className="size-3" />
@@ -426,6 +515,26 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
         )}
       </div>
 
+      {/* Recent Tags Section */}
+      {filteredRecentTags.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="text-xs font-medium text-neutral-600">Recent Tags</div>
+          <div className="flex flex-wrap gap-1">
+            {filteredRecentTags.map((tag) => (
+              <button
+                key={tag.id}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md border border-neutral-200 transition-colors"
+                onClick={() => handleTagSelect(tag.name)}
+                disabled={createTagsMutation.isPending}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Existing AI suggestions section */}
       <div className="flex flex-col gap-2">
         <Button
           variant="ghost"

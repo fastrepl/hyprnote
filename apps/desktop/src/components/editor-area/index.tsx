@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
 import { motion } from "motion/react";
@@ -8,29 +8,99 @@ import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
+import { autoTagGeneration } from "@/utils/tag-generation";
+import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as templateCommands } from "@hypr/plugin-template";
+import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import {
-  generateText,
-  localProviderName,
-  markdownTransform,
-  modelProvider,
-  smoothStream,
-  streamText,
-  tool,
-} from "@hypr/utils/ai";
-import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
+import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { enhanceFailedToast } from "../toast/shared";
+import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
+import { TextSelectionPopover } from "./text-selection-popover";
+
+async function generateTitleDirect(
+  enhancedContent: string,
+  targetSessionId: string,
+  sessions: Record<string, any>,
+  queryClient: QueryClient,
+) {
+  const [config, { type }, provider] = await Promise.all([
+    dbCommands.getConfig(),
+    connectorCommands.getLlmConnection(),
+    modelProvider(),
+  ]);
+
+  const [systemMessage, userMessage] = await Promise.all([
+    templateCommands.render("create_title.system", { config, type }),
+    templateCommands.render("create_title.user", { type, enhanced_note: enhancedContent }),
+  ]);
+
+  const model = provider.languageModel("defaultModel");
+  const abortSignal = AbortSignal.timeout(60_000);
+
+  const { text } = await generateText({
+    abortSignal,
+    model,
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: userMessage },
+    ],
+    providerOptions: {
+      [localProviderName]: { metadata: { grammar: "title" } },
+    },
+  });
+
+  const session = await dbCommands.getSession({ id: targetSessionId });
+  if (!session?.title && sessions[targetSessionId]?.getState) {
+    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+  }
+
+  // check and run auto tag generation if the session has less than 2 tags
+  const sessionTags = await dbCommands.listSessionTags(targetSessionId);
+
+  if (sessions[targetSessionId]?.getState && sessionTags.length < 2) {
+    try {
+      const suggestedTags = await autoTagGeneration(targetSessionId);
+
+      if (suggestedTags.length > 1) {
+        const allExistingTags = await dbCommands.listAllTags();
+        const existingTagsMap = new Map(
+          allExistingTags.map(tag => [tag.name.toLowerCase(), tag]),
+        );
+
+        for (const tagName of suggestedTags.slice(0, 2)) {
+          try {
+            const existingTag = existingTagsMap.get(tagName.toLowerCase());
+
+            const tag = await dbCommands.upsertTag({
+              id: existingTag?.id || crypto.randomUUID(),
+              name: tagName,
+            });
+
+            await dbCommands.assignTagToSession(tag.id, targetSessionId);
+          } catch (error) {
+            console.error(`Failed to assign tag "${tagName}":`, error);
+          }
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["session-tags", targetSessionId] });
+      }
+    } catch (error) {
+      console.error("Failed to generate tags:", error);
+    }
+  }
+}
 
 export default function EditorArea({
   editable,
@@ -40,7 +110,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
-  const { userId } = useHypr();
+  const { userId, onboardingSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -65,7 +135,7 @@ export default function EditorArea({
 
   const templatesQuery = useQuery({
     queryKey: ["templates"],
-    queryFn: () => dbCommands.listTemplates(),
+    queryFn: () => TemplateService.getAllTemplates(),
     refetchOnWindowFocus: true,
   });
 
@@ -75,21 +145,22 @@ export default function EditorArea({
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
     queryFn: () => connectorCommands.getLlmConnection(),
+    refetchOnWindowFocus: true,
   });
 
-  const { enhance, progress } = useEnhanceMutation({
+  const sessionsStore = useSessions((s) => s.sessions);
+  const queryClient = useQueryClient();
+  const { enhance, progress, isCancelled } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       if (hasTranscriptWords) {
-        generateTitle.mutate({ enhancedContent: content });
+        generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
       }
     },
   });
-
-  const generateTitle = useGenerateTitleMutation({ sessionId });
 
   useAutoEnhance({
     sessionId,
@@ -130,7 +201,20 @@ export default function EditorArea({
     }
   }, []);
 
+  const lastBacklinkSearchTime = useRef<number>(0);
+
   const handleMentionSearch = async (query: string) => {
+    const now = Date.now();
+    const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
+
+    if (timeSinceLastEvent >= 5000) {
+      analyticsCommands.event({
+        event: "searched_backlink",
+        distinct_id: userId,
+      });
+      lastBacklinkSearchTime.current = now;
+    }
+
     const session = await dbCommands.listSessions({ type: "search", query, user_id: userId, limit: 5 });
 
     return session.map((s) => ({
@@ -139,6 +223,23 @@ export default function EditorArea({
       label: s.title,
     }));
   };
+
+  const [annotationBox, setAnnotationBox] = useState<
+    {
+      selectedText: string;
+      selectedRect: DOMRect;
+    } | null
+  >(null);
+
+  const handleAnnotate = (selectedText: string, selectedRect: DOMRect) => {
+    setAnnotationBox({ selectedText, selectedRect });
+  };
+
+  const handleCancelAnnotation = () => {
+    setAnnotationBox(null);
+  };
+
+  const isEnhancedNote = !showRaw && !!enhancedContent;
 
   return (
     <div className="relative flex h-full flex-col w-full">
@@ -180,6 +281,24 @@ export default function EditorArea({
           : <Renderer ref={editorRef} initialContent={noteContent} />}
       </div>
 
+      {/* Add the text selection popover - but not for onboarding sessions */}
+      {sessionId !== onboardingSessionId && (
+        <TextSelectionPopover
+          isEnhancedNote={isEnhancedNote}
+          onAnnotate={handleAnnotate}
+          isAnnotationBoxOpen={!!annotationBox}
+        />
+      )}
+
+      {sessionId !== onboardingSessionId && annotationBox && (
+        <AnnotationBox
+          selectedText={annotationBox.selectedText}
+          selectedRect={annotationBox.selectedRect}
+          sessionId={sessionId}
+          onCancel={handleCancelAnnotation}
+        />
+      )}
+
       <AnimatePresence>
         <motion.div
           className="absolute bottom-4 w-full flex justify-center items-center pointer-events-none z-10"
@@ -195,9 +314,9 @@ export default function EditorArea({
               handleEnhanceWithTemplate={handleEnhanceWithTemplate}
               templates={templatesQuery.data || []}
               session={sessionStore.session}
-              isError={enhance.status === "error"}
+              isError={enhance.status === "error" && !isCancelled}
               progress={progress}
-              isLocalLlm={llmConnectionQuery.data?.type === "HyprLocal"}
+              showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
             />
           </div>
         </motion.div>
@@ -222,27 +341,48 @@ export function useEnhanceMutation({
   const { userId, onboardingSessionId } = useHypr();
   const [progress, setProgress] = useState(0);
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
+  const [isCancelled, setIsCancelled] = useState(false);
   const queryClient = useQueryClient();
+
+  // Extract H1 headers at component level (always available)
+  const extractH1Headers = useCallback((htmlContent: string): string[] => {
+    if (!htmlContent) {
+      return [];
+    }
+
+    const h1Regex = /<h1[^>]*>(.*?)<\/h1>/gi;
+    const headers: string[] = [];
+    let match;
+
+    while ((match = h1Regex.exec(htmlContent)) !== null) {
+      const headerText = match[1].replace(/<[^>]*>/g, "").trim();
+      if (headerText) {
+        headers.push(headerText);
+      }
+    }
+
+    return headers;
+  }, []);
+
+  const h1Headers = useMemo(() => extractH1Headers(rawContent), [rawContent, extractH1Headers]);
 
   const preMeetingText = extractTextFromHtml(preMeetingNote);
   const rawText = extractTextFromHtml(rawContent);
 
-  // finalInput is the text that will be used to enhance the note
-  let finalInput = "";
-  const wordDiff = diffWords(preMeetingText, rawText);
-  if (wordDiff && wordDiff.length > 0) {
-    for (const diff of wordDiff) {
-      if (diff.added && diff.removed == false) {
-        finalInput += " " + diff.value;
-      }
-    }
-  }
+  const finalInput = diffWords(preMeetingText, rawText)
+    ?.filter(diff => diff.added && !diff.removed)
+    .map(diff => diff.value)
+    .join(" ") || "";
 
   const setEnhanceController = useOngoingSession((s) => s.setEnhanceController);
   const { persistSession, setEnhancedContent } = useSession(sessionId, (s) => ({
     persistSession: s.persistSession,
     setEnhancedContent: s.updateEnhancedNote,
   }));
+
+  const getCurrentEnhancedContent = useSession(sessionId, (s) => s.session?.enhanced_memo_html ?? "");
+
+  const originalContentRef = useRef<string>("");
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
@@ -253,77 +393,71 @@ export function useEnhanceMutation({
       triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
     } = { triggerType: "manual" }) => {
+      setIsCancelled(false);
+      originalContentRef.current = getCurrentEnhancedContent;
+      const abortController = new AbortController();
+      setEnhanceController(abortController);
+
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { type } = await connectorCommands.getLlmConnection();
-      const freshIsLocalLlm = type === "HyprLocal";
+      const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
+      const [{ type }, config, words] = await Promise.all([
+        connectorCommands.getLlmConnection(),
+        dbCommands.getConfig(),
+        getWordsFunc(sessionId),
+      ]);
 
+      const freshIsLocalLlm = type === "HyprLocal";
       setActualIsLocalLlm(freshIsLocalLlm);
 
       if (freshIsLocalLlm) {
         setProgress(0);
       }
 
-      const fn = sessionId === onboardingSessionId
-        ? dbCommands.getWordsOnboarding
-        : dbCommands.getWords;
-
-      const words = await fn(sessionId);
-
-      if (!words.length) {
+      const wordsThreshold = import.meta.env.DEV ? 5 : 100;
+      if (!words.length || words.length < wordsThreshold) {
         toast({
           id: "short-timeline",
           title: "Recording too short",
-          content: "The recording is too short to enhance",
+          content: `We need at least ${wordsThreshold} words to enhance your note.`,
           dismissible: true,
           duration: 5000,
         });
         return;
       }
 
-      // Get current config for default template
-      const config = await dbCommands.getConfig();
-
-      // Use provided templateId or fall back to config
       const effectiveTemplateId = templateId !== undefined
         ? templateId
         : config.general?.selected_template_id;
 
-      let templateInfo = "";
-      let customGrammar: string | null = null;
+      const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
-      if (effectiveTemplateId) {
-        const templates = await dbCommands.listTemplates();
-        const selectedTemplate = templates.find(t => t.id === effectiveTemplateId);
+      const eventName = selectedTemplate?.tags.includes("builtin")
+        ? "builtin_template_enhancement_started"
+        : "custom_template_enhancement_started";
+      analyticsCommands.event({
+        event: eventName,
+        distinct_id: userId,
+      });
 
-        if (selectedTemplate) {
-          if (selectedTemplate.sections && selectedTemplate.sections.length > 0) {
-            customGrammar = generateCustomGBNF(selectedTemplate.sections);
-          }
-
-          templateInfo = `
-SELECTED TEMPLATE:
-Template Title: ${selectedTemplate.title || "Untitled"}
-Template Description: ${selectedTemplate.description || "No description"}
-
-Sections:`;
-
-          selectedTemplate.sections?.forEach((section, index) => {
-            templateInfo += `
-  ${index + 1}. ${section.title || "Untitled Section"}
-     └─ ${section.description || "No description"}`;
-          });
-        }
-      } else {
-        console.log("Using default template (no custom template selected)");
-      }
+      const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
+      const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
 
       const participants = await dbCommands.sessionListParticipants(sessionId);
 
+      let customInstruction = selectedTemplate?.description;
+
       const systemMessage = await templateCommands.render(
         "enhance.system",
-        { config, type, templateInfo },
+        {
+          config,
+          type,
+          // Pass userHeaders when using H1 headers, templateInfo otherwise
+          ...(shouldUseH1Headers
+            ? { userHeaders: h1Headers }
+            : { templateInfo: selectedTemplate, customInstruction: customInstruction }),
+        },
       );
 
       const userMessage = await templateCommands.render(
@@ -336,14 +470,15 @@ Sections:`;
         },
       );
 
-      const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(60 * 1000)]);
-      setEnhanceController(abortController);
+      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 
       const provider = await modelProvider();
       const model = sessionId === onboardingSessionId
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
+
+      console.log("model: ", model);
+      console.log("provider: ", provider);
 
       if (sessionId !== onboardingSessionId) {
         analyticsCommands.event({
@@ -357,45 +492,63 @@ Sections:`;
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        // Use fresh value for tools
         ...(freshIsLocalLlm && {
           tools: {
-            update_progress: tool({ parameters: z.any() }),
+            update_progress: tool({ inputSchema: z.any() }),
           },
         }),
+        onError: (error) => {
+          toast({
+            id: "something went wrong",
+            title: "🚨 Something went wrong",
+            content: (
+              <div>
+                Please try again or contact the team.
+                <br />
+                <br />
+                <span className="text-xs">Error: {String(error.error)}</span>
+              </div>
+            ),
+            dismissible: true,
+            duration: 5000,
+          });
+          throw error;
+        },
         messages: [
           { role: "system", content: systemMessage },
           { role: "user", content: userMessage },
         ],
         experimental_transform: [
-          markdownTransform(),
           smoothStream({ delayInMs: 80, chunking: "line" }),
         ],
-        // Use fresh value for provider options
         ...(freshIsLocalLlm && {
           providerOptions: {
             [localProviderName]: {
-              metadata: customGrammar
-                ? {
-                  grammar: "custom",
-                  customGrammar: customGrammar,
-                }
-                : {
-                  grammar: "enhance",
-                },
+              metadata: {
+                grammar: {
+                  task: "enhance",
+                  sections: grammarSections,
+                } satisfies Grammar,
+              },
             },
           },
         }),
       });
 
       let acc = "";
+
       for await (const chunk of fullStream) {
         if (chunk.type === "text-delta") {
-          acc += chunk.textDelta;
+          acc += chunk.text;
         }
-        // Use fresh value for progress updates
+        if (chunk.type === "error") {
+          if (originalContentRef.current !== "" && acc === "") {
+            setEnhancedContent(originalContentRef.current);
+          }
+          throw new Error(String(chunk.error));
+        }
         if (chunk.type === "tool-call" && freshIsLocalLlm) {
-          const chunkProgress = chunk.args?.progress ?? 0;
+          const chunkProgress = chunk.input?.progress ?? 0;
           setProgress(chunkProgress);
         }
 
@@ -405,7 +558,8 @@ Sections:`;
 
       return text.then(miscCommands.opinionatedMdToHtml);
     },
-    onSuccess: (enhancedContent) => {
+    onSuccess: (enhancedContent: string | undefined) => {
+      setIsCancelled(false);
       onSuccess(enhancedContent ?? "");
 
       analyticsCommands.event({
@@ -421,76 +575,30 @@ Sections:`;
       if (actualIsLocalLlm) {
         setProgress(0);
       }
+
+      setEnhanceController(null);
     },
     onError: (error) => {
+      console.error(error);
+
+      const isCancellationError = (error as unknown as string).includes("cancel")
+        || (error as any)?.name === "AbortError";
+
+      setIsCancelled(isCancellationError);
+
       if (actualIsLocalLlm) {
         setProgress(0);
       }
-      console.error(error);
 
-      if (!(error as unknown as string).includes("cancel")) {
+      if (!isCancellationError) {
         enhanceFailedToast();
       }
+
+      setEnhanceController(null);
     },
   });
 
-  return { enhance, progress: actualIsLocalLlm ? progress : undefined };
-}
-
-function useGenerateTitleMutation({ sessionId }: { sessionId: string }) {
-  const { title, updateTitle } = useSession(sessionId, (s) => ({
-    title: s.session.title,
-    updateTitle: s.updateTitle,
-  }));
-
-  const generateTitle = useMutation({
-    mutationKey: ["generateTitle", sessionId],
-    mutationFn: async ({ enhancedContent }: { enhancedContent: string }) => {
-      const config = await dbCommands.getConfig();
-      const { type } = await connectorCommands.getLlmConnection();
-
-      const systemMessage = await templateCommands.render(
-        "create_title.system",
-        { config, type },
-      );
-
-      const userMessage = await templateCommands.render(
-        "create_title.user",
-        {
-          type,
-          enhanced_note: enhancedContent,
-        },
-      );
-
-      const abortController = new AbortController();
-      const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(30 * 1000)]);
-
-      const provider = await modelProvider();
-      const model = provider.languageModel("defaultModel");
-
-      const newTitle = await generateText({
-        abortSignal,
-        model,
-        messages: [
-          { role: "system", content: systemMessage },
-          { role: "user", content: userMessage },
-        ],
-        providerOptions: {
-          [localProviderName]: {
-            metadata: {
-              grammar: "title",
-            },
-          },
-        },
-      });
-
-      if (!title) {
-        updateTitle(newTitle.text);
-      }
-    },
-  });
-
-  return generateTitle;
+  return { enhance, progress: actualIsLocalLlm ? progress : undefined, isCancelled };
 }
 
 function useAutoEnhance({
@@ -535,56 +643,4 @@ function useAutoEnhance({
     setAutoEnhanceTemplate,
     prevOngoingSessionStatus,
   ]);
-}
-
-// function to dynamically generate the grammar for the custom template
-function generateCustomGBNF(templateSections: any[]): string {
-  if (!templateSections || templateSections.length === 0) {
-    return "";
-  }
-
-  function escapeForGBNF(text: string): string {
-    return text
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, "\\\"")
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      .replace(/\t/g, "\\t");
-  }
-
-  const validatedSections = templateSections.map((section, index) => {
-    let title = section.title || `Section ${index + 1}`;
-
-    title = title
-      .trim()
-      .replace(/[\x00-\x1F\x7F]/g, "")
-      .substring(0, 100);
-
-    return {
-      ...section,
-      safeTitle: title || `Section ${index + 1}`,
-    };
-  });
-
-  const sectionRules = validatedSections.map((section, index) => {
-    const sectionName = `section${index + 1}`;
-    const escapedHeader = escapeForGBNF(section.safeTitle);
-    return `${sectionName} ::= "# ${escapedHeader}\\n\\n" bline bline bline? bline? bline? "\\n"`;
-  }).join("\n");
-
-  const sectionNames = validatedSections.map((_, index) => `section${index + 1}`).join(" ");
-
-  const grammar = `root ::= thinking ${sectionNames}
-
-${sectionRules}
-
-bline ::= "- **" [^*\\n:]+ "**: " ([^*;,[.\\n] | link)+ ".\\n"
-
-hsf ::= "- Objective\\n"
-hd ::= "- " [A-Z] [^[(*\\n]+ "\\n"
-thinking ::= "<thinking>\\n" hsf hd hd? hd? hd? "</thinking>"
-
-link ::= "[" [^\\]]+ "]" "(" [^)]+ ")"`;
-
-  return grammar;
 }

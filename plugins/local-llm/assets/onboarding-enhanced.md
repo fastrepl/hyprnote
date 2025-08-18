@@ -1,16 +1,23 @@
-# Objective
+# Hyprnote Overview
 
-- Onboard new users to Hyprnote quickly and efficiently.
-- Demonstrate core functionality within the first 5 minutes of use.
-- Guide users through setting up their first meeting note.
-- Help users understand the value of automated transcription and summary features.
+Hyprnote is an AI-powered notepad designed for private meetings with complete on-device processing. No data leaves your computer, with optional telemetry.
 
-# Privacy and Performance
+# How It Works
 
-- Built local-first: works offline and stores data on your device.
-- Prioritizes user privacy and seamless experience.
+1. Create a new note and press the record button
+2. Live transcript appears in the right panel as people speak
+3. Jot down key points during the meeting
+4. Stop recording to generate an AI summary that blends your notes with the transcript
+5. Processing happens locally using an on-device AI model
 
-# Stay Connected
+# Key Features
 
-- Follow updates on [X](https://hyprnote.com/x).
-- Join the community and chat on [Discord](https://hyprnote.com/discord).
+- **100% Private**: No wifi, cloud, or third-party services required
+- **Live Transcription**: Real-time speech-to-text during meetings
+- **AI Summaries**: Automatic synthesis of notes and transcripts
+- **Additional Tools**: AI chat, meeting templates, customizable workflow settings
+
+# Getting Started
+
+- Documentation available for detailed guidance
+- Discord community for support and feedback

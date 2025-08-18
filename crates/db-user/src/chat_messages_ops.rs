@@ -14,8 +14,9 @@ impl UserDatabase {
                     group_id,
                     created_at,
                     role,
-                    content
-                ) VALUES (?, ?, ?, ?, ?)
+                    content,
+                    type
+                ) VALUES (?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     message.id,
@@ -23,6 +24,7 @@ impl UserDatabase {
                     message.created_at.to_rfc3339(),
                     message.role.to_string(),
                     message.content,
+                    message.r#type.to_string(),
                 ],
             )
             .await?;
@@ -53,5 +55,18 @@ impl UserDatabase {
             items.push(item);
         }
         Ok(items)
+    }
+
+    pub async fn delete_chat_messages(
+        &self,
+        group_id: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        let conn = self.conn()?;
+        conn.execute(
+            "DELETE FROM chat_messages WHERE group_id = ?",
+            vec![group_id.into()],
+        )
+        .await?;
+        Ok(())
     }
 }

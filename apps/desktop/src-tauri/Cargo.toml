@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.52"
+version = "0.0.68"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -27,6 +27,7 @@ hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-turso = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
@@ -37,9 +38,10 @@ tauri-plugin-listener = { workspace = true }
 tauri-plugin-local-llm = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-machine-uid = { workspace = true }
-tauri-plugin-membership = { workspace = true }
+tauri-plugin-mcp = { workspace = true }
 tauri-plugin-misc = { workspace = true }
 tauri-plugin-notification = { workspace = true }
+tauri-plugin-obsidian = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
 tauri-plugin-sse = { workspace = true }
@@ -47,6 +49,7 @@ tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tray = { workspace = true }
+tauri-plugin-webhook = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }
@@ -57,11 +60,12 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-http = { workspace = true }
+tauri-plugin-keygen = { workspace = true }
 tauri-plugin-os = "2"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
 tauri-plugin-process = "2"
 tauri-plugin-sentry = { version = "0.4.1", features = ["tracing"] }
-tauri-plugin-shell = "2"
+tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = "2"
@@ -80,6 +84,7 @@ thiserror = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_qs = { workspace = true }
 
 bytes = { workspace = true }
 chrono = { workspace = true }

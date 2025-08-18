@@ -50,15 +50,15 @@ export default function LeftSidebar() {
       const rawEvents = await dbCommands.listEvents({
         type: "dateRange",
         user_id: userId,
-        limit: 3,
+        limit: 15, // fetch more events to ensure buffer
         start: subHours(now, 12).toISOString(),
         end: addDays(now, 28).toISOString(),
       });
 
-      const ongoingOrUpcomingEvents = rawEvents.filter(
-        (event) => new Date(event.end_date) > now,
-      );
-
+      const ongoingOrUpcomingEvents = rawEvents
+        .filter((event) => new Date(event.end_date) > now)
+        .slice(0, 3) // take only the 3 closest events
+        .reverse(); // reverse the order to show the closest events first
       if (ongoingOrUpcomingEvents.length === 0) {
         return [];
       }
@@ -105,9 +105,9 @@ export default function LeftSidebar() {
                   <EventsList
                     events={events.data?.filter(
                       (event) => {
-                        const eventDate = new Date(event.start_date);
+                        const eventEndDate = new Date(event.end_date); // use end_date
                         const now = new Date();
-                        const isFutureEvent = eventDate > now;
+                        const isActiveOrUpcoming = eventEndDate > now; // show until ended
                         const isNotOngoingOrIsActive = !(
                           event.session?.id
                           && ongoingSessionId
@@ -115,23 +115,23 @@ export default function LeftSidebar() {
                           && event.session.id !== activeSessionId
                         );
 
-                        return isFutureEvent && isNotOngoingOrIsActive;
+                        return isActiveOrUpcoming && isNotOngoingOrIsActive;
                       },
                     )}
                     activeSessionId={activeSessionId}
                   />
                   <NotesList
                     filter={(session) => {
-                      const hasFutureEvent = events.data?.some((event) => {
+                      const hasActiveEvent = events.data?.some((event) => {
                         if (event.session?.id !== session.id) {
                           return false;
                         }
-                        const eventDate = new Date(event.start_date);
+                        const eventEndDate = new Date(event.end_date); // use end_date
                         const now = new Date();
-                        return eventDate > now;
+                        return eventEndDate > now; // check if event ended
                       }) ?? false;
 
-                      return !hasFutureEvent;
+                      return !hasActiveEvent; // show in notes only when event ended
                     }}
                     ongoingSessionId={ongoingSessionId}
                   />

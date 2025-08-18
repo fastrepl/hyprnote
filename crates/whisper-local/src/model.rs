@@ -5,7 +5,7 @@ use regex::Regex;
 
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
-    WhisperToken,
+    WhisperTokenId,
 };
 
 use hypr_whisper::Language;
@@ -17,9 +17,7 @@ lazy_static! {
 #[derive(Default)]
 pub struct WhisperBuilder {
     model_path: Option<String>,
-    language: Option<Language>,
-    static_prompt: Option<String>,
-    dynamic_prompt: Option<String>,
+    languages: Option<Vec<Language>>,
 }
 
 impl WhisperBuilder {
@@ -28,22 +26,12 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn language(mut self, language: Language) -> Self {
-        self.language = Some(language);
+    pub fn languages(mut self, languages: Vec<Language>) -> Self {
+        self.languages = Some(languages);
         self
     }
 
-    pub fn static_prompt(mut self, static_prompt: impl Into<String>) -> Self {
-        self.static_prompt = Some(static_prompt.into());
-        self
-    }
-
-    pub fn dynamic_prompt(mut self, dynamic_prompt: impl Into<String>) -> Self {
-        self.dynamic_prompt = Some(dynamic_prompt.into());
-        self
-    }
-
-    pub fn build(self) -> Whisper {
+    pub fn build(self) -> Result<Whisper, crate::Error> {
         unsafe { Self::suppress_log() };
 
         let context_param = {
@@ -56,20 +44,20 @@ impl WhisperBuilder {
         };
 
         let model_path = self.model_path.unwrap();
+        if !std::path::Path::new(&model_path).exists() {
+            return Err(crate::Error::ModelNotFound);
+        }
 
-        let ctx = WhisperContext::new_with_params(&model_path, context_param).unwrap();
-        let state = ctx.create_state().unwrap();
-        let token_eot = ctx.token_eot();
+        let ctx = WhisperContext::new_with_params(&model_path, context_param)?;
+        let state = ctx.create_state()?;
         let token_beg = ctx.token_beg();
 
-        Whisper {
-            language: self.language,
-            static_prompt: self.static_prompt.unwrap_or_default(),
-            dynamic_prompt: self.dynamic_prompt.unwrap_or_default(),
+        Ok(Whisper {
+            languages: self.languages.unwrap_or_default(),
+            dynamic_prompt: "".to_string(),
             state,
-            token_eot,
             token_beg,
-        }
+        })
     }
 
     unsafe fn suppress_log() {
@@ -84,12 +72,10 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
-    language: Option<Language>,
-    static_prompt: String,
+    languages: Vec<Language>,
     dynamic_prompt: String,
     state: WhisperState,
-    token_eot: WhisperToken,
-    token_beg: WhisperToken,
+    token_beg: WhisperTokenId,
 }
 
 impl Whisper {
@@ -98,21 +84,32 @@ impl Whisper {
     }
 
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
+        let input_audio_length_sec = audio.len() as f32 / 16000.0;
+        if input_audio_length_sec < 0.1 {
+            tracing::warn!(input_audio_length_sec = ?input_audio_length_sec, "transcribe_skipped");
+            return Ok(vec![]);
+        }
+
+        let token_beg = self.token_beg;
+        let language = self.get_language(audio)?;
+
         let params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
-            let parts = [self.static_prompt.trim(), self.dynamic_prompt.trim()];
+            let parts = [self.dynamic_prompt.trim()];
             let joined = parts.join("\n");
             let initial_prompt = joined.trim();
 
-            tracing::info!(initial_prompt = ?initial_prompt, "transcribe");
+            tracing::info!(input_audio_length_sec = ?input_audio_length_sec, "transcribe_started");
 
             p.set_translate(false);
-            p.set_language(self.language.as_ref().map(|l| l.as_ref()));
+            p.set_detect_language(false);
+            p.set_language(language.as_deref());
+
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {
-                Self::suppress_beg(&mut p, &self.token_beg);
+                Self::suppress_beg(&mut p, &token_beg);
             }
 
             p.set_no_timestamps(true);
@@ -122,7 +119,6 @@ impl Whisper {
             p.set_temperature(0.0);
             p.set_temperature_inc(0.2);
 
-            p.set_detect_language(false);
             p.set_single_segment(true);
             p.set_suppress_blank(true);
             p.set_suppress_nst(true);
@@ -135,76 +131,112 @@ impl Whisper {
         };
 
         self.state.full(params, &audio[..])?;
-        let num_segments = self.state.full_n_segments()?;
+        let num_segments = self.state.full_n_segments();
 
         let mut segments = Vec::new();
         for i in 0..num_segments {
-            let text = self.state.full_get_segment_text_lossy(i)?;
-            let (start, end) = (
-                self.state.full_get_segment_t0(i)?,
-                self.state.full_get_segment_t1(i)?,
-            );
-            let confidence = self.calculate_segment_confidence(i);
-
-            let mut segment = Segment {
-                text,
-                start: start as f32 / 1000.0,
-                end: end as f32 / 1000.0,
-                confidence,
-                ..Default::default()
+            let segment = match self.state.get_segment(i) {
+                Some(seg) => seg,
+                None => continue,
             };
-            segment.trim();
-            segments.push(segment);
+
+            let (start, end) = (
+                (segment.start_timestamp() as f64) / 100.0,
+                (segment.end_timestamp() as f64) / 100.0,
+            );
+
+            let text = {
+                let segment_text = segment.to_str_lossy()?;
+                TRAILING_DOTS.replace(&segment_text, "").to_string()
+            };
+
+            segments.push(Segment {
+                text,
+                language: language.clone(),
+                start,
+                end,
+                // https://github.com/ggml-org/whisper.cpp/pull/971/files#diff-2d3599a9fad195f2c3c60bd06691bc1815325b3560b5feda41a91fa71194e805R310-R327
+                // We previously implemented it based on above, but after updating to v1.7.6, the API has changed, and we're still unable to figure it out. We're not using it anyway.
+                confidence: 1.0,
+                ..Default::default()
+            });
         }
 
-        self.dynamic_prompt = segments
+        let segments = Self::filter_segments(segments);
+
+        let full_text = segments
             .iter()
             .map(|s| s.text())
             .collect::<Vec<&str>>()
             .join(" ");
 
+        if !full_text.is_empty() {
+            tracing::info!(text = ?full_text, "transcribe_completed");
+            self.dynamic_prompt = full_text;
+        }
+
         Ok(segments)
     }
 
-    // https://github.com/ggml-org/whisper.cpp/pull/971/files#diff-2d3599a9fad195f2c3c60bd06691bc1815325b3560b5feda41a91fa71194e805R310-R327
-    fn calculate_segment_confidence(&self, segment_idx: i32) -> f32 {
-        let n_tokens = self.state.full_n_tokens(segment_idx).unwrap_or(0);
-        if n_tokens == 0 {
-            return 0.0;
+    fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
+        if self.languages.len() == 0 {
+            tracing::info!("no_language_specified");
+            return Ok(None);
         }
 
-        let mut total_confidence = 0.0;
-        let mut valid_tokens = 0;
+        if self.languages.len() == 1 {
+            let lang = &self.languages[0];
+            tracing::info!("single_language_specified: {}", lang);
+            return Ok(Some(lang.to_string()));
+        }
 
-        for j in 0..n_tokens {
-            let token_id = match self.state.full_get_token_id(segment_idx, j) {
-                Ok(id) => id,
-                Err(_) => continue,
-            };
+        let lang_str = {
+            self.state.pcm_to_mel(audio, 1)?;
+            let (_lang_id, lang_probs) = self.state.lang_detect(0, 1)?;
 
-            if token_id >= self.token_eot {
-                continue;
+            let mut best_lang = None;
+            let mut best_prob = f32::NEG_INFINITY;
+
+            for lang in &self.languages {
+                let lang_id = lang.whisper_index();
+                if lang_id < lang_probs.len() {
+                    let prob = lang_probs[lang_id];
+                    if prob > best_prob {
+                        best_prob = prob;
+                        best_lang = Some(lang.as_ref().to_string());
+                    }
+                }
             }
 
-            let token_p = self
-                .state
-                .full_get_token_prob(segment_idx, j)
-                .unwrap_or(0.0);
+            tracing::info!("predicted: {:#?}, from: {:#?}", best_lang, self.languages);
+            best_lang
+        };
 
-            let token_confidence = token_p.powi(3);
-
-            total_confidence += token_confidence;
-            valid_tokens += 1;
-        }
-
-        if valid_tokens == 0 {
-            return 0.0;
-        }
-
-        total_confidence / valid_tokens as f32
+        Ok(lang_str)
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
+    fn filter_segments(segments: Vec<Segment>) -> Vec<Segment> {
+        segments
+            .into_iter()
+            .filter(|s| {
+                let t = s.text.trim().to_lowercase();
+
+                if s.confidence < 0.005
+                    || t == "you"
+                    || t == "thank you"
+                    || t == "you."
+                    || t == "thank you."
+                    || t == "♪"
+                {
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect()
+    }
+
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
@@ -217,13 +249,13 @@ impl Whisper {
                 return;
             }
 
-            let token_beg = *(user_data as *const WhisperToken);
-            *logits.offset(token_beg as isize) = f32::NEG_INFINITY;
+            let token_beg_id = *(user_data as *const WhisperTokenId);
+            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
         params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperToken as *mut std::ffi::c_void,
+            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
         );
     }
 }
@@ -232,8 +264,9 @@ impl Whisper {
 #[derive(Debug, Default)]
 pub struct Segment {
     pub text: String,
-    pub start: f32,
-    pub end: f32,
+    pub language: Option<String>,
+    pub start: f64,
+    pub end: f64,
     pub confidence: f32,
     pub meta: Option<serde_json::Value>,
 }
@@ -243,15 +276,19 @@ impl Segment {
         &self.text
     }
 
-    pub fn start(&self) -> f32 {
+    pub fn language(&self) -> Option<&str> {
+        self.language.as_deref()
+    }
+
+    pub fn start(&self) -> f64 {
         self.start
     }
 
-    pub fn end(&self) -> f32 {
+    pub fn end(&self) -> f64 {
         self.end
     }
 
-    pub fn duration(&self) -> f32 {
+    pub fn duration(&self) -> f64 {
         self.end - self.start
     }
 
@@ -262,10 +299,6 @@ impl Segment {
     pub fn meta(&self) -> Option<serde_json::Value> {
         self.meta.clone()
     }
-
-    pub fn trim(&mut self) {
-        self.text = TRAILING_DOTS.replace(&self.text, "").to_string();
-    }
 }
 
 #[cfg(test)]
@@ -274,40 +307,11 @@ mod tests {
     use futures_util::StreamExt;
 
     #[test]
-    fn test_trim() {
-        {
-            let mut segment = Segment {
-                text: "Hello...".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello");
-        }
-
-        {
-            let mut segment = Segment {
-                text: "Hello".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello");
-        }
-
-        {
-            let mut segment = Segment {
-                text: "Hello.".to_string(),
-                ..Default::default()
-            };
-            segment.trim();
-            assert_eq!(segment.text, "Hello.");
-        }
-    }
-
-    #[test]
     fn test_whisper() {
         let mut whisper = Whisper::builder()
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
-            .build();
+            .build()
+            .unwrap();
 
         let audio: Vec<f32> = hypr_data::english_1::AUDIO
             .chunks_exact(2)
@@ -315,6 +319,7 @@ mod tests {
             .collect();
 
         let segments = whisper.transcribe(&audio).unwrap();
+        println!("segments: {:#?}", segments);
         assert!(segments.len() > 0);
     }
 
@@ -323,13 +328,14 @@ mod tests {
         let llama_path = dirs::data_dir()
             .unwrap()
             .join("com.hyprnote.dev")
-            .join("llm.gguf");
+            .join("hypr-llm.gguf");
 
         let llama = hypr_llama::Llama::new(llama_path).unwrap();
 
         let mut whisper = Whisper::builder()
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
-            .build();
+            .build()
+            .unwrap();
 
         let request = hypr_llama::LlamaRequest {
             messages: vec![hypr_llama::LlamaChatMessage::new(

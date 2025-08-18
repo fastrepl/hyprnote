@@ -7,12 +7,9 @@ impl UserDatabase {
     ) -> Result<Vec<Template>, crate::Error> {
         let conn = self.conn()?;
 
-        let mut rows = conn
-            .query(
-                "SELECT * FROM templates WHERE user_id = ?",
-                vec![user_id.into()],
-            )
-            .await?;
+        let _user_id = user_id.into();
+
+        let mut rows = conn.query("SELECT * FROM templates", ()).await?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next().await.unwrap() {

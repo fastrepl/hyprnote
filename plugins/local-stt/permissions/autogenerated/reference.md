@@ -5,16 +5,16 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-models-dir`
-- `allow-is-server-running`
 - `allow-is-model-downloaded`
 - `allow-is-model-downloading`
 - `allow-download-model`
 - `allow-start-server`
 - `allow-stop-server`
+- `allow-get-servers`
 - `allow-get-current-model`
 - `allow-set-current-model`
 - `allow-list-supported-models`
-- `allow-process-recorded`
+- `allow-list-supported-languages`
 
 ## Permission Table
 
@@ -73,6 +73,58 @@ Enables the get_current_model command without any pre-configured scope.
 <td>
 
 Denies the get_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-external-server-status`
+
+</td>
+<td>
+
+Enables the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-external-server-status`
+
+</td>
+<td>
+
+Denies the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-servers`
+
+</td>
+<td>
+
+Enables the get_servers command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-servers`
+
+</td>
+<td>
+
+Denies the get_servers command without any pre-configured scope.
 
 </td>
 </tr>
@@ -210,6 +262,58 @@ Denies the list_ggml_backends command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-list-pro-models`
+
+</td>
+<td>
+
+Enables the list_pro_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-pro-models`
+
+</td>
+<td>
+
+Denies the list_pro_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-list-supported-languages`
+
+</td>
+<td>
+
+Enables the list_supported_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-supported-languages`
+
+</td>
+<td>
+
+Denies the list_supported_languages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-list-supported-models`
 
 </td>
@@ -229,6 +333,32 @@ Enables the list_supported_models command without any pre-configured scope.
 <td>
 
 Denies the list_supported_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-list-supported-models-info`
+
+</td>
+<td>
+
+Enables the list_supported_models_info command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-list-supported-models-info`
+
+</td>
+<td>
+
+Denies the list_supported_models_info command without any pre-configured scope.
 
 </td>
 </tr>
@@ -262,12 +392,12 @@ Denies the models_dir command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:allow-process-recorded`
+`local-stt:allow-restart-server`
 
 </td>
 <td>
 
-Enables the process_recorded command without any pre-configured scope.
+Enables the restart_server command without any pre-configured scope.
 
 </td>
 </tr>
@@ -275,12 +405,12 @@ Enables the process_recorded command without any pre-configured scope.
 <tr>
 <td>
 
-`local-stt:deny-process-recorded`
+`local-stt:deny-restart-server`
 
 </td>
 <td>
 
-Denies the process_recorded command without any pre-configured scope.
+Denies the restart_server command without any pre-configured scope.
 
 </td>
 </tr>

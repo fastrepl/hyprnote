@@ -1,0 +1,3 @@
+@import "tailwind-preset-mantine";
+@import "@mantine/core/styles.css";
+@import "@mantine/notifications/styles.css";

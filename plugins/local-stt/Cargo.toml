@@ -9,46 +9,57 @@ description = ""
 
 [features]
 default = []
-coreml = ["hypr-whisper-local/coreml", "hypr-pyannote-local/coreml"]
-directml = ["hypr-pyannote-local/directml"]
-cuda = ["hypr-whisper-local/cuda"]
-hipblas = ["hypr-whisper-local/hipblas"]
-openblas = ["hypr-whisper-local/openblas"]
-metal = ["hypr-whisper-local/metal"]
-vulkan = ["hypr-whisper-local/vulkan"]
-openmp = ["hypr-whisper-local/openmp"]
-load-dynamic = ["hypr-pyannote-local/load-dynamic", "hypr-chunker/load-dynamic"]
+coreml = ["hypr-transcribe-whisper-local/coreml", "hypr-transcribe-moonshine/coreml"]
+directml = ["hypr-transcribe-whisper-local/directml", "hypr-transcribe-moonshine/directml"]
+cuda = ["hypr-transcribe-whisper-local/cuda", "hypr-transcribe-moonshine/cuda"]
+hipblas = ["hypr-transcribe-whisper-local/hipblas"]
+openblas = ["hypr-transcribe-whisper-local/openblas"]
+metal = ["hypr-transcribe-whisper-local/metal"]
+vulkan = ["hypr-transcribe-whisper-local/vulkan"]
+openmp = ["hypr-transcribe-whisper-local/openmp"]
+load-dynamic = ["hypr-transcribe-whisper-local/load-dynamic"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
-hypr-language = { workspace = true }
+hypr-language = { workspace = true, features = ["whisper"] }
 
 tauri-plugin-listener = { workspace = true }
+tauri-plugin-store = { workspace = true }
 
-tokio-tungstenite = { workspace = true }
-
-bytes = { workspace = true }
+dirs = { workspace = true }
+inventory = { workspace = true }
 reqwest = { workspace = true }
+rodio = { workspace = true }
+similar = { workspace = true }
 specta-typescript = { workspace = true }
+tokio-tungstenite = { workspace = true }
+tower = { workspace = true }
 
 [dependencies]
+hypr-am = { workspace = true }
 hypr-audio-utils = { workspace = true }
-hypr-chunker = { workspace = true }
+hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
-hypr-listener-interface = { workspace = true }
-hypr-pyannote-local = { workspace = true }
-hypr-whisper = { workspace = true }
+hypr-language = { workspace = true, features = ["whisper"] }
+hypr-transcribe-moonshine = { workspace = true }
+hypr-transcribe-whisper-local = { workspace = true }
 hypr-whisper-local = { workspace = true }
-hypr-ws-utils = { workspace = true }
+hypr-whisper-local-model = { workspace = true }
+
+owhisper-client = { workspace = true }
+owhisper-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-store = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-shell = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+tauri-plugin-windows = { workspace = true }
 
 dirs = { workspace = true }
 serde = { workspace = true }
@@ -57,12 +68,13 @@ specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
-rodio = { workspace = true, features = ["symphonia", "symphonia-all"] }
-
-axum = { workspace = true, features = ["ws", "multipart"] }
+axum = { workspace = true, features = ["ws"] }
+axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }
+port-killer = "0.1.0"
+reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }

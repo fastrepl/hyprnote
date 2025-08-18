@@ -92,6 +92,7 @@ function Component() {
         loading="viewport"
         onEnded={handleEnded}
         onTimeUpdate={handleTimeUpdate}
+        disableTracking={import.meta.env.DEV}
       />
     </div>
   );

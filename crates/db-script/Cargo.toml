@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hypr-listener-interface = { workspace = true }
 libsql = { workspace = true }
+owhisper-interface = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]

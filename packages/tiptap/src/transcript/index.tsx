@@ -10,8 +10,9 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
 import { SpeakerSplit } from "./extensions";
+import { InterimMark } from "./marks";
 import { SpeakerNode } from "./nodes";
-import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word } from "./utils";
+import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word2 } from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
 export { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
@@ -19,18 +20,19 @@ export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps };
 
 interface TranscriptEditorProps {
   editable?: boolean;
-  initialWords: Word[] | null;
-  onUpdate?: (words: Word[]) => void;
+  initialWords: Word2[] | null;
+  onUpdate?: (words: Word2[]) => void;
   c: SpeakerViewInnerComponent;
 }
 
 export interface TranscriptEditorRef {
   editor: TiptapEditor | null;
-  getWords: () => Word[] | null;
-  setWords: (words: Word[]) => void;
+  getWords: () => Word2[] | null;
+  setWords: (words: Word2[]) => void;
   scrollToBottom: () => void;
-  appendWords: (newWords: Word[]) => void;
+  appendWords: (newWords: Word2[]) => void;
   toText: () => string;
+  isNearBottom: () => boolean;
 }
 
 declare module "@tiptap/core" {
@@ -51,6 +53,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       Document.configure({ content: "speaker+" }),
       History,
       Text,
+      InterimMark,
       SpeakerNode(c),
       SpeakerSplit,
       SearchAndReplace.configure({
@@ -82,7 +85,7 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       if (ref && typeof ref === "object" && editor) {
         ref.current = {
           editor,
-          setWords: (words: Word[]) => {
+          setWords: (words: Word2[]) => {
             if (!editor) {
               return;
             }
@@ -101,7 +104,17 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
               scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
             }
           },
-          appendWords: (newWords: Word[]) => {
+          isNearBottom: () => {
+            if (!scrollContainerRef.current) {
+              return true;
+            }
+
+            const container = scrollContainerRef.current;
+            const threshold = 100;
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            return distanceFromBottom <= threshold;
+          },
+          appendWords: (newWords: Word2[]) => {
             if (!editor || !newWords.length) {
               return;
             }

@@ -8,5 +8,9 @@ permissions = [
     "allow-download-model",
     "allow-start-server",
     "allow-stop-server",
-    "allow-list-ollama-models",
+    "allow-restart-server",
+    "allow-get-current-model",
+    "allow-set-current-model",
+    "allow-list-downloaded-model",
+    "allow-list-supported-model",
 ]

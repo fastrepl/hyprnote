@@ -1,89 +1,64 @@
 import { Trans } from "@lingui/react/macro";
-import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { ExternalLinkIcon, Pen } from "lucide-react";
+import { Calendar, FileText, Pen } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import type { Event } from "@hypr/plugin-db";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { Button } from "@hypr/ui/components/ui/button";
+import { openURL } from "@/utils/shell";
+import type { Event, Human, Session } from "@hypr/plugin-db";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 export function EventCard({
   event,
   showTime = false,
+  session = null,
+  participants = [],
 }: {
   event: Event;
   showTime?: boolean;
+  session?: Session | null;
+  participants?: Human[];
 }) {
   const { userId } = useHypr();
-  const session = useQuery({
-    queryKey: ["event-session", event.id],
-    queryFn: async () => dbCommands.getSession({ calendarEventId: event.id }),
-  });
-
-  const participants = useQuery({
-    queryKey: ["participants", session.data?.id],
-    queryFn: async () => {
-      if (!session.data?.id) {
-        return [];
-      }
-      const participants = await dbCommands.sessionListParticipants(session.data.id);
-      return participants.sort((a, b) => {
-        if (a.is_user && !b.is_user) {
-          return 1;
-        }
-        if (!a.is_user && b.is_user) {
-          return -1;
-        }
-        return 0;
-      });
-    },
-    enabled: !!session.data?.id,
-  });
 
   const participantsPreview = useMemo(() => {
-    const count = participants.data?.length ?? 0;
+    const count = participants?.length ?? 0;
     if (count === 0) {
       return null;
     }
 
-    return participants.data?.map(participant => {
+    return participants?.map(participant => {
       if (participant.id === userId && !participant.full_name) {
         return "You";
       }
       return participant.full_name ?? "??";
     });
-  }, [participants.data, userId]);
+  }, [participants, userId]);
 
   const [open, setOpen] = useState(false);
 
   const handleClick = () => {
     setOpen(false);
 
-    if (session.data) {
-      const props = {
-        to: "/app/note/$id",
-        params: { id: session.data.id },
-      } as const satisfies LinkProps;
-
-      const url = props.to.replace("$id", props.params.id);
-
-      safeNavigate({ type: "main" }, url);
+    if (session) {
+      const id = session.id;
+      const url = { to: "/app/note/$id", params: { id } } as const satisfies LinkProps;
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, {
+          path: url.to.replace("$id", id),
+          search: null,
+        });
+      });
     } else {
-      const props = {
-        to: "/app/new",
-        search: { calendarEventId: event.id },
-      } as const satisfies LinkProps;
-
-      const url = props.to.concat(
-        `?calendarEventId=${props.search.calendarEventId}`,
-      );
-
-      safeNavigate({ type: "main" }, url);
+      const url = { to: "/app/new", search: { calendarEventId: event.id } } as const satisfies LinkProps;
+      windowsCommands.windowShow({ type: "main" }).then(() => {
+        windowsCommands.windowEmitNavigate({ type: "main" }, {
+          path: url.to,
+          search: url.search,
+        });
+      });
     }
   };
 
@@ -98,33 +73,23 @@ export function EventCard({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-start space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <div className="w-1 h-3 mt-0.5 rounded-full flex-shrink-0 bg-neutral-400"></div>
+        <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
+          <Calendar className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
 
           <div className="flex-1 text-xs text-neutral-800 truncate">
             {event.name || "Untitled Event"}
           </div>
-
-          {showTime && (
-            <div className="text-xs text-neutral-500">
-              {format(getStartDate(), "h:mm a")} - {format(getEndDate(), "h:mm a")}
-            </div>
-          )}
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="flex mb-2 items-center justify-between">
-          <div className="font-semibold text-lg text-neutral-800">
-            {event.name || "Untitled Event"}
-          </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(event.google_event_url as string, "_blank")}
-          >
-            <ExternalLinkIcon size={14} />
-          </Button>
+        <div
+          className="font-semibold text-lg text-neutral-800 flex items-center gap-2 mb-2 cursor-pointer hover:text-orange-600 transition-all decoration-dotted underline hover:decoration-solid"
+          onClick={() =>
+            event.google_event_url && openURL(event.google_event_url as string).catch(error =>
+              console.error("Failed to open event URL:", error)
+            )}
+        >
+          {event.name || "Untitled Event"}
         </div>
 
         <p className="text-sm text-neutral-600 mb-2">
@@ -137,36 +102,33 @@ export function EventCard({
         </p>
 
         {participantsPreview && participantsPreview.length > 0 && (
-          <div className="text-xs text-neutral-600 mb-4 truncate">
+          <div className="text-xs text-neutral-600 mb-4">
             {participantsPreview.join(", ")}
           </div>
         )}
 
-        {session.data
+        {session
           ? (
-            <Button
-              className="w-full inline-flex gap-2"
-              size="md"
+            <div
+              className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              <Pen className="size-4" />
-              <Trans>Open Note</Trans>
-            </Button>
+              <FileText className="size-3 text-neutral-600 flex-shrink-0" />
+              <div className="text-xs font-medium text-neutral-800 truncate">
+                {session.title || "Untitled Note"}
+              </div>
+            </div>
           )
           : (
-            <Button
-              className="w-full inline-flex gap-2"
-              size="md"
-              disabled={session.isLoading}
+            <div
+              className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              {session.isLoading ? <Trans>Loading...</Trans> : (
-                <>
-                  <Pen className="size-4" />
-                  <Trans>Create Note</Trans>
-                </>
-              )}
-            </Button>
+              <Pen className="size-3 text-neutral-600 flex-shrink-0" />
+              <div className="text-xs font-medium text-neutral-800 truncate">
+                <Trans>Create Note</Trans>
+              </div>
+            </div>
           )}
       </PopoverContent>
     </Popover>

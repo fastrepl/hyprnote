@@ -9,6 +9,10 @@ impl UserDatabase {
         "df1d8c52-6d9d-4471-aff1-5dbd35899cbe".to_string()
     }
 
+    pub fn thank_you_session_id(&self) -> String {
+        "872cf207-6a28-4229-bd66-492d0dce43c0".to_string()
+    }
+
     pub async fn cleanup_sessions(&self) -> Result<(), crate::Error> {
         let conn = self.conn()?;
 
@@ -28,16 +32,16 @@ impl UserDatabase {
 
     pub async fn get_words_onboarding(
         &self,
-    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
-        let words: Vec<hypr_listener_interface::Word> =
-            serde_json::from_str(hypr_data::english_4::WORDS_JSON).unwrap();
+    ) -> Result<Vec<owhisper_interface::Word2>, crate::Error> {
+        let words: Vec<owhisper_interface::Word2> =
+            serde_json::from_str(hypr_data::english_7::WORDS_JSON).unwrap();
         Ok(words)
     }
 
     pub async fn get_words(
         &self,
         session_id: impl Into<String>,
-    ) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+    ) -> Result<Vec<owhisper_interface::Word2>, crate::Error> {
         let conn = self.conn()?;
         let mut rows = conn
             .query(
@@ -103,10 +107,34 @@ impl UserDatabase {
     }
 
     pub async fn delete_session(&self, id: impl Into<String>) -> Result<(), crate::Error> {
+        let session_id = id.into();
         let conn = self.conn()?;
 
-        conn.execute("DELETE FROM sessions WHERE id = ?", vec![id.into()])
+        let mut rows = conn
+            .query(
+                "SELECT id FROM chat_groups WHERE session_id = ?",
+                vec![session_id.clone()],
+            )
             .await?;
+
+        while let Some(row) = rows.next().await? {
+            let group_id: String = row.get(0)?;
+            conn.execute(
+                "DELETE FROM chat_messages WHERE group_id = ?",
+                vec![group_id],
+            )
+            .await?;
+        }
+
+        conn.execute(
+            "DELETE FROM chat_groups WHERE session_id = ?",
+            vec![session_id.clone()],
+        )
+        .await?;
+
+        conn.execute("DELETE FROM sessions WHERE id = ?", vec![session_id])
+            .await?;
+
         Ok(())
     }
 
@@ -122,21 +150,27 @@ impl UserDatabase {
                 specific: ListSessionFilterSpecific::Search { query },
             }) => {
                 conn.query(
-                    "SELECT * FROM sessions 
-                     WHERE user_id = ? AND (
-                       title LIKE ? OR 
-                       REPLACE(REPLACE(REPLACE(enhanced_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
-                       REPLACE(REPLACE(REPLACE(raw_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ?
+                    "SELECT DISTINCT s.* FROM sessions s
+                     LEFT JOIN session_participants sp ON s.id = sp.session_id
+                     LEFT JOIN humans h ON sp.human_id = h.id
+                     WHERE s.user_id = ? AND (
+                       s.title LIKE ? OR 
+                       REPLACE(REPLACE(REPLACE(s.enhanced_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
+                       REPLACE(REPLACE(REPLACE(s.raw_memo_html, '<', ' '), '>', ' '), '&nbsp;', ' ') LIKE ? OR
+                       h.full_name LIKE ? OR
+                       h.email LIKE ?
                      ) 
                      ORDER BY 
-                       CASE WHEN title LIKE ? THEN 0 ELSE 1 END,
-                       created_at DESC 
+                       CASE WHEN s.title LIKE ? THEN 0 ELSE 1 END,
+                       s.created_at DESC 
                      LIMIT ?",
                     vec![
                         user_id,
                         format!("%{}%", query),  // title search
                         format!("%{}%", query),  // enhanced_memo search (HTML stripped)
                         format!("%{}%", query),  // raw_memo search (HTML stripped)
+                        format!("%{}%", query),  // participant name search
+                        format!("%{}%", query),  // participant email search
                         format!("%{}%", query),  // title priority check
                         limit.unwrap_or(100).to_string(),
                     ],
@@ -228,6 +262,27 @@ impl UserDatabase {
             items.push(item);
         }
         Ok(items)
+    }
+
+    pub async fn session_list_deleted_participant_ids(
+        &self,
+        session_id: impl Into<String>,
+    ) -> Result<Vec<String>, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn.query(
+            "SELECT sp.human_id FROM session_participants sp WHERE sp.session_id = ? AND sp.deleted = TRUE", 
+            vec![session_id.into()],
+        )
+        .await?;
+
+        let mut ids = Vec::new();
+        while let Some(row) = rows.next().await? {
+            if let Ok(id) = row.get::<String>(0) {
+                ids.push(id);
+            }
+        }
+        Ok(ids)
     }
 
     pub async fn upsert_session(&self, session: Session) -> Result<Session, crate::Error> {
@@ -329,7 +384,7 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         conn.execute(
-            "INSERT OR REPLACE INTO session_participants (session_id, human_id) VALUES (?, ?)",
+            "INSERT OR REPLACE INTO session_participants (session_id, human_id, deleted) VALUES (?, ?, FALSE)",
             vec![session_id.into(), human_id.into()],
         )
         .await?;
@@ -344,7 +399,7 @@ impl UserDatabase {
         let conn = self.conn()?;
 
         conn.execute(
-            "DELETE FROM session_participants WHERE session_id = ? AND human_id = ?",
+            "UPDATE session_participants SET deleted = TRUE WHERE session_id = ? AND human_id = ?",
             vec![session_id.into(), human_id.into()],
         )
         .await?;
@@ -361,7 +416,7 @@ impl UserDatabase {
             .query(
                 "SELECT h.* FROM humans h
                 JOIN session_participants sp ON h.id = sp.human_id
-                WHERE sp.session_id = ?",
+                WHERE sp.session_id = ? AND (sp.deleted = FALSE OR sp.deleted IS NULL)",
                 vec![session_id.into()],
             )
             .await?;
@@ -428,7 +483,7 @@ mod tests {
             raw_memo_html: "raw_memo_html_1".to_string(),
             enhanced_memo_html: None,
             conversations: vec![],
-            words: vec![hypr_listener_interface::Word {
+            words: vec![owhisper_interface::Word2 {
                 text: "hello 1".to_string(),
                 start_ms: None,
                 end_ms: None,

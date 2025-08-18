@@ -22,7 +22,7 @@ pub struct Segmenter {
 
 impl Segmenter {
     pub fn new(sample_rate: u32) -> Result<Self, crate::Error> {
-        let session = hypr_onnx::load_model(SEGMENTATION_ONNX)?;
+        let session = hypr_onnx::load_model_from_bytes(SEGMENTATION_ONNX)?;
 
         Ok(Self {
             session,

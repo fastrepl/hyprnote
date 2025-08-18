@@ -117,8 +117,8 @@ impl AEC {
         let fft = fft_planner.plan_fft_forward(block_len);
         let ifft = fft_planner.plan_fft_inverse(block_len);
 
-        let session_1 = hypr_onnx::load_model(model::BYTES_1)?;
-        let session_2 = hypr_onnx::load_model(model::BYTES_2)?;
+        let session_1 = hypr_onnx::load_model_from_bytes(model::BYTES_1)?;
+        let session_2 = hypr_onnx::load_model_from_bytes(model::BYTES_2)?;
 
         let state_size = model::STATE_SIZE;
 

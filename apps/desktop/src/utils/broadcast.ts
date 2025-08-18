@@ -41,9 +41,9 @@ export function broadcastQueryClient(queryClient: QueryClient) {
 
       const keys = event.payload.queryKey as string[];
 
-      if (keys.some((key) => key?.includes("extension"))) {
+      if (keys.some((key) => key?.includes("license"))) {
         queryClient.invalidateQueries({
-          predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("extension")),
+          predicate: (query) => query.queryKey.some((key) => typeof key === "string" && key.includes("license")),
         });
       }
 
@@ -72,6 +72,12 @@ export function broadcastQueryClient(queryClient: QueryClient) {
       if (keys[0] === "org") {
         queryClient.invalidateQueries({
           queryKey: ["org", keys[1]],
+        });
+      }
+
+      if (keys[0] === "mcp-tools") {
+        queryClient.invalidateQueries({
+          queryKey: ["mcp-tools"],
         });
       }
     });

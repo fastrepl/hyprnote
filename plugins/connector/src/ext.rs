@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use crate::{Connection, ConnectionLLM, ConnectionSTT, StoreKey};
+use crate::{Connection, ConnectionLLM, StoreKey};
 use tauri_plugin_store2::StorePluginExt;
 
 pub trait ConnectorPluginExt<R: tauri::Runtime> {
@@ -14,6 +14,9 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn set_custom_llm_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
     fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error>;
 
+    fn get_hyprcloud_enabled(&self) -> Result<bool, crate::Error>;
+    fn set_hyprcloud_enabled(&self, enabled: bool) -> Result<(), crate::Error>;
+
     fn get_local_llm_connection(&self)
         -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
 
@@ -21,7 +24,9 @@ pub trait ConnectorPluginExt<R: tauri::Runtime> {
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 
     fn get_llm_connection(&self) -> impl Future<Output = Result<ConnectionLLM, crate::Error>>;
-    fn get_stt_connection(&self) -> impl Future<Output = Result<ConnectionSTT, crate::Error>>;
+
+    fn get_admin_connection(&self) -> Result<Option<Connection>, crate::Error>;
+    fn set_admin_connection(&self, connection: Connection) -> Result<(), crate::Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
@@ -60,14 +65,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         Ok(())
     }
 
-    fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error> {
-        let enabled = self.connector_store().get(StoreKey::CustomEnabled)?;
-        let api_base: Option<String> = self.connector_store().get(StoreKey::CustomApiBase)?;
-        let api_key: Option<String> = self.connector_store().get(StoreKey::CustomApiKey)?;
+    fn get_hyprcloud_enabled(&self) -> Result<bool, crate::Error> {
+        Ok(self
+            .connector_store()
+            .get(StoreKey::HyprCloudEnabled)?
+            .unwrap_or(false))
+    }
 
-        Ok(enabled.unwrap_or(false)
-            && api_key.map(|s| !s.is_empty()).unwrap_or(false)
-            && api_base.map(|s| !s.is_empty()).unwrap_or(false))
+    fn set_hyprcloud_enabled(&self, enabled: bool) -> Result<(), crate::Error> {
+        self.connector_store()
+            .set(StoreKey::HyprCloudEnabled, enabled)?;
+        Ok(())
+    }
+
+    fn get_custom_llm_enabled(&self) -> Result<bool, crate::Error> {
+        Ok(self
+            .connector_store()
+            .get(StoreKey::CustomEnabled)?
+            .unwrap_or(false))
     }
 
     fn set_custom_llm_connection(&self, connection: Connection) -> Result<(), crate::Error> {
@@ -108,126 +123,54 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
-        {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
-
-            if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
-            {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                return Ok(ConnectionLLM::HyprCloud(Connection {
-                    api_base,
-                    api_key: None,
-                }));
-            }
-        }
-
-        {
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
-
-            if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
-
-                let conn = ConnectionLLM::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
-            }
-        }
-
         let store = self.connector_store();
         let custom_enabled = self.get_custom_llm_enabled()?;
+        let hyprcloud_enabled = self.get_hyprcloud_enabled()?;
 
         if custom_enabled {
-            let api_base = store
-                .get::<Option<String>>(StoreKey::CustomApiBase)?
-                .flatten()
-                .unwrap();
-            let api_key = store
-                .get::<Option<String>>(StoreKey::CustomApiKey)?
-                .flatten();
+            // If HyprCloud is enabled, override with HyprCloud connection
+            if hyprcloud_enabled {
+                let conn = ConnectionLLM::Custom(Connection {
+                    api_base: "https://pro.hyprnote.com".to_string(),
+                    api_key: None,
+                });
+                Ok(conn)
+            } else {
+                // Regular custom endpoint
+                let api_base = store
+                    .get::<Option<String>>(StoreKey::CustomApiBase)?
+                    .flatten()
+                    .unwrap_or_default();
+                let api_key = store
+                    .get::<Option<String>>(StoreKey::CustomApiKey)?
+                    .flatten();
 
-            let conn = ConnectionLLM::Custom(Connection { api_base, api_key });
-            Ok(conn)
+                let conn = ConnectionLLM::Custom(Connection { api_base, api_key });
+                Ok(conn)
+            }
         } else {
             let conn = self.get_local_llm_connection().await?;
             Ok(conn)
         }
     }
 
-    async fn get_stt_connection(&self) -> Result<ConnectionSTT, crate::Error> {
-        {
-            use tauri_plugin_flags::{FlagsPluginExt, StoreKey as FlagsStoreKey};
+    fn get_admin_connection(&self) -> Result<Option<Connection>, crate::Error> {
+        let api_base = self.connector_store().get(StoreKey::AdminApiBase)?;
+        let api_key = self.connector_store().get(StoreKey::AdminApiKey)?;
 
-            if self
-                .is_enabled(FlagsStoreKey::CloudPreview)
-                .unwrap_or(false)
-            {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                return Ok(ConnectionSTT::HyprCloud(Connection {
-                    api_base,
-                    api_key: None,
-                }));
-            }
+        match (api_base, api_key) {
+            (Some(api_base), Some(api_key)) => Ok(Some(Connection { api_base, api_key })),
+            _ => Ok(None),
         }
+    }
 
-        {
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey, VaultKey};
+    fn set_admin_connection(&self, connection: Connection) -> Result<(), crate::Error> {
+        self.connector_store()
+            .set(StoreKey::AdminApiBase, connection.api_base)?;
+        self.connector_store()
+            .set(StoreKey::AdminApiKey, connection.api_key)?;
 
-            if let Ok(Some(_)) = self.get_from_store(StoreKey::AccountId) {
-                let api_base = if cfg!(debug_assertions) {
-                    "http://127.0.0.1:1234".to_string()
-                } else {
-                    "https://app.hyprnote.com".to_string()
-                };
-
-                let api_key = if cfg!(debug_assertions) {
-                    None
-                } else {
-                    self.get_from_vault(VaultKey::RemoteServer)?
-                };
-
-                let conn = ConnectionSTT::HyprCloud(Connection { api_base, api_key });
-                return Ok(conn);
-            }
-        }
-
-        {
-            use tauri_plugin_local_stt::{LocalSttPluginExt, SharedState};
-
-            let api_base = if self.is_server_running().await {
-                let state = self.state::<SharedState>();
-                let guard = state.lock().await;
-                guard.api_base.clone().unwrap()
-            } else {
-                self.start_server().await?
-            };
-
-            let conn = ConnectionSTT::HyprLocal(Connection {
-                api_base,
-                api_key: None,
-            });
-            Ok(conn)
-        }
+        Ok(())
     }
 }
 

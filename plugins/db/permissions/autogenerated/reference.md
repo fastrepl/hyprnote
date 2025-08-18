@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-onboarding-session-id`
+- `allow-thank-you-session-id`
 - `allow-upsert-session`
 - `allow-list-sessions`
 - `allow-get-session`
@@ -42,12 +43,14 @@ Default permissions for the plugin
 - `allow-list-chat-messages`
 - `allow-create-chat-group`
 - `allow-upsert-chat-message`
+- `allow-delete-chat-messages`
 - `allow-upsert-tag`
 - `allow-delete-tag`
 - `allow-list-all-tags`
 - `allow-list-session-tags`
 - `allow-assign-tag-to-session`
 - `allow-unassign-tag-from-session`
+- `allow-session-list-deleted-participant-ids`
 
 ## Permission Table
 
@@ -106,6 +109,32 @@ Enables the create_chat_group command without any pre-configured scope.
 <td>
 
 Denies the create_chat_group command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-delete-chat-messages`
+
+</td>
+<td>
+
+Enables the delete_chat_messages command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-delete-chat-messages`
+
+</td>
+<td>
+
+Denies the delete_chat_messages command without any pre-configured scope.
 
 </td>
 </tr>
@@ -841,6 +870,32 @@ Denies the session_get_event command without any pre-configured scope.
 <tr>
 <td>
 
+`db:allow-session-list-deleted-participant-ids`
+
+</td>
+<td>
+
+Enables the session_list_deleted_participant_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-session-list-deleted-participant-ids`
+
+</td>
+<td>
+
+Denies the session_list_deleted_participant_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `db:allow-session-list-participants`
 
 </td>
@@ -938,6 +993,32 @@ Enables the set_session_event command without any pre-configured scope.
 <td>
 
 Denies the set_session_event command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:allow-thank-you-session-id`
+
+</td>
+<td>
+
+Enables the thank_you_session_id command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`db:deny-thank-you-session-id`
+
+</td>
+<td>
+
+Denies the thank_you_session_id command without any pre-configured scope.
 
 </td>
 </tr>

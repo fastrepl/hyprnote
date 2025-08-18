@@ -39,7 +39,9 @@ impl UserDatabase {
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url
+                    google_event_url = :google_event_url,
+                    participants = :participants,
+                    is_recurring = :is_recurring
                 WHERE id = :id
                 RETURNING *",
                 libsql::named_params! {
@@ -51,6 +53,8 @@ impl UserDatabase {
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
+                    ":participants": event.participants,
+                    ":is_recurring": event.is_recurring,
                 },
             )
             .await?;
@@ -81,7 +85,9 @@ impl UserDatabase {
                     note,
                     start_date,
                     end_date,
-                    google_event_url
+                    google_event_url,
+                    participants,
+                    is_recurring
                 ) VALUES (
                     :id,
                     :user_id,
@@ -91,13 +97,17 @@ impl UserDatabase {
                     :note,
                     :start_date,
                     :end_date,
-                    :google_event_url
+                    :google_event_url,
+                    :participants,
+                    :is_recurring
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url
+                    google_event_url = :google_event_url,
+                    participants = :participants,
+                    is_recurring = :is_recurring
                 RETURNING *",
                 libsql::named_params! {
                     ":id": event.id,
@@ -109,6 +119,8 @@ impl UserDatabase {
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
                     ":google_event_url": event.google_event_url,
+                    ":participants": event.participants,
+                    ":is_recurring": event.is_recurring,
                 },
             )
             .await?;
@@ -234,6 +246,8 @@ mod tests {
             start_date: chrono::Utc::now(),
             end_date: chrono::Utc::now(),
             google_event_url: None,
+            participants: None,
+            is_recurring: false,
         };
 
         let event = db.upsert_event(event).await.unwrap();

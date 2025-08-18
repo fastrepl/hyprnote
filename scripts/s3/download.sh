@@ -1,6 +1,12 @@
-MODEL_REPO="https://huggingface.co/lmstudio-community/Llama-3.2-3B-Instruct-GGUF"
-LOCAL_DIR="./llama-3.2-3b-instruct-gguf"
+CREDENTIALS_FILE="$HOME/hyprnote-r2.toml"
+ENDPOINT_URL="https://3db5267cdeb5f79263ede3ec58090fe0.r2.cloudflarestorage.com"
+BUCKET="hyprnote-cache2"
 
-GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 $MODEL_REPO $LOCAL_DIR
-cd $LOCAL_DIR
-git lfs pull
+FROM_PATH="s3://$BUCKET/v0/*"
+TO_PATH="/Users/yujonglee/dev/hyprnote/.cache/"
+
+AWS_REGION=auto s5cmd \
+    --log trace \
+    --credentials-file "$CREDENTIALS_FILE" \
+    --endpoint-url "$ENDPOINT_URL" \
+    cp "$FROM_PATH" "$TO_PATH"

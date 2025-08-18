@@ -10,6 +10,7 @@ import type { NangoIntegration } from "./server.gen";
 export type Context = {
   userId?: string;
   onboardingSessionId?: string;
+  thankYouSessionId?: string;
   ongoingSessionStore: OngoingSessionStore;
   sessionsStore: SessionsStore;
   queryClient: QueryClient;

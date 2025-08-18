@@ -4,4 +4,6 @@ pub enum Error {
     ResampleError(#[from] rubato::ResampleError),
     #[error(transparent)]
     ResamplerConstructionError(#[from] rubato::ResamplerConstructionError),
+    #[error(transparent)]
+    DecoderError(#[from] rodio::decoder::DecoderError),
 }

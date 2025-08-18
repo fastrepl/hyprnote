@@ -2,13 +2,34 @@ use serde::de::DeserializeOwned;
 
 use backon::{ConstantBuilder, Retryable};
 use futures_util::{SinkExt, Stream, StreamExt};
-use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{client::IntoClientRequest, Utf8Bytes},
+};
 
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
 
+#[derive(Debug)]
+enum ControlCommand {
+    Finalize(Option<Message>),
+}
+
+#[derive(Clone)]
+pub struct WebSocketHandle {
+    control_tx: tokio::sync::mpsc::UnboundedSender<ControlCommand>,
+}
+
+impl WebSocketHandle {
+    pub async fn finalize_with_text(&self, text: Utf8Bytes) {
+        let _ = self
+            .control_tx
+            .send(ControlCommand::Finalize(Some(Message::Text(text))));
+    }
+}
+
 pub trait WebSocketIO: Send + 'static {
     type Data: Send;
-    type Input: Send + Default;
+    type Input: Send;
     type Output: DeserializeOwned;
 
     fn to_input(data: Self::Data) -> Self::Input;
@@ -28,7 +49,7 @@ impl WebSocketClient {
     pub async fn from_audio<T: WebSocketIO>(
         &self,
         mut audio_stream: impl Stream<Item = T::Data> + Send + Unpin + 'static,
-    ) -> Result<impl Stream<Item = T::Output>, crate::Error> {
+    ) -> Result<(impl Stream<Item = T::Output>, WebSocketHandle), crate::Error> {
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
@@ -37,6 +58,17 @@ impl WebSocketClient {
             )
             .when(|e| {
                 tracing::error!("ws_connect_failed: {:?}", e);
+
+                // if let crate::Error::Connection(tokio_tungstenite::tungstenite::Error::Http(
+                //     response,
+                // )) = e
+                // {
+                //     if response.status().as_u16() >= 500 && response.status().as_u16() < 600 {
+                //         tracing::warn!("not_retrying_status_code: {}", response.status());
+                //         return false;
+                //     }
+                // }
+
                 true
             })
             .sleep(tokio::time::sleep)
@@ -44,19 +76,42 @@ impl WebSocketClient {
 
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
-        let _send_task = tokio::spawn(async move {
-            while let Some(data) = audio_stream.next().await {
-                let input = T::to_input(data);
-                let msg = T::to_message(input);
+        // Create control channel for sending commands to the WebSocket
+        let (control_tx, mut control_rx) = tokio::sync::mpsc::unbounded_channel();
+        let handle = WebSocketHandle { control_tx };
 
-                if let Err(e) = ws_sender.send(msg).await {
-                    tracing::error!("ws_send_failed: {:?}", e);
-                    break;
+        let _send_task = tokio::spawn(async move {
+            loop {
+                tokio::select! {
+                    Some(data) = audio_stream.next() => {
+                        let input = T::to_input(data);
+                        let msg = T::to_message(input);
+
+                        if let Err(e) = ws_sender.send(msg).await {
+                            tracing::error!("ws_send_failed: {:?}", e);
+                            break;
+                        }
+                    }
+                    Some(cmd) = control_rx.recv() => {
+                        match cmd {
+                            ControlCommand::Finalize(maybe_msg) => {
+                                if let Some(msg) = maybe_msg {
+                                    if let Err(e) = ws_sender.send(msg).await {
+                                        tracing::error!("ws_finalize_failed: {:?}", e);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else => break,
                 }
             }
 
-            // We shouldn't send a 'Close' message, as it would prevent receiving remaining transcripts from the server.
-            let _ = ws_sender.send(T::to_message(T::Input::default())).await;
+            // Wait 5 seconds before closing the connection
+            // TODO: This might not be enough to ensure receiving remaining transcripts from the server.
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+            let _ = ws_sender.close().await;
         });
 
         let output_stream = async_stream::stream! {
@@ -85,7 +140,7 @@ impl WebSocketClient {
             }
         };
 
-        Ok(output_stream)
+        Ok((output_stream, handle))
     }
 
     async fn try_connect(

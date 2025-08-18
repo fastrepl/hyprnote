@@ -1,5 +1,6 @@
 // https://github.com/openai/whisper/blob/ba3f3cd/whisper/tokenizer.py#L10-L128
-#[derive(strum::EnumString, strum::Display, strum::AsRefStr)]
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, strum::EnumString, strum::Display, strum::AsRefStr)]
 pub enum Language {
     #[strum(serialize = "en")]
     En,
@@ -201,4 +202,10 @@ pub enum Language {
     Su,
     #[strum(serialize = "yue")]
     Yue,
+}
+
+impl Language {
+    pub fn whisper_index(self) -> usize {
+        self as usize
+    }
 }

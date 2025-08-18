@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import EditorArea from "@/components/editor-area";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { commands as dbCommands, type Session } from "@hypr/plugin-db";
+import { commands as dbCommands, type Human, type Session } from "@hypr/plugin-db";
 import {
   commands as windowsCommands,
   events as windowsEvents,
@@ -14,7 +14,7 @@ import {
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app/note/$id")({
-  beforeLoad: ({ context: { queryClient, sessionsStore }, params: { id } }) => {
+  beforeLoad: ({ context: { queryClient, sessionsStore, userId }, params: { id } }) => {
     return queryClient.fetchQuery({
       queryKey: ["session", id],
       queryFn: async () => {
@@ -32,6 +32,77 @@ export const Route = createFileRoute("/app/note/$id")({
 
         if (!session) {
           return redirect({ to: "/app/new" });
+        }
+
+        if (session.calendar_event_id) {
+          try {
+            const event = await dbCommands.getEvent(session.calendar_event_id);
+
+            if (event?.participants) {
+              // participants of events from the DB event table
+              const eventParticipants = JSON.parse(event.participants) as Array<{
+                name: string | null;
+                email: string | null;
+              }>;
+
+              const [allHumans, currentParticipants, deletedParticipantIds] = await Promise.all([
+                dbCommands.listHumans(null),
+                dbCommands.sessionListParticipants(id),
+                dbCommands.sessionListDeletedParticipantIds(id),
+              ]);
+
+              // emails of current participants in the session
+              const currentParticipantEmails = new Set(
+                currentParticipants.map(p => p.email).filter(Boolean),
+              );
+
+              // list of participants who were marked as deleted in the session
+              const deletedIds = new Set(deletedParticipantIds);
+
+              for (const participant of eventParticipants) {
+                // Skip if no email address
+                if (!participant.email) {
+                  continue;
+                }
+
+                // Skip if already a current participant (not deleted)
+                if (currentParticipantEmails.has(participant.email)) {
+                  continue;
+                }
+
+                // Check if human already exists by email
+                let existingHuman = allHumans.find(h => h.email === participant.email);
+
+                if (existingHuman) {
+                  // Skip if this human is marked as deleted for this session
+                  if (deletedIds.has(existingHuman.id)) {
+                    continue;
+                  }
+
+                  // Use existing human
+                  await dbCommands.sessionAddParticipant(id, existingHuman.id);
+                } else {
+                  // Create new human
+                  const displayName = participant.name || participant.email;
+
+                  const newHuman: Human = {
+                    id: crypto.randomUUID(),
+                    full_name: displayName,
+                    email: participant.email,
+                    organization_id: null,
+                    is_user: false,
+                    job_title: null,
+                    linkedin_username: null,
+                  };
+
+                  const createdHuman = await dbCommands.upsertHuman(newHuman);
+                  await dbCommands.sessionAddParticipant(id, createdHuman.id);
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Failed to sync participants:", error);
+          }
         }
 
         const { insert } = sessionsStore.getState();
@@ -97,7 +168,7 @@ function Component() {
 }
 
 function OnboardingSupport({ session }: { session: Session }) {
-  const video = "wGZpAB6610200nRG2uRG2t9bS1008y009RUWUJTnSlevpPc";
+  const video = "SGv6JaZsKqF50102xk6no2ybUqqSyngeWO401ic8qJdZR4";
 
   const navigate = useNavigate();
 

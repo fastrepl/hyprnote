@@ -3,6 +3,9 @@ use serde::{ser::Serializer, Serialize};
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
+    HyprOnnxError(#[from] hypr_onnx::Error),
+
+    #[error(transparent)]
     OrtError(#[from] hypr_onnx::ort::Error),
 
     #[error(transparent)]

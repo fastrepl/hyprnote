@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-external-server-status"
+description = "Enables the get_external_server_status command without any pre-configured scope."
+commands.allow = ["get_external_server_status"]
+
+[[permission]]
+identifier = "deny-get-external-server-status"
+description = "Denies the get_external_server_status command without any pre-configured scope."
+commands.deny = ["get_external_server_status"]

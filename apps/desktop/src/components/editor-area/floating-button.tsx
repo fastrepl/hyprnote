@@ -1,15 +1,15 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
+import { fetch } from "@hypr/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 
 function AnimatedEnhanceIcon({ size = 20 }: { size?: number }) {
@@ -48,7 +48,7 @@ interface FloatingButtonProps {
   templates: Template[];
   isError: boolean;
   progress?: number;
-  isLocalLlm: boolean;
+  showProgress?: boolean;
 }
 
 export function FloatingButton({
@@ -58,22 +58,37 @@ export function FloatingButton({
   templates,
   isError,
   progress = 0,
-  isLocalLlm,
+  showProgress,
 }: FloatingButtonProps) {
-  const { userId } = useHypr();
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
     s.setShowRaw,
   ]);
-  const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
-  const isEnhancePending = useEnhancePendingState(session.id);
   const [isHovered, setIsHovered] = useState(false);
   const [showRefreshIcon, setShowRefreshIcon] = useState(true);
   const [showTemplatePopover, setShowTemplatePopover] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const queryClient = useQueryClient();
 
-  // Clear timeout on cleanup
+  const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
+  const isEnhancePending = useEnhancePendingState(session.id);
+
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+
+  const hasTranscript = session.words && session.words.length > 0;
+  const isSessionInactive = ongoingSessionStatus === "inactive" || session.id !== ongoingSessionId;
+  const canEnhanceTranscript = hasTranscript && isSessionInactive;
+
+  const localLlmBaseUrl = useQuery({
+    queryKey: ["local-llm"],
+    queryFn: async () => {
+      const { type, connection } = await connectorCommands.getLlmConnection();
+      return type === "HyprLocal" ? connection.api_base : null;
+    },
+  });
+
   useEffect(() => {
     return () => {
       if (hideTimeoutRef.current) {
@@ -102,6 +117,11 @@ export function FloatingButton({
 
     if (isEnhancePending) {
       cancelEnhance();
+
+      // TODO: very hakcy way to hit cancel endpoint
+      if (localLlmBaseUrl.data) {
+        fetch(`${localLlmBaseUrl.data}/cancel`, { method: "GET" });
+      }
     } else {
       handleEnhance();
     }
@@ -126,14 +146,6 @@ export function FloatingButton({
 
   const handleTemplateSelect = (templateId: string) => {
     setShowTemplatePopover(false);
-
-    if (templateId !== "auto") {
-      analyticsCommands.event({
-        event: "custom_template_enhancement_started",
-        distinct_id: userId,
-      });
-    }
-
     handleEnhanceWithTemplate(templateId);
   };
 
@@ -156,9 +168,6 @@ export function FloatingButton({
     }
   };
 
-  // Only show progress for local LLMs AND when progress exists
-  const shouldShowProgress = isLocalLlm && progress !== undefined && progress >= 0 && progress < 1;
-
   if (isError) {
     const errorRetryButtonClasses = cn(
       "rounded-xl border",
@@ -179,8 +188,10 @@ export function FloatingButton({
     );
   }
 
-  if (!session.enhanced_memo_html && !isEnhancePending) {
-    return null;
+  const shouldShowButton = session.enhanced_memo_html || isEnhancePending || canEnhanceTranscript;
+
+  if (!shouldShowButton) {
+    return null; // don't show the button
   }
 
   const rawButtonClasses = cn(
@@ -200,6 +211,7 @@ export function FloatingButton({
   );
 
   const showRefresh = !showRaw && (isHovered || showTemplatePopover) && showRefreshIcon;
+  const shouldShowProgress = showProgress && progress < 1.0;
 
   return (
     <div className="flex w-fit flex-row items-center group hover:scale-105 transition-transform duration-200">
@@ -280,7 +292,7 @@ export function FloatingButton({
               onClick={() => handleTemplateSelect("auto")}
             >
               <span className="text-sm">⚡</span>
-              <span className="truncate">Hyprnote Default</span>
+              <span className="truncate">No Template (Default)</span>
             </div>
 
             {/* Show separator and custom templates only if custom templates exist */}

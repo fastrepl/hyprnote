@@ -1,6 +1,5 @@
-use std::time::{Duration, Instant};
-
 use statig::prelude::*;
+use std::time::{Duration, Instant};
 
 use tauri::Manager;
 use tauri_specta::Event;
@@ -10,10 +9,11 @@ use tokio::task::JoinSet;
 
 use hypr_audio::AsyncSource;
 
-use crate::SessionEvent;
+use crate::{manager::TranscriptManager, SessionEvent};
 
 const SAMPLE_RATE: u32 = 16000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
+const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(60 * 15);
 
 const WAV_SPEC: hound::WavSpec = hound::WavSpec {
     channels: 1,
@@ -169,6 +169,7 @@ impl AudioChannels {
 pub struct Session {
     app: tauri::AppHandle,
     session_id: Option<String>,
+    mic_device_name: Option<String>,
     mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
     mic_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
@@ -180,9 +181,12 @@ pub struct Session {
 
 impl Session {
     pub fn new(app: tauri::AppHandle) -> Self {
+        let mic_device_name = hypr_audio::AudioInput::get_default_mic_device_name();
+
         Self {
             app,
             session_id: None,
+            mic_device_name: Some(mic_device_name),
             mic_muted_tx: None,
             mic_muted_rx: None,
             speaker_muted_tx: None,
@@ -197,25 +201,25 @@ impl Session {
     async fn setup_resources(&mut self, id: impl Into<String>) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
 
-        let user_id = self.app.db_user_id().await?.unwrap();
         let session_id = id.into();
+        let onboarding_session_id = self.app.db_onboarding_session_id().await?;
+
+        let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, language, jargons) = {
+        let (record, languages) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
                 .as_ref()
                 .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
 
-            let language = config.as_ref().map_or_else(
-                || hypr_language::ISO639::En.into(),
-                |c| c.general.display_language.clone(),
+            let languages = config.as_ref().map_or_else(
+                || vec![hypr_language::ISO639::En.into()],
+                |c| c.general.spoken_languages.clone(),
             );
 
-            let jargons = config.map_or_else(Vec::new, |c| c.general.jargons);
-
-            (record, language, jargons)
+            (record, languages)
         };
 
         let session = self
@@ -237,10 +241,10 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client = setup_listen_client(&self.app, language, jargons).await?;
-
+        let listen_client =
+            setup_listen_client(&self.app, languages, session_id == onboarding_session_id).await?;
         let mic_sample_stream = {
-            let mut input = hypr_audio::AudioInput::from_mic();
+            let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
         };
         let mic_stream = mic_sample_stream
@@ -248,9 +252,11 @@ impl Session {
             .chunks(hypr_aec::BLOCK_SIZE);
 
         // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
-        tokio::time::sleep(Duration::from_millis(200)).await;
+        tokio::time::sleep(Duration::from_millis(65)).await;
+        // We need some delay here for Airpod transition.
+        // But if the delay is too long, AEC will not work.
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         let speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -290,27 +296,29 @@ impl Session {
 
             async move {
                 let mut aec = hypr_aec::AEC::new().unwrap();
+                let mut mic_agc = hypr_agc::Agc::default();
+                let mut speaker_agc = hypr_agc::Agc::default();
                 let mut last_broadcast = Instant::now();
 
-                // TODO: AGC might be needed.
-                const PRE_MIC_GAIN: f32 = 1.0;
-                const PRE_SPEAKER_GAIN: f32 = 0.8;
-                const POST_MIC_GAIN: f32 = 1.5;
-                const POST_SPEAKER_GAIN: f32 = 1.0;
-
                 loop {
-                    let (mic_chunk_raw, speaker_chunk): (Vec<f32>, Vec<f32>) =
+                    let (mut mic_chunk_raw, mut speaker_chunk): (Vec<f32>, Vec<f32>) =
                         match tokio::join!(mic_rx.recv_async(), speaker_rx.recv_async()) {
-                            (Ok(mic), Ok(speaker)) => (
-                                mic.iter().map(|x| *x * PRE_MIC_GAIN).collect(),
-                                speaker.iter().map(|x| *x * PRE_SPEAKER_GAIN).collect(),
-                            ),
+                            (Ok(mic), Ok(speaker)) => (mic, speaker),
                             _ => break,
                         };
 
-                    let mic_chunk = aec
-                        .process_streaming(&mic_chunk_raw, &speaker_chunk)
-                        .unwrap();
+                    mic_agc.process(&mut mic_chunk_raw);
+                    speaker_agc.process(&mut speaker_chunk);
+
+                    let maybe_mic_chunk = aec.process_streaming(&mic_chunk_raw, &speaker_chunk);
+
+                    let mic_chunk = match maybe_mic_chunk {
+                        Ok(mic_chunk) => mic_chunk,
+                        Err(e) => {
+                            tracing::error!("aec_error: {:?}", e);
+                            mic_chunk_raw.clone()
+                        }
+                    };
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
                         let mut rx = session_state_rx.clone();
@@ -318,12 +326,8 @@ impl Session {
                         continue;
                     }
 
-                    let processed_mic: Vec<f32> =
-                        mic_chunk.iter().map(|x| x * POST_MIC_GAIN).collect();
-                    let processed_speaker: Vec<f32> = speaker_chunk
-                        .iter()
-                        .map(|x| x * POST_SPEAKER_GAIN)
-                        .collect();
+                    let processed_mic = mic_chunk.clone();
+                    let processed_speaker = speaker_chunk.clone();
 
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
@@ -335,7 +339,7 @@ impl Session {
                     }
 
                     if let Some(ref tx) = save_mic_raw_tx {
-                        let _ = tx.send_async(mic_chunk.clone()).await;
+                        let _ = tx.send_async(mic_chunk_raw.clone()).await;
                     }
                     if let Some(ref tx) = save_speaker_raw_tx {
                         let _ = tx.send_async(speaker_chunk.clone()).await;
@@ -354,9 +358,7 @@ impl Session {
                         let mixed: Vec<f32> = mic_chunk
                             .iter()
                             .zip(speaker_chunk.iter())
-                            .map(|(mic, speaker)| {
-                                (mic * POST_MIC_GAIN + speaker * POST_SPEAKER_GAIN).clamp(-1.0, 1.0)
-                            })
+                            .map(|(mic, speaker)| (mic + speaker).clamp(-1.0, 1.0))
                             .collect();
                         if save_mixed_tx.send_async(mixed).await.is_err() {
                             tracing::error!("save_mixed_tx_send_error");
@@ -433,43 +435,83 @@ impl Session {
         let mic_audio_stream = channels
             .process_mic_rx
             .into_stream()
-            .map(hypr_audio_utils::f32_to_i16_bytes);
+            .map(|v| hypr_audio_utils::f32_to_i16_bytes(v.into_iter()));
+
         let speaker_audio_stream = channels
             .process_speaker_rx
             .into_stream()
-            .map(hypr_audio_utils::f32_to_i16_bytes);
+            .map(|v| hypr_audio_utils::f32_to_i16_bytes(v.into_iter()));
 
-        let listen_stream = listen_client
-            .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
-            .await?;
+        let combined_audio_stream =
+            mic_audio_stream
+                .zip(speaker_audio_stream)
+                .map(|(mic, speaker)| {
+                    owhisper_interface::MixedMessage::Audio((mic.into(), speaker.into()))
+                });
 
         tasks.spawn({
             let app = self.app.clone();
             let stop_tx = stop_tx.clone();
 
             async move {
+                let (listen_stream, _listen_handle) = listen_client
+                    .from_realtime_audio(combined_audio_stream)
+                    .await
+                    .unwrap();
+
                 futures_util::pin_mut!(listen_stream);
 
-                while let Some(result) = listen_stream.next().await {
-                    let _meta = result.meta.clone();
+                let mut manager = TranscriptManager::default();
 
-                    // We don't have to do this, and inefficient. But this is what works at the moment.
-                    {
-                        let updated_words = update_session(&app, &session.id, result.words)
-                            .await
+                loop {
+                    match tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()).await {
+                        Ok(Some(response)) => {
+                            let diff = manager.append(response.clone());
+
+                            let partial_words = diff
+                                .partial_words
+                                .iter()
+                                .map(|w| owhisper_interface::Word2::from(w.clone()))
+                                .collect::<Vec<_>>();
+
+                            SessionEvent::PartialWords {
+                                words: partial_words,
+                            }
+                            .emit(&app)
                             .unwrap();
 
-                        SessionEvent::Words {
-                            words: updated_words,
-                        }
-                        .emit(&app)
-                    }
-                    .unwrap();
-                }
+                            let final_words = diff
+                                .final_words
+                                .iter()
+                                .map(|w| owhisper_interface::Word2::from(w.clone()))
+                                .collect::<Vec<_>>();
 
-                tracing::info!("listen_stream_ended");
-                if stop_tx.send(()).await.is_err() {
-                    tracing::warn!("failed_to_send_stop_signal");
+                            update_session(&app, &session.id, final_words.clone())
+                                .await
+                                .unwrap();
+
+                            SessionEvent::FinalWords { words: final_words }
+                                .emit(&app)
+                                .unwrap();
+                        }
+                        Ok(None) => {
+                            tracing::info!("listen_stream_ended");
+
+                            // TODO: this not work - session still on ACTIVE
+                            if stop_tx.send(()).await.is_err() {
+                                tracing::warn!("failed_to_send_stop_signal");
+                            }
+                            break;
+                        }
+                        Err(_) => {
+                            tracing::info!("listen_stream_timeout");
+
+                            if let Some(state) = app.try_state::<crate::SharedState>() {
+                                let mut guard = state.lock().await;
+                                guard.fsm.handle(&crate::fsm::StateEvent::Pause).await;
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -518,43 +560,32 @@ impl Session {
             None => false,
         }
     }
+
+    pub fn get_available_mic_devices() -> Vec<String> {
+        hypr_audio::AudioInput::list_mic_devices()
+    }
+
+    pub fn get_current_mic_device(&self) -> Option<String> {
+        self.mic_device_name.clone()
+    }
 }
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
-    language: hypr_language::Language,
-    _jargons: Vec<String>,
-) -> Result<crate::client::ListenClientDual, crate::Error> {
-    let api_base = {
-        use tauri_plugin_connector::{Connection, ConnectorPluginExt};
-        let conn: Connection = app.get_stt_connection().await?.into();
-        conn.api_base
+    languages: Vec<hypr_language::Language>,
+    is_onboarding: bool,
+) -> Result<owhisper_client::ListenClientDual, crate::Error> {
+    let conn = {
+        use tauri_plugin_local_stt::LocalSttPluginExt;
+        app.get_connection().await?
     };
 
-    let api_key = {
-        use tauri_plugin_auth::AuthPluginExt;
-        app.get_from_vault(tauri_plugin_auth::VaultKey::RemoteServer)
-            .unwrap_or_default()
-            .unwrap_or_default()
-    };
-
-    tracing::info!(api_base = ?api_base, api_key = ?api_key, language = ?language, "listen_client");
-
-    // let static_prompt = format!(
-    //     "{} / {}:",
-    //     jargons.join(", "),
-    //     language
-    //         .text_transcript()
-    //         .unwrap_or("transcript".to_string())
-    // );
-    let static_prompt = "".to_string();
-
-    Ok(crate::client::ListenClient::builder()
-        .api_base(api_base)
-        .api_key(api_key)
-        .params(hypr_listener_interface::ListenParams {
-            language,
-            static_prompt,
+    Ok(owhisper_client::ListenClient::builder()
+        .api_base(conn.base_url)
+        .api_key(conn.api_key.unwrap_or_default())
+        .params(owhisper_interface::ListenParams {
+            languages,
+            redemption_time_ms: Some(if is_onboarding { 70 } else { 500 }),
             ..Default::default()
         })
         .build_dual())
@@ -563,8 +594,8 @@ async fn setup_listen_client<R: tauri::Runtime>(
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
-    words: Vec<hypr_listener_interface::Word>,
-) -> Result<Vec<hypr_listener_interface::Word>, crate::Error> {
+    words: Vec<owhisper_interface::Word2>,
+) -> Result<Vec<owhisper_interface::Word2>, crate::Error> {
     use tauri_plugin_db::DatabasePluginExt;
 
     // TODO: not ideal. We might want to only do "update" everywhere instead of upserts.
@@ -587,6 +618,7 @@ pub enum StateEvent {
     Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
+    MicChange(Option<String>),
 }
 
 #[state_machine(
@@ -610,6 +642,18 @@ impl Session {
                     let _ = tx.send(*muted);
                     let _ = SessionEvent::SpeakerMuted { value: *muted }.emit(&self.app);
                 }
+                Handled
+            }
+            StateEvent::MicChange(device_name) => {
+                self.mic_device_name = device_name.clone();
+
+                if self.session_id.is_some() && self.tasks.is_some() {
+                    if let Some(session_id) = self.session_id.clone() {
+                        self.teardown_resources().await;
+                        self.setup_resources(&session_id).await.unwrap();
+                    }
+                }
+
                 Handled
             }
             _ => Super,

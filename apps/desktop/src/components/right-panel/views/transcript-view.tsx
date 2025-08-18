@@ -6,7 +6,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
-import { commands as dbCommands, Human, Word } from "@hypr/plugin-db";
+import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
   getSpeakerLabel,
@@ -80,7 +80,9 @@ export function TranscriptView() {
   useEffect(() => {
     if (words && words.length > 0) {
       editorRef.current?.setWords(words);
-      editorRef.current?.scrollToBottom();
+      if (editorRef.current?.isNearBottom()) {
+        editorRef.current?.scrollToBottom();
+      }
     }
   }, [words, isLive]);
 
@@ -102,7 +104,7 @@ export function TranscriptView() {
     {
       refetchInterval: 2500,
       enabled: !!sessionId,
-      queryKey: ["audioExist", sessionId],
+      queryKey: ["audio", sessionId, "exist"],
       queryFn: () => miscCommands.audioExist(sessionId!),
     },
     queryClient,
@@ -121,7 +123,7 @@ export function TranscriptView() {
     }
   }, [sessionId]);
 
-  const handleUpdate = (words: Word[]) => {
+  const handleUpdate = (words: Word2[]) => {
     if (!isLive) {
       dbCommands.getSession({ id: sessionId! }).then((session) => {
         if (session) {
@@ -148,7 +150,11 @@ export function TranscriptView() {
           />
         )
         : (
-          <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b border-neutral-100">
+          <header
+            className={`flex items-center justify-between w-full px-4 py-1 my-1 ${
+              !showEmptyMessage ? "border-b border-neutral-100" : ""
+            }`}
+          >
             {!showEmptyMessage && (
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
@@ -237,7 +243,6 @@ function RenderEmpty({ sessionId, panelWidth }: {
           <Button
             size="sm"
             onClick={handleStartRecording}
-            disabled={ongoingSession.loading}
             className={isUltraCompact ? "px-3" : ""}
             title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
           >
@@ -377,16 +382,19 @@ const MemoizedSpeakerSelector = memo(({
   };
 
   return (
-    <div className="mt-2 sticky top-0 z-10 bg-neutral-50">
+    <div className="mt-4 sticky top-0 z-10 bg-neutral-50">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger
-          onMouseDown={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <span className="underline py-1 font-semibold">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1"
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+          >
             {getDisplayName(human)}
-          </span>
+          </Button>
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">

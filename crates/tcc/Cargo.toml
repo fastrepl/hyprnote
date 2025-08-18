@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [target.'cfg(target_os = "macos")'.build-dependencies]
-swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df", features = ["build"] }
+swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9", features = ["build"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-swift-rs = { git = "https://github.com/guillemcordoba/swift-rs", rev = "01980f981bc642a6da382cc0788f18fdd4cde6df" }
+swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9" }

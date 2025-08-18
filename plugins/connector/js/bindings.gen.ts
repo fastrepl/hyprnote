@@ -34,8 +34,71 @@ async getLocalLlmConnection() : Promise<ConnectionLLM> {
 async getLlmConnection() : Promise<ConnectionLLM> {
     return await TAURI_INVOKE("plugin:connector|get_llm_connection");
 },
-async getSttConnection() : Promise<ConnectionSTT> {
-    return await TAURI_INVOKE("plugin:connector|get_stt_connection");
+async getOpenaiApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openai_api_key");
+},
+async setOpenaiApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openai_api_key", { apiKey });
+},
+async getGeminiApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_gemini_api_key");
+},
+async setGeminiApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_gemini_api_key", { apiKey });
+},
+async getProviderSource() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_provider_source");
+},
+async setProviderSource(source: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_provider_source", { source });
+},
+async getOthersApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_api_key");
+},
+async setOthersApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_api_key", { apiKey });
+},
+async getOthersApiBase() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_api_base");
+},
+async setOthersApiBase(apiBase: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_api_base", { apiBase });
+},
+async getOthersModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_others_model");
+},
+async setOthersModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_others_model", { model });
+},
+async getOpenaiModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openai_model");
+},
+async setOpenaiModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openai_model", { model });
+},
+async getGeminiModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_gemini_model");
+},
+async setGeminiModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_gemini_model", { model });
+},
+async getOpenrouterModel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openrouter_model");
+},
+async setOpenrouterModel(model: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openrouter_model", { model });
+},
+async getOpenrouterApiKey() : Promise<string> {
+    return await TAURI_INVOKE("plugin:connector|get_openrouter_api_key");
+},
+async setOpenrouterApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_openrouter_api_key", { apiKey });
+},
+async getHyprcloudEnabled() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:connector|get_hyprcloud_enabled");
+},
+async setHyprcloudEnabled(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:connector|set_hyprcloud_enabled", { enabled });
 }
 }
 
@@ -51,7 +114,6 @@ async getSttConnection() : Promise<ConnectionSTT> {
 
 export type Connection = { api_base: string; api_key: string | null }
 export type ConnectionLLM = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection } | { type: "Custom"; connection: Connection }
-export type ConnectionSTT = { type: "HyprCloud"; connection: Connection } | { type: "HyprLocal"; connection: Connection }
 
 /** tauri-specta globals **/
 

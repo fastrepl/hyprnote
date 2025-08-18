@@ -1,5 +1,6 @@
 use std::net::{Ipv4Addr, SocketAddr};
 use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 
 use async_openai::types::{
     ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk,
@@ -16,10 +17,12 @@ use axum::{
 };
 
 use futures_util::StreamExt;
+use reqwest_streams::error::StreamBodyError;
 use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::local::ModelManager;
+use crate::ModelManager;
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -33,11 +36,42 @@ impl ServerHandle {
     }
 }
 
-pub async fn run_server(model_manager: ModelManager) -> Result<ServerHandle, crate::Error> {
+#[derive(Clone)]
+pub struct ServerState {
+    pub model_manager: ModelManager,
+    pub cancellation_tokens: Arc<Mutex<Vec<CancellationToken>>>,
+}
+
+impl ServerState {
+    pub fn new(model_manager: ModelManager) -> Self {
+        Self {
+            model_manager,
+            cancellation_tokens: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn cancel_all(&self) {
+        if let Ok(tokens) = self.cancellation_tokens.lock() {
+            for token in tokens.iter() {
+                token.cancel();
+            }
+        }
+    }
+
+    fn register_token(&self, token: CancellationToken) {
+        if let Ok(mut tokens) = self.cancellation_tokens.lock() {
+            tokens.retain(|t| !t.is_cancelled());
+            tokens.push(token);
+        }
+    }
+}
+
+pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error> {
     let app = Router::new()
         .route("/health", get(health))
+        .route("/cancel", get(cancel))
         .route("/chat/completions", post(chat_completions))
-        .with_state(model_manager)
+        .with_state(state)
         .layer(
             CorsLayer::new()
                 .allow_origin(cors::Any)
@@ -70,38 +104,197 @@ pub async fn run_server(model_manager: ModelManager) -> Result<ServerHandle, cra
     Ok(server_handle)
 }
 
-async fn health(AxumState(model_manager): AxumState<ModelManager>) -> impl IntoResponse {
-    match model_manager.get_model().await {
-        Ok(_) => StatusCode::OK,
-        Err(_) => StatusCode::SERVICE_UNAVAILABLE,
-    };
+async fn health(AxumState(state): AxumState<ServerState>) -> impl IntoResponse {
+    match state.model_manager.get_model().await {
+        Ok(_) => (StatusCode::OK, "OK".to_string()),
+        Err(e) => (StatusCode::SERVICE_UNAVAILABLE, e.to_string()),
+    }
+}
+
+// Tauri SSE client disconnects don't propagate to Axum, so we can't use a drop guard.
+async fn cancel(AxumState(state): AxumState<ServerState>) -> impl IntoResponse {
+    tracing::info!("canceling_all");
+    state.cancel_all();
+    StatusCode::OK
 }
 
 async fn chat_completions(
-    AxumState(model_manager): AxumState<ModelManager>,
+    AxumState(state): AxumState<ServerState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
-    let inference_result = if request.model == "mock-onboarding" {
-        inference_with_mock(&request).await
+    let response = if request.model == "mock-onboarding" {
+        let provider = MockProvider::default();
+        tracing::info!("using_mock_provider");
+        provider.chat_completions(request, &state).await
     } else {
-        let model = model_manager
-            .get_model()
-            .await
-            .map_err(|e| (StatusCode::SERVICE_UNAVAILABLE, e.to_string()))?;
-
-        inference_without_mock(&model, &request).await
+        let provider = LocalProvider::new(state.model_manager.clone());
+        tracing::info!("using_local_provider");
+        provider.chat_completions(request, &state).await
     };
 
-    inference_result.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
+    response
+        .map(|r| r.into_response())
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
 
-async fn build_and_send_response(
+struct LocalProvider {
+    model_manager: ModelManager,
+}
+
+impl LocalProvider {
+    fn new(model_manager: ModelManager) -> Self {
+        Self { model_manager }
+    }
+
+    async fn chat_completions(
+        &self,
+        request: CreateChatCompletionRequest,
+        state: &ServerState,
+    ) -> Result<ChatCompletionResponse, crate::Error> {
+        let model = self.model_manager.get_model().await?;
+        tracing::info!("loaded_model: {:?}", model.name);
+
+        build_chat_completion_response(&request, || {
+            let (stream, token) = Self::build_stream(&model, &request)?;
+            state.register_token(token.clone());
+            Ok(stream)
+        })
+        .await
+    }
+
+    fn build_stream(
+        model: &hypr_llama::Llama,
+        request: &CreateChatCompletionRequest,
+    ) -> Result<
+        (
+            Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+            CancellationToken,
+        ),
+        crate::Error,
+    > {
+        let messages = request
+            .messages
+            .iter()
+            .map(hypr_llama::FromOpenAI::from_openai)
+            .collect();
+
+        let maybe_grammar = request
+            .metadata
+            .as_ref()
+            .and_then(|v| v.get("grammar"))
+            .and_then(|v| serde_json::from_value::<hypr_gbnf::Grammar>(v.clone()).ok());
+
+        // TODO: this is temporary hack to disable grammar for hypr-llm
+        let grammar = match maybe_grammar {
+            None => None,
+            Some(g) => {
+                if model.name == hypr_llama::ModelName::HyprLLM {
+                    match &g {
+                        hypr_gbnf::Grammar::Enhance { sections: None } => None,
+                        _ => Some(g.build()),
+                    }
+                } else {
+                    Some(g.build())
+                }
+            }
+        };
+
+        let request = hypr_llama::LlamaRequest { messages, grammar };
+
+        let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
+
+        let (content_stream, cancellation_token) = model.generate_stream_with_callback(
+            request,
+            Box::new(move |v| {
+                let _ = progress_sender.send(v);
+            }),
+        )?;
+
+        let mixed_stream = async_stream::stream! {
+            tokio::pin!(content_stream);
+
+            loop {
+                tokio::select! {
+                    content_result = content_stream.next() => {
+                        match content_result {
+                            Some(content) => yield StreamEvent::Content(content),
+                            None => break,
+                        }
+                    },
+                    progress_result = progress_receiver.recv() => {
+                        match progress_result {
+                            Some(progress) => yield StreamEvent::Progress(progress),
+                            None => {}
+                        }
+                    }
+                }
+            }
+        };
+
+        Ok((Box::pin(mixed_stream), cancellation_token))
+    }
+}
+
+#[derive(Default)]
+struct MockProvider {}
+
+impl MockProvider {
+    async fn chat_completions(
+        &self,
+        request: CreateChatCompletionRequest,
+        state: &ServerState,
+    ) -> Result<ChatCompletionResponse, crate::Error> {
+        let content = crate::ONBOARDING_ENHANCED_MD;
+        build_chat_completion_response(&request, || {
+            let (stream, token) = Self::build_stream(&content);
+            state.register_token(token.clone());
+            Ok(stream)
+        })
+        .await
+    }
+
+    fn build_stream(
+        content: impl AsRef<str>,
+    ) -> (
+        Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
+        CancellationToken,
+    ) {
+        use futures_util::stream::{self, StreamExt};
+        use std::time::Duration;
+
+        let chunk_size = 30;
+
+        let chunks = content
+            .as_ref()
+            .chars()
+            .collect::<Vec<_>>()
+            .chunks(chunk_size)
+            .map(|c| c.iter().collect::<String>())
+            .collect::<Vec<_>>();
+
+        let stream = Box::pin(stream::iter(chunks).then(|chunk| async move {
+            tokio::time::sleep(Duration::from_millis(200)).await;
+            StreamEvent::Content(chunk)
+        }));
+
+        let cancellation_token = CancellationToken::new();
+        (stream, cancellation_token)
+    }
+}
+
+#[derive(Debug, Clone)]
+enum StreamEvent {
+    Content(String),
+    Progress(f64),
+}
+
+async fn build_chat_completion_response(
     request: &CreateChatCompletionRequest,
     response_stream_fn: impl FnOnce() -> Result<
         Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
         crate::Error,
     >,
-) -> Result<Response, crate::Error> {
+) -> Result<ChatCompletionResponse, crate::Error> {
     let id = uuid::Uuid::new_v4().to_string();
     let created = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -180,172 +373,84 @@ async fn build_and_send_response(
             }],
             ..base_response_template
         };
-        Ok(Json(res).into_response())
+
+        Ok(ChatCompletionResponse::NonStream(res))
     } else {
         let source_stream = response_stream_fn()?;
-        let stream = source_stream
-            .enumerate()
-            .map(move |(index, event)| {
-                let delta_template = empty_stream_response_delta.clone();
-                let response_template = base_stream_response_template.clone();
+        let stream = Box::pin(source_stream.enumerate().map(move |(index, event)| {
+            let delta_template = empty_stream_response_delta.clone();
+            let response_template = base_stream_response_template.clone();
 
-                match event {
-                    StreamEvent::Content(chunk) => CreateChatCompletionStreamResponse {
-                        choices: vec![ChatChoiceStream {
-                            index: 0,
-                            delta: ChatCompletionStreamResponseDelta {
-                                content: Some(chunk),
-                                ..delta_template
-                            },
-                            finish_reason: None,
-                            logprobs: None,
-                        }],
-                        ..response_template
-                    },
-                    StreamEvent::Progress(progress) => CreateChatCompletionStreamResponse {
-                        choices: vec![ChatChoiceStream {
-                            index: 0,
-                            delta: ChatCompletionStreamResponseDelta {
-                                tool_calls: Some(vec![ChatCompletionMessageToolCallChunk {
-                                    index: index.try_into().unwrap_or(0),
-                                    id: Some("progress_update".to_string()),
-                                    r#type: Some(ChatCompletionToolType::Function),
-                                    function: Some(FunctionCallStream {
-                                        name: Some("update_progress".to_string()),
-                                        arguments: Some(
-                                            serde_json::to_string(&serde_json::json!({
-                                                "progress": progress
-                                            }))
-                                            .unwrap(),
-                                        ),
-                                    }),
-                                }]),
-                                ..delta_template
-                            },
-                            finish_reason: None,
-                            logprobs: None,
-                        }],
-                        ..response_template
-                    },
-                }
-            })
-            .map(|chunk| {
-                Ok::<_, std::convert::Infallible>(
-                    sse::Event::default().data(serde_json::to_string(&chunk).unwrap()),
-                )
-            });
-        Ok(sse::Sse::new(stream).into_response())
+            let response = match event {
+                StreamEvent::Content(chunk) => CreateChatCompletionStreamResponse {
+                    choices: vec![ChatChoiceStream {
+                        index: 0,
+                        delta: ChatCompletionStreamResponseDelta {
+                            content: Some(chunk),
+                            ..delta_template
+                        },
+                        finish_reason: None,
+                        logprobs: None,
+                    }],
+                    ..response_template
+                },
+                StreamEvent::Progress(progress) => CreateChatCompletionStreamResponse {
+                    choices: vec![ChatChoiceStream {
+                        index: 0,
+                        delta: ChatCompletionStreamResponseDelta {
+                            tool_calls: Some(vec![ChatCompletionMessageToolCallChunk {
+                                index: index.try_into().unwrap_or(0),
+                                id: Some("progress_update".to_string()),
+                                r#type: Some(ChatCompletionToolType::Function),
+                                function: Some(FunctionCallStream {
+                                    name: Some("update_progress".to_string()),
+                                    arguments: Some(
+                                        serde_json::to_string(&serde_json::json!({
+                                            "progress": progress
+                                        }))
+                                        .unwrap(),
+                                    ),
+                                }),
+                            }]),
+                            ..delta_template
+                        },
+                        finish_reason: None,
+                        logprobs: None,
+                    }],
+                    ..response_template
+                },
+            };
+
+            Ok(response)
+        }));
+
+        Ok(ChatCompletionResponse::Stream(stream))
     }
 }
 
-async fn inference_with_mock(
-    request: &CreateChatCompletionRequest,
-) -> Result<Response, crate::Error> {
-    build_and_send_response(request, || Ok(build_mock_response())).await
+pub enum ChatCompletionResponse {
+    Stream(
+        futures_util::stream::BoxStream<
+            'static,
+            Result<CreateChatCompletionStreamResponse, StreamBodyError>,
+        >,
+    ),
+    NonStream(CreateChatCompletionResponse),
 }
 
-async fn inference_without_mock(
-    model: &hypr_llama::Llama,
-    request: &CreateChatCompletionRequest,
-) -> Result<Response, crate::Error> {
-    build_and_send_response(request, || build_response(model, request)).await
-}
-
-#[derive(Debug, Clone)]
-enum StreamEvent {
-    Content(String),
-    Progress(f64),
-}
-
-fn build_response(
-    model: &hypr_llama::Llama,
-    request: &CreateChatCompletionRequest,
-) -> Result<Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>, crate::Error> {
-    let messages = request
-        .messages
-        .iter()
-        .map(hypr_llama::FromOpenAI::from_openai)
-        .collect();
-
-    let grammar = select_grammar(&request, &model.name);
-
-    let request = hypr_llama::LlamaRequest { messages, grammar };
-
-    let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
-
-    let content_stream = model.generate_stream_with_callback(
-        request,
-        Box::new(move |v| {
-            let _ = progress_sender.send(v);
-        }),
-    )?;
-
-    let mixed_stream = async_stream::stream! {
-        tokio::pin!(content_stream);
-
-        loop {
-            tokio::select! {
-                content_result = content_stream.next() => {
-                    match content_result {
-                        Some(content) => yield StreamEvent::Content(content),
-                        None => break,
-                    }
-                },
-                progress_result = progress_receiver.recv() => {
-                    match progress_result {
-                        Some(progress) => yield StreamEvent::Progress(progress),
-                        None => {}
-                    }
-                }
+impl IntoResponse for ChatCompletionResponse {
+    fn into_response(self) -> Response {
+        match self {
+            ChatCompletionResponse::Stream(stream) => {
+                let event_stream = stream.map(|result| {
+                    result.map(|response| {
+                        let data = serde_json::to_string(&response).unwrap_or_default();
+                        sse::Event::default().data(data)
+                    })
+                });
+                sse::Sse::new(event_stream).into_response()
             }
+            ChatCompletionResponse::NonStream(response) => Json(response).into_response(),
         }
-    };
-
-    Ok(Box::pin(mixed_stream))
-}
-
-fn build_mock_response() -> Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>> {
-    use futures_util::stream::{self, StreamExt};
-    use std::time::Duration;
-
-    let content = crate::ONBOARDING_ENHANCED_MD;
-    let chunk_size = 30;
-
-    let chunks = content
-        .chars()
-        .collect::<Vec<_>>()
-        .chunks(chunk_size)
-        .map(|c| c.iter().collect::<String>())
-        .collect::<Vec<_>>();
-
-    Box::pin(stream::iter(chunks).then(|chunk| async move {
-        tokio::time::sleep(Duration::from_millis(200)).await;
-        StreamEvent::Content(chunk)
-    }))
-}
-
-fn select_grammar(
-    request: &CreateChatCompletionRequest,
-    model_name: &hypr_llama::ModelName,
-) -> Option<String> {
-    let grammar = request
-        .metadata
-        .as_ref()
-        .and_then(|v| v.get("grammar").and_then(|v| v.as_str()));
-
-    let custom_grammar = request
-        .metadata
-        .as_ref()
-        .and_then(|v| v.get("customGrammar").and_then(|v| v.as_str()));
-
-    match grammar {
-        Some("enhance") => match model_name {
-            hypr_llama::ModelName::HyprLLM => Some(hypr_gbnf::GBNF::EnhanceHypr.build()),
-            _ => Some(hypr_gbnf::GBNF::EnhanceOther.build()),
-        },
-        Some("title") => Some(hypr_gbnf::GBNF::Title.build()),
-        Some("tags") => Some(hypr_gbnf::GBNF::Tags.build()),
-        Some("custom") => custom_grammar.map(|s| s.to_string()),
-        _ => None,
     }
 }

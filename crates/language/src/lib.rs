@@ -1,10 +1,14 @@
 mod error;
 pub use error::*;
 
+use std::str::FromStr;
+
 pub use codes_iso_639::part_1::LanguageCode as ISO639;
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, specta::Type, schemars::JsonSchema)]
 pub struct Language {
+    #[specta(type = String)]
+    #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
     iso639: ISO639,
 }
 
@@ -297,44 +301,24 @@ impl Language {
             _ => Err(Error::NotSupportedLanguage(self.to_string())),
         }
     }
+}
 
-    pub fn text_transcript(&self) -> Result<String, Error> {
-        match self.iso639 {
-            ISO639::Bg => Ok(String::from("транскрипт")),
-            ISO639::Ca => Ok(String::from("transcripció")),
-            ISO639::Cs => Ok(String::from("přepis")),
-            ISO639::Da => Ok(String::from("transskription")),
-            ISO639::De => Ok(String::from("Transkript")),
-            ISO639::El => Ok(String::from("απομαγνητοφώνηση")),
-            ISO639::En => Ok(String::from("transcript")),
-            ISO639::Es => Ok(String::from("transcripción")),
-            ISO639::Et => Ok(String::from("transkriptsioon")),
-            ISO639::Fi => Ok(String::from("transkriptio")),
-            ISO639::Fr => Ok(String::from("transcription")),
-            ISO639::Hi => Ok(String::from("प्रतिलेख")),
-            ISO639::Hu => Ok(String::from("átirat")),
-            ISO639::Id => Ok(String::from("transkrip")),
-            ISO639::It => Ok(String::from("trascrizione")),
-            ISO639::Ja => Ok(String::from("文字起こし")),
-            ISO639::Ko => Ok(String::from("대화록")),
-            ISO639::Lt => Ok(String::from("transkripcija")),
-            ISO639::Lv => Ok(String::from("transkripcija")),
-            ISO639::Ms => Ok(String::from("transkrip")),
-            ISO639::Nl => Ok(String::from("transcript")),
-            ISO639::No => Ok(String::from("transkripsjon")),
-            ISO639::Pl => Ok(String::from("transkrypcja")),
-            ISO639::Pt => Ok(String::from("transcrição")),
-            ISO639::Ro => Ok(String::from("transcriere")),
-            ISO639::Ru => Ok(String::from("стенограмма")),
-            ISO639::Sk => Ok(String::from("prepis")),
-            ISO639::Sv => Ok(String::from("transkription")),
-            ISO639::Ta => Ok(String::from("குறிப்பெடுப்பு")),
-            ISO639::Th => Ok(String::from("บันทึกการสนทนา")),
-            ISO639::Tr => Ok(String::from("deşifre")),
-            ISO639::Uk => Ok(String::from("стенограма")),
-            ISO639::Vi => Ok(String::from("bản ghi")),
-            ISO639::Zh => Ok(String::from("文字记录")),
-            _ => Err(Error::NotSupportedLanguage(self.to_string())),
-        }
+impl serde::Serialize for Language {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.iso639().code())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Language {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let code = String::deserialize(deserializer)?;
+        let iso639 = ISO639::from_str(&code).map_err(serde::de::Error::custom)?;
+        Ok(iso639.into())
     }
 }

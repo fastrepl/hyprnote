@@ -13,6 +13,15 @@ user_common_derives! {
         pub start_date: DateTime<Utc>,
         pub end_date: DateTime<Utc>,
         pub google_event_url: Option<String>,
+        pub participants: Option<String>,
+        pub is_recurring: bool,
+    }
+}
+
+user_common_derives! {
+    pub struct EventParticipant {
+        pub name: Option<String>,
+        pub email: Option<String>,
     }
 }
 

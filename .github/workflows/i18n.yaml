@@ -6,14 +6,12 @@ on:
     paths:
       - apps/desktop/**
       - Taskfile.yaml
-      - apps/docs/data/i18n.json
   pull_request:
     branches:
       - main
     paths:
       - apps/desktop/**
       - Taskfile.yaml
-      - apps/docs/data/i18n.json
 
 jobs:
   i18n:
@@ -27,9 +25,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: task i18n
       - run: |
-          if [[ -n $(git status --porcelain apps/docs/data/i18n.json) ]]; then
+          if [[ -n $(git status --porcelain) ]]; then
             echo "::error::i18n data is not up-to-date. Please run 'task i18n' locally and commit the changes."
             echo "Changes detected:"
-            git --no-pager diff apps/docs/data/i18n.json
+            git --no-pager diff
             exit 1
           fi

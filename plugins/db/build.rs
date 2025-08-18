@@ -6,6 +6,7 @@ const COMMANDS: &[&str] = &[
     "toggle_calendar_selected",
     // session
     "onboarding_session_id",
+    "thank_you_session_id",
     "visit_session",
     "upsert_session",
     "list_sessions",
@@ -15,6 +16,7 @@ const COMMANDS: &[&str] = &[
     "session_add_participant",
     "session_remove_participant",
     "session_list_participants",
+    "session_list_deleted_participant_ids",
     "session_get_event",
     "get_words_onboarding",
     "get_words",
@@ -44,6 +46,7 @@ const COMMANDS: &[&str] = &[
     "list_chat_messages",
     "create_chat_group",
     "upsert_chat_message",
+    "delete_chat_messages",
     // tag
     "upsert_tag",
     "delete_tag",

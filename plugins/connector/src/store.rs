@@ -6,6 +6,19 @@ pub enum StoreKey {
     CustomApiBase,
     CustomApiKey,
     CustomModel,
+    AdminApiBase,
+    AdminApiKey,
+    OpenaiApiKey,
+    OpenrouterApiKey,
+    GeminiApiKey,
+    ProviderSource,
+    OthersApiKey,
+    OthersApiBase,
+    OthersModel,
+    OpenaiModel,
+    GeminiModel,
+    OpenrouterModel,
+    HyprCloudEnabled,
 }
 
 impl ScopedStoreKey for StoreKey {}

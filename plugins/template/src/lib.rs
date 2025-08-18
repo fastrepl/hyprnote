@@ -29,6 +29,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::render::<Wry>,
             commands::register_template::<Wry>,
         ])
+        .typ::<hypr_gbnf::Grammar>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -257,6 +258,9 @@ mod test {
         Also, before writing enhanced note, write multiple top-level headers inside <thinking></thinking> tags, and then write the note based on the headers.
 
         Each items in <thinking></thinking> tags MUST be used as markdown headers('#') in the final note. No other headers are allowed.
+
+
+        /think
         ");
 
         insta::assert_snapshot!(render_enhance_user_template(&app, "HyprCloud"), @r###"

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-provider-source"
+description = "Enables the get_provider_source command without any pre-configured scope."
+commands.allow = ["get_provider_source"]
+
+[[permission]]
+identifier = "deny-get-provider-source"
+description = "Denies the get_provider_source command without any pre-configured scope."
+commands.deny = ["get_provider_source"]

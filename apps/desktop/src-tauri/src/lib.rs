@@ -1,4 +1,5 @@
 mod commands;
+mod deeplink;
 mod ext;
 mod store;
 
@@ -16,8 +17,9 @@ pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     {
-        let env_filter =
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+        let env_filter = EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| EnvFilter::new("info"))
+            .add_directive("ort=warn".parse().unwrap());
 
         tracing_subscriber::Registry::default()
             .with(fmt::layer())
@@ -26,7 +28,7 @@ pub async fn main() {
             .init();
     }
 
-    let client = tauri_plugin_sentry::sentry::init((
+    let sentry_client = tauri_plugin_sentry::sentry::init((
         {
             #[cfg(not(debug_assertions))]
             {
@@ -46,7 +48,7 @@ pub async fn main() {
         },
     ));
 
-    let _guard = tauri_plugin_sentry::minidump::init(&client);
+    let _guard = tauri_plugin_sentry::minidump::init(&sentry_client);
 
     let mut builder = tauri::Builder::default();
 
@@ -76,10 +78,13 @@ pub async fn main() {
         .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_connector::init())
         .plugin(tauri_plugin_flags::init())
-        .plugin(tauri_plugin_sentry::init_with_no_injection(&client))
+        .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_webhook::init())
+        .plugin(tauri_plugin_mcp::init())
+        .plugin(tauri_plugin_obsidian::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -94,13 +99,37 @@ pub async fn main() {
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
-        .plugin(tauri_plugin_membership::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
         ));
+
+    {
+        // These are not secrets. In prod, we set different values in the environment. (See .github/workflows/desktop_cd.yml)
+        let (keygen_account_id, keygen_verify_key) = {
+            #[cfg(not(debug_assertions))]
+            {
+                (env!("KEYGEN_ACCOUNT_ID"), env!("KEYGEN_VERIFY_KEY"))
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                (
+                    option_env!("KEYGEN_ACCOUNT_ID")
+                        .unwrap_or("76dfe152-397c-4689-9c5e-3669cefa34b9"),
+                    option_env!("KEYGEN_VERIFY_KEY").unwrap_or(
+                        "13f18c98b8c1e5539d92df4aad2d51f4d203d5aead296215df7c3d6376b78b13",
+                    ),
+                )
+            }
+        };
+
+        builder = builder.plugin(
+            tauri_plugin_keygen::Builder::new(keygen_account_id, keygen_verify_key).build(),
+        );
+    }
 
     #[cfg(target_os = "macos")]
     {
@@ -120,7 +149,6 @@ pub async fn main() {
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
         })
-        .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
             let app = app.handle().clone();
 
@@ -132,6 +160,7 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
+                // hypr://hyprnote.com + <path>
                 app.deep_link().on_open_url(move |event| {
                     let url = if let Some(url) = event.urls().first() {
                         url.to_string()
@@ -139,34 +168,11 @@ pub async fn main() {
                         return;
                     };
 
-                    tracing::info!("deeplink: {:?}", url::Url::parse(&url));
-
-                    let dest = if let Ok(parsed_url) = url::Url::parse(&url) {
-                        match parsed_url.path() {
-                            "/notification" => {
-                                if let Some(query) = parsed_url.query() {
-                                    let params: std::collections::HashMap<String, String> =
-                                        url::form_urlencoded::parse(query.as_bytes())
-                                            .into_owned()
-                                            .collect();
-
-                                    if let Some(event_id) = params.get("event_id") {
-                                        format!("/app/note/event/{}", event_id)
-                                    } else {
-                                        "/app/new?record=true".to_string()
-                                    }
-                                } else {
-                                    "/app/new?record=false".to_string()
-                                }
-                            }
-                            _ => "/app/new?record=false".to_string(),
+                    let dests = deeplink::parse(url);
+                    for dest in dests {
+                        if app_clone.window_show(dest.window.clone()).is_ok() {
+                            let _ = app_clone.window_navigate(dest.window, &dest.url);
                         }
-                    } else {
-                        "/app/new?record=false".to_string()
-                    };
-
-                    if app_clone.window_show(HyprWindow::Main).is_ok() {
-                        let _ = app_clone.window_navigate(HyprWindow::Main, &dest);
                     }
                 });
             }
@@ -194,12 +200,31 @@ pub async fn main() {
                     let user_id = app_clone.db_user_id().await;
 
                     if let Ok(Some(ref user_id)) = user_id {
+                        let config = app_clone.db_get_config(user_id).await;
+
+                        if let Ok(Some(ref config)) = config {
+                            if !config.general.telemetry_consent {
+                                let _ =
+                                    sentry_client.close(Some(std::time::Duration::from_secs(1)));
+                            }
+                        }
+
                         tauri_plugin_sentry::sentry::configure_scope(|scope| {
                             scope.set_user(Some(tauri_plugin_sentry::sentry::User {
                                 id: Some(user_id.clone()),
                                 ..Default::default()
                             }));
                         });
+                    }
+                }
+
+                // Start event notification after DB is initialized
+                {
+                    use tauri_plugin_notification::NotificationPluginExt;
+                    if app_clone.get_event_notification().unwrap_or(false) {
+                        if let Err(e) = app_clone.start_event_notification().await {
+                            tracing::error!("start_event_notification_failed: {:?}", e);
+                        }
                     }
                 }
 

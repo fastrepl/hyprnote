@@ -24,6 +24,9 @@ export const Route = createFileRoute("/app/new")({
           queryFn: () => dbCommands.getEvent(calendarEventId!),
         });
 
+        console.log("creating a session from an event");
+        console.log("event", event);
+
         const session = await dbCommands.upsertSession({
           id: sessionId,
           user_id: userId,
@@ -38,6 +41,8 @@ export const Route = createFileRoute("/app/new")({
           record_end: null,
           pre_meeting_memo_html: null,
         });
+
+        // Add current user as participant
         await dbCommands.sessionAddParticipant(sessionId, userId);
 
         const { insert } = sessionsStore.getState();

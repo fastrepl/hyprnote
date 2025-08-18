@@ -1,0 +1,25 @@
+[package]
+name = "owhisper-client"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+hypr-audio = { workspace = true }
+hypr-audio-utils = { workspace = true }
+hypr-language = { workspace = true }
+hypr-ws = { workspace = true }
+
+owhisper-interface = { workspace = true }
+
+bytes = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+
+futures-util = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+deepgram = { workspace = true, features = ["listen"] }
+hypr-data = { workspace = true }
+rodio = { workspace = true }
+tokio = { workspace = true }

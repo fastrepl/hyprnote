@@ -1,11 +1,14 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
+import { useState } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
+import { message } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -14,6 +17,7 @@ interface PermissionItemProps {
   done: boolean | undefined;
   isPending: boolean;
   onRequest: () => void;
+  buttonText: string;
 }
 
 function PermissionItem({
@@ -23,6 +27,7 @@ function PermissionItem({
   done,
   isPending,
   onRequest,
+  buttonText,
 }: PermissionItemProps) {
   return (
     <div
@@ -56,7 +61,7 @@ function PermissionItem({
                   <Trans>Requesting...</Trans>
                 </>
               )
-              : <Trans>Enable</Trans>}
+              : <Trans>{buttonText}</Trans>}
           </Button>
         )}
       </div>
@@ -67,27 +72,52 @@ function PermissionItem({
 export default function Sound() {
   const { t } = useLingui();
 
+  const [micPermissionRequested, setMicPermissionRequested] = useState(false);
+
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
     queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    refetchInterval: 1000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
     queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    refetchInterval: 1000,
   });
 
   const micPermission = useMutation({
     mutationFn: () => listenerCommands.requestMicrophoneAccess(),
-    onSuccess: () => micPermissionStatus.refetch(),
-    onError: console.error,
+    onSuccess: () => {
+      setMicPermissionRequested(true);
+      setTimeout(() => {
+        micPermissionStatus.refetch();
+      }, 3000);
+    },
+    onError: (error) => {
+      setMicPermissionRequested(true);
+      console.error(error);
+    },
   });
 
   const capturePermission = useMutation({
     mutationFn: () => listenerCommands.requestSystemAudioAccess(),
-    onSuccess: () => systemAudioPermissionStatus.refetch(),
+    onSuccess: () => {
+      message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
+      setTimeout(() => {
+        relaunch();
+      }, 2000);
+    },
     onError: console.error,
   });
+
+  const handleMicPermissionAction = () => {
+    if (micPermissionRequested && !micPermissionStatus.data) {
+      listenerCommands.openMicrophoneAccessSettings();
+    } else {
+      micPermission.mutate();
+    }
+  };
 
   return (
     <div>
@@ -98,7 +128,8 @@ export default function Sound() {
           description={t`Required to transcribe your voice during meetings`}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
-          onRequest={() => micPermission.mutate({})}
+          onRequest={handleMicPermissionAction}
+          buttonText={micPermissionRequested && !micPermissionStatus.data ? "Open Settings" : "Enable"}
         />
 
         <PermissionItem
@@ -108,6 +139,7 @@ export default function Sound() {
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}
+          buttonText="Enable"
         />
       </div>
     </div>

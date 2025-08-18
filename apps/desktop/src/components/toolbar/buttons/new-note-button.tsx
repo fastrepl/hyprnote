@@ -33,9 +33,8 @@ function ActualButton({ disabled }: { disabled: boolean }) {
       <TooltipTrigger asChild>
         <Button
           disabled={disabled}
-          variant="ghost"
           size="icon"
-          className="hover:bg-neutral-200"
+          className="hover:bg-neutral-200 bg-transparent text-black"
           onClick={createNewNote}
           aria-label="New Note"
         >

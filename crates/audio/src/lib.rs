@@ -2,15 +2,14 @@ mod errors;
 mod mic;
 mod norm;
 mod speaker;
-mod stream;
 
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
-pub use stream::*;
 
 pub use cpal;
+use cpal::traits::{DeviceTrait, HostTrait};
 
 use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
@@ -70,20 +69,43 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
-    pub fn from_mic() -> Self {
-        Self {
-            source: AudioSource::RealtimeMic,
-            mic: Some(MicInput::default()),
-            speaker: None,
-            data: None,
-        }
+    pub fn get_default_mic_device_name() -> String {
+        let host = cpal::default_host();
+        let device = host.default_input_device().unwrap();
+        device.name().unwrap_or("Unknown Microphone".to_string())
     }
 
-    pub fn from_speaker(sample_rate_override: Option<u32>) -> Self {
+    pub fn list_mic_devices() -> Vec<String> {
+        let host = cpal::default_host();
+
+        let devices: Vec<cpal::Device> = host
+            .input_devices()
+            .map(|devices| devices.collect())
+            .unwrap_or_else(|_| Vec::new());
+
+        devices
+            .into_iter()
+            .filter_map(|d| d.name().ok())
+            .filter(|d| d != "hypr-audio-tap")
+            .collect()
+    }
+
+    pub fn from_mic(device_name: Option<String>) -> Result<Self, crate::Error> {
+        let mic = MicInput::new(device_name)?;
+
+        Ok(Self {
+            source: AudioSource::RealtimeMic,
+            mic: Some(mic),
+            speaker: None,
+            data: None,
+        })
+    }
+
+    pub fn from_speaker() -> Self {
         Self {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
-            speaker: Some(SpeakerInput::new(sample_rate_override).unwrap()),
+            speaker: Some(SpeakerInput::new().unwrap()),
             data: None,
         }
     }
@@ -94,6 +116,14 @@ impl AudioInput {
             mic: None,
             speaker: None,
             data: Some(data),
+        }
+    }
+
+    pub fn device_name(&self) -> String {
+        match &self.source {
+            AudioSource::RealtimeMic => self.mic.as_ref().unwrap().device_name(),
+            AudioSource::RealtimeSpeaker => "TODO".to_string(),
+            AudioSource::Recorded => "TODO".to_string(),
         }
     }
 

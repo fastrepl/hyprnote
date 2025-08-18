@@ -42,6 +42,12 @@ pub enum PredefinedTemplate {
     SuggestTagsSystem,
     #[strum(serialize = "suggest_tags.user")]
     SuggestTagsUser,
+    #[strum(serialize = "ai_chat.system")]
+    AiChatSystem,
+    #[strum(serialize = "auto_generate_tags.system")]
+    AutoGenerateTagsSystem,
+    #[strum(serialize = "auto_generate_tags.user")]
+    AutoGenerateTagsUser,
 }
 
 impl From<PredefinedTemplate> for Template {
@@ -63,6 +69,13 @@ impl From<PredefinedTemplate> for Template {
             PredefinedTemplate::SuggestTagsUser => {
                 Template::Static(PredefinedTemplate::SuggestTagsUser)
             }
+            PredefinedTemplate::AiChatSystem => Template::Static(PredefinedTemplate::AiChatSystem),
+            PredefinedTemplate::AutoGenerateTagsSystem => {
+                Template::Static(PredefinedTemplate::AutoGenerateTagsSystem)
+            }
+            PredefinedTemplate::AutoGenerateTagsUser => {
+                Template::Static(PredefinedTemplate::AutoGenerateTagsUser)
+            }
         }
     }
 }
@@ -73,6 +86,11 @@ pub const CREATE_TITLE_SYSTEM_TPL: &str = include_str!("../assets/create_title.s
 pub const CREATE_TITLE_USER_TPL: &str = include_str!("../assets/create_title.user.jinja");
 pub const SUGGEST_TAGS_SYSTEM_TPL: &str = include_str!("../assets/suggest_tags.system.jinja");
 pub const SUGGEST_TAGS_USER_TPL: &str = include_str!("../assets/suggest_tags.user.jinja");
+pub const AI_CHAT_SYSTEM_TPL: &str = include_str!("../assets/ai_chat_system.jinja");
+pub const AUTO_GENERATE_TAGS_SYSTEM_TPL: &str =
+    include_str!("../assets/auto_generate_tags.system.jinja");
+pub const AUTO_GENERATE_TAGS_USER_TPL: &str =
+    include_str!("../assets/auto_generate_tags.user.jinja");
 
 pub fn init(env: &mut minijinja::Environment) {
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
@@ -104,7 +122,21 @@ pub fn init(env: &mut minijinja::Environment) {
         SUGGEST_TAGS_USER_TPL,
     )
     .unwrap();
-
+    env.add_template(
+        PredefinedTemplate::AiChatSystem.as_ref(),
+        AI_CHAT_SYSTEM_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::AutoGenerateTagsSystem.as_ref(),
+        AUTO_GENERATE_TAGS_SYSTEM_TPL,
+    )
+    .unwrap();
+    env.add_template(
+        PredefinedTemplate::AutoGenerateTagsUser.as_ref(),
+        AUTO_GENERATE_TAGS_USER_TPL,
+    )
+    .unwrap();
     env.add_filter("timeline", filters::timeline);
     env.add_filter("language", filters::language);
 

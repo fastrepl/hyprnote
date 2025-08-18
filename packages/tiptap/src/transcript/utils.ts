@@ -1,7 +1,7 @@
-import type { SpeakerIdentity, Word } from "@hypr/plugin-db";
+import type { SpeakerIdentity, Word2 } from "@hypr/plugin-db";
 import { JSONContent } from "@tiptap/react";
 
-export type { Word };
+export type { Word2 };
 
 export const SPEAKER_ID_ATTR = "speaker-id" as const;
 export const SPEAKER_INDEX_ATTR = "speaker-index" as const;
@@ -20,13 +20,22 @@ export type DocContent = {
   content: SpeakerContent[];
 };
 
+type TextContent = {
+  type: "text";
+  text: string;
+  marks?: Array<{
+    type: string;
+    attrs?: any;
+  }>;
+};
+
 type SpeakerContent = {
   type: "speaker";
-  content: { type: "text"; text: string }[];
+  content: TextContent[];
   attrs: SpeakerAttributes;
 };
 
-export const fromWordsToEditor = (words: Word[]): DocContent => {
+export const fromWordsToEditor = (words: Word2[]): DocContent => {
   return {
     type: "doc",
     content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word, index) => {
@@ -54,9 +63,23 @@ export const fromWordsToEditor = (words: Word[]): DocContent => {
 
       const lastSpeaker = state.acc[state.acc.length - 1];
 
-      // If there's already text content, add a space before the new word
-      if (lastSpeaker.content.length > 0 && lastSpeaker.content[0].text) {
-        lastSpeaker.content[0].text += " " + word.text;
+      if (lastSpeaker.content.length > 0) {
+        lastSpeaker.content.push({ type: "text", text: " " });
+      }
+
+      if (word.confidence !== null && word.confidence < 0) {
+        lastSpeaker.content.push({
+          type: "text",
+          text: word.text,
+          marks: [
+            {
+              type: "interim",
+              attrs: {
+                interim: true,
+              },
+            },
+          ],
+        });
       } else {
         lastSpeaker.content.push({ type: "text", text: word.text });
       }
@@ -66,12 +89,12 @@ export const fromWordsToEditor = (words: Word[]): DocContent => {
   };
 };
 
-export const fromEditorToWords = (content: DocContent | JSONContent): Word[] => {
+export const fromEditorToWords = (content: DocContent | JSONContent): Word2[] => {
   if (!content?.content) {
     return [];
   }
 
-  const words: Word[] = [];
+  const words: Word2[] = [];
 
   for (const speakerBlock of content.content) {
     if (speakerBlock.type !== "speaker" || !speakerBlock.content) {
@@ -98,21 +121,22 @@ export const fromEditorToWords = (content: DocContent | JSONContent): Word[] => 
       };
     }
 
-    const textContent = speakerBlock.content
-      .filter(node => node.type === "text")
-      .map(node => node.text || "")
-      .join("");
+    for (const node of speakerBlock.content) {
+      if (node.type !== "text" || !node.text) {
+        continue;
+      }
 
-    const wordTexts = textContent.split(/\s+/).filter(Boolean);
+      const wordTexts = node.text.split(/\s+/).filter(Boolean);
 
-    for (const wordText of wordTexts) {
-      words.push({
-        text: wordText,
-        speaker,
-        confidence: null,
-        start_ms: null,
-        end_ms: null,
-      });
+      for (const wordText of wordTexts) {
+        words.push({
+          text: wordText,
+          speaker,
+          confidence: null,
+          start_ms: null,
+          end_ms: null,
+        });
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { Link, LinkProps, useNavigate } from "@tanstack/react-router";
+import { Link, type LinkProps, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
 
@@ -43,7 +43,10 @@ export function PastNotes({ human }: { human: Human }) {
     } else {
       const params = { to: "/app/new" } as const satisfies LinkProps;
 
-      windowsCommands.windowEmitNavigate({ type: "main" }, params.to).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "main" }, {
+        path: params.to,
+        search: null,
+      }).then(() => {
         windowsCommands.windowDestroy({ type: "human", value: human.id });
       });
     }

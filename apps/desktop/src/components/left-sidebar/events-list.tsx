@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LinkProps, useNavigate } from "@tanstack/react-router";
+import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { format } from "date-fns";
 import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from "lucide-react";
@@ -19,7 +19,6 @@ import { SplashLoader } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { useSession } from "@hypr/utils/contexts";
 import { formatUpcomingTime } from "@hypr/utils/datetime";
-import { safeNavigate } from "@hypr/utils/navigation";
 
 type EventWithSession = Event & { session: Session | null };
 
@@ -79,7 +78,7 @@ export default function EventsList({
         ? (
           <div>
             {events
-              .sort((a, b) => a.start_date.localeCompare(b.start_date))
+              // .sort((a, b) => a.start_date.localeCompare(b.start_date)) - commented out to show the closest events at the bottom
               .map((event) => (
                 <EventItem
                   key={event.id}
@@ -128,14 +127,15 @@ function EventItem({
 
   const handleOpenCalendar = () => {
     const date = new Date(event.start_date);
+    const formattedDate = format(date, "yyyy-MM-dd");
+    const url = { to: "/app/finder", search: { view: "calendar", date: formattedDate } } as const satisfies LinkProps;
 
-    const params = {
-      to: "/app/calendar",
-      search: { date: format(date, "yyyy-MM-dd") },
-    } as const satisfies LinkProps;
-
-    const url = `${params.to}?date=${params.search.date}`;
-    safeNavigate({ type: "calendar" }, url);
+    windowsCommands.windowShow({ type: "finder" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "finder" }, {
+        path: url.to,
+        search: url.search,
+      });
+    });
   };
 
   const isActive = activeSessionId

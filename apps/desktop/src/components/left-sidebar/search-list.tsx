@@ -165,13 +165,6 @@ export function SessionMatch({ match: { item: session }, isSelected, query }: {
   const routeMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const isActive = routeMatch?.params.id === session.id;
 
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (isSelected && elementRef.current) {
-  //     elementRef.current.scrollIntoView({ block: "nearest" });
-  //   }
-  // }, [isSelected]);
-
   const handleClick = () => {
     navigate({
       to: "/app/note/$id",
@@ -208,13 +201,6 @@ function EventMatch({ match, isSelected, query }: {
   const navigate = useNavigate();
   const event = match.item;
   const elementRef = useRef<HTMLButtonElement>(null);
-
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (isSelected && elementRef.current) {
-  //     elementRef.current.scrollIntoView({ block: "nearest" });
-  //   }
-  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({ to: "/app/new", search: { calendarEventId: event.id } });
@@ -258,13 +244,6 @@ function HumanMatch({ match: { item }, isSelected, query }: {
   });
 
   const isActive = routeMatch?.params.id === item.id;
-
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (isSelected && elementRef.current) {
-  //     elementRef.current.scrollIntoView({ block: "nearest" });
-  //   }
-  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({
@@ -340,13 +319,6 @@ function OrganizationMatch({ match: { item: organization }, isSelected, query }:
   const elementRef = useRef<HTMLButtonElement>(null);
 
   const isActive = routeMatch?.params.id === organization.id;
-
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (isSelected && elementRef.current) {
-  //     elementRef.current.scrollIntoView({ block: "nearest" });
-  //   }
-  // }, [isSelected]);
 
   const handleClick = () => {
     navigate({

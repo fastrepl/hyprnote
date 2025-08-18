@@ -7,11 +7,13 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
+    HyprAudioError(#[from] hypr_audio::Error),
+    #[error(transparent)]
     CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
     #[error(transparent)]
-    ListenClientError(#[from] hypr_ws::Error),
-    #[error(transparent)]
     DatabaseError(#[from] tauri_plugin_db::Error),
+    #[error(transparent)]
+    LocalSttError(#[from] tauri_plugin_local_stt::Error),
     #[error(transparent)]
     ConnectorError(#[from] tauri_plugin_connector::Error),
     #[error("no session")]

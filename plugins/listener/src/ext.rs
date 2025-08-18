@@ -1,7 +1,6 @@
 use std::future::Future;
 
 use futures_util::StreamExt;
-use hypr_audio::cpal::traits::{DeviceTrait, HostTrait};
 
 #[cfg(target_os = "macos")]
 use {
@@ -11,6 +10,13 @@ use {
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn get_current_microphone_device(
+        &self,
+    ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
+    fn set_microphone_device(
+        &self,
+        device_name: impl Into<String>,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
     fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
@@ -34,13 +40,30 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
-        let host = hypr_audio::cpal::default_host();
-        let devices = host.input_devices()?;
+        Ok(hypr_audio::AudioInput::list_mic_devices())
+    }
 
-        Ok(devices
-            .filter_map(|d| d.name().ok())
-            .filter(|d| d != "hypr-audio-tap")
-            .collect())
+    #[tracing::instrument(skip_all)]
+    async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
+        let state = self.state::<crate::SharedState>();
+        let s = state.lock().await;
+        Ok(s.fsm.get_current_mic_device())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn set_microphone_device(
+        &self,
+        device_name: impl Into<String>,
+    ) -> Result<(), crate::Error> {
+        let state = self.state::<crate::SharedState>();
+
+        {
+            let mut guard = state.lock().await;
+            let event = crate::fsm::StateEvent::MicChange(Some(device_name.into()));
+            guard.fsm.handle(&event).await;
+        }
+
+        Ok(())
     }
 
     #[tracing::instrument(skip_all)]
@@ -61,7 +84,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
             let sample = mic_sample_stream.next().await;
             Ok(sample.is_some())
         }
@@ -69,14 +92,28 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn check_system_audio_access(&self) -> Result<bool, crate::Error> {
-        Ok(true)
+        Ok(hypr_tcc::audio_capture_permission_granted())
     }
 
     #[tracing::instrument(skip_all)]
     async fn request_microphone_access(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
-        // https://github.com/ayangweb/tauri-plugin-macos-permissions/blob/c025ab4/src/commands.rs#L184
         {
+            /*
+            {
+                use tauri_plugin_shell::ShellExt;
+
+                let bundle_id = self.config().identifier.clone();
+                self.app_handle()
+                    .shell()
+                    .command("tccutil")
+                    .args(["reset", "Microphone", &bundle_id])
+                    .spawn()
+                    .ok();
+            }
+            */
+
+            // https://github.com/ayangweb/tauri-plugin-macos-permissions/blob/c025ab4/src/commands.rs#L184
             unsafe {
                 let av_media_type = NSString::from_str("soun");
                 type CompletionBlock = Option<extern "C" fn(Bool)>;
@@ -91,7 +128,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         #[cfg(not(target_os = "macos"))]
         {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic().stream();
+            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
             mic_sample_stream.next().await;
         }
 
@@ -100,9 +137,21 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn request_system_audio_access(&self) -> Result<(), crate::Error> {
+        {
+            use tauri_plugin_shell::ShellExt;
+
+            let bundle_id = self.config().identifier.clone();
+            self.app_handle()
+                .shell()
+                .command("tccutil")
+                .args(["reset", "AudioCapture", &bundle_id])
+                .spawn()
+                .ok();
+        }
+
         let stop = hypr_audio::AudioOutput::silence();
 
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker(None).stream();
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
         speaker_sample_stream.next().await;
 
         let _ = stop.send(());

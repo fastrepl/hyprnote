@@ -57,8 +57,8 @@ export function LLMLocalView({
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
 
       // Disable BOTH HyprCloud and custom when selecting local
-      setHyprCloudEnabledMutation.mutate(false);
       setCustomLLMEnabledMutation.mutate(false);
+      setHyprCloudEnabledMutation.mutate(false);
       setOpenAccordion(null);
 
       // Restart server for local model

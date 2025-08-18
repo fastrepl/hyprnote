@@ -20,7 +20,8 @@ impl AnalyticsClient {
     }
 
     pub async fn event(&self, payload: AnalyticsPayload) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
+        
+        if !hypr_network::is_online(&self.client).await {
             return Ok(());
         }
 

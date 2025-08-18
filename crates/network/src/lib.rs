@@ -1,13 +1,4 @@
-use reqwest::Client;
-use std::time::Duration;
-
-pub async fn is_online() -> bool {
-    let client = Client::builder()
-        .timeout(Duration::from_secs(8))
-        .build()
-        .unwrap();
-
-
+pub async fn is_online(client: &reqwest::Client) -> bool {
     let url = "https://posthog.com/";
 
     match client.get(url).send().await {

@@ -446,7 +446,6 @@ export default function LlmAI() {
         api_base: finalApiBase,
         api_key: null,
       });
-      localLlmCommands.restartServer(); // is it necessary to restart the server?
       return; // Early return for HyprCloud
     }
 
@@ -477,7 +476,6 @@ export default function LlmAI() {
       api_base: finalApiBase,
       api_key: config.api_key || null,
     });
-    localLlmCommands.restartServer(); // is it necessary to restart the server?
   };
 
   const openaiForm = useForm<OpenAIFormValues>({

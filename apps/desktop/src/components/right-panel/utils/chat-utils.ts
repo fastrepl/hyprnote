@@ -1,7 +1,7 @@
-import { Message } from "../components/chat/types";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands } from "@hypr/plugin-template";
+import { Message } from "../components/chat/types";
 
 export const formatDate = (date: Date) => {
   const now = new Date();
@@ -198,4 +198,3 @@ export const prepareMessageHistory = async (
 
   return conversationHistory;
 };
-

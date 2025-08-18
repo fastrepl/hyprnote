@@ -1,8 +1,8 @@
 use crate::{Config, ConfigAI, ConfigGeneral, ConfigNotification};
 
 use super::{
-    Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
-    Session, Tag, UserDatabase, ChatMessageType,
+    Calendar, ChatGroup, ChatMessage, ChatMessageRole, ChatMessageType, Event, Human, Organization,
+    Platform, Session, Tag, UserDatabase,
 };
 
 const ONBOARDING_RAW_HTML: &str = include_str!("../assets/onboarding-raw.html");

@@ -152,7 +152,9 @@ export default function LlmAI() {
 
       setSelectedLLMModel(modelKey);
       localLlmCommands.setCurrentModel(modelKey as SupportedModel);
+      queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
       setCustomLLMEnabledMutation.mutate(false);
+      setHyprCloudEnabledMutation.mutate(false);
     }, queryClient);
   };
 
@@ -169,6 +171,18 @@ export default function LlmAI() {
     mutationFn: (enabled: boolean) => connectorCommands.setCustomLlmEnabled(enabled),
     onSuccess: () => {
       customLLMEnabled.refetch();
+    },
+  });
+
+  const hyprCloudEnabled = useQuery({
+    queryKey: ["hypr-cloud-enabled"],
+    queryFn: () => connectorCommands.getHyprcloudEnabled(),
+  });
+
+  const setHyprCloudEnabledMutation = useMutation({
+    mutationFn: (enabled: boolean) => connectorCommands.setHyprcloudEnabled(enabled),
+    onSuccess: () => {
+      hyprCloudEnabled.refetch();
     },
   });
 
@@ -343,6 +357,8 @@ export default function LlmAI() {
     },
   });
 
+  // No need to force tab switching - user can view custom tab even with HyprCloud
+
   useEffect(() => {
     const handleMigration = async () => {
       if (!customLLMConnection.data && !customLLMEnabled.data) {
@@ -381,14 +397,33 @@ export default function LlmAI() {
   }, [providerSourceQuery.data, customLLMConnection.data, getCustomLLMModel.data]);
 
   useEffect(() => {
-    if (providerSourceQuery.data) {
-      setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
-    } else if (customLLMEnabled.data) {
-      setOpenAccordion("others");
-    } else {
+    // Don't manage accordion state if HyprCloud is enabled
+    if (hyprCloudEnabled.data) {
       setOpenAccordion(null);
+      return;
     }
-  }, [providerSourceQuery.data, customLLMEnabled.data, setOpenAccordion]);
+
+    if (providerSourceQuery.data) {
+      // Only set accordion if it's a valid custom provider
+      if (["openai", "gemini", "openrouter", "others"].includes(providerSourceQuery.data)) {
+        setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
+      }
+    } else {
+      // Only clear accordion if custom LLM is disabled
+      if (!customLLMEnabled.data) {
+        setOpenAccordion(null);
+      }
+    }
+  }, [providerSourceQuery.data, hyprCloudEnabled.data, setOpenAccordion]);
+
+  // Add a separate effect for initial load fallback
+  useEffect(() => {
+    // Only set default "others" if no provider is configured AND no accordion is open
+    // and HyprCloud is not enabled
+    if (!providerSourceQuery.data && customLLMEnabled.data && openAccordion === null && !hyprCloudEnabled.data) {
+      setOpenAccordion("others");
+    }
+  }, [providerSourceQuery.data, customLLMEnabled.data, openAccordion, hyprCloudEnabled.data, setOpenAccordion]);
 
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
     const finalApiBase = config.provider === "openai"
@@ -397,8 +432,24 @@ export default function LlmAI() {
       ? "https://generativelanguage.googleapis.com/v1beta/openai"
       : config.provider === "openrouter"
       ? "https://openrouter.ai/api/v1"
+      : config.provider === "hyprcloud"
+      ? "https://pro.hyprnote.com"
       : config.api_base;
 
+    if (config.provider === "hyprcloud") {
+      // HyprCloud is special - enable both flags but don't touch provider source
+      setHyprCloudEnabledMutation.mutate(true);
+      setCustomLLMEnabledMutation.mutate(true);
+      // Set connection but don't modify provider source or stored keys
+      setCustomLLMConnection.mutate({
+        api_base: finalApiBase,
+        api_key: null,
+      });
+      return; // Early return for HyprCloud
+    }
+
+    // For all other providers, disable HyprCloud and enable custom
+    setHyprCloudEnabledMutation.mutate(false);
     setCustomLLMEnabledMutation.mutate(true);
 
     if (config.provider === "openai" && config.api_key) {
@@ -416,9 +467,10 @@ export default function LlmAI() {
       setOthersModelMutation.mutate(config.model);
     }
 
+    // Update provider source for non-HyprCloud providers
     setProviderSourceMutation.mutate(config.provider);
-
     setCustomLLMModel.mutate(config.model);
+
     setCustomLLMConnection.mutate({
       api_base: finalApiBase,
       api_key: config.api_key || null,
@@ -591,6 +643,8 @@ export default function LlmAI() {
     handleModelDownload,
     configureCustomEndpoint,
     setOpenAccordion,
+    hyprCloudEnabled,
+    setHyprCloudEnabledMutation,
   };
 
   const customEndpointProps: SharedCustomEndpointProps = {
@@ -606,6 +660,18 @@ export default function LlmAI() {
     customForm,
     isLocalEndpoint,
   };
+
+  useEffect(() => {
+    // Set initial tab based on LLM configuration
+    if (customLLMEnabled.data !== undefined && hyprCloudEnabled.data !== undefined) {
+      // If custom is enabled but HyprCloud is not, show custom tab
+      if (customLLMEnabled.data && !hyprCloudEnabled.data) {
+        setActiveTab("custom");
+      } else {
+        setActiveTab("default");
+      }
+    }
+  }, [customLLMEnabled.data, hyprCloudEnabled.data]);
 
   return (
     <div className="space-y-8">
@@ -629,7 +695,7 @@ export default function LlmAI() {
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 
-          {customLLMEnabled.data && (
+          {customLLMEnabled.data && (!hyprCloudEnabled.data || openAccordion) && (
             <div className="max-w-2xl space-y-4">
               <div className="border rounded-lg p-4">
                 <Form {...aiConfigForm}>

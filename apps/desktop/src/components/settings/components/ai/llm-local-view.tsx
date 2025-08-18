@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { CloudIcon, DownloadIcon, FolderIcon, HelpCircleIcon } from "lucide-react";
 import { useEffect } from "react";
@@ -23,9 +23,12 @@ export function LLMLocalView({
   handleModelDownload,
   configureCustomEndpoint,
   setOpenAccordion,
+  hyprCloudEnabled,
+  setHyprCloudEnabledMutation,
 }: ExtendedSharedLLMProps) {
   const { getLicense } = useLicense();
   const isPro = !!getLicense.data?.valid;
+  const queryClient = useQueryClient();
 
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
@@ -37,34 +40,44 @@ export function LLMLocalView({
   };
 
   useEffect(() => {
+    // Auto-select current local model when switching away from remote endpoints
     if (currentLLMModel.data && !customLLMEnabled.data) {
       setSelectedLLMModel(currentLLMModel.data);
     }
   }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
 
-  const handleLocalModelSelection = (model: LLMModel) => {
+  const handleLocalModelSelection = async (model: LLMModel) => {
     if (model.available && model.downloaded) {
+      // Update UI state first for immediate feedback
       setSelectedLLMModel(model.key);
-      localLlmCommands.setCurrentModel(model.key as SupportedModel);
-      // CRITICAL: Disable custom LLM when local model is selected
+
+      // Then update backend state
+      await localLlmCommands.setCurrentModel(model.key as SupportedModel);
+      queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
+
+      // Disable BOTH HyprCloud and custom when selecting local
+      setHyprCloudEnabledMutation.mutate(false);
       setCustomLLMEnabledMutation.mutate(false);
       setOpenAccordion(null);
+
+      // Restart server for local model
       localLlmCommands.restartServer();
     }
   };
 
   const handleHyprCloudSelection = () => {
     setSelectedLLMModel("hyprcloud");
-    setCustomLLMEnabledMutation.mutate(true);
+    // Just use the configureCustomEndpoint which handles the flags
     configureCustomEndpoint({
       provider: "hyprcloud",
-      api_base: "https://pro.hyprnote.com/v1",
+      api_base: "https://pro.hyprnote.com",
       api_key: "",
       model: "",
     });
+    setOpenAccordion(null);
   };
 
-  const isHyprCloudSelected = selectedLLMModel === "hyprcloud" && customLLMEnabled.data;
+  const isHyprCloudSelected = hyprCloudEnabled.data;
 
   // Base button class to remove default styling
   const buttonResetClass = "appearance-none border-0 outline-0 bg-transparent p-0 m-0 font-inherit text-left w-full";
@@ -109,6 +122,7 @@ export function LLMLocalView({
                 href="https://docs.hyprnote.com/pro/cloud"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="text-blue-600 hover:text-blue-800 transition-colors relative z-10 ml-2"
               >
                 <HelpCircleIcon className="w-4 h-4" />
@@ -131,7 +145,7 @@ export function LLMLocalView({
             <button
               key={model.key}
               onClick={() => handleLocalModelSelection(model)}
-              disabled={!model.available || !model.downloaded}
+              disabled={!model.available}
               className={cn(
                 buttonResetClass,
                 "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
@@ -177,7 +191,10 @@ export function LLMLocalView({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleShowFileLocation}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowFileLocation();
+                      }}
                       className="text-xs h-7 px-2 flex items-center gap-1"
                     >
                       <FolderIcon className="w-3 h-3" />
@@ -200,7 +217,9 @@ export function LLMLocalView({
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
+                        console.log("model download clicked");
                         e.stopPropagation();
+                        console.log("model download clicked 2");
                         handleModelDownload(model.key);
                       }}
                       className="text-xs h-7 px-2 flex items-center gap-1"

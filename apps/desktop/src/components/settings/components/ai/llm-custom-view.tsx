@@ -48,6 +48,7 @@ const openrouterModels = [
 
 export function LLMCustomView({
   customLLMEnabled,
+  selectedLLMModel,
   setSelectedLLMModel,
   setCustomLLMEnabledMutation,
   configureCustomEndpoint,
@@ -58,7 +59,15 @@ export function LLMCustomView({
   openrouterForm,
   customForm,
   isLocalEndpoint,
+  hyprCloudEnabled,
+  setHyprCloudEnabledMutation,
 }: SharedCustomEndpointProps) {
+  // Clear accordion when HyprCloud is enabled
+  useEffect(() => {
+    if (hyprCloudEnabled?.data) {
+      setOpenAccordion(null);
+    }
+  }, [hyprCloudEnabled?.data, setOpenAccordion]);
   // Watch forms and submit when complete and valid
   useEffect(() => {
     const subscription = openaiForm.watch((values) => {
@@ -127,9 +136,23 @@ export function LLMCustomView({
   }, [customForm, configureCustomEndpoint]);
 
   const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others") => {
+    // If HyprCloud is active, clicking an accordion should disable it
+    if (hyprCloudEnabled?.data) {
+      setHyprCloudEnabledMutation.mutate(false);
+      setCustomLLMEnabledMutation.mutate(true);
+      setOpenAccordion(provider);
+      if (selectedLLMModel === "hyprcloud") {
+        setSelectedLLMModel("");
+      }
+      return;
+    }
+
     if (!customLLMEnabled.data) {
       setCustomLLMEnabledMutation.mutate(true);
       setOpenAccordion(provider);
+      if (selectedLLMModel === "hyprcloud") {
+        setSelectedLLMModel("");
+      }
       return;
     }
 
@@ -235,7 +258,7 @@ export function LLMCustomView({
             openAccordion === "openai" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -331,7 +354,7 @@ export function LLMCustomView({
             openAccordion === "gemini" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -427,7 +450,7 @@ export function LLMCustomView({
             openAccordion === "openrouter" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div
@@ -533,7 +556,7 @@ export function LLMCustomView({
             openAccordion === "others" && customLLMEnabled.data
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            !customLLMEnabled.data && "opacity-60",
+            (!customLLMEnabled.data || (hyprCloudEnabled?.data && !openAccordion)) && "opacity-60",
           )}
         >
           <div

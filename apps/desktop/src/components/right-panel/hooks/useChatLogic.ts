@@ -1,19 +1,26 @@
 import { message } from "@tauri-apps/plugin-dialog";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as mcpCommands } from "@hypr/plugin-mcp";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { dynamicTool, experimental_createMCPClient, modelProvider, stepCountIs, streamText, tool } from "@hypr/utils/ai";
+import {
+  dynamicTool,
+  experimental_createMCPClient,
+  modelProvider,
+  stepCountIs,
+  streamText,
+  tool,
+} from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
-import { parseMarkdownBlocks } from "../utils/markdown-parser";
-import { commands as mcpCommands } from "@hypr/plugin-mcp";
 import { prepareMessageHistory } from "../utils/chat-utils";
+import { parseMarkdownBlocks } from "../utils/markdown-parser";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -48,11 +55,10 @@ export function useChatLogic({
 }: UseChatLogicProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStreamingText, setIsStreamingText] = useState(false);
-  const isGeneratingRef = useRef(false); // ✅ Add this ref to track current state
+  const isGeneratingRef = useRef(false);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
-
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -77,8 +83,6 @@ export function useChatLogic({
     }
   };
 
-
-
   const processUserMessage = async (
     content: string,
     analyticsEvent: string,
@@ -88,10 +92,9 @@ export function useChatLogic({
       return;
     }
 
-    
     // Count only user messages
     const userMessageCount = messages.filter(msg => msg.isUser).length;
-    
+
     if (userMessageCount >= 3 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
@@ -118,7 +121,7 @@ export function useChatLogic({
     }
 
     setIsGenerating(true);
-    isGeneratingRef.current = true; // ✅ Update ref when setting state
+    isGeneratingRef.current = true; 
 
     const groupId = await getChatGroupId();
 
@@ -139,16 +142,15 @@ export function useChatLogic({
       created_at: userMessage.timestamp.toISOString(),
       role: "User",
       content: userMessage.content.trim(),
-      type: "text-delta", 
+      type: "text-delta",
     });
 
     // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = crypto.randomUUID();
 
-    //try creating a new set of tools 
+    // try creating a new set of tools
     const newMcpTools: Record<string, any> = {};
 
-    
     const mcpServers = await mcpCommands.getServers();
     const enabledSevers = mcpServers.filter((server) => server.enabled);
     const allMcpClients: any[] = [];
@@ -158,17 +160,21 @@ export function useChatLogic({
         transport: {
           type: "sse",
           url: server.url,
+          ...(server.headerKey && server.headerValue && {
+            headers: {
+              [server.headerKey]: server.headerValue,
+            },
+          }),
           onerror: (error) => {
-            console.log("mcp client error: ",error)
+            console.log("mcp client error: ", error);
           },
           onclose: () => {
-            console.log("mcp client closed")
-          }
+            console.log("mcp client closed");
+          },
         },
-  
       });
       allMcpClients.push(mcpClient);
-      
+
       const tools = await mcpClient.tools();
       for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
         newMcpTools[toolName] = dynamicTool({
@@ -177,21 +183,19 @@ export function useChatLogic({
           execute: tool.execute,
         });
       }
-      
     }
 
-    const mcpToolsArray = Object.keys(newMcpTools).length > 0 
+    const mcpToolsArray = Object.keys(newMcpTools).length > 0
       ? Object.entries(newMcpTools).map(([name, tool]) => ({
-          name,
-          description: tool.description || `Tool: ${name}`,
-          inputSchema: tool.inputSchema || "No input schema provided",
-        }))
+        name,
+        description: tool.description || `Tool: ${name}`,
+        inputSchema: tool.inputSchema || "No input schema provided",
+      }))
       : [];
 
     try {
       const provider = await modelProvider();
       const model = provider.languageModel("defaultModel");
-
 
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -199,19 +203,17 @@ export function useChatLogic({
       const { type } = await connectorCommands.getLlmConnection();
       console.log("model id", model.modelId);
 
-
-
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
-          messages, 
-          content, 
-          mentionedContent, 
-          model.modelId, 
+          messages,
+          content,
+          mentionedContent,
+          model.modelId,
           mcpToolsArray,
-          sessionData,  
-          sessionId,    
-          userId       
+          sessionData,
+          sessionId,
+          userId,
         ),
         ...(type === "HyprLocal" && {
           tools: {
@@ -224,7 +226,8 @@ export function useChatLogic({
             || model.modelId === "openai/gpt-4o"
             || model.modelId === "gpt-4o")) && {
           stopWhen: stepCountIs(3),
-          tools: {...newMcpTools,
+          tools: {
+            ...newMcpTools,
             search_sessions_multi_keywords: tool({
               description:
                 "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
@@ -278,77 +281,68 @@ export function useChatLogic({
                 };
               },
             }),
-          
           },
         }),
 
         onError: (error) => {
           console.error("On Error Catch:", error);
           setIsGenerating(false);
-          isGeneratingRef.current = false; 
+          isGeneratingRef.current = false;
           throw error;
         },
         onFinish: () => {
-          
           console.log("closing all mcp clients");
           for (const client of allMcpClients) {
             client.close();
           }
         },
         onStepFinish: (step) => {
-          console.log("step finished", step)
+          console.log("step finished", step);
         },
         onChunk: (chunk) => {
-          console.log("chunk finished", chunk)
-        }
+          console.log("chunk finished", chunk);
+        },
       });
 
       let aiResponse = "";
       let didInitializeAiResponse = false;
       let currentAiTextMessageId: string | null = null;
-      let lastChunkType: string | null = null; // ✅ Track previous chunk type
- 
+      let lastChunkType: string | null = null; 
 
       for await (const chunk of fullStream) {
-  
-        // ✅ ROBUST: Check for transition FROM text-delta to something else
         if (lastChunkType === "text-delta" && chunk.type !== "text-delta" && chunk.type !== "finish-step") {
           setIsStreamingText(false); // Text streaming has stopped, more content coming
-          
-          // Give React a chance to render the thinking indicator
+
           await new Promise(resolve => setTimeout(resolve, 50));
         }
-        
-        if(chunk.type === "text-delta") {
-          setIsStreamingText(true); // ✅ Text is actively streaming
-          
+
+        if (chunk.type === "text-delta") {
+          setIsStreamingText(true); 
+
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
-            
-            // ✅ Simple rule: same type = append, different type = new message
+
             if (didInitializeAiResponse && lastMessage && lastMessage.type === "text-delta") {
               // Same type (text) -> update existing message
-              
-              aiResponse += chunk.text; 
-              currentAiTextMessageId = lastMessage.id; // ✅ Track this message ID
+
+              aiResponse += chunk.text;
+              currentAiTextMessageId = lastMessage.id; 
               const parts = parseMarkdownBlocks(aiResponse);
 
-        
               return prev.map(msg =>
                 msg.id === lastMessage.id
                   ? { ...msg, content: aiResponse, parts, type: "text-delta" }
                   : msg
               );
             } else {
-
-              if(!didInitializeAiResponse){
+              if (!didInitializeAiResponse) {
                 aiResponse = "";
                 didInitializeAiResponse = true;
               }
-              
-              aiResponse += chunk.text; 
+
+              aiResponse += chunk.text;
               const parts = parseMarkdownBlocks(aiResponse);
-        
+
               // Different type -> create new message
               const newTextMessage: Message = {
                 id: crypto.randomUUID(),
@@ -358,18 +352,14 @@ export function useChatLogic({
                 type: "text-delta",
                 parts,
               };
-              
-              currentAiTextMessageId = newTextMessage.id; // ✅ Track this message ID
+
+              currentAiTextMessageId = newTextMessage.id; 
               return [...prev, newTextMessage];
             }
           });
-
-
         }
 
-        // ✅ Save AI text when transitioning away from text-delta
-        if(chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
-          
+        if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
@@ -389,13 +379,10 @@ export function useChatLogic({
             saveAiText();
             currentAiTextMessageId = null; // Reset
 
-            console.log("saved previous text block")
-
+            console.log("saved previous text block");
           }
 
           didInitializeAiResponse = false;
-
-
 
           const toolStartMessage: Message = {
             id: crypto.randomUUID(),
@@ -406,8 +393,7 @@ export function useChatLogic({
           };
           setMessages((prev) => [...prev, toolStartMessage]);
 
-
-          //save message to db right away 
+          // save message to db right away
           await dbCommands.upsertChatMessage({
             id: toolStartMessage.id,
             group_id: groupId,
@@ -417,13 +403,11 @@ export function useChatLogic({
             type: "tool-start",
           });
           console.log("Tool Call:", chunk);
-
         }
 
-        if(chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
-          
+        if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
-          
+
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
             content: `Tool finished: ${chunk.toolName}`,
@@ -431,10 +415,8 @@ export function useChatLogic({
             timestamp: new Date(),
             type: "tool-result",
           };
-          
-          setMessages((prev) => [...prev, toolResultMessage]);
 
-      
+          setMessages((prev) => [...prev, toolResultMessage]);
 
           await dbCommands.upsertChatMessage({
             id: toolResultMessage.id,
@@ -445,11 +427,9 @@ export function useChatLogic({
             type: "tool-result",
           });
           console.log("Tool Result:", chunk);
-
         }
 
-        if(chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")){
-          
+        if (chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
           const toolErrorMessage: Message = {
             id: crypto.randomUUID(),
@@ -469,18 +449,15 @@ export function useChatLogic({
             type: "tool-error",
           });
           console.log("Tool Error:", chunk);
-
         }
 
-        if(chunk.type === "finish-step"){
-          console.log("streaming finished for this message")
+        if (chunk.type === "finish-step") {
+          console.log("streaming finished for this message");
         }
 
-        // ✅ Update last chunk type at the end of loop
         lastChunkType = chunk.type;
       }
 
-      // ✅ Save final AI text when streaming finishes
       if (currentAiTextMessageId && aiResponse.trim()) {
         await dbCommands.upsertChatMessage({
           id: currentAiTextMessageId,
@@ -492,12 +469,9 @@ export function useChatLogic({
         });
       }
 
-     
-
       setIsGenerating(false);
-      setIsStreamingText(false); // ✅ Set both to false together
-      isGeneratingRef.current = false; // ✅ Update ref when setting state
-
+      setIsStreamingText(false); 
+      isGeneratingRef.current = false; 
     } catch (error) {
       console.error("AI error:", error);
 
@@ -514,8 +488,8 @@ export function useChatLogic({
       }
 
       setIsGenerating(false);
-      setIsStreamingText(false); // ✅ Reset text streaming state
-      isGeneratingRef.current = false; // ✅ Update ref when setting state
+      setIsStreamingText(false); 
+      isGeneratingRef.current = false; 
 
       // Create error message
       const errorMessage: Message = {
@@ -525,7 +499,7 @@ export function useChatLogic({
         timestamp: new Date(),
         type: "text-delta",
       };
-      
+
       setMessages((prev) => [...prev, errorMessage]);
 
       await dbCommands.upsertChatMessage({
@@ -536,7 +510,6 @@ export function useChatLogic({
         content: finalErrorMesage,
         type: "text-delta",
       });
-
     }
   };
 

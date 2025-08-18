@@ -18,6 +18,7 @@ pub enum StoreKey {
     OpenaiModel,
     GeminiModel,
     OpenrouterModel,
+    HyprCloudEnabled,
 }
 
 impl ScopedStoreKey for StoreKey {}

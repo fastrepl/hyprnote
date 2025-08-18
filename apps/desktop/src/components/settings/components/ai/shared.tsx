@@ -108,6 +108,10 @@ export interface SharedLLMProps {
   // Critical Mutations
   setCustomLLMEnabledMutation: UseMutationResult<null, Error, boolean, unknown>;
 
+  // HyprCloud State
+  hyprCloudEnabled: UseQueryResult<boolean>;
+  setHyprCloudEnabledMutation: UseMutationResult<null, Error, boolean, unknown>;
+
   // Model State
   downloadingModels: Set<string>;
   llmModelsState: LLMModel[];

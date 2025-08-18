@@ -1,140 +1,128 @@
-import { useQuery  } from "@tanstack/react-query";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
-import { experimental_createMCPClient, dynamicTool } from "@hypr/utils/ai";
+import { dynamicTool, experimental_createMCPClient } from "@hypr/utils/ai";
+import { useQuery } from "@tanstack/react-query";
 import z from "zod";
-
 
 // Cache MCP client connections to avoid recreating them
 const mcpClientCache = new Map<string, any>();
 
-
 // fetch mcp servers and extract tools from them
 export function useMcpTools() {
-    
-    return useQuery({
-        queryKey: ["mcp-tools"],
-        queryFn: async () => {
-            console.log("[MCP] Starting to fetch MCP tools at", new Date().toISOString());
-            console.log("[MCP] Cache status:", {
-                cachedClients: mcpClientCache.size,
-                cachedUrls: Array.from(mcpClientCache.keys())
+  return useQuery({
+    queryKey: ["mcp-tools"],
+    queryFn: async () => {
+      console.log("[MCP] Starting to fetch MCP tools at", new Date().toISOString());
+      console.log("[MCP] Cache status:", {
+        cachedClients: mcpClientCache.size,
+        cachedUrls: Array.from(mcpClientCache.keys()),
+      });
+
+      const servers = await mcpCommands.getServers();
+      console.log("[MCP] Found servers:", servers.length, servers.map(s => ({ url: s.url, enabled: s.enabled })));
+
+      const enabledServers = servers.filter((server) => server.enabled);
+      console.log("[MCP] Enabled servers:", enabledServers.length);
+
+      if (enabledServers.length === 0) {
+        console.log("[MCP] No enabled servers, returning empty object");
+        return {}; // Return empty object, not array
+      }
+
+      const allTools: Record<string, any> = {};
+
+      for (const server of enabledServers) {
+        const startTime = Date.now();
+        console.log(`[MCP] Processing server: ${server.url}`);
+
+        try {
+          // Check if we already have a cached client for this server
+          let mcpClient = mcpClientCache.get(server.url);
+
+          if (!mcpClient) {
+            console.log(`[MCP] Creating new client for ${server.url} (not in cache)`);
+            // Only create new client if not cached
+            mcpClient = await experimental_createMCPClient({
+              transport: {
+                type: "sse",
+                url: server.url,
+                onerror: (error) => {
+                  console.error(`[MCP] Error from ${server.url}:`, error);
+                },
+                onclose: () => {
+                  console.log(`[MCP] Connection closed for ${server.url}`);
+                },
+              },
             });
 
-            const servers = await mcpCommands.getServers();
-            console.log("[MCP] Found servers:", servers.length, servers.map(s => ({ url: s.url, enabled: s.enabled })));
-            
-            const enabledServers = servers.filter((server) => server.enabled);
-            console.log("[MCP] Enabled servers:", enabledServers.length);
+            // Cache the client for future use
+            mcpClientCache.set(server.url, mcpClient);
+            console.log(`[MCP] Client created and cached for ${server.url}`);
+          } else {
+            console.log(`[MCP] Using cached client for ${server.url}`);
+          }
 
-            if(enabledServers.length === 0) {
-                console.log("[MCP] No enabled servers, returning empty object");
-                return {}; // Return empty object, not array
-            }
+          console.log(`[MCP] Fetching tools from ${server.url}...`);
+          const tools = await mcpClient.tools();
+          const toolCount = Object.keys(tools).length;
+          console.log(`[MCP] Received ${toolCount} tools from ${server.url}`);
 
-            const allTools: Record<string, any> = {};
+          // Fix: Use Object.entries() to iterate over the tools object
+          for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
+            allTools[toolName] = dynamicTool({
+              description: tool.description,
+              inputSchema: tool.inputSchema || z.any(),
+              execute: tool.execute,
+              toModelOutput: (result: any) => {
+                console.log(`[MCP] Tool result:`, result);
+                return result;
+              },
+            });
+          }
 
-            for (const server of enabledServers) {
-                const startTime = Date.now();
-                console.log(`[MCP] Processing server: ${server.url}`);
+          const elapsed = Date.now() - startTime;
+          console.log(`[MCP] Successfully processed ${server.url} in ${elapsed}ms`);
+        } catch (error) {
+          const elapsed = Date.now() - startTime;
+          console.error(`[MCP] Error fetching tools from ${server.url} after ${elapsed}ms:`, error);
 
-                try {
-                    // Check if we already have a cached client for this server
-                    let mcpClient = mcpClientCache.get(server.url);
-                    
-                    if (!mcpClient) {
-                        console.log(`[MCP] Creating new client for ${server.url} (not in cache)`);
-                        // Only create new client if not cached
-                        mcpClient = await experimental_createMCPClient({
-                            transport: {
-                                type: "sse",
-                                url: server.url,
-                                onerror: (error) => {
-                                    console.error(`[MCP] Error from ${server.url}:`, error);
-                                },
-                                onclose: () => {
-                                    console.log(`[MCP] Connection closed for ${server.url}`);
-                                },
-                            },
-                            
-                        });
-                        
-                        // Cache the client for future use
-                        mcpClientCache.set(server.url, mcpClient);
-                        console.log(`[MCP] Client created and cached for ${server.url}`);
-                    } else {
-                        console.log(`[MCP] Using cached client for ${server.url}`);
-                    }
-    
-                    console.log(`[MCP] Fetching tools from ${server.url}...`);
-                    const tools = await mcpClient.tools();
-                    const toolCount = Object.keys(tools).length;
-                    console.log(`[MCP] Received ${toolCount} tools from ${server.url}`);
+          // Log more details about the error
+          if (error instanceof Error) {
+            console.error(`[MCP] Error name: ${error.name}`);
+            console.error(`[MCP] Error message: ${error.message}`);
+            console.error(`[MCP] Error stack:`, error.stack);
+          }
 
-                    // Fix: Use Object.entries() to iterate over the tools object
-                    for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
-                        allTools[toolName] = dynamicTool({
-                            description: tool.description,
-                            inputSchema: tool.inputSchema || z.any(),
-                            execute: tool.execute,
-                            toModelOutput: (result: any) => {
-                                console.log(`[MCP] Tool result:`, result);
-                                return result;
-                            }
-                        });
-                    }
+          // Remove failed client from cache
+          mcpClientCache.delete(server.url);
+          console.log(`[MCP] Removed failed client from cache for ${server.url}`);
+        }
+      }
 
-                    const elapsed = Date.now() - startTime;
-                    console.log(`[MCP] Successfully processed ${server.url} in ${elapsed}ms`);
+      const totalTools = Object.keys(allTools).length;
+      console.log(`[MCP] Completed fetching. Total tools loaded: ${totalTools}`);
+      console.log(`[MCP] Tool names:`, Object.keys(allTools));
 
-                } catch (error) {
-                    const elapsed = Date.now() - startTime;
-                    console.error(`[MCP] Error fetching tools from ${server.url} after ${elapsed}ms:`, error);
-                    
-                    // Log more details about the error
-                    if (error instanceof Error) {
-                        console.error(`[MCP] Error name: ${error.name}`);
-                        console.error(`[MCP] Error message: ${error.message}`);
-                        console.error(`[MCP] Error stack:`, error.stack);
-                    }
-                    
-                    // Remove failed client from cache
-                    mcpClientCache.delete(server.url);
-                    console.log(`[MCP] Removed failed client from cache for ${server.url}`);
-                }
-
-              
-            }
-
-
-            const totalTools = Object.keys(allTools).length;
-            console.log(`[MCP] Completed fetching. Total tools loaded: ${totalTools}`);
-            console.log(`[MCP] Tool names:`, Object.keys(allTools));
-
-            return allTools; // Return the object, not Object.values(allTools)
-        },
-        // Minimal caching to ensure immediate updates when settings change
-        staleTime: 0, // Always consider data stale to allow immediate refetch on invalidation
-        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-        refetchOnWindowFocus: false, // Don't refetch when window gains focus
-        refetchOnReconnect: false, // Don't refetch on reconnect
-    })
-
-
-
+      return allTools; // Return the object, not Object.values(allTools)
+    },
+    // Minimal caching to ensure immediate updates when settings change
+    staleTime: 0, // Always consider data stale to allow immediate refetch on invalidation
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
+  });
 }
 
 // Optional: Export function to clear cache when needed (e.g., when settings change)
 export function clearMcpClientCache() {
-    mcpClientCache.clear();
+  mcpClientCache.clear();
 }
 
 export function closeMcpClients() {
-    for (const client of mcpClientCache.values()) {
-
-        try{
-            client.close();
-        } catch (error) {
-            console.error(`[MCP] Error closing client:`, error);
-        }
+  for (const client of mcpClientCache.values()) {
+    try {
+      client.close();
+    } catch (error) {
+      console.error(`[MCP] Error closing client:`, error);
     }
+  }
 }

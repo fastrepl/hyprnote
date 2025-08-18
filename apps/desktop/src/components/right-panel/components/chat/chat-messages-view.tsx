@@ -40,42 +40,50 @@ function ThinkingIndicator() {
   );
 }
 
-export function ChatMessagesView({ messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isGenerating, isStreamingText }: ChatMessagesViewProps) {
+export function ChatMessagesView(
+  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isGenerating, isStreamingText }: ChatMessagesViewProps,
+) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
   const thinkingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const shouldShowThinking = () => {
-    if (!isGenerating) return false;
-    
-    if (messages.length === 0) return true;
-    
+    if (!isGenerating) {
+      return false;
+    }
+
+    if (messages.length === 0) {
+      return true;
+    }
+
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage.isUser) return true;
-    
-    
-    if (!lastMessage.isUser && !isStreamingText) return true;
-    
+    if (lastMessage.isUser) {
+      return true;
+    }
+
+    if (!lastMessage.isUser && !isStreamingText) {
+      return true;
+    }
+
     return false;
   };
 
   useEffect(() => {
     const shouldShow = shouldShowThinking();
-    
+
     if (thinkingTimeoutRef.current) {
       clearTimeout(thinkingTimeoutRef.current);
       thinkingTimeoutRef.current = null;
     }
-    
+
     if (shouldShow) {
-     
       thinkingTimeoutRef.current = setTimeout(() => {
         setShowThinking(true);
       }, 200);
     } else {
       setShowThinking(false);
     }
-    
+
     return () => {
       if (thinkingTimeoutRef.current) {
         clearTimeout(thinkingTimeoutRef.current);
@@ -98,10 +106,10 @@ export function ChatMessagesView({ messages, sessionTitle, hasEnhancedNote, onAp
           onApplyMarkdown={onApplyMarkdown}
         />
       ))}
-      
+
       {/* Thinking indicator with debounce - no flicker! */}
       {showThinking && <ThinkingIndicator />}
-      
+
       <div ref={messagesEndRef} />
     </div>
   );

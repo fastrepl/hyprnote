@@ -5,7 +5,17 @@ import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
 
-export { generateObject, generateText, type Provider, smoothStream, stepCountIs, streamText, tool, dynamicTool, experimental_createMCPClient} from "ai";
+export {
+  dynamicTool,
+  experimental_createMCPClient,
+  generateObject,
+  generateText,
+  type Provider,
+  smoothStream,
+  stepCountIs,
+  streamText,
+  tool,
+} from "ai";
 
 export const localProviderName = "hypr-llm-local";
 export const remoteProviderName = "hypr-llm-remote";

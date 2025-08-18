@@ -1,5 +1,6 @@
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import Renderer from "@hypr/tiptap/renderer";
+import { PencilRuler } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MarkdownCard } from "./markdown-card";
 import { Message } from "./types";
@@ -122,183 +123,93 @@ function MarkdownText({ content }: { content: string }) {
 }
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
-  const [toolAccordionOpen, setToolAccordionOpen] = useState(false);
-  
+  // Remove the toolAccordionOpen state since we're not using accordion anymore
+
   // Remove generating type handling since it's now handled in UI state
 
-  // ✅ Add special rendering for tool-call messages with accordion
+  // ✅ Simplified tool-start message with pencil-ruler icon
   if (message.type === "tool-start") {
     return (
-      <div style={{ 
-        backgroundColor: "rgb(250 250 250)", 
-        border: "1px solid rgb(229 229 229)", 
-        borderRadius: "6px",
-        overflow: "hidden"
-      }}>
-        {/* Accordion Header */}
-        <div 
-          onClick={() => setToolAccordionOpen(!toolAccordionOpen)}
-          style={{ 
+      <div
+        style={{
+          backgroundColor: "rgb(250 250 250)",
+          border: "1px solid rgb(229 229 229)",
+          borderRadius: "6px",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          style={{
             color: "rgb(115 115 115)",
-            fontSize: "0.875rem", 
-            padding: "8px 12px",
+            fontSize: "0.875rem",
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            cursor: "pointer",
-            userSelect: "none"
           }}
         >
-          {/* Chevron Icon */}
-          <div style={{
-            width: "0",
-            height: "0",
-            borderLeft: toolAccordionOpen ? "4px solid transparent" : "4px solid rgb(115 115 115)",
-            borderRight: toolAccordionOpen ? "4px solid transparent" : "4px solid transparent",
-            borderTop: toolAccordionOpen ? "6px solid rgb(115 115 115)" : "4px solid transparent",
-            borderBottom: toolAccordionOpen ? "0" : "4px solid transparent",
-            transition: "all 0.2s ease",
-            flexShrink: 0
-          }} />
+          <PencilRuler size={16} color="rgb(115 115 115)" />
           <span style={{ fontWeight: "400" }}>
             Called tool: {message.content}
           </span>
         </div>
-        
-        {/* Accordion Content */}
-        {toolAccordionOpen && (
-          <div style={{
-            padding: "16px 20px",
-            minHeight: "60px",
-            color: "rgb(115 115 115)",
-            fontSize: "0.8rem",
-            borderTop: "1px solid rgb(229 229 229)",
-            backgroundColor: "rgb(248 248 248)",
-            lineHeight: "1.5"
-          }}>
-            <div style={{ margin: "8px 0" }}>
-              Tool execution details will be shown here...
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
-  // ✅ Add special rendering for tool-result messages with accordion
+  // ✅ Simplified tool-result message with pencil-ruler icon
   if (message.type === "tool-result") {
     return (
-      <div style={{ 
-        backgroundColor: "rgb(248 248 248)", 
-        border: "1px solid rgb(224 224 224)", 
-        borderRadius: "6px",
-        overflow: "hidden"
-      }}>
-        {/* Accordion Header */}
-        <div 
-          onClick={() => setToolAccordionOpen(!toolAccordionOpen)}
-          style={{ 
+      <div
+        style={{
+          backgroundColor: "rgb(248 248 248)",
+          border: "1px solid rgb(224 224 224)",
+          borderRadius: "6px",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          style={{
             color: "rgb(115 115 115)",
-            fontSize: "0.875rem", 
-            padding: "8px 12px",
+            fontSize: "0.875rem",
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            cursor: "pointer",
-            userSelect: "none"
           }}
         >
-          {/* Chevron Icon */}
-          <div style={{
-            width: "0",
-            height: "0",
-            borderLeft: toolAccordionOpen ? "4px solid transparent" : "4px solid rgb(115 115 115)",
-            borderRight: toolAccordionOpen ? "4px solid transparent" : "4px solid transparent",
-            borderTop: toolAccordionOpen ? "6px solid rgb(115 115 115)" : "4px solid transparent",
-            borderBottom: toolAccordionOpen ? "0" : "4px solid transparent",
-            transition: "all 0.2s ease",
-            flexShrink: 0
-          }} />
+          <PencilRuler size={16} color="rgb(115 115 115)" />
           <span style={{ fontWeight: "400" }}>
             {message.content}
           </span>
         </div>
-        
-        {/* Accordion Content */}
-        {toolAccordionOpen && (
-          <div style={{
-            padding: "16px 20px",
-            minHeight: "60px",
-            color: "rgb(115 115 115)",
-            fontSize: "0.8rem",
-            borderTop: "1px solid rgb(224 224 224)",
-            backgroundColor: "rgb(245 245 245)",
-            lineHeight: "1.5"
-          }}>
-            <div style={{ margin: "8px 0" }}>
-              Tool result details and output will be displayed here...
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
-  // ✅ Add special rendering for tool-error messages with accordion
+  // ✅ Simplified tool-error message with pencil-ruler icon
   if (message.type === "tool-error") {
     return (
-      <div style={{ 
-        backgroundColor: "rgb(252 252 252)", 
-        border: "1px solid rgb(229 229 229)", 
-        borderRadius: "6px",
-        overflow: "hidden"
-      }}>
-        {/* Accordion Header */}
-        <div 
-          onClick={() => setToolAccordionOpen(!toolAccordionOpen)}
-          style={{ 
+      <div
+        style={{
+          backgroundColor: "rgb(252 252 252)",
+          border: "1px solid rgb(229 229 229)",
+          borderRadius: "6px",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          style={{
             color: "rgb(115 115 115)",
-            fontSize: "0.875rem", 
-            padding: "8px 12px",
+            fontSize: "0.875rem",
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            cursor: "pointer",
-            userSelect: "none"
           }}
         >
-          {/* Chevron Icon */}
-          <div style={{
-            width: "0",
-            height: "0",
-            borderLeft: toolAccordionOpen ? "4px solid transparent" : "4px solid rgb(115 115 115)",
-            borderRight: toolAccordionOpen ? "4px solid transparent" : "4px solid transparent",
-            borderTop: toolAccordionOpen ? "6px solid rgb(115 115 115)" : "4px solid transparent",
-            borderBottom: toolAccordionOpen ? "0" : "4px solid transparent",
-            transition: "all 0.2s ease",
-            flexShrink: 0
-          }} />
+          <PencilRuler size={16} color="rgb(115 115 115)" />
           <span style={{ fontWeight: "400" }}>
             Tool Error: {message.content}
           </span>
         </div>
-        
-        {/* Accordion Content */}
-        {toolAccordionOpen && (
-          <div style={{
-            padding: "16px 20px",
-            minHeight: "60px",
-            color: "rgb(115 115 115)",
-            fontSize: "0.8rem",
-            borderTop: "1px solid rgb(229 229 229)",
-            backgroundColor: "rgb(249 249 249)",
-            lineHeight: "1.5"
-          }}>
-            <div style={{ margin: "8px 0" }}>
-              Error details and stack trace will be shown here...
-            </div>
-          </div>
-        )}
       </div>
     );
   }

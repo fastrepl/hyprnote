@@ -19,7 +19,6 @@ import { useChatQueries } from "../hooks/useChatQueries";
 import type { Message } from "../types/chat-types";
 import { focusInput, formatDate } from "../utils/chat-utils";
 
-
 export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
@@ -57,7 +56,6 @@ export function ChatView() {
     setHasChatStarted,
     prevIsGenerating,
   });
-
 
   const {
     isGenerating,

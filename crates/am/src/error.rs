@@ -21,6 +21,9 @@ pub enum Error {
     #[error("Unexpected response from server")]
     UnexpectedResponse,
 
-    #[error("Checksum mismatch")]
-    ChecksumMismatch,
+    #[error("Tar file not found")]
+    TarFileNotFound,
+
+    #[error("Tar checksum mismatch")]
+    TarChecksumMismatch,
 }

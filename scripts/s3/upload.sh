@@ -1,12 +1,10 @@
-CREDENTIALS_FILE="$HOME/hyprnote-r2.toml"
-ENDPOINT_URL="https://3db5267cdeb5f79263ede3ec58090fe0.r2.cloudflarestorage.com"
-BUCKET="hyprnote-cache2"
+CREDENTIALS_FILE="$HOME/hyprnote-s3.toml"
+BUCKET="fastrepl-hyprnote-3bek8idy1fyk93awygrqyqpyzs1b4use1a-s3alias"
 
 FROM_PATH="$HOME/dev/hyprnote/.cache/"
 TO_PATH="v0/"
 
-AWS_REGION=auto s5cmd \
+AWS_REGION=us-east-1 s5cmd \
     --log trace \
     --credentials-file "$CREDENTIALS_FILE" \
-    --endpoint-url "$ENDPOINT_URL" \
     cp "$FROM_PATH" "s3://$BUCKET/$TO_PATH"

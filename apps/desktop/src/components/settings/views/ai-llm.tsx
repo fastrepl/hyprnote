@@ -153,6 +153,7 @@ export default function LlmAI() {
       setSelectedLLMModel(modelKey);
       localLlmCommands.setCurrentModel(modelKey as SupportedModel);
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
+      localLlmCommands.restartServer(); // is it necessary to restart the server?
       setCustomLLMEnabledMutation.mutate(false);
       setHyprCloudEnabledMutation.mutate(false);
     }, queryClient);

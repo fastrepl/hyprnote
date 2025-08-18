@@ -1,7 +1,16 @@
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct TranscriptManager {
     id: uuid::Uuid,
     partial_words: Vec<owhisper_interface::Word>,
+}
+
+impl Default for TranscriptManager {
+    fn default() -> Self {
+        Self {
+            id: uuid::Uuid::new_v4(),
+            partial_words: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone)]

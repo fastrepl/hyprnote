@@ -188,7 +188,9 @@ function ProModelsManagement(
     queryKey: ["pro-models"],
     queryFn: async () => {
       const models = await localSttCommands.listSupportedModels().then((models) =>
-        models.filter((model) => model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2")
+        models.filter((model) =>
+          model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2" || model.key === "am-parakeet-v3"
+        )
       );
       const downloaded = await Promise.all(
         models.map(({ key }) => localSttCommands.isModelDownloaded(key)),

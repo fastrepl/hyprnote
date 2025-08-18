@@ -52,7 +52,7 @@ async listSupportedModels() : Promise<SttModelInfo[]> {
 
 /** user-defined types **/
 
-export type AmModel = "am-parakeet-v2" | "am-whisper-large-v3"
+export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }

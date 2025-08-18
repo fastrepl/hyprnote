@@ -80,7 +80,9 @@ export function TranscriptView() {
   useEffect(() => {
     if (words && words.length > 0) {
       editorRef.current?.setWords(words);
-      editorRef.current?.scrollToBottom();
+      if (editorRef.current?.isNearBottom()) {
+        editorRef.current?.scrollToBottom();
+      }
     }
   }, [words, isLive]);
 

@@ -402,6 +402,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         tracing::error!("model_download_error: {}", e);
                         let _ = channel.send(-1);
                     }
+
+                    let checksum = hypr_file::calculate_file_checksum(&model_path).unwrap();
+
+                    if checksum != m.checksum() {
+                        tracing::error!("model_download_error: checksum mismatch");
+                        let _ = channel.send(-1);
+                    }
                 });
 
                 {

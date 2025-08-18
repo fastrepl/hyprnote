@@ -47,6 +47,24 @@ pub async fn set_custom_llm_enabled<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_hyprcloud_enabled<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<bool, String> {
+    app.get_hyprcloud_enabled().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_hyprcloud_enabled<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    enabled: bool,
+) -> Result<(), String> {
+    app.set_hyprcloud_enabled(enabled)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_custom_llm_connection<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<Connection>, String> {

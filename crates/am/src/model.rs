@@ -13,6 +13,9 @@ pub enum AmModel {
     #[serde(rename = "am-parakeet-v2")]
     #[strum(serialize = "am-parakeet-v2")]
     ParakeetV2,
+    #[serde(rename = "am-parakeet-v3")]
+    #[strum(serialize = "am-parakeet-v3")]
+    ParakeetV3,
     #[serde(rename = "am-whisper-large-v3")]
     #[strum(serialize = "am-whisper-large-v3")]
     WhisperLargeV3,
@@ -22,6 +25,7 @@ impl AmModel {
     pub fn repo_name(&self) -> &str {
         match self {
             AmModel::ParakeetV2 => "argmaxinc/parakeetkit-pro",
+            AmModel::ParakeetV3 => "argmaxinc/parakeetkit-pro",
             AmModel::WhisperLargeV3 => "argmaxinc/whisperkit-pro",
         }
     }
@@ -29,6 +33,7 @@ impl AmModel {
     pub fn model_dir(&self) -> &str {
         match self {
             AmModel::ParakeetV2 => "nvidia_parakeet-v2_476MB",
+            AmModel::ParakeetV3 => "nvidia_parakeet-v3_494MB",
             AmModel::WhisperLargeV3 => "openai_whisper-large-v3-v20240930_626MB",
         }
     }
@@ -36,13 +41,15 @@ impl AmModel {
     pub fn display_name(&self) -> &str {
         match self {
             AmModel::ParakeetV2 => "Parakeet V2 (English)",
-            AmModel::WhisperLargeV3 => "Whisper Large V3 (English)",
+            AmModel::ParakeetV3 => "Parakeet V3 (Multilingual)",
+            AmModel::WhisperLargeV3 => "Whisper Large V3 (Multilingual)",
         }
     }
 
     pub fn model_size_bytes(&self) -> u64 {
         match self {
             AmModel::ParakeetV2 => 476134400,
+            AmModel::ParakeetV3 => 494141440,
             AmModel::WhisperLargeV3 => 625990656,
         }
     }
@@ -68,9 +75,10 @@ impl AmModel {
 
     pub fn tar_url(&self) -> &str {
         match self {
-            AmModel::ParakeetV2 => "https://storage2.hyprnote.com/v0/nvidia_parakeet-v2_476MB.tar",
+            AmModel::ParakeetV2 => "https://hyprnote.s3.us-east-1.amazonaws.com/v0/nvidia_parakeet-v2_476MB.tar",
+            AmModel::ParakeetV3 => "https://hyprnote.s3.us-east-1.amazonaws.com/v0/nvidia_parakeet-v3_494MB.tar",
             AmModel::WhisperLargeV3 => {
-                "https://storage2.hyprnote.com/v0/openai_whisper-large-v3-v20240930_626MB.tar"
+                "https://hyprnote.s3.us-east-1.amazonaws.com/v0/openai_whisper-large-v3-v20240930_626MB.tar"
             }
         }
     }
@@ -78,7 +86,8 @@ impl AmModel {
     pub fn tar_checksum(&self) -> u32 {
         match self {
             AmModel::ParakeetV2 => 1906983049,
-            AmModel::WhisperLargeV3 => 1964673816,
+            AmModel::ParakeetV3 => 3016060540,
+            AmModel::WhisperLargeV3 => 3016060540,
         }
     }
 
@@ -87,9 +96,13 @@ impl AmModel {
         input_path: impl AsRef<std::path::Path>,
         output_path: impl AsRef<std::path::Path>,
     ) -> Result<(), crate::Error> {
+        if !input_path.as_ref().exists() {
+            return Err(crate::Error::TarFileNotFound);
+        }
+
         if hypr_file::calculate_file_checksum(&input_path)? != self.tar_checksum() {
             let _ = std::fs::remove_file(&input_path);
-            return Err(crate::Error::ChecksumMismatch);
+            return Err(crate::Error::TarChecksumMismatch);
         }
 
         extract_tar_file(&input_path, output_path)?;

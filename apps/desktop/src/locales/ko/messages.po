@@ -256,7 +256,7 @@ msgstr ""
 msgid "(Beta) Upcoming meeting notifications"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:594
+#: src/components/settings/components/ai/llm-custom-view.tsx:617
 msgid "(Optional for localhost)"
 msgstr ""
 
@@ -324,7 +324,7 @@ msgstr ""
 msgid "Access Granted"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:459
+#: src/components/settings/components/ai/llm-custom-view.tsx:482
 msgid "Access multiple AI models through OpenRouter with your API key"
 msgstr ""
 
@@ -399,7 +399,7 @@ msgid "Anyone with the link can view this page"
 msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:498
-#: src/components/settings/components/ai/llm-custom-view.tsx:569
+#: src/components/settings/components/ai/llm-custom-view.tsx:592
 msgid "API Base URL"
 msgstr ""
 
@@ -408,10 +408,10 @@ msgstr ""
 #: src/components/welcome-modal/custom-endpoint-view.tsx:438
 #: src/components/welcome-modal/custom-endpoint-view.tsx:518
 #: src/components/settings/views/integrations.tsx:203
-#: src/components/settings/components/ai/llm-custom-view.tsx:277
-#: src/components/settings/components/ai/llm-custom-view.tsx:373
-#: src/components/settings/components/ai/llm-custom-view.tsx:479
-#: src/components/settings/components/ai/llm-custom-view.tsx:591
+#: src/components/settings/components/ai/llm-custom-view.tsx:300
+#: src/components/settings/components/ai/llm-custom-view.tsx:396
+#: src/components/settings/components/ai/llm-custom-view.tsx:502
+#: src/components/settings/components/ai/llm-custom-view.tsx:614
 msgid "API Key"
 msgstr ""
 
@@ -440,7 +440,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:644
+#: src/components/settings/views/ai-llm.tsx:711
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -565,7 +565,7 @@ msgstr ""
 #~ msgid "Connect"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:549
+#: src/components/settings/components/ai/llm-custom-view.tsx:572
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)"
 msgstr ""
 
@@ -614,7 +614,7 @@ msgstr ""
 #~ msgid "Continue Setup"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:663
+#: src/components/settings/views/ai-llm.tsx:730
 msgid "Control how autonomous the AI enhancement should be"
 msgstr ""
 
@@ -656,7 +656,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-stt.tsx:66
-#: src/components/settings/views/ai-llm.tsx:622
+#: src/components/settings/views/ai-llm.tsx:689
 msgid "Custom"
 msgstr ""
 
@@ -673,7 +673,7 @@ msgid "Custom Vocabulary"
 msgstr ""
 
 #: src/components/settings/views/ai-stt.tsx:63
-#: src/components/settings/views/ai-llm.tsx:619
+#: src/components/settings/views/ai-llm.tsx:686
 msgid "Default"
 msgstr ""
 
@@ -767,7 +767,7 @@ msgstr ""
 #~ msgid "Enter the API key for your custom LLM endpoint"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:572
+#: src/components/settings/components/ai/llm-custom-view.tsx:595
 msgid "Enter the base URL for your custom LLM endpoint"
 msgstr ""
 
@@ -844,7 +844,7 @@ msgstr ""
 msgid "Get Started"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:349
+#: src/components/settings/components/ai/llm-custom-view.tsx:372
 msgid "Google Gemini"
 msgstr ""
 
@@ -953,7 +953,7 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:658
+#: src/components/settings/views/ai-llm.tsx:725
 msgid "Learn more about AI autonomy"
 msgstr ""
 
@@ -985,7 +985,7 @@ msgstr ""
 #~ msgid "LLM - Local"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:628
+#: src/components/settings/components/ai/llm-custom-view.tsx:651
 msgid "Loading available models..."
 msgstr ""
 
@@ -1047,14 +1047,14 @@ msgstr ""
 #: src/components/welcome-modal/custom-endpoint-view.tsx:315
 #: src/components/welcome-modal/custom-endpoint-view.tsx:382
 #: src/components/welcome-modal/custom-endpoint-view.tsx:459
-#: src/components/settings/components/ai/llm-custom-view.tsx:297
-#: src/components/settings/components/ai/llm-custom-view.tsx:393
-#: src/components/settings/components/ai/llm-custom-view.tsx:499
+#: src/components/settings/components/ai/llm-custom-view.tsx:320
+#: src/components/settings/components/ai/llm-custom-view.tsx:416
+#: src/components/settings/components/ai/llm-custom-view.tsx:522
 msgid "Model"
 msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:544
-#: src/components/settings/components/ai/llm-custom-view.tsx:616
+#: src/components/settings/components/ai/llm-custom-view.tsx:639
 msgid "Model Name"
 msgstr ""
 
@@ -1182,11 +1182,11 @@ msgstr ""
 #~ msgid "Open Note"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:253
+#: src/components/settings/components/ai/llm-custom-view.tsx:276
 msgid "OpenAI"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:455
+#: src/components/settings/components/ai/llm-custom-view.tsx:478
 msgid "OpenRouter"
 msgstr ""
 
@@ -1198,7 +1198,7 @@ msgstr ""
 msgid "Optional for participant suggestions"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:546
+#: src/components/settings/components/ai/llm-custom-view.tsx:569
 msgid "Others"
 msgstr ""
 
@@ -1344,7 +1344,7 @@ msgstr ""
 msgid "Sections"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:619
+#: src/components/settings/components/ai/llm-custom-view.tsx:642
 msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
 msgstr ""
 
@@ -1605,11 +1605,11 @@ msgstr ""
 #~ msgid "Upgrade"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:353
+#: src/components/settings/components/ai/llm-custom-view.tsx:376
 msgid "Use Google's Gemini models with your API key"
 msgstr ""
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:257
+#: src/components/settings/components/ai/llm-custom-view.tsx:280
 msgid "Use OpenAI's GPT models with your API key"
 msgstr ""
 

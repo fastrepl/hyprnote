@@ -32,6 +32,7 @@ export interface TranscriptEditorRef {
   scrollToBottom: () => void;
   appendWords: (newWords: Word2[]) => void;
   toText: () => string;
+  isNearBottom: () => boolean;
 }
 
 declare module "@tiptap/core" {
@@ -102,6 +103,16 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
             if (scrollContainerRef.current) {
               scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
             }
+          },
+          isNearBottom: () => {
+            if (!scrollContainerRef.current) {
+              return true;
+            }
+
+            const container = scrollContainerRef.current;
+            const threshold = 100;
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            return distanceFromBottom <= threshold;
           },
           appendWords: (newWords: Word2[]) => {
             if (!editor || !newWords.length) {

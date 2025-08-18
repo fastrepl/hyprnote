@@ -43,11 +43,10 @@ pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
     am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
-    let port = 6942;
+    let port = 8282;
     let _ = port_killer::kill(port);
 
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
-
     let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);

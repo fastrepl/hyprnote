@@ -75,10 +75,27 @@ pub async fn download_file_with_callback<F: Fn(DownloadProgress)>(
     )
     .await?;
 
+    if !res.status().is_success() && res.status() != StatusCode::PARTIAL_CONTENT {
+        return Err(crate::Error::OtherError(format!(
+            "Download failed with status {}: {}",
+            res.status(),
+            url
+        )));
+    }
+
     if existing_size > 0 && res.status() != StatusCode::PARTIAL_CONTENT {
         std::fs::File::create(output_path.as_ref())?;
         existing_size = 0;
         res = request_with_range(url.clone(), None).await?;
+
+        if !res.status().is_success() {
+            let _ = std::fs::remove_file(output_path.as_ref());
+            return Err(crate::Error::OtherError(format!(
+                "Download failed with status {}: {}",
+                res.status(),
+                url
+            )));
+        }
     }
 
     let total_size = get_content_length_from_headers(&res).map(|content_length| {
@@ -144,6 +161,16 @@ pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
     }
 
     let head_response = get_client().head(url.clone()).send().await?;
+
+    // Check if the resource exists before attempting download
+    if !head_response.status().is_success() {
+        return Err(crate::Error::OtherError(format!(
+            "Resource not found or inaccessible (status {}): {}",
+            head_response.status(),
+            url
+        )));
+    }
+
     let total_size = get_content_length_from_headers(&head_response);
 
     let supports_ranges = head_response
@@ -296,7 +323,7 @@ mod tests {
     #[test]
     #[ignore]
     fn test_calculate_file_size_and_checksum() {
-        let base = "/Users/yujonglee/dev/hyprnote/out";
+        let base = "/Users/yujonglee/dev/hyprnote/.cache";
 
         fn walk_dir(dir: &std::path::Path) -> std::io::Result<()> {
             for entry in std::fs::read_dir(dir)? {

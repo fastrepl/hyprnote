@@ -153,7 +153,7 @@ export default function LlmAI() {
       setSelectedLLMModel(modelKey);
       localLlmCommands.setCurrentModel(modelKey as SupportedModel);
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
-      localLlmCommands.restartServer(); // is it necessary to restart the server? 
+      localLlmCommands.restartServer(); // is it necessary to restart the server?
       setCustomLLMEnabledMutation.mutate(false);
       setHyprCloudEnabledMutation.mutate(false);
     }, queryClient);
@@ -357,7 +357,7 @@ export default function LlmAI() {
       openrouterModelQuery.refetch();
     },
   });
-  
+
   // No need to force tab switching - user can view custom tab even with HyprCloud
 
   useEffect(() => {
@@ -446,7 +446,7 @@ export default function LlmAI() {
         api_base: finalApiBase,
         api_key: null,
       });
-      localLlmCommands.restartServer(); // is it necessary to restart the server? 
+      localLlmCommands.restartServer(); // is it necessary to restart the server?
       return; // Early return for HyprCloud
     }
 
@@ -472,12 +472,12 @@ export default function LlmAI() {
     // Update provider source for non-HyprCloud providers
     setProviderSourceMutation.mutate(config.provider);
     setCustomLLMModel.mutate(config.model);
-    
+
     setCustomLLMConnection.mutate({
       api_base: finalApiBase,
       api_key: config.api_key || null,
     });
-    localLlmCommands.restartServer(); // is it necessary to restart the server? 
+    localLlmCommands.restartServer(); // is it necessary to restart the server?
   };
 
   const openaiForm = useForm<OpenAIFormValues>({

@@ -59,7 +59,8 @@ pub async fn set_hyprcloud_enabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     enabled: bool,
 ) -> Result<(), String> {
-    app.set_hyprcloud_enabled(enabled).map_err(|e| e.to_string())
+    app.set_hyprcloud_enabled(enabled)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

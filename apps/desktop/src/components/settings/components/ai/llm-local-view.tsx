@@ -29,7 +29,7 @@ export function LLMLocalView({
   const { getLicense } = useLicense();
   const isPro = !!getLicense.data?.valid;
   const queryClient = useQueryClient();
-  
+
   const currentLLMModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
@@ -50,8 +50,7 @@ export function LLMLocalView({
     if (model.available && model.downloaded) {
       // Update UI state first for immediate feedback
       setSelectedLLMModel(model.key);
-    
-      
+
       // Then update backend state
       await localLlmCommands.setCurrentModel(model.key as SupportedModel);
       queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
@@ -60,7 +59,7 @@ export function LLMLocalView({
       setHyprCloudEnabledMutation.mutate(false);
       setCustomLLMEnabledMutation.mutate(false);
       setOpenAccordion(null);
-      
+
       // Restart server for local model
       localLlmCommands.restartServer();
     }
@@ -146,7 +145,7 @@ export function LLMLocalView({
             <button
               key={model.key}
               onClick={() => handleLocalModelSelection(model)}
-              disabled={!model.available }
+              disabled={!model.available}
               className={cn(
                 buttonResetClass,
                 "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
@@ -218,9 +217,9 @@ export function LLMLocalView({
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
-                        console.log("model download clicked"); 
+                        console.log("model download clicked");
                         e.stopPropagation();
-                        console.log("model download clicked 2"); 
+                        console.log("model download clicked 2");
                         handleModelDownload(model.key);
                       }}
                       className="text-xs h-7 px-2 flex items-center gap-1"

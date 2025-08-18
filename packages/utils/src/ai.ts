@@ -33,10 +33,6 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
     throw new Error("no_api_base");
   }
 
-  console.log("api_base", api_base);
-  console.log("api_key", api_key);
-  console.log("licenseKey", licenseKey);
-
   const openai = createOpenAICompatible({
     name: type === "HyprLocal" ? localProviderName : remoteProviderName,
     baseURL: api_base,
@@ -49,7 +45,6 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   });
 
   const customModel = await connectorCommands.getCustomLlmModel();
-  console.log("customModel", customModel);
   const id = onboarding
     ? "mock-onboarding"
     : (type === "Custom" && customModel)

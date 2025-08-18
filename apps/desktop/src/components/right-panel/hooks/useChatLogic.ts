@@ -155,10 +155,6 @@ export function useChatLogic({
       const { type } = llmConnection;
       const apiBase = llmConnection.connection?.api_base;
 
-      console.log("llmConnection", llmConnection);
-      console.log("model id", model.modelId);
-      console.log("api base", apiBase);
-
       let newMcpTools: Record<string, any> = {};
       let mcpToolsArray: any[] = [];
       const allMcpClients: any[] = [];

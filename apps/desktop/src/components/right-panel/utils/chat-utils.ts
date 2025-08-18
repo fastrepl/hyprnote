@@ -38,7 +38,6 @@ export const prepareMessageHistory = async (
   mentionedContent?: Array<{ id: string; type: string; label: string }>,
   modelId?: string,
   mcpToolsArray?: Array<{ name: string; description: string; inputSchema: string }>,
-  // ✅ Add missing parameters
   sessionData?: any,
   sessionId?: string | null,
   userId?: string | null,

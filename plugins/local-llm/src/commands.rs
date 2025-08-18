@@ -27,7 +27,7 @@ pub async fn list_supported_model() -> Result<Vec<ModelInfo>, String> {
         ModelInfo {
             key: SupportedModel::Llama3p2_3bQ4,
             name: "Llama 3.2 3B Q4".to_string(),
-            description: "Not recommended. Exist only for backward compatibility.".to_string(),
+            description: "Not recommended. Exists only for backward compatibility.".to_string(),
             size_bytes: SupportedModel::Llama3p2_3bQ4.model_size(),
         },
     ])

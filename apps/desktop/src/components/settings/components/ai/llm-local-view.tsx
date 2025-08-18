@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { open } from "@tauri-apps/plugin-shell";
 import { CloudIcon, DownloadIcon, FolderIcon, HelpCircleIcon } from "lucide-react";
 import { useEffect } from "react";
 
@@ -118,15 +119,15 @@ export function LLMLocalView({
                   </div>
                 </div>
               </button>
-              <a
-                href="https://docs.hyprnote.com/pro/cloud"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  open("https://docs.hyprnote.com/pro/cloud");
+                }}
                 className="text-blue-600 hover:text-blue-800 transition-colors relative z-10 ml-2"
               >
                 <HelpCircleIcon className="w-4 h-4" />
-              </a>
+              </button>
             </div>
           </div>
 

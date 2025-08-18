@@ -477,6 +477,9 @@ export function useEnhanceMutation({
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
 
+      console.log("model: ", model);
+      console.log("provider: ", provider);
+
       if (sessionId !== onboardingSessionId) {
         analyticsCommands.event({
           event: "normal_enhance_start",

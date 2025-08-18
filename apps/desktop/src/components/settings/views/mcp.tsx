@@ -4,7 +4,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -14,8 +14,7 @@ export default function MCP() {
   const [newHeaderKey, setNewHeaderKey] = useState("");
   const [newHeaderValue, setNewHeaderValue] = useState("");
   const [loading, setLoading] = useState(true);
-  const queryClient = useQueryClient();
-  
+
   const MAX_SERVERS = 3;
   const isAtMaxLimit = servers.length >= MAX_SERVERS;
 
@@ -86,11 +85,20 @@ export default function MCP() {
   const handleUpdateServerHeader = (index: number, headerKey: string, headerValue: string) => {
     const updatedServers = servers.map((server, i) =>
       i === index
-        ? { 
-            ...server, 
-            headerKey: headerKey.trim() || null,
-            headerValue: headerValue.trim() || null,
-          }
+        ? {
+          ...server,
+          headerKey: headerKey.trim() || null,
+          headerValue: headerValue.trim() || null,
+        }
+        : server
+    );
+    saveServersMutation.mutate(updatedServers);
+  };
+
+  const handleUpdateServerUrl = (index: number, newUrl: string) => {
+    const updatedServers = servers.map((server, i) =>
+      i === index
+        ? { ...server, url: newUrl }
         : server
     );
     saveServersMutation.mutate(updatedServers);
@@ -122,14 +130,14 @@ export default function MCP() {
           </span>
         </div>
         <p className="text-sm text-neutral-600 mb-4">
-          Configure MCP servers for connecting with AI chat {isAtMaxLimit && `(${servers.length}/${MAX_SERVERS} servers)`}
+          Connect MCP servers with AI chat{isAtMaxLimit && `(${servers.length}/${MAX_SERVERS} servers)`}
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-3 p-4 border rounded-lg bg-neutral-50">
           <h3 className="text-sm font-medium">Add New Server</h3>
-          
+
           <div className="space-y-3">
             <div>
               <Label htmlFor="url" className="text-xs text-neutral-600">Server URL</Label>
@@ -147,7 +155,7 @@ export default function MCP() {
                 className="mt-1"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="headerKey" className="text-xs text-neutral-600">Header Key (Optional)</Label>
@@ -173,7 +181,7 @@ export default function MCP() {
               </div>
             </div>
           </div>
-          
+
           <Button
             onClick={handleAddServer}
             disabled={!newUrl.trim() || isAtMaxLimit}
@@ -188,7 +196,8 @@ export default function MCP() {
 
         {isAtMaxLimit && (
           <div className="text-xs text-neutral-600 bg-neutral-50 border border-neutral-200 rounded-lg p-3">
-            Due to stability issues, we only allow {MAX_SERVERS} MCP servers during preview. Remove a server to add a new one.
+            Due to stability issues, we only allow {MAX_SERVERS}{" "}
+            MCP servers during preview. Remove a server to add a new one.
           </div>
         )}
 
@@ -211,8 +220,8 @@ export default function MCP() {
                       <div className="flex items-center gap-2">
                         <Input
                           value={server.url}
-                          readOnly
-                          className="flex-1 bg-neutral-50"
+                          onChange={(e) => handleUpdateServerUrl(index, e.target.value)}
+                          className="flex-1"
                         />
                         <Select value={server.type} disabled>
                           <SelectTrigger className="w-24">
@@ -244,7 +253,7 @@ export default function MCP() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Header configuration for existing servers */}
                   <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-100">
                     <div>

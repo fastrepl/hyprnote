@@ -76,8 +76,6 @@ export function useChatLogic({
       const html = await miscCommands.opinionatedMdToHtml(markdownContent);
 
       sessionStore.getState().updateEnhancedNote(html);
-
-      console.log("Applied markdown content to enhanced note");
     } catch (error) {
       console.error("Failed to apply markdown content:", error);
     }
@@ -92,7 +90,6 @@ export function useChatLogic({
       return;
     }
 
-    // Count only user messages
     const userMessageCount = messages.filter(msg => msg.isUser).length;
 
     if (userMessageCount >= 3 && !getLicense.data?.valid) {
@@ -121,7 +118,7 @@ export function useChatLogic({
     }
 
     setIsGenerating(true);
-    isGeneratingRef.current = true; 
+    isGeneratingRef.current = true;
 
     const groupId = await getChatGroupId();
 
@@ -145,53 +142,7 @@ export function useChatLogic({
       type: "text-delta",
     });
 
-    // Declare aiMessageId outside try block so it's accessible in catch
     const aiMessageId = crypto.randomUUID();
-
-    // try creating a new set of tools
-    const newMcpTools: Record<string, any> = {};
-
-    const mcpServers = await mcpCommands.getServers();
-    const enabledSevers = mcpServers.filter((server) => server.enabled);
-    const allMcpClients: any[] = [];
-
-    for (const server of enabledSevers) {
-      const mcpClient = await experimental_createMCPClient({
-        transport: {
-          type: "sse",
-          url: server.url,
-          ...(server.headerKey && server.headerValue && {
-            headers: {
-              [server.headerKey]: server.headerValue,
-            },
-          }),
-          onerror: (error) => {
-            console.log("mcp client error: ", error);
-          },
-          onclose: () => {
-            console.log("mcp client closed");
-          },
-        },
-      });
-      allMcpClients.push(mcpClient);
-
-      const tools = await mcpClient.tools();
-      for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
-        newMcpTools[toolName] = dynamicTool({
-          description: tool.description,
-          inputSchema: tool.inputSchema || z.any(),
-          execute: tool.execute,
-        });
-      }
-    }
-
-    const mcpToolsArray = Object.keys(newMcpTools).length > 0
-      ? Object.entries(newMcpTools).map(([name, tool]) => ({
-        name,
-        description: tool.description || `Tool: ${name}`,
-        inputSchema: tool.inputSchema || "No input schema provided",
-      }))
-      : [];
 
     try {
       const provider = await modelProvider();
@@ -200,8 +151,70 @@ export function useChatLogic({
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { type } = await connectorCommands.getLlmConnection();
+      const llmConnection = await connectorCommands.getLlmConnection();
+      const { type } = llmConnection;
+      const apiBase = llmConnection.connection?.api_base;
+
+      console.log("llmConnection", llmConnection);
       console.log("model id", model.modelId);
+      console.log("api base", apiBase);
+
+      let newMcpTools: Record<string, any> = {};
+      let mcpToolsArray: any[] = [];
+      const allMcpClients: any[] = [];
+
+      const shouldUseMcpTools = type !== "HyprLocal"
+        && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
+          || model.modelId === "anthropic/claude-sonnet-4"
+          || model.modelId === "openai/gpt-4o"
+          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com"));
+
+      if (shouldUseMcpTools) {
+        const mcpServers = await mcpCommands.getServers();
+        const enabledSevers = mcpServers.filter((server) => server.enabled);
+
+        for (const server of enabledSevers) {
+          try {
+            const mcpClient = await experimental_createMCPClient({
+              transport: {
+                type: "sse",
+                url: server.url,
+                ...(server.headerKey && server.headerValue && {
+                  headers: {
+                    [server.headerKey]: server.headerValue,
+                  },
+                }),
+                onerror: (error) => {
+                  console.log("mcp client error: ", error);
+                },
+                onclose: () => {
+                  console.log("mcp client closed");
+                },
+              },
+            });
+            allMcpClients.push(mcpClient);
+
+            const tools = await mcpClient.tools();
+            for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
+              newMcpTools[toolName] = dynamicTool({
+                description: tool.description,
+                inputSchema: tool.inputSchema || z.any(),
+                execute: tool.execute,
+              });
+            }
+          } catch (error) {
+            console.error("Error creating MCP client:", error);
+          }
+        }
+
+        mcpToolsArray = Object.keys(newMcpTools).length > 0
+          ? Object.entries(newMcpTools).map(([name, tool]) => ({
+            name,
+            description: tool.description || `Tool: ${name}`,
+            inputSchema: tool.inputSchema || "No input schema provided",
+          }))
+          : [];
+      }
 
       const { fullStream } = streamText({
         model,
@@ -214,17 +227,14 @@ export function useChatLogic({
           sessionData,
           sessionId,
           userId,
+          apiBase,
         ),
         ...(type === "HyprLocal" && {
           tools: {
             update_progress: tool({ inputSchema: z.any() }),
           },
         }),
-        ...((type !== "HyprLocal"
-          && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
-            || model.modelId === "anthropic/claude-sonnet-4"
-            || model.modelId === "openai/gpt-4o"
-            || model.modelId === "gpt-4o")) && {
+        ...(shouldUseMcpTools && {
           stopWhen: stepCountIs(3),
           tools: {
             ...newMcpTools,
@@ -291,23 +301,16 @@ export function useChatLogic({
           throw error;
         },
         onFinish: () => {
-          console.log("closing all mcp clients");
           for (const client of allMcpClients) {
             client.close();
           }
-        },
-        onStepFinish: (step) => {
-          console.log("step finished", step);
-        },
-        onChunk: (chunk) => {
-          console.log("chunk finished", chunk);
         },
       });
 
       let aiResponse = "";
       let didInitializeAiResponse = false;
       let currentAiTextMessageId: string | null = null;
-      let lastChunkType: string | null = null; 
+      let lastChunkType: string | null = null;
 
       for await (const chunk of fullStream) {
         if (lastChunkType === "text-delta" && chunk.type !== "text-delta" && chunk.type !== "finish-step") {
@@ -317,7 +320,7 @@ export function useChatLogic({
         }
 
         if (chunk.type === "text-delta") {
-          setIsStreamingText(true); 
+          setIsStreamingText(true);
 
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
@@ -326,7 +329,7 @@ export function useChatLogic({
               // Same type (text) -> update existing message
 
               aiResponse += chunk.text;
-              currentAiTextMessageId = lastMessage.id; 
+              currentAiTextMessageId = lastMessage.id;
               const parts = parseMarkdownBlocks(aiResponse);
 
               return prev.map(msg =>
@@ -353,7 +356,7 @@ export function useChatLogic({
                 parts,
               };
 
-              currentAiTextMessageId = newTextMessage.id; 
+              currentAiTextMessageId = newTextMessage.id;
               return [...prev, newTextMessage];
             }
           });
@@ -378,8 +381,6 @@ export function useChatLogic({
             };
             saveAiText();
             currentAiTextMessageId = null; // Reset
-
-            console.log("saved previous text block");
           }
 
           didInitializeAiResponse = false;
@@ -402,7 +403,6 @@ export function useChatLogic({
             content: toolStartMessage.content,
             type: "tool-start",
           });
-          console.log("Tool Call:", chunk);
         }
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
@@ -426,7 +426,6 @@ export function useChatLogic({
             content: toolResultMessage.content,
             type: "tool-result",
           });
-          console.log("Tool Result:", chunk);
         }
 
         if (chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
@@ -448,11 +447,6 @@ export function useChatLogic({
             content: toolErrorMessage.content,
             type: "tool-error",
           });
-          console.log("Tool Error:", chunk);
-        }
-
-        if (chunk.type === "finish-step") {
-          console.log("streaming finished for this message");
         }
 
         lastChunkType = chunk.type;
@@ -470,8 +464,8 @@ export function useChatLogic({
       }
 
       setIsGenerating(false);
-      setIsStreamingText(false); 
-      isGeneratingRef.current = false; 
+      setIsStreamingText(false);
+      isGeneratingRef.current = false;
     } catch (error) {
       console.error("AI error:", error);
 
@@ -488,8 +482,8 @@ export function useChatLogic({
       }
 
       setIsGenerating(false);
-      setIsStreamingText(false); 
-      isGeneratingRef.current = false; 
+      setIsStreamingText(false);
+      isGeneratingRef.current = false;
 
       // Create error message
       const errorMessage: Message = {

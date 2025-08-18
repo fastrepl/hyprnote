@@ -469,7 +469,7 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:59
 msgid "Calendar"
 msgstr ""
 
@@ -795,8 +795,8 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/routes/app.settings.tsx:68
-#: src/routes/app.settings.tsx:103
+#: src/routes/app.settings.tsx:69
+#: src/routes/app.settings.tsx:106
 msgid "Feedback"
 msgstr ""
 
@@ -832,7 +832,7 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:53
 msgid "General"
 msgstr ""
 
@@ -900,12 +900,12 @@ msgstr ""
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:67
 #: src/components/settings/views/integrations.tsx:124
 msgid "Integrations"
 msgstr ""
 
-#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:55
 msgid "Intelligence"
 msgstr ""
 
@@ -965,7 +965,7 @@ msgstr ""
 msgid "Learn more about templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:71
 msgid "License"
 msgstr ""
 
@@ -1024,6 +1024,10 @@ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:24
 msgid "Make it public"
+msgstr ""
+
+#: src/routes/app.settings.tsx:73
+msgid "MCP"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:41
@@ -1147,7 +1151,7 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:61
 msgid "Notifications"
 msgstr ""
 
@@ -1424,7 +1428,7 @@ msgstr ""
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 
-#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:65
 msgid "Sound"
 msgstr ""
 
@@ -1501,7 +1505,7 @@ msgstr ""
 msgid "Template"
 msgstr ""
 
-#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:63
 msgid "Templates"
 msgstr ""
 
@@ -1565,7 +1569,7 @@ msgstr ""
 #~ msgid "Transcribing"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:57
 msgid "Transcription"
 msgstr ""
 

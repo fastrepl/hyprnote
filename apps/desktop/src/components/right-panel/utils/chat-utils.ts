@@ -42,6 +42,7 @@ export const prepareMessageHistory = async (
   sessionData?: any,
   sessionId?: string | null,
   userId?: string | null,
+  apiBase?: string | null,
 ) => {
   const refetchResult = await sessionData?.refetch();
   let freshSessionData = refetchResult?.data;
@@ -80,6 +81,7 @@ export const prepareMessageHistory = async (
     event: eventInfo,
     modelId: modelId,
     mcpTools: mcpToolsArray,
+    apiBase: apiBase,
   });
 
   console.log("system prompt", systemContent);

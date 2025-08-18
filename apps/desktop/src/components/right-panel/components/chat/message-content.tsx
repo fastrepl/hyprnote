@@ -123,11 +123,6 @@ function MarkdownText({ content }: { content: string }) {
 }
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
-  // Remove the toolAccordionOpen state since we're not using accordion anymore
-
-  // Remove generating type handling since it's now handled in UI state
-
-  // ✅ Simplified tool-start message with pencil-ruler icon
   if (message.type === "tool-start") {
     return (
       <div
@@ -156,7 +151,6 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
     );
   }
 
-  // ✅ Simplified tool-result message with pencil-ruler icon
   if (message.type === "tool-result") {
     return (
       <div
@@ -185,7 +179,6 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
     );
   }
 
-  // ✅ Simplified tool-error message with pencil-ruler icon
   if (message.type === "tool-error") {
     return (
       <div

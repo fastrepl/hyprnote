@@ -469,7 +469,7 @@ msgstr "Base URL"
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:59
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -795,8 +795,8 @@ msgstr "Enter the base URL for your custom LLM endpoint"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/routes/app.settings.tsx:68
-#: src/routes/app.settings.tsx:103
+#: src/routes/app.settings.tsx:69
+#: src/routes/app.settings.tsx:106
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -832,7 +832,7 @@ msgstr "Finish Onboarding"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:53
 msgid "General"
 msgstr "General"
 
@@ -900,12 +900,12 @@ msgstr "Important Q&As"
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr "Integration with other apps like Notion and Google Calendar"
 
-#: src/routes/app.settings.tsx:66
+#: src/routes/app.settings.tsx:67
 #: src/components/settings/views/integrations.tsx:124
 msgid "Integrations"
 msgstr "Integrations"
 
-#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:55
 msgid "Intelligence"
 msgstr "Intelligence"
 
@@ -965,7 +965,7 @@ msgstr "Learn more about AI autonomy"
 msgid "Learn more about templates"
 msgstr "Learn more about templates"
 
-#: src/routes/app.settings.tsx:70
+#: src/routes/app.settings.tsx:71
 msgid "License"
 msgstr "License"
 
@@ -1025,6 +1025,10 @@ msgstr "Loading..."
 #: src/components/share-and-permission/publish.tsx:24
 msgid "Make it public"
 msgstr "Make it public"
+
+#: src/routes/app.settings.tsx:73
+msgid "MCP"
+msgstr "MCP"
 
 #: src/components/settings/views/billing.tsx:41
 #~ msgid "Meeting note sharing via links"
@@ -1147,7 +1151,7 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:61
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1424,7 +1428,7 @@ msgstr "Show notifications when you join a meeting."
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 
-#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:65
 msgid "Sound"
 msgstr "Sound"
 
@@ -1501,7 +1505,7 @@ msgstr "Teamspace"
 msgid "Template"
 msgstr "Template"
 
-#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:63
 msgid "Templates"
 msgstr "Templates"
 
@@ -1565,7 +1569,7 @@ msgstr "Toggle transcript panel"
 #~ msgid "Transcribing"
 #~ msgstr "Transcribing"
 
-#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:57
 msgid "Transcription"
 msgstr "Transcription"
 

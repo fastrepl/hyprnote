@@ -47,6 +47,32 @@ export function LLMLocalView({
     }
   }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
 
+  // Auto-disable HyprCloud when license expires
+  useEffect(() => {
+    if (!isPro && hyprCloudEnabled.data) {
+      setHyprCloudEnabledMutation.mutate(false);
+      setCustomLLMEnabledMutation.mutate(false);
+      // Fall back to current local model if available
+      if (currentLLMModel.data) {
+        setSelectedLLMModel(currentLLMModel.data);
+      } else {
+        // Fall back to HyprLLM (preferred default) if downloaded
+        const hyprModel = llmModelsState.find(m => m.key === "HyprLLM" && m.downloaded && m.available);
+        if (hyprModel) {
+          setSelectedLLMModel("HyprLLM");
+          localLlmCommands.setCurrentModel("HyprLLM");
+        } else {
+          // Final fallback to any available downloaded model
+          const downloadedModel = llmModelsState.find(m => m.downloaded && m.available);
+          if (downloadedModel) {
+            setSelectedLLMModel(downloadedModel.key);
+            localLlmCommands.setCurrentModel(downloadedModel.key as SupportedModel);
+          }
+        }
+      }
+    }
+  }, [isPro, hyprCloudEnabled.data, setHyprCloudEnabledMutation, setCustomLLMEnabledMutation, currentLLMModel.data, setSelectedLLMModel, llmModelsState]);
+
   const handleLocalModelSelection = async (model: LLMModel) => {
     if (model.available && model.downloaded) {
       // Update UI state first for immediate feedback

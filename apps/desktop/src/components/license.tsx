@@ -1,9 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { useLicense } from "@/hooks/use-license";
-import { useLlmSettings } from "@/hooks/use-llm-settings";
-import { useQuery } from "@tanstack/react-query";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 
 const REFRESH_INTERVAL = 30 * 60 * 1000;
 const INITIAL_DELAY = 5000;
@@ -11,8 +10,23 @@ const RATE_LIMIT = 60 * 60 * 1000;
 
 export function LicenseRefreshProvider({ children }: { children: React.ReactNode }) {
   const { getLicenseStatus, refreshLicense, getLicense } = useLicense();
-  const { hyprCloudEnabled, setHyprCloudEnabledMutation, setCustomLLMEnabledMutation } = useLlmSettings();
   const lastRefreshAttempt = useRef<number>(0);
+
+  const hyprCloudEnabled = useQuery({
+    queryKey: ["hypr-cloud-enabled"],
+    queryFn: () => connectorCommands.getHyprcloudEnabled(),
+  });
+
+  const setHyprCloudEnabledMutation = useMutation({
+    mutationFn: (enabled: boolean) => connectorCommands.setHyprcloudEnabled(enabled),
+    onSuccess: () => {
+      hyprCloudEnabled.refetch();
+    },
+  });
+
+  const setCustomLLMEnabledMutation = useMutation({
+    mutationFn: (enabled: boolean) => connectorCommands.setCustomLlmEnabled(enabled),
+  });
 
   // Auto-disable HyprCloud when license expires
   useEffect(() => {

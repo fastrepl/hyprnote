@@ -78,7 +78,9 @@
       "identifier": "fs:allow-write-file",
       "allow": [
         { "path": "$APPDATA/*" },
-        { "path": "$APPDATA/**" }
+        { "path": "$APPDATA/**" },
+        { "path": "$DOWNLOAD/*" },
+        { "path": "$DOWNLOAD/**" }
       ]
     },
     {

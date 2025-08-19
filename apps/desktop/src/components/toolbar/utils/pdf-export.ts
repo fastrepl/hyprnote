@@ -1,4 +1,4 @@
-import { appDataDir } from "@tauri-apps/api/path";
+import { downloadDir } from "@tauri-apps/api/path";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { jsPDF } from "jspdf";
 
@@ -332,7 +332,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   const pdfArrayBuffer = pdf.output("arraybuffer");
   const uint8Array = new Uint8Array(pdfArrayBuffer);
 
-  const downloadsPath = await appDataDir();
+  const downloadsPath = await downloadDir();
   const filePath = downloadsPath.endsWith("/")
     ? `${downloadsPath}${filename}`
     : `${downloadsPath}/${filename}`;

@@ -442,6 +442,9 @@ const exportHandlers = {
 
   pdf: async (session: Session): Promise<ExportResult> => {
     const path = await exportToPDF(session);
+    if (path) {
+      await message(`Meeting summary saved to your 'Downloads' folder ("${path}")`);
+    }
     return { type: "pdf", path };
   },
 

@@ -360,46 +360,16 @@ export default function LlmAI() {
 
   // No need to force tab switching - user can view custom tab even with HyprCloud
 
-  useEffect(() => {
-    const handleMigration = async () => {
-      if (!customLLMConnection.data && !customLLMEnabled.data) {
-        return;
-      }
-
-      if (!providerSourceQuery.data && customLLMConnection.data) {
-        console.log("Migrating existing user to new provider system...");
-
-        try {
-          if (customLLMConnection.data.api_base) {
-            await setOthersApiBaseMutation.mutateAsync(customLLMConnection.data.api_base);
-          }
-          if (customLLMConnection.data.api_key) {
-            await setOthersApiKeyMutation.mutateAsync(customLLMConnection.data.api_key);
-          }
-          if (getCustomLLMModel.data) {
-            await setOthersModelMutation.mutateAsync(getCustomLLMModel.data);
-          }
-
-          await setProviderSourceMutation.mutateAsync("others");
-
-          console.log("Migration completed successfully");
-        } catch (error) {
-          console.error("Migration failed:", error);
-        }
-      }
-    };
-
-    if (
-      providerSourceQuery.data !== undefined && customLLMConnection.data !== undefined
-      && getCustomLLMModel.data !== undefined
-    ) {
-      handleMigration();
-    }
-  }, [providerSourceQuery.data, customLLMConnection.data, getCustomLLMModel.data]);
 
   useEffect(() => {
     // Don't manage accordion state if HyprCloud is enabled
     if (hyprCloudEnabled.data) {
+      setOpenAccordion(null);
+      return;
+    }
+
+    // Don't open accordion if custom LLM is disabled
+    if (!customLLMEnabled.data) {
       setOpenAccordion(null);
       return;
     }
@@ -423,8 +393,13 @@ export default function LlmAI() {
     // and HyprCloud is not enabled
     if (!providerSourceQuery.data && customLLMEnabled.data && openAccordion === null && !hyprCloudEnabled.data) {
       setOpenAccordion("others");
+      
+      // Clear HyprCloud URL if it's stored in "others" API base
+      if (othersApiBaseQuery.data === "https://pro.hyprnote.com") {
+        setOthersApiBaseMutation.mutate("");
+      }
     }
-  }, [providerSourceQuery.data, customLLMEnabled.data, openAccordion, hyprCloudEnabled.data, setOpenAccordion]);
+  }, [providerSourceQuery.data, customLLMEnabled.data, openAccordion, hyprCloudEnabled.data, othersApiBaseQuery.data, setOpenAccordion, setOthersApiBaseMutation]);
 
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
     const finalApiBase = config.provider === "openai"
@@ -438,10 +413,10 @@ export default function LlmAI() {
       : config.api_base;
 
     if (config.provider === "hyprcloud") {
+      console.log("hyprcloud set, setting values");
       // HyprCloud is special - enable both flags but don't touch provider source
       setHyprCloudEnabledMutation.mutate(true);
       setCustomLLMEnabledMutation.mutate(true);
-      // Set connection but don't modify provider source or stored keys
       setCustomLLMConnection.mutate({
         api_base: finalApiBase,
         api_key: null,
@@ -543,7 +518,7 @@ export default function LlmAI() {
   }, [openrouterApiKeyQuery.data, openrouterModelQuery.data, openrouterForm]);
 
   useEffect(() => {
-    if (othersApiBaseQuery.data) {
+    if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
       customForm.setValue("api_base", othersApiBaseQuery.data);
     }
     if (othersApiKeyQuery.data) {
@@ -574,7 +549,7 @@ export default function LlmAI() {
 
   useEffect(() => {
     if (openAccordion === "others") {
-      if (othersApiBaseQuery.data) {
+      if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
         customForm.setValue("api_base", othersApiBaseQuery.data);
       }
       if (othersApiKeyQuery.data) {
@@ -696,9 +671,15 @@ export default function LlmAI() {
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 
-          {customLLMEnabled.data && (!hyprCloudEnabled.data || openAccordion) && (
-            <div className="max-w-2xl space-y-4">
-              <div className="border rounded-lg p-4">
+
+            <div className={cn(
+              "max-w-2xl space-y-4",
+              (!customLLMEnabled.data || hyprCloudEnabled.data) && "opacity-60"
+            )}>
+              <div className={cn(
+                "border rounded-lg p-4",
+                (!customLLMEnabled.data || hyprCloudEnabled.data) && "bg-gray-50 border-gray-200"
+              )}>
                 <Form {...aiConfigForm}>
                   <div className="space-y-4">
                     <FormField
@@ -727,7 +708,7 @@ export default function LlmAI() {
                             </Tooltip>
                           </div>
                           <FormDescription className="text-xs">
-                            <Trans>Control how autonomous the AI enhancement should be</Trans>
+                            {(!customLLMEnabled.data || hyprCloudEnabled.data) ? <Trans>Only works with Custom Endpoints. Please configure one of the above first.</Trans> : <Trans>Control how autonomous the AI enhancement should be.</Trans>}
                           </FormDescription>
                           <FormControl>
                             <div className="space-y-3">
@@ -748,13 +729,13 @@ export default function LlmAI() {
                                           level: level,
                                         });
                                       }}
-                                      disabled={!customLLMEnabled.data}
+                                      disabled={!customLLMEnabled.data || hyprCloudEnabled.data}
                                       className={cn(
                                         "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
                                         field.value === level
                                           ? "bg-white text-black shadow-sm"
                                           : "text-white hover:bg-white/20",
-                                        !customLLMEnabled.data && "opacity-50 cursor-not-allowed",
+                                        (!customLLMEnabled.data || hyprCloudEnabled.data) && "opacity-50 cursor-not-allowed",
                                       )}
                                     >
                                       {specificityLevels[level as keyof typeof specificityLevels]?.title}
@@ -779,7 +760,6 @@ export default function LlmAI() {
                 </Form>
               </div>
             </div>
-          )}
         </div>
       )}
     </div>

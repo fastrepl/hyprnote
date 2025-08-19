@@ -75,8 +75,10 @@ export function LLMCustomView({
   useEffect(() => {
     const subscription = openaiForm.watch((values) => {
       // Only auto-configure if user opened this accordion OR custom is already enabled
-      if ((userOpenedAccordion === "openai" || customLLMEnabled.data) && 
-          values.api_key && values.api_key.startsWith("sk-") && values.model) {
+      if (
+        (userOpenedAccordion === "openai" || customLLMEnabled.data)
+        && values.api_key && values.api_key.startsWith("sk-") && values.model
+      ) {
         setHyprCloudEnabledMutation.mutate(false);
         configureCustomEndpoint({
           provider: "openai",
@@ -92,8 +94,10 @@ export function LLMCustomView({
   useEffect(() => {
     const subscription = geminiForm.watch((values) => {
       // Only auto-configure if user opened this accordion OR custom is already enabled
-      if ((userOpenedAccordion === "gemini" || customLLMEnabled.data) && 
-          values.api_key && values.api_key.startsWith("AIza") && values.model) {
+      if (
+        (userOpenedAccordion === "gemini" || customLLMEnabled.data)
+        && values.api_key && values.api_key.startsWith("AIza") && values.model
+      ) {
         setHyprCloudEnabledMutation.mutate(false);
         configureCustomEndpoint({
           provider: "gemini",
@@ -109,8 +113,10 @@ export function LLMCustomView({
   useEffect(() => {
     const subscription = openrouterForm.watch((values) => {
       // Only auto-configure if user opened this accordion OR custom is already enabled
-      if ((userOpenedAccordion === "openrouter" || customLLMEnabled.data) && 
-          values.api_key && values.api_key.startsWith("sk-") && values.model) {
+      if (
+        (userOpenedAccordion === "openrouter" || customLLMEnabled.data)
+        && values.api_key && values.api_key.startsWith("sk-") && values.model
+      ) {
         setHyprCloudEnabledMutation.mutate(false);
         configureCustomEndpoint({
           provider: "openrouter",
@@ -127,8 +133,10 @@ export function LLMCustomView({
     const subscription = customForm.watch((values) => {
       // Only auto-configure if user opened this accordion OR custom is already enabled
       // Also exclude HyprCloud URL from being stored as 'others'
-      if ((userOpenedAccordion === "others" || customLLMEnabled.data) && 
-          values.api_base && values.api_base !== "https://pro.hyprnote.com" && values.model) {
+      if (
+        (userOpenedAccordion === "others" || customLLMEnabled.data)
+        && values.api_base && values.api_base !== "https://pro.hyprnote.com" && values.model
+      ) {
         try {
           setHyprCloudEnabledMutation.mutate(false);
           console.log("we are now setting the 'others' endpoint");
@@ -154,7 +162,7 @@ export function LLMCustomView({
 
     // If HyprCloud is active, clicking an accordion should disable it
     if (hyprCloudEnabled?.data) {
-      //setHyprCloudEnabledMutation.mutate(false);
+      // setHyprCloudEnabledMutation.mutate(false);
       setOpenAccordion(provider);
       if (selectedLLMModel === "hyprcloud") {
         setSelectedLLMModel("");
@@ -164,7 +172,7 @@ export function LLMCustomView({
 
     // Always allow accordion opening/switching, don't auto-enable custom
     setOpenAccordion(provider === openAccordion ? null : provider);
-    
+
     if (selectedLLMModel === "hyprcloud") {
       setSelectedLLMModel("");
     }
@@ -265,7 +273,7 @@ export function LLMCustomView({
             openAccordion === "openai"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            )}
+          )}
         >
           <div
             className="p-4"
@@ -560,7 +568,7 @@ export function LLMCustomView({
             openAccordion === "others"
               ? "border-blue-500 ring-2 ring-blue-500 bg-blue-50"
               : "border-neutral-200 bg-white hover:border-neutral-300",
-            )}
+          )}
         >
           <div
             className="p-4"

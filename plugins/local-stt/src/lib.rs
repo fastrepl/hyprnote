@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use tauri::{Manager, Wry};
+use tokio_util::sync::CancellationToken;
 
 mod commands;
 mod error;
@@ -24,7 +25,7 @@ pub struct State {
     pub am_api_key: Option<String>,
     pub internal_server: Option<server::internal::ServerHandle>,
     pub external_server: Option<server::external::ServerHandle>,
-    pub download_task: HashMap<SupportedSttModel, tokio::task::JoinHandle<()>>,
+    pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";

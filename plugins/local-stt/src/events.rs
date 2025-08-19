@@ -20,7 +20,8 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
                         let _ = server.terminate();
                         guard.external_server = None;
                     }
-                    for (_, task) in guard.download_task.drain() {
+                    for (_, (task, token)) in guard.download_task.drain() {
+                        token.cancel();
                         task.abort();
                     }
                 });
@@ -53,7 +54,8 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
                                 let _ = server.terminate();
                                 guard.external_server = None;
                             }
-                            for (_, task) in guard.download_task.drain() {
+                            for (_, (task, token)) in guard.download_task.drain() {
+                                token.cancel();
                                 task.abort();
                             }
                         });

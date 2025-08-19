@@ -64,7 +64,7 @@ export function useBilling({
   const portal = useMutation({
     mutationFn: async () => {
       const response = await fetch(`${SERVER_BASE_URL}/portal`, {
-        method: "POST",
+        method: "GET",
         headers: { "Accept": "application/json" },
       });
       return response.json() as Promise<{ url: string }>;

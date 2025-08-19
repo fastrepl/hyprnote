@@ -4555,6 +4555,7 @@ dependencies = [
  "testcontainers-modules",
  "thiserror 2.0.12",
  "tokio",
+ "tokio-util",
  "tracing",
  "wiremock",
 ]

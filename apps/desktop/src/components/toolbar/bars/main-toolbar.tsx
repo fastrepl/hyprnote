@@ -3,7 +3,7 @@ import { useMatch } from "@tanstack/react-router";
 import { DeleteNoteButton } from "@/components/toolbar/buttons/delete-note-button";
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
-import { ShareButton } from "@/components/toolbar/buttons/share-button";
+// import { ShareButton } from "@/components/toolbar/buttons/share-button";
 import { useLeftSidebar } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
@@ -57,7 +57,7 @@ export function MainToolbar() {
         {isMain && (
           <>
             {(organizationMatch || humanMatch) && <NewWindowButton />}
-            {isNote && <ShareButton />}
+            {/*isNote && <ShareButton />*/}
             <ChatPanelButton />
             <TranscriptPanelButton />
           </>

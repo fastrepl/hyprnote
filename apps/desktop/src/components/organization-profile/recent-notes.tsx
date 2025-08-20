@@ -67,7 +67,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
         )
         : (
           <p className="text-muted-foreground text-center">
-            <Trans>No recent notes for this organization</Trans>
+            <Trans>No recent notes with this organization</Trans>
           </p>
         )}
     </div>

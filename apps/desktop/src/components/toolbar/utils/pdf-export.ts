@@ -1,8 +1,11 @@
-import { appDataDir } from "@tauri-apps/api/path";
+import { downloadDir } from "@tauri-apps/api/path";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { jsPDF } from "jspdf";
 
 import { commands as dbCommands, type Event, type Human, type Session } from "@hypr/plugin-db";
+import { getPDFTheme, type ThemeName } from "./pdf-themes";
+
+export { getAvailableThemes, getPDFTheme, type PDFTheme, type ThemeName } from "./pdf-themes";
 
 export type SessionData = Session & {
   participants?: Human[];
@@ -11,26 +14,61 @@ export type SessionData = Session & {
 
 interface TextSegment {
   text: string;
-  bold?: boolean;
-  italic?: boolean;
-  isHeader?: number; // 1, 2, 3 for h1, h2, h3
+  isHeader?: number;
   isListItem?: boolean;
+  listType?: "ordered" | "unordered";
+  listLevel?: number;
+  listItemNumber?: number;
+  bulletType?: "filled-circle" | "hollow-circle" | "square" | "triangle";
 }
 
-// TODO:
-// 1. Tiptap already has structured output - toJSON(). Should be cleaner than htmlToStructuredText.
-// 2. Fetch should happen outside. This file should be only do the rendering. (Ideally writeFile should be happened outside too)
-// 3. exportToPDF should be composed with multiple steps.
+interface ListContext {
+  type: "ordered" | "unordered";
+  level: number;
+  counters: number[];
+}
+
+const getOrderedListMarker = (counter: number, level: number): string => {
+  switch (level) {
+    case 0:
+      return `${counter}.`;
+    case 1:
+      return `${String.fromCharCode(96 + counter)}.`;
+    default:
+      return `${toRomanNumeral(counter)}.`;
+  }
+};
+
+const toRomanNumeral = (num: number): string => {
+  const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const numerals = ["m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"];
+
+  let result = "";
+  for (let i = 0; i < values.length; i++) {
+    while (num >= values[i]) {
+      result += numerals[i];
+      num -= values[i];
+    }
+  }
+  return result;
+};
 
 const htmlToStructuredText = (html: string): TextSegment[] => {
   if (!html) {
     return [];
   }
 
+  const cleanedHtml = html
+    .replace(/<\/?strong>/gi, "")
+    .replace(/<\/?b>/gi, "")
+    .replace(/<\/?em>/gi, "")
+    .replace(/<\/?i>/gi, "");
+
   const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = html;
+  tempDiv.innerHTML = cleanedHtml;
 
   const segments: TextSegment[] = [];
+  const listStack: ListContext[] = [];
 
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -52,33 +90,104 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
         case "h3":
           segments.push({ text: element.textContent || "", isHeader: 3 });
           break;
-        case "strong":
-        case "b":
-          segments.push({ text: element.textContent || "", bold: true });
+
+        case "ul":
+          processListContainer(element, "unordered");
           break;
-        case "em":
-        case "i":
-          segments.push({ text: element.textContent || "", italic: true });
+        case "ol":
+          processListContainer(element, "ordered");
           break;
         case "li":
-          segments.push({ text: `• ${element.textContent || ""}`, isListItem: true });
+          processListItem(element);
           break;
+
         case "p":
           if (element.textContent?.trim()) {
-            // Process inline formatting within paragraphs
             processInlineFormatting(element, segments);
-            segments.push({ text: "\n" }); // Add paragraph break
+            segments.push({ text: "\n" });
           }
           break;
         case "br":
           segments.push({ text: "\n" });
           break;
         default:
-          // For other elements, process children
           Array.from(node.childNodes).forEach(processNode);
           break;
       }
     }
+  };
+
+  const processListContainer = (listElement: Element, type: "ordered" | "unordered") => {
+    const level = listStack.length;
+
+    const counters = [...(listStack[listStack.length - 1]?.counters || [])];
+    if (counters.length <= level) {
+      counters[level] = 0;
+    }
+
+    listStack.push({ type, level, counters });
+
+    Array.from(listElement.children).forEach((child, index) => {
+      if (child.tagName.toLowerCase() === "li") {
+        if (type === "ordered") {
+          counters[level] = index + 1;
+        }
+        processNode(child);
+      }
+    });
+
+    listStack.pop();
+
+    if (level === 0) {
+      segments.push({ text: "\n" });
+    }
+  };
+
+  const processListItem = (liElement: Element) => {
+    const currentList = listStack[listStack.length - 1];
+    if (!currentList) {
+      return;
+    }
+
+    const { type, level, counters } = currentList;
+
+    const textContent = getListItemText(liElement);
+
+    const bulletTypes = ["filled-circle", "hollow-circle", "square"] as const;
+
+    segments.push({
+      text: type === "ordered"
+        ? `${getOrderedListMarker(counters[level], level)} ${textContent}`
+        : textContent,
+      isListItem: true,
+      listType: type,
+      listLevel: level,
+      listItemNumber: type === "ordered" ? counters[level] : undefined,
+      bulletType: type === "unordered"
+        ? (level <= 2 ? bulletTypes[level] : "square")
+        : undefined,
+    });
+
+    Array.from(liElement.children).forEach(child => {
+      if (child.tagName.toLowerCase() === "ul" || child.tagName.toLowerCase() === "ol") {
+        processNode(child);
+      }
+    });
+  };
+
+  const getListItemText = (liElement: Element): string => {
+    let text = "";
+    for (const child of liElement.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        text += child.textContent || "";
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const element = child as Element;
+        if (!["ul", "ol"].includes(element.tagName.toLowerCase())) {
+          text += element.textContent || "";
+        }
+      }
+    }
+    return text.trim();
   };
 
   const processInlineFormatting = (element: Element, segments: TextSegment[]) => {
@@ -90,23 +199,10 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         const childElement = child as Element;
-        const tagName = childElement.tagName.toLowerCase();
         const text = childElement.textContent || "";
 
         if (text.trim()) {
-          switch (tagName) {
-            case "strong":
-            case "b":
-              segments.push({ text, bold: true });
-              break;
-            case "em":
-            case "i":
-              segments.push({ text, italic: true });
-              break;
-            default:
-              segments.push({ text });
-              break;
-          }
+          segments.push({ text });
         }
       }
     });
@@ -116,7 +212,6 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
   return segments;
 };
 
-// Split text into lines that fit within the PDF width
 const splitTextToLines = (text: string, pdf: jsPDF, maxWidth: number): string[] => {
   const words = text.split(" ");
   const lines: string[] = [];
@@ -141,7 +236,6 @@ const splitTextToLines = (text: string, pdf: jsPDF, maxWidth: number): string[] 
   return lines;
 };
 
-// Fetch additional session data (participants and event info)
 const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: Human[]; event: Event | null }> => {
   try {
     const [participants, event] = await Promise.all([
@@ -155,10 +249,70 @@ const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: 
   }
 };
 
-export const exportToPDF = async (session: SessionData): Promise<string> => {
+const drawVectorBullet = (
+  pdf: jsPDF,
+  bulletType: "filled-circle" | "hollow-circle" | "square" | "triangle",
+  x: number,
+  y: number,
+  size: number = 1.0,
+  color: readonly [number, number, number] = [50, 50, 50], // Accept color parameter
+) => {
+  // Save current state
+  const currentFillColor = pdf.getFillColor();
+  const currentDrawColor = pdf.getDrawColor();
+
+  pdf.setFillColor(...color);
+  pdf.setDrawColor(...color);
+  pdf.setLineWidth(0.2);
+
+  const bulletY = y - (size / 2);
+
+  switch (bulletType) {
+    case "filled-circle":
+      pdf.circle(x, bulletY, size * 0.85, "F");
+      break;
+
+    case "hollow-circle":
+      pdf.circle(x, bulletY, size * 0.85, "S");
+      break;
+
+    case "square":
+      const squareSize = size * 1.4;
+      pdf.rect(
+        x - squareSize / 2,
+        bulletY - squareSize / 2,
+        squareSize,
+        squareSize,
+        "F",
+      );
+      break;
+
+    case "triangle":
+      const triangleSize = size * 1.15;
+      pdf.triangle(
+        x,
+        bulletY - triangleSize / 2, // top point
+        x - triangleSize / 2,
+        bulletY + triangleSize / 2, // bottom left
+        x + triangleSize / 2,
+        bulletY + triangleSize / 2, // bottom right
+        "F",
+      );
+      break;
+  }
+
+  pdf.setFillColor(currentFillColor);
+  pdf.setDrawColor(currentDrawColor);
+};
+
+export const exportToPDF = async (
+  session: SessionData,
+  themeName: ThemeName = "default",
+): Promise<string> => {
   const { participants, event } = await fetchSessionMetadata(session.id);
 
-  // Generate filename
+  const PDF_STYLES = getPDFTheme(themeName);
+
   const filename = session?.title
     ? `${session.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`
     : `note_${new Date().toISOString().split("T")[0]}.pdf`;
@@ -169,48 +323,60 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
   const maxWidth = pageWidth - (margin * 2);
-  const lineHeight = 6;
+  const lineHeight = 5.5;
+
+  const applyBackgroundColor = () => {
+    if (
+      PDF_STYLES.colors.background[0] !== 255
+      || PDF_STYLES.colors.background[1] !== 255
+      || PDF_STYLES.colors.background[2] !== 255
+    ) {
+      pdf.setFillColor(...PDF_STYLES.colors.background);
+      pdf.rect(0, 0, pageWidth, pageHeight, "F");
+    }
+  };
+
+  const addNewPage = () => {
+    pdf.addPage();
+    applyBackgroundColor();
+  };
 
   let yPosition = margin;
 
-  // Add title with text wrapping
+  applyBackgroundColor();
+
   const title = session?.title || "Untitled Note";
   pdf.setFontSize(16);
-  pdf.setFont("helvetica", "bold");
-  pdf.setTextColor(0, 0, 0); // Black
+  pdf.setFont(PDF_STYLES.font, "bold");
+  pdf.setTextColor(...PDF_STYLES.colors.headers);
 
-  // Split title into multiple lines if it's too long
   const titleLines = splitTextToLines(title, pdf, maxWidth);
 
   for (const titleLine of titleLines) {
     pdf.text(titleLine, margin, yPosition);
     yPosition += lineHeight;
   }
-  yPosition += lineHeight; // Extra space after title
+  yPosition += lineHeight;
 
-  // Add creation date ONLY if there's no event info
   if (!event && session?.created_at) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata);
     const createdAt = `Created: ${new Date(session.created_at).toLocaleDateString()}`;
     pdf.text(createdAt, margin, yPosition);
     yPosition += lineHeight;
   }
 
-  // Add event info if available
   if (event) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
 
-    // Event name
     if (event.name) {
       pdf.text(`Event: ${event.name}`, margin, yPosition);
       yPosition += lineHeight;
     }
 
-    // Event date/time
     if (event.start_date) {
       const startDate = new Date(event.start_date);
       const endDate = event.end_date ? new Date(event.end_date) : null;
@@ -223,7 +389,6 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
       pdf.text(dateText, margin, yPosition);
       yPosition += lineHeight;
 
-      // Time
       const timeText = endDate
         ? `Time: ${startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${
           endDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -234,11 +399,10 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
     }
   }
 
-  // Add participants if available
   if (participants && participants.length > 0) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata);
 
     const participantNames = participants
       .filter(p => p.full_name)
@@ -256,83 +420,94 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
     }
   }
 
-  // Add attribution with clickable "Hyprnote"
   pdf.setFontSize(10);
-  pdf.setFont("helvetica", "normal");
-  pdf.setTextColor(100, 100, 100); // Gray
+  pdf.setFont(PDF_STYLES.font, "normal");
+  pdf.setTextColor(...PDF_STYLES.colors.metadata);
   pdf.text("Summarized by ", margin, yPosition);
 
-  // Calculate width of "Summarized by " to position "Hyprnote"
   const madeByWidth = pdf.getTextWidth("Summarized by ");
-  pdf.setTextColor(37, 99, 235); // Blue color for Hyprnote
+  pdf.setTextColor(...PDF_STYLES.colors.hyprnoteLink);
 
-  // Create clickable link for Hyprnote
   const hyprnoteText = "Hyprnote";
   pdf.textWithLink(hyprnoteText, margin + madeByWidth, yPosition, { url: "https://www.hyprnote.com" });
 
   yPosition += lineHeight * 2;
 
-  // Add separator line
-  pdf.setDrawColor(200, 200, 200); // Light gray line
+  pdf.setDrawColor(...PDF_STYLES.colors.separatorLine);
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += lineHeight;
 
-  // Convert HTML to structured text and add content
   const segments = htmlToStructuredText(session?.enhanced_memo_html || "No content available");
 
   for (const segment of segments) {
-    // Check if we need a new page
     if (yPosition > pageHeight - margin) {
-      pdf.addPage();
+      addNewPage();
       yPosition = margin;
     }
 
-    // Set font style based on segment properties
     if (segment.isHeader) {
       const headerSizes = { 1: 14, 2: 13, 3: 12 };
       pdf.setFontSize(headerSizes[segment.isHeader as keyof typeof headerSizes]);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(0, 0, 0); // Black for headers
-      yPosition += lineHeight; // Extra space before headers
+      pdf.setFont(PDF_STYLES.font, "bold");
+      pdf.setTextColor(...PDF_STYLES.colors.headers);
+      yPosition += lineHeight;
     } else {
       pdf.setFontSize(12);
-      const fontStyle = segment.bold && segment.italic
-        ? "bolditalic"
-        : segment.bold
-        ? "bold"
-        : segment.italic
-        ? "italic"
-        : "normal";
-      pdf.setFont("helvetica", fontStyle);
-      pdf.setTextColor(50, 50, 50); // Dark gray for content
+      pdf.setFont(PDF_STYLES.font, "normal");
+      pdf.setTextColor(...PDF_STYLES.colors.mainContent);
     }
 
-    // Handle list items with indentation
-    const xPosition = segment.isListItem ? margin + 5 : margin;
+    let xPosition = margin;
+    let bulletSpace = 0;
 
-    // Split long text into multiple lines
-    const lines = splitTextToLines(segment.text, pdf, maxWidth - (segment.isListItem ? 5 : 0));
+    if (segment.isListItem && segment.listLevel !== undefined) {
+      const baseIndent = 5;
+      const levelIndent = 8;
+      xPosition = margin + baseIndent + (segment.listLevel * levelIndent);
+
+      bulletSpace = segment.listType === "ordered" ? 0 : 6;
+    }
+
+    const effectiveMaxWidth = maxWidth - (xPosition - margin) - bulletSpace;
+    const lines = splitTextToLines(segment.text, pdf, effectiveMaxWidth);
 
     for (let i = 0; i < lines.length; i++) {
       if (yPosition > pageHeight - margin) {
-        pdf.addPage();
+        addNewPage();
         yPosition = margin;
       }
 
-      pdf.text(lines[i], xPosition, yPosition);
+      if (
+        segment.isListItem
+        && segment.listType === "unordered"
+        && segment.bulletType
+        && i === 0
+      ) {
+        drawVectorBullet(
+          pdf,
+          segment.bulletType,
+          xPosition + 2,
+          yPosition - 1,
+          1.0,
+          PDF_STYLES.colors.bullets,
+        );
+      }
+
+      const textXPosition = xPosition + bulletSpace;
+
+      pdf.text(lines[i], textXPosition, yPosition);
       yPosition += lineHeight;
     }
 
-    // Add extra space after headers and paragraphs
     if (segment.isHeader || segment.text === "\n") {
-      yPosition += lineHeight * 0.5;
+      yPosition += lineHeight * 0.25;
     }
   }
 
   const pdfArrayBuffer = pdf.output("arraybuffer");
   const uint8Array = new Uint8Array(pdfArrayBuffer);
 
-  const downloadsPath = await appDataDir();
+  const downloadsPath = await downloadDir();
   const filePath = downloadsPath.endsWith("/")
     ? `${downloadsPath}${filename}`
     : `${downloadsPath}/${filename}`;

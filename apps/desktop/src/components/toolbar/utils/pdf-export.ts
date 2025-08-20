@@ -5,7 +5,6 @@ import { jsPDF } from "jspdf";
 import { commands as dbCommands, type Event, type Human, type Session } from "@hypr/plugin-db";
 import { getPDFTheme, type ThemeName } from "./pdf-themes";
 
-// Re-export theme types and function for external use
 export { getPDFTheme, getAvailableThemes, type ThemeName, type PDFTheme } from "./pdf-themes";
 
 export type SessionData = Session & {
@@ -13,46 +12,65 @@ export type SessionData = Session & {
   event?: Event | null;
 };
 
-// Enhanced interface to support vector bullets
 interface TextSegment {
   text: string;
-  isHeader?: number; // 1, 2, 3 for h1, h2, h3
+  isHeader?: number; 
   isListItem?: boolean;
   listType?: 'ordered' | 'unordered';
   listLevel?: number;
   listItemNumber?: number;
-  bulletType?: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle'; // New: for vector bullets
+  bulletType?: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle';
 }
 
-// New: List context to track state during parsing
 interface ListContext {
   type: 'ordered' | 'unordered';
   level: number;
-  counters: number[]; // Track numbering for each level
+  counters: number[]; 
 }
 
-// TODO:
-// 1. Tiptap already has structured output - toJSON(). Should be cleaner than htmlToStructuredText.
-// 2. Fetch should happen outside. This file should be only do the rendering. (Ideally writeFile should be happened outside too)
-// 3. exportToPDF should be composed with multiple steps.
+
+
+const getOrderedListMarker = (counter: number, level: number): string => {
+  switch (level) {
+    case 0: 
+      return `${counter}.`;
+    case 1: 
+      return `${String.fromCharCode(96 + counter)}.`;
+    default: 
+      return `${toRomanNumeral(counter)}.`;
+  }
+};
+
+const toRomanNumeral = (num: number): string => {
+  const values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const numerals = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i'];
+  
+  let result = '';
+  for (let i = 0; i < values.length; i++) {
+    while (num >= values[i]) {
+      result += numerals[i];
+      num -= values[i];
+    }
+  }
+  return result;
+};
 
 const htmlToStructuredText = (html: string): TextSegment[] => {
   if (!html) {
     return [];
   }
 
-  // Strip out bold and italic tags while preserving content
   const cleanedHtml = html
-    .replace(/<\/?strong>/gi, '')   // Remove <strong> and </strong>
-    .replace(/<\/?b>/gi, '')        // Remove <b> and </b>
-    .replace(/<\/?em>/gi, '')       // Remove <em> and </em>
-    .replace(/<\/?i>/gi, '');       // Remove <i> and </i>
+    .replace(/<\/?strong>/gi, '')   
+    .replace(/<\/?b>/gi, '')       
+    .replace(/<\/?em>/gi, '')      
+    .replace(/<\/?i>/gi, '');       
 
   const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = cleanedHtml;  // Use cleaned HTML instead of original
+  tempDiv.innerHTML = cleanedHtml;  
 
   const segments: TextSegment[] = [];
-  const listStack: ListContext[] = []; // Track nested lists
+  const listStack: ListContext[] = []; 
 
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -75,7 +93,6 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
           segments.push({ text: element.textContent || "", isHeader: 3 });
           break;
         
-        // Enhanced list handling
         case "ul":
           processListContainer(element, 'unordered');
           break;
@@ -105,16 +122,13 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
   const processListContainer = (listElement: Element, type: 'ordered' | 'unordered') => {
     const level = listStack.length;
     
-    // Initialize counters array if needed
     const counters = [...(listStack[listStack.length - 1]?.counters || [])];
     if (counters.length <= level) {
       counters[level] = 0;
     }
 
-    // Push new list context
     listStack.push({ type, level, counters });
 
-    // Process list items
     Array.from(listElement.children).forEach((child, index) => {
       if (child.tagName.toLowerCase() === 'li') {
         if (type === 'ordered') {
@@ -124,7 +138,6 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
       }
     });
 
-    // Pop list context
     listStack.pop();
   };
 
@@ -134,27 +147,23 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
 
     const { type, level, counters } = currentList;
     
-    // Extract text content, handling nested formatting
     const textContent = getListItemText(liElement);
     
-    // For unordered lists, determine bullet type based on level
-    // After level 2 (third level), always use square
     const bulletTypes = ['filled-circle', 'hollow-circle', 'square'] as const;
     
     segments.push({
       text: type === 'ordered' 
-        ? `${counters[level]}. ${textContent}`  // Keep numbers as text
-        : textContent,  // Remove bullet prefix for unordered - we'll draw it as vector
+        ? `${getOrderedListMarker(counters[level], level)} ${textContent}`  
+        : textContent,  
       isListItem: true,
       listType: type,
       listLevel: level,
       listItemNumber: type === 'ordered' ? counters[level] : undefined,
       bulletType: type === 'unordered' 
-        ? (level <= 2 ? bulletTypes[level] : 'square')  // Cap at square for level 3+
+        ? (level <= 2 ? bulletTypes[level] : 'square')  
         : undefined
     });
 
-    // Process nested lists within this list item
     Array.from(liElement.children).forEach(child => {
       if (child.tagName.toLowerCase() === 'ul' || child.tagName.toLowerCase() === 'ol') {
         processNode(child);
@@ -163,7 +172,6 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
   };
 
   const getListItemText = (liElement: Element): string => {
-    // Get only direct text content, excluding nested lists
     let text = '';
     for (const child of liElement.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) {
@@ -190,7 +198,6 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
         const text = childElement.textContent || "";
 
         if (text.trim()) {
-          // Remove bold/italic detection - treat everything as normal text
           segments.push({ text });
         }
       }
@@ -201,7 +208,7 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
   return segments;
 };
 
-// Split text into lines that fit within the PDF width
+
 const splitTextToLines = (text: string, pdf: jsPDF, maxWidth: number): string[] => {
   const words = text.split(" ");
   const lines: string[] = [];
@@ -226,7 +233,6 @@ const splitTextToLines = (text: string, pdf: jsPDF, maxWidth: number): string[] 
   return lines;
 };
 
-// Fetch additional session data (participants and event info)
 const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: Human[]; event: Event | null }> => {
   try {
     const [participants, event] = await Promise.all([
@@ -240,7 +246,6 @@ const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: 
   }
 };
 
-// Update the drawVectorBullet function signature to use a smaller default size
 const drawVectorBullet = (
   pdf: jsPDF, 
   bulletType: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle',
@@ -253,25 +258,23 @@ const drawVectorBullet = (
   const currentFillColor = pdf.getFillColor();
   const currentDrawColor = pdf.getDrawColor();
   
-  // Set bullet color from parameter
   pdf.setFillColor(...color);
   pdf.setDrawColor(...color);
-  pdf.setLineWidth(0.2);  // Also made line width thinner
+  pdf.setLineWidth(0.2);  
 
-  // Adjust y position to center bullet with text baseline
   const bulletY = y - (size / 2);
 
   switch (bulletType) {
     case 'filled-circle':
-      pdf.circle(x, bulletY, size * 0.85, 'F'); // Made circle smaller (0.85x instead of 1x)
+      pdf.circle(x, bulletY, size * 0.85, 'F'); 
       break;
       
     case 'hollow-circle':
-      pdf.circle(x, bulletY, size * 0.85, 'S'); // Made circle smaller (0.85x instead of 1x)
+      pdf.circle(x, bulletY, size * 0.85, 'S'); 
       break;
       
     case 'square':
-      const squareSize = size * 1.4; // Made square bigger (1.4x instead of 1.1x)
+      const squareSize = size * 1.4; 
       pdf.rect(
         x - squareSize/2, 
         bulletY - squareSize/2, 
@@ -282,8 +285,7 @@ const drawVectorBullet = (
       break;
       
     case 'triangle':
-      const triangleSize = size * 1.15; // Keep triangle the same
-      // Create triangle path
+      const triangleSize = size * 1.15; 
       pdf.triangle(
         x, bulletY - triangleSize/2,           // top point
         x - triangleSize/2, bulletY + triangleSize/2,  // bottom left
@@ -293,7 +295,6 @@ const drawVectorBullet = (
       break;
   }
 
-  // Restore previous state
   pdf.setFillColor(currentFillColor);
   pdf.setDrawColor(currentDrawColor);
 };
@@ -306,10 +307,8 @@ export const exportToPDF = async (
 ): Promise<string> => {
   const { participants, event } = await fetchSessionMetadata(session.id);
 
-  // 🎨 Get PDF styling from theme
   const PDF_STYLES = getPDFTheme(themeName);
 
-  // Generate filename
   const filename = session?.title
     ? `${session.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`
     : `note_${new Date().toISOString().split("T")[0]}.pdf`;
@@ -322,7 +321,6 @@ export const exportToPDF = async (
   const maxWidth = pageWidth - (margin * 2);
   const lineHeight = 6;
 
-  // 🎨 Helper function to apply background color to current page
   const applyBackgroundColor = () => {
     if (PDF_STYLES.colors.background[0] !== 255 || 
         PDF_STYLES.colors.background[1] !== 255 || 
@@ -332,7 +330,7 @@ export const exportToPDF = async (
     }
   };
 
-  // 🎨 Helper function to add new page with background
+
   const addNewPage = () => {
     pdf.addPage();
     applyBackgroundColor();
@@ -340,47 +338,40 @@ export const exportToPDF = async (
 
   let yPosition = margin;
 
-  // 🎨 Apply background color to first page
   applyBackgroundColor();
 
-  // Add title with text wrapping
   const title = session?.title || "Untitled Note";
   pdf.setFontSize(16);
   pdf.setFont(PDF_STYLES.font, "bold");
-  pdf.setTextColor(...PDF_STYLES.colors.headers); // Use headers color for title
+  pdf.setTextColor(...PDF_STYLES.colors.headers); 
 
-  // Split title into multiple lines if it's too long
   const titleLines = splitTextToLines(title, pdf, maxWidth);
 
   for (const titleLine of titleLines) {
     pdf.text(titleLine, margin, yPosition);
     yPosition += lineHeight;
   }
-  yPosition += lineHeight; // Extra space after title
+  yPosition += lineHeight; 
 
-  // Add creation date ONLY if there's no event info
   if (!event && session?.created_at) {
     pdf.setFontSize(10);
     pdf.setFont(PDF_STYLES.font, "normal");
-    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); 
     const createdAt = `Created: ${new Date(session.created_at).toLocaleDateString()}`;
     pdf.text(createdAt, margin, yPosition);
     yPosition += lineHeight;
   }
 
-  // Add event info if available
   if (event) {
     pdf.setFontSize(10);
     pdf.setFont(PDF_STYLES.font, "normal");
     pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
 
-    // Event name
     if (event.name) {
       pdf.text(`Event: ${event.name}`, margin, yPosition);
       yPosition += lineHeight;
     }
 
-    // Event date/time
     if (event.start_date) {
       const startDate = new Date(event.start_date);
       const endDate = event.end_date ? new Date(event.end_date) : null;
@@ -393,7 +384,6 @@ export const exportToPDF = async (
       pdf.text(dateText, margin, yPosition);
       yPosition += lineHeight;
 
-      // Time
       const timeText = endDate
         ? `Time: ${startDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${
           endDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -404,11 +394,10 @@ export const exportToPDF = async (
     }
   }
 
-  // Add participants if available
   if (participants && participants.length > 0) {
     pdf.setFontSize(10);
     pdf.setFont(PDF_STYLES.font, "normal");
-    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); 
 
     const participantNames = participants
       .filter(p => p.full_name)
@@ -426,75 +415,64 @@ export const exportToPDF = async (
     }
   }
 
-  // Add attribution with clickable "Hyprnote"
   pdf.setFontSize(10);
   pdf.setFont(PDF_STYLES.font, "normal");
-  pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
+  pdf.setTextColor(...PDF_STYLES.colors.metadata); 
   pdf.text("Summarized by ", margin, yPosition);
 
-  // Calculate width of "Summarized by " to position "Hyprnote"
   const madeByWidth = pdf.getTextWidth("Summarized by ");
-  pdf.setTextColor(...PDF_STYLES.colors.hyprnoteLink); // Use hyprnote link color
+  pdf.setTextColor(...PDF_STYLES.colors.hyprnoteLink); 
 
-  // Create clickable link for Hyprnote
   const hyprnoteText = "Hyprnote";
   pdf.textWithLink(hyprnoteText, margin + madeByWidth, yPosition, { url: "https://www.hyprnote.com" });
 
   yPosition += lineHeight * 2;
 
-  // Add separator line
-  pdf.setDrawColor(...PDF_STYLES.colors.separatorLine); // Use separator line color
+  pdf.setDrawColor(...PDF_STYLES.colors.separatorLine); 
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += lineHeight;
 
-  // Convert HTML to structured text and add content
+
   const segments = htmlToStructuredText(session?.enhanced_memo_html || "No content available");
 
   for (const segment of segments) {
-    // Check if we need a new page
     if (yPosition > pageHeight - margin) {
-      addNewPage(); // ✅ Use helper function instead of pdf.addPage()
+      addNewPage(); 
       yPosition = margin;
     }
 
-    // Set font style based on segment properties
     if (segment.isHeader) {
       const headerSizes = { 1: 14, 2: 13, 3: 12 };
       pdf.setFontSize(headerSizes[segment.isHeader as keyof typeof headerSizes]);
       pdf.setFont(PDF_STYLES.font, "bold");
-      pdf.setTextColor(...PDF_STYLES.colors.headers); // Use headers color
-      yPosition += lineHeight; // Extra space before headers
+      pdf.setTextColor(...PDF_STYLES.colors.headers); 
+      yPosition += lineHeight; 
     } else {
       pdf.setFontSize(12);
       pdf.setFont(PDF_STYLES.font, "normal");
-      pdf.setTextColor(...PDF_STYLES.colors.mainContent); // Use main content color
+      pdf.setTextColor(...PDF_STYLES.colors.mainContent); 
     }
 
-    // Enhanced list item handling with vector bullets
     let xPosition = margin;
     let bulletSpace = 0;
     
     if (segment.isListItem && segment.listLevel !== undefined) {
-      // Base indentation + additional for each level
       const baseIndent = 5;
       const levelIndent = 8;
       xPosition = margin + baseIndent + (segment.listLevel * levelIndent);
       
-      // Reserve space for bullet/number
-      bulletSpace = segment.listType === 'ordered' ? 0 : 6; // Space for vector bullet
+      bulletSpace = segment.listType === 'ordered' ? 0 : 6; 
     }
 
-    // Adjust max width for indented content and bullet space
     const effectiveMaxWidth = maxWidth - (xPosition - margin) - bulletSpace;
     const lines = splitTextToLines(segment.text, pdf, effectiveMaxWidth);
 
     for (let i = 0; i < lines.length; i++) {
       if (yPosition > pageHeight - margin) {
-        addNewPage(); // ✅ Use helper function instead of pdf.addPage()
+        addNewPage(); 
         yPosition = margin;
       }
 
-      // Draw vector bullet for first line of unordered list items
       if (segment.isListItem && 
           segment.listType === 'unordered' && 
           segment.bulletType && 
@@ -505,22 +483,18 @@ export const exportToPDF = async (
           xPosition + 2,
           yPosition - 1,
           1.0,
-          PDF_STYLES.colors.bullets // This now comes from the selected theme
+          PDF_STYLES.colors.bullets 
         );
       }
 
-      // Position text after bullet space
-      const textXPosition = segment.isListItem && i > 0 
-        ? xPosition + bulletSpace + 4  // Continuation lines with extra indent
-        : xPosition + bulletSpace;
+     const textXPosition = xPosition + bulletSpace;
 
       pdf.text(lines[i], textXPosition, yPosition);
       yPosition += lineHeight;
     }
 
-    // Add extra space after headers and paragraphs
     if (segment.isHeader || segment.text === "\n") {
-      yPosition += lineHeight * 0.5;
+      yPosition += lineHeight * 0.25;
     }
   }
 

@@ -3,6 +3,10 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import { jsPDF } from "jspdf";
 
 import { commands as dbCommands, type Event, type Human, type Session } from "@hypr/plugin-db";
+import { getPDFTheme, type ThemeName } from "./pdf-themes";
+
+// Re-export theme types and function for external use
+export { getPDFTheme, getAvailableThemes, type ThemeName, type PDFTheme } from "./pdf-themes";
 
 export type SessionData = Session & {
   participants?: Human[];
@@ -242,15 +246,16 @@ const drawVectorBullet = (
   bulletType: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle',
   x: number, 
   y: number, 
-  size: number = 1.0  // Reduced from 1.5 to 1.0
+  size: number = 1.0,
+  color: readonly [number, number, number] = [50, 50, 50] // Accept color parameter
 ) => {
   // Save current state
   const currentFillColor = pdf.getFillColor();
   const currentDrawColor = pdf.getDrawColor();
   
-  // Set bullet color (dark gray to match text)
-  pdf.setFillColor(50, 50, 50);
-  pdf.setDrawColor(50, 50, 50);
+  // Set bullet color from parameter
+  pdf.setFillColor(...color);
+  pdf.setDrawColor(...color);
   pdf.setLineWidth(0.2);  // Also made line width thinner
 
   // Adjust y position to center bullet with text baseline
@@ -293,8 +298,16 @@ const drawVectorBullet = (
   pdf.setDrawColor(currentDrawColor);
 };
 
-export const exportToPDF = async (session: SessionData): Promise<string> => {
+
+
+export const exportToPDF = async (
+  session: SessionData, 
+  themeName: ThemeName = 'default'
+): Promise<string> => {
   const { participants, event } = await fetchSessionMetadata(session.id);
+
+  // 🎨 Get PDF styling from theme
+  const PDF_STYLES = getPDFTheme(themeName);
 
   // Generate filename
   const filename = session?.title
@@ -309,13 +322,32 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   const maxWidth = pageWidth - (margin * 2);
   const lineHeight = 6;
 
+  // 🎨 Helper function to apply background color to current page
+  const applyBackgroundColor = () => {
+    if (PDF_STYLES.colors.background[0] !== 255 || 
+        PDF_STYLES.colors.background[1] !== 255 || 
+        PDF_STYLES.colors.background[2] !== 255) {
+      pdf.setFillColor(...PDF_STYLES.colors.background);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+    }
+  };
+
+  // 🎨 Helper function to add new page with background
+  const addNewPage = () => {
+    pdf.addPage();
+    applyBackgroundColor();
+  };
+
   let yPosition = margin;
+
+  // 🎨 Apply background color to first page
+  applyBackgroundColor();
 
   // Add title with text wrapping
   const title = session?.title || "Untitled Note";
   pdf.setFontSize(16);
-  pdf.setFont("helvetica", "bold");
-  pdf.setTextColor(0, 0, 0); // Black
+  pdf.setFont(PDF_STYLES.font, "bold");
+  pdf.setTextColor(...PDF_STYLES.colors.headers); // Use headers color for title
 
   // Split title into multiple lines if it's too long
   const titleLines = splitTextToLines(title, pdf, maxWidth);
@@ -329,8 +361,8 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   // Add creation date ONLY if there's no event info
   if (!event && session?.created_at) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
     const createdAt = `Created: ${new Date(session.created_at).toLocaleDateString()}`;
     pdf.text(createdAt, margin, yPosition);
     yPosition += lineHeight;
@@ -339,8 +371,8 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   // Add event info if available
   if (event) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
 
     // Event name
     if (event.name) {
@@ -375,8 +407,8 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   // Add participants if available
   if (participants && participants.length > 0) {
     pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.setTextColor(100, 100, 100); // Gray
+    pdf.setFont(PDF_STYLES.font, "normal");
+    pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
 
     const participantNames = participants
       .filter(p => p.full_name)
@@ -396,13 +428,13 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
 
   // Add attribution with clickable "Hyprnote"
   pdf.setFontSize(10);
-  pdf.setFont("helvetica", "normal");
-  pdf.setTextColor(100, 100, 100); // Gray
+  pdf.setFont(PDF_STYLES.font, "normal");
+  pdf.setTextColor(...PDF_STYLES.colors.metadata); // Use metadata color
   pdf.text("Summarized by ", margin, yPosition);
 
   // Calculate width of "Summarized by " to position "Hyprnote"
   const madeByWidth = pdf.getTextWidth("Summarized by ");
-  pdf.setTextColor(37, 99, 235); // Blue color for Hyprnote
+  pdf.setTextColor(...PDF_STYLES.colors.hyprnoteLink); // Use hyprnote link color
 
   // Create clickable link for Hyprnote
   const hyprnoteText = "Hyprnote";
@@ -411,7 +443,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   yPosition += lineHeight * 2;
 
   // Add separator line
-  pdf.setDrawColor(200, 200, 200); // Light gray line
+  pdf.setDrawColor(...PDF_STYLES.colors.separatorLine); // Use separator line color
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += lineHeight;
 
@@ -421,7 +453,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
   for (const segment of segments) {
     // Check if we need a new page
     if (yPosition > pageHeight - margin) {
-      pdf.addPage();
+      addNewPage(); // ✅ Use helper function instead of pdf.addPage()
       yPosition = margin;
     }
 
@@ -429,14 +461,13 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
     if (segment.isHeader) {
       const headerSizes = { 1: 14, 2: 13, 3: 12 };
       pdf.setFontSize(headerSizes[segment.isHeader as keyof typeof headerSizes]);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(0, 0, 0); // Black for headers
+      pdf.setFont(PDF_STYLES.font, "bold");
+      pdf.setTextColor(...PDF_STYLES.colors.headers); // Use headers color
       yPosition += lineHeight; // Extra space before headers
     } else {
       pdf.setFontSize(12);
-      // Remove font style logic - always use normal
-      pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(50, 50, 50); // Dark gray for content
+      pdf.setFont(PDF_STYLES.font, "normal");
+      pdf.setTextColor(...PDF_STYLES.colors.mainContent); // Use main content color
     }
 
     // Enhanced list item handling with vector bullets
@@ -459,7 +490,7 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
 
     for (let i = 0; i < lines.length; i++) {
       if (yPosition > pageHeight - margin) {
-        pdf.addPage();
+        addNewPage(); // ✅ Use helper function instead of pdf.addPage()
         yPosition = margin;
       }
 
@@ -471,9 +502,10 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
         drawVectorBullet(
           pdf, 
           segment.bulletType, 
-          xPosition + 2, // Position bullet slightly right of indent
-          yPosition - 1, // Adjust for text baseline
-          1.0 // Reduced bullet size from 1.5 to 1.0
+          xPosition + 2,
+          yPosition - 1,
+          1.0,
+          PDF_STYLES.colors.bullets // This now comes from the selected theme
         );
       }
 

@@ -68,6 +68,29 @@ function FreeSectionCheckout() {
 
   return (
     <div>
+      <div className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center">
+          What you get with Pro:
+        </h3>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          <li className="flex items-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2.5"></div>
+            Exclusive STT models
+          </li>
+          <li className="flex items-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2.5"></div>
+            Unlimited Templates & AI Chat
+          </li>
+          <li className="flex items-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2.5"></div>
+            HyprCloud (managed LLM endpoint)
+          </li>
+          <li className="flex items-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2.5"></div>
+            Priority support through dedicated Discord channel
+          </li>
+        </ul>
+      </div>
       <div className="space-y-6">
         <div className="space-y-1">
           <Label htmlFor="email" className="text-sm font-medium text-foreground">

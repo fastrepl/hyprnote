@@ -22,11 +22,29 @@ import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
+import { load } from "@tauri-apps/plugin-store";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+
+const getUserContext = async (): Promise<{ value: string } | null> => {
+  try {
+    const store = await load("store.json", { autoSave: false })
+    const val = await store.get("user_context")
+    if (val && typeof val === "object" && "value" in val) {
+      return val as { value: string }
+    }
+    return null
+  } catch (error) {
+    console.error("Failed to fetch user context", error)
+    return null
+  }
+}
+
+
+
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -448,11 +466,14 @@ export function useEnhanceMutation({
 
       let customInstruction = selectedTemplate?.description;
 
+      let userContext = await getUserContext() || "";
+
       const systemMessage = await templateCommands.render(
         "enhance.system",
         {
           config,
           type,
+          userContext,
           // Pass userHeaders when using H1 headers, templateInfo otherwise
           ...(shouldUseH1Headers
             ? { userHeaders: h1Headers }

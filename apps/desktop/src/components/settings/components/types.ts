@@ -9,6 +9,7 @@ import {
   NetworkIcon,
   Settings,
   Sparkles,
+  User,
   Volume2,
 } from "lucide-react";
 
@@ -23,7 +24,8 @@ export type Tab =
   | "feedback"
   | "integrations"
   | "mcp"
-  | "billing";
+  | "billing"
+  | "user-context";
 
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "general", icon: Settings },
@@ -37,4 +39,5 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "mcp", icon: NetworkIcon },
   { name: "billing", icon: CreditCard },
   { name: "feedback", icon: BlocksIcon },
+  { name: "user-context", icon: User },
 ];

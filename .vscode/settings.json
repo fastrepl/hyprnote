@@ -21,5 +21,8 @@
   "rust-analyzer.cargo.targetDir": "target/analyzer",
   "rust-analyzer.cargo.extraEnv": {
     "MACOSX_DEPLOYMENT_TARGET": "14.2"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   }
 }

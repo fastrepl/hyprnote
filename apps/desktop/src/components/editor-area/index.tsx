@@ -29,17 +29,17 @@ import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 
-const getUserContext = async (): Promise<{ value: string } | null> => {
+const getUserContext = async (): Promise<string | null> => {
   try {
-    const store = await load("store.json", { autoSave: false })
-    const val = await store.get("user_context")
-    if (val && typeof val === "object" && "value" in val) {
-      return val as { value: string }
+    const store = await load("store.json", { autoSave: false });
+    const val = await store.get("user_context");
+    if (val && typeof val === "object" && "value" in val && typeof (val as any).value === "string") {
+      return (val as { value: string }).value;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("Failed to fetch user context", error)
-    return null
+    console.error("Failed to fetch user context", error);
+    return null;
   }
 }
 
@@ -466,7 +466,7 @@ export function useEnhanceMutation({
 
       let customInstruction = selectedTemplate?.description;
 
-      let userContext = await getUserContext() || "";
+      const userContext = (await getUserContext()) ?? "";
 
       const systemMessage = await templateCommands.render(
         "enhance.system",

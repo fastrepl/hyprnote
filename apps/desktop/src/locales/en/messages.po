@@ -1124,8 +1124,12 @@ msgid "No past notes with this contact"
 msgstr "No past notes with this contact"
 
 #: src/components/organization-profile/recent-notes.tsx:70
-msgid "No recent notes for this organization"
-msgstr "No recent notes for this organization"
+#~ msgid "No recent notes for this organization"
+#~ msgstr "No recent notes for this organization"
+
+#: src/components/organization-profile/recent-notes.tsx:70
+msgid "No recent notes with this organization"
+msgstr "No recent notes with this organization"
 
 #: src/components/settings/components/ai/stt-view.tsx:248
 #~ msgid "No speech-to-text models available or failed to load."

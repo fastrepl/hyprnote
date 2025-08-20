@@ -1124,7 +1124,11 @@ msgid "No past notes with this contact"
 msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:70
-msgid "No recent notes for this organization"
+#~ msgid "No recent notes for this organization"
+#~ msgstr ""
+
+#: src/components/organization-profile/recent-notes.tsx:70
+msgid "No recent notes with this organization"
 msgstr ""
 
 #: src/components/settings/components/ai/stt-view.tsx:248

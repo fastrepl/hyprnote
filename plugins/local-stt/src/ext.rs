@@ -245,12 +245,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                     #[cfg(not(debug_assertions))]
                     self.shell()
-                        .command(
-                            tauri::utils::platform::current_exe()?
-                                .parent()
-                                .unwrap()
-                                .join("stt"),
-                        )
+                        .sidecar("stt")?
                         .current_dir(dirs::home_dir().unwrap())
                         .args(["serve", "-v"])
                 };

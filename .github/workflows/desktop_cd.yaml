@@ -1,17 +1,6 @@
 # https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
-    inputs:
-      platform:
-        description: "Platform to build"
-        type: choice
-        required: false
-        default: "all"
-        options:
-          - all
-          - macos-arm64
-          - macos-x64
-          - windows-x64
   release:
     types:
       - published
@@ -42,25 +31,14 @@ jobs:
           - platform: "windows"
             target: "x86_64-pc-windows-msvc"
             runner: "windows-latest"
-        exclude:
-          # When platform is macos-x64, only run macos-x64
-          - target: ${{ github.event.inputs.platform == 'macos-x64' && 'aarch64-apple-darwin' || '' }}
-          - target: ${{ github.event.inputs.platform == 'macos-x64' && 'x86_64-pc-windows-msvc' || '' }}
-          # When platform is macos-arm64, only run macos-arm64
-          - target: ${{ github.event.inputs.platform == 'macos-arm64' && 'x86_64-apple-darwin' || '' }}
-          - target: ${{ github.event.inputs.platform == 'macos-arm64' && 'x86_64-pc-windows-msvc' || '' }}
-          # When platform is windows-x64, only run windows-x64
-          - target: ${{ github.event.inputs.platform == 'windows-x64' && 'aarch64-apple-darwin' || '' }}
-          - target: ${{ github.event.inputs.platform == 'windows-x64' && 'x86_64-apple-darwin' || '' }}
-          # When releasing, or when platform is not windows-x64 and not all, do not run windows
-          - target: ${{ (github.event_name == 'release' || (github.event.inputs.platform != 'windows-x64' && github.event.inputs.platform != 'all')) && 'x86_64-pc-windows-msvc' || '' }}
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
+        run: |
           VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
@@ -106,18 +84,12 @@ jobs:
           aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
-          aws s3 cp s3://hyprnote-cache2/v0/binaries/passthrough apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }} \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
           chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          chmod +x ./apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }}
-          codesign --force --options runtime -s "${{ steps.apple-cert.outputs.cert-id }}" ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          codesign -dv ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
@@ -157,10 +129,15 @@ jobs:
           framework: tauri
           working-directory: ./apps/desktop
       - if: ${{ env.RELEASE_CHANNEL == 'staging' }}
+        run: |
+          cd apps/desktop/src-tauri/target/${{ matrix.target }}/release
+          tar -czf hyprnote-staging-${{ matrix.target }}.tar.gz bundle/
+        shell: bash
+      - if: ${{ env.RELEASE_CHANNEL == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-${{ matrix.target }}
-          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/hyprnote-staging-${{ matrix.target }}.tar.gz
           retention-days: 3
   publish:
     if: ${{ ((github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) && ((github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))) }}

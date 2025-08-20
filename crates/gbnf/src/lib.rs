@@ -90,9 +90,10 @@ fn build_title_grammar() -> String {
 
 fn build_tags_grammar() -> String {
     vec![
-        r##"root ::= \"[\" \"\" word \"\" (\",\" ws \"\" word \"\")* \"]\""##,
-        r##"word ::= [a-zA-Z0-9_-]+"##,
-        r##"ws ::= \" \"*"##,
+        r##"root ::= "[" ws string ("," ws string)* ws "]""##,
+        r##"string ::= "\"" char+ "\"""##,
+        r##"char ::= [^"\\\x7F\x00-\x1F] | [\\] (["\\bfnrt] | "u" [0-9a-fA-F]{4})"##,
+        r##"ws ::= [ \t\n\r]*"##,
     ]
     .join("\n")
 }

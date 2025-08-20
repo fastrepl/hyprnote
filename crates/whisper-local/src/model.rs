@@ -322,40 +322,4 @@ mod tests {
         println!("segments: {:#?}", segments);
         assert!(segments.len() > 0);
     }
-
-    #[tokio::test]
-    async fn test_whisper_with_llama() {
-        let llama_path = dirs::data_dir()
-            .unwrap()
-            .join("com.hyprnote.dev")
-            .join("hypr-llm.gguf");
-
-        let llama = hypr_llama::Llama::new(llama_path).unwrap();
-
-        let mut whisper = Whisper::builder()
-            .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
-            .build()
-            .unwrap();
-
-        let request = hypr_llama::LlamaRequest {
-            messages: vec![hypr_llama::LlamaChatMessage::new(
-                "user".into(),
-                "Generate a json array of 1 random objects, about animals".into(),
-            )
-            .unwrap()],
-            ..Default::default()
-        };
-
-        let response: String = llama.generate_stream(request).unwrap().collect().await;
-        assert!(response.len() > 4);
-
-        let audio: Vec<f32> = hypr_data::english_1::AUDIO
-            .chunks_exact(2)
-            .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]) as f32 / 32768.0)
-            .take(16000 * 30)
-            .collect();
-
-        let segments = whisper.transcribe(&audio).unwrap();
-        assert!(segments.len() > 0);
-    }
 }

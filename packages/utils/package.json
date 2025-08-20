@@ -12,22 +12,22 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^1.0.0",
-    "@date-fns/tz": "^1.2.0",
+    "@ai-sdk/openai-compatible": "^1.0.10",
+    "@date-fns/tz": "^1.4.1",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-sse": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
-    "@lingui/core": "^5.3.3",
-    "@tauri-apps/api": "^2.7.0",
+    "@lingui/core": "^5.4.1",
+    "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-http": "^2.5.1",
-    "ai": "^5.0.0",
+    "ai": "^5.0.18",
     "date-fns": "^4.1.0",
     "mutative": "^1.2.0",
     "p-debounce": "^4.0.0",
-    "zustand": "^5.0.7",
-    "tauri-plugin-keygen-api": "github:bagindo/tauri-plugin-keygen#v2"
+    "tauri-plugin-keygen-api": "github:bagindo/tauri-plugin-keygen#v2",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^18.3.23",

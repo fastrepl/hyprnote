@@ -4,12 +4,10 @@ import { useState } from "react";
 import { SharePopoverContent, useShareLogic } from "../share-button-header";
 
 interface ShareChipProps {
-  sessionId: string;
   isVeryNarrow?: boolean;
-  isNarrow?: boolean;
 }
 
-export function ShareChip({ sessionId, isVeryNarrow = false, isNarrow = false }: ShareChipProps) {
+export function ShareChip({ isVeryNarrow = false }: ShareChipProps) {
   const [open, setOpen] = useState(false);
   const { hasEnhancedNote, handleOpenStateChange } = useShareLogic();
 

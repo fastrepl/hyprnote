@@ -8,7 +8,7 @@ export type ThemeName =
   | "ocean"
   | "sunset"
   | "forest"
-  | "sci-fi"
+  | "cyberpunk"
   | "retro"
   | "spring"
   | "summer"
@@ -108,7 +108,7 @@ export const getPDFTheme = (themeName: ThemeName): PDFTheme => {
     },
 
     forest: {
-      font: "courier",
+      font: "helvetica",
       colors: {
         background: [236, 253, 245], // Mint green
         mainContent: [20, 83, 45], // Forest green
@@ -120,8 +120,8 @@ export const getPDFTheme = (themeName: ThemeName): PDFTheme => {
       },
     },
 
-    "sci-fi": {
-      font: "courier",
+    cyberpunk: {
+      font: "helvetica",
       colors: {
         background: [3, 7, 18], // Deep space black
         mainContent: [0, 255, 204], // Matrix green
@@ -160,7 +160,7 @@ export const getPDFTheme = (themeName: ThemeName): PDFTheme => {
     },
 
     summer: {
-      font: "courier",
+      font: "helvetica",
       colors: {
         background: [255, 235, 59], // Bright yellow
         mainContent: [191, 54, 12], // Deep red orange
@@ -198,7 +198,7 @@ export const getAvailableThemes = (): ThemeName[] => {
     "ocean",
     "sunset",
     "forest",
-    "sci-fi",
+    "cyberpunk",
     "retro",
     "spring",
     "summer",
@@ -226,7 +226,7 @@ const getThemeDescription = (themeName: ThemeName): string => {
     ocean: "Ocean blues on light cyan with Helvetica",
     sunset: "Warm browns and oranges on cream with Times",
     forest: "Forest greens on mint background with Courier",
-    "sci-fi": "Matrix green on space black with Courier",
+    cyberpunk: "Matrix green on space black with Courier",
     retro: "Gold text on dark brown with Courier",
     spring: "Fresh greens on yellow-green with Courier",
     summer: "Bright reds on yellow with Courier",

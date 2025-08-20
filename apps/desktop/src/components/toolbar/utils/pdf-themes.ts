@@ -1,5 +1,3 @@
-// 🎨 PDF THEME SYSTEM
-
 export type ThemeName =
   | "default"
   | "light"

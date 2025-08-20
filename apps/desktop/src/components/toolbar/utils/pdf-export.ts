@@ -9,12 +9,22 @@ export type SessionData = Session & {
   event?: Event | null;
 };
 
+// Enhanced interface to support vector bullets
 interface TextSegment {
   text: string;
-  bold?: boolean;
-  italic?: boolean;
   isHeader?: number; // 1, 2, 3 for h1, h2, h3
   isListItem?: boolean;
+  listType?: 'ordered' | 'unordered';
+  listLevel?: number;
+  listItemNumber?: number;
+  bulletType?: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle'; // New: for vector bullets
+}
+
+// New: List context to track state during parsing
+interface ListContext {
+  type: 'ordered' | 'unordered';
+  level: number;
+  counters: number[]; // Track numbering for each level
 }
 
 // TODO:
@@ -27,10 +37,18 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
     return [];
   }
 
+  // Strip out bold and italic tags while preserving content
+  const cleanedHtml = html
+    .replace(/<\/?strong>/gi, '')   // Remove <strong> and </strong>
+    .replace(/<\/?b>/gi, '')        // Remove <b> and </b>
+    .replace(/<\/?em>/gi, '')       // Remove <em> and </em>
+    .replace(/<\/?i>/gi, '');       // Remove <i> and </i>
+
   const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = html;
+  tempDiv.innerHTML = cleanedHtml;  // Use cleaned HTML instead of original
 
   const segments: TextSegment[] = [];
+  const listStack: ListContext[] = []; // Track nested lists
 
   const processNode = (node: Node) => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -52,33 +70,108 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
         case "h3":
           segments.push({ text: element.textContent || "", isHeader: 3 });
           break;
-        case "strong":
-        case "b":
-          segments.push({ text: element.textContent || "", bold: true });
+        
+        // Enhanced list handling
+        case "ul":
+          processListContainer(element, 'unordered');
           break;
-        case "em":
-        case "i":
-          segments.push({ text: element.textContent || "", italic: true });
+        case "ol":
+          processListContainer(element, 'ordered');
           break;
         case "li":
-          segments.push({ text: `• ${element.textContent || ""}`, isListItem: true });
+          processListItem(element);
           break;
+          
         case "p":
           if (element.textContent?.trim()) {
-            // Process inline formatting within paragraphs
             processInlineFormatting(element, segments);
-            segments.push({ text: "\n" }); // Add paragraph break
+            segments.push({ text: "\n" });
           }
           break;
         case "br":
           segments.push({ text: "\n" });
           break;
         default:
-          // For other elements, process children
           Array.from(node.childNodes).forEach(processNode);
           break;
       }
     }
+  };
+
+  const processListContainer = (listElement: Element, type: 'ordered' | 'unordered') => {
+    const level = listStack.length;
+    
+    // Initialize counters array if needed
+    const counters = [...(listStack[listStack.length - 1]?.counters || [])];
+    if (counters.length <= level) {
+      counters[level] = 0;
+    }
+
+    // Push new list context
+    listStack.push({ type, level, counters });
+
+    // Process list items
+    Array.from(listElement.children).forEach((child, index) => {
+      if (child.tagName.toLowerCase() === 'li') {
+        if (type === 'ordered') {
+          counters[level] = index + 1;
+        }
+        processNode(child);
+      }
+    });
+
+    // Pop list context
+    listStack.pop();
+  };
+
+  const processListItem = (liElement: Element) => {
+    const currentList = listStack[listStack.length - 1];
+    if (!currentList) return;
+
+    const { type, level, counters } = currentList;
+    
+    // Extract text content, handling nested formatting
+    const textContent = getListItemText(liElement);
+    
+    // For unordered lists, determine bullet type based on level
+    // After level 2 (third level), always use square
+    const bulletTypes = ['filled-circle', 'hollow-circle', 'square'] as const;
+    
+    segments.push({
+      text: type === 'ordered' 
+        ? `${counters[level]}. ${textContent}`  // Keep numbers as text
+        : textContent,  // Remove bullet prefix for unordered - we'll draw it as vector
+      isListItem: true,
+      listType: type,
+      listLevel: level,
+      listItemNumber: type === 'ordered' ? counters[level] : undefined,
+      bulletType: type === 'unordered' 
+        ? (level <= 2 ? bulletTypes[level] : 'square')  // Cap at square for level 3+
+        : undefined
+    });
+
+    // Process nested lists within this list item
+    Array.from(liElement.children).forEach(child => {
+      if (child.tagName.toLowerCase() === 'ul' || child.tagName.toLowerCase() === 'ol') {
+        processNode(child);
+      }
+    });
+  };
+
+  const getListItemText = (liElement: Element): string => {
+    // Get only direct text content, excluding nested lists
+    let text = '';
+    for (const child of liElement.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        text += child.textContent || '';
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const element = child as Element;
+        if (!['ul', 'ol'].includes(element.tagName.toLowerCase())) {
+          text += element.textContent || '';
+        }
+      }
+    }
+    return text.trim();
   };
 
   const processInlineFormatting = (element: Element, segments: TextSegment[]) => {
@@ -90,23 +183,11 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         const childElement = child as Element;
-        const tagName = childElement.tagName.toLowerCase();
         const text = childElement.textContent || "";
 
         if (text.trim()) {
-          switch (tagName) {
-            case "strong":
-            case "b":
-              segments.push({ text, bold: true });
-              break;
-            case "em":
-            case "i":
-              segments.push({ text, italic: true });
-              break;
-            default:
-              segments.push({ text });
-              break;
-          }
+          // Remove bold/italic detection - treat everything as normal text
+          segments.push({ text });
         }
       }
     });
@@ -153,6 +234,63 @@ const fetchSessionMetadata = async (sessionId: string): Promise<{ participants: 
     console.error("Failed to fetch session metadata:", error);
     return { participants: [], event: null };
   }
+};
+
+// Update the drawVectorBullet function signature to use a smaller default size
+const drawVectorBullet = (
+  pdf: jsPDF, 
+  bulletType: 'filled-circle' | 'hollow-circle' | 'square' | 'triangle',
+  x: number, 
+  y: number, 
+  size: number = 1.0  // Reduced from 1.5 to 1.0
+) => {
+  // Save current state
+  const currentFillColor = pdf.getFillColor();
+  const currentDrawColor = pdf.getDrawColor();
+  
+  // Set bullet color (dark gray to match text)
+  pdf.setFillColor(50, 50, 50);
+  pdf.setDrawColor(50, 50, 50);
+  pdf.setLineWidth(0.2);  // Also made line width thinner
+
+  // Adjust y position to center bullet with text baseline
+  const bulletY = y - (size / 2);
+
+  switch (bulletType) {
+    case 'filled-circle':
+      pdf.circle(x, bulletY, size * 0.85, 'F'); // Made circle smaller (0.85x instead of 1x)
+      break;
+      
+    case 'hollow-circle':
+      pdf.circle(x, bulletY, size * 0.85, 'S'); // Made circle smaller (0.85x instead of 1x)
+      break;
+      
+    case 'square':
+      const squareSize = size * 1.4; // Made square bigger (1.4x instead of 1.1x)
+      pdf.rect(
+        x - squareSize/2, 
+        bulletY - squareSize/2, 
+        squareSize, 
+        squareSize, 
+        'F'
+      );
+      break;
+      
+    case 'triangle':
+      const triangleSize = size * 1.15; // Keep triangle the same
+      // Create triangle path
+      pdf.triangle(
+        x, bulletY - triangleSize/2,           // top point
+        x - triangleSize/2, bulletY + triangleSize/2,  // bottom left
+        x + triangleSize/2, bulletY + triangleSize/2,  // bottom right
+        'F'
+      );
+      break;
+  }
+
+  // Restore previous state
+  pdf.setFillColor(currentFillColor);
+  pdf.setDrawColor(currentDrawColor);
 };
 
 export const exportToPDF = async (session: SessionData): Promise<string> => {
@@ -296,22 +434,28 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
       yPosition += lineHeight; // Extra space before headers
     } else {
       pdf.setFontSize(12);
-      const fontStyle = segment.bold && segment.italic
-        ? "bolditalic"
-        : segment.bold
-        ? "bold"
-        : segment.italic
-        ? "italic"
-        : "normal";
-      pdf.setFont("helvetica", fontStyle);
+      // Remove font style logic - always use normal
+      pdf.setFont("helvetica", "normal");
       pdf.setTextColor(50, 50, 50); // Dark gray for content
     }
 
-    // Handle list items with indentation
-    const xPosition = segment.isListItem ? margin + 5 : margin;
+    // Enhanced list item handling with vector bullets
+    let xPosition = margin;
+    let bulletSpace = 0;
+    
+    if (segment.isListItem && segment.listLevel !== undefined) {
+      // Base indentation + additional for each level
+      const baseIndent = 5;
+      const levelIndent = 8;
+      xPosition = margin + baseIndent + (segment.listLevel * levelIndent);
+      
+      // Reserve space for bullet/number
+      bulletSpace = segment.listType === 'ordered' ? 0 : 6; // Space for vector bullet
+    }
 
-    // Split long text into multiple lines
-    const lines = splitTextToLines(segment.text, pdf, maxWidth - (segment.isListItem ? 5 : 0));
+    // Adjust max width for indented content and bullet space
+    const effectiveMaxWidth = maxWidth - (xPosition - margin) - bulletSpace;
+    const lines = splitTextToLines(segment.text, pdf, effectiveMaxWidth);
 
     for (let i = 0; i < lines.length; i++) {
       if (yPosition > pageHeight - margin) {
@@ -319,7 +463,26 @@ export const exportToPDF = async (session: SessionData): Promise<string> => {
         yPosition = margin;
       }
 
-      pdf.text(lines[i], xPosition, yPosition);
+      // Draw vector bullet for first line of unordered list items
+      if (segment.isListItem && 
+          segment.listType === 'unordered' && 
+          segment.bulletType && 
+          i === 0) {
+        drawVectorBullet(
+          pdf, 
+          segment.bulletType, 
+          xPosition + 2, // Position bullet slightly right of indent
+          yPosition - 1, // Adjust for text baseline
+          1.0 // Reduced bullet size from 1.5 to 1.0
+        );
+      }
+
+      // Position text after bullet space
+      const textXPosition = segment.isListItem && i > 0 
+        ? xPosition + bulletSpace + 4  // Continuation lines with extra indent
+        : xPosition + bulletSpace;
+
+      pdf.text(lines[i], textXPosition, yPosition);
       yPosition += lineHeight;
     }
 

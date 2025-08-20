@@ -387,7 +387,7 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
 
 I wanted to share Hyprnote with you - it's an AI notetaker for private meetings.
 
-Hyprnote is super cool because you can transcribe your meetings and summarize them with AI, fully locally (evem works offline).
+Hyprnote is super cool because you can transcribe your meetings and summarize them with AI, fully locally (even works offline).
 
 It's great to use if your company policy doesn't allow cloud-based AI notetakers like Granola or Otter.
 

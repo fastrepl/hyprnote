@@ -59,9 +59,20 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const { onboardingSessionId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    start: s.start,
+    resume: s.resume,
+    pause: s.pause,
+    stop: s.stop,
+    loading: s.loading,
+  }));
+
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
-    refetchInterval: 1000,
+    refetchInterval: 1500,
+    enabled: ongoingSessionStatus === "inactive",
     queryFn: async () => {
       const currentModel = await localSttCommands.getCurrentModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(currentModel);
@@ -83,16 +94,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     },
     enabled: isOnboarding,
   });
-
-  const ongoingSessionStatus = useOngoingSession((s) => s.status);
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    start: s.start,
-    resume: s.resume,
-    pause: s.pause,
-    stop: s.stop,
-    loading: s.loading,
-  }));
 
   const sessionWords = useSession(sessionId, (s) => s.session.words);
 

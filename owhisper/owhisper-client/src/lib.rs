@@ -83,7 +83,7 @@ impl ListenClientBuilder {
                 .append_pair("channels", &channels.to_string())
                 .append_pair(
                     "redemption_time_ms",
-                    &params.redemption_time_ms.unwrap_or(500).to_string(),
+                    &params.redemption_time_ms.unwrap_or(400).to_string(),
                 );
         }
 

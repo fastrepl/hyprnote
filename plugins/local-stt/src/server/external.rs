@@ -1,3 +1,5 @@
+use super::ServerHealth;
+
 pub struct ServerHandle {
     pub base_url: String,
     api_key: Option<String>,
@@ -7,17 +9,29 @@ pub struct ServerHandle {
 }
 
 impl ServerHandle {
-    pub async fn health(&self) -> bool {
+    pub async fn health(&self) -> ServerHealth {
         let res = self.client.status().await;
         if res.is_err() {
-            return false;
+            tracing::error!("{:?}", res);
+            return ServerHealth::Unreachable;
         }
 
-        matches!(res.unwrap().status, hypr_am::ServerStatusType::Ready)
+        let res = res.unwrap();
+
+        if res.model_state == hypr_am::ModelState::Loading {
+            return ServerHealth::Loading;
+        }
+
+        if res.model_state == hypr_am::ModelState::Loaded {
+            return ServerHealth::Ready;
+        }
+
+        ServerHealth::Unreachable
     }
 
     pub fn terminate(self) -> Result<(), crate::Error> {
         let _ = self.shutdown.send(());
+        std::thread::sleep(std::time::Duration::from_millis(250));
         self.child.kill().map_err(|e| crate::Error::ShellError(e))?;
         Ok(())
     }
@@ -43,8 +57,11 @@ pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
     am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
-    let port = 8282;
-    let _ = port_killer::kill(port);
+    let port = 50060;
+
+    if port_killer::kill(port).is_ok() {
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
 
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
     let base_url = format!("http://localhost:{}", port);
@@ -55,34 +72,65 @@ pub async fn run_server(
         loop {
             tokio::select! {
                 _ = shutdown_rx.changed() => {
-                    tracing::info!("external_server_shutdown");
+                    tracing::info!("shutdown_signal_received");
                     break;
                 }
                 event = rx.recv() => {
-                    if event.is_none() {
-                        break;
-                    }
-
-                    match event.unwrap() {
-                        tauri_plugin_shell::process::CommandEvent::Stdout(bytes) => {
+                    match event {
+                        Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                tracing::info!("{}", text);
+                                if !text.is_empty() {
+                                    tracing::info!("{}", text);
+                                }
                             }
                         }
-                        tauri_plugin_shell::process::CommandEvent::Stderr(bytes) => {
+                        Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                tracing::info!("{}", text);
+                                if !text.is_empty() {
+                                    tracing::info!("{}", text);
+                                }
                             }
+                        }
+                        Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
+                            // Only log error if it's not a normal exit (code 0)
+                            if payload.code != Some(0) {
+                                tracing::error!("Server process terminated unexpectedly: {:?}", payload);
+                            }
+                            break;
+                        }
+                        Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
+                            tracing::error!("{}", error);
+                            break;
+                        }
+                        None => {
+                            tracing::warn!("closed");
+                            break;
                         }
                         _ => {}
-
                     }
                 }
             }
         }
     });
+
+    // Wait a bit for server to start up before returning
+    // The server needs time to bind to the port and initialize
+    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+
+    // Verify the server started successfully by checking if we can connect
+    // But don't check status as it may require initialization first
+    match client.status().await {
+        Ok(_) => {
+            tracing::info!("Server is ready and responding");
+        }
+        Err(e) => {
+            // Server may need initialization, which happens after this function returns
+            // Just log the status check result
+            tracing::info!("Server status check: {:?} (may need initialization)", e);
+        }
+    }
 
     Ok(ServerHandle {
         api_key: Some(am_key),

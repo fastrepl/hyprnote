@@ -585,7 +585,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_key(conn.api_key.unwrap_or_default())
         .params(owhisper_interface::ListenParams {
             languages,
-            redemption_time_ms: Some(if is_onboarding { 70 } else { 500 }),
+            redemption_time_ms: Some(if is_onboarding { 60 } else { 400 }),
             ..Default::default()
         })
         .build_dual())

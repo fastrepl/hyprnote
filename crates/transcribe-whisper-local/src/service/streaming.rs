@@ -134,7 +134,7 @@ async fn handle_websocket_connection(
     let redemption_time = params
         .redemption_time_ms
         .map(|ms| Duration::from_millis(ms))
-        .unwrap_or(Duration::from_millis(500));
+        .unwrap_or(Duration::from_millis(400));
 
     match params.channels {
         1 => {

@@ -6,6 +6,7 @@ use std::{
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
 use tower_http::cors::{self, CorsLayer};
 
+use super::ServerHealth;
 use hypr_whisper_local_model::WhisperModel;
 
 #[derive(Default)]
@@ -53,9 +54,14 @@ pub struct ServerHandle {
 }
 
 impl ServerHandle {
-    pub async fn health(&self) -> bool {
+    pub async fn health(&self) -> ServerHealth {
         let response = reqwest::get(format!("{}/health", self.base_url)).await;
-        response.is_ok()
+        if response.is_err() {
+            tracing::error!("{:?}", response);
+            ServerHealth::Unreachable
+        } else {
+            ServerHealth::Ready
+        }
     }
 
     pub fn terminate(self) -> Result<(), crate::Error> {

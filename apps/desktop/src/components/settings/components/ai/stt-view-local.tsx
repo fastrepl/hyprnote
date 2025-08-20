@@ -1,17 +1,47 @@
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { arch, platform } from "@tauri-apps/plugin-os";
-import { DownloadIcon, FolderIcon } from "lucide-react";
+import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
-import { commands as localSttCommands, SupportedSttModel, type WhisperModel } from "@hypr/plugin-local-stt";
+import { useLicense } from "@/hooks/use-license";
+import {
+  commands as localSttCommands,
+  ServerHealth,
+  SupportedSttModel,
+  type WhisperModel,
+} from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps, STTModel } from "./shared";
 
+const DEFAULT_MODEL_KEYS = ["QuantizedSmall"];
+const OTHER_MODEL_KEYS = [
+  "QuantizedTiny",
+  "QuantizedTinyEn",
+  "QuantizedBase",
+  "QuantizedBaseEn",
+  "QuantizedSmallEn",
+  "QuantizedLargeTurbo",
+];
+
+const REFETCH_INTERVALS = {
+  servers: 1000,
+  downloadStatus: 3000,
+} as const;
+
 interface STTViewProps extends SharedSTTProps {
   isWerModalOpen: boolean;
   setIsWerModalOpen: (open: boolean) => void;
+}
+
+interface ModelSectionProps {
+  status?: ServerHealth;
+  modelsToShow: STTModel[];
+  selectedSTTModel: string;
+  setSelectedSTTModel: (model: string) => void;
+  downloadingModels: Set<string>;
+  handleModelDownload: (model: string) => void;
 }
 
 export function STTViewLocal({
@@ -22,10 +52,16 @@ export function STTViewLocal({
   downloadingModels,
   handleModelDownload,
 }: STTViewProps) {
+  const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
+
   const servers = useQuery({
     queryKey: ["local-stt-servers"],
-    queryFn: () => localSttCommands.getServers(),
-    refetchInterval: 1000,
+    queryFn: async () => {
+      const servers = await localSttCommands.getServers();
+      console.log(servers);
+      return servers;
+    },
+    refetchInterval: REFETCH_INTERVALS.servers,
   });
 
   const currentSTTModel = useQuery({
@@ -33,40 +69,41 @@ export function STTViewLocal({
     queryFn: () => localSttCommands.getCurrentModel(),
   });
 
+  const sttModelDownloadStatus = useQuery({
+    queryKey: ["stt-model-download-status"],
+    queryFn: async () => {
+      const models = [
+        "QuantizedTiny",
+        "QuantizedTinyEn",
+        "QuantizedBase",
+        "QuantizedBaseEn",
+        "QuantizedSmall",
+        "QuantizedSmallEn",
+        "QuantizedLargeTurbo",
+        "am-parakeet-v2",
+        "am-whisper-large-v3",
+      ];
+
+      const statusChecks = await Promise.all(
+        models.map(model => localSttCommands.isModelDownloaded(model as SupportedSttModel)),
+      );
+
+      return models.reduce((acc, model, index) => ({
+        ...acc,
+        [model]: statusChecks[index],
+      }), {} as Record<SupportedSttModel, boolean>);
+    },
+    refetchInterval: REFETCH_INTERVALS.downloadStatus,
+  });
+
+  // ----------------------------------------
+  // Effects
+  // ----------------------------------------
   useEffect(() => {
     if (currentSTTModel.data) {
       setSelectedSTTModel(currentSTTModel.data);
     }
   }, [currentSTTModel.data, setSelectedSTTModel]);
-
-  const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
-
-  const sttModelDownloadStatus = useQuery({
-    queryKey: ["stt-model-download-status"],
-    queryFn: async () => {
-      const statusChecks = await Promise.all([
-        localSttCommands.isModelDownloaded("QuantizedTiny"),
-        localSttCommands.isModelDownloaded("QuantizedTinyEn"),
-        localSttCommands.isModelDownloaded("QuantizedBase"),
-        localSttCommands.isModelDownloaded("QuantizedBaseEn"),
-        localSttCommands.isModelDownloaded("QuantizedSmall"),
-        localSttCommands.isModelDownloaded("QuantizedSmallEn"),
-        localSttCommands.isModelDownloaded("QuantizedLargeTurbo"),
-        localSttCommands.isModelDownloaded("am-parakeet-v2"),
-        localSttCommands.isModelDownloaded("am-whisper-large-v3"),
-      ]);
-      return {
-        "QuantizedTiny": statusChecks[0],
-        "QuantizedTinyEn": statusChecks[1],
-        "QuantizedBase": statusChecks[2],
-        "QuantizedBaseEn": statusChecks[3],
-        "QuantizedSmall": statusChecks[4],
-        "QuantizedSmallEn": statusChecks[5],
-        "QuantizedLargeTurbo": statusChecks[6],
-      } as Record<SupportedSttModel, boolean>;
-    },
-    refetchInterval: 3000,
-  });
 
   useEffect(() => {
     if (sttModelDownloadStatus.data) {
@@ -79,81 +116,77 @@ export function STTViewLocal({
     }
   }, [sttModelDownloadStatus.data, setSttModels]);
 
-  const defaultModelKeys = ["QuantizedSmall"];
-  const otherModelKeys = [
-    "QuantizedTiny",
-    "QuantizedTinyEn",
-    "QuantizedBase",
-    "QuantizedBaseEn",
-    "QuantizedSmallEn",
-    "QuantizedLargeTurbo",
-  ];
+  // ----------------------------------------
+  // Model Filtering
+  // ----------------------------------------
+  const modelsToShow = useMemo(() =>
+    sttModels.filter(model =>
+      DEFAULT_MODEL_KEYS.includes(model.key)
+      || (OTHER_MODEL_KEYS.includes(model.key) && model.downloaded)
+    ), [sttModels]);
 
-  const modelsToShow = sttModels.filter(model => {
-    if (defaultModelKeys.includes(model.key)) {
-      return true;
-    }
-
-    if (otherModelKeys.includes(model.key) && model.downloaded) {
-      return true;
-    }
-
-    return false;
-  });
-
+  // ----------------------------------------
+  // Render
+  // ----------------------------------------
   return (
-    <div className="space-y-6">
-      <BasicModelsManagement
-        on={!!servers.data?.internal}
+    <div className="space-y-8">
+      {/* Basic Models Section */}
+      <BasicModelsSection
+        status={servers.data?.internal}
         modelsToShow={modelsToShow}
         selectedSTTModel={selectedSTTModel}
         setSelectedSTTModel={setSelectedSTTModel}
         downloadingModels={downloadingModels}
         handleModelDownload={handleModelDownload}
       />
+
+      {/* Divider - only show if pro models available */}
       {amAvailable && (
-        <ProModelsManagement
-          on={!!servers.data?.external}
-          selectedSTTModel={selectedSTTModel}
-          setSelectedSTTModel={setSelectedSTTModel}
-          downloadingModels={downloadingModels}
-          handleModelDownload={handleModelDownload}
-        />
+        <>
+          <hr className="border-gray-200" />
+
+          {/* Pro Models Section */}
+          <ProModelsSection
+            status={servers.data?.external}
+            selectedSTTModel={selectedSTTModel}
+            setSelectedSTTModel={setSelectedSTTModel}
+            downloadingModels={downloadingModels}
+            handleModelDownload={handleModelDownload}
+          />
+        </>
       )}
     </div>
   );
 }
 
-function BasicModelsManagement({
-  on,
+// ============================================
+// BASIC MODELS SECTION
+// ============================================
+function BasicModelsSection({
+  status,
   modelsToShow,
   selectedSTTModel,
   setSelectedSTTModel,
   downloadingModels,
   handleModelDownload,
-}: {
-  on: boolean;
-  modelsToShow: STTModel[];
-  selectedSTTModel: string;
-  setSelectedSTTModel: (model: string) => void;
-  downloadingModels: Set<string>;
-  handleModelDownload: (model: string) => void;
-}) {
+}: ModelSectionProps) {
   const handleShowFileLocation = async () => {
-    localSttCommands.modelsDir().then((path) => openPath(path));
+    const path = await localSttCommands.modelsDir();
+    openPath(path);
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex flex-col mb-3">
-        <div className={cn(["text-sm font-semibold text-gray-700 flex items-center gap-2"])}>
-          <h3>Basic Models</h3>
-          <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
-        </div>
-        <p className="text-xs text-gray-500">Default inference mode powered by Whisper.cpp.</p>
-      </div>
+    <section className="max-w-2xl">
+      {/* Section Header */}
+      <SectionHeader
+        title="Basic Models"
+        description="Default inference mode powered by Whisper.cpp."
+        status={status}
+        docsUrl="https://docs.hyprnote.com/models"
+      />
 
-      <div className="space-y-2">
+      {/* Models List */}
+      <div className="space-y-2 mt-4">
         {modelsToShow.map((model) => (
           <ModelEntry
             key={model.key}
@@ -166,32 +199,34 @@ function BasicModelsManagement({
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function ProModelsManagement(
-  { on, selectedSTTModel, setSelectedSTTModel, downloadingModels, handleModelDownload }: {
-    on: boolean;
-    selectedSTTModel: string;
-    setSelectedSTTModel: (model: string) => void;
-    downloadingModels: Set<string>;
-    handleModelDownload: (model: string) => void;
-  },
-) {
-  // const { getLicense } = useLicense();
+// ============================================
+// PRO MODELS SECTION
+// ============================================
+function ProModelsSection({
+  status,
+  selectedSTTModel,
+  setSelectedSTTModel,
+  downloadingModels,
+  handleModelDownload,
+}: Omit<ModelSectionProps, "modelsToShow">) {
+  const { getLicense } = useLicense();
+
   const handleShowFileLocation = async () => {
-    localSttCommands.modelsDir().then((path) => openPath(path));
+    const path = await localSttCommands.modelsDir();
+    openPath(path);
   };
 
   const proModels = useQuery({
     queryKey: ["pro-models"],
     queryFn: async () => {
       const models = await localSttCommands.listSupportedModels().then((models) =>
-        models.filter((model) =>
-          model.key === "am-whisper-large-v3" || model.key === "am-parakeet-v2" || model.key === "am-parakeet-v3"
-        )
+        models.filter((model) => ["am-whisper-large-v3", "am-parakeet-v2", "am-parakeet-v3"].includes(model.key))
       );
+
       const downloaded = await Promise.all(
         models.map(({ key }) => localSttCommands.isModelDownloaded(key)),
       );
@@ -204,38 +239,84 @@ function ProModelsManagement(
         fileName: "",
       }));
     },
-    refetchInterval: 3000,
+    refetchInterval: REFETCH_INTERVALS.downloadStatus,
   });
 
   return (
-    <div className="space-y-6">
-      <div className="max-w-2xl">
-        <div className="flex flex-col mb-3">
-          <div className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <h3>Pro Models (Available soon)</h3>
-            <span className={cn(["w-2 h-2 rounded-full", on ? "bg-blue-300 animate-pulse" : "bg-gray-100"])} />
-          </div>
-          <p className="text-xs text-gray-500">
-            Latency and resource optimized. Only for pro plan users.
-          </p>
-        </div>
+    <section className="max-w-2xl">
+      <SectionHeader
+        title="Pro Models"
+        description="Latency and resource optimized inference engine."
+        status={status}
+        docsUrl="https://docs.hyprnote.com/models"
+      />
 
-        <div className="space-y-2">
-          {proModels.data?.map((model) => (
-            <ModelEntry
-              key={model.key}
-              disabled={false}
-              model={model}
-              selectedSTTModel={selectedSTTModel}
-              setSelectedSTTModel={setSelectedSTTModel}
-              downloadingModels={downloadingModels}
-              handleModelDownload={handleModelDownload}
-              handleShowFileLocation={handleShowFileLocation}
-            />
-          ))}
-        </div>
+      {/* Models List */}
+      <div className="space-y-2 mt-4">
+        {proModels.data?.map((model) => (
+          <ModelEntry
+            key={model.key}
+            disabled={!getLicense.data?.valid}
+            model={model}
+            selectedSTTModel={selectedSTTModel}
+            setSelectedSTTModel={setSelectedSTTModel}
+            downloadingModels={downloadingModels}
+            handleModelDownload={handleModelDownload}
+            handleShowFileLocation={handleShowFileLocation}
+          />
+        ))}
       </div>
-    </div>
+    </section>
+  );
+}
+
+// ============================================
+// SHARED COMPONENTS
+// ============================================
+function SectionHeader({
+  title,
+  subtitle,
+  description,
+  status,
+  docsUrl,
+}: {
+  title: string;
+  subtitle?: string;
+  description: string;
+  status?: ServerHealth;
+  docsUrl?: string;
+}) {
+  return (
+    <header className="mb-3">
+      <div className="flex items-center gap-2 mb-1">
+        <h3 className="text-sm font-semibold text-gray-700">
+          {title}
+          {subtitle && <span className="font-normal text-gray-500 ml-1">{subtitle}</span>}
+        </h3>
+        <span
+          className={cn(
+            "w-2 h-2 rounded-full",
+            (status === "ready")
+              ? "bg-blue-300 animate-pulse"
+              : (status === "loading")
+              ? "bg-yellow-300"
+              : "bg-gray-100",
+          )}
+        />
+        {docsUrl && (
+          <a
+            href={docsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
+            title="View documentation"
+          >
+            <InfoIcon className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
+      <p className="text-xs text-gray-500">{description}</p>
+    </header>
   );
 }
 
@@ -246,7 +327,7 @@ function ModelEntry({
   downloadingModels,
   handleModelDownload,
   handleShowFileLocation,
-  disabled,
+  disabled = false,
 }: {
   model: STTModel;
   selectedSTTModel: string;
@@ -256,26 +337,39 @@ function ModelEntry({
   handleShowFileLocation: () => void;
   disabled?: boolean;
 }) {
+  const isSelected = selectedSTTModel === model.key && model.downloaded;
+  const isSelectable = model.downloaded && !disabled;
+  const isDownloading = downloadingModels.has(model.key);
+
+  const handleClick = () => {
+    if (isSelectable) {
+      setSelectedSTTModel(model.key as WhisperModel);
+      localSttCommands.setCurrentModel(model.key as WhisperModel);
+      localSttCommands.stopServer(null);
+      localSttCommands.startServer(null);
+    }
+  };
+
+  const getCardStyles = () => {
+    if (isSelected) {
+      return "border-solid border-blue-500 bg-blue-50";
+    }
+    if (isSelectable) {
+      return "border-dashed border-gray-300 hover:border-gray-400 bg-white";
+    }
+    return "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed";
+  };
+
   return (
     <div
-      key={model.key}
       className={cn(
-        "p-3 rounded-lg border-2 transition-all cursor-pointer flex items-center justify-between",
-        selectedSTTModel === model.key && model.downloaded
-          ? "border-solid border-blue-500 bg-blue-50"
-          : (model.downloaded && !disabled)
-          ? "border-dashed border-gray-300 hover:border-gray-400 bg-white"
-          : "border-dashed border-gray-200 bg-gray-50 cursor-not-allowed",
+        "p-3 rounded-lg border-2 transition-all cursor-pointer",
+        "flex items-center justify-between",
+        getCardStyles(),
       )}
-      onClick={() => {
-        if (model.downloaded && !disabled) {
-          setSelectedSTTModel(model.key as WhisperModel);
-          localSttCommands.setCurrentModel(model.key as WhisperModel);
-          localSttCommands.stopServer(null);
-          localSttCommands.startServer(null);
-        }
-      }}
+      onClick={handleClick}
     >
+      {/* Model Info */}
       <div className="flex items-center gap-6 flex-1">
         <div className="min-w-0">
           <h3
@@ -289,6 +383,7 @@ function ModelEntry({
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex items-center">
         {model.downloaded
           ? (
@@ -296,20 +391,23 @@ function ModelEntry({
               size="sm"
               disabled={disabled}
               variant="outline"
-              onClick={handleShowFileLocation}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowFileLocation();
+              }}
               className="text-xs h-7 px-2 flex items-center gap-1"
             >
               <FolderIcon className="w-3 h-3" />
               Show in Finder
             </Button>
           )
-          : downloadingModels.has(model.key)
+          : isDownloading
           ? (
             <Button
               size="sm"
               variant="outline"
               disabled
-              className="text-xs h-7 px-2 flex items-center gap-1 text-blue-600 border-blue-200"
+              className="text-xs h-7 px-2 text-blue-600 border-blue-200"
             >
               Downloading...
             </Button>

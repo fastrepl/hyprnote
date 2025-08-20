@@ -10,7 +10,8 @@ export type ThemeName =
   | "retro"
   | "spring"
   | "summer"
-  | "winter";
+  | "winter"
+  | "homebrew";
 
 export interface PDFTheme {
   font: string;
@@ -182,6 +183,19 @@ export const getPDFTheme = (themeName: ThemeName): PDFTheme => {
         bullets: [100, 181, 246], // Light blue
       },
     },
+
+    homebrew: {
+      font: "courier",
+      colors: {
+        background: [0, 0, 0], // Terminal black
+        mainContent: [0, 255, 0], // Terminal green
+        headers: [0, 255, 128], // Bright terminal green
+        metadata: [128, 255, 128], // Light terminal green
+        hyprnoteLink: [0, 255, 255], // Terminal cyan
+        separatorLine: [0, 128, 0], // Dark green
+        bullets: [0, 255, 0], // Terminal green
+      },
+    },
   };
 
   return themes[themeName] || themes.default;
@@ -201,6 +215,7 @@ export const getAvailableThemes = (): ThemeName[] => {
     "spring",
     "summer",
     "winter",
+    "homebrew",
   ];
 };
 
@@ -229,6 +244,7 @@ const getThemeDescription = (themeName: ThemeName): string => {
     spring: "Fresh greens on yellow-green with Courier",
     summer: "Bright reds on yellow with Courier",
     winter: "Deep blues on icy background with Times",
+    homebrew: "Classic terminal green on black with Courier",
   };
 
   return descriptions[themeName] || descriptions.default;

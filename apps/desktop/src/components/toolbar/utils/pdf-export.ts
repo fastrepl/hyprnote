@@ -137,6 +137,10 @@ const htmlToStructuredText = (html: string): TextSegment[] => {
     });
 
     listStack.pop();
+
+    if (level === 0) {
+      segments.push({ text: "\n" });
+    }
   };
 
   const processListItem = (liElement: Element) => {
@@ -319,7 +323,7 @@ export const exportToPDF = async (
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 20;
   const maxWidth = pageWidth - (margin * 2);
-  const lineHeight = 6;
+  const lineHeight = 5.5;
 
   const applyBackgroundColor = () => {
     if (

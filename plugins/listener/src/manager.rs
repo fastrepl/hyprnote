@@ -45,7 +45,10 @@ impl TranscriptManager {
         Self::log(self.id, &response);
 
         if let owhisper_interface::StreamResponse::TranscriptResponse {
-            is_final, channel, ..
+            is_final,
+            channel,
+            channel_index,
+            ..
         } = response
         {
             let data = &channel.alternatives[0];
@@ -61,6 +64,14 @@ impl TranscriptManager {
                     } else {
                         Some(w)
                     }
+                })
+                .map(|mut w| {
+                    if w.speaker.is_none() {
+                        let speaker = channel_index.first().unwrap().clone();
+                        w.speaker = Some(speaker);
+                    }
+
+                    w
                 })
                 .collect::<Vec<_>>();
 

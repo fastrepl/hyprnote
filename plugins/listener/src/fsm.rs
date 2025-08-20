@@ -468,11 +468,16 @@ impl Session {
                         Ok(Some(response)) => {
                             let diff = manager.append(response.clone());
 
-                            let partial_words = diff
+                            let mut partial_words = diff
                                 .partial_words
                                 .iter()
                                 .map(|w| owhisper_interface::Word2::from(w.clone()))
                                 .collect::<Vec<_>>();
+                            partial_words.sort_by(|a, b| {
+                                a.start_ms
+                                    .partial_cmp(&b.start_ms)
+                                    .unwrap_or(std::cmp::Ordering::Equal)
+                            });
 
                             SessionEvent::PartialWords {
                                 words: partial_words,
@@ -480,11 +485,17 @@ impl Session {
                             .emit(&app)
                             .unwrap();
 
-                            let final_words = diff
+                            let mut final_words = diff
                                 .final_words
                                 .iter()
                                 .map(|w| owhisper_interface::Word2::from(w.clone()))
                                 .collect::<Vec<_>>();
+                            println!("final_words: {:#?}", final_words);
+                            final_words.sort_by(|a, b| {
+                                a.start_ms
+                                    .partial_cmp(&b.start_ms)
+                                    .unwrap_or(std::cmp::Ordering::Equal)
+                            });
 
                             update_session(&app, &session.id, final_words.clone())
                                 .await

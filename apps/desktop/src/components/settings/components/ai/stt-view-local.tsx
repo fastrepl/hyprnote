@@ -224,7 +224,7 @@ function ProModelsManagement(
           {proModels.data?.map((model) => (
             <ModelEntry
               key={model.key}
-              disabled={true}
+              disabled={false}
               model={model}
               selectedSTTModel={selectedSTTModel}
               setSelectedSTTModel={setSelectedSTTModel}

@@ -271,6 +271,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 
+        tracing::info!("ext: stopping servers");
+
         let mut stopped = false;
         match server_type {
             Some(ServerType::External) => {
@@ -303,12 +305,17 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn get_servers(&self) -> Result<HashMap<ServerType, Option<String>>, crate::Error> {
         let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        let mut guard = state.lock().await;
 
         let internal_url = if let Some(server) = &guard.internal_server {
             if server.health().await {
                 Some(server.base_url.clone())
             } else {
+                if let Some(server) = guard.internal_server.take() {
+                    server.terminate().ok();
+                    guard.internal_server = None;
+                }
+
                 None
             }
         } else {
@@ -319,6 +326,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             if server.health().await {
                 Some(server.base_url.clone())
             } else {
+                if let Some(server) = guard.external_server.take() {
+                    server.terminate().ok();
+                    guard.external_server = None;
+                }
+
                 None
             }
         } else {

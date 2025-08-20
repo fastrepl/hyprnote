@@ -337,7 +337,10 @@ function ShareButtonInNote() {
                           <label className="block text-xs font-medium text-gray-700 mb-1">
                             Theme
                           </label>
-                          <Select value={selectedPdfTheme} onValueChange={(value) => setSelectedPdfTheme(value as ThemeName)}>
+                          <Select
+                            value={selectedPdfTheme}
+                            onValueChange={(value) => setSelectedPdfTheme(value as ThemeName)}
+                          >
                             <SelectTrigger className="w-full h-8 text-xs">
                               <SelectValue placeholder="Select theme" />
                             </SelectTrigger>

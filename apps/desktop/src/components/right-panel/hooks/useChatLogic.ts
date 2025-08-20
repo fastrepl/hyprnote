@@ -159,13 +159,13 @@ export function useChatLogic({
       let mcpToolsArray: any[] = [];
       const allMcpClients: any[] = [];
 
-      const shouldUseMcpTools = type !== "HyprLocal"
+      const shouldUseTools = type !== "HyprLocal"
         && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
           || model.modelId === "anthropic/claude-sonnet-4"
           || model.modelId === "openai/gpt-4o"
           || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com"));
 
-      if (shouldUseMcpTools) {
+      if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
         const enabledSevers = mcpServers.filter((server) => server.enabled);
 
@@ -281,9 +281,8 @@ export function useChatLogic({
         ),
         stopWhen: stepCountIs(3),
         tools: {
-          ...(type !== "HyprLocal" && { search_sessions_multi_keywords: searchTool }),
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
-          ...(shouldUseMcpTools && { ...newMcpTools }),
+          ...(shouldUseTools && { ...newMcpTools, search_sessions_multi_keywords: searchTool }),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);

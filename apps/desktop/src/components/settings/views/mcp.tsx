@@ -1,4 +1,5 @@
 import { commands, type McpServer } from "@hypr/plugin-mcp";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
@@ -7,8 +8,10 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { useMutation } from "@tanstack/react-query";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useHypr } from "@/contexts";
 
 export default function MCP() {
+  const { userId } = useHypr();
   const [servers, setServers] = useState<McpServer[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [newHeaderKey, setNewHeaderKey] = useState("");
@@ -48,7 +51,7 @@ export default function MCP() {
     },
   });
 
-  const handleAddServer = () => {
+  const handleAddServer = async () => {
     if (!newUrl.trim() || isAtMaxLimit) {
       return;
     }
@@ -62,10 +65,21 @@ export default function MCP() {
     };
 
     const updatedServers = [...servers, newServer];
-    saveServersMutation.mutate(updatedServers);
-    setNewUrl("");
-    setNewHeaderKey("");
-    setNewHeaderValue("");
+    
+    try {
+      await saveServersMutation.mutateAsync(updatedServers);
+      
+      analyticsCommands.event({
+        event: "mcp_server_added",
+        distinct_id: userId,
+      });
+      
+      setNewUrl("");
+      setNewHeaderKey("");
+      setNewHeaderValue("");
+    } catch (error) {
+      console.error("Failed to add MCP server:", error);
+    }
   };
 
   const handleToggleServer = (index: number) => {

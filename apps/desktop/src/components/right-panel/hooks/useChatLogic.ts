@@ -107,14 +107,14 @@ export function useChatLogic({
 
     const userMessageCount = messages.filter(msg => msg.isUser).length;
 
-    if (userMessageCount >= 3 && !getLicense.data?.valid) {
+    if (userMessageCount >= 4 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
           event: "pro_license_required_chat",
           distinct_id: userId,
         });
       }
-      await message("3 messages are allowed per conversation for free users.", {
+      await message("4 messages are allowed per conversation for free users.", {
         title: "Pro License Required",
         kind: "info",
       });
@@ -490,16 +490,16 @@ export function useChatLogic({
         errorMsg = (error as any).message;
       }
 
-      let finalErrorMesage = "";
+      let finalErrorMessage = "";
 
       if (String(errorMsg).includes("too large")) {
-        finalErrorMesage =
+        finalErrorMessage =
           "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
           + "\n\n" + errorMsg;
       } else if (String(errorMsg).includes("Request cancelled") || String(errorMsg).includes("Request canceled")) {
-        finalErrorMesage = "Request was cancelled mid-stream. Try again with a different message.";
+        finalErrorMessage = "Request was cancelled mid-stream. Try again with a different message.";
       } else {
-        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
+        finalErrorMessage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
       }
 
       setIsGenerating(false);
@@ -510,7 +510,7 @@ export function useChatLogic({
       // Create error message
       const errorMessage: Message = {
         id: aiMessageId,
-        content: finalErrorMesage,
+        content: finalErrorMessage,
         isUser: false,
         timestamp: new Date(),
         type: "text-delta",
@@ -523,7 +523,7 @@ export function useChatLogic({
         group_id: groupId,
         created_at: new Date().toISOString(),
         role: "Assistant",
-        content: finalErrorMesage,
+        content: finalErrorMessage,
         type: "text-delta",
       });
     }

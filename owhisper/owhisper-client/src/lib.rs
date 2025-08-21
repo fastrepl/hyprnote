@@ -76,7 +76,9 @@ impl ListenClientBuilder {
                     query_pairs.append_pair("detect_language", "true");
                 }
                 1 => {
-                    query_pairs.append_pair("language", params.languages[0].iso639().code());
+                    let code = params.languages[0].iso639().code();
+                    query_pairs.append_pair("language", code);
+                    query_pairs.append_pair("languages", code);
                 }
                 _ => {
                     query_pairs.append_pair("language", params.languages[0].iso639().code());

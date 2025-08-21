@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
 import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
@@ -18,13 +18,18 @@ import TranscriptEditor, {
   type TranscriptEditorRef,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Modal, ModalBody, ModalDescription, ModalHeader, ModalTitle } from "@hypr/ui/components/ui/modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { useOngoingSession } from "@hypr/utils/contexts";
+import { Trans } from "@lingui/react/macro";
 import { ListeningIndicator } from "../components/listening-indicator";
 import { SearchHeader } from "../components/search-header";
 import { useTranscript } from "../hooks/useTranscript";
 import { useTranscriptWidget } from "../hooks/useTranscriptWidget";
+import { parseTranscriptSimple, validateTranscriptFormat } from "../utils/transcript-parser";
 
 function useContainerWidth(ref: React.RefObject<HTMLElement>) {
   const [width, setWidth] = useState(0);
@@ -133,6 +138,13 @@ export function TranscriptView() {
     }
   };
 
+  const handleSetWords = useCallback((newWords: Word2[]) => {
+    editorRef.current?.setWords(newWords);
+    if (editorRef.current?.isNearBottom()) {
+      editorRef.current?.scrollToBottom();
+    }
+  }, []);
+
   if (!sessionId) {
     return null;
   }
@@ -193,7 +205,14 @@ export function TranscriptView() {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {showEmptyMessage
-          ? <RenderEmpty sessionId={sessionId} panelWidth={panelWidth} />
+          ? (
+            <RenderEmpty
+              sessionId={sessionId}
+              panelWidth={panelWidth}
+              onTranscriptSaved={handleSetWords}
+              queryClient={queryClient}
+            />
+          )
           : (
             <>
               <TranscriptEditor
@@ -211,10 +230,16 @@ export function TranscriptView() {
   );
 }
 
-function RenderEmpty({ sessionId, panelWidth }: {
+function RenderEmpty({ sessionId, panelWidth, onTranscriptSaved, queryClient }: {
   sessionId: string;
   panelWidth: number;
+  onTranscriptSaved: (words: Word2[]) => void;
+  queryClient: QueryClient;
 }) {
+  const [showPasteTranscriptModal, setShowPasteTranscriptModal] = useState(false);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
     status: s.status,
@@ -225,6 +250,72 @@ function RenderEmpty({ sessionId, panelWidth }: {
     if (ongoingSession.status === "inactive") {
       ongoingSession.start(sessionId);
     }
+  };
+
+  const handlePasteTranscript = () => {
+    setShowPasteTranscriptModal(true);
+  };
+
+  const onclose = () => {
+    setShowPasteTranscriptModal(false);
+  };
+
+  const handlePastedTranscript = async () => {
+    try {
+      setIsLoading(true);
+      const value = textAreaRef.current?.value?.trim();
+
+      if (!value) {
+        showPasteTranscriptToast("Failed to save transcript");
+        setIsLoading(false);
+        return;
+      }
+
+      const validation = validateTranscriptFormat(value);
+      if (!validation.isValid) {
+        showPasteTranscriptToast(`Format issues detected: ${validation.issues.join(", ")}`);
+        setIsLoading(false);
+        return;
+      }
+
+      const words = parseTranscriptSimple(value);
+
+      const session = await dbCommands.getSession({ id: sessionId });
+
+      if (!session) {
+        setIsLoading(false);
+        showPasteTranscriptToast("Failed to save transcript\nNo session found");
+        return;
+      }
+
+      await dbCommands.upsertSession({ ...session, words });
+      onTranscriptSaved(words);
+
+      queryClient.invalidateQueries({
+        queryKey: ["session", "words", sessionId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["session", sessionId],
+      });
+
+      showPasteTranscriptToast("Transcript saved successfully");
+      setIsLoading(false);
+
+      onclose();
+    } catch (error) {
+      setIsLoading(false);
+      console.log("Failed to save transcript", error);
+    }
+  };
+
+  const showPasteTranscriptToast = (content: string) => {
+    toast({
+      id: "paste-transcript",
+      title: "Paste Transcript",
+      content: content,
+      dismissible: true,
+    });
   };
 
   const isUltraCompact = panelWidth < 150;
@@ -298,15 +389,52 @@ function RenderEmpty({ sessionId, panelWidth }: {
                   {isVeryNarrow ? "Upload" : "Upload recording"}
                   {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
                 </Button>
-                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  onClick={handlePasteTranscript}
+                >
                   <ClipboardIcon size={14} />
                   {isVeryNarrow ? "Paste" : "Paste transcript"}
-                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
                 </Button>
               </>
             )}
         </div>
       </div>
+      <Modal open={showPasteTranscriptModal} onClose={() => setShowPasteTranscriptModal(false)} size="full">
+        <ModalBody>
+          <ModalHeader>
+            <ModalTitle>
+              <Trans>Paste Transcript</Trans>
+            </ModalTitle>
+            <ModalDescription>
+              <Trans>
+                Type or paste your transcript in the field below
+              </Trans>
+            </ModalDescription>
+          </ModalHeader>
+          <div className="h-full">
+            <div className="h-3/4 mt-2">
+              <Textarea
+                className="h-full"
+                ref={textAreaRef}
+                placeholder="Type or paste your transcript"
+              >
+              </Textarea>
+            </div>
+            <div className="flex flex-row justify-between mt-2 gap-1">
+              <Button className="w-1/2" onClick={() => setShowPasteTranscriptModal(false)}>
+                <span>Cancel</span>
+              </Button>
+              <Button className="w-1/2" onClick={handlePastedTranscript} isLoading={isLoading}>
+                <span>Save</span>
+              </Button>
+            </div>
+          </div>
+        </ModalBody>
+      </Modal>
     </div>
   );
 }

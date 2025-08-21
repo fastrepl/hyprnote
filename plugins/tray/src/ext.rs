@@ -234,7 +234,7 @@ fn tray_start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Res
     MenuItem::with_id(
         app,
         HyprMenuItem::TrayStart,
-        "Start a new meeting",
+        "Start a new recording",
         !disabled,
         None::<&str>,
     )

@@ -1,5 +1,6 @@
-import { commands, type McpServer } from "@hypr/plugin-mcp";
+import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands, type McpServer } from "@hypr/plugin-mcp";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Label } from "@hypr/ui/components/ui/label";
@@ -8,7 +9,6 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { useMutation } from "@tanstack/react-query";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useHypr } from "@/contexts";
 
 export default function MCP() {
   const { userId } = useHypr();
@@ -65,15 +65,15 @@ export default function MCP() {
     };
 
     const updatedServers = [...servers, newServer];
-    
+
     try {
       await saveServersMutation.mutateAsync(updatedServers);
-      
+
       analyticsCommands.event({
         event: "mcp_server_added",
         distinct_id: userId,
       });
-      
+
       setNewUrl("");
       setNewHeaderKey("");
       setNewHeaderValue("");

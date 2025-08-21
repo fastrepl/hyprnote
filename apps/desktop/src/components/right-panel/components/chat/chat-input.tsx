@@ -271,12 +271,12 @@ export function ChatInput(
   const getBadgeIcon = () => {
     switch (entityType) {
       case "human":
-        return <UserIcon className="size-3" />;
+        return <UserIcon className="size-3 shrink-0" />;
       case "organization":
-        return <BuildingIcon className="size-3" />;
+        return <BuildingIcon className="size-3 shrink-0" />;
       case "note":
       default:
-        return <FileTextIcon className="size-3" />;
+        return <FileTextIcon className="size-3 shrink-0" />;
     }
   };
 
@@ -373,7 +373,9 @@ export function ChatInput(
               className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-white max-w-48"
               onClick={onNoteBadgeClick}
             >
-              {getBadgeIcon()}
+              <div className="shrink-0">
+                {getBadgeIcon()}
+              </div>
               <span className="truncate">{entityTitle}</span>
             </Badge>
           )

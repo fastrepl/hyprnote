@@ -134,7 +134,7 @@ async fn handle_websocket_connection(
     let redemption_time = params
         .redemption_time_ms
         .map(|ms| Duration::from_millis(ms))
-        .unwrap_or(Duration::from_millis(500));
+        .unwrap_or(Duration::from_millis(400));
 
     match params.channels {
         1 => {
@@ -159,7 +159,7 @@ async fn handle_single_channel(
     let chunked = hypr_whisper_local::AudioChunkStream(process_vad_stream(vad_chunks, "mixed"));
 
     let stream = hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model);
-    process_transcription_stream(ws_sender, stream, guard).await;
+    process_transcription_stream(ws_sender, stream, guard, 1).await;
 }
 
 async fn handle_dual_channel(
@@ -190,13 +190,14 @@ async fn handle_dual_channel(
     let stream =
         hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(merged_stream, model);
 
-    process_transcription_stream(ws_sender, stream, guard).await;
+    process_transcription_stream(ws_sender, stream, guard, 2).await;
 }
 
 async fn process_transcription_stream(
     mut ws_sender: futures_util::stream::SplitSink<WebSocket, Message>,
     mut stream: impl futures_util::Stream<Item = hypr_whisper_local::Segment> + Unpin,
     guard: ConnectionGuard,
+    channels: i32,
 ) {
     loop {
         tokio::select! {
@@ -221,16 +222,16 @@ async fn process_transcription_stream(
                 );
 
                 let (speaker, channel_index) = match source.as_deref() {
-                    Some("mic") => (Some(0), vec![0]),
-                    Some("speaker") => (Some(1), vec![1]),
-                    _ => (None, vec![0]),
+                    Some("mic") => (Some(0), vec![0, channels]),
+                    Some("speaker") => (Some(1), vec![1, channels]),
+                    _ => (None, vec![0, 1]),
                 };
 
                 let words: Vec<Word> = text
                     .split_whitespace()
                     .filter(|w| !w.is_empty())
                     .map(|w| Word {
-                        word: w.to_string(),
+                        word: w.trim().to_string(),
                         start: start_f64,
                         end: start_f64 + duration_f64,
                         confidence,

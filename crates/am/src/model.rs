@@ -87,7 +87,7 @@ impl AmModel {
         match self {
             AmModel::ParakeetV2 => 1906983049,
             AmModel::ParakeetV3 => 3016060540,
-            AmModel::WhisperLargeV3 => 3016060540,
+            AmModel::WhisperLargeV3 => 1964673816,
         }
     }
 

@@ -264,14 +264,14 @@ msgstr "(Optional for localhost)"
 msgid "(Optional)"
 msgstr "(Optional)"
 
-#. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
-#. placeholder {0}: isCompact ? "Go" : "Resume"
+#. placeholder {0}: disabled ? "Wait..." : "Play again"
+#. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Go" : "Resume") : (isCompact ? "End" : "Ended")
+#: src/components/editor-area/note-header/listen-button.tsx:153
+#: src/components/editor-area/note-header/listen-button.tsx:231
+#: src/components/editor-area/note-header/listen-button.tsx:253
+#: src/components/editor-area/note-header/listen-button.tsx:273
 #: src/components/settings/views/templates.tsx:217
-#: src/components/editor-area/note-header/listen-button.tsx:152
-#: src/components/editor-area/note-header/listen-button.tsx:230
-#: src/components/editor-area/note-header/listen-button.tsx:252
-#: src/components/editor-area/note-header/listen-button.tsx:272
 msgid "{0}"
 msgstr "{0}"
 
@@ -280,8 +280,8 @@ msgstr "{0}"
 msgid "{0} calendars selected"
 msgstr "{0} calendars selected"
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:82
 #: src/components/settings/views/sound.tsx:64
+#: src/components/welcome-modal/audio-permissions-view.tsx:82
 msgid "{buttonText}"
 msgstr "{buttonText}"
 
@@ -318,9 +318,9 @@ msgstr "<0>Create Note</0>"
 msgid "Access granted"
 msgstr "Access granted"
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:50
-#: src/components/welcome-modal/audio-permissions-view.tsx:58
 #: src/components/settings/views/sound.tsx:44
+#: src/components/welcome-modal/audio-permissions-view.tsx:58
+#: src/components/welcome-modal/calendar-permissions-view.tsx:50
 msgid "Access Granted"
 msgstr "Access Granted"
 
@@ -398,20 +398,20 @@ msgstr "and {0} more members"
 msgid "Anyone with the link can view this page"
 msgstr "Anyone with the link can view this page"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:498
 #: src/components/settings/components/ai/llm-custom-view.tsx:603
+#: src/components/welcome-modal/custom-endpoint-view.tsx:498
 msgid "API Base URL"
 msgstr "API Base URL"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:294
-#: src/components/welcome-modal/custom-endpoint-view.tsx:361
-#: src/components/welcome-modal/custom-endpoint-view.tsx:438
-#: src/components/welcome-modal/custom-endpoint-view.tsx:518
-#: src/components/settings/views/integrations.tsx:203
 #: src/components/settings/components/ai/llm-custom-view.tsx:314
 #: src/components/settings/components/ai/llm-custom-view.tsx:409
 #: src/components/settings/components/ai/llm-custom-view.tsx:514
 #: src/components/settings/components/ai/llm-custom-view.tsx:625
+#: src/components/settings/views/integrations.tsx:203
+#: src/components/welcome-modal/custom-endpoint-view.tsx:294
+#: src/components/welcome-modal/custom-endpoint-view.tsx:361
+#: src/components/welcome-modal/custom-endpoint-view.tsx:438
+#: src/components/welcome-modal/custom-endpoint-view.tsx:518
 msgid "API Key"
 msgstr "API Key"
 
@@ -419,8 +419,8 @@ msgstr "API Key"
 msgid "Apple"
 msgstr "Apple"
 
-#: src/components/toolbar/buttons/delete-note-button.tsx:43
 #: src/components/left-sidebar/notes-list.tsx:269
+#: src/components/toolbar/buttons/delete-note-button.tsx:43
 msgid "Are you sure you want to delete this note?"
 msgstr "Are you sure you want to delete this note?"
 
@@ -464,8 +464,8 @@ msgstr "Base URL"
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr "Billing features are currently under development and will be available in a future update."
 
-#: src/components/settings/views/templates.tsx:319
 #: src/components/settings/components/templates-sidebar.tsx:68
+#: src/components/settings/views/templates.tsx:319
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
@@ -601,12 +601,12 @@ msgstr "Connect your Obsidian vault to export notes"
 msgid "Contacts Access"
 msgstr "Contacts Access"
 
-#: src/components/welcome-modal/model-selection-view.tsx:94
-#: src/components/welcome-modal/llm-selection-view.tsx:94
-#: src/components/welcome-modal/download-progress-view.tsx:255
-#: src/components/welcome-modal/custom-endpoint-view.tsx:595
-#: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
+#: src/components/welcome-modal/calendar-permissions-view.tsx:153
+#: src/components/welcome-modal/custom-endpoint-view.tsx:595
+#: src/components/welcome-modal/download-progress-view.tsx:255
+#: src/components/welcome-modal/llm-selection-view.tsx:94
+#: src/components/welcome-modal/model-selection-view.tsx:94
 msgid "Continue"
 msgstr "Continue"
 
@@ -630,8 +630,8 @@ msgstr "Control how autonomous the AI enhancement should be."
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr "Control how creative the AI enhancement should be"
 
-#: src/routes/app.human.$id.tsx:535
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:518
+#: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr "Create"
 
@@ -659,8 +659,8 @@ msgstr "Create your first template to get started"
 #~ msgid "Current Plan"
 #~ msgstr "Current Plan"
 
-#: src/components/settings/views/ai-stt.tsx:66
 #: src/components/settings/views/ai-llm.tsx:671
+#: src/components/settings/views/ai-stt.tsx:66
 msgid "Custom"
 msgstr "Custom"
 
@@ -676,8 +676,8 @@ msgstr "Custom"
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
-#: src/components/settings/views/ai-stt.tsx:63
 #: src/components/settings/views/ai-llm.tsx:668
+#: src/components/settings/views/ai-stt.tsx:63
 msgid "Default"
 msgstr "Default"
 
@@ -685,9 +685,9 @@ msgstr "Default"
 #~ msgid "Default (llama-3.2-3b-q4)"
 #~ msgstr "Default (llama-3.2-3b-q4)"
 
-#: src/components/settings/views/template.tsx:218
-#: src/components/settings/views/team.tsx:165
 #: src/components/left-sidebar/notes-list.tsx:336
+#: src/components/settings/views/team.tsx:165
+#: src/components/settings/views/template.tsx:218
 msgid "Delete"
 msgstr "Delete"
 
@@ -873,10 +873,10 @@ msgstr "Grant both permissions to continue"
 #~ msgid "Help us improve the Hyprnote experience by providing feedback."
 #~ msgstr "Help us improve the Hyprnote experience by providing feedback."
 
-#: src/components/individualization-modal/role-view.tsx:24
-#: src/components/individualization-modal/org-size-view.tsx:24
-#: src/components/individualization-modal/industry-view.tsx:63
 #: src/components/individualization-modal/how-heard-view.tsx:33
+#: src/components/individualization-modal/industry-view.tsx:63
+#: src/components/individualization-modal/org-size-view.tsx:24
+#: src/components/individualization-modal/role-view.tsx:24
 msgid "Help us tailor your Hyprnote experience"
 msgstr "Help us tailor your Hyprnote experience"
 
@@ -904,8 +904,8 @@ msgstr "Important Q&As"
 #~ msgid "Integration with other apps like Notion and Google Calendar"
 #~ msgstr "Integration with other apps like Notion and Google Calendar"
 
-#: src/routes/app.settings.tsx:67
 #: src/components/settings/views/integrations.tsx:124
+#: src/routes/app.settings.tsx:67
 msgid "Integrations"
 msgstr "Integrations"
 
@@ -1047,22 +1047,22 @@ msgstr "Member"
 msgid "Members"
 msgstr "Members"
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:165
 #: src/components/settings/views/sound.tsx:127
+#: src/components/welcome-modal/audio-permissions-view.tsx:165
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:315
-#: src/components/welcome-modal/custom-endpoint-view.tsx:382
-#: src/components/welcome-modal/custom-endpoint-view.tsx:459
 #: src/components/settings/components/ai/llm-custom-view.tsx:334
 #: src/components/settings/components/ai/llm-custom-view.tsx:429
 #: src/components/settings/components/ai/llm-custom-view.tsx:534
+#: src/components/welcome-modal/custom-endpoint-view.tsx:315
+#: src/components/welcome-modal/custom-endpoint-view.tsx:382
+#: src/components/welcome-modal/custom-endpoint-view.tsx:459
 msgid "Model"
 msgstr "Model"
 
-#: src/components/welcome-modal/custom-endpoint-view.tsx:544
 #: src/components/settings/components/ai/llm-custom-view.tsx:650
+#: src/components/welcome-modal/custom-endpoint-view.tsx:544
 msgid "Model Name"
 msgstr "Model Name"
 
@@ -1090,8 +1090,8 @@ msgstr "My Templates"
 msgid "New note"
 msgstr "New note"
 
-#: src/components/left-sidebar/notes-list.tsx:313
 #: src/components/left-sidebar/events-list.tsx:181
+#: src/components/left-sidebar/notes-list.tsx:313
 msgid "New window"
 msgstr "New window"
 
@@ -1139,7 +1139,7 @@ msgstr "No recent notes with this organization"
 #~ msgid "No Template"
 #~ msgstr "No Template"
 
-#: src/components/editor-area/note-header/listen-button.tsx:527
+#: src/components/editor-area/note-header/listen-button.tsx:528
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
@@ -1187,9 +1187,9 @@ msgstr "Only works with Custom Endpoints. Please configure one of the above firs
 msgid "Open finder view"
 msgstr "Open finder view"
 
-#: src/components/toolbar/buttons/new-window-button.tsx:35
 #: src/components/left-sidebar/search-list.tsx:298
 #: src/components/left-sidebar/search-list.tsx:368
+#: src/components/toolbar/buttons/new-window-button.tsx:35
 msgid "Open in new window"
 msgstr "Open in new window"
 
@@ -1223,7 +1223,7 @@ msgstr "Others"
 msgid "Owner"
 msgstr "Owner"
 
-#: src/components/editor-area/note-header/listen-button.tsx:373
+#: src/components/editor-area/note-header/listen-button.tsx:374
 msgid "Pause"
 msgstr "Pause"
 
@@ -1288,8 +1288,8 @@ msgstr "Recent Notes"
 #~ msgid "Remove {0} from list"
 #~ msgstr "Remove {0} from list"
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:79
 #: src/components/settings/views/sound.tsx:61
+#: src/components/welcome-modal/audio-permissions-view.tsx:79
 msgid "Requesting..."
 msgstr "Requesting..."
 
@@ -1319,7 +1319,7 @@ msgstr "Role"
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
 
-#: src/components/editor-area/note-header/listen-button.tsx:497
+#: src/components/editor-area/note-header/listen-button.tsx:498
 msgid "Save current recording"
 msgstr "Save current recording"
 
@@ -1343,8 +1343,8 @@ msgstr "Saving..."
 msgid "Search names or emails"
 msgstr "Search names or emails"
 
-#: src/components/settings/components/templates-sidebar.tsx:33
 #: src/components/settings/components/template-list.tsx:43
+#: src/components/settings/components/templates-sidebar.tsx:33
 msgid "Search templates..."
 msgstr "Search templates..."
 
@@ -1460,11 +1460,11 @@ msgstr "Spoken languages"
 #~ msgid "Start Monthly Plan"
 #~ msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:201
+#: src/components/editor-area/note-header/listen-button.tsx:202
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:474
+#: src/components/editor-area/note-header/listen-button.tsx:475
 msgid "Stop"
 msgstr "Stop"
 
@@ -1488,8 +1488,8 @@ msgstr "Summary language"
 #~ msgid "Synchronization across multiple devices"
 #~ msgstr "Synchronization across multiple devices"
 
-#: src/components/welcome-modal/audio-permissions-view.tsx:175
 #: src/components/settings/views/sound.tsx:137
+#: src/components/welcome-modal/audio-permissions-view.tsx:175
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
@@ -1513,7 +1513,7 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/components/editor-area/note-header/listen-button.tsx:518
+#: src/components/editor-area/note-header/listen-button.tsx:519
 msgid "Template"
 msgstr "Template"
 
@@ -1653,8 +1653,8 @@ msgstr "Vault Name"
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/left-sidebar/events-list.tsx:193
 #: src/components/editor-area/note-header/chips/event-chip.tsx:209
+#: src/components/left-sidebar/events-list.tsx:193
 msgid "View in calendar"
 msgstr "View in calendar"
 
@@ -1726,7 +1726,7 @@ msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
 msgid "Your Name"
 msgstr "Your Name"
 
-#: src/components/settings/views/templates.tsx:255
 #: src/components/settings/components/templates-sidebar.tsx:45
+#: src/components/settings/views/templates.tsx:255
 msgid "Your Templates"
 msgstr "Your Templates"

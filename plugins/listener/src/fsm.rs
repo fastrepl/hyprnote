@@ -468,11 +468,16 @@ impl Session {
                         Ok(Some(response)) => {
                             let diff = manager.append(response.clone());
 
-                            let partial_words = diff
+                            let mut partial_words = diff
                                 .partial_words
                                 .iter()
                                 .map(|w| owhisper_interface::Word2::from(w.clone()))
                                 .collect::<Vec<_>>();
+                            partial_words.sort_by(|a, b| {
+                                a.start_ms
+                                    .partial_cmp(&b.start_ms)
+                                    .unwrap_or(std::cmp::Ordering::Equal)
+                            });
 
                             SessionEvent::PartialWords {
                                 words: partial_words,
@@ -480,11 +485,16 @@ impl Session {
                             .emit(&app)
                             .unwrap();
 
-                            let final_words = diff
+                            let mut final_words = diff
                                 .final_words
                                 .iter()
                                 .map(|w| owhisper_interface::Word2::from(w.clone()))
                                 .collect::<Vec<_>>();
+                            final_words.sort_by(|a, b| {
+                                a.start_ms
+                                    .partial_cmp(&b.start_ms)
+                                    .unwrap_or(std::cmp::Ordering::Equal)
+                            });
 
                             update_session(&app, &session.id, final_words.clone())
                                 .await
@@ -585,7 +595,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_key(conn.api_key.unwrap_or_default())
         .params(owhisper_interface::ListenParams {
             languages,
-            redemption_time_ms: Some(if is_onboarding { 70 } else { 500 }),
+            redemption_time_ms: Some(if is_onboarding { 60 } else { 400 }),
             ..Default::default()
         })
         .build_dual())

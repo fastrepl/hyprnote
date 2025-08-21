@@ -11,7 +11,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, ServerType},
+    server::{external, internal, ServerHealth, ServerType},
     Connection,
 };
 
@@ -32,7 +32,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
     ) -> impl Future<Output = Result<bool, crate::Error>>;
     fn get_servers(
         &self,
-    ) -> impl Future<Output = Result<HashMap<ServerType, Option<String>>, crate::Error>>;
+    ) -> impl Future<Output = Result<HashMap<ServerType, ServerHealth>, crate::Error>>;
 
     fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error>;
     fn set_current_model(
@@ -301,28 +301,21 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_servers(&self) -> Result<HashMap<ServerType, Option<String>>, crate::Error> {
+    async fn get_servers(&self) -> Result<HashMap<ServerType, ServerHealth>, crate::Error> {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
         let internal_url = if let Some(server) = &guard.internal_server {
-            if server.health().await {
-                Some(server.base_url.clone())
-            } else {
-                None
-            }
+            let status = server.health().await;
+            status
         } else {
-            None
+            ServerHealth::Unreachable
         };
 
         let external_url = if let Some(server) = &guard.external_server {
-            if server.health().await {
-                Some(server.base_url.clone())
-            } else {
-                None
-            }
+            server.health().await
         } else {
-            None
+            ServerHealth::Unreachable
         };
 
         Ok([

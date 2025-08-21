@@ -19,6 +19,7 @@ common_derives! {
 }
 
 common_derives! {
+    #[derive(Eq, PartialEq)]
     #[serde(rename_all = "lowercase")]
     pub enum ServerStatusType {
         Ready,
@@ -29,7 +30,8 @@ common_derives! {
 }
 
 common_derives! {
-    #[serde(rename_all = "PascalCase")]
+    #[derive(Eq, PartialEq)]
+    #[serde(rename_all = "lowercase")]
     pub enum ModelState {
         Unloading,
         Unloaded,

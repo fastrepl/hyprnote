@@ -45,24 +45,52 @@ impl TranscriptManager {
         Self::log(self.id, &response);
 
         if let owhisper_interface::StreamResponse::TranscriptResponse {
-            is_final, channel, ..
+            is_final,
+            channel,
+            channel_index,
+            ..
         } = response
         {
             let data = &channel.alternatives[0];
 
-            let words = data
-                .words
-                .clone()
-                .into_iter()
-                .filter_map(|mut w| {
-                    w.word = w.word.trim().to_string();
-                    if w.word.is_empty() {
-                        None
+            let words = {
+                let mut ws = data
+                    .words
+                    .clone()
+                    .into_iter()
+                    .filter_map(|mut w| {
+                        w.word = w.word.trim().to_string();
+                        if w.word.is_empty() {
+                            None
+                        } else {
+                            Some(w)
+                        }
+                    })
+                    .map(|mut w| {
+                        if w.speaker.is_none() {
+                            let speaker = channel_index.first().unwrap().clone();
+                            w.speaker = Some(speaker);
+                        }
+
+                        w
+                    })
+                    .collect::<Vec<_>>();
+
+                let mut i = 1;
+                while i < ws.len() {
+                    if ws[i].word.starts_with('\'') {
+                        let current_word = ws[i].word.clone();
+                        let current_end = ws[i].end;
+                        ws[i - 1].word.push_str(&current_word);
+                        ws[i - 1].end = current_end;
+                        ws.remove(i);
                     } else {
-                        Some(w)
+                        i += 1;
                     }
-                })
-                .collect::<Vec<_>>();
+                }
+
+                ws
+            };
 
             if is_final {
                 let last_final_word_end = words.last().unwrap().end;

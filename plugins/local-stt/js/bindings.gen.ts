@@ -28,7 +28,7 @@ async getCurrentModel() : Promise<SupportedSttModel> {
 async setCurrentModel(model: SupportedSttModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
 },
-async getServers() : Promise<Partial<{ [key in ServerType]: string | null }>> {
+async getServers() : Promise<Partial<{ [key in ServerType]: ServerHealth }>> {
     return await TAURI_INVOKE("plugin:local-stt|get_servers");
 },
 async startServer(model: SupportedSttModel | null) : Promise<string> {
@@ -58,6 +58,7 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type Language = { iso639: string }
+export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
 export type SupportedSttModel = WhisperModel | AmModel

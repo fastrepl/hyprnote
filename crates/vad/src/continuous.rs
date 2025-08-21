@@ -7,7 +7,7 @@ use std::{
 
 use futures_util::{future, Stream, StreamExt};
 use kalosm_sound::AsyncSource;
-use silero_rs::{VadConfig, VadSession, VadTransition};
+pub use silero_rs::{VadConfig, VadSession, VadTransition};
 
 #[derive(Debug, Clone)]
 pub enum VadStreamItem {

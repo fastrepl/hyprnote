@@ -2,6 +2,7 @@
 pub struct TranscriptManager {
     id: uuid::Uuid,
     partial_words: Vec<owhisper_interface::Word>,
+    final_words: Vec<owhisper_interface::Word>,
 }
 
 impl Default for TranscriptManager {
@@ -9,6 +10,7 @@ impl Default for TranscriptManager {
         Self {
             id: uuid::Uuid::new_v4(),
             partial_words: Vec::new(),
+            final_words: Vec::new(),
         }
     }
 }
@@ -93,16 +95,35 @@ impl TranscriptManager {
             };
 
             if is_final {
-                let last_final_word_end = words.last().unwrap().end;
-                self.partial_words = self
-                    .partial_words
-                    .iter()
-                    .filter(|w| w.start > last_final_word_end)
-                    .cloned()
-                    .collect::<Vec<_>>();
+                // TODO: maybe we should replace.
+                let new_final_words: Vec<owhisper_interface::Word> = words
+                    .into_iter()
+                    .filter(|new_word| {
+                        !self.final_words.iter().any(|existing_word| {
+                            (existing_word.start - new_word.start).abs() < 0.001
+                                && (existing_word.end - new_word.end).abs() < 0.001
+                        })
+                    })
+                    .collect();
+
+                self.final_words.extend(new_final_words.clone());
+                self.final_words.sort_by(|a, b| {
+                    a.start
+                        .partial_cmp(&b.start)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
+
+                if let Some(last_final_word) = new_final_words.last() {
+                    self.partial_words = self
+                        .partial_words
+                        .iter()
+                        .filter(|w| w.start > last_final_word.end)
+                        .cloned()
+                        .collect::<Vec<_>>();
+                }
 
                 return Diff {
-                    final_words: words.clone(),
+                    final_words: new_final_words,
                     partial_words: self.partial_words.clone(),
                 };
             } else if data.confidence > 0.6 {

@@ -68,7 +68,7 @@ export function useChatLogic({
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
-    
+
     // Reset generation state for new session
     setIsGenerating(false);
     setIsStreamingText(false);
@@ -322,7 +322,6 @@ export function useChatLogic({
       let lastChunkType: string | null = null;
 
       for await (const chunk of fullStream) {
-
         if (lastChunkType === "text-delta" && chunk.type !== "text-delta" && chunk.type !== "finish-step") {
           setIsStreamingText(false); // Text streaming has stopped, more content coming
 
@@ -478,11 +477,10 @@ export function useChatLogic({
       isGeneratingRef.current = false;
       abortControllerRef.current = null; // Clear the abort controller on successful completion
     } catch (error) {
-
       console.error(error);
 
       let errorMsg = "Unknown error";
-      if (typeof error === 'string') {
+      if (typeof error === "string") {
         errorMsg = error;
       } else if (error instanceof Error) {
         errorMsg = error.message || error.name || "Unknown error";
@@ -500,8 +498,7 @@ export function useChatLogic({
           + "\n\n" + errorMsg;
       } else if (String(errorMsg).includes("Request cancelled") || String(errorMsg).includes("Request canceled")) {
         finalErrorMesage = "Request was cancelled mid-stream. Try again with a different message.";
-      }
-      else {
+      } else {
         finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
       }
 

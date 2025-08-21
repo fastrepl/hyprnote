@@ -388,15 +388,15 @@ export function ChatInput(
           onClick={isGenerating ? onStop : handleSubmit}
           disabled={isGenerating ? false : (!inputValue.trim())}
         >
-          {isGenerating ? (
-            <Square 
-              className="h-4 w-4" 
-              fill="currentColor" 
-              strokeWidth={0}
-            />
-          ) : (
-            <ArrowUpIcon className="h-4 w-4" />
-          )}
+          {isGenerating
+            ? (
+              <Square
+                className="h-4 w-4"
+                fill="currentColor"
+                strokeWidth={0}
+              />
+            )
+            : <ArrowUpIcon className="h-4 w-4" />}
         </Button>
       </div>
     </div>

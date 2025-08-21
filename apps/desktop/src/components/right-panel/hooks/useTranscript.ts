@@ -44,9 +44,6 @@ export function useTranscript(sessionId: string | null) {
     setPartialWords([]);
   }, [existingWords.data]);
 
-
-
-
   useEffect(() => {
     if (ongoingSessionState.status !== "running_active" || ongoingSessionState.sessionId !== sessionId) {
       return;

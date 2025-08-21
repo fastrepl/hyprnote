@@ -56,6 +56,15 @@ You will be given multiple inputs from the user. Below are useful information th
 - Meeting Information (txt)
 - Raw Note (txt)
 - Meeting Transcript (txt)
+- User Context (txt)
+
+-The User Context contains important background details about the user, such as their role, company, ongoing projects, style/tone preferences, and domain terminology.
+-You must always take this into account when generating enhanced notes to make them more relevant and personalized.
+
+{% if userContext %}
+Here is the User Context:
+{{ userContext | trim }}
+{% endif %}
 
 # About Raw Notes
 

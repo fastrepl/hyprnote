@@ -9,6 +9,7 @@ import {
   MessageSquareIcon,
   SettingsIcon,
   SparklesIcon,
+  UserIcon,
 } from "lucide-react";
 
 import { type Tab } from "./types";
@@ -56,6 +57,8 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <CreditCardIcon className="h-4 w-4" />;
     case "mcp":
       return <McpIcon className="h-4 w-4" />;
+    case "user-context":
+      return <UserIcon className="h-4 w-4" />;
     default:
       return null;
   }

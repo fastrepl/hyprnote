@@ -19,6 +19,7 @@ import {
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
+import UserContext from "@/components/settings/views/user-context";
 import { cn } from "@hypr/ui/lib/utils";
 
 const schema = z.object({
@@ -71,6 +72,8 @@ function Component() {
         return t`License`;
       case "mcp":
         return t`MCP`;
+      case "user-context":
+        return t`User Context`;
       default:
         return tab;
     }
@@ -140,6 +143,7 @@ function Component() {
               {search.tab === "integrations" && <Integrations />}
               {search.tab === "mcp" && <MCP />}
               {search.tab === "billing" && <Billing />}
+              {search.tab === "user-context" && <UserContext />}
             </div>
           </div>
         </div>

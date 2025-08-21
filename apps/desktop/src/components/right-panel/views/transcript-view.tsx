@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
-import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, TextSearchIcon, UploadIcon } from "lucide-react";
+import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, PencilIcon, TextSearchIcon, UploadIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
@@ -123,6 +123,12 @@ export function TranscriptView() {
     }
   }, [sessionId]);
 
+  const handleFocusEditor = useCallback(() => {
+    if (editorRef.current?.editor) {
+      editorRef.current.editor.commands.focus();
+    }
+  }, []);
+
   const handleUpdate = (words: Word2[]) => {
     if (!isLive) {
       dbCommands.getSession({ id: sessionId! }).then((session) => {
@@ -167,6 +173,16 @@ export function TranscriptView() {
               </div>
             )}
             <div className="not-draggable flex items-center ">
+              {showActions && (
+                <Button
+                  className="w-8 h-8"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleFocusEditor}
+                >
+                  <PencilIcon size={12} className="text-neutral-600" />
+                </Button>
+              )}
               {showActions && (
                 <Button
                   className="w-8 h-8"

@@ -68,6 +68,8 @@ struct AudioChannels {
     process_mic_rx: flume::Receiver<Vec<f32>>,
     process_speaker_tx: flume::Sender<Vec<f32>>,
     process_speaker_rx: flume::Receiver<Vec<f32>>,
+    control_tx: flume::Sender<owhisper_interface::ControlMessage>,
+    control_rx: flume::Receiver<owhisper_interface::ControlMessage>,
 }
 
 impl AudioChannels {
@@ -80,6 +82,8 @@ impl AudioChannels {
         let (process_mic_tx, process_mic_rx) = flume::bounded::<Vec<f32>>(CHUNK_BUFFER_SIZE);
         let (process_speaker_tx, process_speaker_rx) =
             flume::bounded::<Vec<f32>>(CHUNK_BUFFER_SIZE);
+
+        let (control_tx, control_rx) = flume::bounded::<owhisper_interface::ControlMessage>(8);
 
         let (save_mic_raw_tx, save_mic_raw_rx) = if cfg!(debug_assertions) {
             let (tx, rx) = flume::bounded::<Vec<f32>>(CHUNK_BUFFER_SIZE);
@@ -110,6 +114,8 @@ impl AudioChannels {
             process_mic_rx,
             process_speaker_tx,
             process_speaker_rx,
+            control_tx,
+            control_rx,
         }
     }
 
@@ -293,12 +299,20 @@ impl Session {
             let save_speaker_raw_tx = channels.save_speaker_raw_tx.clone();
             let process_mic_tx = channels.process_mic_tx.clone();
             let process_speaker_tx = channels.process_speaker_tx.clone();
+            let control_tx = channels.control_tx.clone();
 
             async move {
                 let mut aec = hypr_aec::AEC::new().unwrap();
                 let mut mic_agc = hypr_agc::Agc::default();
                 let mut speaker_agc = hypr_agc::Agc::default();
                 let mut last_broadcast = Instant::now();
+
+                let mut vad = hypr_vad::VadSession::new(hypr_vad::VadConfig {
+                    redemption_time: Duration::from_millis(70),
+                    pre_speech_pad: Duration::from_millis(70),
+                    ..Default::default()
+                })
+                .unwrap();
 
                 loop {
                     let (mut mic_chunk_raw, mut speaker_chunk): (Vec<f32>, Vec<f32>) =
@@ -324,6 +338,21 @@ impl Session {
                         let mut rx = session_state_rx.clone();
                         let _ = rx.changed().await;
                         continue;
+                    }
+                    let mixed: Vec<f32> = mic_chunk
+                        .iter()
+                        .zip(speaker_chunk.iter())
+                        .map(|(mic, speaker)| (mic + speaker).clamp(-1.0, 1.0))
+                        .collect();
+
+                    if let Ok(transitions) = vad.process(&mixed) {
+                        for transition in transitions {
+                            if let hypr_vad::VadTransition::SpeechEnd { .. } = transition {
+                                let _ = control_tx
+                                    .send_async(owhisper_interface::ControlMessage::Finalize)
+                                    .await;
+                            }
+                        }
                     }
 
                     let processed_mic = mic_chunk.clone();
@@ -442,12 +471,18 @@ impl Session {
             .into_stream()
             .map(|v| hypr_audio_utils::f32_to_i16_bytes(v.into_iter()));
 
-        let combined_audio_stream =
-            mic_audio_stream
-                .zip(speaker_audio_stream)
-                .map(|(mic, speaker)| {
-                    owhisper_interface::MixedMessage::Audio((mic.into(), speaker.into()))
-                });
+        let audio_stream = mic_audio_stream
+            .zip(speaker_audio_stream)
+            .map(|(mic, speaker)| {
+                owhisper_interface::MixedMessage::Audio((mic.into(), speaker.into()))
+            });
+
+        let control_stream = channels
+            .control_rx
+            .into_stream()
+            .map(|control| owhisper_interface::MixedMessage::Control(control));
+
+        let combined_audio_stream = futures_util::stream::select(audio_stream, control_stream);
 
         tasks.spawn({
             let app = self.app.clone();

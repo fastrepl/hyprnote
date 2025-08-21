@@ -1,5 +1,5 @@
 import { message } from "@tauri-apps/plugin-dialog";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -56,9 +56,24 @@ export function useChatLogic({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStreamingText, setIsStreamingText] = useState(false);
   const isGeneratingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
+
+  // Reset generation state and abort ongoing streams when session changes
+  useEffect(() => {
+    // Abort any ongoing generation when session changes
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
+    // Reset generation state for new session
+    setIsGenerating(false);
+    setIsStreamingText(false);
+    isGeneratingRef.current = false;
+  }, [sessionId]);
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -266,6 +281,9 @@ export function useChatLogic({
         },
       });
 
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
@@ -295,6 +313,7 @@ export function useChatLogic({
             client.close();
           }
         },
+        abortSignal: abortController.signal,
       });
 
       let aiResponse = "";
@@ -303,6 +322,7 @@ export function useChatLogic({
       let lastChunkType: string | null = null;
 
       for await (const chunk of fullStream) {
+
         if (lastChunkType === "text-delta" && chunk.type !== "text-delta" && chunk.type !== "finish-step") {
           setIsStreamingText(false); // Text streaming has stopped, more content coming
 
@@ -456,10 +476,21 @@ export function useChatLogic({
       setIsGenerating(false);
       setIsStreamingText(false);
       isGeneratingRef.current = false;
+      abortControllerRef.current = null; // Clear the abort controller on successful completion
     } catch (error) {
-      console.error("AI error:", error);
 
-      const errorMsg = (error as any)?.error || "Unknown error";
+      console.error(error);
+
+      let errorMsg = "Unknown error";
+      if (typeof error === 'string') {
+        errorMsg = error;
+      } else if (error instanceof Error) {
+        errorMsg = error.message || error.name || "Unknown error";
+      } else if ((error as any)?.error) {
+        errorMsg = (error as any).error;
+      } else if ((error as any)?.message) {
+        errorMsg = (error as any).message;
+      }
 
       let finalErrorMesage = "";
 
@@ -467,13 +498,17 @@ export function useChatLogic({
         finalErrorMesage =
           "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
           + "\n\n" + errorMsg;
-      } else {
+      } else if (String(errorMsg).includes("Request cancelled") || String(errorMsg).includes("Request canceled")) {
+        finalErrorMesage = "Request was cancelled mid-stream. Try again with a different message.";
+      }
+      else {
         finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
       }
 
       setIsGenerating(false);
       setIsStreamingText(false);
       isGeneratingRef.current = false;
+      abortControllerRef.current = null; // Clear the abort controller on error
 
       // Create error message
       const errorMessage: Message = {
@@ -516,6 +551,13 @@ export function useChatLogic({
     }
   };
 
+  const handleStop = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   return {
     isGenerating,
     isStreamingText,
@@ -523,5 +565,6 @@ export function useChatLogic({
     handleQuickAction,
     handleApplyMarkdown,
     handleKeyDown,
+    handleStop,
   };
 }

@@ -64,6 +64,7 @@ export function ChatView() {
     handleQuickAction,
     handleApplyMarkdown,
     handleKeyDown,
+    handleStop,
   } = useChatLogic({
     sessionId,
     userId,
@@ -186,6 +187,7 @@ export function ChatView() {
         entityType={activeEntity?.type}
         onNoteBadgeClick={handleNoteBadgeClick}
         isGenerating={isGenerating}
+        onStop={handleStop}
       />
     </div>
   );

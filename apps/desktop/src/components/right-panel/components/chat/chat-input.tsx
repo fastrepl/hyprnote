@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
+import { ArrowUpIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
@@ -21,6 +21,7 @@ interface ChatInputProps {
   entityType?: BadgeType;
   onNoteBadgeClick?: () => void;
   isGenerating?: boolean;
+  onStop?: () => void;
 }
 
 export function ChatInput(
@@ -34,6 +35,7 @@ export function ChatInput(
     entityType = "note",
     onNoteBadgeClick,
     isGenerating = false,
+    onStop,
   }: ChatInputProps,
 ) {
   const { userId } = useHypr();
@@ -383,10 +385,18 @@ export function ChatInput(
 
         <Button
           size="icon"
-          onClick={handleSubmit}
-          disabled={!inputValue.trim() || isGenerating}
+          onClick={isGenerating ? onStop : handleSubmit}
+          disabled={isGenerating ? false : (!inputValue.trim())}
         >
-          <ArrowUpIcon className="h-4 w-4" />
+          {isGenerating ? (
+            <Square 
+              className="h-4 w-4" 
+              fill="currentColor" 
+              strokeWidth={0}
+            />
+          ) : (
+            <ArrowUpIcon className="h-4 w-4" />
+          )}
         </Button>
       </div>
     </div>

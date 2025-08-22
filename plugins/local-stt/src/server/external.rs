@@ -68,6 +68,8 @@ pub async fn run_server(
     let client = hypr_am::Client::new(&base_url);
 
     tokio::spawn(async move {
+        let mut process_ended = false;
+
         loop {
             tokio::select! {
                 _ = shutdown_rx.changed() => {
@@ -93,10 +95,8 @@ pub async fn run_server(
                             }
                         }
                         Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
-                            // Only log error if it's not a normal exit (code 0)
-                            if payload.code != Some(0) {
-                                tracing::error!("Server process terminated unexpectedly: {:?}", payload);
-                            }
+                            tracing::error!("terminated: {:?}", payload);
+                            process_ended = true;
                             break;
                         }
                         Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
@@ -105,6 +105,7 @@ pub async fn run_server(
                         }
                         None => {
                             tracing::warn!("closed");
+                            process_ended = true;
                             break;
                         }
                         _ => {}
@@ -113,8 +114,10 @@ pub async fn run_server(
             }
         }
 
-        if let Err(e) = child.kill() {
-            tracing::error!("{:?}", e);
+        if !process_ended {
+            if let Err(e) = child.kill() {
+                tracing::error!("{:?}", e);
+            }
         }
     });
 

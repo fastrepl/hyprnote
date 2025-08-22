@@ -1,15 +1,14 @@
 import "../styles/transcript.css";
 
-import { SearchAndReplace } from "@sereneinserenade/tiptap-search-and-replace";
 import { type Editor as TiptapEditor } from "@tiptap/core";
-import BubbleMenu from "@tiptap/extension-bubble-menu";
 import Document from "@tiptap/extension-document";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
-import { SpeakerSplit } from "./extensions";
+import { SearchAndReplace } from "./extensions/search-and-replace";
+import { SpeakerSplit } from "./extensions/speaker";
 import { InterimMark } from "./marks";
 import { SpeakerNode } from "./nodes";
 import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word2 } from "./utils";
@@ -60,7 +59,6 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
         searchResultClass: "search-result",
         disableRegex: true,
       }),
-      BubbleMenu,
     ];
 
     const editor = useEditor({

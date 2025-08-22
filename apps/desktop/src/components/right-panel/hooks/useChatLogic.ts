@@ -1,9 +1,7 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { message } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-
-
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -11,6 +9,7 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { fetch as tauriFetch } from "@hypr/utils";
 import {
   dynamicTool,
   experimental_createMCPClient,
@@ -21,12 +20,11 @@ import {
 } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
+import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { prepareMessageHistory } from "../utils/chat-utils";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
-import { getLicenseKey } from "tauri-plugin-keygen-api";
-import { fetch as tauriFetch } from "@hypr/utils"
 import { buildVercelToolsFromMcp } from "../utils/mcp-http-wrapper";
 
 interface UseChatLogicProps {
@@ -193,7 +191,7 @@ export function useChatLogic({
         const mcpServers = await mcpCommands.getServers();
         const enabledSevers = mcpServers.filter((server) => server.enabled);
 
-        if(apiBase?.includes("pro.hyprnote.com") && getLicense.data?.valid) {
+        if (apiBase?.includes("pro.hyprnote.com") && getLicense.data?.valid) {
           try {
             const licenseKey = await getLicenseKey();
 
@@ -202,13 +200,12 @@ export function useChatLogic({
               {
                 fetch: tauriFetch,
                 requestInit: {
-                  
                   headers: {
-                    "x-hyprnote-license-key": licenseKey || '',
+                    "x-hyprnote-license-key": licenseKey || "",
                   },
                 },
-              }
-            )
+              },
+            );
             hyprMcpClient = new Client({
               name: "hyprmcp",
               version: "0.1.0",
@@ -217,7 +214,6 @@ export function useChatLogic({
             await hyprMcpClient.connect(transport);
 
             hyprMcpTools = await buildVercelToolsFromMcp(hyprMcpClient);
-          
           } catch (error) {
             console.error("Error creating and adding hyprmcp client:", error);
           }
@@ -246,7 +242,6 @@ export function useChatLogic({
 
             const tools = await mcpClient.tools();
             for (const [toolName, tool] of Object.entries(tools as Record<string, any>)) {
-
               newMcpTools[toolName] = dynamicTool({
                 description: tool.description,
                 inputSchema: tool.inputSchema || z.any(),
@@ -258,8 +253,7 @@ export function useChatLogic({
           }
         }
 
-
-       mcpToolsArray = Object.keys(newMcpTools).length > 0 
+        mcpToolsArray = Object.keys(newMcpTools).length > 0
           ? Object.entries(newMcpTools).map(([name, tool]) => ({
             name,
             description: tool.description || `Tool: ${name}`,
@@ -267,12 +261,12 @@ export function useChatLogic({
           }))
           : [];
 
-        for(const [toolKey, tool] of Object.entries(hyprMcpTools)) {
+        for (const [toolKey, tool] of Object.entries(hyprMcpTools)) {
           mcpToolsArray.push({
             name: toolKey,
             description: tool.description || `Tool: ${tool.name}`,
             inputSchema: tool.inputSchema || "No input schema provided",
-          })
+          });
         }
       }
 
@@ -361,7 +355,7 @@ export function useChatLogic({
           for (const client of allMcpClients) {
             client.close();
           }
-          //close hyprmcp client 
+          // close hyprmcp client
           hyprMcpClient?.close();
         },
         abortSignal: abortController.signal,

@@ -1,7 +1,6 @@
-import { Client } from '@modelcontextprotocol/sdk/client';
-import { dynamicTool, jsonSchema } from '@hypr/utils/ai'; 
-import { z } from 'zod'; 
-
+import { dynamicTool, jsonSchema } from "@hypr/utils/ai";
+import { Client } from "@modelcontextprotocol/sdk/client";
+import { z } from "zod";
 
 export async function buildVercelToolsFromMcp(client: Client) {
   const { tools: mcpTools } = await client.listTools();
@@ -9,10 +8,9 @@ export async function buildVercelToolsFromMcp(client: Client) {
   const vercelTools: Record<string, ReturnType<typeof dynamicTool>> = {};
 
   for (const mcpTool of mcpTools) {
-    const schema =
-      mcpTool.inputSchema
-        ? jsonSchema(mcpTool.inputSchema as any)
-        : z.any();
+    const schema = mcpTool.inputSchema
+      ? jsonSchema(mcpTool.inputSchema as any)
+      : z.any();
 
     vercelTools[mcpTool.name] = dynamicTool({
       description: mcpTool.description || (mcpTool as any).title || `Tool: ${mcpTool.name}`,

@@ -10,12 +10,12 @@ export {
   experimental_createMCPClient,
   generateObject,
   generateText,
+  jsonSchema,
   type Provider,
   smoothStream,
   stepCountIs,
   streamText,
   tool,
-  jsonSchema,
 } from "ai";
 
 export const localProviderName = "hypr-llm-local";

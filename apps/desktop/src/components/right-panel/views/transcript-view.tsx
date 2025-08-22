@@ -1,7 +1,15 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
-import { AudioLinesIcon, CheckIcon, ClipboardIcon, CopyIcon, PencilIcon, TextSearchIcon, UploadIcon } from "lucide-react";
+import {
+  AudioLinesIcon,
+  CheckIcon,
+  ClipboardIcon,
+  CopyIcon,
+  PencilIcon,
+  TextSearchIcon,
+  UploadIcon,
+} from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";

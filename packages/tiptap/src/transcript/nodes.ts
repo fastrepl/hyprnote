@@ -1,6 +1,6 @@
 import { type CommandProps, mergeAttributes, Node } from "@tiptap/core";
+import { Node as ProseNode } from "@tiptap/pm/model";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { Node as ProseNode } from "prosemirror-model";
 
 import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
 import { createSpeakerView, SpeakerViewInnerComponent } from "./views";

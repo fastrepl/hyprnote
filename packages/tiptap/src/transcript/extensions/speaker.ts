@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 
 import { SPEAKER_NODE_NAME } from "../nodes";
 

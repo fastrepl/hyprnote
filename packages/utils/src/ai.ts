@@ -15,6 +15,7 @@ export {
   stepCountIs,
   streamText,
   tool,
+  jsonSchema,
 } from "ai";
 
 export const localProviderName = "hypr-llm-local";

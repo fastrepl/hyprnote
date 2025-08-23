@@ -179,7 +179,7 @@ pub async fn main() {
                                 }
                             }
                             deeplink::DeeplinkAction::OpenExternal(url) => {
-                                let _ = app_clone.opener().open_url(url.as_str(), None);
+                                let _ = app_clone.opener().open_url(url.as_str(), None::<String>);
                             }
                         }
                     }

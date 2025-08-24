@@ -417,6 +417,7 @@ export function useChatLogic({
         }
 
         if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+          console.log("tool call: ", chunk.input);
           // Save accumulated AI text before processing tool
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
@@ -445,6 +446,10 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-start",
+            toolDetails: {
+              toolName: chunk.toolName,
+              input: chunk.input,
+            },
           };
           setMessages((prev) => [...prev, toolStartMessage]);
 
@@ -460,6 +465,7 @@ export function useChatLogic({
         }
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+          console.log("tool result: ", chunk.output);
           didInitializeAiResponse = false;
 
           const toolResultMessage: Message = {
@@ -468,6 +474,10 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-result",
+            toolDetails: {
+              toolName: chunk.toolName,
+              output: chunk.output,
+            },
           };
 
           setMessages((prev) => [...prev, toolResultMessage]);

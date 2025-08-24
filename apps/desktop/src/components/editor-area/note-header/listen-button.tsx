@@ -228,7 +228,9 @@ function WhenInactiveAndMeetingEnded(
           : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>{disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}</Trans>
+      <Trans>
+        {disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}
+      </Trans>
     </button>
   );
 }

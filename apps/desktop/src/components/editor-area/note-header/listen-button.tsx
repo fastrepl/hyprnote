@@ -144,13 +144,13 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
         onClick={handleResumeSession}
         className={cn(
           `${
-            isCompact ? "w-12" : "w-16"
+            isCompact ? "w-16" : "w-16"
           } h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium`,
           "bg-red-100 border-2 border-red-400 text-red-600",
           "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         )}
       >
-        <Trans>{isCompact ? "Go" : "Resume"}</Trans>
+        <Trans>{isCompact ? "Resume" : "Resume"}</Trans>
       </button>
     );
   }
@@ -219,7 +219,7 @@ function WhenInactiveAndMeetingEnded(
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         `${
-          isCompact ? "w-12" : "w-16"
+          isCompact ? "w-16" : "w-16"
         } h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium`,
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
@@ -228,7 +228,7 @@ function WhenInactiveAndMeetingEnded(
           : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>{disabled ? "Wait..." : isHovered ? (isCompact ? "Go" : "Resume") : (isCompact ? "End" : "Ended")}</Trans>
+      <Trans>{disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}</Trans>
     </button>
   );
 }

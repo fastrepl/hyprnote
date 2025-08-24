@@ -81,11 +81,12 @@ async function generateTitleDirect(
 
         for (const tagName of suggestedTags.slice(0, 2)) {
           try {
-            const existingTag = existingTagsMap.get(tagName.toLowerCase());
+            const cleanedTagName = tagName.startsWith('@') ? tagName.slice(1) : tagName;
+            const existingTag = existingTagsMap.get(cleanedTagName.toLowerCase());
 
             const tag = await dbCommands.upsertTag({
               id: existingTag?.id || crypto.randomUUID(),
-              name: tagName,
+              name: cleanedTagName,
             });
 
             await dbCommands.assignTagToSession(tag.id, targetSessionId);

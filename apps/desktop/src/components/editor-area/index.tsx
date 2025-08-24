@@ -81,7 +81,7 @@ async function generateTitleDirect(
 
         for (const tagName of suggestedTags.slice(0, 2)) {
           try {
-            const cleanedTagName = tagName.startsWith('@') ? tagName.slice(1) : tagName;
+            const cleanedTagName = tagName.startsWith("@") ? tagName.slice(1) : tagName;
             const existingTag = existingTagsMap.get(cleanedTagName.toLowerCase());
 
             const tag = await dbCommands.upsertTag({

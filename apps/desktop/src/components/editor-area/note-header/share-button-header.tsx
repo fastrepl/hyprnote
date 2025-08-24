@@ -23,8 +23,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSession } from "@hypr/utils/contexts";
 import { exportToPDF, getAvailableThemes, type ThemeName } from "../../toolbar/utils/pdf-export";
 
-
-
 interface DirectAction {
   id: "copy";
   title: string;
@@ -350,7 +348,7 @@ export function useShareLogic() {
   const [selectedPdfTheme, setSelectedPdfTheme] = useState<ThemeName>("default");
   const [includeTranscript, setIncludeTranscript] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  
+
   // Determine what content is available and what to share
   const hasEnhancedNote = !!session?.enhanced_memo_html;
   const hasRawNote = !!session?.raw_memo_html;

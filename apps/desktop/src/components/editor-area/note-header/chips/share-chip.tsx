@@ -53,7 +53,8 @@ function SharePlaceholderContent() {
           No Content Available
         </h3>
         <p className="text-xs text-neutral-500 leading-relaxed">
-          Start taking notes or record a meeting to have content available for sharing via PDF, email, Obsidian, and more.
+          Start taking notes or record a meeting to have content available for sharing via PDF, email, Obsidian, and
+          more.
         </p>
       </div>
     </div>

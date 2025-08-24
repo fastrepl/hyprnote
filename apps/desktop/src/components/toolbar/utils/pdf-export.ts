@@ -448,7 +448,7 @@ export const exportToPDF = async (
   } else {
     contentHtml = "No content available";
   }
-  
+
   const segments = htmlToStructuredText(contentHtml);
 
   for (const segment of segments) {

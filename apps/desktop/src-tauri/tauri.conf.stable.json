@@ -12,6 +12,9 @@
     }
   },
   "bundle": {
+    "resources": {
+      "dlls/*": "./"
+    },
     "windows": {
       "nsis": {
         "installerHooks": "./windows/hooks.nsh"

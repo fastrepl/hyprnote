@@ -27,4 +27,8 @@
   ${EndIf}
 
   vcredist_done:
+  
+  ; Set ORT_DYLIB_PATH environment variable for the application
+  WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "ORT_DYLIB_PATH" "$INSTDIR\onnxruntime.dll"
+  
 !macroend

@@ -49,6 +49,17 @@ export function TextSelectionPopover(
       }
 
       const range = sel.getRangeAt(0);
+      const commonAncestor = range.commonAncestorContainer;
+      const container = commonAncestor.nodeType === Node.TEXT_NODE 
+        ? commonAncestor.parentElement 
+        : commonAncestor as Element;
+
+      // block popover in transcript area
+      if (container?.closest('.tiptap-transcript')) {
+        setSelection(null);
+        return;
+      }
+
       const rect = range.getBoundingClientRect();
 
       const selectedText = sel.toString().trim();

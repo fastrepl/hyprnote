@@ -9,11 +9,11 @@ interface ShareChipProps {
 
 export function ShareChip({ isVeryNarrow = false }: ShareChipProps) {
   const [open, setOpen] = useState(false);
-  const { hasEnhancedNote, handleOpenStateChange } = useShareLogic();
+  const { hasShareableNote, shareTitle, handleOpenStateChange } = useShareLogic();
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (hasEnhancedNote) {
+    if (hasShareableNote) {
       handleOpenStateChange(newOpen);
     }
   };
@@ -35,7 +35,7 @@ export function ShareChip({ isVeryNarrow = false }: ShareChipProps) {
         align="start"
         sideOffset={7}
       >
-        {hasEnhancedNote ? <SharePopoverContent /> : <SharePlaceholderContent />}
+        {hasShareableNote ? <SharePopoverContent shareTitle={shareTitle} /> : <SharePlaceholderContent />}
       </PopoverContent>
     </Popover>
   );
@@ -44,16 +44,16 @@ export function ShareChip({ isVeryNarrow = false }: ShareChipProps) {
 function SharePlaceholderContent() {
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-sm font-medium text-neutral-700">Share Enhanced Note</div>
+      <div className="text-sm font-medium text-neutral-700">Share Note</div>
       <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
         <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
           <TextSelect size={24} className="text-neutral-400" />
         </div>
         <h3 className="text-sm font-medium text-neutral-900 mb-2">
-          Enhanced Note Required
+          No Content Available
         </h3>
         <p className="text-xs text-neutral-500 leading-relaxed">
-          Complete your meeting to generate an enhanced note, then share it via PDF, email, Obsidian, and more.
+          Start taking notes or record a meeting to have content available for sharing via PDF, email, Obsidian, and more.
         </p>
       </div>
     </div>

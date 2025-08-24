@@ -308,6 +308,7 @@ const drawVectorBullet = (
 export const exportToPDF = async (
   session: SessionData,
   themeName: ThemeName = "default",
+  isViewingRaw: boolean = false,
 ): Promise<string> => {
   const { participants, event } = await fetchSessionMetadata(session.id);
 
@@ -437,7 +438,18 @@ export const exportToPDF = async (
   pdf.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += lineHeight;
 
-  const segments = htmlToStructuredText(session?.enhanced_memo_html || "No content available");
+  let contentHtml = "";
+  if (isViewingRaw && session?.raw_memo_html) {
+    contentHtml = session.raw_memo_html;
+  } else if (!isViewingRaw && session?.enhanced_memo_html) {
+    contentHtml = session.enhanced_memo_html;
+  } else if (session?.raw_memo_html) {
+    contentHtml = session.raw_memo_html;
+  } else {
+    contentHtml = "No content available";
+  }
+  
+  const segments = htmlToStructuredText(contentHtml);
 
   for (const segment of segments) {
     if (yPosition > pageHeight - margin) {

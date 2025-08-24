@@ -23,6 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSession } from "@hypr/utils/contexts";
 import { exportToPDF, getAvailableThemes, type ThemeName } from "../../toolbar/utils/pdf-export";
 
+
+
 interface DirectAction {
   id: "copy";
   title: string;
@@ -51,11 +53,13 @@ interface ObsidianFolder {
 }
 
 const exportHandlers = {
-  copy: async (session: Session): Promise<ExportResult> => {
+  copy: async (session: Session, isViewingRaw: boolean = false): Promise<ExportResult> => {
     try {
       let textToCopy = "";
 
-      if (session.enhanced_memo_html) {
+      if (isViewingRaw && session.raw_memo_html) {
+        textToCopy = html2md(session.raw_memo_html);
+      } else if (!isViewingRaw && session.enhanced_memo_html) {
         textToCopy = html2md(session.enhanced_memo_html);
       } else if (session.raw_memo_html) {
         textToCopy = html2md(session.raw_memo_html);
@@ -71,8 +75,8 @@ const exportHandlers = {
     }
   },
 
-  pdf: async (session: Session, theme: ThemeName = "default"): Promise<ExportResult> => {
-    const path = await exportToPDF(session, theme);
+  pdf: async (session: Session, theme: ThemeName = "default", isViewingRaw: boolean = false): Promise<ExportResult> => {
+    const path = await exportToPDF(session, theme, isViewingRaw);
     if (path) {
       await message(`Meeting summary saved to your 'Downloads' folder ("${path}")`);
     }
@@ -82,10 +86,13 @@ const exportHandlers = {
   email: async (
     session: Session,
     sessionParticipants?: Array<{ full_name: string | null; email: string | null }>,
+    isViewingRaw: boolean = false,
   ): Promise<ExportResult> => {
     let bodyContent = "Here is the meeting summary: \n\n";
 
-    if (session.enhanced_memo_html) {
+    if (isViewingRaw && session.raw_memo_html) {
+      bodyContent += html2md(session.raw_memo_html);
+    } else if (!isViewingRaw && session.enhanced_memo_html) {
       bodyContent += html2md(session.enhanced_memo_html);
     } else if (session.raw_memo_html) {
       bodyContent += html2md(session.raw_memo_html);
@@ -126,6 +133,7 @@ const exportHandlers = {
     sessionTags: Tag[] | undefined,
     sessionParticipants: Array<{ full_name: string | null }> | undefined,
     includeTranscript: boolean = false,
+    isViewingRaw: boolean = false,
   ): Promise<ExportResult> => {
     const [baseFolder, apiKey, baseUrl] = await Promise.all([
       obsidianCommands.getBaseFolder(),
@@ -148,7 +156,14 @@ const exportHandlers = {
       finalPath = await join(selectedFolder, filename);
     }
 
-    let convertedMarkdown = session.enhanced_memo_html ? html2md(session.enhanced_memo_html) : "";
+    let convertedMarkdown = "";
+    if (isViewingRaw && session.raw_memo_html) {
+      convertedMarkdown = html2md(session.raw_memo_html);
+    } else if (!isViewingRaw && session.enhanced_memo_html) {
+      convertedMarkdown = html2md(session.enhanced_memo_html);
+    } else if (session.raw_memo_html) {
+      convertedMarkdown = html2md(session.raw_memo_html);
+    }
 
     // Add transcript if requested
     if (includeTranscript && session.words && session.words.length > 0) {
@@ -328,13 +343,20 @@ export function useShareLogic() {
   const { userId } = useHypr();
   const param = useParams({ from: "/app/note/$id", shouldThrow: true });
   const session = useSession(param.id, (s) => s.session);
+  const showRaw = useSession(param.id, (s) => s.showRaw);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
   const [selectedPdfTheme, setSelectedPdfTheme] = useState<ThemeName>("default");
   const [includeTranscript, setIncludeTranscript] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  
+  // Determine what content is available and what to share
   const hasEnhancedNote = !!session?.enhanced_memo_html;
+  const hasRawNote = !!session?.raw_memo_html;
+  const hasShareableNote = hasEnhancedNote || hasRawNote;
+  const isViewingRaw = showRaw || !hasEnhancedNote;
+  const shareTitle = isViewingRaw ? "Share Raw Note" : "Share Enhanced Note";
 
   const isObsidianConfigured = useQuery({
     queryKey: ["integration", "obsidian", "enabled"],
@@ -431,17 +453,17 @@ export function useShareLogic() {
       let result: ExportResult | null = null;
 
       if (optionId === "copy") {
-        result = await exportHandlers.copy(session);
+        result = await exportHandlers.copy(session, isViewingRaw);
       } else if (optionId === "pdf") {
-        result = await exportHandlers.pdf(session, selectedPdfTheme);
+        result = await exportHandlers.pdf(session, selectedPdfTheme, isViewingRaw);
       } else if (optionId === "email") {
         try {
           // fetch participants directly, bypassing cache
           const freshParticipants = await dbCommands.sessionListParticipants(param.id);
-          result = await exportHandlers.email(session, freshParticipants);
+          result = await exportHandlers.email(session, freshParticipants, isViewingRaw);
         } catch (participantError) {
           console.warn("Failed to fetch participants, sending email without them:", participantError);
-          result = await exportHandlers.email(session, undefined);
+          result = await exportHandlers.email(session, undefined, isViewingRaw);
         }
       } else if (optionId === "obsidian") {
         sessionTags.refetch();
@@ -466,6 +488,7 @@ export function useShareLogic() {
           sessionTagsData,
           sessionParticipantsData,
           includeTranscript,
+          isViewingRaw,
         );
       }
 
@@ -531,6 +554,9 @@ export function useShareLogic() {
   return {
     session,
     hasEnhancedNote,
+    hasShareableNote,
+    shareTitle,
+    isViewingRaw,
     expandedId,
     selectedObsidianFolder,
     setSelectedObsidianFolder,
@@ -552,8 +578,9 @@ export function useShareLogic() {
 }
 
 // Reusable Share Content Component
-export function SharePopoverContent() {
+export function SharePopoverContent({ shareTitle: propShareTitle }: { shareTitle?: string }) {
   const {
+    shareTitle,
     expandedId,
     selectedObsidianFolder,
     setSelectedObsidianFolder,
@@ -572,7 +599,7 @@ export function SharePopoverContent() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-sm font-medium text-neutral-700">Share Enhanced Note</div>
+      <div className="text-sm font-medium text-neutral-700">{propShareTitle || shareTitle}</div>
       <div className="flex flex-col gap-2">
         {/* Direct action buttons */}
         {directActions.map((action) => {

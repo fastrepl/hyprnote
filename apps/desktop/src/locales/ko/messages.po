@@ -266,11 +266,11 @@ msgstr ""
 
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
-#. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Go" : "Resume") : (isCompact ? "End" : "Ended")
+#. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
 #: src/components/editor-area/note-header/listen-button.tsx:153
 #: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/editor-area/note-header/listen-button.tsx:253
-#: src/components/editor-area/note-header/listen-button.tsx:273
+#: src/components/editor-area/note-header/listen-button.tsx:255
+#: src/components/editor-area/note-header/listen-button.tsx:275
 #: src/components/settings/views/templates.tsx:217
 msgid "{0}"
 msgstr ""
@@ -440,7 +440,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:702
+#: src/components/settings/views/ai-llm.tsx:704
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -618,7 +618,7 @@ msgstr ""
 #~ msgid "Control how autonomous the AI enhancement should be"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:723
+#: src/components/settings/views/ai-llm.tsx:725
 msgid "Control how autonomous the AI enhancement should be."
 msgstr ""
 
@@ -659,7 +659,7 @@ msgstr ""
 #~ msgid "Current Plan"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:671
+#: src/components/settings/views/ai-llm.tsx:673
 #: src/components/settings/views/ai-stt.tsx:66
 msgid "Custom"
 msgstr ""
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Custom Vocabulary"
 msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:668
+#: src/components/settings/views/ai-llm.tsx:670
 #: src/components/settings/views/ai-stt.tsx:63
 msgid "Default"
 msgstr ""
@@ -957,7 +957,7 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:716
+#: src/components/settings/views/ai-llm.tsx:718
 msgid "Learn more about AI autonomy"
 msgstr ""
 
@@ -1139,7 +1139,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:528
+#: src/components/editor-area/note-header/listen-button.tsx:530
 msgid "No Template (Default)"
 msgstr ""
 
@@ -1171,7 +1171,7 @@ msgstr ""
 msgid "Official Templates"
 msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:722
+#: src/components/settings/views/ai-llm.tsx:724
 msgid "Only works with Custom Endpoints. Please configure one of the above first."
 msgstr ""
 
@@ -1223,7 +1223,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:374
+#: src/components/editor-area/note-header/listen-button.tsx:376
 msgid "Pause"
 msgstr ""
 
@@ -1319,7 +1319,7 @@ msgstr ""
 #~ msgid "Save and close"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:498
+#: src/components/editor-area/note-header/listen-button.tsx:500
 msgid "Save current recording"
 msgstr ""
 
@@ -1464,7 +1464,7 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:475
+#: src/components/editor-area/note-header/listen-button.tsx:477
 msgid "Stop"
 msgstr ""
 
@@ -1513,7 +1513,7 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:519
+#: src/components/editor-area/note-header/listen-button.tsx:521
 msgid "Template"
 msgstr ""
 

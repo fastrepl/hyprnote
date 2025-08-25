@@ -67,16 +67,17 @@ function SearchableModelSelect({ models, value, placeholder, onValueChange }: Se
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-label={value ? `Selected model: ${value}` : placeholder}
           className="w-full justify-between"
         >
           {value || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent className="w-[var(--radix-popper-anchor-width)] p-0">
         <Command>
           <CommandInput placeholder={`Search ${models.length} models...`} />
-          <CommandEmpty>No model found.</CommandEmpty>
+          <CommandEmpty><Trans>No model found.</Trans></CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
             {models.map((model) => (
               <CommandItem

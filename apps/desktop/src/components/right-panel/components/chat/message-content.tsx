@@ -212,30 +212,20 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
           padding: "12px 16px",
         }}
       >
-        <Accordion type="single" collapsible className="border-none">
-          <AccordionItem value="tool-result-details" className="border-none">
-            <AccordionTrigger className="hover:no-underline p-0 h-auto [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-gray-400">
-              <div
-                style={{
-                  color: "rgb(115 115 115)",
-                  fontSize: "0.875rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  width: "100%",
-                }}
-              >
-                <PencilRuler size={16} color="rgb(115 115 115)" />
-                <span style={{ fontWeight: "400", flex: 1, textAlign: "left" }}>
-                  {message.content}
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-3 pb-0">
-              <ToolDetailsRenderer details={message.toolDetails?.output} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        <div
+          style={{
+            color: "rgb(115 115 115)",
+            fontSize: "0.875rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <PencilRuler size={16} color="rgb(115 115 115)" />
+          <span style={{ fontWeight: "400" }}>
+            {message.content}
+          </span>
+        </div>
       </div>
     );
   }

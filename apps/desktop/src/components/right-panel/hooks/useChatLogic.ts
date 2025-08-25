@@ -474,10 +474,6 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-result",
-            toolDetails: {
-              toolName: chunk.toolName,
-              output: chunk.output,
-            },
           };
 
           setMessages((prev) => [...prev, toolResultMessage]);

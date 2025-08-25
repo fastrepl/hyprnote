@@ -34,17 +34,17 @@ function ToolDetailsRenderer({ details }: { details: any }) {
       style={{
         paddingLeft: "24px",
         fontSize: "0.75rem",
-        color: "rgb(75 85 99)", // text-gray-600
+        color: "rgb(75 85 99)",
       }}
     >
       <pre
         style={{
-          backgroundColor: "transparent", // bg-gray-50
-          border: "none", // border-gray-200
+          backgroundColor: "transparent",
+          border: "none",
           borderRadius: "6px",
           padding: "8px 12px",
           margin: 0,
-          fontSize: "0.6875rem", // text-xs
+          fontSize: "0.6875rem",
           fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
@@ -171,11 +171,9 @@ function MarkdownText({ content }: { content: string }) {
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
   if (message.type === "tool-start") {
-    // Check if we have tool details to show
     const hasToolDetails = message.toolDetails;
 
     if (hasToolDetails) {
-      // Show accordion with details
       return (
         <div
           style={{
@@ -212,7 +210,6 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
         </div>
       );
     } else {
-      // Show simple static message (no accordion)
       return (
         <div
           style={{

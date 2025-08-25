@@ -479,7 +479,6 @@ export function useEnhanceMutation({
 
       const isHyprCloud = connection.api_base.includes("pro.hyprnote.com");
 
-
       if (sessionId !== onboardingSessionId) {
         analyticsCommands.event({
           event: "normal_enhance_start",

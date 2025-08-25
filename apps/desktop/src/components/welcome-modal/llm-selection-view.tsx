@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { Network, ShieldIcon } from "lucide-react";
+import { ShieldIcon, Unplug } from "lucide-react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
@@ -30,7 +30,7 @@ export function LLMSelectionView({ onContinue }: LLMSelectionViewProps) {
       id: "byom",
       title: "Bring Your Own Model",
       subtitle: "Connect custom APIs, from public providers to private servers",
-      icon: Network,
+      icon: Unplug,
     },
   ] as const;
 

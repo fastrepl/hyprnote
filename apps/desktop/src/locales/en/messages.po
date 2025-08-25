@@ -558,8 +558,8 @@ msgid "Complete the configuration to continue"
 msgstr "Complete the configuration to continue"
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:214
-msgid "Configure Your LLM"
-msgstr "Configure Your LLM"
+#~ msgid "Configure Your LLM"
+#~ msgstr "Configure Your LLM"
 
 #: src/components/settings/components/calendar/cloud-calendar-integration-details.tsx:63
 #~ msgid "Connect"
@@ -1411,6 +1411,10 @@ msgstr "Select Your Languages"
 #: src/components/settings/views/team.tsx:240
 msgid "Send invite"
 msgstr "Send invite"
+
+#: src/components/welcome-modal/custom-endpoint-view.tsx:214
+msgid "Set up Your AI Provider"
+msgstr "Set up Your AI Provider"
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:101
 msgid "Settings"

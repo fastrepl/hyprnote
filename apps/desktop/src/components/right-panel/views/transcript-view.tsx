@@ -9,14 +9,11 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
-  HeadphonesIcon,
-  MicIcon,
   PencilIcon,
   TextSearchIcon,
   UploadIcon,
-  UserCircleIcon,
 } from "lucide-react";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
@@ -68,24 +65,6 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const speakerChunks = useMemo(() => {
-    return words.reduce((acc, word) => {
-      const currentSpeaker = word.speaker?.type === "unassigned"
-        ? word.speaker.value.index
-        : word.speaker?.type === "assigned"
-        ? word.speaker.value.id
-        : null;
-      const lastChunk = acc[acc.length - 1];
-
-      if (acc.length === 0 || lastChunk.speaker !== currentSpeaker) {
-        acc.push({ speaker: currentSpeaker, words: [word] });
-      } else {
-        lastChunk.words.push(word);
-      }
-      return acc;
-    }, [] as { speaker: number | string | null; words: Word2[] }[]);
-  }, [words]);
-
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) {
@@ -123,7 +102,12 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
         className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4 absolute inset-0"
         onScroll={handleScroll}
       >
-        {speakerChunks.map((chunk, index) => (
+        <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
+          {words.map(word => word.text).join(" ")}
+        </div>
+
+        {
+          /* {speakerChunks.map((chunk, index) => (
           <div key={index} className="space-y-1">
             <div className="inline-flex items-center bg-white border border-gray-200 rounded-lg px-1 py-1">
               <span className="text-gray-600 flex-shrink-0">
@@ -143,7 +127,8 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
               {chunk.words.map(word => word.text).join(" ")}
             </div>
           </div>
-        ))}
+        ))} */
+        }
       </div>
 
       {!isAtBottom && (

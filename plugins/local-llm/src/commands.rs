@@ -19,12 +19,6 @@ pub async fn list_supported_model() -> Result<Vec<ModelInfo>, String> {
             size_bytes: SupportedModel::HyprLLM.model_size(),
         },
         ModelInfo {
-            key: SupportedModel::HyprLLMv2,
-            name: "HyprLLM v2".to_string(),
-            description: "Experimental model trained by the Hyprnote team.".to_string(),
-            size_bytes: SupportedModel::HyprLLMv2.model_size(),
-        },
-        ModelInfo {
             key: SupportedModel::Gemma3_4bQ4,
             name: "Gemma 3 4B Q4".to_string(),
             description: "General purpose model. Heavier than HyprLLM.".to_string(),

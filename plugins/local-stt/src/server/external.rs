@@ -62,7 +62,7 @@ pub async fn run_server(
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);
 
-    let _ = tokio::spawn(async move {
+    tokio::spawn(async move {
         let mut process_ended = false;
 
         loop {

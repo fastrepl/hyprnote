@@ -440,7 +440,7 @@ msgstr ""
 #~ msgid "Auto (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:704
+#: src/components/settings/views/ai-llm.tsx:702
 msgid "Autonomy Selector"
 msgstr ""
 
@@ -618,7 +618,7 @@ msgstr ""
 #~ msgid "Control how autonomous the AI enhancement should be"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:725
+#: src/components/settings/views/ai-llm.tsx:723
 msgid "Control how autonomous the AI enhancement should be."
 msgstr ""
 
@@ -659,7 +659,7 @@ msgstr ""
 #~ msgid "Current Plan"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:673
+#: src/components/settings/views/ai-llm.tsx:671
 #: src/components/settings/views/ai-stt.tsx:66
 msgid "Custom"
 msgstr ""
@@ -676,7 +676,7 @@ msgstr ""
 msgid "Custom Vocabulary"
 msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:670
+#: src/components/settings/views/ai-llm.tsx:668
 #: src/components/settings/views/ai-stt.tsx:63
 msgid "Default"
 msgstr ""
@@ -957,7 +957,7 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:718
+#: src/components/settings/views/ai-llm.tsx:716
 msgid "Learn more about AI autonomy"
 msgstr ""
 
@@ -1171,7 +1171,7 @@ msgstr ""
 msgid "Official Templates"
 msgstr ""
 
-#: src/components/settings/views/ai-llm.tsx:724
+#: src/components/settings/views/ai-llm.tsx:722
 msgid "Only works with Custom Endpoints. Please configure one of the above first."
 msgstr ""
 

@@ -166,17 +166,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     return Err(crate::Error::ModelNotDownloaded);
                 }
 
+                if self
+                    .state::<crate::SharedState>()
+                    .lock()
+                    .await
+                    .internal_server
+                    .is_some()
                 {
-                    let state = self.state::<crate::SharedState>();
-                    let mut guard = state.lock().await;
-                    if let Some(server) = &guard.internal_server {
-                        let h = server.health().await;
-                        if !matches!(h, ServerHealth::Unreachable) {
-                            return Ok(server.base_url.clone());
-                        } else {
-                            guard.internal_server = None;
-                        }
-                    }
+                    return Err(crate::Error::ServerAlreadyRunning);
                 }
 
                 let whisper_model = match model {
@@ -204,19 +201,17 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 Ok(base_url)
             }
             ServerType::External => {
+                if self
+                    .state::<crate::SharedState>()
+                    .lock()
+                    .await
+                    .external_server
+                    .is_some()
                 {
-                    let state = self.state::<crate::SharedState>();
-                    let mut guard = state.lock().await;
-                    if let Some(server) = &guard.external_server {
-                        let h = server.health().await;
-                        if !matches!(h, ServerHealth::Unreachable) {
-                            return Ok(server.base_url.clone());
-                        } else {
-                            guard.external_server = None;
-                            crate::kill_processes_by_name("stt-aarch64-apple-darwin");
-                        }
-                    }
+                    return Err(crate::Error::ServerAlreadyRunning);
                 }
+
+                crate::kill_processes_by_name("stt-aarch64-apple-darwin");
 
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,

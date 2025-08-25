@@ -440,7 +440,7 @@ msgstr "Audio Permissions"
 #~ msgid "Auto (Default)"
 #~ msgstr "Auto (Default)"
 
-#: src/components/settings/views/ai-llm.tsx:704
+#: src/components/settings/views/ai-llm.tsx:702
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
@@ -618,7 +618,7 @@ msgstr "Continue"
 #~ msgid "Control how autonomous the AI enhancement should be"
 #~ msgstr "Control how autonomous the AI enhancement should be"
 
-#: src/components/settings/views/ai-llm.tsx:725
+#: src/components/settings/views/ai-llm.tsx:723
 msgid "Control how autonomous the AI enhancement should be."
 msgstr "Control how autonomous the AI enhancement should be."
 
@@ -659,7 +659,7 @@ msgstr "Create your first template to get started"
 #~ msgid "Current Plan"
 #~ msgstr "Current Plan"
 
-#: src/components/settings/views/ai-llm.tsx:673
+#: src/components/settings/views/ai-llm.tsx:671
 #: src/components/settings/views/ai-stt.tsx:66
 msgid "Custom"
 msgstr "Custom"
@@ -676,7 +676,7 @@ msgstr "Custom"
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
-#: src/components/settings/views/ai-llm.tsx:670
+#: src/components/settings/views/ai-llm.tsx:668
 #: src/components/settings/views/ai-stt.tsx:63
 msgid "Default"
 msgstr "Default"
@@ -957,7 +957,7 @@ msgstr "Language for AI-generated summaries"
 #~ msgid "Language Model"
 #~ msgstr "Language Model"
 
-#: src/components/settings/views/ai-llm.tsx:718
+#: src/components/settings/views/ai-llm.tsx:716
 msgid "Learn more about AI autonomy"
 msgstr "Learn more about AI autonomy"
 
@@ -1171,7 +1171,7 @@ msgstr "Obsidian"
 msgid "Official Templates"
 msgstr "Official Templates"
 
-#: src/components/settings/views/ai-llm.tsx:724
+#: src/components/settings/views/ai-llm.tsx:722
 msgid "Only works with Custom Endpoints. Please configure one of the above first."
 msgstr "Only works with Custom Endpoints. Please configure one of the above first."
 

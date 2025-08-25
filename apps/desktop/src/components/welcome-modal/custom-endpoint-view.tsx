@@ -211,7 +211,7 @@ export function CustomEndpointView({
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-xl font-semibold mb-3">
-        <Trans>Configure Your LLM</Trans>
+        <Trans>Set up Your AI Provider</Trans>
       </h2>
 
       <div className="w-full max-w-lg mb-6">

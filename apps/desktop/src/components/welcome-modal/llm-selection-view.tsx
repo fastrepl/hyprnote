@@ -29,7 +29,7 @@ export function LLMSelectionView({ onContinue }: LLMSelectionViewProps) {
     {
       id: "byom",
       title: "Bring Your Own Model",
-      subtitle: "I want first-in-class meeting summarization",
+      subtitle: "Connect custom APIs, from public providers to private servers",
       icon: Network,
     },
   ] as const;

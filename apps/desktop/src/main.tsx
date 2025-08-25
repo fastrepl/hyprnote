@@ -3,9 +3,9 @@ import "./styles/globals.css";
 
 import { i18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/react";
-import { QueryClient, QueryClientProvider, useQueries, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CatchBoundary, createRouter, ErrorComponent, RouterProvider } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 import { recordingStartFailedToast } from "@/components/toast/shared";
@@ -32,8 +32,34 @@ i18n.load({
   ko: koMessages,
 });
 
-// TODO: load language from user settings
-i18n.activate("en");
+// Language initialization component
+function LanguageInitializer({ children }: { children: ReactNode }) {
+  const config = useQuery({
+    queryKey: ["config", "general"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+    retry: 1,
+  });
+
+  useEffect(() => {
+    const displayLanguage = config.data?.general.display_language;
+    if (displayLanguage && (displayLanguage === "en" || displayLanguage === "ko")) {
+      i18n.activate(displayLanguage);
+    } else {
+      // Fallback to English for new users, invalid languages, or if config fails to load
+      i18n.activate("en");
+    }
+  }, [config.data, config.error]);
+
+  // Don't render children until language is initialized
+  if (config.isLoading) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -137,16 +163,18 @@ if (!rootElement.innerHTML) {
       <TooltipProvider delayDuration={700} skipDelayDuration={300}>
         <ThemeProvider defaultTheme="light">
           <QueryClientProvider client={queryClient}>
-            <I18nProvider i18n={i18n}>
-              <App />
-              <Toaster
-                position="bottom-left"
-                expand={true}
-                offset={16}
-                duration={Infinity}
-                swipeDirections={[]}
-              />
-            </I18nProvider>
+            <LanguageInitializer>
+              <I18nProvider i18n={i18n}>
+                <App />
+                <Toaster
+                  position="bottom-left"
+                  expand={true}
+                  offset={16}
+                  duration={Infinity}
+                  swipeDirections={[]}
+                />
+              </I18nProvider>
+            </LanguageInitializer>
           </QueryClientProvider>
         </ThemeProvider>
       </TooltipProvider>

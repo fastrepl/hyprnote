@@ -44,12 +44,28 @@ impl WhisperBuilder {
         };
 
         let model_path = self.model_path.unwrap();
+        log::info!("Loading Whisper model from: {}", model_path);
+        
         if !std::path::Path::new(&model_path).exists() {
+            log::error!("Model file not found: {}", model_path);
             return Err(crate::Error::ModelNotFound);
         }
 
-        let ctx = WhisperContext::new_with_params(&model_path, context_param)?;
-        let state = ctx.create_state()?;
+        log::info!("Model file exists, initializing WhisperContext with GPU={}", context_param.use_gpu);
+        let ctx = WhisperContext::new_with_params(&model_path, context_param)
+            .map_err(|e| {
+                log::error!("Failed to create WhisperContext: {:?}", e);
+                e
+            })?;
+        log::info!("WhisperContext created successfully");
+        
+        log::info!("Creating WhisperState...");
+        let state = ctx.create_state().map_err(|e| {
+            log::error!("Failed to create WhisperState: {:?}", e);
+            e
+        })?;
+        log::info!("WhisperState created successfully");
+        
         let token_beg = ctx.token_beg();
 
         Ok(Whisper {

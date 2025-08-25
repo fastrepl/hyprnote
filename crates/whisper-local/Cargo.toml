@@ -28,6 +28,7 @@ hypr-whisper = { workspace = true }
 
 dasp = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
+log = { workspace = true }
 rodio = { workspace = true }
 whisper-rs = { version = "0.15.0", features = ["raw-api", "tracing_backend"] }
 

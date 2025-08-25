@@ -168,6 +168,10 @@ export function FloatingButton({
     }
   };
 
+  if (ongoingSessionStatus !== "inactive") {
+    return null;
+  }
+
   if (isError) {
     const errorRetryButtonClasses = cn(
       "rounded-xl border",

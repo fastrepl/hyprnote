@@ -166,14 +166,17 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     return Err(crate::Error::ModelNotDownloaded);
                 }
 
-                if self
-                    .state::<crate::SharedState>()
-                    .lock()
-                    .await
-                    .internal_server
-                    .is_some()
                 {
-                    return Err(crate::Error::ServerAlreadyRunning);
+                    let state = self.state::<crate::SharedState>();
+                    let mut guard = state.lock().await;
+                    if let Some(server) = &guard.internal_server {
+                        let h = server.health().await;
+                        if !matches!(h, ServerHealth::Unreachable) {
+                            return Ok(server.base_url.clone());
+                        } else {
+                            guard.internal_server = None;
+                        }
+                    }
                 }
 
                 let whisper_model = match model {
@@ -201,14 +204,18 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 Ok(base_url)
             }
             ServerType::External => {
-                if self
-                    .state::<crate::SharedState>()
-                    .lock()
-                    .await
-                    .external_server
-                    .is_some()
                 {
-                    return Err(crate::Error::ServerAlreadyRunning);
+                    let state = self.state::<crate::SharedState>();
+                    let mut guard = state.lock().await;
+                    if let Some(server) = &guard.external_server {
+                        let h = server.health().await;
+                        if !matches!(h, ServerHealth::Unreachable) {
+                            return Ok(server.base_url.clone());
+                        } else {
+                            guard.external_server = None;
+                            crate::kill_processes_by_name("stt-aarch64-apple-darwin");
+                        }
+                    }
                 }
 
                 let am_model = match model {
@@ -220,8 +227,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 let am_key = {
                     let state = self.state::<crate::SharedState>();
+
                     let key = state.lock().await.am_api_key.clone();
-                    key.clone().ok_or(crate::Error::AmApiKeyNotSet)?
+                    if key.clone().is_none() || key.clone().unwrap().is_empty() {
+                        return Err(crate::Error::AmApiKeyNotSet);
+                    }
+
+                    key.clone().unwrap()
                 };
 
                 let cmd: tauri_plugin_shell::process::Command = {
@@ -274,6 +286,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let mut stopped = false;
         match server_type {
             Some(ServerType::External) => {
+                crate::kill_processes_by_name("stt-aarch64-apple-darwin");
                 if let Some(_) = s.external_server.take() {
                     stopped = true;
                 }
@@ -455,7 +468,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error> {
         let store = self.local_stt_store();
         let model = store.get(crate::StoreKey::DefaultModel)?;
-        Ok(model.unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedBase)))
+        Ok(model.unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedSmall)))
     }
 
     #[tracing::instrument(skip_all)]

@@ -201,7 +201,7 @@ apalis = "0.7.0"
 apalis-cron = "0.7.0"
 apalis-sql = "0.7.0"
 
-specta = "2.0.0-rc.21"
+specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 

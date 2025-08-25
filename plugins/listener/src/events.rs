@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
@@ -16,9 +18,9 @@ common_event_derives! {
         #[serde(rename = "running_paused")]
         RunningPaused {},
         #[serde(rename = "finalWords")]
-        FinalWords { words: Vec<owhisper_interface::Word2>},
+        FinalWords { words: HashMap<usize, Vec<owhisper_interface::Word2>>},
         #[serde(rename = "partialWords")]
-        PartialWords { words: Vec<owhisper_interface::Word2>},
+        PartialWords { words: HashMap<usize, Vec<owhisper_interface::Word2>>},
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
         #[serde(rename = "micMuted")]

@@ -82,6 +82,7 @@ impl ServerHandle {
 }
 
 pub async fn run_server(state: ServerState) -> Result<ServerHandle, crate::Error> {
+    tracing::info!("starting");
     let router = make_service_router(state);
 
     let listener =

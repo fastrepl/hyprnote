@@ -178,7 +178,7 @@ impl LocalProvider {
             .map(hypr_llama::FromOpenAI::from_openai)
             .collect();
 
-        let maybe_grammar = request
+        let grammar = request
             .metadata
             .as_ref()
             .and_then(|v| v.get("grammar"))
@@ -196,24 +196,9 @@ impl LocalProvider {
             })
             .filter(|tools| !tools.is_empty());
 
-        // TODO: this is temporary hack to disable grammar for hypr-llm
-        let grammar = match maybe_grammar {
-            None => None,
-            Some(g) => {
-                if model.name == hypr_llama::ModelName::HyprLLM {
-                    match &g {
-                        hypr_gbnf::Grammar::Enhance { sections: None } => None,
-                        _ => Some(g.build()),
-                    }
-                } else {
-                    Some(g.build())
-                }
-            }
-        };
-
         let request = hypr_llama::LlamaRequest {
             messages,
-            grammar,
+            grammar: grammar.map(|g| g.build()),
             tools,
         };
 

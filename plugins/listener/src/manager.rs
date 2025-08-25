@@ -14,29 +14,42 @@ impl Default for TranscriptManager {
         }
     }
 }
+
 #[derive(Debug, Default, Clone)]
 pub struct Diff {
-    pub partial_words: Vec<owhisper_interface::Word>,
-    pub final_words: Vec<owhisper_interface::Word>,
+    pub partial_words: HashMap<usize, Vec<owhisper_interface::Word>>,
+    pub final_words: HashMap<usize, Vec<owhisper_interface::Word>>,
 }
 
 impl Diff {
     #[allow(dead_code)]
-    pub fn partial_content(&self) -> String {
+    pub fn partial_content(&self) -> HashMap<usize, String> {
         self.partial_words
             .iter()
-            .map(|w| w.word.clone())
-            .collect::<Vec<String>>()
-            .join(" ")
+            .map(|(channel_idx, words)| {
+                let content = words
+                    .iter()
+                    .map(|w| w.word.clone())
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                (*channel_idx, content)
+            })
+            .collect()
     }
 
     #[allow(dead_code)]
-    pub fn final_content(&self) -> String {
+    pub fn final_content(&self) -> HashMap<usize, String> {
         self.final_words
             .iter()
-            .map(|w| w.word.clone())
-            .collect::<Vec<String>>()
-            .join(" ")
+            .map(|(channel_idx, words)| {
+                let content = words
+                    .iter()
+                    .map(|w| w.word.clone())
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                (*channel_idx, content)
+            })
+            .collect()
     }
 }
 
@@ -115,8 +128,8 @@ impl TranscriptManager {
                     .collect::<Vec<_>>();
 
                 return Diff {
-                    final_words: words,
-                    partial_words: self.partial_words(),
+                    final_words: vec![(channel_idx, words)].into_iter().collect(),
+                    partial_words: self.partial_words_by_channel.clone(),
                 };
             } else if data.confidence > 0.6 {
                 let channel_partial_words = self
@@ -139,32 +152,16 @@ impl TranscriptManager {
                 };
 
                 return Diff {
-                    final_words: vec![],
-                    partial_words: self.partial_words(),
+                    final_words: HashMap::new(),
+                    partial_words: self.partial_words_by_channel.clone(),
                 };
             }
         }
 
         Diff {
-            final_words: vec![],
-            partial_words: self.partial_words(),
+            final_words: HashMap::new(),
+            partial_words: self.partial_words_by_channel.clone(),
         }
-    }
-
-    fn partial_words(&self) -> Vec<owhisper_interface::Word> {
-        let mut words = self
-            .partial_words_by_channel
-            .values()
-            .flatten()
-            .cloned()
-            .collect::<Vec<_>>();
-
-        words.sort_by(|a, b| {
-            a.start
-                .partial_cmp(&b.start)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        words
     }
 
     fn log(id: uuid::Uuid, response: &owhisper_interface::StreamResponse) {
@@ -214,7 +211,25 @@ mod tests {
             final_diffs.push(diff.final_content());
         }
 
-        insta::assert_debug_snapshot!(final_diffs.iter().zip(partial_diffs.iter()).map(|(p, f)| format!("{} | {}", p, f)).collect::<Vec<_>>(), @r#"
+        let formatted_diffs: Vec<String> = final_diffs
+            .iter()
+            .zip(partial_diffs.iter())
+            .map(|(final_map, partial_map)| {
+                let final_str = final_map
+                    .values()
+                    .cloned()
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                let partial_str = partial_map
+                    .values()
+                    .cloned()
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                format!("{} | {}", final_str, partial_str)
+            })
+            .collect();
+
+        insta::assert_debug_snapshot!(formatted_diffs, @r#"
         [
             " | I just learned a few",
             "I just | learned a few",

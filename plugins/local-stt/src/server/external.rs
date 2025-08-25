@@ -56,18 +56,13 @@ pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
     am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
-    let port = 50060;
-
-    if port_killer::kill(port).is_ok() {
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-    }
-
+    let port = port_check::free_local_port().unwrap();
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
     let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);
 
-    tokio::spawn(async move {
+    let _ = tokio::spawn(async move {
         let mut process_ended = false;
 
         loop {
@@ -81,7 +76,7 @@ pub async fn run_server(
                         Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                if !text.is_empty() {
+                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
                                     tracing::info!("{}", text);
                                 }
                             }
@@ -89,7 +84,7 @@ pub async fn run_server(
                         Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                if !text.is_empty() {
+                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
                                     tracing::info!("{}", text);
                                 }
                             }

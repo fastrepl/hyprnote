@@ -1,7 +1,7 @@
 use hypr_am::AmModel;
 use hypr_whisper_local_model::WhisperModel;
 
-pub static SUPPORTED_MODELS: [SupportedSttModel; 10] = [
+pub static SUPPORTED_MODELS: [SupportedSttModel; 9] = [
     SupportedSttModel::Whisper(WhisperModel::QuantizedTiny),
     SupportedSttModel::Whisper(WhisperModel::QuantizedTinyEn),
     SupportedSttModel::Whisper(WhisperModel::QuantizedBase),
@@ -11,7 +11,6 @@ pub static SUPPORTED_MODELS: [SupportedSttModel; 10] = [
     SupportedSttModel::Whisper(WhisperModel::QuantizedLargeTurbo),
     SupportedSttModel::Am(AmModel::ParakeetV2),
     SupportedSttModel::Am(AmModel::ParakeetV3),
-    SupportedSttModel::Am(AmModel::WhisperLargeV3),
 ];
 
 #[derive(serde::Serialize, serde::Deserialize, specta::Type)]

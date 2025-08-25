@@ -76,11 +76,11 @@ export function STTViewLocal({
         "QuantizedSmallEn",
         "QuantizedLargeTurbo",
         "am-parakeet-v2",
-        "am-whisper-large-v3",
-      ];
+        "am-parakeet-v3",
+      ] satisfies SupportedSttModel[];
 
       const statusChecks = await Promise.all(
-        models.map(model => localSttCommands.isModelDownloaded(model as SupportedSttModel)),
+        models.map(model => localSttCommands.isModelDownloaded(model)),
       );
 
       return models.reduce((acc, model, index) => ({
@@ -219,7 +219,7 @@ function ProModelsSection({
     queryKey: ["pro-models"],
     queryFn: async () => {
       const models = await localSttCommands.listSupportedModels().then((models) =>
-        models.filter((model) => ["am-whisper-large-v3", "am-parakeet-v2", "am-parakeet-v3"].includes(model.key))
+        models.filter((model) => ["am-parakeet-v2", "am-parakeet-v3"].includes(model.key))
       );
 
       const downloaded = await Promise.all(

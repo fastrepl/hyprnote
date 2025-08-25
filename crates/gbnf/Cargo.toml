@@ -7,9 +7,11 @@ edition = "2021"
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true, features = ["derive"] }
 
-[dev-dependencies]
-gbnf-validator = { workspace = true }
+tracing = { workspace = true }
 
+[dev-dependencies]
 colored = "3"
+gbnf-validator = { workspace = true }
 indoc = { workspace = true }
 insta = { workspace = true }
+serde_json = { workspace = true }

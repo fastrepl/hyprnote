@@ -442,6 +442,36 @@ mod tests {
         }
     }
 
+    // cargo test test_tool -p llama -- --nocapture --ignored
+    #[ignore]
+    #[tokio::test]
+    async fn test_tool() {
+        let llama = get_model();
+        let request = LlamaRequest {
+            grammar: None,
+            messages: vec![LlamaMessage {
+                role: "user".into(),
+                content: "hi".into(),
+            }],
+            tools: Some(vec![async_openai::types::ChatCompletionTool {
+                r#type: async_openai::types::ChatCompletionToolType::Function,
+                function: async_openai::types::FunctionObject {
+                    name: "greet".into(),
+                    description: Some("Greet the user".into()),
+                    strict: None,
+                    parameters: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "name": { "type": "string" },
+                        }
+                    })),
+                },
+            }]),
+        };
+
+        run(&llama, request).await;
+    }
+
     // cargo test test_simple -p llama -- --nocapture --ignored
     #[ignore]
     #[tokio::test]

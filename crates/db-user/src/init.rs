@@ -693,17 +693,10 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
                 )
                 .unwrap(),
             ),
-            words: {
-                let words = serde_json::from_str::<Vec<owhisper_interface::Word2>>(
-                    &hypr_data::english_4::WORDS_JSON,
-                )
-                .unwrap();
-                let mut repeated = Vec::with_capacity(words.len() * 100);
-                for _ in 0..100 {
-                    repeated.extend(words.clone());
-                }
-                repeated
-            },
+            words: serde_json::from_str::<Vec<owhisper_interface::Word2>>(
+                &hypr_data::english_4::WORDS_JSON,
+            )
+            .unwrap(),
             ..new_default_session(&user.id)
         },
         // Older standalone sessions
@@ -712,12 +705,9 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             created_at: now - chrono::Duration::days(6),
             visited_at: now - chrono::Duration::days(6),
             calendar_event_id: None,
-            raw_memo_html: hypr_buffer::opinionated_md_to_html(
-                "### Week Highlights\n- Completed 3 major tasks\n- Fixed 5 bugs\n### Next Week\n- Focus on new features",
-            )
-            .unwrap(),
+            raw_memo_html: "".to_string(),
             words: serde_json::from_str::<Vec<owhisper_interface::Word2>>(
-                &hypr_data::english_6::WORDS_JSON,
+                &hypr_data::english_3::WORDS_JSON,
             )
             .unwrap(),
             ..new_default_session(&user.id)

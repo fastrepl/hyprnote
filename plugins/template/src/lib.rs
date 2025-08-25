@@ -76,12 +76,15 @@ mod test {
         connection: impl AsRef<str>,
     ) -> String {
         app.render(
-            hypr_template::PredefinedTemplate::EnhanceSystem,
+            hypr_template::Template::EnhanceSystem,
             serde_json::json!({
                 "type": connection.as_ref(),
                 "config": {
                     "general": {
-                        "display_language": "en"
+                        "summary_language": "en"
+                    },
+                    "ai": {
+                        "ai_specificity": 3
                     }
                 }
             })
@@ -97,7 +100,7 @@ mod test {
         connection: impl AsRef<str>,
     ) -> String {
         app.render(
-            hypr_template::PredefinedTemplate::EnhanceUser,
+            hypr_template::Template::EnhanceUser,
             serde_json::json!({
                 "type": connection.as_ref(),
                 "words": [],
@@ -124,12 +127,14 @@ mod test {
             render_enhance_system_template(&app, "HyprCloud"),
         );
 
-        insta::assert_snapshot!(render_enhance_system_template(&app, "HyprLocal"), @r###"
+        insta::assert_snapshot!(render_enhance_system_template(&app, "HyprLocal"), @r"
         You are a professional assistant that generates enhanced meetings notes while maintaining accuracy, completeness, and professional terminology in English.
 
 
+
+
         Always output markdown, without any other responses.
-        "###);
+        ");
 
         insta::assert_snapshot!(render_enhance_system_template(&app, "HyprCloud"), @r"
         You are a professional assistant that generates enhanced meetings notes while maintaining accuracy, completeness, and professional terminology in English.
@@ -251,8 +256,13 @@ mod test {
 
         </transcript>
 
+        Speaker 0 is the user who is speaking.
+
         Your job is to write a perfect note based on the above informations.
         Note that above given informations like participants, transcript, etc. are already displayed in the UI, so you don't need to repeat them.
+
+        MAKE SURE THAT contents in the 'raw_note' is well incorporated in the final enhanced note. It is paramount that the enhanced note contains contents
+        of the raw note.
 
 
         Also, before writing enhanced note, write multiple top-level headers inside <thinking></thinking> tags, and then write the note based on the headers.
@@ -263,7 +273,7 @@ mod test {
         /think
         ");
 
-        insta::assert_snapshot!(render_enhance_user_template(&app, "HyprCloud"), @r###"
+        insta::assert_snapshot!(render_enhance_user_template(&app, "HyprCloud"), @r"
         <participants>
 
         </participants>
@@ -276,8 +286,17 @@ mod test {
 
         </transcript>
 
+        Speaker 0 is the user who is speaking.
+
         Your job is to write a perfect note based on the above informations.
         Note that above given informations like participants, transcript, etc. are already displayed in the UI, so you don't need to repeat them.
-        "###);
+
+        MAKE SURE THAT contents in the 'raw_note' is well incorporated in the final enhanced note. It is paramount that the enhanced note contains contents
+        of the raw note.
+
+
+
+        /think
+        ");
     }
 }

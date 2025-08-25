@@ -1957,7 +1957,7 @@ checksum = "f280f65ce85b880919349bbfcb204930291251eedcb2e5f84ce2f51df969c162"
 dependencies = [
  "git-version",
  "shell-escape",
- "sysinfo",
+ "sysinfo 0.33.1",
 ]
 
 [[package]]
@@ -3809,7 +3809,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.69"
+version = "0.0.70"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4887,7 +4887,9 @@ dependencies = [
  "indoc",
  "insta",
  "serde",
+ "serde_json",
  "specta",
+ "tracing",
 ]
 
 [[package]]
@@ -7023,7 +7025,7 @@ name = "host"
 version = "0.1.0"
 dependencies = [
  "mac_address2",
- "sysinfo",
+ "sysinfo 0.33.1",
 ]
 
 [[package]]
@@ -9786,6 +9788,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-io-kit"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71c1c64d6120e51cd86033f67176b1cb66780c2efe34dec55176f77befd93c0a"
+dependencies = [
+ "libc",
+ "objc2-core-foundation",
+]
+
+[[package]]
 name = "objc2-io-surface"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10920,10 +10932,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "port-killer"
-version = "0.1.0"
+name = "port_check"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f8f8abaf06419461fc718f5a0929c18d06dd825f26c066e376f365f2d8c2ec2"
+checksum = "4c2749dcd0984ec1be3c01001bb1d83623a58c3c0049a99b9afec61464fa98e7"
 
 [[package]]
 name = "portable-atomic"
@@ -14069,6 +14081,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "sysinfo"
+version = "0.37.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07cec4dc2d2e357ca1e610cfb07de2fa7a10fc3e9fe89f72545f3d244ea87753"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.61.3",
+]
+
+[[package]]
 name = "system-configuration"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14727,7 +14753,7 @@ dependencies = [
  "language",
  "owhisper-client",
  "owhisper-interface",
- "port-killer",
+ "port_check",
  "reqwest 0.12.22",
  "rodio",
  "serde",
@@ -14736,6 +14762,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.26.3",
+ "sysinfo 0.37.0",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-listener",
@@ -15354,6 +15381,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
+ "specta",
  "strum 0.26.3",
  "thiserror 2.0.12",
 ]

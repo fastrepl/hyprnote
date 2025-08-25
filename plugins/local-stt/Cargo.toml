@@ -73,8 +73,10 @@ axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
 futures-util = { workspace = true }
-port-killer = "0.1.0"
 reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
+
+port_check = "0.3.0"
+sysinfo = "0.37.0"

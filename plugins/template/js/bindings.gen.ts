@@ -7,7 +7,7 @@
 
 
 export const commands = {
-async render(name: string, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
+async render(name: Template, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
     return await TAURI_INVOKE("plugin:template|render", { name, ctx });
 },
 async registerTemplate(name: string, template: string) : Promise<null> {
@@ -27,6 +27,7 @@ async registerTemplate(name: string, template: string) : Promise<null> {
 
 export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type Template = "enhance.system" | "enhance.user" | "create_title.system" | "create_title.user" | "suggest_tags.system" | "suggest_tags.user" | "chat.system" | "chat.user" | "auto_generate_tags.system" | "auto_generate_tags.user"
 
 /** tauri-specta globals **/
 

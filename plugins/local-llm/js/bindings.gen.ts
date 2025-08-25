@@ -56,7 +56,7 @@ async listDownloadedModel() : Promise<SupportedModel[]> {
 /** user-defined types **/
 
 export type ModelInfo = { key: SupportedModel; name: string; description: string; size_bytes: number }
-export type SupportedModel = "Llama3p2_3bQ4" | "HyprLLM" | "Gemma3_4bQ4"
+export type SupportedModel = "Llama3p2_3bQ4" | "Gemma3_4bQ4" | "HyprLLM" | "HyprLLMv2"
 export type TAURI_CHANNEL<TSend> = null
 
 /** tauri-specta globals **/

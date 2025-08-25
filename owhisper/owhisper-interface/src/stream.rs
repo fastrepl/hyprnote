@@ -98,6 +98,40 @@ common_derives! {
     }
 }
 
+impl StreamResponse {
+    pub fn is_transcript_response_final(&self) -> bool {
+        match self {
+            StreamResponse::TranscriptResponse { is_final, .. } => *is_final,
+            _ => false,
+        }
+    }
+
+    pub fn is_transcript_response_partial(&self) -> bool {
+        match self {
+            StreamResponse::TranscriptResponse { is_final, .. } => !*is_final,
+            _ => false,
+        }
+    }
+
+    pub fn confidence(&self) -> Option<f64> {
+        match self {
+            StreamResponse::TranscriptResponse { channel, .. } => {
+                Some(channel.alternatives[0].confidence)
+            }
+            _ => None,
+        }
+    }
+
+    pub fn text(&self) -> Option<&str> {
+        match self {
+            StreamResponse::TranscriptResponse { channel, .. } => {
+                Some(&channel.alternatives[0].transcript)
+            }
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

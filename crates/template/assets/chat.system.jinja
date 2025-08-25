@@ -144,7 +144,7 @@ Your response would mostly be either of the two formats:
 
 "
 
-{% if modelId == "gpt-4.1" or modelId == "openai/gpt-4.1" or modelId == "anthropic/claude-sonnet-4" or modelId == "openai/gpt-4o" or modelId == "gpt-4o" or (apiBase and "pro.hyprnote.com" in apiBase)%}
+{% if toolEnabled %}
 [Tool Calling]
 Here are available tools that you can call to get more information.
 

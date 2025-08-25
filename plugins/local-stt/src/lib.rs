@@ -10,6 +10,7 @@ mod model;
 mod server;
 mod store;
 mod types;
+mod utils;
 
 pub use error::*;
 use events::*;
@@ -17,6 +18,7 @@ pub use ext::*;
 pub use model::*;
 pub use store::*;
 pub use types::*;
+use utils::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 

@@ -42,10 +42,24 @@ impl AnalyticsClient {
                 .await?
                 .error_for_status()?;
         } else {
-            tracing::info!(
-                "analytics: {}",
-                serde_json::to_string(&inner_event).unwrap()
-            );
+            tracing::info!("event: {}", serde_json::to_string(&inner_event).unwrap());
+        }
+
+        Ok(())
+    }
+
+    pub async fn event2(&self, user_id: impl Into<String>) -> Result<(), Error> {
+        let payload = serde_json::json!({ "user_id": user_id.into() });
+        if !cfg!(debug_assertions) {
+            let _ = self
+                .client
+                .post("https://us.i.posthog.com/i/v0/e/")
+                .query(&payload)
+                .send()
+                .await?
+                .error_for_status()?;
+        } else {
+            tracing::info!("event2: {}", serde_json::to_string(&payload).unwrap());
         }
 
         Ok(())

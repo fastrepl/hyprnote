@@ -16,37 +16,43 @@ interface MessageContentProps {
 function ToolDetailsRenderer({ details }: { details: any }) {
   if (!details) {
     return (
-      <div style={{
-        color: "rgb(156 163 175)",
-        fontSize: "0.75rem",
-        fontStyle: "italic",
-        paddingLeft: "24px"
-      }}>
+      <div
+        style={{
+          color: "rgb(156 163 175)",
+          fontSize: "0.75rem",
+          fontStyle: "italic",
+          paddingLeft: "24px",
+        }}
+      >
         No details available...
       </div>
     );
   }
 
   return (
-    <div style={{
-      paddingLeft: "24px",
-      fontSize: "0.75rem",
-      color: "rgb(75 85 99)", // text-gray-600
-    }}>
-      <pre style={{
-        backgroundColor: "rgb(249 250 251)", // bg-gray-50
-        border: "1px solid rgb(229 231 235)", // border-gray-200
-        borderRadius: "6px",
-        padding: "8px 12px",
-        margin: 0,
-        fontSize: "0.6875rem", // text-xs
-        fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace",
-        whiteSpace: "pre-wrap",
-        wordBreak: "break-word",
-        maxHeight: "200px",
-        overflow: "auto",
-        lineHeight: 1.4,
-      }}>
+    <div
+      style={{
+        paddingLeft: "24px",
+        fontSize: "0.75rem",
+        color: "rgb(75 85 99)", // text-gray-600
+      }}
+    >
+      <pre
+        style={{
+          backgroundColor: "transparent", // bg-gray-50
+          border: "none", // border-gray-200
+          borderRadius: "6px",
+          padding: "8px 12px",
+          margin: 0,
+          fontSize: "0.6875rem", // text-xs
+          fontFamily: "ui-monospace, SFMono-Regular, Consolas, monospace",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          maxHeight: "200px",
+          overflow: "auto",
+          lineHeight: 1.4,
+        }}
+      >
         {typeof details === 'object' ? JSON.stringify(details, null, 2) : String(details)}
       </pre>
     </div>
@@ -165,41 +171,74 @@ function MarkdownText({ content }: { content: string }) {
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
   if (message.type === "tool-start") {
-    return (
-      <div
-        style={{
-          backgroundColor: "rgb(250 250 250)",
-          border: "1px solid rgb(229 229 229)",
-          borderRadius: "6px",
-          padding: "12px 16px",
-        }}
-      >
-        <Accordion type="single" collapsible className="border-none">
-          <AccordionItem value="tool-start-details" className="border-none">
-            <AccordionTrigger className="hover:no-underline p-0 h-auto [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-gray-400">
-              <div
-                style={{
-                  color: "rgb(115 115 115)",
-                  fontSize: "0.875rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  width: "100%",
-                }}
-              >
-                <PencilRuler size={16} color="rgb(115 115 115)" />
-                <span style={{ fontWeight: "400", flex: 1, textAlign: "left" }}>
-                  Called tool: {message.content}
-                </span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-3 pb-0">
-              <ToolDetailsRenderer details={message.toolDetails?.input} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    );
+    // Check if we have tool details to show
+    const hasToolDetails = message.toolDetails?.input;
+
+    if (hasToolDetails) {
+      // Show accordion with details
+      return (
+        <div
+          style={{
+            backgroundColor: "rgb(250 250 250)",
+            border: "1px solid rgb(229 229 229)",
+            borderRadius: "6px",
+            padding: "12px 16px",
+          }}
+        >
+          <Accordion type="single" collapsible className="border-none">
+            <AccordionItem value="tool-start-details" className="border-none">
+              <AccordionTrigger className="hover:no-underline p-0 h-auto [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-gray-400">
+                <div
+                  style={{
+                    color: "rgb(115 115 115)",
+                    fontSize: "0.875rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                  }}
+                >
+                  <PencilRuler size={16} color="rgb(115 115 115)" />
+                  <span style={{ fontWeight: "400", flex: 1, textAlign: "left" }}>
+                    Called tool: {message.content}
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-3 pb-0">
+                <ToolDetailsRenderer details={message.toolDetails?.input} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      );
+    } else {
+      // Show simple static message (no accordion)
+      return (
+        <div
+          style={{
+            backgroundColor: "rgb(250 250 250)",
+            border: "1px solid rgb(229 229 229)",
+            borderRadius: "6px",
+            padding: "12px 16px",
+          }}
+        >
+          <div
+            style={{
+              color: "rgb(115 115 115)",
+              fontSize: "0.875rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <PencilRuler size={16} color="rgb(115 115 115)" />
+            <span style={{ fontWeight: "400" }}>
+              Called tool: {message.content}
+            </span>
+          </div>
+        </div>
+      );
+    }
   }
 
   if (message.type === "tool-result") {

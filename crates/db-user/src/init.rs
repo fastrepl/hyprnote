@@ -785,6 +785,7 @@ pub async fn seed(db: &UserDatabase, user_id: impl Into<String>) -> Result<(), c
             content: "Hello, how are you?".to_string(),
             created_at: now,
             r#type: ChatMessageType::TextDelta,
+            tool_details: None,
         };
 
         let _ = db.upsert_chat_message(chat_message_1).await?;

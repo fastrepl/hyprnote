@@ -37,9 +37,10 @@ impl WhisperBuilder {
         let context_param = {
             let mut p = WhisperContextParameters::default();
             p.gpu_device = 0;
-            p.use_gpu = true;
+            p.use_gpu = false;
             p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
+            log::info!("Context params: gpu={}, flash_attn={}", p.use_gpu, p.flash_attn);
             p
         };
 
@@ -60,6 +61,11 @@ impl WhisperBuilder {
         log::info!("WhisperContext created successfully");
         
         log::info!("Creating WhisperState...");
+        log::info!("About to call ctx.create_state()");
+        std::panic::catch_unwind(|| {
+            log::info!("Inside panic catch block before create_state");
+        }).ok();
+        
         let state = ctx.create_state().map_err(|e| {
             log::error!("Failed to create WhisperState: {:?}", e);
             e

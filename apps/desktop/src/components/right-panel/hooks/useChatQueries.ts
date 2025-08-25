@@ -86,7 +86,6 @@ export function useChatQueries({
         timestamp: new Date(msg.created_at),
         type: msg.type || "text-delta",
         parts: msg.role === "Assistant" ? parseMarkdownBlocks(msg.content) : undefined,
-        // Only parse tool_details for tool-start messages
         toolDetails: msg.type === "tool-start" && msg.tool_details
           ? (() => {
             try {

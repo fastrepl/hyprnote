@@ -447,10 +447,7 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-start",
-            toolDetails: {
-              toolName: chunk.toolName,
-              input: chunk.input,
-            },
+            toolDetails: chunk.input,
           };
           setMessages((prev) => [...prev, toolStartMessage]);
 
@@ -462,7 +459,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolStartMessage.content,
             type: "tool-start",
-            tool_details: JSON.stringify(toolStartMessage.toolDetails),
+            tool_details: JSON.stringify(chunk.input),
           });
         }
 

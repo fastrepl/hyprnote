@@ -172,7 +172,7 @@ function MarkdownText({ content }: { content: string }) {
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
   if (message.type === "tool-start") {
     // Check if we have tool details to show
-    const hasToolDetails = message.toolDetails?.input;
+    const hasToolDetails = message.toolDetails;
 
     if (hasToolDetails) {
       // Show accordion with details
@@ -205,7 +205,7 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-3 pb-0">
-                <ToolDetailsRenderer details={message.toolDetails?.input} />
+                <ToolDetailsRenderer details={message.toolDetails} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>

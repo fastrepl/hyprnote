@@ -11,11 +11,7 @@ export interface Message {
   isUser: boolean;
   timestamp: Date;
   type: "text-delta" | "tool-start" | "tool-result" | "tool-error" | "generating";
-  toolDetails?: {
-    toolName?: string;
-    input?: any;
-    output?: any;
-  };
+  toolDetails?: any;
 }
 
 export type ChatSession = {

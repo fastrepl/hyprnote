@@ -7,12 +7,12 @@ pub struct ServerHandle {
     client: hypr_am::Client,
 }
 
-impl Drop for ServerHandle {
-    fn drop(&mut self) {
-        tracing::info!("stopping");
-        let _ = self.shutdown.send(());
-    }
-}
+// impl Drop for ServerHandle {
+//     fn drop(&mut self) {
+//         tracing::info!("stopping");
+//         let _ = self.shutdown.send(());
+//     }
+// }
 
 impl ServerHandle {
     pub async fn health(&self) -> ServerHealth {
@@ -62,7 +62,7 @@ pub async fn run_server(
 
     tracing::info!("spwaning_started");
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
-    tracing::info!("spwaning_started");
+    tracing::info!("spwaning_ended");
 
     let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());

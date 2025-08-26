@@ -7,6 +7,14 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 export type RightPanelView = "chat" | "transcript";
 
+interface SelectionData {
+  text: string;
+  startOffset: number;  // ProseMirror position (not character offset)
+  endOffset: number;    // ProseMirror position (not character offset)
+  sessionId: string;
+  timestamp: number;
+}
+
 interface RightPanelContextType {
   isExpanded: boolean;
   currentView: RightPanelView;
@@ -15,6 +23,9 @@ interface RightPanelContextType {
   hidePanel: () => void;
   switchView: (view: RightPanelView) => void;
   chatInputRef: React.RefObject<HTMLTextAreaElement>;
+  pendingSelection: SelectionData | null;
+  sendSelectionToChat: (selectionData: SelectionData) => void;
+  clearPendingSelection: () => void;
 }
 
 const RightPanelContext = createContext<RightPanelContextType | null>(null);
@@ -26,6 +37,7 @@ export function RightPanelProvider({
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [currentView, setCurrentView] = useState<RightPanelView>("transcript");
+  const [pendingSelection, setPendingSelection] = useState<SelectionData | null>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -91,6 +103,51 @@ export function RightPanelProvider({
     },
     [isExpanded, currentView],
   );
+
+  const sendSelectionToChat = useCallback((selectionData: SelectionData) => {
+    console.log("🚀 sendSelectionToChat called");
+    console.log("Current panel state:", { isExpanded, currentView });
+    console.log("Selection data:", selectionData);
+    
+    setPendingSelection(selectionData);
+    
+    // Ensure chat panel is open (don't toggle if already open)
+    if (!isExpanded) {
+      console.log("📱 Panel closed, opening with chat view");
+      // Panel is closed, open it with chat view
+      setIsExpanded(true);
+      setCurrentView("chat");
+      
+      setTimeout(() => {
+        const focusInput = () => {
+          if (chatInputRef.current) {
+            chatInputRef.current.focus();
+          } else {
+            setTimeout(focusInput, 50);
+          }
+        };
+        focusInput();
+      }, 350);
+    } else if (currentView !== "chat") {
+      console.log("📱 Panel open but wrong view, switching to chat");
+      // Panel is open but showing wrong view, switch to chat
+      setCurrentView("chat");
+      
+      setTimeout(() => {
+        if (chatInputRef.current) {
+          chatInputRef.current.focus();
+        }
+      }, 350);
+    } else {
+      console.log("📱 Panel already open with chat view, staying open");
+    }
+    // If panel is already open and showing chat, do nothing (don't close it)
+  }, [isExpanded, currentView, chatInputRef]);
+
+  const clearPendingSelection = useCallback(() => {
+    console.log("🧹 Clearing pending selection");
+    setPendingSelection(null);
+  }, []);
 
   const windowLabel = getCurrentWebviewWindowLabel();
   const isMainWindow = windowLabel === "main";
@@ -167,6 +224,9 @@ export function RightPanelProvider({
         switchView,
         setIsExpanded,
         chatInputRef,
+        pendingSelection,
+        sendSelectionToChat,
+        clearPendingSelection,
       }}
     >
       {children}

@@ -287,6 +287,8 @@ export default function EditorArea({
           isEnhancedNote={isEnhancedNote}
           onAnnotate={handleAnnotate}
           isAnnotationBoxOpen={!!annotationBox}
+          sessionId={sessionId}
+          editorRef={editorRef}
         />
       )}
 

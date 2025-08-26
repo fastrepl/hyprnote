@@ -39,7 +39,7 @@ export function ChatInput(
   }: ChatInputProps,
 ) {
   const { userId } = useHypr();
-  const { chatInputRef } = useRightPanel();
+  const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
 
   const lastBacklinkSearchTime = useRef<number>(0);
 
@@ -205,19 +205,60 @@ export function ChatInput(
     }
   }, [chatInputRef]);
 
+  // Handle pending selection from text selection popover
+  useEffect(() => {
+    if (pendingSelection && editorRef.current?.editor) {
+      console.log("💬 Chat Input Received Selection (ProseMirror):");
+      console.log("Pending selection:", pendingSelection);
+      console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
+      console.log("Position range:", pendingSelection.endOffset - pendingSelection.startOffset);
+      
+      const timestamp = Date.now();
+      const age = timestamp - pendingSelection.timestamp;
+      console.log("Selection age (ms):", age);
+      
+      // Only process if this is a fresh selection (within last 3 seconds)
+      if (age < 3000) {
+        console.log("✅ Processing fresh selection");
+        const quotedText = `<span class="selection-quote">"${pendingSelection.text}"</span><p></p>`;
+        console.log("Generated quoted text HTML:", quotedText);
+        
+        editorRef.current.editor.commands.setContent(quotedText);
+        editorRef.current.editor.commands.focus('end');
+        
+        // Clear the input value to match editor content
+        const syntheticEvent = {
+          target: { value: `"${pendingSelection.text}"` },
+          currentTarget: { value: `"${pendingSelection.text}"` },
+        } as React.ChangeEvent<HTMLTextAreaElement>;
+        onChange(syntheticEvent);
+        console.log("Chat input populated successfully");
+        
+        // Clear the pending selection so it doesn't get processed again
+        clearPendingSelection();
+      } else {
+        console.log("❌ Selection too old, ignoring");
+        // Also clear old selections
+        clearPendingSelection();
+      }
+    }
+  }, [pendingSelection, onChange, clearPendingSelection]);
+
   useEffect(() => {
     const editor = editorRef.current?.editor;
     if (editor) {
       // override TipTap's Enter behavior completely
       editor.setOptions({
         editorProps: {
-          ...editor.options.editorProps,
           handleKeyDown: (view, event) => {
             if (event.key === "Enter" && !event.shiftKey) {
-              const isEmpty = view.state.doc.textContent.trim() === "";
-              if (isEmpty) {
-                return true;
+              const mentionDropdown = document.querySelector('.mention-container');
+              if (mentionDropdown) {
+                return false;
               }
+              
+              const isEmpty = view.state.doc.textContent.trim() === "";
+              if (isEmpty) return true;
               if (inputValue.trim()) {
                 event.preventDefault();
                 handleSubmit();
@@ -326,6 +367,16 @@ export function ChatInput(
         .chat-editor .mention:hover {
           background-color: rgba(59, 130, 246, 0.08) !important;
           text-decoration: none !important;
+        }
+        .chat-editor .selection-quote {
+          background-color: rgba(34, 197, 94, 0.1) !important;
+          color: #16a34a !important;
+          padding: 0.2rem 0.4rem !important;
+          border-radius: 0.25rem !important;
+          font-style: italic !important;
+          border-left: 2px solid #16a34a !important;
+          display: inline-block !important;
+          margin-right: 0.5rem !important;
         }
         .chat-editor.has-content .tiptap-normal .is-empty::before {
           display: none !important;

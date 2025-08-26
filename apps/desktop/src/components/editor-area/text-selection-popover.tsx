@@ -2,14 +2,16 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { MessageSquare, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useHypr } from "@/contexts";
+import { useHypr, useRightPanel } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;
   onAnnotate: (selectedText: string, selectedRect: DOMRect) => void;
   onAskAI?: (selectedText: string) => void;
-  isAnnotationBoxOpen: boolean; // Add this prop
+  isAnnotationBoxOpen: boolean;
+  sessionId: string;
+  editorRef: React.RefObject<{ editor: any }>;
 }
 
 interface SelectionInfo {
@@ -18,11 +20,12 @@ interface SelectionInfo {
 }
 
 export function TextSelectionPopover(
-  { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen }: TextSelectionPopoverProps,
+  { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen, sessionId, editorRef }: TextSelectionPopoverProps,
 ) {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout>();
   const { userId } = useHypr();
+  const { sendSelectionToChat } = useRightPanel();
 
   useEffect(() => {
     if (!isEnhancedNote) {
@@ -104,10 +107,67 @@ export function TextSelectionPopover(
     setSelection(null); // Hide the popover
   };
 
-  const handleAskAIClick = () => {
-    if (onAskAI) {
-      onAskAI(selection.text);
+  // Helper to get TipTap/ProseMirror positions from DOM selection
+  const getTipTapPositions = () => {
+    const editor = editorRef.current?.editor;
+    if (!editor) {
+      console.warn("No TipTap editor available");
+      return null;
     }
+
+    // Get current TipTap selection
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    
+    return {
+      from,
+      to,
+      text: selectedText
+    };
+  };
+
+  const handleAskAIClick = () => {
+    if (!selection) return;
+    
+    console.log("🎯 TipTap Selection Debug:");
+    console.log("DOM Selected text:", selection.text);
+    console.log("Selection rect:", selection.rect);
+    
+    // Get TipTap/ProseMirror positions (much more accurate)
+    const tipTapPositions = getTipTapPositions();
+    if (!tipTapPositions) {
+      console.error("Could not get TipTap positions");
+      return;
+    }
+    
+    console.log("TipTap/ProseMirror Positions:");
+    console.log("From position:", tipTapPositions.from);
+    console.log("To position:", tipTapPositions.to);
+    console.log("TipTap selected text:", tipTapPositions.text);
+    console.log("Text length:", tipTapPositions.text.length);
+    console.log("Position range:", tipTapPositions.to - tipTapPositions.from);
+    
+    // Verify DOM selection matches TipTap selection
+    if (selection.text.trim() !== tipTapPositions.text.trim()) {
+      console.warn("⚠️ DOM selection doesn't match TipTap selection:");
+      console.warn("DOM:", selection.text);
+      console.warn("TipTap:", tipTapPositions.text);
+    }
+    
+    const selectionData = {
+      text: tipTapPositions.text,  // Use TipTap's text (more reliable)
+      startOffset: tipTapPositions.from,  // ProseMirror position
+      endOffset: tipTapPositions.to,      // ProseMirror position
+      sessionId,
+      timestamp: Date.now(),
+    };
+    
+    console.log("Final SelectionData (ProseMirror):", selectionData);
+    console.log("---");
+    
+    // Send selection to chat
+    sendSelectionToChat(selectionData);
+    
     setSelection(null);
   };
 
@@ -159,12 +219,10 @@ export function TextSelectionPopover(
         size="sm"
         variant="ghost"
         onClick={handleAskAIClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal opacity-60 cursor-not-allowed"
-        disabled
+        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal"
       >
         <Sparkles className="h-2.5 w-2.5" />
         <span className="text-[11px]">Ask AI</span>
-        <span className="text-[9px] text-neutral-400 ml-0.5">coming soon</span>
       </Button>
     </div>
   );

@@ -114,7 +114,7 @@ export function LLMLocalView({
                       HyprCloud
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Managed LLM endpoint for Pro users. Click blue button to learn more.
+                      Connect to Hyprnote's Cloud hosted AI model. 
                     </p>
                   </div>
                 </div>

@@ -94,8 +94,20 @@ export function useChatLogic({
 
     try {
       const html = await miscCommands.opinionatedMdToHtml(markdownContent);
-
-      sessionStore.getState().updateEnhancedNote(html);
+      
+      const { session, showRaw } = sessionStore.getState();
+      
+      const hasEnhancedNote = !!session.enhanced_memo_html;
+      
+      if (!hasEnhancedNote) {
+        sessionStore.getState().updateRawNote(html);
+      } else {
+        if (showRaw) {
+          sessionStore.getState().updateRawNote(html);
+        } else {
+          sessionStore.getState().updateEnhancedNote(html);
+        }
+      }
     } catch (error) {
       console.error("Failed to apply markdown content:", error);
     }

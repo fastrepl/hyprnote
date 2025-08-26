@@ -9,7 +9,6 @@ use tauri_plugin_store2::{ScopedStore, StorePluginExt};
 pub trait AppExt<R: tauri::Runtime> {
     fn sentry_dsn(&self) -> String;
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String>;
-    fn setup_local_ai(&self) -> impl Future<Output = Result<(), String>>;
     fn setup_db_for_local(&self) -> impl Future<Output = Result<(), String>>;
     fn setup_db_for_cloud(&self) -> impl Future<Output = Result<(), String>>;
 }
@@ -32,38 +31,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     #[tracing::instrument(skip_all)]
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String> {
         self.scoped_store("desktop").map_err(|e| e.to_string())
-    }
-
-    #[tracing::instrument(skip_all)]
-
-    async fn setup_local_ai(&self) -> Result<(), String> {
-        {
-            use tauri_plugin_local_stt::LocalSttPluginExt;
-
-            let current_model = self
-                .get_current_model()
-                .unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedSmall));
-
-            if let Ok(true) = self.is_model_downloaded(&current_model).await {
-                if let Err(e) = self.start_server(Some(current_model)).await {
-                    tracing::error!("start_local_stt_server: {}", e);
-                }
-            }
-        }
-
-        {
-            use tauri_plugin_local_llm::{LocalLlmPluginExt, SupportedModel};
-
-            let current_model = self.get_current_model().unwrap_or(SupportedModel::HyprLLM);
-
-            if let Ok(true) = self.is_model_downloaded(&current_model).await {
-                if let Err(e) = self.start_server().await {
-                    tracing::error!("start_local_llm_server: {}", e);
-                }
-            }
-        }
-
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

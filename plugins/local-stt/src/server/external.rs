@@ -58,6 +58,7 @@ pub async fn run_server(
 ) -> Result<ServerHandle, crate::Error> {
     let port = 50060;
     let _ = port_killer::kill(port);
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
     let base_url = format!("http://localhost:{}", port);

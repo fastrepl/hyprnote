@@ -208,9 +208,9 @@ impl crate::Observer for Detector {
                     system_listener,
                     system_listener_ptr,
                 ) {
-                    println!("Failed to add system listener: {:?}", e);
+                    tracing::error!("adding_system_listener_failed: {:?}", e);
                 } else {
-                    println!("✅ System listener added successfully");
+                    tracing::info!("adding_system_listener_success");
                 }
 
                 if let Ok(device) = ca::System::default_input_device() {
@@ -229,7 +229,7 @@ impl crate::Observer for Detector {
                         )
                         .is_ok()
                     {
-                        println!("✅ Device listener added successfully");
+                        tracing::info!("adding_device_listener_success");
 
                         if let Ok(mut device_guard) = current_device.lock() {
                             *device_guard = Some(device);
@@ -244,10 +244,10 @@ impl crate::Observer for Detector {
                             }
                         }
                     } else {
-                        println!("❌ Failed to add device listener");
+                        tracing::error!("adding_device_listener_failed");
                     }
                 } else {
-                    println!("⚠️ No default input device found");
+                    tracing::warn!("no_default_input_device_found");
                 }
 
                 let _ = tx.blocking_send(());

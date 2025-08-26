@@ -1,4 +1,4 @@
-use crate::LocalSttPluginExt;
+use crate::LocalLlmPluginExt;
 use tauri_plugin_windows::HyprWindow;
 
 pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::RunEvent) {
@@ -20,7 +20,7 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
                 tauri::WindowEvent::Focused(true) => {
                     tokio::task::block_in_place(|| {
                         tokio::runtime::Handle::current().block_on(async {
-                            let _ = app.start_server(None).await;
+                            let _ = app.start_server().await;
                         });
                     });
                 }

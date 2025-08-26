@@ -1,5 +1,4 @@
-use std::{future::Future, sync::mpsc};
-use tokio::time::{timeout, Duration};
+use std::future::Future;
 
 use crate::error::Error;
 use tauri_plugin_store2::StorePluginExt;
@@ -7,6 +6,7 @@ use tauri_plugin_store2::StorePluginExt;
 pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
+    fn show_notification(&self) -> Result<(), Error>;
     fn get_event_notification(&self) -> Result<bool, Error>;
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error>;
 
@@ -18,17 +18,17 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
 
     fn start_detect_notification(&self) -> Result<(), Error>;
     fn stop_detect_notification(&self) -> Result<(), Error>;
-
-    fn open_notification_settings(&self) -> Result<(), Error>;
-    fn request_notification_permission(&self) -> Result<(), Error>;
-    fn check_notification_permission(
-        &self,
-    ) -> impl Future<Output = Result<hypr_notification2::NotificationPermission, Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn show_notification(&self) -> Result<(), Error> {
+        hypr_notification::show();
+        Ok(())
     }
 
     #[tracing::instrument(skip(self))]
@@ -101,14 +101,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
         let cb = hypr_detect::new_callback(move |bundle_id| {
-            let notif = hypr_notification2::Notification {
-                title: "Meeting detected".to_string(),
-                message: "Click here to start writing a note".to_string(),
-                url: Some("hypr://hyprnote.com/notification".to_string()),
-                timeout: Some(std::time::Duration::from_secs(10)),
-            };
+            // let notif = hypr_notification2::Notification {
+            //     title: "Meeting detected".to_string(),
+            //     message: "Click here to start writing a note".to_string(),
+            //     url: Some("hypr://hyprnote.com/notification".to_string()),
+            //     timeout: Some(std::time::Duration::from_secs(10)),
+            // };
 
-            hypr_notification2::show(notif);
+            hypr_notification::show();
         });
 
         let state = self.state::<crate::SharedState>();
@@ -127,35 +127,5 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             guard.detector.stop();
         }
         Ok(())
-    }
-
-    #[tracing::instrument(skip(self))]
-    fn open_notification_settings(&self) -> Result<(), Error> {
-        hypr_notification2::open_notification_settings().map_err(Error::Io)
-    }
-
-    #[tracing::instrument(skip(self))]
-    fn request_notification_permission(&self) -> Result<(), Error> {
-        hypr_notification2::request_notification_permission();
-        Ok(())
-    }
-
-    #[tracing::instrument(skip(self))]
-    async fn check_notification_permission(
-        &self,
-    ) -> Result<hypr_notification2::NotificationPermission, Error> {
-        let (tx, rx) = mpsc::channel();
-
-        hypr_notification2::check_notification_permission(move |result| {
-            let _ = tx.send(result);
-        });
-
-        timeout(Duration::from_secs(3), async move {
-            rx.recv()
-                .map_err(|_| Error::ChannelClosed)
-                .and_then(|result| result.map_err(|_| Error::ChannelClosed))
-        })
-        .await
-        .map_err(|_| Error::PermissionTimeout)?
     }
 }

@@ -7,8 +7,4 @@ edition = "2021"
 serde = { workspace = true, features = ["derive"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-block2 = { workspace = true }
-objc2 = { workspace = true }
-objc2-foundation = { workspace = true }
-objc2-user-notifications = { workspace = true }
-objc2-app-kit = { version = "0.3.0", features = ["NSWorkspace"] }
+hypr-notification-macos = { workspace = true }

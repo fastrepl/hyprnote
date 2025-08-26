@@ -38,9 +38,8 @@ export default function NotificationsComponent() {
   const eventMutation = useMutation({
     mutationFn: async (v: Schema) => {
       if (v.event) {
-        notificationCommands.requestNotificationPermission().then(() => {
-          notificationCommands.setEventNotification(true);
-        });
+        notificationCommands.setEventNotification(true);
+        notificationCommands.showNotification();
       } else {
         notificationCommands.setEventNotification(false);
       }
@@ -59,9 +58,8 @@ export default function NotificationsComponent() {
   const detectMutation = useMutation({
     mutationFn: async (v: Schema) => {
       if (v.detect) {
-        notificationCommands.requestNotificationPermission().then(() => {
-          notificationCommands.setDetectNotification(true);
-        });
+        notificationCommands.setDetectNotification(true);
+        notificationCommands.showNotification();
       } else {
         notificationCommands.setDetectNotification(false);
       }

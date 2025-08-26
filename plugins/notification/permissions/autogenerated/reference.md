@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-show-notification`
 - `allow-get-event-notification`
 - `allow-set-event-notification`
 - `allow-get-detect-notification`
@@ -203,6 +204,32 @@ Enables the set_event_notification command without any pre-configured scope.
 <td>
 
 Denies the set_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-show-notification`
+
+</td>
+<td>
+
+Enables the show_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-show-notification`
+
+</td>
+<td>
+
+Denies the show_notification command without any pre-configured scope.
 
 </td>
 </tr>

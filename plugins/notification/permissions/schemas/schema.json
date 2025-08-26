@@ -379,6 +379,18 @@
           "markdownDescription": "Denies the set_event_notification command without any pre-configured scope."
         },
         {
+          "description": "Enables the show_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-show-notification",
+          "markdownDescription": "Enables the show_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the show_notification command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-show-notification",
+          "markdownDescription": "Denies the show_notification command without any pre-configured scope."
+        },
+        {
           "description": "Enables the start_detect_notification command without any pre-configured scope.",
           "type": "string",
           "const": "allow-start-detect-notification",
@@ -427,10 +439,10 @@
           "markdownDescription": "Denies the stop_event_notification command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`"
         }
       ]
     }

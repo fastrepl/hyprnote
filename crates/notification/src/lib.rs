@@ -1,2 +1,2 @@
 #[cfg(target_os = "macos")]
-pub mod macos;
+pub use hypr_notification_macos::*;

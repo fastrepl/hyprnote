@@ -118,15 +118,14 @@ export function MarkdownCard(
             {sessionTitle || "Hyprnote Suggestion"}
           </div>
 
-              <Button
-                variant="ghost"
-                className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-                onClick={handleApplyClick}
-              >
-                <PlayIcon className="size-3" />
-                Apply
-              </Button>
-            
+          <Button
+            variant="ghost"
+            className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+            onClick={handleApplyClick}
+          >
+            <PlayIcon className="size-3" />
+            Apply
+          </Button>
         </div>
 
         {/* Content section - Add selectable class */}

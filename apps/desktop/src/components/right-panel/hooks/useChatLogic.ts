@@ -94,11 +94,11 @@ export function useChatLogic({
 
     try {
       const html = await miscCommands.opinionatedMdToHtml(markdownContent);
-      
+
       const { session, showRaw } = sessionStore.getState();
-      
+
       const hasEnhancedNote = !!session.enhanced_memo_html;
-      
+
       if (!hasEnhancedNote) {
         sessionStore.getState().updateRawNote(html);
       } else {

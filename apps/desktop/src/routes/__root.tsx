@@ -60,7 +60,7 @@ function Component() {
     return () => {
       window.__HYPR_NAVIGATE__ = undefined;
     };
-  }, [navigate, onboardingSessionId]);
+  }, [navigate, onboardingSessionId, thankYouSessionId]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;

@@ -20,7 +20,10 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
                 tauri::WindowEvent::Focused(true) => {
                     tokio::task::block_in_place(|| {
                         tokio::runtime::Handle::current().block_on(async {
-                            let _ = app.start_server(None).await;
+                            match app.start_server(None).await {
+                                Ok(_) => tracing::info!("server_started"),
+                                Err(e) => tracing::error!("server_start_failed: {:?}", e),
+                            }
                         });
                     });
                 }

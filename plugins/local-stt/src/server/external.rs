@@ -60,7 +60,10 @@ pub async fn run_server(
     let _ = port_killer::kill(port);
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
+    tracing::info!("spwaning_started");
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
+    tracing::info!("spwaning_started");
+
     let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);
@@ -119,7 +122,8 @@ pub async fn run_server(
         }
     });
 
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+    tracing::info!("returning_handle");
 
     Ok(ServerHandle {
         api_key: Some(am_key),

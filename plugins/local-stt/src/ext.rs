@@ -252,7 +252,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     self.shell()
                         .sidecar("stt")?
                         .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve", "-v"])
+                        .args(["serve", "-v", "-d"])
                 };
 
                 let server = external::run_server(cmd, am_key).await?;

@@ -462,7 +462,7 @@ export function useChatLogic({
             tool_details: JSON.stringify(chunk.input),
           });
 
-          // log if user is using tools in chat 
+          // log if user is using tools in chat
           analyticsCommands.event({
             event: "chat_tool_call",
             distinct_id: userId || "",

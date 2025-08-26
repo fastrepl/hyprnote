@@ -433,7 +433,7 @@ export function useEnhanceMutation({
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
-      if(selectedTemplate !== null) {
+      if (selectedTemplate !== null) {
         const eventName = selectedTemplate?.tags.includes("builtin")
           ? "builtin_template_enhancement_started"
           : "custom_template_enhancement_started";

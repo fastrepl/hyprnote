@@ -9,6 +9,7 @@ private var sharedUrl: String?
 class ClickableView: NSView {
   var trackingArea: NSTrackingArea?
   var isHovering = false
+  var onHover: ((Bool) -> Void)?
 
   override func updateTrackingAreas() {
     super.updateTrackingAreas()
@@ -32,40 +33,72 @@ class ClickableView: NSView {
   override func mouseEntered(with event: NSEvent) {
     isHovering = true
     NSCursor.pointingHand.set()
+    onHover?(true)
   }
 
   override func mouseExited(with event: NSEvent) {
     isHovering = false
     NSCursor.arrow.set()
+    onHover?(false)
   }
 
   override func mouseDown(with event: NSEvent) {
+    // Visual feedback
+    alphaValue = 0.95
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+      self.alphaValue = 1.0
+    }
+
     // Open URL if provided
     if let urlString = sharedUrl, let url = URL(string: urlString) {
       NSWorkspace.shared.open(url)
     }
 
-    if let panel = sharedPanel {
-      // Slide out to the right with fade
-      NSAnimationContext.runAnimationGroup({ context in
-        context.duration = 0.25
-        context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+    dismissNotification()
+  }
+}
 
-        let currentFrame = panel.frame
-        let targetFrame = NSRect(
-          x: currentFrame.origin.x + currentFrame.width,
-          y: currentFrame.origin.y,
-          width: currentFrame.width,
-          height: currentFrame.height
-        )
+class CloseButton: NSButton {
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    setup()
+  }
 
-        panel.animator().setFrame(targetFrame, display: true)
-        panel.animator().alphaValue = 0
-      }) {
-        panel.close()
-        sharedPanel = nil
-        sharedUrl = nil
-      }
+  required init?(coder: NSCoder) {
+    super.init(coder: coder)
+    setup()
+  }
+
+  private func setup() {
+    wantsLayer = true
+    layer?.cornerRadius = 8
+    layer?.backgroundColor = NSColor(white: 0.5, alpha: 0.3).cgColor
+    isBordered = false
+
+    // Set styled title with color
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: NSFont.systemFont(ofSize: 12, weight: .medium),
+      .foregroundColor: NSColor(white: 0.9, alpha: 0.9),
+    ]
+    attributedTitle = NSAttributedString(string: "✕", attributes: attributes)
+    alphaValue = 0
+  }
+
+  override func mouseDown(with event: NSEvent) {
+    dismissNotification()
+  }
+}
+
+func dismissNotification() {
+  if let panel = sharedPanel {
+    NSAnimationContext.runAnimationGroup({ context in
+      context.duration = 0.2
+      context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+      panel.animator().alphaValue = 0
+    }) {
+      panel.close()
+      sharedPanel = nil
+      sharedUrl = nil
     }
   }
 }
@@ -100,20 +133,20 @@ public func _showNotification(
     guard let screen = NSScreen.main else { return }
     let screenRect = screen.visibleFrame
 
-    // Notification dimensions (like native macOS notifications)
+    // Notification dimensions
     let notificationWidth: CGFloat = 360
-    let notificationHeight: CGFloat = 80
-    let rightMargin: CGFloat = 12
-    let topMargin: CGFloat = 12
+    let notificationHeight: CGFloat = 75
+    let rightMargin: CGFloat = 15
+    let topMargin: CGFloat = 15
 
     // Calculate final position (top-right corner)
     let finalXPos = screenRect.maxX - notificationWidth - rightMargin
     let finalYPos = screenRect.maxY - notificationHeight - topMargin
 
-    // Start position (off-screen to the right)
+    // Start position (slide in from right)
     let startXPos = screenRect.maxX + 10
 
-    // Create NSPanel with borderless style (no title bar)
+    // Create NSPanel
     let panel = NSPanel(
       contentRect: NSRect(
         x: startXPos, y: finalYPos, width: notificationWidth, height: notificationHeight),
@@ -122,8 +155,8 @@ public func _showNotification(
       defer: false
     )
 
-    // Configure panel appearance
-    panel.level = .floating  // Use floating level for notifications
+    // Configure panel
+    panel.level = .statusBar
     panel.isFloatingPanel = true
     panel.hidesOnDeactivate = false
     panel.isOpaque = false
@@ -131,59 +164,114 @@ public func _showNotification(
     panel.hasShadow = true
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
     panel.isMovableByWindowBackground = false
-    panel.alphaValue = 0  // Start invisible for fade-in
+    panel.alphaValue = 0
 
-    // Create custom content view with rounded corners and background
-    let contentView = NSView(
+    // Create clickable content view
+    let clickableView = ClickableView(
       frame: NSRect(x: 0, y: 0, width: notificationWidth, height: notificationHeight))
-    contentView.wantsLayer = true
-    contentView.layer?.cornerRadius = 10
-    contentView.layer?.masksToBounds = true
+    clickableView.wantsLayer = true
 
-    // Shadow configuration for depth
-    contentView.layer?.shadowColor = NSColor.black.cgColor
-    contentView.layer?.shadowOpacity = 0.2
-    contentView.layer?.shadowOffset = CGSize(width: 0, height: 2)
-    contentView.layer?.shadowRadius = 8
+    // Main container
+    let container = NSView(frame: clickableView.bounds)
+    container.wantsLayer = true
+    container.layer?.cornerRadius = 11
+    container.layer?.masksToBounds = false
 
-    // Use visual effect view for native blur background
-    let visualEffectView = NSVisualEffectView(frame: contentView.bounds)
-    visualEffectView.material = .popover  // More native-like material
-    visualEffectView.state = .active
-    visualEffectView.blendingMode = .behindWindow
-    visualEffectView.wantsLayer = true
-    visualEffectView.layer?.cornerRadius = 10
-    contentView.addSubview(visualEffectView)
+    // Shadow for depth
+    container.layer?.shadowColor = NSColor.black.cgColor
+    container.layer?.shadowOpacity = 0.2
+    container.layer?.shadowOffset = CGSize(width: 0, height: 2)
+    container.layer?.shadowRadius = 10
 
-    // Create horizontal stack view for icon and text
-    let horizontalStack = NSStackView()
-    horizontalStack.orientation = .horizontal
-    horizontalStack.alignment = .centerY
-    horizontalStack.spacing = 12
-    horizontalStack.edgeInsets = NSEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-    horizontalStack.translatesAutoresizingMaskIntoConstraints = false
+    // Visual effect view for background
+    let effectView = NSVisualEffectView(frame: container.bounds)
+    effectView.material = .hudWindow  // Dark translucent material
+    effectView.state = .active
+    effectView.blendingMode = .behindWindow
+    effectView.wantsLayer = true
+    effectView.layer?.cornerRadius = 11
+    effectView.layer?.masksToBounds = true
+    container.addSubview(effectView)
 
-    // Create app icon (bell emoji as placeholder, or link icon if URL is present)
-    let iconString = urlStr != nil ? "🔗" : "🔔"
-    let iconView = NSTextField(labelWithString: iconString)
-    iconView.font = NSFont.systemFont(ofSize: 28)
-    iconView.alignment = .center
-    iconView.backgroundColor = .clear
-    iconView.isBezeled = false
-    iconView.isEditable = false
-    iconView.widthAnchor.constraint(equalToConstant: 40).isActive = true
-    horizontalStack.addArrangedSubview(iconView)
+    // Add subtle border for definition
+    let borderLayer = CALayer()
+    borderLayer.frame = effectView.bounds
+    borderLayer.cornerRadius = 11
+    borderLayer.borderWidth = 0.5
+    borderLayer.borderColor = NSColor(white: 1.0, alpha: 0.05).cgColor
+    effectView.layer?.addSublayer(borderLayer)
 
-    // Create vertical stack for title and message
+    // Content stack
+    let contentStack = NSStackView()
+    contentStack.orientation = .horizontal
+    contentStack.alignment = .centerY
+    contentStack.spacing = 12
+    contentStack.translatesAutoresizingMaskIntoConstraints = false
+    effectView.addSubview(contentStack)
+
+    NSLayoutConstraint.activate([
+      contentStack.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 14),
+      contentStack.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -14),
+      contentStack.centerYAnchor.constraint(equalTo: effectView.centerYAnchor),
+    ])
+
+    // Icon placeholder - REPLACE THIS WITH YOUR SVG/PNG
+    let iconContainer = NSView()
+    iconContainer.wantsLayer = true
+    iconContainer.layer?.cornerRadius = 10
+    iconContainer.widthAnchor.constraint(equalToConstant: 42).isActive = true
+    iconContainer.heightAnchor.constraint(equalToConstant: 42).isActive = true
+
+    // Simple gradient background for now
+    let gradientLayer = CAGradientLayer()
+    gradientLayer.frame = CGRect(x: 0, y: 0, width: 42, height: 42)
+    gradientLayer.cornerRadius = 10
+    gradientLayer.colors =
+      urlStr != nil
+      ? [NSColor.systemBlue.cgColor, NSColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1).cgColor]
+      : [NSColor.systemGreen.cgColor, NSColor(red: 0.2, green: 0.6, blue: 0.4, alpha: 1).cgColor]
+    gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+    gradientLayer.endPoint = CGPoint(x: 1, y: 1)
+    iconContainer.layer?.addSublayer(gradientLayer)
+
+    // Temporary emoji icon - REPLACE WITH NSImageView for your SVG/PNG
+    let tempIcon = NSTextField(labelWithString: urlStr != nil ? "🔗" : "🔔")
+    tempIcon.font = NSFont.systemFont(ofSize: 20)
+    tempIcon.textColor = .white
+    tempIcon.alignment = .center
+    tempIcon.translatesAutoresizingMaskIntoConstraints = false
+    iconContainer.addSubview(tempIcon)
+    NSLayoutConstraint.activate([
+      tempIcon.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+      tempIcon.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+    ])
+
+    /* TO USE YOUR OWN ICON, REPLACE THE ABOVE WITH:
+    let iconImageView = NSImageView()
+    iconImageView.image = NSImage(named: "your-icon-name") // or load from path
+    iconImageView.imageScaling = .scaleProportionallyUpOrDown
+    iconImageView.translatesAutoresizingMaskIntoConstraints = false
+    iconContainer.addSubview(iconImageView)
+    NSLayoutConstraint.activate([
+      iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
+      iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
+      iconImageView.widthAnchor.constraint(equalToConstant: 24),
+      iconImageView.heightAnchor.constraint(equalToConstant: 24)
+    ])
+    */
+
+    contentStack.addArrangedSubview(iconContainer)
+
+    // Text container
     let textStack = NSStackView()
     textStack.orientation = .vertical
     textStack.alignment = .leading
     textStack.spacing = 2
 
-    // Create title label
+    // Title
     let titleLabel = NSTextField(labelWithString: titleStr)
     titleLabel.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
-    titleLabel.textColor = .labelColor
+    titleLabel.textColor = NSColor.labelColor
     titleLabel.backgroundColor = .clear
     titleLabel.isBezeled = false
     titleLabel.isEditable = false
@@ -191,10 +279,10 @@ public func _showNotification(
     titleLabel.maximumNumberOfLines = 1
     textStack.addArrangedSubview(titleLabel)
 
-    // Create message label
+    // Message
     let messageLabel = NSTextField(labelWithString: messageStr)
-    messageLabel.font = NSFont.systemFont(ofSize: 12)
-    messageLabel.textColor = .secondaryLabelColor
+    messageLabel.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+    messageLabel.textColor = NSColor.secondaryLabelColor
     messageLabel.backgroundColor = .clear
     messageLabel.isBezeled = false
     messageLabel.isEditable = false
@@ -202,42 +290,40 @@ public func _showNotification(
     messageLabel.maximumNumberOfLines = 2
     textStack.addArrangedSubview(messageLabel)
 
-    horizontalStack.addArrangedSubview(textStack)
+    contentStack.addArrangedSubview(textStack)
 
-    // Add stack to visual effect view
-    visualEffectView.addSubview(horizontalStack)
+    // Add close button
+    let closeButton = CloseButton(frame: NSRect(x: 0, y: 0, width: 24, height: 24))
+    closeButton.translatesAutoresizingMaskIntoConstraints = false
+    effectView.addSubview(closeButton)
 
-    // Set up constraints
     NSLayoutConstraint.activate([
-      horizontalStack.leadingAnchor.constraint(equalTo: visualEffectView.leadingAnchor),
-      horizontalStack.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
-      horizontalStack.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
-      horizontalStack.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
+      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 8),
+      closeButton.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -8),
+      closeButton.widthAnchor.constraint(equalToConstant: 24),
+      closeButton.heightAnchor.constraint(equalToConstant: 24),
     ])
 
-    // Create clickable content view
-    let clickableContentView = ClickableView(
-      frame: NSRect(x: 0, y: 0, width: notificationWidth, height: notificationHeight))
-    clickableContentView.wantsLayer = true
-    clickableContentView.layer?.cornerRadius = 10
-    clickableContentView.layer?.masksToBounds = true
+    // Show close button on hover
+    clickableView.onHover = { isHovering in
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0.15
+        closeButton.animator().alphaValue = isHovering ? 0.8 : 0
+      }
+    }
 
-    // Move visual effect view to clickable content view
-    contentView.removeFromSuperview()
-    clickableContentView.addSubview(visualEffectView)
+    clickableView.addSubview(container)
+    panel.contentView = clickableView
 
-    // Set the clickable content view as panel's content
-    panel.contentView = clickableContentView
-
-    // Store panel reference to prevent deallocation
+    // Store panel reference
     sharedPanel = panel
 
-    // Show the panel (starts off-screen to the right)
+    // Show panel
     panel.makeKeyAndOrderFront(nil)
 
-    // Animate slide-in from right with fade-in
+    // Animate slide-in
     NSAnimationContext.runAnimationGroup({ context in
-      context.duration = 0.35
+      context.duration = 0.3
       context.timingFunction = CAMediaTimingFunction(name: .easeOut)
       panel.animator().setFrame(
         NSRect(x: finalXPos, y: finalYPos, width: notificationWidth, height: notificationHeight),
@@ -245,35 +331,13 @@ public func _showNotification(
       )
       panel.animator().alphaValue = 1.0
     }) {
-      // Auto-dismiss after specified timeout
+      // Auto-dismiss after timeout
       DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds) {
-        if let currentPanel = sharedPanel {
-          // Animate slide-out to right with fade
-          NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.3
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-
-            let exitFrame = NSRect(
-              x: screenRect.maxX + 10,
-              y: finalYPos,
-              width: notificationWidth,
-              height: notificationHeight
-            )
-
-            currentPanel.animator().setFrame(exitFrame, display: true)
-            currentPanel.animator().alphaValue = 0
-          }) {
-            currentPanel.close()
-            sharedPanel = nil
-            sharedUrl = nil
-          }
-        }
+        dismissNotification()
       }
     }
-
   }
 
-  // Give some time for the async block to execute
   Thread.sleep(forTimeInterval: 0.1)
   return true
 }

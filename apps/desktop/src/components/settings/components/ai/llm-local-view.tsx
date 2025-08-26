@@ -125,7 +125,6 @@ export function LLMLocalView({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log("help button clicked");
                     open("https://docs.hyprnote.com/pro/cloud");
                   }}
                   className="absolute top-[-2px] left-[113px] z-10"
@@ -244,9 +243,7 @@ export function LLMLocalView({
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
-                        console.log("model download clicked");
                         e.stopPropagation();
-                        console.log("model download clicked 2");
                         handleModelDownload(model.key);
                       }}
                       className="text-xs h-7 px-2 flex items-center gap-1"

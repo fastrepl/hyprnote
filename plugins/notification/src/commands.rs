@@ -4,8 +4,9 @@ use crate::NotificationPluginExt;
 #[specta::specta]
 pub(crate) async fn show_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
+    v: hypr_notification::Notification,
 ) -> Result<(), String> {
-    app.show_notification().map_err(|e| e.to_string())
+    app.show_notification(v).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

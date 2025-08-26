@@ -8,3 +8,5 @@ swift-rs = { workspace = true, features = ["build"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 swift-rs = { workspace = true }
+
+hypr-notification-interface = { workspace = true, package = "notification-interface" }

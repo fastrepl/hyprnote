@@ -9236,9 +9236,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "notification-interface"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+]
+
+[[package]]
 name = "notification-macos"
 version = "0.1.0"
 dependencies = [
+ "notification-interface",
  "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
 ]
 

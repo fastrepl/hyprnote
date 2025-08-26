@@ -6,7 +6,8 @@ use tauri_plugin_store2::StorePluginExt;
 pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
-    fn show_notification(&self) -> Result<(), Error>;
+    fn show_notification(&self, notification: hypr_notification::Notification)
+        -> Result<(), Error>;
     fn get_event_notification(&self) -> Result<bool, Error>;
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error>;
 
@@ -26,8 +27,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip(self))]
-    fn show_notification(&self) -> Result<(), Error> {
-        hypr_notification::show();
+    fn show_notification(&self, v: hypr_notification::Notification) -> Result<(), Error> {
+        hypr_notification::show(&v);
         Ok(())
     }
 
@@ -108,7 +109,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             //     timeout: Some(std::time::Duration::from_secs(10)),
             // };
 
-            hypr_notification::show();
+            hypr_notification::show(&hypr_notification::Notification {
+                title: "Hello".to_string(),
+                message: "Hello".to_string(),
+                url: None,
+                timeout: Some(std::time::Duration::from_secs(10)),
+            });
         });
 
         let state = self.state::<crate::SharedState>();

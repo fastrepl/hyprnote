@@ -117,6 +117,7 @@ export const Route = createFileRoute("/app/note/$id")({
 
 function Component() {
   const { id: sessionId } = Route.useParams();
+  const isMainWindow = getCurrentWebviewWindowLabel() === "main";
 
   const { getLatestSession, session } = useSession(sessionId, (s) => ({ getLatestSession: s.get, session: s.session }));
   const getOngoingSession = useOngoingSession((s) => s.get);
@@ -155,6 +156,9 @@ function Component() {
 
   return (
     <div className="flex h-full overflow-hidden">
+      {!isMainWindow && (
+        <div data-tauri-drag-region className="absolute top-0 left-0 right-0 h-8 z-50 pointer-events-auto" />
+      )}
       <div className="flex-1">
         <main className="flex h-full overflow-hidden bg-white">
           <div className="h-full flex-1 pt-6">

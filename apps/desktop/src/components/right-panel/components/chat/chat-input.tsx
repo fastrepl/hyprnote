@@ -3,6 +3,7 @@ import { ArrowUpIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucid
 import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
+import type { SelectionData } from "@/contexts/right-panel";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -14,7 +15,7 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 interface ChatInputProps {
   inputValue: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (mentionedContent?: Array<{ id: string; type: string; label: string }>) => void;
+  onSubmit: (mentionedContent?: Array<{ id: string; type: string; label: string }>, selectionData?: SelectionData) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
   entityId?: string;
@@ -136,6 +137,7 @@ export function ChatInput(
   }, [onChange, extractPlainText]);
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const processedSelectionRef = useRef<string | null>(null);
 
   const extractMentionedContent = useCallback(() => {
     if (!editorRef.current?.editor) {
@@ -185,7 +187,11 @@ export function ChatInput(
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
 
-    onSubmit(mentionedContent);
+    // Pass the pending selection data to the submit handler
+    onSubmit(mentionedContent, pendingSelection || undefined);
+
+    // Reset processed selection so new selections can be processed
+    processedSelectionRef.current = null;
 
     if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setContent("<p></p>");
@@ -197,7 +203,7 @@ export function ChatInput(
 
       onChange(syntheticEvent);
     }
-  }, [onSubmit, onChange, extractMentionedContent]);
+  }, [onSubmit, onChange, extractMentionedContent, pendingSelection]);
 
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {
@@ -208,18 +214,15 @@ export function ChatInput(
   // Handle pending selection from text selection popover
   useEffect(() => {
     if (pendingSelection && editorRef.current?.editor) {
-      console.log("💬 Chat Input Received Selection (ProseMirror):");
-      console.log("Pending selection:", pendingSelection);
-      console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
-      console.log("Position range:", pendingSelection.endOffset - pendingSelection.startOffset);
+      // Create a unique ID for this selection to avoid processing it multiple times
+      const selectionId = `${pendingSelection.startOffset}-${pendingSelection.endOffset}-${pendingSelection.timestamp}`;
       
-      const timestamp = Date.now();
-      const age = timestamp - pendingSelection.timestamp;
-      console.log("Selection age (ms):", age);
-      
-      // Only process if this is a fresh selection (within last 3 seconds)
-      if (age < 3000) {
-        console.log("✅ Processing fresh selection");
+      // Only process if we haven't already processed this exact selection
+      if (processedSelectionRef.current !== selectionId) {
+        console.log("💬 Chat Input Received NEW Selection (ProseMirror):");
+        console.log("Pending selection:", pendingSelection);
+        console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
+        
         const quotedText = `<span class="selection-quote">"${pendingSelection.text}"</span><p></p>`;
         console.log("Generated quoted text HTML:", quotedText);
         
@@ -234,15 +237,11 @@ export function ChatInput(
         onChange(syntheticEvent);
         console.log("Chat input populated successfully");
         
-        // Clear the pending selection so it doesn't get processed again
-        clearPendingSelection();
-      } else {
-        console.log("❌ Selection too old, ignoring");
-        // Also clear old selections
-        clearPendingSelection();
+        // Mark this selection as processed
+        processedSelectionRef.current = selectionId;
       }
     }
-  }, [pendingSelection, onChange, clearPendingSelection]);
+  }, [pendingSelection, onChange]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;

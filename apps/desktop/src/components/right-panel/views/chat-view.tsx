@@ -180,7 +180,7 @@ export function ChatView() {
       <ChatInput
         inputValue={inputValue}
         onChange={handleInputChange}
-        onSubmit={(mentionedContent) => handleSubmit(mentionedContent)}
+        onSubmit={(mentionedContent, selectionData) => handleSubmit(mentionedContent, selectionData)}
         onKeyDown={handleKeyDown}
         autoFocus={true}
         entityId={activeEntity?.id}

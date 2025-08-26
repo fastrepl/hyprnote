@@ -10,6 +10,7 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
+import { globalEditorRef } from "../../shared/editor-ref";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -128,6 +129,13 @@ export default function EditorArea({
   }));
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+
+  // Assign editor to global ref for access by other components (like chat tools)
+  useEffect(() => {
+    if (editorRef.current?.editor) {
+      (globalEditorRef as any).current = editorRef.current.editor;
+    }
+  }, [editorRef.current?.editor]);
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,
     [sessionId, showRaw],

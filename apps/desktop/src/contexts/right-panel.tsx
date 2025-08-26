@@ -7,7 +7,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 export type RightPanelView = "chat" | "transcript";
 
-interface SelectionData {
+export interface SelectionData {
   text: string;
   startOffset: number;  // ProseMirror position (not character offset)
   endOffset: number;    // ProseMirror position (not character offset)

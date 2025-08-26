@@ -3,6 +3,9 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { message } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { SelectionData } from "@/contexts/right-panel";
+import { globalEditorRef } from "../../../shared/editor-ref";
+
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
@@ -26,6 +29,7 @@ import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { prepareMessageHistory } from "../utils/chat-utils";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import { buildVercelToolsFromMcp } from "../utils/mcp-http-wrapper";
+
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -117,6 +121,7 @@ export function useChatLogic({
     content: string,
     analyticsEvent: string,
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData,
   ) => {
     if (!content.trim() || isGenerating) {
       return;
@@ -337,8 +342,53 @@ export function useChatLogic({
         },
       });
 
+      const editEnhancedNoteTool = tool({
+        description: "Edit a specific part of the enhanced note by replacing HTML content at given ProseMirror positions with new HTML content. Use this when the user asks to modify, change, or replace specific selected content. The selected content is provided as HTML, and you should respond with HTML that maintains proper formatting.",
+        inputSchema: z.object({
+          startOffset: z.number().describe("The ProseMirror start position of the content to replace"),
+          endOffset: z.number().describe("The ProseMirror end position of the content to replace"), 
+          newHtml: z.string().describe("The new HTML content to replace the selected content with. Maintain proper HTML structure and formatting."),
+        }),
+        execute: async ({ startOffset, endOffset, newHtml }) => {
+          if (!sessionId) {
+            return { success: false, error: "No session ID available" };
+          }
+
+          const sessionStore = sessions[sessionId];
+          if (!sessionStore) {
+            return { success: false, error: "Session not found" };
+          }
+
+          try {
+            // DIRECT PROSEMIRROR EDITING - No format conversion needed!
+            const editor = globalEditorRef.current;
+            
+            if (!editor) {
+              return { success: false, error: "Editor not available" };
+            }
+
+            // Use the exact ProseMirror positions with HTML content!
+            editor.chain()
+              .focus()
+              .setTextSelection({ from: startOffset, to: endOffset })
+              .insertContent(newHtml)  // Insert HTML directly - TipTap handles this natively
+              .run();
+
+            return { 
+              success: true, 
+              message: `Successfully replaced content at positions ${startOffset}-${endOffset} with new HTML content`
+            };
+          } catch (error) {
+            console.error("Failed to edit enhanced note:", error);
+            return { success: false, error: `Failed to update the enhanced note: ${error instanceof Error ? error.message : 'Unknown error'}` };
+          }
+        },
+      });
+
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
+
+      console.log("selectionData exists?", selectionData);
 
       const { fullStream } = streamText({
         model,
@@ -352,11 +402,18 @@ export function useChatLogic({
           sessionId,
           userId,
           apiBase,
+          selectionData, // Pass selectionData to prepareMessageHistory
         ),
         stopWhen: stepCountIs(5),
         tools: {
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
-          ...(shouldUseTools && { ...newMcpTools, search_sessions_multi_keywords: searchTool, ...hyprMcpTools }),
+          ...(shouldUseTools && { 
+            ...newMcpTools, 
+            search_sessions_multi_keywords: searchTool, 
+            ...hyprMcpTools,
+            // Add the edit tool when there's selection data
+            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool })
+          }),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);
@@ -483,6 +540,7 @@ export function useChatLogic({
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
+          console.log("tool result", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
@@ -600,12 +658,15 @@ export function useChatLogic({
     }
   };
 
-  const handleSubmit = async (mentionedContent?: Array<{ id: string; type: string; label: string }>) => {
-    await processUserMessage(inputValue, "chat_message_sent", mentionedContent);
+  const handleSubmit = async (
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData
+  ) => {
+    await processUserMessage(inputValue, "chat_message_sent", mentionedContent, selectionData);
   };
 
   const handleQuickAction = async (prompt: string) => {
-    await processUserMessage(prompt, "chat_quickaction_sent");
+    await processUserMessage(prompt, "chat_quickaction_sent", undefined, undefined);
 
     if (chatInputRef.current) {
       chatInputRef.current.focus();

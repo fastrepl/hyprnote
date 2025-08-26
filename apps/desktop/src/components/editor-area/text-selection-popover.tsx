@@ -115,14 +115,38 @@ export function TextSelectionPopover(
       return null;
     }
 
-    // Get current TipTap selection
+    // Get current TipTap selection positions
     const { from, to } = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(from, to);
+    
+    // CLEAN HTML APPROACH: Extract selected content as HTML directly
+    let selectedHtml = "";
+    try {
+      // Get the selected DOM range
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const fragment = range.cloneContents();
+        
+        // Create a temporary div to get the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(fragment);
+        selectedHtml = tempDiv.innerHTML;
+      }
+      
+      // Fallback: if no DOM selection, use plain text
+      if (!selectedHtml) {
+        selectedHtml = editor.state.doc.textBetween(from, to);
+      }
+      
+    } catch (error) {
+      console.warn("Could not extract HTML, falling back to plain text:", error);
+      selectedHtml = editor.state.doc.textBetween(from, to);
+    }
     
     return {
       from,
       to,
-      text: selectedText
+      text: selectedHtml // Now contains HTML instead of plain text
     };
   };
 

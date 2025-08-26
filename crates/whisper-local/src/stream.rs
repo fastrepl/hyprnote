@@ -20,12 +20,16 @@ pub struct TranscriptionTask<S, T> {
 pub trait AudioChunk: Send + 'static {
     fn samples(&self) -> &[f32];
     fn meta(&self) -> Option<serde_json::Value>;
+    fn start_timestamp_ms(&self) -> Option<usize>;
+    fn end_timestamp_ms(&self) -> Option<usize>;
 }
 
 #[derive(Default)]
 pub struct SimpleAudioChunk {
     pub samples: Vec<f32>,
     pub meta: Option<serde_json::Value>,
+    pub start_timestamp_ms: Option<usize>,
+    pub end_timestamp_ms: Option<usize>,
 }
 
 impl AudioChunk for SimpleAudioChunk {
@@ -35,6 +39,14 @@ impl AudioChunk for SimpleAudioChunk {
 
     fn meta(&self) -> Option<serde_json::Value> {
         self.meta.clone()
+    }
+
+    fn start_timestamp_ms(&self) -> Option<usize> {
+        self.start_timestamp_ms
+    }
+
+    fn end_timestamp_ms(&self) -> Option<usize> {
+        self.end_timestamp_ms
     }
 }
 
@@ -116,6 +128,7 @@ where
                         &samples,
                         &mut this.current_segment_task,
                         None,
+                        (None, None),
                     ) {
                         Poll::Ready(result) => return Poll::Ready(result),
                         Poll::Pending => continue,
@@ -156,11 +169,14 @@ where
                     let meta = chunk.meta();
                     let samples = chunk.samples();
 
+                    let timestamps = (chunk.start_timestamp_ms(), chunk.end_timestamp_ms());
+
                     match process_transcription(
                         &mut this.whisper,
                         samples,
                         &mut this.current_segment_task,
                         meta,
+                        timestamps,
                     ) {
                         Poll::Ready(result) => return Poll::Ready(result),
                         Poll::Pending => continue,
@@ -178,6 +194,7 @@ fn process_transcription<'a>(
     samples: &'a [f32],
     current_segment_task: &'a mut Option<Pin<Box<dyn Stream<Item = Segment> + Send>>>,
     meta: Option<serde_json::Value>,
+    timestamps: (Option<usize>, Option<usize>),
 ) -> Poll<Option<Segment>> {
     if !samples.is_empty() {
         match whisper.transcribe(samples) {
@@ -190,6 +207,11 @@ fn process_transcription<'a>(
             Ok(mut segments) => {
                 for segment in &mut segments {
                     segment.meta = meta.clone();
+
+                    if let (Some(start_ms), Some(end_ms)) = timestamps {
+                        segment.start = start_ms as f64 / 1000.0;
+                        segment.end = end_ms as f64 / 1000.0;
+                    }
                 }
 
                 *current_segment_task = Some(Box::pin(futures_util::stream::iter(segments)));

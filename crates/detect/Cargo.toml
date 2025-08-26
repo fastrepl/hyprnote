@@ -7,8 +7,10 @@ edition = "2021"
 lazy_static = { workspace = true }
 regex = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt", "sync", "time"] }
 url = { workspace = true }
+
+tokio = { workspace = true, features = ["rt", "sync", "time"] }
+tracing = { workspace = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cidre = { workspace = true }

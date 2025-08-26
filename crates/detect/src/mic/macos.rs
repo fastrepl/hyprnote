@@ -1,4 +1,5 @@
 use cidre::{core_audio as ca, os};
+use std::time::{Duration, Instant};
 
 use crate::BackgroundTask;
 
@@ -20,6 +21,37 @@ const DEVICE_IS_RUNNING_SOMEWHERE: ca::PropAddr = ca::PropAddr {
     element: ca::PropElement::MAIN,
 };
 
+struct DetectorState {
+    last_state: bool,
+    last_change: Instant,
+    debounce_duration: Duration,
+}
+
+impl DetectorState {
+    fn new() -> Self {
+        Self {
+            last_state: false,
+            last_change: Instant::now(),
+            debounce_duration: Duration::from_millis(500),
+        }
+    }
+
+    fn should_trigger(&mut self, new_state: bool) -> bool {
+        let now = Instant::now();
+
+        if new_state == self.last_state {
+            return false;
+        }
+        if now.duration_since(self.last_change) < self.debounce_duration {
+            return false;
+        }
+
+        self.last_state = new_state;
+        self.last_change = now;
+        true
+    }
+}
+
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
@@ -28,9 +60,12 @@ impl crate::Observer for Detector {
             std::thread::spawn(move || {
                 let callback = std::sync::Arc::new(std::sync::Mutex::new(f));
                 let current_device = std::sync::Arc::new(std::sync::Mutex::new(None::<ca::Device>));
+                let detector_state =
+                    std::sync::Arc::new(std::sync::Mutex::new(DetectorState::new()));
 
                 let callback_for_device = callback.clone();
                 let current_device_for_device = current_device.clone();
+                let detector_state_for_device = detector_state.clone();
 
                 extern "C-unwind" fn device_listener(
                     _obj_id: ca::Obj,
@@ -43,9 +78,11 @@ impl crate::Observer for Detector {
                             as *const (
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
+                                std::sync::Arc<std::sync::Mutex<DetectorState>>,
                             ))
                     };
                     let callback = &data.0;
+                    let state = &data.2;
 
                     let addresses =
                         unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
@@ -56,9 +93,19 @@ impl crate::Observer for Detector {
                                 if let Ok(is_running) =
                                     device.prop::<u32>(&DEVICE_IS_RUNNING_SOMEWHERE)
                                 {
-                                    if is_running != 0 {
-                                        if let Ok(guard) = callback.lock() {
-                                            (*guard)("microphone_in_use".to_string());
+                                    let mic_in_use = is_running != 0;
+
+                                    if let Ok(mut state_guard) = state.lock() {
+                                        if state_guard.should_trigger(mic_in_use) {
+                                            if mic_in_use {
+                                                if let Ok(guard) = callback.lock() {
+                                                    (*guard)("mic_started".to_string());
+                                                }
+                                            } else {
+                                                if let Ok(guard) = callback.lock() {
+                                                    (*guard)("mic_stopped".to_string());
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -80,11 +127,13 @@ impl crate::Observer for Detector {
                             as *const (
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
+                                std::sync::Arc<std::sync::Mutex<DetectorState>>,
                                 *mut (),
                             ))
                     };
                     let current_device = &data.1;
-                    let device_listener_data = data.2;
+                    let state = &data.2;
+                    let device_listener_data = data.3;
 
                     let addresses =
                         unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
@@ -101,6 +150,14 @@ impl crate::Observer for Detector {
                                 }
 
                                 if let Ok(new_device) = ca::System::default_input_device() {
+                                    let mic_in_use = if let Ok(is_running) =
+                                        new_device.prop::<u32>(&DEVICE_IS_RUNNING_SOMEWHERE)
+                                    {
+                                        is_running != 0
+                                    } else {
+                                        false
+                                    };
+
                                     if new_device
                                         .add_prop_listener(
                                             &DEVICE_IS_RUNNING_SOMEWHERE,
@@ -110,6 +167,18 @@ impl crate::Observer for Detector {
                                         .is_ok()
                                     {
                                         *device_guard = Some(new_device);
+
+                                        if let Ok(mut state_guard) = state.lock() {
+                                            if state_guard.should_trigger(mic_in_use) {
+                                                if mic_in_use {
+                                                    if let Ok(callback_guard) = data.0.lock() {
+                                                        (*callback_guard)(
+                                                            "mic_started".to_string(),
+                                                        );
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -122,25 +191,36 @@ impl crate::Observer for Detector {
                 let device_listener_data = Box::new((
                     callback_for_device.clone(),
                     current_device_for_device.clone(),
+                    detector_state_for_device.clone(),
                 ));
                 let device_listener_ptr = Box::into_raw(device_listener_data) as *mut ();
 
                 let system_listener_data = Box::new((
                     callback.clone(),
                     current_device.clone(),
+                    detector_state.clone(),
                     device_listener_ptr,
                 ));
                 let system_listener_ptr = Box::into_raw(system_listener_data) as *mut ();
 
-                ca::System::OBJ
-                    .add_prop_listener(
-                        &ca::PropSelector::HW_DEFAULT_INPUT_DEVICE.global_addr(),
-                        system_listener,
-                        system_listener_ptr,
-                    )
-                    .unwrap();
+                if let Err(e) = ca::System::OBJ.add_prop_listener(
+                    &ca::PropSelector::HW_DEFAULT_INPUT_DEVICE.global_addr(),
+                    system_listener,
+                    system_listener_ptr,
+                ) {
+                    println!("Failed to add system listener: {:?}", e);
+                } else {
+                    println!("✅ System listener added successfully");
+                }
 
                 if let Ok(device) = ca::System::default_input_device() {
+                    let mic_in_use =
+                        if let Ok(is_running) = device.prop::<u32>(&DEVICE_IS_RUNNING_SOMEWHERE) {
+                            is_running != 0
+                        } else {
+                            false
+                        };
+
                     if device
                         .add_prop_listener(
                             &DEVICE_IS_RUNNING_SOMEWHERE,
@@ -149,48 +229,31 @@ impl crate::Observer for Detector {
                         )
                         .is_ok()
                     {
+                        println!("✅ Device listener added successfully");
+
                         if let Ok(mut device_guard) = current_device.lock() {
                             *device_guard = Some(device);
                         }
+
+                        if let Ok(mut state_guard) = detector_state.lock() {
+                            state_guard.last_state = mic_in_use;
+                            if mic_in_use {
+                                if let Ok(callback_guard) = callback.lock() {
+                                    (*callback_guard)("microphone_in_use".to_string());
+                                }
+                            }
+                        }
+                    } else {
+                        println!("❌ Failed to add device listener");
                     }
+                } else {
+                    println!("⚠️ No default input device found");
                 }
 
                 let _ = tx.blocking_send(());
 
-                ca::System::OBJ
-                    .remove_prop_listener(
-                        &ca::PropSelector::HW_DEFAULT_INPUT_DEVICE.global_addr(),
-                        system_listener,
-                        system_listener_ptr,
-                    )
-                    .unwrap();
-
-                if let Ok(device_guard) = current_device.lock() {
-                    if let Some(device) = &*device_guard {
-                        let _ = device.remove_prop_listener(
-                            &DEVICE_IS_RUNNING_SOMEWHERE,
-                            device_listener,
-                            device_listener_ptr,
-                        );
-                    }
-                }
-
-                unsafe {
-                    let _ = Box::from_raw(
-                        system_listener_ptr
-                            as *mut (
-                                std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
-                                std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
-                                *mut (),
-                            ),
-                    );
-                    let _ = Box::from_raw(
-                        device_listener_ptr
-                            as *mut (
-                                std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
-                                std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
-                            ),
-                    );
+                loop {
+                    std::thread::park();
                 }
             });
 
@@ -213,5 +276,22 @@ impl crate::Observer for Detector {
 
     fn stop(&mut self) {
         self.background.stop();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{new_callback, Observer};
+
+    #[tokio::test]
+    async fn test_detector() {
+        let mut detector = Detector::default();
+        detector.start(new_callback(|v| {
+            println!("{}", v);
+        }));
+
+        tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+        detector.stop();
     }
 }

@@ -23,7 +23,7 @@ impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
     fn parse_meeting_link(&self, text: impl AsRef<str>) -> Option<String> {
         let text = text.as_ref();
 
-        for regex in hypr_detect::MEETING_REGEXES.iter() {
+        for regex in MEETING_REGEXES.iter() {
             if let Some(capture) = regex.find(text) {
                 return Some(capture.as_str().to_string());
             }
@@ -38,4 +38,12 @@ impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
 
         None
     }
+}
+
+lazy_static::lazy_static! {
+    pub static ref MEETING_REGEXES: Vec<regex::Regex> = vec![
+        regex::Regex::new(r"https://meet\.google\.com/[a-z0-9]{3,4}-[a-z0-9]{3,4}-[a-z0-9]{3,4}").unwrap(),
+        regex::Regex::new(r"https://[a-z0-9.-]+\.zoom\.us/j/\d+(\?pwd=[a-zA-Z0-9.]+)?").unwrap(),
+        regex::Regex::new(r"https://app\.cal\.com/video/[a-zA-Z0-9]+").unwrap(),
+    ];
 }

@@ -3898,6 +3898,7 @@ dependencies = [
  "regex",
  "thiserror 2.0.12",
  "tokio",
+ "tracing",
  "url",
 ]
 
@@ -10932,6 +10933,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-killer"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f8f8abaf06419461fc718f5a0929c18d06dd825f26c066e376f365f2d8c2ec2"
+
+[[package]]
 name = "port_check"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14753,6 +14760,7 @@ dependencies = [
  "language",
  "owhisper-client",
  "owhisper-interface",
+ "port-killer",
  "port_check",
  "reqwest 0.12.22",
  "rodio",
@@ -14822,9 +14830,9 @@ name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
  "buffer",
- "detect",
  "host",
  "indoc",
+ "lazy_static",
  "regex",
  "specta",
  "specta-typescript",

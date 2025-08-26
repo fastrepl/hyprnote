@@ -86,6 +86,16 @@ export function useChatQueries({
         timestamp: new Date(msg.created_at),
         type: msg.type || "text-delta",
         parts: msg.role === "Assistant" ? parseMarkdownBlocks(msg.content) : undefined,
+        toolDetails: msg.type === "tool-start" && msg.tool_details
+          ? (() => {
+            try {
+              return JSON.parse(msg.tool_details);
+            } catch (error) {
+              console.error("Failed to parse tool_details for tool-start:", msg.id, error);
+              return undefined;
+            }
+          })()
+          : undefined,
       }));
     },
   });

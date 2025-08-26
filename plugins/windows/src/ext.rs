@@ -247,6 +247,9 @@ impl HyprWindow {
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
         if self == &Self::Main {
+            #[cfg(target_os = "macos")]
+            let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+
             use tauri_plugin_analytics::{hypr_analytics::AnalyticsPayload, AnalyticsPluginExt};
             use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
@@ -267,8 +270,8 @@ impl HyprWindow {
         }
 
         if let Some(window) = self.get(app) {
-            window.set_focus()?;
             window.show()?;
+            window.set_focus()?;
             return Ok(window);
         }
 

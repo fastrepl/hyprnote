@@ -23,7 +23,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
@@ -80,19 +80,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
       const isServerAvailable = (servers.external === "ready") || (servers.internal === "ready");
       return isDownloaded && isServerAvailable;
     },
-  });
-
-  const anySttModelExists = useQuery({
-    queryKey: ["check-any-stt-model-downloaded"],
-    refetchInterval: 3000,
-    queryFn: async () => {
-      const supportedModels = await localSttCommands.listSupportedModels();
-      const sttDownloadStatuses = await Promise.all(
-        supportedModels.map((model) => localSttCommands.isModelDownloaded(model.key as SupportedSttModel)),
-      );
-      return sttDownloadStatuses.some(Boolean);
-    },
-    enabled: isOnboarding,
   });
 
   const sessionWords = useSession(sessionId, (s) => s.session.words);
@@ -157,7 +144,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   if (ongoingSessionStatus === "inactive") {
     const buttonProps = {
       disabled: isOnboarding
-        ? !anySttModelExists.data || (meetingEnded && isEnhancePending)
+        ? !modelDownloaded.data || (meetingEnded && isEnhancePending)
         : !modelDownloaded.data || (meetingEnded && isEnhancePending),
       onClick: handleStartSession,
     };

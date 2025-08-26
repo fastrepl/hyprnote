@@ -235,6 +235,8 @@ objc2-user-notifications = "0.3"
 rmcp = "0.5.0"
 tokenizers = "0.21.4"
 
+swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9" }
+
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }
 esaxx-rs = { git = "https://github.com/thewh1teagle/esaxx-rs.git", branch = "feat/dynamic-msvc-link" }

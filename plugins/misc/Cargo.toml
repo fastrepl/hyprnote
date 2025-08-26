@@ -17,12 +17,12 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-buffer = { workspace = true }
-hypr-detect = { workspace = true }
 hypr-host = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-opener = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+lazy_static = { workspace = true }
 regex = { workspace = true }
 specta = { workspace = true }

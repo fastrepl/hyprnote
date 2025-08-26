@@ -4,7 +4,6 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
-import { useLicense } from "@/hooks/use-license";
 import { commands as localSttCommands, ServerHealth, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -208,7 +207,7 @@ function ProModelsSection({
   downloadingModels,
   handleModelDownload,
 }: Omit<ModelSectionProps, "modelsToShow">) {
-  const { getLicense } = useLicense();
+  // const { getLicense } = useLicense();
 
   const handleShowFileLocation = async () => {
     const path = await localSttCommands.modelsDir();
@@ -241,7 +240,7 @@ function ProModelsSection({
     <section className="max-w-2xl">
       <SectionHeader
         title="Pro Models (Beta)"
-        description="Latency and resource optimized inference engine."
+        description="Temporarily disabled to fix some issues. Sorry :("
         status={status}
         docsUrl="https://docs.hyprnote.com/models"
       />
@@ -251,7 +250,7 @@ function ProModelsSection({
         {proModels.data?.map((model) => (
           <ModelEntry
             key={model.key}
-            disabled={!getLicense.data?.valid}
+            disabled={true}
             model={model}
             selectedSTTModel={selectedSTTModel}
             setSelectedSTTModel={setSelectedSTTModel}

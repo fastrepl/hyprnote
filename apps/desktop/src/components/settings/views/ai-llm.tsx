@@ -203,16 +203,14 @@ export default function LlmAI() {
       const statusChecks = await Promise.all([
         localLlmCommands.isModelDownloaded("Llama3p2_3bQ4" satisfies SupportedModel),
         localLlmCommands.isModelDownloaded("HyprLLM" satisfies SupportedModel),
-        localLlmCommands.isModelDownloaded("HyprLLMv2" satisfies SupportedModel),
         localLlmCommands.isModelDownloaded("Gemma3_4bQ4" satisfies SupportedModel),
       ]);
 
       return {
         "Llama3p2_3bQ4": statusChecks[0],
         "HyprLLM": statusChecks[1],
-        "HyprLLMv2": statusChecks[2],
-        "Gemma3_4bQ4": statusChecks[3],
-      } satisfies Record<SupportedModel, boolean>;
+        "Gemma3_4bQ4": statusChecks[2],
+      };
     },
     refetchInterval: 3000,
   });

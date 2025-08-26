@@ -100,7 +100,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
-        let cb = hypr_detect::new_callback(move |_bundle_id| {
+        let cb = hypr_detect::new_callback(move |bundle_id| {
             let notif = hypr_notification2::Notification {
                 title: "Meeting detected".to_string(),
                 message: "Click here to start writing a note".to_string(),
@@ -136,11 +136,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn request_notification_permission(&self) -> Result<(), Error> {
-        #[cfg(target_os = "macos")]
-        let _ = hypr_detect::Detector::default().macos_request_accessibility_permission();
-
         hypr_notification2::request_notification_permission();
-
         Ok(())
     }
 

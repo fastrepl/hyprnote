@@ -78,5 +78,6 @@ tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
 
+port-killer = "0.1.0"
 port_check = "0.3.0"
 sysinfo = "0.37.0"

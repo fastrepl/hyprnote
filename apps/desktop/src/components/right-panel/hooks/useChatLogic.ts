@@ -160,6 +160,7 @@ export function useChatLogic({
       role: "User",
       content: userMessage.content.trim(),
       type: "text-delta",
+      tool_details: null,
     });
 
     const aiMessageId = crypto.randomUUID();
@@ -340,7 +341,7 @@ export function useChatLogic({
           userId,
           apiBase,
         ),
-        stopWhen: stepCountIs(3),
+        stopWhen: stepCountIs(5),
         tools: {
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
           ...(shouldUseTools && { ...newMcpTools, search_sessions_multi_keywords: searchTool, ...hyprMcpTools }),
@@ -428,6 +429,7 @@ export function useChatLogic({
                   role: "Assistant",
                   type: "text-delta",
                   content: aiResponse.trim(),
+                  tool_details: null,
                 });
               } catch (error) {
                 console.error("Failed to save AI text:", error);
@@ -445,6 +447,7 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-start",
+            toolDetails: chunk.input,
           };
           setMessages((prev) => [...prev, toolStartMessage]);
 
@@ -456,6 +459,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolStartMessage.content,
             type: "tool-start",
+            tool_details: JSON.stringify(chunk.input),
           });
 
           // log if user is using tools in chat 
@@ -485,6 +489,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolResultMessage.content,
             type: "tool-result",
+            tool_details: null,
           });
         }
 
@@ -506,6 +511,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolErrorMessage.content,
             type: "tool-error",
+            tool_details: null,
           });
         }
 
@@ -520,6 +526,7 @@ export function useChatLogic({
           role: "Assistant",
           type: "text-delta",
           content: aiResponse.trim(),
+          tool_details: null,
         });
       }
 
@@ -576,6 +583,7 @@ export function useChatLogic({
         role: "Assistant",
         content: finalErrorMessage,
         type: "text-delta",
+        tool_details: null,
       });
     }
   };

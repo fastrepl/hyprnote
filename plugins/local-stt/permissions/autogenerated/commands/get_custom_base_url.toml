@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-custom-base-url"
+description = "Enables the get_custom_base_url command without any pre-configured scope."
+commands.allow = ["get_custom_base_url"]
+
+[[permission]]
+identifier = "deny-get-custom-base-url"
+description = "Denies the get_custom_base_url command without any pre-configured scope."
+commands.deny = ["get_custom_base_url"]

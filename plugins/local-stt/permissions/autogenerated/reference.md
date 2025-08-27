@@ -15,6 +15,10 @@ Default permissions for the plugin
 - `allow-set-current-model`
 - `allow-list-supported-models`
 - `allow-list-supported-languages`
+- `allow-get-custom-base-url`
+- `allow-get-custom-api-key`
+- `allow-set-custom-base-url`
+- `allow-set-custom-api-key`
 
 ## Permission Table
 
@@ -73,6 +77,58 @@ Enables the get_current_model command without any pre-configured scope.
 <td>
 
 Denies the get_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-custom-api-key`
+
+</td>
+<td>
+
+Enables the get_custom_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-custom-api-key`
+
+</td>
+<td>
+
+Denies the get_custom_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-custom-base-url`
+
+</td>
+<td>
+
+Enables the get_custom_base_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-custom-base-url`
+
+</td>
+<td>
+
+Denies the get_custom_base_url command without any pre-configured scope.
 
 </td>
 </tr>
@@ -437,6 +493,58 @@ Enables the set_current_model command without any pre-configured scope.
 <td>
 
 Denies the set_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-set-custom-api-key`
+
+</td>
+<td>
+
+Enables the set_custom_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-set-custom-api-key`
+
+</td>
+<td>
+
+Denies the set_custom_api_key command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-set-custom-base-url`
+
+</td>
+<td>
+
+Enables the set_custom_base_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-set-custom-base-url`
+
+</td>
+<td>
+
+Denies the set_custom_base_url command without any pre-configured scope.
 
 </td>
 </tr>

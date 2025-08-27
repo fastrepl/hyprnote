@@ -17,8 +17,14 @@ use crate::{
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+
     fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
+
+    fn get_custom_base_url(&self) -> Result<String, crate::Error>;
+    fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error>;
+    fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error>;
+    fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error>;
 
     fn get_connection(&self) -> impl Future<Output = Result<Connection, crate::Error>>;
 
@@ -66,10 +72,39 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         hypr_whisper_local::list_ggml_backends()
     }
 
+    fn get_custom_base_url(&self) -> Result<String, crate::Error> {
+        let store = self.local_stt_store();
+        let v = store.get(crate::StoreKey::CustomBaseUrl)?;
+        Ok(v.unwrap_or_default())
+    }
+
+    fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error> {
+        let store = self.local_stt_store();
+        let v = store.get(crate::StoreKey::CustomApiKey)?;
+        Ok(v)
+    }
+
+    fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error> {
+        let store = self.local_stt_store();
+        store.set(crate::StoreKey::CustomBaseUrl, base_url.into())?;
+        Ok(())
+    }
+
+    fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error> {
+        let store = self.local_stt_store();
+        store.set(crate::StoreKey::CustomApiKey, api_key.into())?;
+        Ok(())
+    }
+
     async fn get_connection(&self) -> Result<Connection, crate::Error> {
         let model = self.get_current_model()?;
 
         match model {
+            SupportedSttModel::Custom(_) => {
+                let base_url = self.get_custom_base_url()?;
+                let api_key = self.get_custom_api_key()?;
+                Ok(Connection { base_url, api_key })
+            }
             SupportedSttModel::Am(_) => {
                 let existing_api_base = {
                     let state = self.state::<crate::SharedState>();
@@ -125,6 +160,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
         match model {
+            SupportedSttModel::Custom(_) => Ok(true),
             SupportedSttModel::Am(model) => Ok(model.is_downloaded(self.models_dir())?),
             SupportedSttModel::Whisper(model) => {
                 let model_path = self.models_dir().join(model.file_name());
@@ -153,6 +189,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         };
 
         let t = match &model {
+            SupportedSttModel::Custom(_) => {
+                return Err(crate::Error::UnsupportedModelType);
+            }
             SupportedSttModel::Am(_) => ServerType::External,
             SupportedSttModel::Whisper(_) => ServerType::Internal,
         };
@@ -178,7 +217,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 let whisper_model = match model {
                     SupportedSttModel::Whisper(m) => m,
-                    SupportedSttModel::Am(_) => {
+                    _ => {
                         return Err(crate::Error::UnsupportedModelType);
                     }
                 };
@@ -213,7 +252,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,
-                    SupportedSttModel::Whisper(_) => {
+                    _ => {
                         return Err(crate::Error::UnsupportedModelType);
                     }
                 };
@@ -335,6 +374,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
+        if let SupportedSttModel::Custom(_) = model {
+            return Err(crate::Error::UnsupportedModelType);
+        }
+
         {
             let existing = {
                 let state = self.state::<crate::SharedState>();
@@ -365,6 +408,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         };
 
         match model.clone() {
+            SupportedSttModel::Custom(_) => {
+                return Err(crate::Error::UnsupportedModelType);
+            }
             SupportedSttModel::Am(m) => {
                 let tar_path = self.models_dir().join(format!("{}.tar", m.model_dir()));
                 let final_path = self.models_dir();
@@ -461,14 +507,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error> {
         let store = self.local_stt_store();
-        let model = store.get(crate::StoreKey::DefaultModel)?;
+        let model = store.get(crate::StoreKey::CurrentModel)?;
         Ok(model.unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedSmall)))
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(crate::StoreKey::DefaultModel, model.clone())?;
+        store.set(crate::StoreKey::CurrentModel, model.clone())?;
         self.stop_server(None).await?;
         self.start_server(Some(model)).await?;
         Ok(())

@@ -110,3 +110,35 @@ pub async fn get_servers<R: tauri::Runtime>(
 pub fn list_supported_languages(model: SupportedSttModel) -> Vec<hypr_language::Language> {
     model.supported_languages()
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_custom_base_url<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.get_custom_base_url().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_custom_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_custom_api_key().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_base_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    base_url: String,
+) -> Result<(), String> {
+    app.set_custom_base_url(base_url).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_key: String,
+) -> Result<(), String> {
+    app.set_custom_api_key(api_key).map_err(|e| e.to_string())
+}

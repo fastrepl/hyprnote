@@ -11,6 +11,10 @@ const COMMANDS: &[&str] = &[
     "set_current_model",
     "list_supported_models",
     "list_supported_languages",
+    "get_custom_base_url",
+    "get_custom_api_key",
+    "set_custom_base_url",
+    "set_custom_api_key",
 ];
 
 fn main() {

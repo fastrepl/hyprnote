@@ -42,6 +42,18 @@ async listSupportedModels() : Promise<SttModelInfo[]> {
 },
 async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_languages", { model });
+},
+async getCustomBaseUrl() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_base_url");
+},
+async getCustomApiKey() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_api_key");
+},
+async setCustomBaseUrl(baseUrl: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_base_url", { baseUrl });
+},
+async setCustomApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_api_key", { apiKey });
 }
 }
 
@@ -61,7 +73,7 @@ export type Language = { iso639: string }
 export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
-export type SupportedSttModel = WhisperModel | AmModel
+export type SupportedSttModel = WhisperModel | AmModel | string
 export type TAURI_CHANNEL<TSend> = null
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 

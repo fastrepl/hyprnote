@@ -76,7 +76,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   /*
   const selectSTTModel = useMutation({
-    mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
+    mutationFn: (model: WhisperModel) => localSttCommands.setLocalModel(model),
   });
   */
 

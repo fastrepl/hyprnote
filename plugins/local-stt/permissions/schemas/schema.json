@@ -307,16 +307,16 @@
           "markdownDescription": "Denies the download_model command without any pre-configured scope."
         },
         {
-          "description": "Enables the get_current_model command without any pre-configured scope.",
+          "description": "Enables the get_local_model command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-current-model",
-          "markdownDescription": "Enables the get_current_model command without any pre-configured scope."
+          "markdownDescription": "Enables the get_local_model command without any pre-configured scope."
         },
         {
-          "description": "Denies the get_current_model command without any pre-configured scope.",
+          "description": "Denies the get_local_model command without any pre-configured scope.",
           "type": "string",
           "const": "deny-get-current-model",
-          "markdownDescription": "Denies the get_current_model command without any pre-configured scope."
+          "markdownDescription": "Denies the get_local_model command without any pre-configured scope."
         },
         {
           "description": "Enables the get_custom_api_key command without any pre-configured scope.",
@@ -353,6 +353,18 @@
           "type": "string",
           "const": "deny-get-external-server-status",
           "markdownDescription": "Denies the get_external_server_status command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_local_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-local-model",
+          "markdownDescription": "Enables the get_local_model command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_local_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-local-model",
+          "markdownDescription": "Denies the get_local_model command without any pre-configured scope."
         },
         {
           "description": "Enables the get_servers command without any pre-configured scope.",
@@ -499,16 +511,16 @@
           "markdownDescription": "Denies the restart_server command without any pre-configured scope."
         },
         {
-          "description": "Enables the set_current_model command without any pre-configured scope.",
+          "description": "Enables the set_local_model command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-current-model",
-          "markdownDescription": "Enables the set_current_model command without any pre-configured scope."
+          "markdownDescription": "Enables the set_local_model command without any pre-configured scope."
         },
         {
-          "description": "Denies the set_current_model command without any pre-configured scope.",
+          "description": "Denies the set_local_model command without any pre-configured scope.",
           "type": "string",
           "const": "deny-set-current-model",
-          "markdownDescription": "Denies the set_current_model command without any pre-configured scope."
+          "markdownDescription": "Denies the set_local_model command without any pre-configured scope."
         },
         {
           "description": "Enables the set_custom_api_key command without any pre-configured scope.",
@@ -533,6 +545,18 @@
           "type": "string",
           "const": "deny-set-custom-base-url",
           "markdownDescription": "Denies the set_custom_base_url command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_local_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-local-model",
+          "markdownDescription": "Enables the set_local_model command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_local_model command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-local-model",
+          "markdownDescription": "Denies the set_local_model command without any pre-configured scope."
         },
         {
           "description": "Enables the start_server command without any pre-configured scope.",

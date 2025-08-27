@@ -61,7 +61,7 @@ export function STTViewLocal({
 
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
-    queryFn: () => localSttCommands.getCurrentModel(),
+    queryFn: () => localSttCommands.getLocalModel(),
   });
 
   const sttModelDownloadStatus = useQuery({
@@ -345,7 +345,7 @@ function ModelEntry({
   const handleClick = () => {
     if (isSelectable) {
       setSelectedSTTModel(model.key as SupportedSttModel);
-      localSttCommands.setCurrentModel(model.key as SupportedSttModel);
+      localSttCommands.setLocalModel(model.key as SupportedSttModel);
       localSttCommands.stopServer(null);
       localSttCommands.startServer(null);
     }

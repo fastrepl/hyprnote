@@ -63,7 +63,7 @@ Denies the download_model command without any pre-configured scope.
 </td>
 <td>
 
-Enables the get_current_model command without any pre-configured scope.
+Enables the get_local_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -76,7 +76,7 @@ Enables the get_current_model command without any pre-configured scope.
 </td>
 <td>
 
-Denies the get_current_model command without any pre-configured scope.
+Denies the get_local_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -155,6 +155,32 @@ Enables the get_external_server_status command without any pre-configured scope.
 <td>
 
 Denies the get_external_server_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-local-model`
+
+</td>
+<td>
+
+Enables the get_local_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-local-model`
+
+</td>
+<td>
+
+Denies the get_local_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -479,7 +505,7 @@ Denies the restart_server command without any pre-configured scope.
 </td>
 <td>
 
-Enables the set_current_model command without any pre-configured scope.
+Enables the set_local_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -492,7 +518,7 @@ Enables the set_current_model command without any pre-configured scope.
 </td>
 <td>
 
-Denies the set_current_model command without any pre-configured scope.
+Denies the set_local_model command without any pre-configured scope.
 
 </td>
 </tr>
@@ -545,6 +571,32 @@ Enables the set_custom_base_url command without any pre-configured scope.
 <td>
 
 Denies the set_custom_base_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-set-local-model`
+
+</td>
+<td>
+
+Enables the set_local_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-set-local-model`
+
+</td>
+<td>
+
+Denies the set_local_model command without any pre-configured scope.
 
 </td>
 </tr>

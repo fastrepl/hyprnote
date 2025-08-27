@@ -74,7 +74,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     refetchInterval: 1500,
     enabled: ongoingSessionStatus !== "running_active",
     queryFn: async () => {
-      const currentModel = await localSttCommands.getCurrentModel();
+      const currentModel = await localSttCommands.getLocalModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(currentModel);
       const servers = await localSttCommands.getServers();
       const isServerAvailable = (servers.external === "ready") || (servers.internal === "ready");

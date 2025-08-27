@@ -22,11 +22,11 @@ async isModelDownloading(model: SupportedSttModel) : Promise<boolean> {
 async downloadModel(model: SupportedSttModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
-async getCurrentModel() : Promise<SupportedSttModel> {
-    return await TAURI_INVOKE("plugin:local-stt|get_current_model");
+async getLocalModel() : Promise<SupportedSttModel> {
+    return await TAURI_INVOKE("plugin:local-stt|get_local_model");
 },
-async setCurrentModel(model: SupportedSttModel) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
+async setLocalModel(model: SupportedSttModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_local_model", { model });
 },
 async getServers() : Promise<Partial<{ [key in ServerType]: ServerHealth }>> {
     return await TAURI_INVOKE("plugin:local-stt|get_servers");
@@ -54,6 +54,18 @@ async setCustomBaseUrl(baseUrl: string) : Promise<null> {
 },
 async setCustomApiKey(apiKey: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_custom_api_key", { apiKey });
+},
+async getProvider() : Promise<Provider> {
+    return await TAURI_INVOKE("plugin:local-stt|get_provider");
+},
+async setProvider(provider: Provider) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_provider", { provider });
+},
+async getCustomModel() : Promise<SupportedSttModel | null> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_model");
+},
+async setCustomModel(model: SupportedSttModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_model", { model });
 }
 }
 
@@ -70,6 +82,7 @@ async setCustomApiKey(apiKey: string) : Promise<null> {
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type Language = { iso639: string }
+export type Provider = "Local" | "Custom"
 export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }

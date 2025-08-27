@@ -3,11 +3,11 @@
 "$schema" = "../../schemas/schema.json"
 
 [[permission]]
-identifier = "allow-get-current-model"
+identifier = "allow-get-local-model"
 description = "Enables the get_local_model command without any pre-configured scope."
 commands.allow = ["get_local_model"]
 
 [[permission]]
-identifier = "deny-get-current-model"
+identifier = "deny-get-local-model"
 description = "Denies the get_local_model command without any pre-configured scope."
 commands.deny = ["get_local_model"]

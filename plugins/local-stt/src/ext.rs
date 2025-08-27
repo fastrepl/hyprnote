@@ -12,19 +12,21 @@ use tokio_util::sync::CancellationToken;
 use crate::{
     model::SupportedSttModel,
     server::{external, internal, ServerHealth, ServerType},
-    Connection,
+    Connection, Provider, StoreKey,
 };
 
 pub trait LocalSttPluginExt<R: Runtime> {
-    fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
+    fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, StoreKey>;
 
     fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
 
     fn get_custom_base_url(&self) -> Result<String, crate::Error>;
-    fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error>;
+    fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error>;
+    fn get_provider(&self) -> Result<Provider, crate::Error>;
+    fn set_provider(&self, provider: Provider) -> Result<(), crate::Error>;
 
     fn get_connection(&self) -> impl Future<Output = Result<Connection, crate::Error>>;
 
@@ -40,11 +42,14 @@ pub trait LocalSttPluginExt<R: Runtime> {
         &self,
     ) -> impl Future<Output = Result<HashMap<ServerType, ServerHealth>, crate::Error>>;
 
-    fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error>;
-    fn set_current_model(
+    fn get_local_model(&self) -> Result<SupportedSttModel, crate::Error>;
+    fn set_local_model(
         &self,
         model: SupportedSttModel,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+
+    fn get_custom_model(&self) -> Result<Option<SupportedSttModel>, crate::Error>;
+    fn set_custom_model(&self, model: SupportedSttModel) -> Result<(), crate::Error>;
 
     fn download_model(
         &self,
@@ -60,7 +65,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
 }
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
-    fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey> {
+    fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, StoreKey> {
         self.scoped_store(crate::PLUGIN_NAME).unwrap()
     }
 
@@ -74,30 +79,42 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     fn get_custom_base_url(&self) -> Result<String, crate::Error> {
         let store = self.local_stt_store();
-        let v = store.get(crate::StoreKey::CustomBaseUrl)?;
+        let v = store.get(StoreKey::CustomBaseUrl)?;
         Ok(v.unwrap_or_default())
     }
 
     fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error> {
         let store = self.local_stt_store();
-        let v = store.get(crate::StoreKey::CustomApiKey)?;
+        let v = store.get(StoreKey::CustomApiKey)?;
         Ok(v)
+    }
+
+    fn get_provider(&self) -> Result<Provider, crate::Error> {
+        let store = self.local_stt_store();
+        let v = store.get(StoreKey::Provider)?;
+        Ok(v.unwrap_or(Provider::Local))
     }
 
     fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(crate::StoreKey::CustomBaseUrl, base_url.into())?;
+        store.set(StoreKey::CustomBaseUrl, base_url.into())?;
         Ok(())
     }
 
     fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(crate::StoreKey::CustomApiKey, api_key.into())?;
+        store.set(StoreKey::CustomApiKey, api_key.into())?;
+        Ok(())
+    }
+
+    fn set_provider(&self, provider: Provider) -> Result<(), crate::Error> {
+        let store = self.local_stt_store();
+        store.set(StoreKey::Provider, provider)?;
         Ok(())
     }
 
     async fn get_connection(&self) -> Result<Connection, crate::Error> {
-        let model = self.get_current_model()?;
+        let model = self.get_local_model()?;
 
         match model {
             SupportedSttModel::Custom(_) => {
@@ -185,7 +202,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn start_server(&self, model: Option<SupportedSttModel>) -> Result<String, crate::Error> {
         let model = match model {
             Some(m) => m,
-            None => self.get_current_model()?,
+            None => self.get_local_model()?,
         };
 
         let t = match &model {
@@ -505,18 +522,32 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    fn get_current_model(&self) -> Result<SupportedSttModel, crate::Error> {
+    fn get_local_model(&self) -> Result<SupportedSttModel, crate::Error> {
         let store = self.local_stt_store();
-        let model = store.get(crate::StoreKey::CurrentModel)?;
+        let model = store.get(crate::StoreKey::LocalModel)?;
         Ok(model.unwrap_or(SupportedSttModel::Whisper(WhisperModel::QuantizedSmall)))
     }
 
     #[tracing::instrument(skip_all)]
-    async fn set_current_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
+    async fn set_local_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(crate::StoreKey::CurrentModel, model.clone())?;
+        store.set(crate::StoreKey::LocalModel, model.clone())?;
         self.stop_server(None).await?;
         self.start_server(Some(model)).await?;
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_custom_model(&self) -> Result<Option<SupportedSttModel>, crate::Error> {
+        let store = self.local_stt_store();
+        let model = store.get(crate::StoreKey::CustomModel)?;
+        Ok(model)
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_custom_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
+        let store = self.local_stt_store();
+        store.set(crate::StoreKey::CustomModel, model)?;
         Ok(())
     }
 }

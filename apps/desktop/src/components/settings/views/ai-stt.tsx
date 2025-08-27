@@ -36,7 +36,7 @@ export default function SttAI() {
       });
 
       setSelectedSTTModel(modelKey);
-      localSttCommands.setCurrentModel(modelKey as any);
+      localSttCommands.setLocalModel(modelKey as any);
     }, queryClient);
   };
 

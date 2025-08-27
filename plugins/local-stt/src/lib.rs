@@ -39,8 +39,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
-            commands::get_current_model::<Wry>,
-            commands::set_current_model::<Wry>,
+            commands::get_local_model::<Wry>,
+            commands::set_local_model::<Wry>,
             commands::get_servers::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
@@ -50,6 +50,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_custom_api_key::<Wry>,
             commands::set_custom_base_url::<Wry>,
             commands::set_custom_api_key::<Wry>,
+            commands::get_provider::<Wry>,
+            commands::set_provider::<Wry>,
+            commands::get_custom_model::<Wry>,
+            commands::set_custom_model::<Wry>,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
@@ -143,7 +147,7 @@ mod test {
     // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
         let app = create_app(tauri::test::mock_builder());
-        let model = app.get_current_model();
+        let model = app.get_local_model();
         println!("model: {:#?}", model);
     }
 }

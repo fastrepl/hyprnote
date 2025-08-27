@@ -232,7 +232,7 @@ function RestartSTT() {
     return watch(sttPath, (_event) => {
       localSttCommands.stopServer(null).then((stopped) => {
         if (stopped) {
-          localSttCommands.getCurrentModel().then((model) => {
+          localSttCommands.getLocalModel().then((model) => {
             localSttCommands.startServer(model);
           });
         }

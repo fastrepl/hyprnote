@@ -40,7 +40,7 @@ export function ChatInput(
   }: ChatInputProps,
 ) {
   const { userId } = useHypr();
-  const { chatInputRef, pendingSelection } = useRightPanel();
+  const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
 
   const lastBacklinkSearchTime = useRef<number>(0);
 
@@ -190,6 +190,9 @@ export function ChatInput(
     // Pass the pending selection data to the submit handler
     onSubmit(mentionedContent, pendingSelection || undefined);
 
+    // Clear the selection after submission
+    clearPendingSelection();
+
     // Reset processed selection so new selections can be processed
     processedSelectionRef.current = null;
 
@@ -203,7 +206,7 @@ export function ChatInput(
 
       onChange(syntheticEvent);
     }
-  }, [onSubmit, onChange, extractMentionedContent, pendingSelection]);
+  }, [onSubmit, onChange, extractMentionedContent, pendingSelection, clearPendingSelection]);
 
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {

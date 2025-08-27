@@ -133,8 +133,14 @@ export default function EditorArea({
   // Assign editor to global ref for access by other components (like chat tools)
   useEffect(() => {
     if (editorRef.current?.editor) {
-      (globalEditorRef as any).current = editorRef.current.editor;
+      globalEditorRef.current = editorRef.current.editor;
     }
+    // Clear on unmount
+    return () => {
+      if (globalEditorRef.current === editorRef.current?.editor) {
+        globalEditorRef.current = null;
+      }
+    };
   }, [editorRef.current?.editor]);
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,

@@ -398,17 +398,173 @@ export function useChatLogic({
               })
               .run();
 
-            // Remove AI highlight after 20 seconds
-            setTimeout(() => {
-              try {
-                editor.chain()
-                  .setTextSelection({ from: startOffset, to: highlightEnd })
-                  .unsetAIHighlight()  // Remove AI highlight
-                  .run();
-              } catch (error) {
-                console.warn("Could not remove AI highlight:", error);
-              }
-            }, 20000);
+            // Create simple floating accept/undo controls
+            const createControls = () => {
+              const highlighted = document.querySelector('[data-ai-highlight="true"]');
+              if (!highlighted) return;
+
+              // Remove any existing controls
+              document.querySelector('.ai-edit-controls')?.remove();
+
+              const rect = highlighted.getBoundingClientRect();
+              const controls = document.createElement('div');
+              controls.className = 'ai-edit-controls';
+              controls.style.cssText = `
+                position: fixed;
+                top: ${rect.top - 36}px;
+                left: ${rect.left}px;
+                z-index: 9999;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 2px;
+                display: flex;
+                gap: 2px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+              `;
+
+              // Undo button
+              const undoBtn = document.createElement('button');
+              undoBtn.innerHTML = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
+                </svg>
+                <span style="margin-left: 4px; font-size: 11px;">Undo</span>
+              `;
+              undoBtn.style.cssText = `
+                display: flex;
+                align-items: center;
+                padding: 4px 8px;
+                background: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                color: #374151;
+              `;
+              undoBtn.onmouseover = () => undoBtn.style.background = '#f3f4f6';
+              undoBtn.onmouseout = () => undoBtn.style.background = 'white';
+              undoBtn.onclick = () => {
+                // Focus the actual editor DOM element first
+                const editorElement = document.querySelector('.tiptap-normal, .ProseMirror');
+                if (editorElement instanceof HTMLElement) {
+                  editorElement.focus();
+                  
+                  // Wait for focus to take effect, then undo
+                  setTimeout(() => {
+                    const currentEditor = globalEditorRef.current;
+                    if (currentEditor) {
+                      // Check if undo is available
+                      if (currentEditor.can().undo()) {
+                        currentEditor.commands.undo();
+                      } else {
+                        console.warn('Undo not available');
+                      }
+                    } else {
+                      console.warn('No editor reference available');
+                    }
+                    (controls as any).cleanup?.() || controls.remove();
+                  }, 50);
+                } else {
+                  console.warn('Could not find editor element to focus');
+                  (controls as any).cleanup?.() || controls.remove();
+                }
+              };
+
+              // Accept button
+              const acceptBtn = document.createElement('button');
+              acceptBtn.innerHTML = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span style="margin-left: 4px; font-size: 11px;">Accept</span>
+              `;
+              acceptBtn.style.cssText = `
+                display: flex;
+                align-items: center;
+                padding: 4px 8px;
+                background: #3b82f6;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                color: white;
+              `;
+              acceptBtn.onmouseover = () => acceptBtn.style.background = '#2563eb';
+              acceptBtn.onmouseout = () => acceptBtn.style.background = '#3b82f6';
+              acceptBtn.onclick = () => {
+                const currentEditor = globalEditorRef.current;
+                if (currentEditor) {
+                  currentEditor.commands.unsetAIHighlight();
+                }
+                (controls as any).cleanup?.() || controls.remove();
+              };
+
+              controls.appendChild(undoBtn);
+              controls.appendChild(acceptBtn);
+              document.body.appendChild(controls);
+
+              // Remove controls on outside click
+              const handleOutsideClick = (e: MouseEvent) => {
+                const target = e.target as Node;
+                
+                // Check if clicked on controls
+                if (controls.contains(target)) {
+                  return;
+                }
+                
+                // Check if clicked on highlighted text
+                const currentHighlight = document.querySelector('[data-ai-highlight="true"]');
+                if (currentHighlight && currentHighlight.contains(target)) {
+                  return;
+                }
+                
+                // Clicked outside - accept and cleanup
+                const currentEditor = globalEditorRef.current;
+                if (currentEditor) {
+                  // Just remove the highlight, don't need to select
+                  currentEditor.commands.unsetAIHighlight();
+                }
+                
+                // Use cleanup function if available
+                (controls as any).cleanup?.() || controls.remove();
+              };
+              
+              // Use mousedown for more reliable detection, add on next frame
+              requestAnimationFrame(() => {
+                document.addEventListener('mousedown', handleOutsideClick);
+              });
+
+              // Update position on scroll
+              const updatePosition = () => {
+                const newRect = highlighted.getBoundingClientRect();
+                controls.style.top = `${newRect.top - 36}px`;
+                controls.style.left = `${newRect.left}px`;
+              };
+              window.addEventListener('scroll', updatePosition, true);
+
+              // Cleanup function to remove controls and listeners
+              const cleanup = () => {
+                controls.remove();
+                document.removeEventListener('mousedown', handleOutsideClick);
+                window.removeEventListener('scroll', updatePosition, true);
+              };
+              
+              // Store cleanup on the controls element for access by buttons
+              (controls as any).cleanup = cleanup;
+              
+              // Auto-remove after 20 seconds
+              setTimeout(() => {
+                cleanup();
+                const currentEditor = globalEditorRef.current;
+                if (currentEditor) {
+                  currentEditor.commands.unsetAIHighlight();
+                }
+              }, 20000);
+            };
+
+            // Show controls after a short delay to ensure highlight is rendered
+            setTimeout(createControls, 100);
 
             return { 
               success: true, 

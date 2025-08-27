@@ -44,6 +44,7 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             hypr_notification::show(
                 &hypr_notification::Notification::builder()
+                    .key(&event.id)
                     .title("Meeting starting in 5 minutes")
                     .message(event.name.clone())
                     .url(format!(

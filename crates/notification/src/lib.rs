@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 pub use hypr_notification_interface::*;
 
 static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
+
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
 
 #[cfg(target_os = "macos")]

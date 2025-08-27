@@ -2,10 +2,11 @@ use std::sync::Mutex;
 use tauri::Manager;
 
 mod commands;
+mod detect;
 mod error;
+mod event;
 mod ext;
 mod store;
-mod worker;
 
 pub use error::*;
 pub use ext::*;
@@ -15,10 +16,18 @@ const PLUGIN_NAME: &str = "notification";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
     worker_handle: Option<tokio::task::JoinHandle<()>>,
-    detector: hypr_detect::Detector,
+    detect_state: detect::DetectState,
+}
+
+impl State {
+    pub fn new(app_handle: tauri::AppHandle<tauri::Wry>) -> Self {
+        Self {
+            worker_handle: None,
+            detect_state: detect::DetectState::new(app_handle),
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -38,20 +47,17 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let state = SharedState::default();
-            app.manage(state);
+            let state = State::new(app.clone());
+            app.manage(Mutex::new(state));
 
-            if app.get_detect_notification().unwrap_or(false) {
-                if let Err(e) = app.start_detect_notification() {
-                    tracing::error!("start_detect_notification_failed: {:?}", e);
-                }
-            }
+            // TODO: we cannot start event_notic here. maybe in `.event()`callback?
+            // detector can though
 
             Ok(())
         })
@@ -75,16 +81,11 @@ mod test {
             .unwrap()
     }
 
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
+    fn create_app(builder: tauri::Builder<tauri::Wry>) -> tauri::App<tauri::Wry> {
         builder
             .plugin(tauri_plugin_store::Builder::default().build())
             .plugin(init())
             .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
-    }
-
-    #[tokio::test]
-    async fn test_notification() {
-        let _app = create_app(tauri::test::mock_builder());
     }
 }

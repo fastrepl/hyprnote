@@ -229,7 +229,8 @@ export function ChatInput(
         // Create compact reference instead of full quoted text
         const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
         const selectionRef = `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
-        const referenceText = `<span class="selection-reference">${selectionRef}</span><p></p>`;
+        // Use a mention element with data-mention="true" so Tiptap recognizes it
+        const referenceText = `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${selectionRef}" contenteditable="false">${selectionRef}</a> `;
         console.log("Generated selection reference:", referenceText);
         
         editorRef.current.editor.commands.setContent(referenceText);
@@ -342,15 +343,16 @@ export function ChatInput(
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
-        .chat-editor .tiptap-normal strong,
-        .chat-editor .tiptap-normal em,
-        .chat-editor .tiptap-normal u,
-        .chat-editor .tiptap-normal h1,
-        .chat-editor .tiptap-normal h2,
-        .chat-editor .tiptap-normal h3,
-        .chat-editor .tiptap-normal ul,
-        .chat-editor .tiptap-normal ol,
-        .chat-editor .tiptap-normal blockquote {
+        .chat-editor .tiptap-normal strong:not(.selection-ref),
+        .chat-editor .tiptap-normal em:not(.selection-ref),
+        .chat-editor .tiptap-normal u:not(.selection-ref),
+        .chat-editor .tiptap-normal h1:not(.selection-ref),
+        .chat-editor .tiptap-normal h2:not(.selection-ref),
+        .chat-editor .tiptap-normal h3:not(.selection-ref),
+        .chat-editor .tiptap-normal ul:not(.selection-ref),
+        .chat-editor .tiptap-normal ol:not(.selection-ref),
+        .chat-editor .tiptap-normal blockquote:not(.selection-ref),
+        .chat-editor .tiptap-normal span:not(.selection-ref) {
           all: unset !important;
           display: inline !important;
         }
@@ -358,7 +360,7 @@ export function ChatInput(
           margin: 0 !important;
           display: block !important;  
         }
-        .chat-editor .mention {
+        .chat-editor .mention:not(.selection-ref) {
           color: #3b82f6 !important;
           font-weight: 500 !important;
           text-decoration: none !important;
@@ -369,21 +371,9 @@ export function ChatInput(
           cursor: default !important;
           pointer-events: none !important;
         }
-        .chat-editor .mention:hover {
+        .chat-editor .mention:not(.selection-ref):hover {
           background-color: rgba(59, 130, 246, 0.08) !important;
           text-decoration: none !important;
-        }
-        .chat-editor .selection-reference {
-          background-color: rgba(59, 130, 246, 0.1) !important;
-          color: #2563eb !important;
-          padding: 0.2rem 0.4rem !important;
-          border-radius: 0.25rem !important;
-          font-family: ui-monospace, 'SF Mono', Consolas, monospace !important;
-          font-size: 0.85rem !important;
-          font-weight: 500 !important;
-          border: 1px solid rgba(59, 130, 246, 0.3) !important;
-          display: inline-block !important;
-          margin-right: 0.5rem !important;
         }
         .chat-editor.has-content .tiptap-normal .is-empty::before {
           display: none !important;

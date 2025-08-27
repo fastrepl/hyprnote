@@ -248,11 +248,11 @@ msgstr "{weeks} weeks later"
 #~ msgid "in {hours} hours"
 #~ msgstr "in {hours} hours"
 
-#: src/components/settings/views/notifications.tsx:105
+#: src/components/settings/views/notifications.tsx:113
 msgid "(Beta) Detect meetings automatically"
 msgstr "(Beta) Detect meetings automatically"
 
-#: src/components/settings/views/notifications.tsx:132
+#: src/components/settings/views/notifications.tsx:140
 msgid "(Beta) Upcoming meeting notifications"
 msgstr "(Beta) Upcoming meeting notifications"
 
@@ -1428,11 +1428,11 @@ msgstr "Share usage data"
 msgid "Shorten summary"
 msgstr "Shorten summary"
 
-#: src/components/settings/views/notifications.tsx:135
+#: src/components/settings/views/notifications.tsx:143
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr "Show notifications when you have meetings starting soon in your calendar."
 
-#: src/components/settings/views/notifications.tsx:108
+#: src/components/settings/views/notifications.tsx:116
 msgid "Show notifications when you join a meeting."
 msgstr "Show notifications when you join a meeting."
 

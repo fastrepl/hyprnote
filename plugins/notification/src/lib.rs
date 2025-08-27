@@ -6,6 +6,7 @@ mod detect;
 mod error;
 mod event;
 mod ext;
+mod handler;
 mod store;
 
 pub use error::*;
@@ -19,13 +20,18 @@ pub type SharedState = Mutex<State>;
 pub struct State {
     worker_handle: Option<tokio::task::JoinHandle<()>>,
     detect_state: detect::DetectState,
+    notification_handler: handler::NotificationHandler,
 }
 
 impl State {
     pub fn new(app_handle: tauri::AppHandle<tauri::Wry>) -> Self {
+        let notification_handler = handler::NotificationHandler::new(app_handle.clone());
+        let detect_state = detect::DetectState::new(&notification_handler);
+
         Self {
             worker_handle: None,
-            detect_state: detect::DetectState::new(app_handle),
+            detect_state,
+            notification_handler,
         }
     }
 }

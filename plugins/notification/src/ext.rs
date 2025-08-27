@@ -77,12 +77,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             )
         };
 
-        let state = self.state::<crate::SharedState>();
-        let mut s = state.lock().unwrap();
+        {
+            let state = self.state::<crate::SharedState>();
+            let mut s = state.lock().unwrap();
 
-        s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
-            let _ = crate::event::monitor(crate::event::WorkerState { db, user_id }).await;
-        }));
+            let notification_tx = s.notification_handler.sender().unwrap();
+
+            if let Some(h) = s.worker_handle.take() {
+                h.abort();
+            }
+            s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
+                let _ = crate::event::monitor(crate::event::WorkerState {
+                    db,
+                    user_id,
+                    notification_tx,
+                })
+                .await;
+            }));
+        }
 
         Ok(())
     }

@@ -1,6 +1,7 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
+  "allow-show-notification",
   "allow-get-event-notification",
   "allow-set-event-notification",
   "allow-get-detect-notification",

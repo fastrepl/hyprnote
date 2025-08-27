@@ -1,2 +1,36 @@
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
+
+pub use hypr_notification_interface::*;
+
+static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLock::new();
+const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
+
 #[cfg(target_os = "macos")]
-pub mod macos;
+pub fn show(notification: &hypr_notification_macos::Notification) {
+    let Some(key) = &notification.key else {
+        hypr_notification_macos::show(notification);
+        return;
+    };
+
+    let recent_map = RECENT_NOTIFICATIONS.get_or_init(|| Mutex::new(HashMap::new()));
+
+    {
+        let mut recent_notifications = recent_map.lock().unwrap();
+        let now = Instant::now();
+
+        recent_notifications
+            .retain(|_, &mut timestamp| now.duration_since(timestamp) < DEDUPE_WINDOW);
+
+        if let Some(&last_shown) = recent_notifications.get(key) {
+            if now.duration_since(last_shown) < DEDUPE_WINDOW {
+                return;
+            }
+        }
+
+        recent_notifications.insert(key.clone(), now);
+    }
+
+    hypr_notification_macos::show(notification);
+}

@@ -1,7 +1,7 @@
 use cidre::{core_audio as ca, os};
 use std::time::{Duration, Instant};
 
-use crate::BackgroundTask;
+use crate::{BackgroundTask, DetectEvent};
 
 pub struct Detector {
     background: BackgroundTask,
@@ -99,11 +99,11 @@ impl crate::Observer for Detector {
                                         if state_guard.should_trigger(mic_in_use) {
                                             if mic_in_use {
                                                 if let Ok(guard) = callback.lock() {
-                                                    (*guard)("mic_started".to_string());
+                                                    (*guard)(DetectEvent::MicStarted);
                                                 }
                                             } else {
                                                 if let Ok(guard) = callback.lock() {
-                                                    (*guard)("mic_stopped".to_string());
+                                                    (*guard)(DetectEvent::MicStopped);
                                                 }
                                             }
                                         }
@@ -172,9 +172,7 @@ impl crate::Observer for Detector {
                                             if state_guard.should_trigger(mic_in_use) {
                                                 if mic_in_use {
                                                     if let Ok(callback_guard) = data.0.lock() {
-                                                        (*callback_guard)(
-                                                            "mic_started".to_string(),
-                                                        );
+                                                        (*callback_guard)(DetectEvent::MicStarted);
                                                     }
                                                 }
                                             }
@@ -208,9 +206,9 @@ impl crate::Observer for Detector {
                     system_listener,
                     system_listener_ptr,
                 ) {
-                    println!("Failed to add system listener: {:?}", e);
+                    tracing::error!("adding_system_listener_failed: {:?}", e);
                 } else {
-                    println!("✅ System listener added successfully");
+                    tracing::info!("adding_system_listener_success");
                 }
 
                 if let Ok(device) = ca::System::default_input_device() {
@@ -229,7 +227,7 @@ impl crate::Observer for Detector {
                         )
                         .is_ok()
                     {
-                        println!("✅ Device listener added successfully");
+                        tracing::info!("adding_device_listener_success");
 
                         if let Ok(mut device_guard) = current_device.lock() {
                             *device_guard = Some(device);
@@ -239,15 +237,15 @@ impl crate::Observer for Detector {
                             state_guard.last_state = mic_in_use;
                             if mic_in_use {
                                 if let Ok(callback_guard) = callback.lock() {
-                                    (*callback_guard)("microphone_in_use".to_string());
+                                    (*callback_guard)(DetectEvent::MicStarted);
                                 }
                             }
                         }
                     } else {
-                        println!("❌ Failed to add device listener");
+                        tracing::error!("adding_device_listener_failed");
                     }
                 } else {
-                    println!("⚠️ No default input device found");
+                    tracing::warn!("no_default_input_device_found");
                 }
 
                 let _ = tx.blocking_send(());
@@ -288,7 +286,7 @@ mod tests {
     async fn test_detector() {
         let mut detector = Detector::default();
         detector.start(new_callback(|v| {
-            println!("{}", v);
+            println!("{:?}", v);
         }));
 
         tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;

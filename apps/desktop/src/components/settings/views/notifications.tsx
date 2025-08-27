@@ -38,8 +38,12 @@ export default function NotificationsComponent() {
   const eventMutation = useMutation({
     mutationFn: async (v: Schema) => {
       if (v.event) {
-        notificationCommands.requestNotificationPermission().then(() => {
-          notificationCommands.setEventNotification(true);
+        notificationCommands.setEventNotification(true);
+        notificationCommands.showNotification({
+          title: "Test",
+          message: "Test",
+          url: "https://hypr.ai",
+          timeout: { secs: 5, nanos: 0 },
         });
       } else {
         notificationCommands.setEventNotification(false);
@@ -59,8 +63,12 @@ export default function NotificationsComponent() {
   const detectMutation = useMutation({
     mutationFn: async (v: Schema) => {
       if (v.detect) {
-        notificationCommands.requestNotificationPermission().then(() => {
-          notificationCommands.setDetectNotification(true);
+        notificationCommands.setDetectNotification(true);
+        notificationCommands.showNotification({
+          title: "Test",
+          message: "Test",
+          url: "https://hypr.ai",
+          timeout: { secs: 5, nanos: 0 },
         });
       } else {
         notificationCommands.setDetectNotification(false);

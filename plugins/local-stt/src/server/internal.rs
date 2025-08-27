@@ -55,7 +55,7 @@ pub struct ServerHandle {
 
 impl Drop for ServerHandle {
     fn drop(&mut self) {
-        tracing::info!("stopping");
+        tracing::info!("stopping: {}", self.base_url);
         let _ = self.shutdown.send(());
     }
 }

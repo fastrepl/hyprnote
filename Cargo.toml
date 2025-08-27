@@ -52,7 +52,8 @@ hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
 hypr-notification = { path = "crates/notification", package = "notification" }
-hypr-notification2 = { path = "crates/notification2", package = "notification2" }
+hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
+hypr-notification-macos = { path = "crates/notification-macos", package = "notification-macos" }
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }

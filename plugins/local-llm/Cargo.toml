@@ -31,6 +31,7 @@ hypr-llama = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-windows = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 thiserror = { workspace = true }

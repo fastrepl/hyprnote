@@ -173,6 +173,10 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<String, crate::Error> {
+        if self.is_server_running().await {
+            return Err(crate::Error::ServerAlreadyRunning);
+        }
+
         let current_model = self.get_current_model()?;
 
         let model_path = self.models_dir().join(current_model.file_name());

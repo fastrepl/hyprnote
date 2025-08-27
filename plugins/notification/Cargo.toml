@@ -17,7 +17,7 @@ tauri-plugin-store = { workspace = true }
 [dependencies]
 hypr-db-user = { workspace = true }
 hypr-detect = { workspace = true }
-hypr-notification2 = { workspace = true }
+hypr-notification = { workspace = true }
 
 tauri-plugin-db = { workspace = true }
 tauri-plugin-store2 = { workspace = true }

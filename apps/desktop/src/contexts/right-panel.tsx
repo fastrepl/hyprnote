@@ -9,8 +9,8 @@ export type RightPanelView = "chat" | "transcript";
 
 export interface SelectionData {
   text: string;
-  startOffset: number;  // ProseMirror position (not character offset)
-  endOffset: number;    // ProseMirror position (not character offset)
+  startOffset: number; // ProseMirror position (not character offset)
+  endOffset: number; // ProseMirror position (not character offset)
   sessionId: string;
   timestamp: number;
 }
@@ -108,16 +108,16 @@ export function RightPanelProvider({
     console.log("🚀 sendSelectionToChat called");
     console.log("Current panel state:", { isExpanded, currentView });
     console.log("Selection data:", selectionData);
-    
+
     setPendingSelection(selectionData);
-    
+
     // Ensure chat panel is open (don't toggle if already open)
     if (!isExpanded) {
       console.log("📱 Panel closed, opening with chat view");
       // Panel is closed, open it with chat view
       setIsExpanded(true);
       setCurrentView("chat");
-      
+
       setTimeout(() => {
         const focusInput = () => {
           if (chatInputRef.current) {
@@ -132,7 +132,7 @@ export function RightPanelProvider({
       console.log("📱 Panel open but wrong view, switching to chat");
       // Panel is open but showing wrong view, switch to chat
       setCurrentView("chat");
-      
+
       setTimeout(() => {
         if (chatInputRef.current) {
           chatInputRef.current.focus();

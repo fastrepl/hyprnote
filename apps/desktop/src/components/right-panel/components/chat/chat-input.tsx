@@ -15,7 +15,10 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 interface ChatInputProps {
   inputValue: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (mentionedContent?: Array<{ id: string; type: string; label: string }>, selectionData?: SelectionData) => void;
+  onSubmit: (
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData,
+  ) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
   entityId?: string;
@@ -219,23 +222,24 @@ export function ChatInput(
     if (pendingSelection && editorRef.current?.editor) {
       // Create a unique ID for this selection to avoid processing it multiple times
       const selectionId = `${pendingSelection.startOffset}-${pendingSelection.endOffset}-${pendingSelection.timestamp}`;
-      
+
       // Only process if we haven't already processed this exact selection
       if (processedSelectionRef.current !== selectionId) {
         console.log("💬 Chat Input Received NEW Selection (ProseMirror):");
         console.log("Pending selection:", pendingSelection);
         console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
-        
+
         // Create compact reference instead of full quoted text
         const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
         const selectionRef = `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
         // Use a mention element with data-mention="true" so Tiptap recognizes it
-        const referenceText = `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${selectionRef}" contenteditable="false">${selectionRef}</a> `;
+        const referenceText =
+          `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${selectionRef}" contenteditable="false">${selectionRef}</a> `;
         console.log("Generated selection reference:", referenceText);
-        
+
         editorRef.current.editor.commands.setContent(referenceText);
-        editorRef.current.editor.commands.focus('end');
-        
+        editorRef.current.editor.commands.focus("end");
+
         // Clear the input value to match editor content
         const syntheticEvent = {
           target: { value: selectionRef },
@@ -243,7 +247,7 @@ export function ChatInput(
         } as React.ChangeEvent<HTMLTextAreaElement>;
         onChange(syntheticEvent);
         console.log("Chat input populated with selection reference");
-        
+
         // Mark this selection as processed
         processedSelectionRef.current = selectionId;
       }
@@ -258,13 +262,15 @@ export function ChatInput(
         editorProps: {
           handleKeyDown: (view, event) => {
             if (event.key === "Enter" && !event.shiftKey) {
-              const mentionDropdown = document.querySelector('.mention-container');
+              const mentionDropdown = document.querySelector(".mention-container");
               if (mentionDropdown) {
                 return false;
               }
-              
+
               const isEmpty = view.state.doc.textContent.trim() === "";
-              if (isEmpty) return true;
+              if (isEmpty) {
+                return true;
+              }
               if (inputValue.trim()) {
                 event.preventDefault();
                 handleSubmit();

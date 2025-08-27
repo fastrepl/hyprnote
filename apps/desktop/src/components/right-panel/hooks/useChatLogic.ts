@@ -28,9 +28,8 @@ import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { prepareMessageHistory } from "../utils/chat-utils";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import { buildVercelToolsFromMcp } from "../utils/mcp-http-wrapper";
-import { createSearchSessionTool } from "../utils/tools/search_session_multi_keywords";
 import { createEditEnhancedNoteTool } from "../utils/tools/edit_enhanced_note";
-
+import { createSearchSessionTool } from "../utils/tools/search_session_multi_keywords";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -319,12 +318,12 @@ export function useChatLogic({
         stopWhen: stepCountIs(5),
         tools: {
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
-          ...(shouldUseTools && { 
-            ...newMcpTools, 
-            search_sessions_multi_keywords: searchTool, 
+          ...(shouldUseTools && {
+            ...newMcpTools,
+            search_sessions_multi_keywords: searchTool,
             ...hyprMcpTools,
             // Add the edit tool when there's selection data
-            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool })
+            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
           }),
         },
         onError: (error) => {
@@ -572,7 +571,7 @@ export function useChatLogic({
 
   const handleSubmit = async (
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
-    selectionData?: SelectionData
+    selectionData?: SelectionData,
   ) => {
     await processUserMessage(inputValue, "chat_message_sent", mentionedContent, selectionData);
   };

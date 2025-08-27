@@ -2,7 +2,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { MessageSquare, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useHypr, useRightPanel } from "@/contexts";
+import { useHypr } from "@/contexts";
+import { useRightPanel } from "@/contexts/right-panel";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 interface TextSelectionPopoverProps {
@@ -25,7 +26,20 @@ export function TextSelectionPopover(
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout>();
   const { userId } = useHypr();
-  const { sendSelectionToChat } = useRightPanel();
+  // Safe hook usage with fallback
+  const rightPanel = (() => {
+    try {
+      return useRightPanel();
+    } catch {
+      return {
+        sendSelectionToChat: () => {
+          console.warn("RightPanel not available - selection ignored");
+        }
+      };
+    }
+  })();
+  
+  const { sendSelectionToChat } = rightPanel;
 
   useEffect(() => {
     if (!isEnhancedNote) {
@@ -117,7 +131,7 @@ export function TextSelectionPopover(
 
     // Get current TipTap selection positions
     const { from, to } = editor.state.selection;
-    
+
     // CLEAN HTML APPROACH: Extract selected content as HTML directly
     let selectedHtml = "";
     try {
@@ -126,72 +140,73 @@ export function TextSelectionPopover(
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const fragment = range.cloneContents();
-        
+
         // Create a temporary div to get the HTML
-        const tempDiv = document.createElement('div');
+        const tempDiv = document.createElement("div");
         tempDiv.appendChild(fragment);
         selectedHtml = tempDiv.innerHTML;
       }
-      
+
       // Fallback: if no DOM selection, use plain text
       if (!selectedHtml) {
         selectedHtml = editor.state.doc.textBetween(from, to);
       }
-      
     } catch (error) {
       console.warn("Could not extract HTML, falling back to plain text:", error);
       selectedHtml = editor.state.doc.textBetween(from, to);
     }
-    
+
     return {
       from,
       to,
-      text: selectedHtml // Now contains HTML instead of plain text
+      text: selectedHtml, // Now contains HTML instead of plain text
     };
   };
 
   const handleAskAIClick = () => {
-    if (!selection) return;
-    
+    if (!selection) {
+      return;
+    }
+
     console.log("🎯 TipTap Selection Debug:");
     console.log("DOM Selected text:", selection.text);
     console.log("Selection rect:", selection.rect);
-    
+
     // Get TipTap/ProseMirror positions (much more accurate)
     const tipTapPositions = getTipTapPositions();
     if (!tipTapPositions) {
       console.error("Could not get TipTap positions");
       return;
     }
-    
+
     console.log("TipTap/ProseMirror Positions:");
     console.log("From position:", tipTapPositions.from);
     console.log("To position:", tipTapPositions.to);
     console.log("TipTap selected text:", tipTapPositions.text);
     console.log("Text length:", tipTapPositions.text.length);
     console.log("Position range:", tipTapPositions.to - tipTapPositions.from);
-    
+
     // Verify DOM selection matches TipTap selection
     if (selection.text.trim() !== tipTapPositions.text.trim()) {
       console.warn("⚠️ DOM selection doesn't match TipTap selection:");
       console.warn("DOM:", selection.text);
       console.warn("TipTap:", tipTapPositions.text);
     }
-    
+
     const selectionData = {
-      text: tipTapPositions.text,  // Use TipTap's text (more reliable)
-      startOffset: tipTapPositions.from,  // ProseMirror position
-      endOffset: tipTapPositions.to,      // ProseMirror position
+      text: tipTapPositions.text, // Use TipTap's text (more reliable)
+      startOffset: tipTapPositions.from, // ProseMirror position
+      endOffset: tipTapPositions.to, // ProseMirror position
       sessionId,
       timestamp: Date.now(),
     };
-    
+
     console.log("Final SelectionData (ProseMirror):", selectionData);
     console.log("---");
-    
+
     // Send selection to chat
     sendSelectionToChat(selectionData);
-    
+
     setSelection(null);
   };
 

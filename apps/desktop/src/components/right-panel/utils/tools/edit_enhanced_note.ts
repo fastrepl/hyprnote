@@ -1,7 +1,7 @@
 import type { SelectionData } from "@/contexts/right-panel";
-import { globalEditorRef } from "../../../../shared/editor-ref";
 import { tool } from "@hypr/utils/ai";
 import { z } from "zod";
+import { globalEditorRef } from "../../../../shared/editor-ref";
 
 interface EditEnhancedNoteToolDependencies {
   sessionId: string | null;
@@ -15,11 +15,14 @@ export const createEditEnhancedNoteTool = ({
   selectionData,
 }: EditEnhancedNoteToolDependencies) => {
   return tool({
-    description: "Edit a specific part of the enhanced note by replacing HTML content at given ProseMirror positions with new HTML content. Use this when the user asks to modify, change, or replace specific selected content. The selected content is provided as HTML, and you should respond with HTML that maintains proper formatting.",
+    description:
+      "Edit a specific part of the enhanced note by replacing HTML content at given ProseMirror positions with new HTML content. Use this when the user asks to modify, change, or replace specific selected content. The selected content is provided as HTML, and you should respond with HTML that maintains proper formatting.",
     inputSchema: z.object({
       startOffset: z.number().describe("The ProseMirror start position of the content to replace"),
-      endOffset: z.number().describe("The ProseMirror end position of the content to replace"), 
-      newHtml: z.string().describe("The new HTML content to replace the selected content with. Maintain proper HTML structure and formatting."),
+      endOffset: z.number().describe("The ProseMirror end position of the content to replace"),
+      newHtml: z.string().describe(
+        "The new HTML content to replace the selected content with. Maintain proper HTML structure and formatting.",
+      ),
     }),
     execute: async ({ startOffset, endOffset, newHtml }) => {
       if (!sessionId) {
@@ -33,7 +36,7 @@ export const createEditEnhancedNoteTool = ({
 
       try {
         const editor = globalEditorRef.current;
-        
+
         if (!editor) {
           return { success: false, error: "Editor not available" };
         }
@@ -43,11 +46,11 @@ export const createEditEnhancedNoteTool = ({
         console.log("🔄 Original content saved for undo:", originalContent);
 
         // Trim and clean the HTML to prevent empty elements
-        const cleanedHtml = newHtml.trim().replace(/>\s+</g, '><');
-        
+        const cleanedHtml = newHtml.trim().replace(/>\s+</g, "><");
+
         // Store initial doc size for accurate position calculation
         const initialDocSize = editor.state.doc.content.size;
-        
+
         // Delete old content and insert new content with proper parse options
         editor.chain()
           .focus()
@@ -55,36 +58,38 @@ export const createEditEnhancedNoteTool = ({
           .deleteSelection()
           .insertContent(cleanedHtml, {
             parseOptions: {
-              preserveWhitespace: false
-            }
+              preserveWhitespace: false,
+            },
           })
           .run();
-        
+
         // Calculate actual inserted content size
         const finalDocSize = editor.state.doc.content.size;
         const insertedSize = finalDocSize - initialDocSize + (endOffset - startOffset);
         const highlightEnd = startOffset + insertedSize;
-        
+
         // Apply AI highlight to the actually inserted content with metadata
         editor.chain()
           .setTextSelection({ from: startOffset, to: highlightEnd })
           .setAIHighlight({
             timestamp: Date.now().toString(),
-            sessionId: sessionId || undefined
+            sessionId: sessionId || undefined,
           })
           .run();
 
         // Create simple floating accept/undo controls
         const createControls = () => {
-          const highlighted = document.querySelector('[data-ai-highlight="true"]');
-          if (!highlighted) return;
+          const highlighted = document.querySelector("[data-ai-highlight=\"true\"]");
+          if (!highlighted) {
+            return;
+          }
 
           // Remove any existing controls
-          document.querySelector('.ai-edit-controls')?.remove();
+          document.querySelector(".ai-edit-controls")?.remove();
 
           const rect = highlighted.getBoundingClientRect();
-          const controls = document.createElement('div');
-          controls.className = 'ai-edit-controls';
+          const controls = document.createElement("div");
+          controls.className = "ai-edit-controls";
           controls.style.cssText = `
             position: fixed;
             top: ${rect.top - 36}px;
@@ -100,7 +105,7 @@ export const createEditEnhancedNoteTool = ({
           `;
 
           // Undo button
-          const undoBtn = document.createElement('button');
+          const undoBtn = document.createElement("button");
           undoBtn.innerHTML = `
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/>
@@ -118,12 +123,12 @@ export const createEditEnhancedNoteTool = ({
             font-size: 12px;
             color: #374151;
           `;
-          undoBtn.onmouseover = () => undoBtn.style.background = '#f3f4f6';
-          undoBtn.onmouseout = () => undoBtn.style.background = 'white';
+          undoBtn.onmouseover = () => undoBtn.style.background = "#f3f4f6";
+          undoBtn.onmouseout = () => undoBtn.style.background = "white";
           undoBtn.onclick = () => {
             console.log("🔄 Undo clicked - restoring original content");
             console.log("🔄 Original content:", originalContent);
-            
+
             const currentEditor = globalEditorRef.current;
             if (currentEditor) {
               try {
@@ -134,18 +139,18 @@ export const createEditEnhancedNoteTool = ({
                   .deleteSelection()
                   .insertContent(originalContent)
                   .run();
-                
+
                 console.log("🔄 Restoration complete");
               } catch (error) {
                 console.error("🔄 Restoration failed:", error);
               }
             }
-            
+
             (controls as any).cleanup?.() || controls.remove();
           };
 
           // Accept button
-          const acceptBtn = document.createElement('button');
+          const acceptBtn = document.createElement("button");
           acceptBtn.innerHTML = `
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
               <polyline points="20 6 9 17 4 12"/>
@@ -163,8 +168,8 @@ export const createEditEnhancedNoteTool = ({
             font-size: 12px;
             color: white;
           `;
-          acceptBtn.onmouseover = () => acceptBtn.style.background = '#2563eb';
-          acceptBtn.onmouseout = () => acceptBtn.style.background = '#3b82f6';
+          acceptBtn.onmouseover = () => acceptBtn.style.background = "#2563eb";
+          acceptBtn.onmouseout = () => acceptBtn.style.background = "#3b82f6";
           acceptBtn.onclick = () => {
             console.log("🔄 Accept clicked - removing highlight");
             const currentEditor = globalEditorRef.current;
@@ -186,21 +191,23 @@ export const createEditEnhancedNoteTool = ({
 
           // 🆕 Auto-scroll to highlighted content after controls are rendered
           const scrollToHighlight = () => {
-            const highlighted = document.querySelector('[data-ai-highlight="true"]');
-            if (!highlighted) return;
+            const highlighted = document.querySelector("[data-ai-highlight=\"true\"]");
+            if (!highlighted) {
+              return;
+            }
 
             const rect = highlighted.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
-            
+
             // Check if highlighted content is already visible with buffer for controls
-            const isVisible = rect.top >= 50 && 
-                             rect.bottom <= viewportHeight - 50;
-            
+            const isVisible = rect.top >= 50
+              && rect.bottom <= viewportHeight - 50;
+
             if (!isVisible) {
               highlighted.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'nearest'
+                behavior: "smooth",
+                block: "center",
+                inline: "nearest",
               });
               console.log("🔄 Auto-scrolled to AI edit location");
             } else {
@@ -214,18 +221,18 @@ export const createEditEnhancedNoteTool = ({
           // Remove controls on outside click
           const handleOutsideClick = (e: MouseEvent) => {
             const target = e.target as Node;
-            
+
             // Check if clicked on controls
             if (controls.contains(target)) {
               return;
             }
-            
+
             // Check if clicked on highlighted text
-            const currentHighlight = document.querySelector('[data-ai-highlight="true"]');
+            const currentHighlight = document.querySelector("[data-ai-highlight=\"true\"]");
             if (currentHighlight && currentHighlight.contains(target)) {
               return;
             }
-            
+
             // Clicked outside - accept and cleanup
             const currentEditor = globalEditorRef.current;
             if (currentEditor) {
@@ -238,14 +245,14 @@ export const createEditEnhancedNoteTool = ({
                 .run();
               console.log("🔄 Highlight removed");
             }
-            
+
             // Use cleanup function if available
             (controls as any).cleanup?.() || controls.remove();
           };
-          
+
           // Use mousedown for more reliable detection, add on next frame
           requestAnimationFrame(() => {
-            document.addEventListener('mousedown', handleOutsideClick);
+            document.addEventListener("mousedown", handleOutsideClick);
           });
 
           // Update position on scroll
@@ -254,30 +261,32 @@ export const createEditEnhancedNoteTool = ({
             controls.style.top = `${newRect.top - 36}px`;
             controls.style.left = `${newRect.left}px`;
           };
-          window.addEventListener('scroll', updatePosition, true);
+          window.addEventListener("scroll", updatePosition, true);
 
           // Cleanup function to remove controls and listeners
           const cleanup = () => {
             controls.remove();
-            document.removeEventListener('mousedown', handleOutsideClick);
-            window.removeEventListener('scroll', updatePosition, true);
+            document.removeEventListener("mousedown", handleOutsideClick);
+            window.removeEventListener("scroll", updatePosition, true);
           };
-          
+
           // Store cleanup on the controls element for access by buttons
           (controls as any).cleanup = cleanup;
-          
         };
 
         // Show controls after a short delay to ensure highlight is rendered
         setTimeout(createControls, 100);
 
-        return { 
-          success: true, 
-          message: `Successfully replaced content at positions ${startOffset}-${endOffset} with new HTML content`
+        return {
+          success: true,
+          message: `Successfully replaced content at positions ${startOffset}-${endOffset} with new HTML content`,
         };
       } catch (error) {
         console.error("Failed to edit enhanced note:", error);
-        return { success: false, error: `Failed to update the enhanced note: ${error instanceof Error ? error.message : 'Unknown error'}` };
+        return {
+          success: false,
+          error: `Failed to update the enhanced note: ${error instanceof Error ? error.message : "Unknown error"}`,
+        };
       }
     },
   });

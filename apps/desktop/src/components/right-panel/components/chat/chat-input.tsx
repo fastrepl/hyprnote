@@ -40,7 +40,7 @@ export function ChatInput(
   }: ChatInputProps,
 ) {
   const { userId } = useHypr();
-  const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
+  const { chatInputRef, pendingSelection } = useRightPanel();
 
   const lastBacklinkSearchTime = useRef<number>(0);
 
@@ -223,25 +223,28 @@ export function ChatInput(
         console.log("Pending selection:", pendingSelection);
         console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
         
-        const quotedText = `<span class="selection-quote">"${pendingSelection.text}"</span><p></p>`;
-        console.log("Generated quoted text HTML:", quotedText);
+        // Create compact reference instead of full quoted text
+        const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
+        const selectionRef = `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
+        const referenceText = `<span class="selection-reference">${selectionRef}</span><p></p>`;
+        console.log("Generated selection reference:", referenceText);
         
-        editorRef.current.editor.commands.setContent(quotedText);
+        editorRef.current.editor.commands.setContent(referenceText);
         editorRef.current.editor.commands.focus('end');
         
         // Clear the input value to match editor content
         const syntheticEvent = {
-          target: { value: `"${pendingSelection.text}"` },
-          currentTarget: { value: `"${pendingSelection.text}"` },
+          target: { value: selectionRef },
+          currentTarget: { value: selectionRef },
         } as React.ChangeEvent<HTMLTextAreaElement>;
         onChange(syntheticEvent);
-        console.log("Chat input populated successfully");
+        console.log("Chat input populated with selection reference");
         
         // Mark this selection as processed
         processedSelectionRef.current = selectionId;
       }
     }
-  }, [pendingSelection, onChange]);
+  }, [pendingSelection, onChange, noteData?.title, humanData?.full_name, organizationData?.name]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -367,13 +370,15 @@ export function ChatInput(
           background-color: rgba(59, 130, 246, 0.08) !important;
           text-decoration: none !important;
         }
-        .chat-editor .selection-quote {
-          background-color: rgba(34, 197, 94, 0.1) !important;
-          color: #16a34a !important;
+        .chat-editor .selection-reference {
+          background-color: rgba(59, 130, 246, 0.1) !important;
+          color: #2563eb !important;
           padding: 0.2rem 0.4rem !important;
           border-radius: 0.25rem !important;
-          font-style: italic !important;
-          border-left: 2px solid #16a34a !important;
+          font-family: ui-monospace, 'SF Mono', Consolas, monospace !important;
+          font-size: 0.85rem !important;
+          font-weight: 500 !important;
+          border: 1px solid rgba(59, 130, 246, 0.3) !important;
           display: inline-block !important;
           margin-right: 0.5rem !important;
         }

@@ -360,19 +360,33 @@ export function useChatLogic({
           }
 
           try {
-            // DIRECT PROSEMIRROR EDITING - No format conversion needed!
             const editor = globalEditorRef.current;
             
             if (!editor) {
               return { success: false, error: "Editor not available" };
             }
 
-            // Use the exact ProseMirror positions with HTML content!
+            // Insert content and highlight it using existing TipTap functionality
+            const newTextLength = newHtml.replace(/<[^>]*>/g, '').length; // Approximate text length
             editor.chain()
               .focus()
               .setTextSelection({ from: startOffset, to: endOffset })
-              .insertContent(newHtml)  // Insert HTML directly - TipTap handles this natively
+              .insertContent(newHtml)
+              .setTextSelection({ from: startOffset, to: startOffset + newTextLength })
+              .setHighlight()  // Use existing TipTap highlight
               .run();
+
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+              try {
+                editor.chain()
+                  .setTextSelection({ from: startOffset, to: startOffset + newTextLength })
+                  .unsetHighlight()  // Remove existing TipTap highlight
+                  .run();
+              } catch (error) {
+                console.warn("Could not remove highlight:", error);
+              }
+            }, 20000);
 
             return { 
               success: true, 

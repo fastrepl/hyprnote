@@ -10,6 +10,7 @@
 @import "./nodes/list.css";
 @import "./nodes/task-list.css";
 @import "./nodes/mark.css";
+@import "./nodes/ai-highlight.css";
 @import "./nodes/hashtag.css";
 
 /* Animation styles */

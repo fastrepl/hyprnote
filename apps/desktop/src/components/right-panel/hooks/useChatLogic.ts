@@ -366,25 +366,47 @@ export function useChatLogic({
               return { success: false, error: "Editor not available" };
             }
 
-            // Insert content and highlight it using existing TipTap functionality
-            const newTextLength = newHtml.replace(/<[^>]*>/g, '').length; // Approximate text length
+            // Trim and clean the HTML to prevent empty elements
+            const cleanedHtml = newHtml.trim().replace(/>\s+</g, '><');
+            
+            // Store initial doc size for accurate position calculation
+            const initialDocSize = editor.state.doc.content.size;
+            
+            // Delete old content and insert new content with proper parse options
             editor.chain()
               .focus()
               .setTextSelection({ from: startOffset, to: endOffset })
-              .insertContent(newHtml)
-              .setTextSelection({ from: startOffset, to: startOffset + newTextLength })
-              .setHighlight()  // Use existing TipTap highlight
+              .deleteSelection()
+              .insertContent(cleanedHtml, {
+                parseOptions: {
+                  preserveWhitespace: false
+                }
+              })
+              .run();
+            
+            // Calculate actual inserted content size
+            const finalDocSize = editor.state.doc.content.size;
+            const insertedSize = finalDocSize - initialDocSize + (endOffset - startOffset);
+            const highlightEnd = startOffset + insertedSize;
+            
+            // Apply AI highlight to the actually inserted content with metadata
+            editor.chain()
+              .setTextSelection({ from: startOffset, to: highlightEnd })
+              .setAIHighlight({
+                timestamp: Date.now().toString(),
+                sessionId: sessionId || undefined
+              })
               .run();
 
-            // Remove highlight after 3 seconds
+            // Remove AI highlight after 20 seconds
             setTimeout(() => {
               try {
                 editor.chain()
-                  .setTextSelection({ from: startOffset, to: startOffset + newTextLength })
-                  .unsetHighlight()  // Remove existing TipTap highlight
+                  .setTextSelection({ from: startOffset, to: highlightEnd })
+                  .unsetAIHighlight()  // Remove AI highlight
                   .run();
               } catch (error) {
-                console.warn("Could not remove highlight:", error);
+                console.warn("Could not remove AI highlight:", error);
               }
             }, 20000);
 

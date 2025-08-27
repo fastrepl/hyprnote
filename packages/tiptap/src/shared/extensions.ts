@@ -7,6 +7,7 @@ import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
+import { AIHighlight } from "./ai-highlight";
 import { StreamingAnimation } from "./animation";
 import { ClipboardTextSerializer } from "./clipboard";
 import CustomListKeymap from "./custom-list-keymap";
@@ -84,6 +85,7 @@ export const extensions = [
     nested: true,
   }),
   Highlight,
+  AIHighlight,
   CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,

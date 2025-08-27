@@ -28,7 +28,55 @@
 
   vcredist_done:
   
+  ; Validate required DLLs are present
+  DetailPrint "Validating required dependencies..."
+  
+  ; Check for ONNX Runtime DLL
+  ${If} ${FileExists} "$INSTDIR\onnxruntime.dll"
+    DetailPrint "✓ onnxruntime.dll found"
+  ${Else}
+    MessageBox MB_ICONEXCLAMATION "Warning: onnxruntime.dll is missing. AI features may not work."
+  ${EndIf}
+  
+  ; Check for DirectML DLL
+  ${If} ${FileExists} "$INSTDIR\DirectML.dll"
+    DetailPrint "✓ DirectML.dll found"
+  ${Else}
+    MessageBox MB_ICONEXCLAMATION "Warning: DirectML.dll is missing. GPU acceleration may not work."
+  ${EndIf}
+  
+  ; Check for Visual C++ runtime DLLs
+  ${If} ${FileExists} "$INSTDIR\msvcp140.dll"
+    DetailPrint "✓ msvcp140.dll found"
+  ${Else}
+    MessageBox MB_ICONEXCLAMATION "Warning: msvcp140.dll is missing. Application may not start."
+  ${EndIf}
+  
+  ${If} ${FileExists} "$INSTDIR\vcruntime140.dll"
+    DetailPrint "✓ vcruntime140.dll found"
+  ${Else}
+    MessageBox MB_ICONEXCLAMATION "Warning: vcruntime140.dll is missing. Application may not start."
+  ${EndIf}
+  
+  ${If} ${FileExists} "$INSTDIR\vcruntime140_1.dll"
+    DetailPrint "✓ vcruntime140_1.dll found"
+  ${Else}
+    DetailPrint "Note: vcruntime140_1.dll not found (may not be required on this system)"
+  ${EndIf}
+  
+  ${If} ${FileExists} "$INSTDIR\msvcp140_1.dll"
+    DetailPrint "✓ msvcp140_1.dll found"
+  ${Else}
+    DetailPrint "Note: msvcp140_1.dll not found (may not be required on this system)"
+  ${EndIf}
+  
   ; Set ORT_DYLIB_PATH environment variable for the application
-  WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "ORT_DYLIB_PATH" "$INSTDIR\onnxruntime.dll"
+  ; Use relative path to avoid hardcoded installation directory issues
+  WriteRegStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "ORT_DYLIB_PATH" "$INSTDIR"
+  
+  ; Force environment variable refresh
+  SendMessage ${HWND_BROADCAST} ${WM_SETTINGCHANGE} 0 "STR:Environment" /TIMEOUT=5000
+  
+  DetailPrint "Installation validation completed"
   
 !macroend

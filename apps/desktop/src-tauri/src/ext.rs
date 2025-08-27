@@ -6,6 +6,81 @@ use tauri_plugin_db::DatabasePluginExt;
 use tauri_plugin_local_stt::SupportedSttModel;
 use tauri_plugin_store2::{ScopedStore, StorePluginExt};
 
+#[cfg(target_os = "windows")]
+fn validate_ort_dependencies() -> Result<(), String> {
+    use std::path::Path;
+    
+    // Get the application directory
+    let exe_path = std::env::current_exe()
+        .map_err(|e| format!("Failed to get executable path: {}", e))?;
+    let app_dir = exe_path.parent()
+        .ok_or("Failed to get application directory")?;
+    
+    // Check for required ONNX Runtime DLLs
+    let required_dlls = [
+        "onnxruntime.dll",
+        "DirectML.dll", 
+        "msvcp140.dll",
+        "vcruntime140.dll"
+    ];
+    
+    let mut missing_dlls = Vec::new();
+    
+    for dll_name in &required_dlls {
+        let dll_path = app_dir.join(dll_name);
+        if !dll_path.exists() {
+            missing_dlls.push(*dll_name);
+        } else {
+            tracing::info!("✓ Found required DLL: {}", dll_name);
+        }
+    }
+    
+    // Check optional DLLs (warn but don't fail)
+    let optional_dlls = ["msvcp140_1.dll", "vcruntime140_1.dll"];
+    for dll_name in &optional_dlls {
+        let dll_path = app_dir.join(dll_name);
+        if !dll_path.exists() {
+            tracing::warn!("Optional DLL not found: {}", dll_name);
+        } else {
+            tracing::info!("✓ Found optional DLL: {}", dll_name);
+        }
+    }
+    
+    // Check ORT_DYLIB_PATH environment variable
+    match std::env::var("ORT_DYLIB_PATH") {
+        Ok(path) => {
+            tracing::info!("ORT_DYLIB_PATH set to: {}", path);
+            let ort_path = Path::new(&path);
+            if ort_path.exists() {
+                if ort_path.is_dir() {
+                    // Check if onnxruntime.dll exists in the directory
+                    let onnx_dll = ort_path.join("onnxruntime.dll");
+                    if !onnx_dll.exists() {
+                        tracing::warn!("ORT_DYLIB_PATH points to directory but onnxruntime.dll not found");
+                    }
+                } else if ort_path.file_name().and_then(|n| n.to_str()) == Some("onnxruntime.dll") {
+                    tracing::info!("✓ ORT_DYLIB_PATH points to valid onnxruntime.dll");
+                }
+            } else {
+                tracing::warn!("ORT_DYLIB_PATH points to non-existent path: {}", path);
+            }
+        },
+        Err(_) => {
+            tracing::warn!("ORT_DYLIB_PATH environment variable not set");
+        }
+    }
+    
+    if !missing_dlls.is_empty() {
+        return Err(format!(
+            "Missing required DLLs: {}. Please reinstall the application.", 
+            missing_dlls.join(", ")
+        ));
+    }
+    
+    tracing::info!("All required ONNX Runtime dependencies validated successfully");
+    Ok(())
+}
+
 pub trait AppExt<R: tauri::Runtime> {
     fn sentry_dsn(&self) -> String;
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String>;
@@ -37,6 +112,15 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     #[tracing::instrument(skip_all)]
 
     async fn setup_local_ai(&self) -> Result<(), String> {
+        // Runtime validation of ONNX Runtime dependencies on Windows
+        #[cfg(target_os = "windows")]
+        {
+            if let Err(e) = validate_ort_dependencies() {
+                tracing::error!("ONNX Runtime validation failed: {}", e);
+                return Err(format!("ONNX Runtime dependencies missing: {}", e));
+            }
+        }
+
         {
             use tauri_plugin_local_stt::LocalSttPluginExt;
 

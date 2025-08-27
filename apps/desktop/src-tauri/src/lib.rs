@@ -262,16 +262,6 @@ pub async fn main() {
                         });
                     }
                 }
-
-                // Start event notification after DB is initialized
-                {
-                    use tauri_plugin_notification::NotificationPluginExt;
-                    if app_clone.get_event_notification().unwrap_or(false) {
-                        if let Err(e) = app_clone.start_event_notification().await {
-                            tracing::error!("start_event_notification_failed: {:?}", e);
-                        }
-                    }
-                }
             });
 
             Ok(())

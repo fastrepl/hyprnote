@@ -55,11 +55,28 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(|app, _api| {
             let state = State::new(app.clone());
             app.manage(Mutex::new(state));
-
-            // TODO: we cannot start event_notic here. maybe in `.event()`callback?
-            // detector can though
-
             Ok(())
+        })
+        .on_event(|app, event| match event {
+            tauri::RunEvent::Ready => {
+                if app.get_detect_notification().unwrap_or(false) {
+                    match app.start_detect_notification() {
+                        Ok(_) => tracing::info!("detect_notification_start_success"),
+                        Err(_) => tracing::error!("detect_notification_start_failed"),
+                    }
+                }
+
+                if app.get_event_notification().unwrap_or(false) {
+                    let app_clone = app.clone();
+                    tokio::spawn(async move {
+                        match app_clone.start_event_notification().await {
+                            Ok(_) => tracing::info!("event_notification_start_success"),
+                            Err(_) => tracing::error!("event_notification_start_failed"),
+                        }
+                    });
+                }
+            }
+            _ => {}
         })
         .build()
 }
@@ -78,14 +95,6 @@ mod test {
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 "./js/bindings.gen.ts",
             )
-            .unwrap()
-    }
-
-    fn create_app(builder: tauri::Builder<tauri::Wry>) -> tauri::App<tauri::Wry> {
-        builder
-            .plugin(tauri_plugin_store::Builder::default().build())
-            .plugin(init())
-            .build(tauri::test::mock_context(tauri::test::noop_assets()))
             .unwrap()
     }
 }

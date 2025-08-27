@@ -1,13 +1,28 @@
+use crate::error::Error;
+
 pub struct DetectState {
-    tx: std::sync::mpsc::Sender<hypr_detect::DetectEvent>,
+    tx: Option<std::sync::mpsc::Sender<hypr_detect::DetectEvent>>,
     handle: Option<std::thread::JoinHandle<()>>,
-    detector: hypr_detect::Detector,
+    detector: Option<hypr_detect::Detector>,
+    app_handle: tauri::AppHandle<tauri::Wry>,
 }
 
 impl DetectState {
     pub fn new(app_handle: tauri::AppHandle<tauri::Wry>) -> Self {
+        Self {
+            tx: None,
+            handle: None,
+            detector: None,
+            app_handle,
+        }
+    }
+
+    pub fn start(&mut self) -> Result<(), Error> {
+        self.stop()?;
+
         let (tx, rx) = std::sync::mpsc::channel::<hypr_detect::DetectEvent>();
 
+        let app_handle = self.app_handle.clone();
         let handle = std::thread::spawn(move || {
             while let Ok(event) = rx.recv() {
                 match event {
@@ -23,35 +38,53 @@ impl DetectState {
                             hypr_notification::show(
                                 &hypr_notification::Notification::builder()
                                     .title("Meeting detected")
-                                    .message("Click here to start writing a note")
-                                    .url("hypr://hyprnote.com/notification")
-                                    .timeout(std::time::Duration::from_secs(10))
+                                    .message("Based on your microphone activity")
+                                    .url("hypr://hyprnote.com/app/new?record=true")
+                                    .timeout(std::time::Duration::from_secs(30))
                                     .build(),
                             );
                         }
                     }
+                    hypr_detect::DetectEvent::MicStopped => {}
                     _ => {}
                 }
             }
         });
 
-        Self {
-            tx,
-            handle: Some(handle),
-            detector: hypr_detect::Detector::default(),
-        }
-    }
-
-    pub fn start(&mut self) {
-        let tx = self.tx.clone();
-        self.detector.start(hypr_detect::new_callback(move |e| {
-            let _ = tx.send(e);
+        let mut detector = hypr_detect::Detector::default();
+        let tx_clone = tx.clone();
+        detector.start(hypr_detect::new_callback(move |e| {
+            let _ = tx_clone.send(e);
         }));
+
+        self.tx = Some(tx);
+        self.handle = Some(handle);
+        self.detector = Some(detector);
+
+        Ok(())
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&mut self) -> Result<(), Error> {
+        if let Some(mut detector) = self.detector.take() {
+            detector.stop();
+        }
+
+        self.tx = None;
+
         if let Some(handle) = self.handle.take() {
             let _ = handle.join();
         }
+
+        Ok(())
+    }
+
+    pub fn _is_running(&self) -> bool {
+        self.detector.is_some() && self.handle.is_some()
+    }
+}
+
+impl Drop for DetectState {
+    fn drop(&mut self) {
+        let _ = self.stop();
     }
 }

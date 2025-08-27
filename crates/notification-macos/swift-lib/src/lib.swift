@@ -239,14 +239,20 @@ class ActionButton: NSButton {
     font = NSFont.systemFont(ofSize: 14, weight: .semibold)
     focusRingType = .none
 
-    contentTintColor = NSColor.white
+    contentTintColor = NSColor(calibratedWhite: 0.1, alpha: 1.0)
     if #available(macOS 11.0, *) {
-      bezelColor = NSColor.white.withAlphaComponent(0.16)
+      bezelColor = NSColor(calibratedWhite: 0.9, alpha: 1.0)
     }
+
     layer?.cornerRadius = 10
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
-    layer?.borderColor = NSColor.white.withAlphaComponent(0.22).cgColor
+    layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+    layer?.borderColor = NSColor(calibratedWhite: 0.7, alpha: 0.5).cgColor
     layer?.borderWidth = 0.5
+
+    layer?.shadowColor = NSColor(calibratedWhite: 0.0, alpha: 0.5).cgColor
+    layer?.shadowOpacity = 0.3
+    layer?.shadowRadius = 3
+    layer?.shadowOffset = CGSize(width: 0, height: 1)
   }
 
   override var intrinsicContentSize: NSSize {
@@ -461,14 +467,12 @@ class NotificationManager {
     url: String?,
     notification: NotificationInstance
   ) {
-    let descriptionText = makeDescription(from: url)
     let hasUrl = (url != nil && !url!.isEmpty)
 
     let contentView = createNotificationView(
-      description: descriptionText,
       title: title,
       body: message,
-      buttonTitle: hasUrl ? "Open" : nil,
+      buttonTitle: hasUrl ? "Take Notes" : nil,
       notification: notification
     )
     contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -476,7 +480,7 @@ class NotificationManager {
 
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
-      contentView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -10),  // nudge left a bit
+      contentView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -10),
       contentView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 9),
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
@@ -486,7 +490,6 @@ class NotificationManager {
   }
 
   private func createNotificationView(
-    description: String,
     title: String,
     body: String,
     buttonTitle: String? = nil,
@@ -502,58 +505,50 @@ class NotificationManager {
     iconContainer.wantsLayer = true
     iconContainer.layer?.cornerRadius = 9
     iconContainer.translatesAutoresizingMaskIntoConstraints = false
-    iconContainer.widthAnchor.constraint(equalToConstant: 36).isActive = true
-    iconContainer.heightAnchor.constraint(equalToConstant: 36).isActive = true
+    iconContainer.widthAnchor.constraint(equalToConstant: 42).isActive = true
+    iconContainer.heightAnchor.constraint(equalToConstant: 42).isActive = true
 
     let iconImageView = createAppIconView()
     iconContainer.addSubview(iconImageView)
     NSLayoutConstraint.activate([
       iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
       iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-      iconImageView.widthAnchor.constraint(equalToConstant: 24),
-      iconImageView.heightAnchor.constraint(equalToConstant: 24),
+      iconImageView.widthAnchor.constraint(equalToConstant: 32),
+      iconImageView.heightAnchor.constraint(equalToConstant: 32),
     ])
 
     // Middle: text stack
     let textStack = NSStackView()
     textStack.orientation = .vertical
-    textStack.spacing = 3
+    textStack.spacing = 4
     textStack.alignment = .leading
     textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    let descriptionLabel = NSTextField(labelWithString: description)
-    descriptionLabel.font = NSFont.systemFont(ofSize: 11)
-    descriptionLabel.textColor = NSColor.secondaryLabelColor
-    descriptionLabel.lineBreakMode = .byTruncatingTail
-    descriptionLabel.maximumNumberOfLines = 1
-
+    // Title
     let titleLabel = NSTextField(labelWithString: title)
-    titleLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
+    titleLabel.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
     titleLabel.lineBreakMode = .byTruncatingTail
     titleLabel.maximumNumberOfLines = 1
     titleLabel.allowsDefaultTighteningForTruncation = true
 
+    // Body
     let bodyLabel = NSTextField(labelWithString: body)
-    bodyLabel.font = NSFont.systemFont(ofSize: 12)
+    bodyLabel.font = NSFont.systemFont(ofSize: 12, weight: .light)
     bodyLabel.textColor = NSColor.secondaryLabelColor
-    bodyLabel.lineBreakMode = .byWordWrapping
-    bodyLabel.maximumNumberOfLines = 2
+    bodyLabel.maximumNumberOfLines = 1
     bodyLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    textStack.addArrangedSubview(descriptionLabel)
     textStack.addArrangedSubview(titleLabel)
     textStack.addArrangedSubview(bodyLabel)
-    textStack.setCustomSpacing(4, after: descriptionLabel)
 
     // Assemble so far
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
 
-    // Right: larger pill action button with a fixed spacer to avoid setCustomSpacing crash
+    // Right: action button
     if let buttonTitle {
-      // Small fixed spacer between text and button (adjust width to move button left/right)
       let gap = NSView()
       gap.translatesAutoresizingMaskIntoConstraints = false
       gap.widthAnchor.constraint(equalToConstant: 8).isActive = true
@@ -581,16 +576,6 @@ class NotificationManager {
       NSWorkspace.shared.open(url)
     }
     notification.dismiss()
-  }
-
-  private func makeDescription(from urlString: String?) -> String {
-    if let urlString, let url = URL(string: urlString), let host = url.host, !host.isEmpty {
-      return host
-    }
-    if let appName = NSRunningApplication.current.localizedName {
-      return appName
-    }
-    return "Notification"
   }
 
   private func createAppIconView() -> NSImageView {

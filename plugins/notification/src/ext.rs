@@ -38,7 +38,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         store
             .get(crate::StoreKey::EventNotification)
             .map_err(Error::Store)
-            .map(|v| v.unwrap_or(true))
+            .map(|v| v.unwrap_or(false))
     }
 
     #[tracing::instrument(skip(self))]
@@ -55,7 +55,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         store
             .get(crate::StoreKey::DetectNotification)
             .map_err(Error::Store)
-            .map(|v| v.unwrap_or(true))
+            .map(|v| v.unwrap_or(false))
     }
 
     #[tracing::instrument(skip(self))]
@@ -101,17 +101,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
-        let (tx, rx) = std::sync::mpsc::channel::<hypr_detect::DetectEvent>();
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().unwrap();
 
-        let cb = hypr_detect::new_callback(move |event| {
-            let _ = tx.send(event); // Send event through channel
-        });
-
-        Ok(())
+        guard.detect_state.start()
     }
 
     #[tracing::instrument(skip(self))]
     fn stop_detect_notification(&self) -> Result<(), Error> {
-        Ok(())
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().unwrap();
+
+        guard.detect_state.stop()
     }
 }

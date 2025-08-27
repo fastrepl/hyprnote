@@ -1,6 +1,6 @@
+import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { message } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLicense } from "@/hooks/use-license";
@@ -131,10 +131,7 @@ export function useChatLogic({
           distinct_id: userId,
         });
       }
-      await message("4 messages are allowed per conversation for free users.", {
-        title: "Pro License Required",
-        kind: "info",
-      });
+      await showProGateModal("chat");
       return;
     }
 

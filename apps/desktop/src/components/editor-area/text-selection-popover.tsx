@@ -231,19 +231,19 @@ export function TextSelectionPopover(
         size="sm"
         variant="ghost"
         onClick={handleAnnotateClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal"
+        className="flex items-center gap-1 text-xs h-6 px-2 hover:bg-neutral-100 font-normal"
       >
         <MessageSquare className="h-2.5 w-2.5" />
         <span className="text-[11px]">Source</span>
       </Button>
 
-      <div className="w-px h-3 bg-neutral-200 mx-0.5" />
+      <div className="w-px h-4 bg-neutral-200 mx-0.5" />
 
       <Button
         size="sm"
         variant="ghost"
         onClick={handleAskAIClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal"
+        className="flex items-center gap-1 text-xs h-6 px-2 hover:bg-neutral-100 font-normal"
       >
         <Sparkles className="h-2.5 w-2.5" />
         <span className="text-[11px]">Ask AI</span>

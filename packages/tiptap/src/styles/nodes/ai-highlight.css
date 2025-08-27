@@ -1,95 +1,17 @@
-/* AI-generated content highlight with blue theme */
+/* AI highlight - DEAD SIMPLE APPROACH */
 .tiptap-normal mark[data-ai-highlight="true"],
 .tiptap mark[data-ai-highlight="true"] {
-  /* Blue gradient background matching app theme */
-  background: linear-gradient(
-    90deg, 
-    rgba(59, 130, 246, 0.15) 0%, 
-    rgba(59, 130, 246, 0.25) 100%
-  ) !important;
-  
-  /* Blue left accent border */
-  border-left: 3px solid #3b82f6 !important;
-  
-  /* Spacing and shape */
-  padding: 0.2rem 0.4rem !important;
-  margin: 0 0.1rem !important;
-  border-radius: 0.25rem !important;
-  
-  /* Keep text color readable */
   color: inherit !important;
-  
-  /* Animation on insertion */
+  background: rgba(59, 130, 246, 0.08) !important;
+  border-bottom: 2px dotted rgba(59, 130, 246, 0.6) !important;
+  padding: 0.1rem 0.2rem !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
   animation: ai-highlight-pulse 2s ease-in-out !important;
-  
-  /* Ensure it's visible above other elements */
-  position: relative !important;
-  display: inline !important;
-  
-  /* Smooth transitions for removal */
-  transition: all 0.3s ease-out !important;
 }
 
-/* Pulse animation for initial insertion */
 @keyframes ai-highlight-pulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  20% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-  40%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  60% {
-    opacity: 0.9;
-  }
-  80% {
-    opacity: 1;
-  }
-}
-
-/* Hover state for AI highlights */
-.tiptap-normal mark[data-ai-highlight="true"]:hover,
-.tiptap mark[data-ai-highlight="true"]:hover {
-  background: linear-gradient(
-    90deg, 
-    rgba(59, 130, 246, 0.2) 0%, 
-    rgba(59, 130, 246, 0.3) 100%
-  ) !important;
-  
-  /* Slightly stronger border on hover */
-  border-left-width: 4px !important;
-}
-
-/* When AI highlight is being removed (for fade-out effect) */
-.tiptap-normal mark[data-ai-highlight="true"].removing,
-.tiptap mark[data-ai-highlight="true"].removing {
-  animation: ai-highlight-fade-out 0.5s ease-out forwards !important;
-}
-
-@keyframes ai-highlight-fade-out {
-  0% {
-    opacity: 1;
-    background: linear-gradient(
-      90deg, 
-      rgba(59, 130, 246, 0.15) 0%, 
-      rgba(59, 130, 246, 0.25) 100%
-    );
-  }
-  100% {
-    opacity: 0;
-    background: transparent;
-    border-left-color: transparent;
-  }
-}
-
-/* Ensure proper line wrapping for multi-line highlights */
-.tiptap-normal mark[data-ai-highlight="true"],
-.tiptap mark[data-ai-highlight="true"] {
-  box-decoration-break: clone !important;
-  -webkit-box-decoration-break: clone !important;
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 1; }
 }

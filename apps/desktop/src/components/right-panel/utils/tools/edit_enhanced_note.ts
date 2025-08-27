@@ -184,6 +184,33 @@ export const createEditEnhancedNoteTool = ({
           controls.appendChild(acceptBtn);
           document.body.appendChild(controls);
 
+          // 🆕 Auto-scroll to highlighted content after controls are rendered
+          const scrollToHighlight = () => {
+            const highlighted = document.querySelector('[data-ai-highlight="true"]');
+            if (!highlighted) return;
+
+            const rect = highlighted.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            
+            // Check if highlighted content is already visible with buffer for controls
+            const isVisible = rect.top >= 50 && 
+                             rect.bottom <= viewportHeight - 50;
+            
+            if (!isVisible) {
+              highlighted.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'nearest'
+              });
+              console.log("🔄 Auto-scrolled to AI edit location");
+            } else {
+              console.log("🔄 Highlight already visible, no scroll needed");
+            }
+          };
+
+          // Execute scroll after controls are fully rendered
+          requestAnimationFrame(scrollToHighlight);
+
           // Remove controls on outside click
           const handleOutsideClick = (e: MouseEvent) => {
             const target = e.target as Node;

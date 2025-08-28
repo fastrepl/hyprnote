@@ -3,12 +3,12 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use trie_rs::map::{Trie, TrieBuilder};
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
     WhisperTokenId,
 };
 
+use crate::BiasTrie;
 use hypr_whisper::Language;
 
 lazy_static! {
@@ -19,6 +19,7 @@ lazy_static! {
 pub struct WhisperBuilder {
     model_path: Option<String>,
     languages: Option<Vec<Language>>,
+    vocab: Option<Vec<String>>,
 }
 
 impl WhisperBuilder {
@@ -29,6 +30,11 @@ impl WhisperBuilder {
 
     pub fn languages(mut self, languages: Vec<Language>) -> Self {
         self.languages = Some(languages);
+        self
+    }
+
+    pub fn vocab(mut self, vocab: Vec<String>) -> Self {
+        self.vocab = Some(vocab);
         self
     }
 
@@ -54,22 +60,10 @@ impl WhisperBuilder {
         let token_beg = ctx.token_beg();
 
         let bias_trie = {
-            let custom_vacab = vec!["Hyprnote", "OWhisper"];
-            let sequences = custom_vacab
-                .iter()
-                .map(|s| ctx.tokenize(s, 99))
-                .collect::<Result<Vec<_>, _>>()?;
+            let custom_vocab = self.vocab.unwrap_or(vec!["Hyprnote".to_string()]);
 
-            let mut builder = TrieBuilder::new();
-
-            for sequence in sequences {
-                for i in 1..=sequence.len() {
-                    let progress = i as f32 / sequence.len() as f32;
-                    let prefix_bias = 1.0 + progress.powi(2);
-                    builder.push(&sequence[..i], prefix_bias);
-                }
-            }
-            builder.build()
+            let custom_vocab_refs: Vec<&str> = custom_vocab.iter().map(|s| s.as_str()).collect();
+            BiasTrie::new(&ctx, &custom_vocab_refs)?
         };
 
         Ok(Whisper {
@@ -97,7 +91,7 @@ pub struct Whisper {
     dynamic_prompt: String,
     state: WhisperState,
     token_beg: WhisperTokenId,
-    bias_trie: Trie<WhisperTokenId, f32>,
+    bias_trie: BiasTrie,
 }
 
 impl Whisper {
@@ -261,11 +255,11 @@ impl Whisper {
     unsafe fn set_logit_filter(
         params: &mut FullParams,
         token_beg: &WhisperTokenId,
-        bias_trie: &Trie<WhisperTokenId, f32>,
+        bias_trie: &BiasTrie,
     ) {
         struct Context {
             token_beg: WhisperTokenId,
-            bias_trie: Trie<WhisperTokenId, f32>,
+            bias_trie: BiasTrie,
         }
 
         let context = Box::new(Context {
@@ -287,41 +281,11 @@ impl Whisper {
 
             let context = &*(user_data as *const Context);
 
-            {
-                *logits.offset(context.token_beg as isize) = f32::NEG_INFINITY;
-            }
+            *logits.offset(context.token_beg as isize) = f32::NEG_INFINITY;
 
-            {
-                if !tokens.is_null() && n_tokens > 0 {
-                    let current_tokens: Vec<WhisperTokenId> =
-                        std::slice::from_raw_parts(tokens, n_tokens as usize)
-                            .iter()
-                            .map(|t| t.id)
-                            .collect();
-
-                    for start_pos in (n_tokens as usize).saturating_sub(10)..n_tokens as usize {
-                        let suffix = &current_tokens[start_pos..];
-
-                        if let Some(_) = context.bias_trie.exact_match(suffix) {
-                            continue;
-                        }
-
-                        for (full_sequence, bias_value_ref) in
-                            context.bias_trie.predictive_search(suffix)
-                        {
-                            let bias_value = *bias_value_ref;
-                            let full_sequence: Vec<WhisperTokenId> = full_sequence;
-
-                            if full_sequence.len() > suffix.len() {
-                                let next_token = full_sequence[suffix.len()];
-                                let current_logit = *logits.offset(next_token as isize);
-                                *logits.offset(next_token as isize) =
-                                    current_logit + bias_value.ln();
-                            }
-                        }
-                    }
-                }
-            }
+            context
+                .bias_trie
+                .apply_bias_to_logits(tokens, n_tokens, logits);
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));

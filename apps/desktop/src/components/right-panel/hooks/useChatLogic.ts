@@ -170,7 +170,7 @@ export function useChatLogic({
       isUser: true,
       timestamp: new Date(),
       type: "text-delta",
-      toolDetails: toolDetails,  // Include toolDetails in the message object
+      toolDetails: toolDetails, // Include toolDetails in the message object
     };
 
     setMessages((prev) => [...prev, userMessage]);

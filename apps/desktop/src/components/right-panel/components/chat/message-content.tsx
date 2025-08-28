@@ -63,9 +63,8 @@ function MarkdownText({ content, htmlContent }: { content: string; htmlContent?:
   const [displayHtml, setDisplayHtml] = useState<string>("");
 
   useEffect(() => {
-
     const processContent = async () => {
-      console.log("running markdowntext" )
+      console.log("running markdowntext");
       // If we have HTML content with mentions, use it directly
       if (htmlContent) {
         console.log("markdown text htmlContent: ", htmlContent);
@@ -199,12 +198,11 @@ function MarkdownText({ content, htmlContent }: { content: string; htmlContent?:
 }
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
-  // Parse HTML content from toolDetails for user messages
   let htmlContent: string | undefined;
   if (message.isUser && message.toolDetails) {
     try {
-      const details = typeof message.toolDetails === 'string' 
-        ? JSON.parse(message.toolDetails) 
+      const details = typeof message.toolDetails === "string"
+        ? JSON.parse(message.toolDetails)
         : message.toolDetails;
       htmlContent = details.htmlContent;
     } catch (error) {

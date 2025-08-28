@@ -66,9 +66,16 @@ export function TextSelectionPopover(
       }
 
       const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
 
+      const editorElement = editorRef.current?.editor?.view?.dom;
+      if (!editorElement || !editorElement.contains(range.commonAncestorContainer)) {
+        setSelection(null);
+        return;
+      }
+
+      const rect = range.getBoundingClientRect();
       const selectedText = sel.toString().trim();
+
       if (selectedText.length > 0) {
         delayTimeoutRef.current = setTimeout(() => {
           setSelection({

@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from "@tiptap/core";
+import { mergeAttributes, Node } from "@tiptap/core";
 
 /**
  * Read-only mention node for the Renderer component.
@@ -7,13 +7,13 @@ import { Node, mergeAttributes } from "@tiptap/core";
  */
 export const mentionReadonly = Node.create({
   name: "mention",
-  
+
   group: "inline",
-  
+
   inline: true,
-  
+
   selectable: false,
-  
+
   atom: true,
 
   addAttributes() {
@@ -22,7 +22,9 @@ export const mentionReadonly = Node.create({
         default: null,
         parseHTML: (element: HTMLElement) => element.getAttribute("data-id"),
         renderHTML: (attributes: Record<string, any>) => {
-          if (!attributes.id) return {};
+          if (!attributes.id) {
+            return {};
+          }
           return { "data-id": attributes.id };
         },
       },
@@ -30,7 +32,9 @@ export const mentionReadonly = Node.create({
         default: null,
         parseHTML: (element: HTMLElement) => element.getAttribute("data-type"),
         renderHTML: (attributes: Record<string, any>) => {
-          if (!attributes.type) return {};
+          if (!attributes.type) {
+            return {};
+          }
           return { "data-type": attributes.type };
         },
       },
@@ -38,7 +42,9 @@ export const mentionReadonly = Node.create({
         default: null,
         parseHTML: (element: HTMLElement) => element.getAttribute("data-label"),
         renderHTML: (attributes: Record<string, any>) => {
-          if (!attributes.label) return {};
+          if (!attributes.label) {
+            return {};
+          }
           return { "data-label": attributes.label };
         },
       },
@@ -48,7 +54,7 @@ export const mentionReadonly = Node.create({
   parseHTML() {
     return [
       {
-        tag: 'a.mention[data-mention="true"]',
+        tag: "a.mention[data-mention=\"true\"]",
         getAttrs: (dom: HTMLElement) => {
           const label = dom.getAttribute("data-label") || dom.textContent || "";
           return {
@@ -59,7 +65,7 @@ export const mentionReadonly = Node.create({
         },
       },
       {
-        tag: 'a.mention',
+        tag: "a.mention",
         getAttrs: (dom: HTMLElement) => {
           const label = dom.getAttribute("data-label") || dom.textContent || "";
           return {
@@ -70,7 +76,7 @@ export const mentionReadonly = Node.create({
         },
       },
       {
-        tag: 'span.mention',
+        tag: "span.mention",
         getAttrs: (dom: HTMLElement) => {
           const label = dom.getAttribute("data-label") || dom.textContent || "";
           return {
@@ -87,7 +93,7 @@ export const mentionReadonly = Node.create({
     const label = node.attrs.label || "";
     const nodeText = node.textContent || label;
     const classes = ["mention"];
-    
+
     // Add selection-ref class if this is a selection reference
     if (label.includes("[") && label.includes("]")) {
       classes.push("selection-ref");

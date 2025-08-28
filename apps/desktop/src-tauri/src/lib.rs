@@ -135,7 +135,7 @@ pub async fn main() {
         )
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![]),
+            Some(vec!["--background"]),
         ));
 
     {
@@ -175,6 +175,9 @@ pub async fn main() {
     }
 
     let specta_builder = make_specta_builder();
+
+    let args: Vec<String> = std::env::args().collect();
+    let is_background_launch = args.contains(&"--background".to_string());
 
     let app = builder
         .invoke_handler({
@@ -258,6 +261,16 @@ pub async fn main() {
                                 let _ =
                                     sentry_client.close(Some(std::time::Duration::from_secs(1)));
                             }
+
+                            {
+                                use tauri_plugin_autostart::ManagerExt;
+                                let autostart_manager = app_clone.autolaunch();
+                                if config.general.autostart {
+                                    let _ = autostart_manager.enable();
+                                } else {
+                                    let _ = autostart_manager.disable();
+                                }
+                            }
                         }
 
                         tauri_plugin_sentry::sentry::configure_scope(|scope| {
@@ -275,8 +288,14 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
-    let app_handle = app.handle().clone();
-    HyprWindow::Main.show(&app_handle).unwrap();
+    if !is_background_launch {
+        let app_handle = app.handle().clone();
+
+        #[cfg(target_os = "macos")]
+        let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+        HyprWindow::Main.show(&app_handle).unwrap();
+    }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]

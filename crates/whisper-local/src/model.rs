@@ -3,6 +3,7 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 
+use trie_rs::map::{Trie, TrieBuilder};
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
     WhisperTokenId,
@@ -52,11 +53,31 @@ impl WhisperBuilder {
         let state = ctx.create_state()?;
         let token_beg = ctx.token_beg();
 
+        let bias_trie = {
+            let custom_vacab = vec!["Hyprnote", "OWhisper"];
+            let sequences = custom_vacab
+                .iter()
+                .map(|s| ctx.tokenize(s, 99))
+                .collect::<Result<Vec<_>, _>>()?;
+
+            let mut builder = TrieBuilder::new();
+
+            for sequence in sequences {
+                for i in 1..=sequence.len() {
+                    let progress = i as f32 / sequence.len() as f32;
+                    let prefix_bias = 1.0 + progress.powi(2);
+                    builder.push(&sequence[..i], prefix_bias);
+                }
+            }
+            builder.build()
+        };
+
         Ok(Whisper {
             languages: self.languages.unwrap_or_default(),
             dynamic_prompt: "".to_string(),
             state,
             token_beg,
+            bias_trie,
         })
     }
 
@@ -76,6 +97,7 @@ pub struct Whisper {
     dynamic_prompt: String,
     state: WhisperState,
     token_beg: WhisperTokenId,
+    bias_trie: Trie<WhisperTokenId, f32>,
 }
 
 impl Whisper {
@@ -109,7 +131,7 @@ impl Whisper {
             p.set_initial_prompt(&initial_prompt);
 
             unsafe {
-                Self::suppress_beg(&mut p, &token_beg);
+                Self::set_logit_filter(&mut p, &token_beg, &self.bias_trie);
             }
 
             p.set_no_timestamps(true);
@@ -236,12 +258,26 @@ impl Whisper {
             .collect()
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
+    unsafe fn set_logit_filter(
+        params: &mut FullParams,
+        token_beg: &WhisperTokenId,
+        bias_trie: &Trie<WhisperTokenId, f32>,
+    ) {
+        struct Context {
+            token_beg: WhisperTokenId,
+            bias_trie: Trie<WhisperTokenId, f32>,
+        }
+
+        let context = Box::new(Context {
+            token_beg: *token_beg,
+            bias_trie: bias_trie.clone(),
+        });
+
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
-            _tokens: *const whisper_rs::whisper_rs_sys::whisper_token_data,
-            _n_tokens: std::os::raw::c_int,
+            tokens: *const whisper_rs::whisper_rs_sys::whisper_token_data,
+            n_tokens: std::os::raw::c_int,
             logits: *mut f32,
             user_data: *mut std::os::raw::c_void,
         ) {
@@ -249,14 +285,48 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperTokenId);
-            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            let context = &*(user_data as *const Context);
+
+            {
+                *logits.offset(context.token_beg as isize) = f32::NEG_INFINITY;
+            }
+
+            {
+                if !tokens.is_null() && n_tokens > 0 {
+                    let current_tokens: Vec<WhisperTokenId> =
+                        std::slice::from_raw_parts(tokens, n_tokens as usize)
+                            .iter()
+                            .map(|t| t.id)
+                            .collect();
+
+                    for start_pos in (n_tokens as usize).saturating_sub(10)..n_tokens as usize {
+                        let suffix = &current_tokens[start_pos..];
+
+                        if let Some(_) = context.bias_trie.exact_match(suffix) {
+                            continue;
+                        }
+
+                        for (full_sequence, bias_value_ref) in
+                            context.bias_trie.predictive_search(suffix)
+                        {
+                            let bias_value = *bias_value_ref;
+                            let full_sequence: Vec<WhisperTokenId> = full_sequence;
+
+                            if full_sequence.len() > suffix.len() {
+                                let next_token = full_sequence[suffix.len()];
+                                let current_logit = *logits.offset(next_token as isize);
+                                *logits.offset(next_token as isize) =
+                                    current_logit + bias_value.ln();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
-        params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
-        );
+        params
+            .set_filter_logits_callback_user_data(Box::into_raw(context) as *mut std::ffi::c_void);
     }
 }
 

@@ -43,7 +43,6 @@ export const createEditEnhancedNoteTool = ({
 
         // Capture original content from selectionData BEFORE making any changes
         const originalContent = selectionData?.text || editor.state.doc.textBetween(startOffset, endOffset);
-        console.log("🔄 Original content saved for undo:", originalContent);
 
         // Trim and clean the HTML to prevent empty elements
         const cleanedHtml = newHtml.trim().replace(/>\s+</g, "><");
@@ -126,23 +125,26 @@ export const createEditEnhancedNoteTool = ({
           undoBtn.onmouseover = () => undoBtn.style.background = "#f3f4f6";
           undoBtn.onmouseout = () => undoBtn.style.background = "white";
           undoBtn.onclick = () => {
-            console.log("🔄 Undo clicked - restoring original content");
-            console.log("🔄 Original content:", originalContent);
-
             const currentEditor = globalEditorRef.current;
             if (currentEditor) {
               try {
+                // Save current cursor position before operations
+                const currentSelection = currentEditor.state.selection;
+                const cursorPos = currentSelection.head;
+
                 // Simple: Select the highlighted content, delete it, insert original
                 currentEditor.chain()
-                  .focus()
                   .setTextSelection({ from: startOffset, to: highlightEnd })
                   .deleteSelection()
                   .insertContent(originalContent)
                   .run();
 
-                console.log("🔄 Restoration complete");
+                // Restore cursor position (avoid .focus() which moves cursor)
+                setTimeout(() => {
+                  currentEditor.commands.setTextSelection(cursorPos);
+                }, 0);
               } catch (error) {
-                console.error("🔄 Restoration failed:", error);
+                console.error("Restoration failed:", error);
               }
             }
 
@@ -171,16 +173,22 @@ export const createEditEnhancedNoteTool = ({
           acceptBtn.onmouseover = () => acceptBtn.style.background = "#2563eb";
           acceptBtn.onmouseout = () => acceptBtn.style.background = "#3b82f6";
           acceptBtn.onclick = () => {
-            console.log("🔄 Accept clicked - removing highlight");
             const currentEditor = globalEditorRef.current;
             if (currentEditor) {
-              // First select the highlighted content, then remove highlight
+              // Save current cursor position before operations
+              const currentSelection = currentEditor.state.selection;
+              const cursorPos = currentSelection.head;
+
+              // Remove highlight without calling .focus()
               currentEditor.chain()
-                .focus()
                 .setTextSelection({ from: startOffset, to: highlightEnd })
                 .unsetAIHighlight()
                 .run();
-              console.log("🔄 Highlight removed");
+
+              // Restore cursor position
+              setTimeout(() => {
+                currentEditor.commands.setTextSelection(cursorPos);
+              }, 0);
             }
             (controls as any).cleanup?.() || controls.remove();
           };
@@ -189,7 +197,7 @@ export const createEditEnhancedNoteTool = ({
           controls.appendChild(acceptBtn);
           document.body.appendChild(controls);
 
-          // 🆕 Auto-scroll to highlighted content after controls are rendered
+          // Auto-scroll to highlighted content after controls are rendered
           const scrollToHighlight = () => {
             const highlighted = document.querySelector("[data-ai-highlight=\"true\"]");
             if (!highlighted) {
@@ -209,9 +217,8 @@ export const createEditEnhancedNoteTool = ({
                 block: "center",
                 inline: "nearest",
               });
-              console.log("🔄 Auto-scrolled to AI edit location");
             } else {
-              console.log("🔄 Highlight already visible, no scroll needed");
+              console.log("Highlight already visible, no scroll needed");
             }
           };
 
@@ -236,14 +243,20 @@ export const createEditEnhancedNoteTool = ({
             // Clicked outside - accept and cleanup
             const currentEditor = globalEditorRef.current;
             if (currentEditor) {
-              console.log("🔄 Outside click - removing highlight");
-              // First select the highlighted content, then remove highlight
+              // Save current cursor position before operations
+              const currentSelection = currentEditor.state.selection;
+              const cursorPos = currentSelection.head;
+
+              // Remove highlight without calling .focus()
               currentEditor.chain()
-                .focus()
                 .setTextSelection({ from: startOffset, to: highlightEnd })
                 .unsetAIHighlight()
                 .run();
-              console.log("🔄 Highlight removed");
+
+              // Restore cursor position
+              setTimeout(() => {
+                currentEditor.commands.setTextSelection(cursorPos);
+              }, 0);
             }
 
             // Use cleanup function if available

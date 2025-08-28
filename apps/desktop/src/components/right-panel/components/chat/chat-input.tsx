@@ -225,17 +225,35 @@ export function ChatInput(
 
       // Only process if we haven't already processed this exact selection
       if (processedSelectionRef.current !== selectionId) {
-        console.log("💬 Chat Input Received NEW Selection (ProseMirror):");
-        console.log("Pending selection:", pendingSelection);
-        console.log("ProseMirror positions:", pendingSelection.startOffset, "to", pendingSelection.endOffset);
-
-        // Create compact reference instead of full quoted text
+        // Create compact reference with text preview instead of just positions
         const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
-        const selectionRef = `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
-        // Use a mention element with data-mention="true" so Tiptap recognizes it
+
+        const selectedHtml = pendingSelection.text || "";
+
+        // Strip HTML tags to get plain text
+        const stripHtml = (html: string): string => {
+          const temp = document.createElement("div");
+          temp.innerHTML = html;
+          return temp.textContent || temp.innerText || "";
+        };
+
+        const selectedText = stripHtml(selectedHtml).trim();
+
+        const textPreview = selectedText.length > 0
+          ? (selectedText.length > 6
+            ? `'${selectedText.slice(0, 6)}...'` // Use single quotes instead!
+            : `'${selectedText}'`)
+          : "NO_TEXT";
+
+        const selectionRef = textPreview !== "NO_TEXT"
+          ? `[${noteName} - ${textPreview}(${pendingSelection.startOffset}:${pendingSelection.endOffset})]`
+          : `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
+
+        // Escape quotes for HTML attribute
+        const escapedSelectionRef = selectionRef.replace(/"/g, "&quot;");
+
         const referenceText =
-          `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${selectionRef}" contenteditable="false">${selectionRef}</a> `;
-        console.log("Generated selection reference:", referenceText);
+          `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${escapedSelectionRef}" contenteditable="false">${selectionRef}</a> `;
 
         editorRef.current.editor.commands.setContent(referenceText);
         editorRef.current.editor.commands.focus("end");
@@ -246,7 +264,6 @@ export function ChatInput(
           currentTarget: { value: selectionRef },
         } as React.ChangeEvent<HTMLTextAreaElement>;
         onChange(syntheticEvent);
-        console.log("Chat input populated with selection reference");
 
         // Mark this selection as processed
         processedSelectionRef.current = selectionId;

@@ -1,6 +1,6 @@
-import { Mark, mergeAttributes } from '@tiptap/core';
+import { Mark, mergeAttributes } from "@tiptap/core";
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     aiHighlight: {
       /**
@@ -24,13 +24,13 @@ export interface AIHighlightOptions {
 }
 
 export const AIHighlight = Mark.create<AIHighlightOptions>({
-  name: 'aiHighlight',
-  
+  name: "aiHighlight",
+
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'ai-generated-highlight',
-        'data-ai-highlight': 'true',
+        class: "ai-generated-highlight",
+        "data-ai-highlight": "true",
       },
     };
   },
@@ -39,25 +39,25 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
     return {
       timestamp: {
         default: null,
-        parseHTML: element => element.getAttribute('data-timestamp'),
+        parseHTML: element => element.getAttribute("data-timestamp"),
         renderHTML: attributes => {
           if (!attributes.timestamp) {
             return {};
           }
           return {
-            'data-timestamp': attributes.timestamp,
+            "data-timestamp": attributes.timestamp,
           };
         },
       },
       sessionId: {
         default: null,
-        parseHTML: element => element.getAttribute('data-session-id'),
+        parseHTML: element => element.getAttribute("data-session-id"),
         renderHTML: attributes => {
           if (!attributes.sessionId) {
             return {};
           }
           return {
-            'data-session-id': attributes.sessionId,
+            "data-session-id": attributes.sessionId,
           };
         },
       },
@@ -66,13 +66,13 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
 
   parseHTML() {
     return [{
-      tag: 'mark[data-ai-highlight]',
+      tag: "mark[data-ai-highlight]",
       priority: 100, // Higher priority to ensure it's recognized
     }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['mark', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+    return ["mark", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
   },
 
   addCommands() {

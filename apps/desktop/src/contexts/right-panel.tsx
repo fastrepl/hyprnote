@@ -9,8 +9,8 @@ export type RightPanelView = "chat" | "transcript";
 
 export interface SelectionData {
   text: string;
-  startOffset: number; // ProseMirror position (not character offset)
-  endOffset: number; // ProseMirror position (not character offset)
+  startOffset: number;
+  endOffset: number;
   sessionId: string;
   timestamp: number;
 }
@@ -105,15 +105,10 @@ export function RightPanelProvider({
   );
 
   const sendSelectionToChat = useCallback((selectionData: SelectionData) => {
-    console.log("🚀 sendSelectionToChat called");
-    console.log("Current panel state:", { isExpanded, currentView });
-    console.log("Selection data:", selectionData);
-
     setPendingSelection(selectionData);
 
     // Ensure chat panel is open (don't toggle if already open)
     if (!isExpanded) {
-      console.log("📱 Panel closed, opening with chat view");
       // Panel is closed, open it with chat view
       setIsExpanded(true);
       setCurrentView("chat");
@@ -129,7 +124,6 @@ export function RightPanelProvider({
         focusInput();
       }, 350);
     } else if (currentView !== "chat") {
-      console.log("📱 Panel open but wrong view, switching to chat");
       // Panel is open but showing wrong view, switch to chat
       setCurrentView("chat");
 
@@ -139,13 +133,12 @@ export function RightPanelProvider({
         }
       }, 350);
     } else {
-      console.log("📱 Panel already open with chat view, staying open");
+      console.log("Panel already open with chat view, staying open");
     }
     // If panel is already open and showing chat, do nothing (don't close it)
   }, [isExpanded, currentView, chatInputRef]);
 
   const clearPendingSelection = useCallback(() => {
-    console.log("🧹 Clearing pending selection");
     setPendingSelection(null);
   }, []);
 

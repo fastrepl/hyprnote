@@ -67,7 +67,6 @@ function MarkdownText({ content }: { content: string }) {
       try {
         let html = await miscCommands.opinionatedMdToHtml(content);
 
-        // Clean up spacing (same as MarkdownCard)
         html = html
           .replace(/<p>\s*<\/p>/g, "")
           .replace(/<p>\u00A0<\/p>/g, "")

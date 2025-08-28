@@ -299,8 +299,6 @@ export function useChatLogic({
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      console.log("selectionData exists?", selectionData);
-
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
@@ -451,7 +449,6 @@ export function useChatLogic({
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
-          console.log("tool result", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),

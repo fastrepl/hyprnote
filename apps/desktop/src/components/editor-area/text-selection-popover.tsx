@@ -34,11 +34,11 @@ export function TextSelectionPopover(
       return {
         sendSelectionToChat: () => {
           console.warn("RightPanel not available - selection ignored");
-        }
+        },
       };
     }
   })();
-  
+
   const { sendSelectionToChat } = rightPanel;
 
   useEffect(() => {
@@ -168,10 +168,6 @@ export function TextSelectionPopover(
       return;
     }
 
-    console.log("🎯 TipTap Selection Debug:");
-    console.log("DOM Selected text:", selection.text);
-    console.log("Selection rect:", selection.rect);
-
     // Get TipTap/ProseMirror positions (much more accurate)
     const tipTapPositions = getTipTapPositions();
     if (!tipTapPositions) {
@@ -179,16 +175,9 @@ export function TextSelectionPopover(
       return;
     }
 
-    console.log("TipTap/ProseMirror Positions:");
-    console.log("From position:", tipTapPositions.from);
-    console.log("To position:", tipTapPositions.to);
-    console.log("TipTap selected text:", tipTapPositions.text);
-    console.log("Text length:", tipTapPositions.text.length);
-    console.log("Position range:", tipTapPositions.to - tipTapPositions.from);
-
     // Verify DOM selection matches TipTap selection
     if (selection.text.trim() !== tipTapPositions.text.trim()) {
-      console.warn("⚠️ DOM selection doesn't match TipTap selection:");
+      console.warn("DOM selection doesn't match TipTap selection:");
       console.warn("DOM:", selection.text);
       console.warn("TipTap:", tipTapPositions.text);
     }
@@ -200,9 +189,6 @@ export function TextSelectionPopover(
       sessionId,
       timestamp: Date.now(),
     };
-
-    console.log("Final SelectionData (ProseMirror):", selectionData);
-    console.log("---");
 
     // Send selection to chat
     sendSelectionToChat(selectionData);

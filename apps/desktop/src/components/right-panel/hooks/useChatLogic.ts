@@ -29,6 +29,7 @@ import { prepareMessageHistory } from "../utils/chat-utils";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
 import { buildVercelToolsFromMcp } from "../utils/mcp-http-wrapper";
 import { createEditEnhancedNoteTool } from "../utils/tools/edit_enhanced_note";
+import { createSearchSessionDateRangeTool } from "../utils/tools/search_session_date_range";
 import { createSearchSessionTool } from "../utils/tools/search_session_multi_keywords";
 
 interface UseChatLogicProps {
@@ -292,7 +293,7 @@ export function useChatLogic({
         sessions,
         selectionData,
       });
-
+      const searchSessionDateRangeTool = createSearchSessionDateRangeTool(userId);
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
@@ -319,6 +320,7 @@ export function useChatLogic({
             ...hyprMcpTools,
             // Add the edit tool when there's selection data
             ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
+            search_sessions_date_range: searchSessionDateRangeTool,
           }),
         },
         onError: (error) => {
@@ -446,6 +448,8 @@ export function useChatLogic({
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
+
+          console.log("tool result: ", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),

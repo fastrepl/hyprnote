@@ -64,10 +64,8 @@ function MarkdownText({ content, htmlContent }: { content: string; htmlContent?:
 
   useEffect(() => {
     const processContent = async () => {
-      console.log("running markdowntext");
       // If we have HTML content with mentions, use it directly
       if (htmlContent) {
-        console.log("markdown text htmlContent: ", htmlContent);
         setDisplayHtml(htmlContent);
         return;
       }

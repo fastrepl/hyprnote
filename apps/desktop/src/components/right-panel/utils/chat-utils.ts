@@ -212,8 +212,6 @@ export const prepareMessageHistory = async (
         : undefined, // Convert to plain object for JsonValue compatibility
     });
 
-    console.log("this is user message", userContent);
-
     conversationHistory.push({
       role: "user" as const,
       content: userContent,

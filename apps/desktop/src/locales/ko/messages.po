@@ -399,6 +399,7 @@ msgid "Anyone with the link can view this page"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:603
+#: src/components/settings/components/ai/stt-view-remote.tsx:127
 #: src/components/welcome-modal/custom-endpoint-view.tsx:498
 msgid "API Base URL"
 msgstr ""
@@ -407,6 +408,7 @@ msgstr ""
 #: src/components/settings/components/ai/llm-custom-view.tsx:409
 #: src/components/settings/components/ai/llm-custom-view.tsx:514
 #: src/components/settings/components/ai/llm-custom-view.tsx:625
+#: src/components/settings/components/ai/stt-view-remote.tsx:151
 #: src/components/settings/views/integrations.tsx:203
 #: src/components/welcome-modal/custom-endpoint-view.tsx:294
 #: src/components/welcome-modal/custom-endpoint-view.tsx:361
@@ -573,6 +575,10 @@ msgstr ""
 #~ msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)."
 #~ msgstr ""
 
+#: src/components/settings/components/ai/stt-view-remote.tsx:111
+msgid "Connect to a self-hosted or third-party STT endpoint (Deepgram compatible)"
+msgstr ""
+
 #: src/components/settings/views/integrations.tsx:127
 msgid "Connect with external tools and services to enhance your workflow"
 msgstr ""
@@ -660,7 +666,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:66
+#: src/components/settings/views/ai-stt.tsx:107
 msgid "Custom"
 msgstr ""
 
@@ -672,12 +678,16 @@ msgstr ""
 #~ msgid "Custom Endpoints"
 #~ msgstr ""
 
+#: src/components/settings/components/ai/stt-view-remote.tsx:108
+msgid "Custom STT Endpoint"
+msgstr ""
+
 #: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
 msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:63
+#: src/components/settings/views/ai-stt.tsx:104
 msgid "Default"
 msgstr ""
 
@@ -787,9 +797,17 @@ msgstr ""
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 #~ msgstr ""
 
+#: src/components/settings/components/ai/stt-view-remote.tsx:130
+msgid "Enter the base URL for your custom STT endpoint"
+msgstr ""
+
 #: src/components/settings/views/ai.tsx:498
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr ""
+
+#: src/components/settings/components/ai/stt-view-remote.tsx:176
+msgid "Enter the model name required by your STT endpoint"
+msgstr ""
 
 #: src/routes/app.settings.tsx:72
 #~ msgid "Extensions"
@@ -1062,6 +1080,7 @@ msgid "Model"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:650
+#: src/components/settings/components/ai/stt-view-remote.tsx:173
 #: src/components/welcome-modal/custom-endpoint-view.tsx:544
 msgid "Model Name"
 msgstr ""

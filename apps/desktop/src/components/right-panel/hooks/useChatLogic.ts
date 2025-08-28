@@ -158,22 +158,23 @@ export function useChatLogic({
 
     const groupId = await getChatGroupId();
 
+    // Prepare toolDetails before creating the message
+    let toolDetails = null;
+    if (htmlContent && (mentionedContent?.length || selectionData)) {
+      toolDetails = { htmlContent };
+    }
+
     const userMessage: Message = {
       id: crypto.randomUUID(),
       content: content,
       isUser: true,
       timestamp: new Date(),
       type: "text-delta",
+      toolDetails: toolDetails,  // Include toolDetails in the message object
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
-    // Store HTML content in tool_details if it contains mentions
-    let toolDetails = null;
-    if (htmlContent && (mentionedContent?.length || selectionData)) {
-      toolDetails = JSON.stringify({ htmlContent });
-    }
 
     await dbCommands.upsertChatMessage({
       id: userMessage.id,
@@ -182,7 +183,7 @@ export function useChatLogic({
       role: "User",
       content: userMessage.content.trim(),
       type: "text-delta",
-      tool_details: toolDetails,
+      tool_details: toolDetails ? JSON.stringify(toolDetails) : null,
     });
 
     const aiMessageId = crypto.randomUUID();

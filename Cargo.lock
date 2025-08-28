@@ -17522,6 +17522,7 @@ name = "whisper-local"
 version = "0.1.0"
 dependencies = [
  "audio-utils",
+ "criterion",
  "dasp",
  "data",
  "dirs 6.0.0",

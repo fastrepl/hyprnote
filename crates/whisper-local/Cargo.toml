@@ -17,9 +17,14 @@ openmp = ["whisper-rs/openmp"]
 [dev-dependencies]
 hypr-data = { workspace = true }
 
+criterion = { workspace = true }
 dirs = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
+
+[[bench]]
+name = "whisper_transcription"
+harness = false
 
 [dependencies]
 hypr-audio-utils = { workspace = true }

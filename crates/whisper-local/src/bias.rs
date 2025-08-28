@@ -18,14 +18,14 @@ impl BiasTrie {
         for sequence in sequences {
             for i in 1..=sequence.len() {
                 let progress = i as f32 / sequence.len() as f32;
-                let prefix_bias = 1.0 + 2.0 * progress.powi(2);
-                builder.push(&sequence[..i], prefix_bias);
+                let prefix_bias = 1.0 + 10.0 * progress.powi(2);
+                let prefix = &sequence[..i];
+                builder.push(prefix, prefix_bias);
             }
         }
+        let trie = builder.build();
 
-        Ok(BiasTrie {
-            trie: builder.build(),
-        })
+        Ok(BiasTrie { trie })
     }
 
     pub unsafe fn apply_bias_to_logits(
@@ -44,22 +44,28 @@ impl BiasTrie {
                 .map(|t| t.id)
                 .collect();
 
-        for start_pos in (n_tokens as usize).saturating_sub(10)..n_tokens as usize {
-            let suffix = &current_tokens[start_pos..];
+        for suffix_len in 1..=std::cmp::min(5, current_tokens.len()) {
+            let suffix = &current_tokens[current_tokens.len() - suffix_len..];
 
-            if self.trie.exact_match(suffix).is_some() {
-                continue;
-            }
+            let mut found_continuations = false;
 
             for (full_sequence, bias_value_ref) in self.trie.predictive_search(suffix) {
+                found_continuations = true;
+
                 let bias_value = *bias_value_ref;
                 let full_sequence: Vec<WhisperTokenId> = full_sequence;
 
                 if full_sequence.len() > suffix.len() {
                     let next_token = full_sequence[suffix.len()];
                     let current_logit = *logits.offset(next_token as isize);
-                    *logits.offset(next_token as isize) = current_logit + bias_value.ln();
+                    let new_logit = current_logit + bias_value.ln();
+
+                    *logits.offset(next_token as isize) = new_logit;
                 }
+            }
+
+            if found_continuations {
+                break;
             }
         }
     }

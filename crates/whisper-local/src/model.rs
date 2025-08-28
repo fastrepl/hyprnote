@@ -19,7 +19,7 @@ lazy_static! {
 pub struct WhisperBuilder {
     model_path: Option<String>,
     languages: Option<Vec<Language>>,
-    vocab: Option<Vec<String>>,
+    vocabulary: Option<Vec<String>>,
 }
 
 impl WhisperBuilder {
@@ -33,8 +33,8 @@ impl WhisperBuilder {
         self
     }
 
-    pub fn vocab(mut self, vocab: Vec<String>) -> Self {
-        self.vocab = Some(vocab);
+    pub fn vocabulary(mut self, vocabulary: Vec<String>) -> Self {
+        self.vocabulary = Some(vocabulary);
         self
     }
 
@@ -60,7 +60,7 @@ impl WhisperBuilder {
         let token_beg = ctx.token_beg();
 
         let bias_trie = {
-            let custom_vocab = self.vocab.unwrap_or(vec!["Hyprnote".to_string()]);
+            let custom_vocab = self.vocabulary.unwrap_or(vec!["Hyprnote".to_string()]);
 
             let custom_vocab_refs: Vec<&str> = custom_vocab.iter().map(|s| s.as_str()).collect();
             BiasTrie::new(&ctx, &custom_vocab_refs)?
@@ -343,6 +343,15 @@ mod tests {
     fn test_whisper() {
         let mut whisper = Whisper::builder()
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
+            .vocabulary(
+                vec![
+                    "Google", "should", "people", "question", "learning", "research", "problem",
+                    "like", "actually",
+                ]
+                .into_iter()
+                .map(|s| s.into())
+                .collect(),
+            )
             .build()
             .unwrap();
 
@@ -352,7 +361,15 @@ mod tests {
             .collect();
 
         let segments = whisper.transcribe(&audio).unwrap();
-        println!("segments: {:#?}", segments);
         assert!(segments.len() > 0);
+
+        println!(
+            "{}",
+            segments
+                .iter()
+                .map(|s| s.text.clone())
+                .collect::<Vec<String>>()
+                .join(" ")
+        );
     }
 }

@@ -19,6 +19,10 @@ Default permissions for the plugin
 - `allow-get-custom-api-key`
 - `allow-set-custom-base-url`
 - `allow-set-custom-api-key`
+- `allow-get-provider`
+- `allow-set-provider`
+- `allow-get-custom-model`
+- `allow-set-custom-model`
 
 ## Permission Table
 
@@ -136,6 +140,32 @@ Denies the get_custom_base_url command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-get-custom-model`
+
+</td>
+<td>
+
+Enables the get_custom_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-custom-model`
+
+</td>
+<td>
+
+Denies the get_custom_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-get-external-server-status`
 
 </td>
@@ -181,6 +211,32 @@ Enables the get_local_model command without any pre-configured scope.
 <td>
 
 Denies the get_local_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-get-provider`
+
+</td>
+<td>
+
+Enables the get_provider command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-get-provider`
+
+</td>
+<td>
+
+Denies the get_provider command without any pre-configured scope.
 
 </td>
 </tr>
@@ -578,6 +634,32 @@ Denies the set_custom_base_url command without any pre-configured scope.
 <tr>
 <td>
 
+`local-stt:allow-set-custom-model`
+
+</td>
+<td>
+
+Enables the set_custom_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-set-custom-model`
+
+</td>
+<td>
+
+Denies the set_custom_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-stt:allow-set-local-model`
 
 </td>
@@ -597,6 +679,32 @@ Enables the set_local_model command without any pre-configured scope.
 <td>
 
 Denies the set_local_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:allow-set-provider`
+
+</td>
+<td>
+
+Enables the set_provider command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-set-provider`
+
+</td>
+<td>
+
+Denies the set_provider command without any pre-configured scope.
 
 </td>
 </tr>

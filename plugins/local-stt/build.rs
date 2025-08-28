@@ -15,6 +15,10 @@ const COMMANDS: &[&str] = &[
     "get_custom_api_key",
     "set_custom_base_url",
     "set_custom_api_key",
+    "get_provider",
+    "set_provider",
+    "get_custom_model",
+    "set_custom_model",
 ];
 
 fn main() {

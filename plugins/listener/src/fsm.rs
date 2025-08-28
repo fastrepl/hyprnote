@@ -315,29 +315,8 @@ impl Session {
                     let maybe_mic_chunk = aec.process_streaming(&mic_chunk_raw, &speaker_chunk);
 
                     let mic_chunk = match maybe_mic_chunk {
-                        Ok(mic_chunk) => {
-                            let rms_before = (mic_chunk_raw.iter().map(|x| x * x).sum::<f32>()
-                                / mic_chunk_raw.len() as f32)
-                                .sqrt();
-                            let rms_after = (mic_chunk.iter().map(|x| x * x).sum::<f32>()
-                                / mic_chunk.len() as f32)
-                                .sqrt();
-                            let reduction_percent = if rms_before > 0.0 {
-                                ((rms_before - rms_after) / rms_before * 100.0).max(0.0)
-                            } else {
-                                0.0
-                            };
-
-                            if rms_before > 0.001 && rms_after > 0.001 && reduction_percent > 15.0 {
-                                vec![0.0; mic_chunk.len()]
-                            } else {
-                                mic_chunk
-                            }
-                        }
-                        Err(e) => {
-                            tracing::error!("aec_error: {:?}", e);
-                            mic_chunk_raw.clone()
-                        }
+                        Ok(mic_chunk) => mic_chunk,
+                        Err(_) => mic_chunk_raw,
                     };
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {

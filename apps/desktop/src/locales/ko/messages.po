@@ -271,7 +271,7 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:217
 #: src/components/editor-area/note-header/listen-button.tsx:241
 #: src/components/editor-area/note-header/listen-button.tsx:261
-#: src/components/settings/views/templates.tsx:217
+#: src/components/settings/views/templates.tsx:214
 msgid "{0}"
 msgstr ""
 
@@ -465,7 +465,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:68
-#: src/components/settings/views/templates.tsx:319
+#: src/components/settings/views/templates.tsx:316
 msgid "Built-in Templates"
 msgstr ""
 
@@ -647,7 +647,7 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:309
+#: src/components/settings/views/templates.tsx:306
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -965,7 +965,7 @@ msgstr ""
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr ""
 
-#: src/components/settings/views/templates.tsx:269
+#: src/components/settings/views/templates.tsx:266
 msgid "Learn more about templates"
 msgstr ""
 
@@ -1001,7 +1001,7 @@ msgstr ""
 msgid "Loading models..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:240
+#: src/components/settings/views/templates.tsx:237
 msgid "Loading templates..."
 msgstr ""
 
@@ -1143,7 +1143,7 @@ msgstr ""
 msgid "No Template (Default)"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:306
+#: src/components/settings/views/templates.tsx:303
 msgid "No templates yet"
 msgstr ""
 
@@ -1368,7 +1368,7 @@ msgstr ""
 msgid "Select a provider above to configure"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:274
+#: src/components/settings/views/templates.tsx:271
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1731,6 +1731,6 @@ msgid "Your Name"
 msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:45
-#: src/components/settings/views/templates.tsx:255
+#: src/components/settings/views/templates.tsx:252
 msgid "Your Templates"
 msgstr ""

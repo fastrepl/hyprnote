@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.71"
+version = "0.0.73"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -26,6 +26,7 @@ hypr-data = { workspace = true, optional = true }
 hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
+hypr-intercept = { workspace = true }
 hypr-turso = { workspace = true }
 hypr-whisper-local-model = { workspace = true }
 

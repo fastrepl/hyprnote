@@ -2,6 +2,8 @@ use apalis::prelude::{Data, Error, WorkerBuilder, WorkerFactoryFn};
 use chrono::{DateTime, Duration, Utc};
 use hypr_db_user::{ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific};
 
+use crate::handler::{NotificationTrigger, NotificationTriggerEvent};
+
 #[allow(unused)]
 #[derive(Default, Debug, Clone)]
 pub struct Job(DateTime<Utc>);
@@ -10,6 +12,7 @@ pub struct Job(DateTime<Utc>);
 pub struct WorkerState {
     pub db: hypr_db_user::UserDatabase,
     pub user_id: String,
+    pub notification_tx: std::sync::mpsc::Sender<NotificationTrigger>,
 }
 
 impl From<DateTime<Utc>> for Job {
@@ -39,31 +42,22 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
         .map_err(|e| crate::Error::Db(e).as_worker_error())?;
 
     if let Some(event) = latest_event.first() {
-        tracing::info!("Found upcoming event - showing notification");
+        tracing::info!("found_upcoming_event: {}", event.name);
 
-        if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            hypr_notification::show(
-                &hypr_notification::Notification::builder()
-                    .title("Meeting starting in 5 minutes")
-                    .message(event.name.clone())
-                    .url(format!(
-                        "hypr://hyprnote.com/notification?event_id={}",
-                        event.id
-                    ))
-                    .timeout(std::time::Duration::from_secs(10))
-                    .build(),
-            );
-        })) {
-            let panic_msg = if let Some(s) = e.downcast_ref::<&str>() {
-                s.to_string()
-            } else if let Some(s) = e.downcast_ref::<String>() {
-                s.clone()
-            } else {
-                "Unknown panic".to_string()
-            };
-            tracing::error!("Notification panic: {}", panic_msg);
-        } else {
-            tracing::info!("Notification shown");
+        let minutes_until_start = event
+            .start_date
+            .signed_duration_since(Utc::now())
+            .num_minutes();
+
+        if let Err(e) =
+            ctx.notification_tx
+                .send(NotificationTrigger::Event(NotificationTriggerEvent {
+                    event_id: event.id.clone(),
+                    event_name: event.name.clone(),
+                    minutes_until_start,
+                }))
+        {
+            tracing::error!("{}", e);
         }
     }
 

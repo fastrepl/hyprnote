@@ -25,7 +25,7 @@ struct WakerState {
 
 pub struct SpeakerStream {
     consumer: HeapCons<f32>,
-    stream_desc: cat::AudioBasicStreamDesc,
+    stream_desc: cat::AudioStreamBasicDesc,
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
     _tap: ca::TapGuard,

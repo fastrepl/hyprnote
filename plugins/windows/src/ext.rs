@@ -246,6 +246,8 @@ impl HyprWindow {
     }
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+
         if self == &Self::Main {
             use tauri_plugin_analytics::{hypr_analytics::AnalyticsPayload, AnalyticsPluginExt};
             use tauri_plugin_auth::{AuthPluginExt, StoreKey};
@@ -462,6 +464,7 @@ impl HyprWindow {
 }
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
+    fn close_all_windows(&self) -> Result<(), crate::Error>;
     fn handle_main_window_visibility(&self, visible: bool) -> Result<(), crate::Error>;
 
     fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
@@ -488,6 +491,13 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
 }
 
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
+    fn close_all_windows(&self) -> Result<(), crate::Error> {
+        for (_, window) in self.webview_windows() {
+            let _ = window.close();
+        }
+        Ok(())
+    }
+
     fn handle_main_window_visibility(&self, visible: bool) -> Result<(), crate::Error> {
         let state = self.state::<crate::ManagedState>();
         let mut guard = state.lock().unwrap();

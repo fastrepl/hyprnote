@@ -44,6 +44,7 @@ hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
@@ -206,7 +207,7 @@ specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = { git = "https://github.com/yury/cidre", rev = "6f9d1f4" }
+cidre = { git = "https://github.com/yury/cidre", rev = "1e0077d" }
 cpal = "0.15.3"
 dasp = "0.11.0"
 flume = "0.11.1"

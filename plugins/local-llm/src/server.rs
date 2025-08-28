@@ -178,11 +178,25 @@ impl LocalProvider {
             .map(hypr_llama::FromOpenAI::from_openai)
             .collect();
 
-        let grammar = request
+        let maybe_grammar = request
             .metadata
             .as_ref()
             .and_then(|v| v.get("grammar"))
             .and_then(|v| serde_json::from_value::<hypr_gbnf::Grammar>(v.clone()).ok());
+
+        let grammar = match maybe_grammar {
+            None => None,
+            Some(g) => {
+                if model.name == hypr_llama::ModelName::HyprLLM {
+                    match &g {
+                        hypr_gbnf::Grammar::Enhance { sections: None } => None,
+                        _ => Some(g.build()),
+                    }
+                } else {
+                    Some(g.build())
+                }
+            }
+        };
 
         let tools = request
             .tools
@@ -198,7 +212,7 @@ impl LocalProvider {
 
         let request = hypr_llama::LlamaRequest {
             messages,
-            grammar: grammar.map(|g| g.build()),
+            grammar,
             tools,
         };
 

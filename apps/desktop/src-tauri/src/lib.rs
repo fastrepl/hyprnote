@@ -187,6 +187,55 @@ pub async fn main() {
 
             specta_builder.mount_events(&app);
 
+            #[cfg(target_os = "macos")]
+            {
+                use tauri::Manager;
+                use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+                use tauri_plugin_listener::{fsm::State, ListenerPluginExt};
+                use tauri_plugin_windows::WindowsPluginExt;
+
+                let app_handle = app.clone();
+
+                hypr_intercept::setup_quit_handler(move || {
+                    let mut is_exit_intent = false;
+
+                    if let Some(shared_state) =
+                        app_handle.try_state::<tauri_plugin_listener::SharedState>()
+                    {
+                        if let Ok(guard) = shared_state.try_lock() {
+                            let state = guard.get_state();
+                            if !matches!(state, State::RunningActive { .. }) {
+                                is_exit_intent = true;
+                            } else {
+                                is_exit_intent = app_handle
+                                    .dialog()
+                                    .message("Hyprnote is currently recording.")
+                                    .title("Do you really want to quit?")
+                                    .buttons(MessageDialogButtons::OkCancelCustom(
+                                        "Quit".to_string(),
+                                        "Cancel".to_string(),
+                                    ))
+                                    .kind(MessageDialogKind::Info)
+                                    .blocking_show()
+                            }
+                        }
+                    }
+
+                    if is_exit_intent {
+                        let _ = app_handle.close_all_windows();
+                        let _ =
+                            app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+                        let app_handle_clone = app_handle.clone();
+                        tokio::spawn(async move {
+                            let _ = app_handle_clone.stop_session().await;
+                        });
+                    }
+
+                    return false;
+                });
+            }
+
             {
                 use tauri_plugin_global_shortcut::GlobalShortcutExt;
                 app.global_shortcut().register(ctrl_n_shortcut)?;
@@ -262,16 +311,6 @@ pub async fn main() {
                         });
                     }
                 }
-
-                // Start event notification after DB is initialized
-                {
-                    use tauri_plugin_notification::NotificationPluginExt;
-                    if app_clone.get_event_notification().unwrap_or(false) {
-                        if let Err(e) = app_clone.start_event_notification().await {
-                            tracing::error!("start_event_notification_failed: {:?}", e);
-                        }
-                    }
-                }
             });
 
             Ok(())
@@ -285,6 +324,7 @@ pub async fn main() {
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
+            tracing::info!("reopen");
             HyprWindow::Main.show(app).unwrap();
         }
     });

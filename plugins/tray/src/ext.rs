@@ -241,5 +241,11 @@ fn tray_start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Res
 }
 
 fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(app, HyprMenuItem::TrayQuit, "Quit", true, Some("cmd+q"))
+    MenuItem::with_id(
+        app,
+        HyprMenuItem::TrayQuit,
+        "Quit Completely",
+        true,
+        Some("cmd+q"),
+    )
 }

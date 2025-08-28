@@ -39,12 +39,6 @@ export default function NotificationsComponent() {
     mutationFn: async (v: Schema) => {
       if (v.event) {
         notificationCommands.setEventNotification(true);
-        notificationCommands.showNotification({
-          title: "Test",
-          message: "Test",
-          url: "https://hypr.ai",
-          timeout: { secs: 5, nanos: 0 },
-        });
       } else {
         notificationCommands.setEventNotification(false);
       }
@@ -54,6 +48,12 @@ export default function NotificationsComponent() {
       eventNotification.refetch();
       if (active) {
         notificationCommands.startEventNotification();
+        notificationCommands.showNotification({
+          title: "You're all set!",
+          message: "This is how notifications look.",
+          timeout: { secs: 10, nanos: 0 },
+          url: null,
+        });
       } else {
         notificationCommands.stopEventNotification();
       }
@@ -64,12 +64,6 @@ export default function NotificationsComponent() {
     mutationFn: async (v: Schema) => {
       if (v.detect) {
         notificationCommands.setDetectNotification(true);
-        notificationCommands.showNotification({
-          title: "Test",
-          message: "Test",
-          url: "https://hypr.ai",
-          timeout: { secs: 5, nanos: 0 },
-        });
       } else {
         notificationCommands.setDetectNotification(false);
       }
@@ -79,6 +73,12 @@ export default function NotificationsComponent() {
       detectNotification.refetch();
       if (active) {
         notificationCommands.startDetectNotification();
+        notificationCommands.showNotification({
+          title: "You're all set!",
+          message: "This is how notifications look.",
+          timeout: { secs: 10, nanos: 0 },
+          url: null,
+        });
       } else {
         notificationCommands.stopDetectNotification();
       }

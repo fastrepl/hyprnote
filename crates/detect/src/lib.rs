@@ -7,7 +7,7 @@ pub use mic::*;
 
 use utils::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DetectEvent {
     MicStarted,
     MicStopped,

@@ -20,7 +20,9 @@ hypr-detect = { workspace = true }
 hypr-notification = { workspace = true }
 
 tauri-plugin-db = { workspace = true }
+tauri-plugin-listener = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-windows = { workspace = true }
 
 serde = { workspace = true }
 specta = { workspace = true }

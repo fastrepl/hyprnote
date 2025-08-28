@@ -38,7 +38,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         store
             .get(crate::StoreKey::EventNotification)
             .map_err(Error::Store)
-            .map(|v| v.unwrap_or(true))
+            .map(|v| v.unwrap_or(false))
     }
 
     #[tracing::instrument(skip(self))]
@@ -55,7 +55,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         store
             .get(crate::StoreKey::DetectNotification)
             .map_err(Error::Store)
-            .map(|v| v.unwrap_or(true))
+            .map(|v| v.unwrap_or(false))
     }
 
     #[tracing::instrument(skip(self))]
@@ -77,12 +77,24 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             )
         };
 
-        let state = self.state::<crate::SharedState>();
-        let mut s = state.lock().unwrap();
+        {
+            let state = self.state::<crate::SharedState>();
+            let mut s = state.lock().unwrap();
 
-        s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
-            let _ = crate::worker::monitor(crate::worker::WorkerState { db, user_id }).await;
-        }));
+            let notification_tx = s.notification_handler.sender().unwrap();
+
+            if let Some(h) = s.worker_handle.take() {
+                h.abort();
+            }
+            s.worker_handle = Some(tokio::runtime::Handle::current().spawn(async move {
+                let _ = crate::event::monitor(crate::event::WorkerState {
+                    db,
+                    user_id,
+                    notification_tx,
+                })
+                .await;
+            }));
+        }
 
         Ok(())
     }
@@ -101,43 +113,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     #[tracing::instrument(skip(self))]
     fn start_detect_notification(&self) -> Result<(), Error> {
-        let cb = hypr_detect::new_callback(|event| match event {
-            hypr_detect::DetectEvent::MicStarted => {
-                let notif = hypr_notification::Notification::builder()
-                    .title("Meeting detected")
-                    .message("Click here to start writing a note")
-                    .url("hypr://hyprnote.com/notification")
-                    .timeout(std::time::Duration::from_secs(10))
-                    .build();
-                hypr_notification::show(&notif);
-            }
-            hypr_detect::DetectEvent::MicStopped => {
-                let notif = hypr_notification::Notification::builder()
-                    .title("Meeting stopped")
-                    .message("Click here to start writing a note")
-                    .url("hypr://hyprnote.com/notification")
-                    .timeout(std::time::Duration::from_secs(10))
-                    .build();
-                hypr_notification::show(&notif);
-            }
-            _ => {}
-        });
-
         let state = self.state::<crate::SharedState>();
-        {
-            let mut guard = state.lock().unwrap();
-            guard.detector.start(cb);
-        }
-        Ok(())
+        let mut guard = state.lock().unwrap();
+
+        guard.detect_state.start()
     }
 
     #[tracing::instrument(skip(self))]
     fn stop_detect_notification(&self) -> Result<(), Error> {
         let state = self.state::<crate::SharedState>();
-        {
-            let mut guard = state.lock().unwrap();
-            guard.detector.stop();
-        }
-        Ok(())
+        let mut guard = state.lock().unwrap();
+
+        guard.detect_state.stop()
     }
 }

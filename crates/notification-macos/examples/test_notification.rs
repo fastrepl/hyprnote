@@ -5,8 +5,10 @@ use std::time::Duration;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::{define_class, msg_send, MainThreadOnly};
-use objc2_app_kit::{NSApplication, NSApplicationActivationPolicy, NSApplicationDelegate};
-use objc2_foundation::{MainThreadMarker, NSObject, NSObjectProtocol};
+use objc2_app_kit::{
+    NSAppearance, NSApplication, NSApplicationActivationPolicy, NSApplicationDelegate,
+};
+use objc2_foundation::{ns_string, MainThreadMarker, NSObject, NSObjectProtocol};
 
 #[derive(Debug, Default)]
 struct AppDelegateIvars {}
@@ -35,6 +37,10 @@ fn main() {
     let app = NSApplication::sharedApplication(mtm);
     app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
 
+    if let Some(appearance) = NSAppearance::appearanceNamed(ns_string!("NSAppearanceNameAqua")) {
+        app.setAppearance(Some(&appearance));
+    }
+
     let delegate = AppDelegate::new(mtm);
     app.setDelegate(Some(&ProtocolObject::from_ref(&*delegate)));
 
@@ -46,11 +52,11 @@ fn main() {
             .title("Test Notification")
             .message("Hover/click should now react")
             .url("https://example.com")
-            .timeout(Duration::from_secs(20))
+            .timeout(Duration::from_secs(30))
             .build();
 
         show(&notification);
-        std::thread::sleep(Duration::from_secs(5));
+        std::thread::sleep(Duration::from_secs(30));
         std::process::exit(0);
     });
 

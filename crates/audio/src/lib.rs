@@ -1,8 +1,10 @@
+mod device_monitor;
 mod errors;
 mod mic;
 mod norm;
 mod speaker;
 
+pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;

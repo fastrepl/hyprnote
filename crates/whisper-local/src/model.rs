@@ -304,7 +304,6 @@ impl Segment {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::StreamExt;
 
     #[test]
     fn test_whisper() {

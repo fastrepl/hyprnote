@@ -1,6 +1,6 @@
+import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { message } from "@tauri-apps/plugin-dialog";
 import { open } from "@tauri-apps/plugin-shell";
 import { ArrowLeftIcon, CheckIcon, InfoIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function TemplatesView() {
     setViewState("editor");
   };
 
-  const handleNewTemplate = () => {
+  const handleNewTemplate = async () => {
     if (!getLicense.data?.valid) {
       if (customTemplates.length > 1) {
         analyticsCommands.event({
@@ -117,10 +117,7 @@ export default function TemplatesView() {
           distinct_id: userId,
         });
 
-        message("Free users can create only two custom templates. Upgrade to Pro for unlimited templates.", {
-          title: "Pro License Required",
-          kind: "info",
-        });
+        await showProGateModal("template");
         return;
       }
     }

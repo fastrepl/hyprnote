@@ -123,6 +123,7 @@ export function useChatLogic({
     analyticsEvent: string,
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
     selectionData?: SelectionData,
+    htmlContent?: string,
   ) => {
     if (!content.trim() || isGenerating) {
       return;
@@ -168,6 +169,12 @@ export function useChatLogic({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
+    // Store HTML content in tool_details if it contains mentions
+    let toolDetails = null;
+    if (htmlContent && (mentionedContent?.length || selectionData)) {
+      toolDetails = JSON.stringify({ htmlContent });
+    }
+
     await dbCommands.upsertChatMessage({
       id: userMessage.id,
       group_id: groupId,
@@ -175,7 +182,7 @@ export function useChatLogic({
       role: "User",
       content: userMessage.content.trim(),
       type: "text-delta",
-      tool_details: null,
+      tool_details: toolDetails,
     });
 
     const aiMessageId = crypto.randomUUID();
@@ -570,8 +577,9 @@ export function useChatLogic({
   const handleSubmit = async (
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
     selectionData?: SelectionData,
+    htmlContent?: string,
   ) => {
-    await processUserMessage(inputValue, "chat_message_sent", mentionedContent, selectionData);
+    await processUserMessage(inputValue, "chat_message_sent", mentionedContent, selectionData, htmlContent);
   };
 
   const handleQuickAction = async (prompt: string) => {

@@ -18,6 +18,7 @@ interface ChatInputProps {
   onSubmit: (
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
     selectionData?: SelectionData,
+    htmlContent?: string,
   ) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
@@ -190,8 +191,14 @@ export function ChatInput(
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
 
-    // Pass the pending selection data to the submit handler
-    onSubmit(mentionedContent, pendingSelection || undefined);
+    // Extract HTML content before clearing the editor
+    let htmlContent = "";
+    if (editorRef.current?.editor) {
+      htmlContent = editorRef.current.editor.getHTML();
+    }
+
+    // Pass the pending selection data and HTML content to the submit handler
+    onSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
 
     // Clear the selection after submission
     clearPendingSelection();

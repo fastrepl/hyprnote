@@ -59,11 +59,21 @@ function ToolDetailsRenderer({ details }: { details: any }) {
   );
 }
 
-function MarkdownText({ content }: { content: string }) {
-  const [htmlContent, setHtmlContent] = useState<string>("");
+function MarkdownText({ content, htmlContent }: { content: string; htmlContent?: string }) {
+  const [displayHtml, setDisplayHtml] = useState<string>("");
 
   useEffect(() => {
-    const convertMarkdown = async () => {
+
+    const processContent = async () => {
+      console.log("running markdowntext" )
+      // If we have HTML content with mentions, use it directly
+      if (htmlContent) {
+        console.log("markdown text htmlContent: ", htmlContent);
+        setDisplayHtml(htmlContent);
+        return;
+      }
+
+      // Otherwise, convert markdown as usual
       try {
         let html = await miscCommands.opinionatedMdToHtml(content);
 
@@ -75,17 +85,17 @@ function MarkdownText({ content }: { content: string }) {
           .replace(/<p> <\/p>/g, "")
           .trim();
 
-        setHtmlContent(html);
+        setDisplayHtml(html);
       } catch (error) {
         console.error("Failed to convert markdown:", error);
-        setHtmlContent(content);
+        setDisplayHtml(content);
       }
     };
 
-    if (content.trim()) {
-      convertMarkdown();
+    if (content.trim() || htmlContent) {
+      processContent();
     }
-  }, [content]);
+  }, [content, htmlContent]);
 
   return (
     <>
@@ -159,16 +169,48 @@ function MarkdownText({ content }: { content: string }) {
           background-color: #3b82f6 !important;
           color: white !important;
         }
+        
+        /* Mention styles for messages */
+        .markdown-text-container .mention,
+        .markdown-text-container a.mention {
+          color: #3b82f6 !important;
+          font-weight: 500 !important;
+          text-decoration: none !important;
+          border-radius: 0.25rem !important;
+          background-color: rgba(59, 130, 246, 0.08) !important;
+          padding: 0.1rem 0.25rem !important;
+          font-size: 0.9em !important;
+          cursor: default !important;
+          pointer-events: none !important;
+          display: inline-block !important;
+        }
+        
+        .markdown-text-container .mention.selection-ref {
+          background-color: rgba(59, 130, 246, 0.08) !important;
+          color: #3b82f6 !important;
+        }
         `}
       </style>
       <div className="markdown-text-container select-text">
-        <Renderer initialContent={htmlContent} />
+        <Renderer initialContent={displayHtml} />
       </div>
     </>
   );
 }
 
 export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApplyMarkdown }: MessageContentProps) {
+  // Parse HTML content from toolDetails for user messages
+  let htmlContent: string | undefined;
+  if (message.isUser && message.toolDetails) {
+    try {
+      const details = typeof message.toolDetails === 'string' 
+        ? JSON.parse(message.toolDetails) 
+        : message.toolDetails;
+      htmlContent = details.htmlContent;
+    } catch (error) {
+      console.error("Failed to parse HTML content from toolDetails:", error);
+    }
+  }
   if (message.type === "tool-start") {
     const hasToolDetails = message.toolDetails;
 
@@ -294,7 +336,7 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
   }
 
   if (!message.parts || message.parts.length === 0) {
-    return <MarkdownText content={message.content} />;
+    return <MarkdownText content={message.content} htmlContent={htmlContent} />;
   }
 
   return (
@@ -302,7 +344,7 @@ export function MessageContent({ message, sessionTitle, hasEnhancedNote, onApply
       {message.parts.map((part, index) => (
         <div key={index}>
           {part.type === "text"
-            ? <MarkdownText content={part.content} />
+            ? <MarkdownText content={part.content} htmlContent={index === 0 ? htmlContent : undefined} />
             : (
               <MarkdownCard
                 content={part.content}

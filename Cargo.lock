@@ -3828,6 +3828,7 @@ dependencies = [
  "db-script",
  "db-user",
  "futures-util",
+ "host",
  "hound",
  "intercept",
  "reqwest 0.12.23",
@@ -7014,7 +7015,7 @@ name = "host"
 version = "0.1.0"
 dependencies = [
  "mac_address2",
- "sysinfo 0.33.1",
+ "sysinfo 0.37.0",
 ]
 
 [[package]]
@@ -14723,6 +14724,7 @@ dependencies = [
  "download-interface",
  "file",
  "futures-util",
+ "host",
  "inventory",
  "language",
  "owhisper-client",
@@ -14737,7 +14739,6 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.26.3",
- "sysinfo 0.37.0",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-listener",
@@ -14803,6 +14804,7 @@ dependencies = [
  "regex",
  "specta",
  "specta-typescript",
+ "sysinfo 0.37.0",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-opener",

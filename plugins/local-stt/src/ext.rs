@@ -279,7 +279,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let mut stopped = false;
         match server_type {
             Some(ServerType::External) => {
-                crate::kill_processes_by_name("stt-aarch64-apple-darwin");
+                hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
 
                 if let Some(_) = s.external_server.take() {
                     stopped = true;

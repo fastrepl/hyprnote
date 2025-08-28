@@ -26,3 +26,4 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 lazy_static = { workspace = true }
 regex = { workspace = true }
 specta = { workspace = true }
+sysinfo = { workspace = true }

@@ -26,6 +26,7 @@ hypr-data = { workspace = true, optional = true }
 hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
+hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
 hypr-turso = { workspace = true }
 hypr-whisper-local-model = { workspace = true }

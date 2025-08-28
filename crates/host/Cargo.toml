@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 mac_address2 = "2.0.2"
-sysinfo = { version = "0.33.1", features = ["apple-app-store"] }
+sysinfo = { workspace = true }

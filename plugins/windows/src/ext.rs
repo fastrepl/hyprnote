@@ -246,6 +246,7 @@ impl HyprWindow {
     }
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
+        #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
         if self == &Self::Main {

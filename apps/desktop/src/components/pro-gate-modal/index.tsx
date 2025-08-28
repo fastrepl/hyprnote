@@ -136,7 +136,7 @@ export function ProGateModal({ isOpen, onClose, type }: ProGateModalProps) {
                   <div className="w-4 h-4 rounded-full bg-white border border-black flex items-center justify-center mr-3">
                     <Check className="w-2.5 h-2.5 text-black" />
                   </div>
-                  <span className="text-sm text-neutral-700">Superior STT models</span>
+                  <span className="text-sm text-neutral-700">Real-time STT models</span>
                 </li>
                 <li className="flex items-center">
                   <div className="w-4 h-4 rounded-full bg-white border border-black flex items-center justify-center mr-3">

@@ -67,13 +67,13 @@ impl WhisperBuilder {
             Ok(Ok(state)) => state,
             Ok(Err(e)) => {
                 log::error!("Failed to create WhisperState: {:?}", e);
-                return Err(e);
+                return Err(crate::error::Error::LocalWhisperError(e));
             },
             Err(_) => {
                 log::error!("Whisper state creation panicked - likely missing system dependencies");
                 log::error!("This usually happens when Visual C++ Runtime or native dependencies are missing");
                 log::error!("Please ensure the application was installed properly with all required dependencies");
-                return Err(whisper_rs::WhisperError::InitError);
+                return Err(crate::error::Error::LocalWhisperError(whisper_rs::WhisperError::InitError));
             }
         };
         log::info!("WhisperState created successfully");

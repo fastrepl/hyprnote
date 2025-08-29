@@ -155,7 +155,7 @@ export default function General() {
   });
 
   useEffect(() => {
-    const subscription = form.watch(async (value, { name }) => {
+    const subscription = form.watch((value, { name }) => {
       if (name === "jargons") {
         return;
       }
@@ -164,9 +164,13 @@ export default function General() {
 
       if (name === "autostart") {
         if (value.autostart) {
-          await autostart.enable();
+          autostart.enable().then(() => {
+            console.log("Autostart enabled");
+          });
         } else {
-          await autostart.disable();
+          autostart.disable().then(() => {
+            console.log("Autostart disabled");
+          });
         }
       }
 

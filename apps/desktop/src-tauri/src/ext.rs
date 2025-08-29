@@ -21,7 +21,9 @@ fn validate_ort_dependencies() -> Result<(), String> {
         "onnxruntime.dll",
         "DirectML.dll", 
         "msvcp140.dll",
-        "vcruntime140.dll"
+        "vcruntime140.dll",
+        "msvcp140_1.dll",
+        "vcruntime140_1.dll"
     ];
     
     let mut missing_dlls = Vec::new();
@@ -36,7 +38,7 @@ fn validate_ort_dependencies() -> Result<(), String> {
     }
     
     // Check optional DLLs (warn but don't fail)
-    let optional_dlls = ["msvcp140_1.dll", "vcruntime140_1.dll"];
+    let optional_dlls = ["msvcp140_2.dll", "msvcp140_atomic_wait.dll", "concrt140.dll"];
     for dll_name in &optional_dlls {
         let dll_path = app_dir.join(dll_name);
         if !dll_path.exists() {

@@ -62,14 +62,20 @@ impl WhisperBuilder {
         
         log::info!("Creating WhisperState...");
         log::info!("About to call ctx.create_state()");
-        std::panic::catch_unwind(|| {
-            log::info!("Inside panic catch block before create_state");
-        }).ok();
         
-        let state = ctx.create_state().map_err(|e| {
-            log::error!("Failed to create WhisperState: {:?}", e);
-            e
-        })?;
+        let state = match std::panic::catch_unwind(|| ctx.create_state()) {
+            Ok(Ok(state)) => state,
+            Ok(Err(e)) => {
+                log::error!("Failed to create WhisperState: {:?}", e);
+                return Err(e);
+            },
+            Err(_) => {
+                log::error!("Whisper state creation panicked - likely missing system dependencies");
+                log::error!("This usually happens when Visual C++ Runtime or native dependencies are missing");
+                log::error!("Please ensure the application was installed properly with all required dependencies");
+                return Err(whisper_rs::WhisperError::InitError);
+            }
+        };
         log::info!("WhisperState created successfully");
         
         let token_beg = ctx.token_beg();

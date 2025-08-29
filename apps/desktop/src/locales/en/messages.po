@@ -267,10 +267,10 @@ msgstr "(Optional)"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:139
-#: src/components/editor-area/note-header/listen-button.tsx:217
-#: src/components/editor-area/note-header/listen-button.tsx:241
-#: src/components/editor-area/note-header/listen-button.tsx:261
+#: src/components/editor-area/note-header/listen-button.tsx:140
+#: src/components/editor-area/note-header/listen-button.tsx:218
+#: src/components/editor-area/note-header/listen-button.tsx:242
+#: src/components/editor-area/note-header/listen-button.tsx:262
 #: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr "{0}"
@@ -681,6 +681,10 @@ msgstr "Custom"
 #: src/components/settings/components/ai/llm-custom-view.tsx:235
 #~ msgid "Custom Endpoints"
 #~ msgstr "Custom Endpoints"
+
+#: src/components/settings/components/ai/stt-view-remote.tsx:102
+msgid "Custom Speech-to-Text endpoint"
+msgstr "Custom Speech-to-Text endpoint"
 
 #: src/components/settings/views/general.tsx:422
 msgid "Custom Vocabulary"
@@ -1346,7 +1350,7 @@ msgstr "Role"
 msgid "Save audio recording locally alongside the transcript."
 msgstr "Save audio recording locally alongside the transcript."
 
-#: src/components/editor-area/note-header/listen-button.tsx:486
+#: src/components/editor-area/note-header/listen-button.tsx:487
 msgid "Save current recording"
 msgstr "Save current recording"
 

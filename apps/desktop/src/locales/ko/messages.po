@@ -271,7 +271,7 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:218
 #: src/components/editor-area/note-header/listen-button.tsx:242
 #: src/components/editor-area/note-header/listen-button.tsx:262
-#: src/components/settings/views/templates.tsx:214
+#: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr ""
 
@@ -690,7 +690,7 @@ msgstr ""
 #~ msgid "Custom STT Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:390
+#: src/components/settings/views/general.tsx:422
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -1349,6 +1349,10 @@ msgstr ""
 #: src/components/settings/views/templates.tsx:193
 #~ msgid "Save and close"
 #~ msgstr ""
+
+#: src/components/settings/views/general.tsx:225
+msgid "Save audio recording locally alongside the transcript."
+msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:487
 msgid "Save current recording"

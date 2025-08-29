@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 
@@ -25,16 +26,16 @@ struct WakerState {
 
 pub struct SpeakerStream {
     consumer: HeapCons<f32>,
-    stream_desc: cat::AudioStreamBasicDesc,
     _device: ca::hardware::StartedDevice<ca::AggregateDevice>,
     _ctx: Box<Ctx>,
     _tap: ca::TapGuard,
     waker_state: Arc<Mutex<WakerState>>,
+    current_sample_rate: Arc<AtomicU32>,
 }
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        self.stream_desc.sample_rate as u32
+        self.current_sample_rate.load(Ordering::Relaxed)
     }
 }
 
@@ -42,6 +43,7 @@ struct Ctx {
     format: arc::R<av::AudioFormat>,
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
+    current_sample_rate: Arc<AtomicU32>,
 }
 
 impl SpeakerInput {
@@ -110,6 +112,9 @@ impl SpeakerInput {
         ) -> os::Status {
             let ctx = ctx.unwrap();
 
+            ctx.current_sample_rate
+                .store(ctx.format.absd().sample_rate as u32, Ordering::Relaxed);
+
             assert_eq!(ctx.format.common_format(), av::audio::CommonFormat::PcmF32);
 
             if let Some(view) =
@@ -157,21 +162,24 @@ impl SpeakerInput {
             has_data: false,
         }));
 
+        let current_sample_rate = Arc::new(AtomicU32::new(asbd.sample_rate as u32));
+
         let mut ctx = Box::new(Ctx {
             format,
             producer,
             waker_state: waker_state.clone(),
+            current_sample_rate: current_sample_rate.clone(),
         });
 
         let device = self.start_device(&mut ctx).unwrap();
 
         SpeakerStream {
             consumer,
-            stream_desc: asbd,
             _device: device,
             _ctx: ctx,
             _tap: self.tap,
             waker_state,
+            current_sample_rate,
         }
     }
 }

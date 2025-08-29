@@ -10,6 +10,8 @@ mod events_ops;
 mod events_types;
 mod extensions_ops;
 mod extensions_types;
+mod folders_ops;
+mod folders_types;
 mod humans_ops;
 mod humans_types;
 mod organizations_ops;
@@ -45,6 +47,10 @@ pub use events_types::*;
 pub use extensions_ops::*;
 #[allow(unused)]
 pub use extensions_types::*;
+#[allow(unused)]
+pub use folders_ops::*;
+#[allow(unused)]
+pub use folders_types::*;
 #[allow(unused)]
 pub use humans_ops::*;
 #[allow(unused)]
@@ -129,7 +135,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 24] = [
+const MIGRATIONS: [&str; 25] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -154,6 +160,7 @@ const MIGRATIONS: [&str; 24] = [
     include_str!("./events_migration_2.sql"),
     include_str!("./chat_messages_migration_1.sql"),
     include_str!("./chat_messages_migration_2.sql"),
+    include_str!("./folders_migration.sql"),
 ];
 
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {

@@ -21,6 +21,7 @@ interface TemplateEditorProps {
   template: Template;
   onTemplateUpdate: (template: Template) => void;
   onDelete?: () => void;
+  onDuplicate?: (template: Template) => void;
   isCreator?: boolean;
 }
 
@@ -72,6 +73,7 @@ export default function TemplateEditor({
   template,
   onTemplateUpdate,
   onDelete,
+  onDuplicate,
   isCreator = true,
 }: TemplateEditorProps) {
   const { t } = useLingui();
@@ -138,8 +140,8 @@ export default function TemplateEditor({
   );
 
   const handleDuplicate = useCallback(() => {
-    // TODO: Implement duplicate functionality
-  }, []);
+    onDuplicate?.(template);
+  }, [onDuplicate, template]);
 
   const handleDelete = useCallback(() => {
     onDelete?.();

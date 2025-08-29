@@ -16,6 +16,7 @@ import {
   dynamicTool,
   experimental_createMCPClient,
   modelProvider,
+  smoothStream,
   stepCountIs,
   streamText,
   tool,
@@ -209,7 +210,7 @@ export function useChatLogic({
         && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
           || model.modelId === "anthropic/claude-sonnet-4"
           || model.modelId === "openai/gpt-4o"
-          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com"));
+          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com") || model.modelId === "openai/gpt-5");
 
       if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
@@ -345,6 +346,10 @@ export function useChatLogic({
           hyprMcpClient?.close();
         },
         abortSignal: abortController.signal,
+        experimental_transform: smoothStream({
+          delayInMs: 70,
+          chunking: "word",
+        }),
       });
 
       let aiResponse = "";

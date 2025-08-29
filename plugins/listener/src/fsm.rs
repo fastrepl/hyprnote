@@ -209,7 +209,7 @@ impl Session {
         let user_id = self.app.db_user_id().await?.unwrap();
         self.session_id = Some(session_id.clone());
 
-        let (record, languages) = {
+        let (record, languages, vocabulary) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -221,7 +221,12 @@ impl Session {
                 |c| c.general.spoken_languages.clone(),
             );
 
-            (record, languages)
+            let vocabulary = config.as_ref().map_or_else(
+                || vec!["Hyprnote".to_string()],
+                |c| c.general.jargons.clone(),
+            );
+
+            (record, languages, vocabulary)
         };
 
         let session = self
@@ -243,8 +248,14 @@ impl Session {
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
         self.session_state_tx = Some(session_state_tx);
 
-        let listen_client =
-            setup_listen_client(&self.app, languages, session_id == onboarding_session_id).await?;
+        let listen_client = setup_listen_client(
+            &self.app,
+            vocabulary,
+            languages,
+            session_id == onboarding_session_id,
+        )
+        .await?;
+
         let mic_sample_stream = {
             let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
@@ -603,6 +614,7 @@ impl Session {
 
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
+    vocabulary: Vec<String>,
     languages: Vec<hypr_language::Language>,
     is_onboarding: bool,
 ) -> Result<owhisper_client::ListenClientDual, crate::Error> {
@@ -615,6 +627,7 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .api_base(conn.base_url)
         .api_key(conn.api_key.unwrap_or_default())
         .params(owhisper_interface::ListenParams {
+            vocabulary,
             languages,
             redemption_time_ms: Some(if is_onboarding { 60 } else { 400 }),
             ..Default::default()

@@ -8,6 +8,7 @@ use whisper_rs::{
     WhisperTokenId,
 };
 
+use crate::BiasTrie;
 use hypr_whisper::Language;
 
 lazy_static! {
@@ -18,6 +19,7 @@ lazy_static! {
 pub struct WhisperBuilder {
     model_path: Option<String>,
     languages: Option<Vec<Language>>,
+    vocabulary: Option<Vec<String>>,
 }
 
 impl WhisperBuilder {
@@ -28,6 +30,11 @@ impl WhisperBuilder {
 
     pub fn languages(mut self, languages: Vec<Language>) -> Self {
         self.languages = Some(languages);
+        self
+    }
+
+    pub fn vocabulary(mut self, vocabulary: Vec<String>) -> Self {
+        self.vocabulary = Some(vocabulary);
         self
     }
 
@@ -52,11 +59,19 @@ impl WhisperBuilder {
         let state = ctx.create_state()?;
         let token_beg = ctx.token_beg();
 
+        let bias_trie = {
+            let custom_vocab = self.vocabulary.unwrap_or(vec!["Hyprnote".to_string()]);
+
+            let custom_vocab_refs: Vec<&str> = custom_vocab.iter().map(|s| s.as_str()).collect();
+            BiasTrie::new(&ctx, &custom_vocab_refs)?
+        };
+
         Ok(Whisper {
             languages: self.languages.unwrap_or_default(),
             dynamic_prompt: "".to_string(),
             state,
             token_beg,
+            bias_trie,
         })
     }
 
@@ -76,6 +91,7 @@ pub struct Whisper {
     dynamic_prompt: String,
     state: WhisperState,
     token_beg: WhisperTokenId,
+    bias_trie: BiasTrie,
 }
 
 impl Whisper {
@@ -93,7 +109,7 @@ impl Whisper {
         let token_beg = self.token_beg;
         let language = self.get_language(audio)?;
 
-        let params = {
+        let mut params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
             let parts = [self.dynamic_prompt.trim()];
@@ -107,10 +123,6 @@ impl Whisper {
             p.set_language(language.as_deref());
 
             p.set_initial_prompt(&initial_prompt);
-
-            unsafe {
-                Self::suppress_beg(&mut p, &token_beg);
-            }
 
             p.set_no_timestamps(true);
             p.set_token_timestamps(false);
@@ -129,6 +141,8 @@ impl Whisper {
             p.set_print_timestamps(false);
             p
         };
+
+        let _guard = unsafe { Self::set_logit_filter(&mut params, &token_beg, &self.bias_trie) };
 
         self.state.full(params, &audio[..])?;
         let num_segments = self.state.full_n_segments();
@@ -236,12 +250,21 @@ impl Whisper {
             .collect()
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
+    unsafe fn set_logit_filter(
+        params: &mut FullParams,
+        token_beg: &WhisperTokenId,
+        bias_trie: &BiasTrie,
+    ) -> LogitFilterGuard {
+        let context = Box::new(Context {
+            token_beg: *token_beg,
+            bias_trie: bias_trie.clone(),
+        });
+
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
-            _tokens: *const whisper_rs::whisper_rs_sys::whisper_token_data,
-            _n_tokens: std::os::raw::c_int,
+            tokens: *const whisper_rs::whisper_rs_sys::whisper_token_data,
+            n_tokens: std::os::raw::c_int,
             logits: *mut f32,
             user_data: *mut std::os::raw::c_void,
         ) {
@@ -249,14 +272,40 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperTokenId);
-            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            let context = &*(user_data as *const Context);
+
+            *logits.offset(context.token_beg as isize) = f32::NEG_INFINITY;
+
+            context
+                .bias_trie
+                .apply_bias_to_logits(tokens, n_tokens, logits);
         }
 
+        let context_ptr = Box::into_raw(context) as *mut std::ffi::c_void;
+
         params.set_filter_logits_callback(Some(logits_filter_callback));
-        params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
-        );
+        params.set_filter_logits_callback_user_data(context_ptr);
+
+        LogitFilterGuard { context_ptr }
+    }
+}
+
+struct Context {
+    token_beg: WhisperTokenId,
+    bias_trie: BiasTrie,
+}
+
+struct LogitFilterGuard {
+    context_ptr: *mut std::ffi::c_void,
+}
+
+impl Drop for LogitFilterGuard {
+    fn drop(&mut self) {
+        if !self.context_ptr.is_null() {
+            unsafe {
+                let _ = Box::from_raw(self.context_ptr as *mut Context);
+            }
+        }
     }
 }
 
@@ -309,6 +358,15 @@ mod tests {
     fn test_whisper() {
         let mut whisper = Whisper::builder()
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))
+            .vocabulary(
+                vec![
+                    "Google", "should", "people", "question", "learning", "research", "problem",
+                    "like", "actually",
+                ]
+                .into_iter()
+                .map(|s| s.into())
+                .collect(),
+            )
             .build()
             .unwrap();
 
@@ -318,7 +376,15 @@ mod tests {
             .collect();
 
         let segments = whisper.transcribe(&audio).unwrap();
-        println!("segments: {:#?}", segments);
         assert!(segments.len() > 0);
+
+        println!(
+            "{}",
+            segments
+                .iter()
+                .map(|s| s.text.clone())
+                .collect::<Vec<String>>()
+                .join(" ")
+        );
     }
 }

@@ -90,15 +90,18 @@ where
                 }
             };
 
+            let languages = params
+                .languages
+                .iter()
+                .filter_map(|lang| lang.clone().try_into().ok())
+                .collect::<Vec<hypr_whisper::Language>>();
+
+            let vocabulary = params.vocabulary.clone();
+
             let model = match hypr_whisper_local::Whisper::builder()
                 .model_path(model_path.to_str().unwrap())
-                .languages(
-                    params
-                        .languages
-                        .iter()
-                        .filter_map(|lang| lang.clone().try_into().ok())
-                        .collect::<Vec<hypr_whisper::Language>>(),
-                )
+                .languages(languages)
+                .vocabulary(vocabulary)
                 .build()
             {
                 Ok(model) => model,

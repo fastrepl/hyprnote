@@ -9,6 +9,9 @@ pub use model::*;
 mod error;
 pub use error::*;
 
+mod bias;
+use bias::*;
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct GgmlBackend {
     pub kind: String,

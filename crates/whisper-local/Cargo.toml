@@ -17,9 +17,14 @@ openmp = ["whisper-rs/openmp"]
 [dev-dependencies]
 hypr-data = { workspace = true }
 
+criterion = { workspace = true }
 dirs = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true }
+
+[[bench]]
+name = "whisper_transcription"
+harness = false
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
@@ -28,7 +33,7 @@ hypr-whisper = { workspace = true }
 dasp = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true }
-whisper-rs = { version = "0.15.0", features = ["raw-api", "tracing_backend"] }
+whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "3e6d3da", features = ["raw-api", "tracing_backend"] }
 
 futures-util = { workspace = true }
 tracing = { workspace = true }
@@ -37,6 +42,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
+trie-rs = "0.4.2"
 
 lazy_static = { workspace = true }
 regex = { workspace = true }

@@ -109,7 +109,7 @@ impl Whisper {
         let token_beg = self.token_beg;
         let language = self.get_language(audio)?;
 
-        let params = {
+        let mut params = {
             let mut p = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
 
             let parts = [self.dynamic_prompt.trim()];
@@ -123,10 +123,6 @@ impl Whisper {
             p.set_language(language.as_deref());
 
             p.set_initial_prompt(&initial_prompt);
-
-            unsafe {
-                Self::set_logit_filter(&mut p, &token_beg, &self.bias_trie);
-            }
 
             p.set_no_timestamps(true);
             p.set_token_timestamps(false);
@@ -145,6 +141,8 @@ impl Whisper {
             p.set_print_timestamps(false);
             p
         };
+
+        let _guard = unsafe { Self::set_logit_filter(&mut params, &token_beg, &self.bias_trie) };
 
         self.state.full(params, &audio[..])?;
         let num_segments = self.state.full_n_segments();
@@ -256,12 +254,7 @@ impl Whisper {
         params: &mut FullParams,
         token_beg: &WhisperTokenId,
         bias_trie: &BiasTrie,
-    ) {
-        struct Context {
-            token_beg: WhisperTokenId,
-            bias_trie: BiasTrie,
-        }
-
+    ) -> LogitFilterGuard {
         let context = Box::new(Context {
             token_beg: *token_beg,
             bias_trie: bias_trie.clone(),
@@ -288,9 +281,31 @@ impl Whisper {
                 .apply_bias_to_logits(tokens, n_tokens, logits);
         }
 
+        let context_ptr = Box::into_raw(context) as *mut std::ffi::c_void;
+
         params.set_filter_logits_callback(Some(logits_filter_callback));
-        params
-            .set_filter_logits_callback_user_data(Box::into_raw(context) as *mut std::ffi::c_void);
+        params.set_filter_logits_callback_user_data(context_ptr);
+
+        LogitFilterGuard { context_ptr }
+    }
+}
+
+struct Context {
+    token_beg: WhisperTokenId,
+    bias_trie: BiasTrie,
+}
+
+struct LogitFilterGuard {
+    context_ptr: *mut std::ffi::c_void,
+}
+
+impl Drop for LogitFilterGuard {
+    fn drop(&mut self) {
+        if !self.context_ptr.is_null() {
+            unsafe {
+                let _ = Box::from_raw(self.context_ptr as *mut Context);
+            }
+        }
     }
 }
 

@@ -478,9 +478,13 @@ class NotificationManager {
     contentView.translatesAutoresizingMaskIntoConstraints = false
     effectView.addSubview(contentView)
 
+    // Adjust constraints to give more room for text if no button
+    let trailingConstant: CGFloat = hasUrl ? -10 : -35  // More room when no button
+
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
-      contentView.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -10),
+      contentView.trailingAnchor.constraint(
+        equalTo: effectView.trailingAnchor, constant: trailingConstant),
       contentView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 9),
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
@@ -501,6 +505,7 @@ class NotificationManager {
     container.distribution = .fill
     container.spacing = 10
 
+    // Icon container (unchanged)
     let iconContainer = NSView()
     iconContainer.wantsLayer = true
     iconContainer.layer?.cornerRadius = 9
@@ -522,6 +527,8 @@ class NotificationManager {
     textStack.orientation = .vertical
     textStack.spacing = 4
     textStack.alignment = .leading
+    textStack.distribution = .fill
+
     textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
@@ -529,26 +536,36 @@ class NotificationManager {
     let titleLabel = NSTextField(labelWithString: title)
     titleLabel.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
-    titleLabel.lineBreakMode = .byTruncatingTail
+    titleLabel.lineBreakMode = .byTruncatingTail  // Shows "..." at end
     titleLabel.maximumNumberOfLines = 1
     titleLabel.allowsDefaultTighteningForTruncation = true
+    titleLabel.usesSingleLineMode = true  // Ensure single line mode
+    titleLabel.cell?.truncatesLastVisibleLine = true  // Force truncation
 
-    // Body
+    // Set content priorities for title
+    titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+    // Body with proper ellipsis handling
     let bodyLabel = NSTextField(labelWithString: body)
     bodyLabel.font = NSFont.systemFont(ofSize: 12, weight: .light)
     bodyLabel.textColor = NSColor.secondaryLabelColor
+    bodyLabel.lineBreakMode = .byTruncatingTail  // ADD THIS: Shows "..." at end
     bodyLabel.maximumNumberOfLines = 1
+    bodyLabel.usesSingleLineMode = true  // ADD THIS: Ensure single line mode
+    bodyLabel.cell?.truncatesLastVisibleLine = true  // ADD THIS: Force truncation
+
     bodyLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     textStack.addArrangedSubview(titleLabel)
     textStack.addArrangedSubview(bodyLabel)
 
-    // Assemble so far
+    // Assemble components
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
 
-    // Right: action button
+    // Right: action button (if provided)
     if let buttonTitle {
+      // Add a small fixed spacer
       let gap = NSView()
       gap.translatesAutoresizingMaskIntoConstraints = false
       gap.widthAnchor.constraint(equalToConstant: 8).isActive = true
@@ -561,6 +578,7 @@ class NotificationManager {
         target: self,
         action: #selector(handleActionButtonPress(_:))
       )
+      // Button should maintain its size
       btn.setContentHuggingPriority(.required, for: .horizontal)
       btn.setContentCompressionResistancePriority(.required, for: .horizontal)
       btn.notification = notification

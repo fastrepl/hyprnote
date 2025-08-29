@@ -6,6 +6,7 @@ use tauri_plugin_store2::ScopedStoreKey;
 pub enum StoreKey {
     Provider,
     #[serde(rename = "DefaultModel")] // for backward compatibility
+    #[strum(serialize = "DefaultModel")]
     LocalModel,
     CustomModel,
     CustomBaseUrl,

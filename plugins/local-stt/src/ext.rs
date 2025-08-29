@@ -114,68 +114,85 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     async fn get_connection(&self) -> Result<Connection, crate::Error> {
-        let model = self.get_local_model()?;
+        let provider = self.get_provider()?;
 
-        match model {
-            SupportedSttModel::Custom(_) => {
+        match provider {
+            Provider::Custom => {
                 let base_url = self.get_custom_base_url()?;
                 let api_key = self.get_custom_api_key()?;
                 Ok(Connection { base_url, api_key })
             }
-            SupportedSttModel::Am(_) => {
-                let existing_api_base = {
-                    let state = self.state::<crate::SharedState>();
-                    let guard = state.lock().await;
-                    guard.external_server.as_ref().map(|s| s.base_url.clone())
-                };
+            Provider::Local => {
+                let model = self.get_local_model()?;
 
-                let am_key = {
-                    let state = self.state::<crate::SharedState>();
-                    let key = state.lock().await.am_api_key.clone();
-                    key.clone().ok_or(crate::Error::AmApiKeyNotSet)?
-                };
-
-                let conn = match existing_api_base {
-                    Some(api_base) => Connection {
-                        base_url: api_base,
-                        api_key: Some(am_key),
-                    },
-                    None => {
-                        let api_base = self.start_server(Some(model)).await?;
-                        Connection {
-                            base_url: api_base,
-                            api_key: Some(am_key),
-                        }
+                match model {
+                    SupportedSttModel::Custom(_) => {
+                        let base_url = self.get_custom_base_url()?;
+                        let api_key = self.get_custom_api_key()?;
+                        Ok(Connection { base_url, api_key })
                     }
-                };
-                Ok(conn)
-            }
-            SupportedSttModel::Whisper(_) => {
-                let existing_api_base = {
-                    let state = self.state::<crate::SharedState>();
-                    let guard = state.lock().await;
-                    guard.internal_server.as_ref().map(|s| s.base_url.clone())
-                };
+                    SupportedSttModel::Am(_) => {
+                        let existing_api_base = {
+                            let state = self.state::<crate::SharedState>();
+                            let guard = state.lock().await;
+                            guard.external_server.as_ref().map(|s| s.base_url.clone())
+                        };
 
-                let conn = match existing_api_base {
-                    Some(api_base) => Connection {
-                        base_url: api_base,
-                        api_key: None,
-                    },
-                    None => {
-                        let api_base = self.start_server(Some(model)).await?;
-                        Connection {
-                            base_url: api_base,
-                            api_key: None,
-                        }
+                        let am_key = {
+                            let state = self.state::<crate::SharedState>();
+                            let key = state.lock().await.am_api_key.clone();
+                            key.clone().ok_or(crate::Error::AmApiKeyNotSet)?
+                        };
+
+                        let conn = match existing_api_base {
+                            Some(api_base) => Connection {
+                                base_url: api_base,
+                                api_key: Some(am_key),
+                            },
+                            None => {
+                                let api_base = self.start_server(Some(model)).await?;
+                                Connection {
+                                    base_url: api_base,
+                                    api_key: Some(am_key),
+                                }
+                            }
+                        };
+                        Ok(conn)
                     }
-                };
-                Ok(conn)
+                    SupportedSttModel::Whisper(_) => {
+                        let existing_api_base = {
+                            let state = self.state::<crate::SharedState>();
+                            let guard = state.lock().await;
+                            guard.internal_server.as_ref().map(|s| s.base_url.clone())
+                        };
+
+                        let conn = match existing_api_base {
+                            Some(api_base) => Connection {
+                                base_url: api_base,
+                                api_key: None,
+                            },
+                            None => {
+                                let api_base = self.start_server(Some(model)).await?;
+                                Connection {
+                                    base_url: api_base,
+                                    api_key: None,
+                                }
+                            }
+                        };
+                        Ok(conn)
+                    }
+                }
             }
         }
     }
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
+        let provider = self.get_provider()?;
+
+        if matches!(provider, Provider::Custom) {
+            return Ok(true);
+        }
+
         match model {
             SupportedSttModel::Custom(_) => Ok(true),
             SupportedSttModel::Am(model) => Ok(model.is_downloaded(self.models_dir())?),
@@ -200,6 +217,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self, model: Option<SupportedSttModel>) -> Result<String, crate::Error> {
+        let provider = self.get_provider()?;
+
+        if matches!(provider, Provider::Custom) {
+            return self.get_custom_base_url();
+        }
+
         let model = match model {
             Some(m) => m,
             None => self.get_local_model()?,
@@ -217,6 +240,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
 
         match t {
+            ServerType::Custom => Ok("".to_string()),
             ServerType::Internal => {
                 if !self.is_model_downloaded(&model).await? {
                     return Err(crate::Error::ModelNotDownloaded);
@@ -329,6 +353,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn stop_server(&self, server_type: Option<ServerType>) -> Result<bool, crate::Error> {
+        let provider = self.get_provider()?;
+
+        if matches!(provider, Provider::Custom) {
+            return Ok(false);
+        }
+
         let state = self.state::<crate::SharedState>();
         let mut s = state.lock().await;
 
@@ -346,6 +376,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     stopped = true;
                 }
             }
+            Some(ServerType::Custom) => {}
             None => {
                 if let Some(_) = s.external_server.take() {
                     stopped = true;
@@ -364,22 +395,43 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
-        let internal_url = if let Some(server) = &guard.internal_server {
+        let internal_health = if let Some(server) = &guard.internal_server {
             let status = server.health().await;
             status
         } else {
             ServerHealth::Unreachable
         };
 
-        let external_url = if let Some(server) = &guard.external_server {
+        let external_health = if let Some(server) = &guard.external_server {
             server.health().await
         } else {
             ServerHealth::Unreachable
         };
 
+        let custom_health = {
+            let provider = self.get_provider()?;
+            if matches!(provider, Provider::Custom) {
+                let base_url = self.get_custom_base_url()?;
+                if !base_url.is_empty() {
+                    let client = reqwest::Client::new();
+                    let url = format!("{}/v1/status", base_url.trim_end_matches('/'));
+
+                    match client.get(&url).send().await {
+                        Ok(response) if response.status().as_u16() == 204 => ServerHealth::Ready,
+                        _ => ServerHealth::Unreachable,
+                    }
+                } else {
+                    ServerHealth::Unreachable
+                }
+            } else {
+                ServerHealth::Unreachable
+            }
+        };
+
         Ok([
-            (ServerType::Internal, internal_url),
-            (ServerType::External, external_url),
+            (ServerType::Internal, internal_health),
+            (ServerType::External, external_health),
+            (ServerType::Custom, custom_health),
         ]
         .into_iter()
         .collect())
@@ -391,6 +443,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
+        let provider = self.get_provider()?;
+
+        if matches!(provider, Provider::Custom) {
+            return Err(crate::Error::UnsupportedModelType);
+        }
+
         if let SupportedSttModel::Custom(_) = model {
             return Err(crate::Error::UnsupportedModelType);
         }
@@ -513,8 +571,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn is_model_downloading(&self, model: &SupportedSttModel) -> bool {
-        let state = self.state::<crate::SharedState>();
+        let provider = self.get_provider().unwrap_or(Provider::Local);
 
+        if matches!(provider, Provider::Custom) {
+            return false;
+        }
+
+        let state = self.state::<crate::SharedState>();
         {
             let guard = state.lock().await;
             guard.download_task.contains_key(model)
@@ -532,8 +595,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     async fn set_local_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
         store.set(crate::StoreKey::LocalModel, model.clone())?;
-        self.stop_server(None).await?;
-        self.start_server(Some(model)).await?;
+
+        let provider = self.get_provider()?;
+
+        if matches!(provider, Provider::Local) {
+            self.stop_server(None).await?;
+            self.start_server(Some(model)).await?;
+        }
+
         Ok(())
     }
 

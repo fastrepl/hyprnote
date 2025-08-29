@@ -57,11 +57,7 @@ export function STTViewLocal({
 
   const servers = useQuery({
     queryKey: ["local-stt-servers"],
-    queryFn: async () => {
-      const servers = await localSttCommands.getServers();
-      console.log(servers);
-      return servers;
-    },
+    queryFn: async () => localSttCommands.getServers(),
     refetchInterval: REFETCH_INTERVALS.servers,
   });
 

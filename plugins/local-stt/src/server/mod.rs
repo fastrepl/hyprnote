@@ -9,6 +9,8 @@ pub enum ServerType {
     Internal,
     #[serde(rename = "external")]
     External,
+    #[serde(rename = "custom")]
+    Custom,
 }
 
 #[derive(

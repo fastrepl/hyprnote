@@ -8,24 +8,51 @@ pub struct BiasTrie {
 
 impl BiasTrie {
     pub fn new(ctx: &WhisperContext, custom_vocab: &[&str]) -> Result<Self, crate::Error> {
-        let sequences = custom_vocab
-            .iter()
-            .map(|s| ctx.tokenize(s, 99))
-            .collect::<Result<Vec<_>, _>>()?;
-
         let mut builder = TrieBuilder::new();
 
-        for sequence in sequences {
-            for i in 1..=sequence.len() {
-                let progress = i as f32 / sequence.len() as f32;
-                let prefix_bias = 1.0 + 10.0 * progress.powi(2);
-                let prefix = &sequence[..i];
-                builder.push(prefix, prefix_bias);
+        for word in custom_vocab {
+            let variants = Self::generate_tokenization_variants(ctx, word)?;
+
+            for tokens in variants {
+                for i in 1..=tokens.len() {
+                    let progress = i as f32 / tokens.len() as f32;
+
+                    let prefix_bias = 10.0 + 90.0 * progress.powi(2);
+
+                    let prefix = &tokens[..i];
+                    builder.push(prefix, prefix_bias);
+                }
             }
         }
-        let trie = builder.build();
 
+        let trie = builder.build();
         Ok(BiasTrie { trie })
+    }
+
+    fn generate_tokenization_variants(
+        ctx: &WhisperContext,
+        word: &str,
+    ) -> Result<Vec<Vec<WhisperTokenId>>, crate::Error> {
+        let mut variants = Vec::new();
+
+        variants.push(ctx.tokenize(word, 99)?);
+        variants.push(ctx.tokenize(&format!(" {}", word), 99)?);
+
+        let lower = word.to_lowercase();
+        if lower != word {
+            variants.push(ctx.tokenize(&lower, 99)?);
+            variants.push(ctx.tokenize(&format!(" {}", lower), 99)?);
+        }
+
+        let upper = word.to_uppercase();
+        if upper != word {
+            variants.push(ctx.tokenize(&upper, 99)?);
+        }
+
+        variants.push(ctx.tokenize(&format!("'{}", word), 99)?);
+        variants.push(ctx.tokenize(&format!("\"{}", word), 99)?);
+
+        Ok(variants)
     }
 
     pub unsafe fn apply_bias_to_logits(
@@ -44,28 +71,22 @@ impl BiasTrie {
                 .map(|t| t.id)
                 .collect();
 
-        for suffix_len in 1..=std::cmp::min(5, current_tokens.len()) {
+        for suffix_len in 1..=std::cmp::min(10, current_tokens.len()) {
             let suffix = &current_tokens[current_tokens.len() - suffix_len..];
 
-            let mut found_continuations = false;
-
             for (full_sequence, bias_value_ref) in self.trie.predictive_search(suffix) {
-                found_continuations = true;
-
                 let bias_value = *bias_value_ref;
                 let full_sequence: Vec<WhisperTokenId> = full_sequence;
 
                 if full_sequence.len() > suffix.len() {
                     let next_token = full_sequence[suffix.len()];
                     let current_logit = *logits.offset(next_token as isize);
-                    let new_logit = current_logit + bias_value.ln();
+
+                    let boost = bias_value.ln() * 2.0;
+                    let new_logit = current_logit + boost;
 
                     *logits.offset(next_token as isize) = new_logit;
                 }
-            }
-
-            if found_continuations {
-                break;
             }
         }
     }

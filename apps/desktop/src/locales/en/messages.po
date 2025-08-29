@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:402
+#: src/components/settings/views/general.tsx:434
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -267,11 +267,11 @@ msgstr "(Optional)"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:140
-#: src/components/editor-area/note-header/listen-button.tsx:218
-#: src/components/editor-area/note-header/listen-button.tsx:242
-#: src/components/editor-area/note-header/listen-button.tsx:262
-#: src/components/settings/views/templates.tsx:214
+#: src/components/editor-area/note-header/listen-button.tsx:139
+#: src/components/editor-area/note-header/listen-button.tsx:217
+#: src/components/editor-area/note-header/listen-button.tsx:241
+#: src/components/editor-area/note-header/listen-button.tsx:261
+#: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr "{0}"
 
@@ -332,7 +332,7 @@ msgstr "Access multiple AI models through OpenRouter with your API key"
 #~ msgid "Add a description..."
 #~ msgstr "Add a description..."
 
-#: src/components/settings/views/template.tsx:236
+#: src/components/settings/views/template.tsx:221
 msgid "Add a system instruction..."
 msgstr "Add a system instruction..."
 
@@ -356,7 +356,7 @@ msgstr "Add more quotes"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:393
+#: src/components/settings/views/general.tsx:425
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -467,7 +467,7 @@ msgstr "Base URL"
 #~ msgstr "Billing features are currently under development and will be available in a future update."
 
 #: src/components/settings/components/templates-sidebar.tsx:68
-#: src/components/settings/views/templates.tsx:316
+#: src/components/settings/views/templates.tsx:355
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
@@ -524,8 +524,8 @@ msgid "Choose the languages you speak for better transcription accuracy"
 msgstr "Choose the languages you speak for better transcription accuracy"
 
 #: src/components/settings/views/general.tsx:191
-msgid "Choose whether to save your recordings locally."
-msgstr "Choose whether to save your recordings locally."
+#~ msgid "Choose whether to save your recordings locally."
+#~ msgstr "Choose whether to save your recordings locally."
 
 #: src/components/welcome-modal/llm-selection-view.tsx:40
 msgid "Choose Your LLM"
@@ -657,7 +657,7 @@ msgstr "Create new note"
 msgid "Create Note"
 msgstr "Create Note"
 
-#: src/components/settings/views/templates.tsx:306
+#: src/components/settings/views/templates.tsx:345
 msgid "Create your first template to get started"
 msgstr "Create your first template to get started"
 
@@ -682,15 +682,7 @@ msgstr "Custom"
 #~ msgid "Custom Endpoints"
 #~ msgstr "Custom Endpoints"
 
-#: src/components/settings/components/ai/stt-view-remote.tsx:102
-msgid "Custom Speech-to-Text endpoint"
-msgstr "Custom Speech-to-Text endpoint"
-
-#: src/components/settings/components/ai/stt-view-remote.tsx:108
-#~ msgid "Custom STT Endpoint"
-#~ msgstr "Custom STT Endpoint"
-
-#: src/components/settings/views/general.tsx:390
+#: src/components/settings/views/general.tsx:422
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -705,7 +697,7 @@ msgstr "Default"
 
 #: src/components/left-sidebar/notes-list.tsx:336
 #: src/components/settings/views/team.tsx:165
-#: src/components/settings/views/template.tsx:218
+#: src/components/settings/views/template.tsx:205
 msgid "Delete"
 msgstr "Delete"
 
@@ -725,7 +717,7 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
-#: src/components/settings/views/general.tsx:280
+#: src/components/settings/views/general.tsx:312
 msgid "Display language"
 msgstr "Display language"
 
@@ -745,7 +737,7 @@ msgstr "Downloading AI Models"
 msgid "Draft follow up"
 msgstr "Draft follow up"
 
-#: src/components/settings/views/template.tsx:206
+#: src/components/settings/views/template.tsx:195
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -761,7 +753,7 @@ msgstr "Email addresses"
 msgid "Email separated by commas"
 msgstr "Email separated by commas"
 
-#: src/components/settings/views/template.tsx:168
+#: src/components/settings/views/template.tsx:162
 msgid "Emoji"
 msgstr "Emoji"
 
@@ -975,7 +967,7 @@ msgstr "Join meeting"
 #~ msgid "Language"
 #~ msgstr "Language"
 
-#: src/components/settings/views/general.tsx:247
+#: src/components/settings/views/general.tsx:279
 msgid "Language for AI-generated summaries"
 msgstr "Language for AI-generated summaries"
 
@@ -991,7 +983,7 @@ msgstr "Learn more about AI autonomy"
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr "Learn more about our pricing plans"
 
-#: src/components/settings/views/templates.tsx:266
+#: src/components/settings/views/templates.tsx:305
 msgid "Learn more about templates"
 msgstr "Learn more about templates"
 
@@ -1027,7 +1019,7 @@ msgstr "Loading events..."
 msgid "Loading models..."
 msgstr "Loading models..."
 
-#: src/components/settings/views/templates.tsx:237
+#: src/components/settings/views/templates.tsx:276
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
@@ -1170,7 +1162,7 @@ msgstr "No recent notes with this organization"
 msgid "No Template (Default)"
 msgstr "No Template (Default)"
 
-#: src/components/settings/views/templates.tsx:303
+#: src/components/settings/views/templates.tsx:342
 msgid "No templates yet"
 msgstr "No templates yet"
 
@@ -1197,6 +1189,10 @@ msgstr "Obsidian"
 #: src/components/settings/components/template-list.tsx:91
 msgid "Official Templates"
 msgstr "Official Templates"
+
+#: src/components/settings/views/general.tsx:199
+msgid "Only starts at the background for notification purposes."
+msgstr "Only starts at the background for notification purposes."
 
 #: src/components/settings/views/ai-llm.tsx:722
 msgid "Only works with Custom Endpoints. Please configure one of the above first."
@@ -1270,7 +1266,7 @@ msgstr "people"
 #~ msgid "Play video"
 #~ msgstr "Play video"
 
-#: src/components/settings/views/general.tsx:283
+#: src/components/settings/views/general.tsx:315
 msgid "Primary language for the interface"
 msgstr "Primary language for the interface"
 
@@ -1346,7 +1342,11 @@ msgstr "Role"
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
 
-#: src/components/editor-area/note-header/listen-button.tsx:487
+#: src/components/settings/views/general.tsx:225
+msgid "Save audio recording locally alongside the transcript."
+msgstr "Save audio recording locally alongside the transcript."
+
+#: src/components/editor-area/note-header/listen-button.tsx:486
 msgid "Save current recording"
 msgstr "Save current recording"
 
@@ -1354,7 +1354,7 @@ msgstr "Save current recording"
 msgid "Save Date"
 msgstr "Save Date"
 
-#: src/components/settings/views/general.tsx:188
+#: src/components/settings/views/general.tsx:222
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1383,7 +1383,7 @@ msgstr "Search..."
 #~ msgid "Searching..."
 #~ msgstr "Searching..."
 
-#: src/components/settings/views/template.tsx:243
+#: src/components/settings/views/template.tsx:228
 msgid "Sections"
 msgstr "Sections"
 
@@ -1395,7 +1395,7 @@ msgstr "Select a model from the dropdown (if available) or manually enter the mo
 msgid "Select a provider above to configure"
 msgstr "Select a provider above to configure"
 
-#: src/components/settings/views/templates.tsx:271
+#: src/components/settings/views/templates.tsx:310
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
@@ -1423,7 +1423,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:312
+#: src/components/settings/views/general.tsx:344
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1447,7 +1447,7 @@ msgstr "Set up Your AI Provider"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:214
+#: src/components/settings/views/general.tsx:246
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1479,13 +1479,17 @@ msgstr "Sound"
 #~ msgid "Speech to Text Model"
 #~ msgstr "Speech to Text Model"
 
-#: src/components/settings/views/general.tsx:309
+#: src/components/settings/views/general.tsx:341
 msgid "Spoken languages"
 msgstr "Spoken languages"
 
 #: src/components/settings/views/billing.tsx:76
 #~ msgid "Start Annual Plan"
 #~ msgstr "Start Annual Plan"
+
+#: src/components/settings/views/general.tsx:196
+msgid "Start automatically at login"
+msgstr "Start automatically at login"
 
 #: src/components/settings/views/billing.tsx:75
 #~ msgid "Start Monthly Plan"
@@ -1511,7 +1515,7 @@ msgstr "Stop"
 #~ msgid "Summarize meeting"
 #~ msgstr "Summarize meeting"
 
-#: src/components/settings/views/general.tsx:244
+#: src/components/settings/views/general.tsx:276
 msgid "Summary language"
 msgstr "Summary language"
 
@@ -1524,7 +1528,7 @@ msgstr "Summary language"
 msgid "System Audio Access"
 msgstr "System Audio Access"
 
-#: src/components/settings/views/template.tsx:230
+#: src/components/settings/views/template.tsx:215
 msgid "System Instruction"
 msgstr "System Instruction"
 
@@ -1636,7 +1640,7 @@ msgstr "Type to search..."
 msgid "Untitled"
 msgstr "Untitled"
 
-#: src/components/settings/views/template.tsx:192
+#: src/components/settings/views/template.tsx:186
 msgid "Untitled Template"
 msgstr "Untitled Template"
 
@@ -1762,6 +1766,6 @@ msgid "Your Name"
 msgstr "Your Name"
 
 #: src/components/settings/components/templates-sidebar.tsx:45
-#: src/components/settings/views/templates.tsx:252
+#: src/components/settings/views/templates.tsx:291
 msgid "Your Templates"
 msgstr "Your Templates"

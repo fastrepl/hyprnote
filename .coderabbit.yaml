@@ -5,10 +5,16 @@ reviews:
   poem: false
   high_level_summary: false
   collapse_walkthrough: true
+  path_filters:
+    - "!**/generated/**"
+    - "!**/*.po"
+    - "!**/*.gen.ts"
+    - "!plugins/**/permissions/**"
+    - "!**/README*"
   path_instructions:
     - path: "**/*.{js,ts,tsx,rs}"
       instructions: |
-        1. No error handling.
+        1. Do not add any error handling. Keep the existing one.
         2. No unused imports, variables, or functions.
         3. For comments, keep it minimal. It should be about "Why", not "What".
 chat:

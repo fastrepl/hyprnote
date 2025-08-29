@@ -17,9 +17,13 @@ export function ProGateModal({ isOpen, onClose, type }: ProGateModalProps) {
         description:
           "You've reached the custom template limit for free users. Please upgrade your account to continue.",
       };
-    } else {
+    } else if (type === "chat") {
       return {
         description: "4 messages are allowed per conversation for free users. Upgrade to pro for unlimited chat.",
+      };
+    } else {
+      return {
+        description: "Template duplication is only available for pro users. Please upgrade your account to continue.",
       };
     }
   };

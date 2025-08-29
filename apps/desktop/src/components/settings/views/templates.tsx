@@ -196,6 +196,44 @@ export default function TemplatesView() {
     }
   };
 
+  const handleDuplicateTemplate = async (template: Template) => {
+    try {
+      if (!getLicense.data?.valid) {
+        analyticsCommands.event({
+          event: "pro_license_required_template",
+          distinct_id: userId,
+        });
+        await showProGateModal("template_duplicate");
+        return;
+      }
+
+      const emojiMatch = template.title?.match(/^(\p{Emoji})\s*/u);
+      const originalEmoji = emojiMatch ? emojiMatch[1] : "📄";
+      const titleWithoutEmoji = template.title?.replace(/^(\p{Emoji})\s*/u, "") || "Untitled";
+      const duplicatedTemplate: Template = {
+        ...template,
+        id: crypto.randomUUID(),
+        user_id: userId,
+        title: `${originalEmoji} ${titleWithoutEmoji} (Copy)`,
+        tags: template.tags?.filter(tag => tag !== "builtin") || [],
+      };
+
+      await TemplateService.saveTemplate(duplicatedTemplate);
+
+      await loadTemplates();
+
+      setSelectedTemplate(duplicatedTemplate);
+      setViewState("editor");
+
+      analyticsCommands.event({
+        event: "template_duplicated",
+        distinct_id: userId,
+      });
+    } catch (error) {
+      console.error("Failed to duplicate template:", error);
+    }
+  };
+
   // Check if current template is being viewed (read-only)
   const isViewingTemplate = selectedTemplate && !TemplateService.canEditTemplate(selectedTemplate.id);
 
@@ -221,6 +259,7 @@ export default function TemplatesView() {
             template={selectedTemplate}
             onTemplateUpdate={handleTemplateUpdate}
             onDelete={handleTemplateDeleteFromEditor}
+            onDuplicate={handleDuplicateTemplate}
             isCreator={true}
           />
         )}

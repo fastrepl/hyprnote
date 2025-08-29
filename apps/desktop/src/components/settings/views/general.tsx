@@ -2,13 +2,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as autostart from "@tauri-apps/plugin-autostart";
 import { Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { showModelSelectToast } from "@/components/toast/model-select";
-import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -163,7 +163,15 @@ export default function General() {
       mutation.mutate(form.getValues());
 
       if (name === "autostart") {
-        commands.setAutostart(!!value.autostart);
+        if (value.autostart) {
+          autostart.enable().then(() => {
+            console.log("Autostart enabled");
+          });
+        } else {
+          autostart.disable().then(() => {
+            console.log("Autostart disabled");
+          });
+        }
       }
 
       if (name === "displayLanguage" && value.displayLanguage) {
@@ -180,6 +188,32 @@ export default function General() {
         <form className="space-y-8">
           <FormField
             control={form.control}
+            name="autostart"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    <Trans>Start automatically at login</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>
+                      Only starts at the background for notification purposes.
+                    </Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="saveRecordings"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
@@ -188,9 +222,7 @@ export default function General() {
                     <Trans>Save recordings</Trans>
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Choose whether to save your recordings locally.
-                    </Trans>
+                    <Trans>Save audio recording locally alongside the transcript.</Trans>
                   </FormDescription>
                 </div>
                 <FormControl>

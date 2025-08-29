@@ -1,18 +1,10 @@
 import { TemplateService } from "@/utils/template-service";
 import { type Template } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { CopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 
@@ -21,6 +13,7 @@ interface TemplateEditorProps {
   template: Template;
   onTemplateUpdate: (template: Template) => void;
   onDelete?: () => void;
+  onDuplicate?: (template: Template) => void;
   isCreator?: boolean;
 }
 
@@ -72,6 +65,7 @@ export default function TemplateEditor({
   template,
   onTemplateUpdate,
   onDelete,
+  onDuplicate,
   isCreator = true,
 }: TemplateEditorProps) {
   const { t } = useLingui();
@@ -138,8 +132,8 @@ export default function TemplateEditor({
   );
 
   const handleDuplicate = useCallback(() => {
-    // TODO: Implement duplicate functionality
-  }, []);
+    onDuplicate?.(template);
+  }, [onDuplicate, template]);
 
   const handleDelete = useCallback(() => {
     onDelete?.();
@@ -194,33 +188,24 @@ export default function TemplateEditor({
           </div>
 
           {isCreator && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreHorizontalIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleDuplicate} className="cursor-pointer">
-                  <CopyIcon className="mr-2 h-4 w-4" />
-                  <Trans>Duplicate</Trans>
-                </DropdownMenuItem>
-
-                {/* Only show separator and delete option for custom templates */}
-                {!isBuiltinTemplate && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleDelete}
-                      className="text-destructive hover:bg-red-100 hover:text-red-600 cursor-pointer"
-                    >
-                      <TrashIcon className="mr-2 h-4 w-4" />
-                      <Trans>Delete</Trans>
-                    </DropdownMenuItem>
-                  </>
+            <div className="flex gap-2">
+              {isBuiltinTemplate
+                ? (
+                  <Button variant="outline" size="sm" onClick={handleDuplicate}>
+                    <Trans>Duplicate</Trans>
+                  </Button>
+                )
+                : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="text-destructive hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                  >
+                    <Trans>Delete</Trans>
+                  </Button>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            </div>
           )}
         </div>
       </div>

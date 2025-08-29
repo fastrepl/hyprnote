@@ -61,6 +61,24 @@ impl WhisperBuilder {
         log::info!("WhisperContext created successfully");
         
         log::info!("Creating WhisperState...");
+        log::info!("Validating CPU features...");
+        
+        // Check if CPU supports required features for whisper.cpp
+        #[cfg(target_arch = "x86_64")]
+        {
+            if !std::arch::is_x86_feature_detected!("sse2") {
+                log::error!("CPU missing SSE2 support required for whisper.cpp");
+                return Err(crate::error::Error::LocalWhisperError(whisper_rs::WhisperError::InitError));
+            }
+            log::info!("✓ CPU has SSE2 support");
+            
+            if std::arch::is_x86_feature_detected!("avx") {
+                log::info!("✓ CPU has AVX support");
+            } else {
+                log::warn!("CPU missing AVX - performance may be reduced");
+            }
+        }
+        
         log::info!("About to call ctx.create_state()");
         
         let state = match std::panic::catch_unwind(|| ctx.create_state()) {

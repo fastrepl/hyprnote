@@ -418,6 +418,7 @@ export function useEnhanceMutation({
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
+
       const [{ type, connection }, config, words] = await Promise.all([
         connectorCommands.getLlmConnection(),
         dbCommands.getConfig(),

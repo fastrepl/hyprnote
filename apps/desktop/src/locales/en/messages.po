@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:402
+#: src/components/settings/views/general.tsx:430
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -356,7 +356,7 @@ msgstr "Add more quotes"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:393
+#: src/components/settings/views/general.tsx:421
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -522,8 +522,8 @@ msgid "Choose the languages you speak for better transcription accuracy"
 msgstr "Choose the languages you speak for better transcription accuracy"
 
 #: src/components/settings/views/general.tsx:191
-msgid "Choose whether to save your recordings locally."
-msgstr "Choose whether to save your recordings locally."
+#~ msgid "Choose whether to save your recordings locally."
+#~ msgstr "Choose whether to save your recordings locally."
 
 #: src/components/welcome-modal/llm-selection-view.tsx:40
 msgid "Choose Your LLM"
@@ -672,7 +672,7 @@ msgstr "Custom"
 #~ msgid "Custom Endpoints"
 #~ msgstr "Custom Endpoints"
 
-#: src/components/settings/views/general.tsx:390
+#: src/components/settings/views/general.tsx:418
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -707,7 +707,7 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
-#: src/components/settings/views/general.tsx:280
+#: src/components/settings/views/general.tsx:308
 msgid "Display language"
 msgstr "Display language"
 
@@ -949,7 +949,7 @@ msgstr "Join meeting"
 #~ msgid "Language"
 #~ msgstr "Language"
 
-#: src/components/settings/views/general.tsx:247
+#: src/components/settings/views/general.tsx:275
 msgid "Language for AI-generated summaries"
 msgstr "Language for AI-generated summaries"
 
@@ -1171,6 +1171,10 @@ msgstr "Obsidian"
 msgid "Official Templates"
 msgstr "Official Templates"
 
+#: src/components/settings/views/general.tsx:195
+msgid "Only starts at the background for notification purposes."
+msgstr "Only starts at the background for notification purposes."
+
 #: src/components/settings/views/ai-llm.tsx:722
 msgid "Only works with Custom Endpoints. Please configure one of the above first."
 msgstr "Only works with Custom Endpoints. Please configure one of the above first."
@@ -1243,7 +1247,7 @@ msgstr "people"
 #~ msgid "Play video"
 #~ msgstr "Play video"
 
-#: src/components/settings/views/general.tsx:283
+#: src/components/settings/views/general.tsx:311
 msgid "Primary language for the interface"
 msgstr "Primary language for the interface"
 
@@ -1319,6 +1323,10 @@ msgstr "Role"
 #~ msgid "Save and close"
 #~ msgstr "Save and close"
 
+#: src/components/settings/views/general.tsx:221
+msgid "Save audio recording locally alongside the transcript."
+msgstr "Save audio recording locally alongside the transcript."
+
 #: src/components/editor-area/note-header/listen-button.tsx:486
 msgid "Save current recording"
 msgstr "Save current recording"
@@ -1327,7 +1335,7 @@ msgstr "Save current recording"
 msgid "Save Date"
 msgstr "Save Date"
 
-#: src/components/settings/views/general.tsx:188
+#: src/components/settings/views/general.tsx:218
 msgid "Save recordings"
 msgstr "Save recordings"
 
@@ -1396,7 +1404,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:312
+#: src/components/settings/views/general.tsx:340
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1420,7 +1428,7 @@ msgstr "Set up Your AI Provider"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/settings/views/general.tsx:214
+#: src/components/settings/views/general.tsx:242
 msgid "Share usage data"
 msgstr "Share usage data"
 
@@ -1452,13 +1460,17 @@ msgstr "Sound"
 #~ msgid "Speech to Text Model"
 #~ msgstr "Speech to Text Model"
 
-#: src/components/settings/views/general.tsx:309
+#: src/components/settings/views/general.tsx:337
 msgid "Spoken languages"
 msgstr "Spoken languages"
 
 #: src/components/settings/views/billing.tsx:76
 #~ msgid "Start Annual Plan"
 #~ msgstr "Start Annual Plan"
+
+#: src/components/settings/views/general.tsx:192
+msgid "Start automatically at login"
+msgstr "Start automatically at login"
 
 #: src/components/settings/views/billing.tsx:75
 #~ msgid "Start Monthly Plan"
@@ -1484,7 +1496,7 @@ msgstr "Stop"
 #~ msgid "Summarize meeting"
 #~ msgstr "Summarize meeting"
 
-#: src/components/settings/views/general.tsx:244
+#: src/components/settings/views/general.tsx:272
 msgid "Summary language"
 msgstr "Summary language"
 

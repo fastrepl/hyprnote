@@ -151,11 +151,11 @@ pub fn get_provider<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub fn set_provider<R: tauri::Runtime>(
+pub async fn set_provider<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     provider: crate::Provider,
 ) -> Result<(), String> {
-    app.set_provider(provider).map_err(|e| e.to_string())
+    app.set_provider(provider).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

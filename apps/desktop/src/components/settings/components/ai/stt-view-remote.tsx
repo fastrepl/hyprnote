@@ -1,20 +1,13 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@hypr/ui/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/ui/lib/utils";
-import { useForm } from "react-hook-form";
 
 export function STTViewRemote({
   provider,
@@ -104,11 +97,32 @@ export function STTViewRemote({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="font-medium">
-                  <Trans>Custom STT Endpoint</Trans>
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">
+                    <Trans>Custom Speech-to-Text endpoint</Trans>
+                  </span>
+                  <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                    Preview
+                  </span>
+                </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Connect to a self-hosted or third-party STT endpoint (Deepgram compatible)</Trans>
+                  <Trans>
+                    Connect to{" "}
+                    <span
+                      className="text-blue-500 hover:underline"
+                      onClick={() => openUrl("https://deepgram.com")}
+                    >
+                      Deepgram
+                    </span>{" "}
+                    directly, or use{" "}
+                    <span
+                      className="text-blue-500 hover:underline"
+                      onClick={() => openUrl("https://docs.hyprnote.com/owhisper/what-is-this")}
+                    >
+                      OWhisper
+                    </span>{" "}
+                    for other provider support.
+                  </Trans>
                 </p>
               </div>
             </div>
@@ -117,76 +131,89 @@ export function STTViewRemote({
           <div className="px-4 pb-4 border-t">
             <div className="mt-4">
               <Form {...form}>
-                <form className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="api_base"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>API Base URL</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>Enter the base URL for your custom STT endpoint</Trans>
-                        </FormDescription>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="https://api.example.com/v1"
-                            onClick={(e) => e.stopPropagation()}
-                            onFocus={() => setProviderToCustom()}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <form className="space-y-6">
+                  {/* Base URL Section */}
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold">
+                      <Trans>Base URL</Trans>
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="api_base"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormDescription className="text-xs">
+                            <Trans>Enter the base URL for your custom STT endpoint</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="https://api.deepgram.com"
+                              className="placeholder:text-gray-400"
+                              onClick={(e) => e.stopPropagation()}
+                              onFocus={() => setProviderToCustom()}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="api_key"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>API Key</Trans>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="password"
-                            placeholder="your-api-key"
-                            onClick={(e) => e.stopPropagation()}
-                            onFocus={() => setProviderToCustom()}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* API Key Section */}
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold">
+                      <Trans>API Key</Trans>
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="api_key"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormDescription className="text-xs">
+                            <Trans>Your authentication key for accessing the STT service</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="password"
+                              placeholder="your-api-key"
+                              onClick={(e) => e.stopPropagation()}
+                              onFocus={() => setProviderToCustom()}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          <Trans>Model Name</Trans>
-                        </FormLabel>
-                        <FormDescription className="text-xs">
-                          <Trans>Enter the model name required by your STT endpoint</Trans>
-                        </FormDescription>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="whisper-1"
-                            onClick={(e) => e.stopPropagation()}
-                            onFocus={() => setProviderToCustom()}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Model Section */}
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold">
+                      <Trans>Model</Trans>
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="model"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormDescription className="text-xs">
+                            <Trans>Enter the model name required by your STT endpoint</Trans>
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="nova-2"
+                              onClick={(e) => e.stopPropagation()}
+                              onFocus={() => setProviderToCustom()}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </form>
               </Form>
             </div>

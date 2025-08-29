@@ -26,7 +26,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error>;
     fn get_provider(&self) -> Result<Provider, crate::Error>;
-    fn set_provider(&self, provider: Provider) -> Result<(), crate::Error>;
+    fn set_provider(&self, provider: Provider) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn get_connection(&self) -> impl Future<Output = Result<Connection, crate::Error>>;
 
@@ -107,9 +107,15 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         Ok(())
     }
 
-    fn set_provider(&self, provider: Provider) -> Result<(), crate::Error> {
+    async fn set_provider(&self, provider: Provider) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
-        store.set(StoreKey::Provider, provider)?;
+        store.set(StoreKey::Provider, &provider)?;
+
+        if matches!(provider, Provider::Local) {
+            let local_model = self.get_local_model()?;
+            self.start_server(Some(local_model)).await?;
+        }
+
         Ok(())
     }
 
@@ -118,9 +124,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         match provider {
             Provider::Custom => {
+                let model = self.get_custom_model()?;
                 let base_url = self.get_custom_base_url()?;
                 let api_key = self.get_custom_api_key()?;
-                Ok(Connection { base_url, api_key })
+                Ok(Connection {
+                    model: model.map(|m| m.to_string()),
+                    base_url,
+                    api_key,
+                })
             }
             Provider::Local => {
                 let model = self.get_local_model()?;
@@ -129,7 +140,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     SupportedSttModel::Custom(_) => {
                         let base_url = self.get_custom_base_url()?;
                         let api_key = self.get_custom_api_key()?;
-                        Ok(Connection { base_url, api_key })
+                        Ok(Connection {
+                            model: None,
+                            base_url,
+                            api_key,
+                        })
                     }
                     SupportedSttModel::Am(_) => {
                         let existing_api_base = {
@@ -146,12 +161,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                         let conn = match existing_api_base {
                             Some(api_base) => Connection {
+                                model: None,
                                 base_url: api_base,
                                 api_key: Some(am_key),
                             },
                             None => {
                                 let api_base = self.start_server(Some(model)).await?;
                                 Connection {
+                                    model: None,
                                     base_url: api_base,
                                     api_key: Some(am_key),
                                 }
@@ -168,12 +185,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                         let conn = match existing_api_base {
                             Some(api_base) => Connection {
+                                model: None,
                                 base_url: api_base,
                                 api_key: None,
                             },
                             None => {
                                 let api_base = self.start_server(Some(model)).await?;
                                 Connection {
+                                    model: None,
                                     base_url: api_base,
                                     api_key: None,
                                 }
@@ -187,14 +206,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
-        let provider = self.get_provider()?;
-
-        if matches!(provider, Provider::Custom) {
-            return Ok(true);
-        }
-
         match model {
-            SupportedSttModel::Custom(_) => Ok(true),
+            SupportedSttModel::Custom(_) => Ok(false),
             SupportedSttModel::Am(model) => Ok(model.is_downloaded(self.models_dir())?),
             SupportedSttModel::Whisper(model) => {
                 let model_path = self.models_dir().join(model.file_name());

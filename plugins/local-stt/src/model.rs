@@ -29,6 +29,16 @@ pub enum SupportedSttModel {
     Custom(String),
 }
 
+impl std::fmt::Display for SupportedSttModel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SupportedSttModel::Whisper(model) => write!(f, "whisper-{}", model),
+            SupportedSttModel::Am(model) => write!(f, "am-{}", model),
+            SupportedSttModel::Custom(model) => write!(f, "{}", model),
+        }
+    }
+}
+
 impl SupportedSttModel {
     pub fn supported_languages(&self) -> Vec<hypr_language::Language> {
         use hypr_language::ISO639;

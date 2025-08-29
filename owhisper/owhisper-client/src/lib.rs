@@ -98,6 +98,7 @@ impl ListenClientBuilder {
                 .append_pair("interim_results", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
+                .append_pair("multichannel", "true")
                 .append_pair("channels", &channels.to_string())
                 .append_pair(
                     "redemption_time_ms",

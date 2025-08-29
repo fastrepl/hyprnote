@@ -112,6 +112,13 @@ impl TranscriptManager {
 
                 ws
             };
+            // needed for deepgram
+            if words.is_empty() {
+                return Diff {
+                    final_words: HashMap::new(),
+                    partial_words: self.partial_words_by_channel.clone(),
+                };
+            }
 
             if is_final {
                 let last_final_word_end = words.last().unwrap().end;

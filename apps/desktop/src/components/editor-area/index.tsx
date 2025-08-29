@@ -1,8 +1,7 @@
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
-import { motion } from "motion/react";
-import { AnimatePresence } from "motion/react";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -25,9 +24,9 @@ import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
-import { FloatingButton } from "./floating-button";
-import { NoteHeader, TabHeader } from "./note-header";
+import { NoteHeader, TabHeader, TabSubHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+import { TranscriptViewer } from "./transcript-viewer";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -111,6 +110,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
+  const activeTab = useSession(sessionId, (s) => s.activeTab);
   const { userId, onboardingSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
@@ -124,9 +124,7 @@ export default function EditorArea({
     s.updateEnhancedNote,
   ]);
 
-  const sessionStore = useSession(sessionId, (s) => ({
-    session: s.session,
-  }));
+
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
@@ -147,11 +145,7 @@ export default function EditorArea({
     [sessionId, showRaw],
   );
 
-  const templatesQuery = useQuery({
-    queryKey: ["templates"],
-    queryFn: () => TemplateService.getAllTemplates(),
-    refetchOnWindowFocus: true,
-  });
+
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
@@ -164,7 +158,7 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
   const queryClient = useQueryClient();
-  const { enhance, progress, isCancelled } = useEnhanceMutation({
+  const { enhance } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -198,14 +192,7 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
-  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
-    const targetTemplateId = templateId === "auto" ? null : templateId;
-    enhance.mutate({ templateId: targetTemplateId, triggerType: "template" });
-  }, [enhance]);
 
-  const handleClickEnhance = useCallback(() => {
-    enhance.mutate({ triggerType: "manual" });
-  }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
     if (editorRef.current?.editor && editorRef.current.editor.isEditable) {
@@ -266,12 +253,20 @@ export default function EditorArea({
 
       <TabHeader sessionId={sessionId} />
 
+      <TabSubHeader 
+        sessionId={sessionId} 
+        onEnhance={enhance.mutate} 
+        isEnhancing={enhance.status === "pending"} 
+      />
+
       <div
         className={cn([
           "h-full overflow-y-auto",
-          enhancedContent && "pb-10",
+          enhancedContent && activeTab !== 'transcript' && "pb-10",
         ])}
         onClick={(e) => {
+          if (activeTab === 'transcript') return; // Don't focus editor on transcript tab
+          
           const target = e.target as HTMLElement;
           if (!target.closest("a[href]")) {
             e.stopPropagation();
@@ -279,22 +274,24 @@ export default function EditorArea({
           }
         }}
       >
-        {editable
-          ? (
-            <Editor
-              key={editorKey}
-              ref={editorRef}
-              handleChange={handleChangeNote}
-              initialContent={noteContent}
-              editable={enhance.status !== "pending"}
-              setContentFromOutside={!showRaw && enhance.status === "pending"}
-              mentionConfig={{
-                trigger: "@",
-                handleSearch: handleMentionSearch,
-              }}
-            />
-          )
-          : <Renderer ref={editorRef} initialContent={noteContent} />}
+        {activeTab === 'transcript' ? (
+          <TranscriptViewer sessionId={sessionId} />
+        ) : editable ? (
+          <Editor
+            key={editorKey}
+            ref={editorRef}
+            handleChange={handleChangeNote}
+            initialContent={noteContent}
+            editable={enhance.status !== "pending"}
+            setContentFromOutside={!showRaw && enhance.status === "pending"}
+            mentionConfig={{
+              trigger: "@",
+              handleSearch: handleMentionSearch,
+            }}
+          />
+        ) : (
+          <Renderer ref={editorRef} initialContent={noteContent} />
+        )}
       </div>
 
       {/* Add the text selection popover - but not for onboarding sessions */}

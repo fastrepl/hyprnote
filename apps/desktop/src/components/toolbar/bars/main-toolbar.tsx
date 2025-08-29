@@ -59,7 +59,7 @@ export function MainToolbar() {
             {(organizationMatch || humanMatch) && <NewWindowButton />}
             {/*isNote && <ShareButton />*/}
             <ChatPanelButton />
-            <TranscriptPanelButton />
+            {/*<TranscriptPanelButton />*/}
           </>
         )}
       </div>

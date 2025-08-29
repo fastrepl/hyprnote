@@ -10,6 +10,7 @@ import ListenButton from "./listen-button";
 import TitleInput from "./title-input";
 import TitleShimmer from "./title-shimmer";
 import { TabHeader } from "./tab-header";
+import { TabSubHeader } from "./tab-sub-header";
 
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
@@ -77,5 +78,5 @@ export function NoteHeader(
   );
 }
 
-// Export the TabHeader component for use outside this directory
-export { TabHeader };
+// Export the TabHeader and TabSubHeader components for use outside this directory
+export { TabHeader, TabSubHeader };

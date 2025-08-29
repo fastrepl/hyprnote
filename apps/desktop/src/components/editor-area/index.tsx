@@ -26,7 +26,7 @@ import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
-import { NoteHeader } from "./note-header";
+import { NoteHeader, TabHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 
 async function generateTitleDirect(
@@ -264,6 +264,8 @@ export default function EditorArea({
         hashtags={hashtags}
       />
 
+      <TabHeader sessionId={sessionId} />
+
       <div
         className={cn([
           "h-full overflow-y-auto",
@@ -315,7 +317,7 @@ export default function EditorArea({
         />
       )}
 
-      <AnimatePresence>
+      {/*<AnimatePresence>
         <motion.div
           className="absolute bottom-4 w-full flex justify-center items-center pointer-events-none z-10"
           initial={{ y: 50, opacity: 0 }}
@@ -323,6 +325,7 @@ export default function EditorArea({
           exit={{ y: 50, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
+          
           <div className="pointer-events-auto">
             <FloatingButton
               key={`floating-button-${sessionId}`}
@@ -336,7 +339,7 @@ export default function EditorArea({
             />
           </div>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>*/}
     </div>
   );
 }

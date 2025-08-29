@@ -9,6 +9,7 @@ import Chips from "./chips";
 import ListenButton from "./listen-button";
 import TitleInput from "./title-input";
 import TitleShimmer from "./title-shimmer";
+import { TabHeader } from "./tab-header";
 
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
@@ -75,3 +76,6 @@ export function NoteHeader(
     </div>
   );
 }
+
+// Export the TabHeader component for use outside this directory
+export { TabHeader };

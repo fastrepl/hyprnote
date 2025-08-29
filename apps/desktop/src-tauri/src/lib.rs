@@ -44,8 +44,6 @@ pub async fn main() {
             release: tauri_plugin_sentry::sentry::release_name!(),
             traces_sample_rate: 1.0,
             auto_session_tracking: true,
-            #[cfg(debug_assertions)]
-            database_path: Some(std::env::temp_dir().join("hyprnote_crashes")),
             ..Default::default()
         },
     ));

@@ -267,10 +267,10 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:139
-#: src/components/editor-area/note-header/listen-button.tsx:217
-#: src/components/editor-area/note-header/listen-button.tsx:241
-#: src/components/editor-area/note-header/listen-button.tsx:261
+#: src/components/editor-area/note-header/listen-button.tsx:140
+#: src/components/editor-area/note-header/listen-button.tsx:218
+#: src/components/editor-area/note-header/listen-button.tsx:242
+#: src/components/editor-area/note-header/listen-button.tsx:262
 #: src/components/settings/views/templates.tsx:214
 msgid "{0}"
 msgstr ""
@@ -399,7 +399,6 @@ msgid "Anyone with the link can view this page"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:603
-#: src/components/settings/components/ai/stt-view-remote.tsx:127
 #: src/components/welcome-modal/custom-endpoint-view.tsx:498
 msgid "API Base URL"
 msgstr ""
@@ -408,7 +407,7 @@ msgstr ""
 #: src/components/settings/components/ai/llm-custom-view.tsx:409
 #: src/components/settings/components/ai/llm-custom-view.tsx:514
 #: src/components/settings/components/ai/llm-custom-view.tsx:625
-#: src/components/settings/components/ai/stt-view-remote.tsx:151
+#: src/components/settings/components/ai/stt-view-remote.tsx:166
 #: src/components/settings/views/integrations.tsx:203
 #: src/components/welcome-modal/custom-endpoint-view.tsx:294
 #: src/components/welcome-modal/custom-endpoint-view.tsx:361
@@ -454,6 +453,7 @@ msgstr ""
 msgid "Base Folder"
 msgstr ""
 
+#: src/components/settings/components/ai/stt-view-remote.tsx:138
 #: src/components/settings/views/integrations.tsx:179
 msgid "Base URL"
 msgstr ""
@@ -567,6 +567,10 @@ msgstr ""
 #~ msgid "Connect"
 #~ msgstr ""
 
+#: src/components/settings/components/ai/stt-view-remote.tsx:109
+msgid "Connect to <0>Deepgram</0> directly, or use <1>OWhisper</1> for other provider support."
+msgstr ""
+
 #: src/components/settings/components/ai/llm-custom-view.tsx:583
 msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)"
 msgstr ""
@@ -576,8 +580,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:111
-msgid "Connect to a self-hosted or third-party STT endpoint (Deepgram compatible)"
-msgstr ""
+#~ msgid "Connect to a self-hosted or third-party STT endpoint (Deepgram compatible)"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:127
 msgid "Connect with external tools and services to enhance your workflow"
@@ -678,9 +682,13 @@ msgstr ""
 #~ msgid "Custom Endpoints"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/stt-view-remote.tsx:108
-msgid "Custom STT Endpoint"
+#: src/components/settings/components/ai/stt-view-remote.tsx:102
+msgid "Custom Speech-to-Text endpoint"
 msgstr ""
+
+#: src/components/settings/components/ai/stt-view-remote.tsx:108
+#~ msgid "Custom STT Endpoint"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:390
 msgid "Custom Vocabulary"
@@ -797,7 +805,7 @@ msgstr ""
 #~ msgid "Enter the base URL for your custom LLM endpoint (e.g., http://localhost:8080/v1)"
 #~ msgstr ""
 
-#: src/components/settings/components/ai/stt-view-remote.tsx:130
+#: src/components/settings/components/ai/stt-view-remote.tsx:146
 msgid "Enter the base URL for your custom STT endpoint"
 msgstr ""
 
@@ -805,7 +813,7 @@ msgstr ""
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr ""
 
-#: src/components/settings/components/ai/stt-view-remote.tsx:176
+#: src/components/settings/components/ai/stt-view-remote.tsx:202
 msgid "Enter the model name required by your STT endpoint"
 msgstr ""
 
@@ -1073,6 +1081,7 @@ msgstr ""
 #: src/components/settings/components/ai/llm-custom-view.tsx:334
 #: src/components/settings/components/ai/llm-custom-view.tsx:429
 #: src/components/settings/components/ai/llm-custom-view.tsx:534
+#: src/components/settings/components/ai/stt-view-remote.tsx:194
 #: src/components/welcome-modal/custom-endpoint-view.tsx:315
 #: src/components/welcome-modal/custom-endpoint-view.tsx:382
 #: src/components/welcome-modal/custom-endpoint-view.tsx:459
@@ -1080,7 +1089,6 @@ msgid "Model"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:650
-#: src/components/settings/components/ai/stt-view-remote.tsx:173
 #: src/components/welcome-modal/custom-endpoint-view.tsx:544
 msgid "Model Name"
 msgstr ""
@@ -1158,7 +1166,7 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:516
+#: src/components/editor-area/note-header/listen-button.tsx:517
 msgid "No Template (Default)"
 msgstr ""
 
@@ -1242,7 +1250,7 @@ msgstr ""
 msgid "Owner"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:362
+#: src/components/editor-area/note-header/listen-button.tsx:363
 msgid "Pause"
 msgstr ""
 
@@ -1338,7 +1346,7 @@ msgstr ""
 #~ msgid "Save and close"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:486
+#: src/components/editor-area/note-header/listen-button.tsx:487
 msgid "Save current recording"
 msgstr ""
 
@@ -1483,11 +1491,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:188
+#: src/components/editor-area/note-header/listen-button.tsx:189
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:463
+#: src/components/editor-area/note-header/listen-button.tsx:464
 msgid "Stop"
 msgstr ""
 
@@ -1536,7 +1544,7 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:507
+#: src/components/editor-area/note-header/listen-button.tsx:508
 msgid "Template"
 msgstr ""
 
@@ -1739,6 +1747,10 @@ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:213
 msgid "Your API key for Obsidian local-rest-api plugin."
+msgstr ""
+
+#: src/components/settings/components/ai/stt-view-remote.tsx:174
+msgid "Your authentication key for accessing the STT service"
 msgstr ""
 
 #: src/components/settings/views/profile.tsx:213

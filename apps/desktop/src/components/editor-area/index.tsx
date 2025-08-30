@@ -16,6 +16,7 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
+import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
@@ -127,6 +128,7 @@ export default function EditorArea({
 
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
 
   // Assign editor to global ref for access by other components (like chat tools)
   useEffect(() => {
@@ -256,7 +258,8 @@ export default function EditorArea({
       <TabSubHeader 
         sessionId={sessionId} 
         onEnhance={enhance.mutate} 
-        isEnhancing={enhance.status === "pending"} 
+        isEnhancing={enhance.status === "pending"}
+        transcriptEditorRef={transcriptEditorRef}
       />
 
       <div
@@ -275,7 +278,7 @@ export default function EditorArea({
         }}
       >
         {activeTab === 'transcript' ? (
-          <TranscriptViewer sessionId={sessionId} />
+          <TranscriptViewer sessionId={sessionId} onEditorRefChange={setTranscriptEditorRef} />
         ) : editable ? (
           <Editor
             key={editorKey}

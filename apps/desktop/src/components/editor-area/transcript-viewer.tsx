@@ -22,13 +22,21 @@ import { ParticipantsChipInner } from "@/components/editor-area/note-header/chip
 
 interface TranscriptViewerProps {
   sessionId: string;
+  onEditorRefChange?: (ref: TranscriptEditorRef | null) => void;
 }
 
-export function TranscriptViewer({ sessionId }: TranscriptViewerProps) {
+export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptViewerProps) {
   const { words, isLive } = useTranscript(sessionId);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TranscriptEditorRef | null>(null);
+
+  // Notify parent when editor ref changes
+  useEffect(() => {
+    if (onEditorRefChange) {
+      onEditorRefChange(editorRef.current);
+    }
+  }, [editorRef.current, onEditorRefChange]);
 
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
@@ -144,13 +152,13 @@ export function TranscriptViewer({ sessionId }: TranscriptViewerProps) {
   // Show simple text for live transcript
   if (isLive) {
     return (
-      <div className="flex-1 relative">
+      <div className="h-full overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-8 pt-4 pb-6 space-y-4 absolute inset-0"
+          className="flex-1 overflow-y-auto overflow-x-hidden px-8 pt-4 pb-6"
           onScroll={handleScroll}
         >
-          <div className="text-[15px] text-gray-800 leading-relaxed">
+          <div className="text-[15px] text-gray-800 leading-relaxed break-all">
             {words.map(word => word.text).join(" ")}
           </div>
         </div>
@@ -172,7 +180,7 @@ export function TranscriptViewer({ sessionId }: TranscriptViewerProps) {
 
   // Show editor for finished transcript
   return (
-    <div className="flex-1 overflow-hidden flex flex-col px-8 pt-4">
+    <div className="w-full h-full flex flex-col px-8 pt-4">
       <TranscriptEditor
         ref={editorRef}
         initialWords={words}

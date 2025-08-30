@@ -68,6 +68,12 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
 
   // Helper function to extract emoji and clean name (copied from floating-button.tsx)
   const extractEmojiAndName = (title: string) => {
+    if (!title) {
+      return {
+        emoji: "📄",
+        name: "Untitled",
+      };
+    }
     const emojiMatch = title.match(/^(\p{Emoji})\s*/u);
     if (emojiMatch) {
       return {

@@ -102,7 +102,7 @@ impl SpeakerInput {
         ctx: &mut Box<Ctx>,
     ) -> Result<ca::hardware::StartedDevice<ca::AggregateDevice>> {
         extern "C" fn proc(
-            _device: ca::Device,
+            device: ca::Device,
             _now: &cat::AudioTimeStamp,
             input_data: &cat::AudioBufList<1>,
             _input_time: &cat::AudioTimeStamp,
@@ -112,8 +112,12 @@ impl SpeakerInput {
         ) -> os::Status {
             let ctx = ctx.unwrap();
 
-            ctx.current_sample_rate
-                .store(ctx.format.absd().sample_rate as u32, Ordering::Relaxed);
+            ctx.current_sample_rate.store(
+                device
+                    .actual_sample_rate()
+                    .unwrap_or(ctx.format.absd().sample_rate) as u32,
+                Ordering::Relaxed,
+            );
 
             assert_eq!(ctx.format.common_format(), av::audio::CommonFormat::PcmF32);
 

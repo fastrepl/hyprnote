@@ -44,14 +44,14 @@ impl<S: AsyncSource + Unpin> Stream for ResampledAsyncSource<S> {
         let mut source = std::pin::pin!(source);
 
         while myself.sample_position >= 1.0 {
-            myself.sample_position -= 1.0;
-            myself
-                .resampler
-                .next_source_frame(match source.as_mut().poll_next(cx) {
-                    std::task::Poll::Ready(Some(frame)) => frame,
-                    std::task::Poll::Ready(None) => return std::task::Poll::Ready(None),
-                    std::task::Poll::Pending => return std::task::Poll::Pending,
-                });
+            match source.as_mut().poll_next(cx) {
+                std::task::Poll::Ready(Some(frame)) => {
+                    myself.sample_position -= 1.0;
+                    myself.resampler.next_source_frame(frame);
+                }
+                std::task::Poll::Ready(None) => return std::task::Poll::Ready(None),
+                std::task::Poll::Pending => return std::task::Poll::Pending,
+            }
         }
 
         let interpolated = myself.resampler.interpolate(myself.sample_position);

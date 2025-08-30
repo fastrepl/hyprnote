@@ -1,8 +1,29 @@
 [env]
 MACOSX_DEPLOYMENT_TARGET = { value = "14.2", force = true }
+GGML_NO_AVX = { value = "1", force = true }
+GGML_NO_AVX2 = { value = "1", force = true }
+GGML_NO_FMA = { value = "1", force = true }
+GGML_NO_F16C = { value = "1", force = true }
+WHISPER_NO_AVX = { value = "1", force = true }
+WHISPER_NO_AVX2 = { value = "1", force = true }
+WHISPER_NO_FMA = { value = "1", force = true }
 
 [target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = [
   "-C",
   "target-feature=-crt-static",
+  "-C",
+  "target-cpu=x86-64",
+  "-C",
+  "target-feature=-avx",
+  "-C",
+  "target-feature=-avx2",
+  "-C",
+  "target-feature=-fma",
+  "-C",
+  "target-feature=-f16c",
+  "-C",
+  "target-feature=-bmi1",
+  "-C",
+  "target-feature=-bmi2",
 ]

@@ -45,6 +45,7 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
     <div className="flex items-center justify-end px-8 py-2">
       <div className="flex items-center gap-2">
         {/* Search button */}
+        {/*
         <Button
           variant="outline"
           size="sm"
@@ -54,6 +55,7 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
           <TextSearchIcon size={14} className="mr-1.5" />
           Search
         </Button>
+        */}
 
         {/* Audio file button - only show if audio exists */}
         {audioExist.data && (

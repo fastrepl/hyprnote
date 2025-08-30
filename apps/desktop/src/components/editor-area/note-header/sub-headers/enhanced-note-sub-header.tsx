@@ -139,7 +139,7 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
               size="sm"
               onClick={handleRegenerateDefault}
               disabled={isEnhancing}
-              className="rounded-r-none text-xs h-6 px-3 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-r-none text-xs h-7 px-3 hover:bg-neutral-100 disabled:opacity-50"
             >
               {isEnhancing ? (
                 <>
@@ -160,7 +160,7 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
                 variant="outline"
                 size="sm"
                 disabled={isEnhancing}
-                className="rounded-l-none px-1.5 h-6 border-l-0 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-l-none px-1.5 h-7 border-l-0 hover:bg-neutral-100 disabled:opacity-50"
               >
                 <ChevronDownIcon size={14} />
               </Button>

@@ -21,9 +21,11 @@ export function TabSubHeader({ sessionId, onEnhance, isEnhancing, transcriptEdit
     return <EnhancedNoteSubHeader sessionId={sessionId} onEnhance={onEnhance} isEnhancing={isEnhancing} progress={progress} showProgress={showProgress} />;
   }
   
+  /*
   if (activeTab === 'transcript') {
     return <TranscriptSubHeader sessionId={sessionId} editorRef={{ current: transcriptEditorRef || null }} />;
   }
+  */
   
   if (activeTab === 'raw') {
     // Empty sub-header with same dimensions as enhanced tab for consistent layout

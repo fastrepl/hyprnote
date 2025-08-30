@@ -253,7 +253,13 @@ export default function EditorArea({
         hashtags={hashtags}
       />
 
-      <TabHeader sessionId={sessionId} />
+      <TabHeader 
+        sessionId={sessionId} 
+        onEnhance={enhance.mutate} 
+        isEnhancing={enhance.status === "pending"}
+        progress={progress}
+        showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+      />
 
       <TabSubHeader 
         sessionId={sessionId} 

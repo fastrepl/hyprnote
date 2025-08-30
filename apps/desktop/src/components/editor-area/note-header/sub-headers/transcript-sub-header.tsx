@@ -32,11 +32,12 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
     <div className="px-8 py-3">
       {/* Full-width rounded box containing chips and buttons */}
       <div className="flex items-start justify-between p-3 bg-neutral-50 border border-neutral-200 rounded-lg w-full">
-        {/* Left side - Chips */}
+        {/*
         <div className="flex flex-col gap-2">
           <EventChip sessionId={sessionId} />
           <ParticipantsChip sessionId={sessionId} />
         </div>
+        */}
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-2">

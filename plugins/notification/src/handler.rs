@@ -78,7 +78,7 @@ impl NotificationHandler {
             hypr_detect::DetectEvent::MicStopped => {
                 use tauri_plugin_listener::ListenerPluginExt;
                 let app_handle = app_handle.clone();
-                tokio::spawn(async move {
+                tauri::async_runtime::spawn(async move {
                     app_handle.pause_session().await;
                 });
             }

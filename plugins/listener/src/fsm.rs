@@ -9,7 +9,7 @@ use tauri_specta::Event;
 use futures_util::StreamExt;
 use tokio::task::JoinSet;
 
-use hypr_audio::AsyncSource;
+use hypr_audio::ResampledAsyncSource;
 
 use crate::{manager::TranscriptManager, SessionEvent};
 
@@ -249,18 +249,11 @@ impl Session {
             let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
             input.stream()
         };
-        let mic_stream = mic_sample_stream
-            .resample(SAMPLE_RATE)
-            .chunks(hypr_aec::BLOCK_SIZE);
-
-        // https://github.com/fastrepl/hyprnote/commit/7c8cf1c
-        tokio::time::sleep(Duration::from_millis(65)).await;
-        // We need some delay here for Airpod transition.
-        // But if the delay is too long, AEC will not work.
+        let mic_stream =
+            ResampledAsyncSource::new(mic_sample_stream, SAMPLE_RATE).chunks(hypr_aec::BLOCK_SIZE);
 
         let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
-        let speaker_stream = speaker_sample_stream
-            .resample(SAMPLE_RATE)
+        let speaker_stream = ResampledAsyncSource::new(speaker_sample_stream, SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
 
         let channels = AudioChannels::new();
@@ -316,7 +309,10 @@ impl Session {
 
                     let mic_chunk = match maybe_mic_chunk {
                         Ok(mic_chunk) => mic_chunk,
-                        Err(_) => mic_chunk_raw,
+                        Err(e) => {
+                            tracing::error!("aec_error: {:?}", e);
+                            mic_chunk_raw
+                        }
                     };
 
                     if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {

@@ -206,7 +206,7 @@ const MemoizedSpeakerSelector = memo(({
           <Button
             variant="outline"
             size="sm"
-            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1 bg-white"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 bg-white"
             onMouseDown={(e) => {
               e.preventDefault();
             }}

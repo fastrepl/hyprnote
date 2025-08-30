@@ -50,7 +50,7 @@ export function NoteHeader(
   return (
     <div
       ref={containerRef}
-      className={`flex items-center w-full pl-8 pr-6 pb-4 gap-4 min-w-0 ${
+      className={`flex items-center w-full pl-8 pr-6 pb-2 gap-4 min-w-0 ${
         isVeryNarrow ? "pl-4 pr-3" : isNarrow ? "pl-6 pr-4" : "pl-8 pr-6"
       }`}
     >

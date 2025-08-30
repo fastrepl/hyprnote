@@ -25,6 +25,7 @@ import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
+import { MetadataModal } from "./metadata-modal";
 import { NoteHeader, TabHeader, TabSubHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { TranscriptViewer } from "./transcript-viewer";
@@ -246,6 +247,15 @@ export default function EditorArea({
 
   return (
     <div className="relative flex h-full flex-col w-full">
+      {/* Date placeholder at the very top */}
+      <div className="flex justify-center -mt-3 pb-4 px-8">
+        <MetadataModal sessionId={sessionId} hashtags={hashtags}>
+          <span className="text-xs text-neutral-300 font-medium hover:text-neutral-600 transition-colors">
+            Today, December 19, 2024
+          </span>
+        </MetadataModal>
+      </div>
+      
       <NoteHeader
         sessionId={sessionId}
         editable={editable}

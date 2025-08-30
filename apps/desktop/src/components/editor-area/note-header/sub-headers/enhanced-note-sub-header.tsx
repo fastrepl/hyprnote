@@ -115,7 +115,7 @@ export function EnhancedNoteSubHeader({
   };
 
   return (
-    <div className="flex items-center justify-start px-8 py-2">
+    <div className="flex items-center justify-end px-8 py-2">
       {/* Regenerate button */}
       <div className="flex items-center gap-2">
         {/* Share button 
@@ -144,7 +144,7 @@ export function EnhancedNoteSubHeader({
         <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>
           <div className="flex -space-x-px">
             {/* Main regenerate button */}
-            {/*
+          
             <Button
               variant="outline"
               size="sm"
@@ -181,7 +181,7 @@ export function EnhancedNoteSubHeader({
                 <ChevronDownIcon size={14} />
               </Button>
             </PopoverTrigger>
-            */}
+            
           </div>
 
           <PopoverContent

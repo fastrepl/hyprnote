@@ -106,10 +106,14 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
 
   const shouldShowProgress = showProgress && progress < 1.0;
 
-  // Check the three conditions as requested
+  // Check if this is a meeting session (has transcript or is currently recording)
   const hasTranscript = session.words && session.words.length > 0;
+  const isCurrentlyRecording = ongoingSessionStatus === "running_active" && ongoingSessionId === sessionId;
   const isSessionInactive = ongoingSessionStatus === "inactive" || session.id !== ongoingSessionId;
   const hasEnhancedMemo = !!session?.enhanced_memo_html;
+  
+  // Only show tabs when a meeting has started (either recording or has transcript)
+  const isMeetingSession = hasTranscript || isCurrentlyRecording;
   
   // Show Enhanced Note tab when: session ended OR transcript exists OR enhanced memo exists
   const canEnhanceTranscript = hasTranscript && isSessionInactive;
@@ -130,26 +134,39 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
     }
   }, [ongoingSessionStatus, hasTranscript, shouldShowEnhancedTab, setActiveTab]);
 
+  // Set default tab to 'raw' for blank notes (no meeting session)
+  useEffect(() => {
+    if (!isMeetingSession) {
+      setActiveTab('raw');
+    }
+  }, [isMeetingSession, setActiveTab]);
+
   const handleTabClick = (tab: 'raw' | 'enhanced' | 'transcript') => {
     setActiveTab(tab);
   };
+
+  // Don't render tabs at all for blank notes (no meeting session)
+  if (!isMeetingSession) {
+    return null;
+  }
 
   return (
     <div className="relative">
       {/* Tab container */}
       <div className="bg-white">
         <div className="flex px-8">
+          <div className="flex border-b border-neutral-100 w-full">
           {/* Raw Note Tab */}
           <button
             onClick={() => handleTabClick('raw')}
             className={cn(
-              "relative px-4 py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+              "relative px-4 py-2 pl-0 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
               activeTab === 'raw'
                 ? "text-neutral-900 border-neutral-900"
                 : "text-neutral-600 border-transparent hover:text-neutral-800"
             )}
           >
-            <FileTextIcon size={14} />
+            <FileTextIcon size={12} />
             Memos
           </button>
 
@@ -158,112 +175,16 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
             <button
               onClick={() => handleTabClick('enhanced')}
               className={cn(
-                "relative px-4 py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+                "relative px-4 py-2 text-xs pl-3 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
                 activeTab === 'enhanced'
                   ? "text-neutral-900 border-neutral-900"
                   : "text-neutral-600 border-transparent hover:text-neutral-800"
               )}
             >
-              <SparklesIcon size={14} />
+              <SparklesIcon size={12} />
               Summary
               
-              {/* Regenerate button - only visible when Summary tab is active */}
-              {activeTab === 'enhanced' && (
-                <div className="ml-2 flex items-center" onClick={(e) => e.stopPropagation()}>
-                  <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>
-                    <div className="flex -space-x-px">
-                      {/* Main regenerate button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRegenerateDefault}
-                        disabled={isEnhancing}
-                        className="rounded-r-none text-xs h-5 px-1.5 hover:bg-neutral-100 disabled:opacity-50 border-neutral-300"
-                      >
-                        {isEnhancing ? (
-                          <>
-                            <Spinner className="mr-1 w-2.5 h-2.5" />
-                            <span className="text-[10px]">Gen...</span>
-                            {shouldShowProgress && (
-                              <span className="ml-1 text-[10px] font-mono">
-                                {Math.round(progress * 100)}%
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCwIcon size={10} className="mr-1" />
-                            <span className="text-[10px]">Regen</span>
-                          </>
-                        )}
-                      </Button>
-
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isEnhancing}
-                          className="rounded-l-none px-1 h-5 border-l-0 hover:bg-neutral-100 disabled:opacity-50 border-neutral-300"
-                        >
-                          <ChevronDownIcon size={10} />
-                        </Button>
-                      </PopoverTrigger>
-                    </div>
-
-                    <PopoverContent
-                      side="bottom"
-                      align="start"
-                      className="w-64 p-0 shadow-[0_4px_8px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.03)]"
-                      sideOffset={4}
-                    >
-                      <div className="max-h-48 overflow-y-auto p-2 space-y-1 bg-white rounded-lg">
-                        {/* Add Template option */}
-                        <div
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-neutral-100 cursor-pointer text-xs text-neutral-400 hover:text-neutral-600 transition-all"
-                          onClick={handleAddTemplate}
-                        >
-                          <PlusIcon className="w-3 h-3" />
-                          <span className="truncate">Add Template</span>
-                        </div>
-
-                        {/* Separator */}
-                        <div className="my-1 border-t border-neutral-200"></div>
-
-                        {/* Default option */}
-                        <div
-                          className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm transition-all"
-                          onClick={() => handleRegenerateWithTemplate("auto")}
-                        >
-                          <span className="text-sm">⚡</span>
-                          <span className="truncate">No Template (Default)</span>
-                        </div>
-
-                        {/* Custom templates */}
-                        {templatesQuery.data && templatesQuery.data.length > 0 && (
-                          <>
-                            <div className="my-1 border-t border-neutral-200"></div>
-                            {templatesQuery.data.map((template) => {
-                              const { emoji, name } = extractEmojiAndName(template.fullTitle);
-
-                              return (
-                                <div
-                                  key={template.id}
-                                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm transition-all"
-                                  onClick={() => handleRegenerateWithTemplate(template.id)}
-                                  title={template.fullTitle}
-                                >
-                                  <span className="text-sm">{emoji}</span>
-                                  <span className="truncate">{name}</span>
-                                </div>
-                              );
-                            })}
-                          </>
-                        )}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
+             
             </button>
           )}
 
@@ -271,15 +192,16 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
           <button
             onClick={() => handleTabClick('transcript')}
             className={cn(
-              "relative px-4 py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+              "relative px-4 py-2 text-xs pl-3 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
               activeTab === 'transcript'
                 ? "text-neutral-900 border-neutral-900"
                 : "text-neutral-600 border-transparent hover:text-neutral-800"
             )}
           >
-            <MicIcon size={14} />
+            <MicIcon size={12} />
             Transcript
           </button>
+          </div>
         </div>
       </div>
     </div>

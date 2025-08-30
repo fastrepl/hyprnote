@@ -1,11 +1,12 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CopyIcon, AudioLinesIcon, TextSearchIcon, CheckIcon } from "lucide-react";
-import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
+import { AudioLinesIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
+import { EventChip } from "../chips/event-chip";
+import { ParticipantsChip } from "../chips/participants-chip";
 
 interface TranscriptSubHeaderProps {
   sessionId: string;
@@ -13,8 +14,6 @@ interface TranscriptSubHeaderProps {
 }
 
 export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeaderProps) {
-  const [copied, setCopied] = useState(false);
-
   // Check if audio file exists for this session
   const audioExist = useQuery({
     refetchInterval: 2500,
@@ -23,47 +22,31 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
     queryFn: () => miscCommands.audioExist(sessionId),
   });
 
-  const handleCopyAll = useCallback(async () => {
-    if (editorRef?.current?.editor) {
-      const text = editorRef.current.toText();
-      await writeTextToClipboard(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }, [editorRef]);
-
   const handleOpenAudio = useCallback(() => {
     miscCommands.audioOpen(sessionId);
   }, [sessionId]);
 
-  const handleSearch = useCallback(() => {
-    // TODO: Implement search functionality
-    console.log("Search clicked - functionality to be implemented");
-  }, []);
+  // Removed handleSearch function as it's no longer needed
 
   return (
-    <div className="flex items-center justify-end px-8 py-2">
-      <div className="flex items-center gap-2">
-        {/* Search button */}
-        {/*
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSearch}
-          className="text-xs h-6 px-3 hover:bg-neutral-100"
-        >
-          <TextSearchIcon size={14} className="mr-1.5" />
-          Search
-        </Button>
-        */}
+    <div className="px-8 py-3">
+      {/* Full-width rounded box containing chips and buttons */}
+      <div className="flex items-start justify-between p-3 bg-neutral-50 border border-neutral-200 rounded-lg w-full">
+        {/* Left side - Chips */}
+        <div className="flex flex-col gap-2">
+          <EventChip sessionId={sessionId} />
+          <ParticipantsChip sessionId={sessionId} />
+        </div>
 
+        {/* Right side - Action buttons */}
+        <div className="flex items-center gap-2">
         {/* Audio file button - only show if audio exists */}
         {audioExist.data && (
           <Button
             variant="outline"
             size="sm"
             onClick={handleOpenAudio}
-            className="text-xs h-6 px-3 hover:bg-neutral-100"
+            className="text-xs h-8 px-3 hover:bg-neutral-100"
           >
             <AudioLinesIcon size={14} className="mr-1.5" />
             Audio
@@ -71,12 +54,13 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
         )}
 
         {/* Copy button */}
+        {/*
         <Button
           variant="outline"
           size="sm"
           onClick={handleCopyAll}
           disabled={!editorRef?.current}
-          className="text-xs h-6 px-3 hover:bg-neutral-100"
+          className="text-xs h-8 px-3 hover:bg-neutral-100"
         >
           {copied ? (
             <>
@@ -90,6 +74,8 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
             </>
           )}
         </Button>
+        */}
+        </div>
       </div>
     </div>
   );

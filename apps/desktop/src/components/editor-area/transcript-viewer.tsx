@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, memo } from "react";
-import { ChevronDownIcon, UploadIcon, ClipboardIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import TranscriptEditor, { 
@@ -12,7 +12,6 @@ import TranscriptEditor, {
   type SpeakerViewInnerProps,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { commands as dbCommands, type Word2, type Human } from "@hypr/plugin-db";
 import { useTranscript } from "../right-panel/hooks/useTranscript";
@@ -38,11 +37,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
     }
   }, [editorRef.current, onEditorRefChange]);
 
-  const ongoingSession = useOngoingSession((s) => ({
-    start: s.start,
-    status: s.status,
-    loading: s.loading,
-  }));
+  // Removed ongoingSession since we no longer show the start recording UI
 
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -81,72 +76,13 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
     });
   };
 
-  const handleStartRecording = () => {
-    if (ongoingSession.status === "inactive") {
-      ongoingSession.start(sessionId);
-    }
-  };
+  // Removed handleStartRecording since we no longer show the start recording UI
 
-  // Show empty state when no words and not live
+  // Show empty state when no words and not live - return blank instead of start recording UI
   const showEmptyMessage = sessionId && words.length <= 0 && !isLive;
 
   if (showEmptyMessage) {
-    return (
-      <div className="h-full flex items-center justify-center px-8 py-12">
-        <div className="text-center max-w-sm mx-auto space-y-6">
-          {/* Primary Action */}
-          <div className="space-y-3">
-            <Button
-              size="md"
-              onClick={handleStartRecording}
-              title={ongoingSession.loading ? "Starting..." : "Start recording"}
-            >
-              {ongoingSession.loading ? <Spinner color="black" /> : (
-                <div className="relative h-2 w-2">
-                  <div className="absolute inset-0 rounded-full bg-red-500"></div>
-                  <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
-                </div>
-              )}
-              <span className="ml-2">
-                {ongoingSession.loading ? "Starting..." : "Start recording"}
-              </span>
-            </Button>
-            <p className="text-sm text-neutral-500">to see live transcript</p>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center justify-center">
-            <div className="h-px bg-neutral-200 flex-grow max-w-[80px]"></div>
-            <span className="px-4 text-xs text-neutral-400 font-medium">or</span>
-            <div className="h-px bg-neutral-200 flex-grow max-w-[80px]"></div>
-          </div>
-
-          {/* Secondary Actions */}
-          <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start hover:bg-neutral-100" 
-              disabled
-            >
-              <UploadIcon size={14} />
-              <span className="ml-2">Upload recording</span>
-              <span className="text-xs text-neutral-400 italic ml-auto">coming soon</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full justify-start hover:bg-neutral-100" 
-              disabled
-            >
-              <ClipboardIcon size={14} />
-              <span className="ml-2">Paste transcript</span>
-              <span className="text-xs text-neutral-400 italic ml-auto">coming soon</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="h-full"></div>;
   }
 
   // Show simple text for live transcript

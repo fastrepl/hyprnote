@@ -160,7 +160,7 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
   const queryClient = useQueryClient();
-  const { enhance } = useEnhanceMutation({
+  const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -260,6 +260,9 @@ export default function EditorArea({
         onEnhance={enhance.mutate} 
         isEnhancing={enhance.status === "pending"}
         transcriptEditorRef={transcriptEditorRef}
+        progress={progress}
+        showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+        hashtags={hashtags}
       />
 
       <div

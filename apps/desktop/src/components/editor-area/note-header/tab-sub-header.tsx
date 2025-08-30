@@ -8,14 +8,17 @@ interface TabSubHeaderProps {
   onEnhance?: (params: { triggerType: "manual" | "template"; templateId?: string | null }) => void;
   isEnhancing?: boolean;
   transcriptEditorRef?: TranscriptEditorRef | null;
+  progress?: number;
+  showProgress?: boolean;
+  hashtags?: string[];
 }
 
-export function TabSubHeader({ sessionId, onEnhance, isEnhancing, transcriptEditorRef }: TabSubHeaderProps) {
+export function TabSubHeader({ sessionId, onEnhance, isEnhancing, transcriptEditorRef, progress, showProgress, hashtags }: TabSubHeaderProps) {
   const activeTab = useSession(sessionId, (s) => s.activeTab);
 
   // Conditionally render based on activeTab
   if (activeTab === 'enhanced') {
-    return <EnhancedNoteSubHeader sessionId={sessionId} onEnhance={onEnhance} isEnhancing={isEnhancing} />;
+    return <EnhancedNoteSubHeader sessionId={sessionId} onEnhance={onEnhance} isEnhancing={isEnhancing} progress={progress} showProgress={showProgress} />;
   }
   
   if (activeTab === 'transcript') {

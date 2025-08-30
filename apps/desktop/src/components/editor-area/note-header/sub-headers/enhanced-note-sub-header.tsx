@@ -1,26 +1,33 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon, RefreshCwIcon, PlusIcon, Share2 } from "lucide-react";
+import { ChevronDownIcon, RefreshCwIcon, PlusIcon } from "lucide-react";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 import { TemplateService } from "@/utils/template-service";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { SharePopoverContent, useShareLogic } from "../share-button-header";
+// import { useShareLogic } from "../share-button-header";
 
 interface EnhancedNoteSubHeaderProps {
   sessionId: string;
   onEnhance?: (params: { triggerType: "manual" | "template"; templateId?: string | null }) => void;
   isEnhancing?: boolean;
+  progress?: number;
+  showProgress?: boolean;
 }
 
-export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: EnhancedNoteSubHeaderProps) {
+export function EnhancedNoteSubHeader({ 
+  sessionId, 
+  onEnhance, 
+  isEnhancing,
+  progress = 0,
+  showProgress = false 
+}: EnhancedNoteSubHeaderProps) {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
-  const [isShareDropdownOpen, setIsShareDropdownOpen] = useState(false);
   
-  // Share functionality
-  const { hasEnhancedNote, handleOpenStateChange } = useShareLogic();
+  // Share functionality (currently commented out)
+  // const { hasEnhancedNote } = useShareLogic();
 
   const templatesQuery = useQuery({
     queryKey: ["templates"],
@@ -59,12 +66,15 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
     }
   };
 
-  const handleShareOpenChange = (newOpen: boolean) => {
-    setIsShareDropdownOpen(newOpen);
-    if (hasEnhancedNote) {
-      handleOpenStateChange(newOpen);
-    }
-  };
+  // Commented out share functionality
+  // const handleShareOpenChange = (newOpen: boolean) => {
+  //   setIsShareDropdownOpen(newOpen);
+  //   if (hasEnhancedNote) {
+  //     handleOpenStateChange(newOpen);
+  //   }
+  // };
+
+  const shouldShowProgress = showProgress && progress < 1.0;
 
   // Helper function to extract emoji and clean name (copied from floating-button.tsx)
   const extractEmojiAndName = (title: string) => {
@@ -139,12 +149,17 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
               size="sm"
               onClick={handleRegenerateDefault}
               disabled={isEnhancing}
-              className="rounded-r-none text-xs h-7 px-3 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-r-none text-xs h-8 px-3 hover:bg-neutral-100 disabled:opacity-50"
             >
               {isEnhancing ? (
                 <>
                   <Spinner className="mr-1.5 w-3 h-3" />
                   Generating...
+                  {shouldShowProgress && (
+                    <span className="ml-2 text-xs font-mono">
+                      {Math.round(progress * 100)}%
+                    </span>
+                  )}
                 </>
               ) : (
                 <>
@@ -160,7 +175,7 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
                 variant="outline"
                 size="sm"
                 disabled={isEnhancing}
-                className="rounded-l-none px-1.5 h-7 border-l-0 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-l-none px-1.5 h-8 border-l-0 hover:bg-neutral-100 disabled:opacity-50"
               >
                 <ChevronDownIcon size={14} />
               </Button>

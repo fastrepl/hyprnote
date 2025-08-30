@@ -65,6 +65,7 @@ export function NoteHeader(
           />
         </TitleShimmer>
         
+        {/*
         <Chips
           sessionId={sessionId}
           hashtags={hashtags}
@@ -72,7 +73,7 @@ export function NoteHeader(
           isNarrow={isNarrow}
           isCompact={isCompact}
         />
-        
+        */}
       </div>
 
       {isInNoteMain && <ListenButton sessionId={sessionId} isCompact={isCompact} />}

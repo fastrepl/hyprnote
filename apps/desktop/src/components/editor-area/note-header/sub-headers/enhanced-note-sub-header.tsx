@@ -108,7 +108,7 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
     <div className="flex items-center justify-end px-8 py-2">
       {/* Share and Regenerate buttons */}
       <div className="flex items-center gap-2">
-        {/* Share button */}
+        {/* Share button 
         <Popover open={isShareDropdownOpen} onOpenChange={handleShareOpenChange}>
           <PopoverTrigger asChild>
             <Button
@@ -128,6 +128,7 @@ export function EnhancedNoteSubHeader({ sessionId, onEnhance, isEnhancing }: Enh
             <SharePopoverContent />
           </PopoverContent>
         </Popover>
+        */}
 
         {/* Regenerate button with template dropdown */}
         <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>

@@ -3,6 +3,7 @@ import "../styles/mention.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
+import Document from "@tiptap/extension-document";
 
 import * as shared from "../shared";
 import { mention, type MentionConfig } from "./mention";
@@ -32,6 +33,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     const editor = useEditor({
       extensions: [
         ...shared.extensions,
+        Document,
         mention(mentionConfig),
       ],
       editable,

@@ -148,7 +148,7 @@ export function EnhancedNoteSubHeader({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRegenerateDefault}
+              onClick={() => setIsTemplateDropdownOpen(true)}
               disabled={isEnhancing}
               className="rounded-r-none text-xs h-[28px] px-3 hover:bg-neutral-100 disabled:opacity-50"
             >

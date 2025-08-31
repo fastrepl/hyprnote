@@ -29,6 +29,7 @@ import { MetadataModal } from "./metadata-modal";
 import { NoteHeader, TabHeader, TabSubHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { TranscriptViewer } from "./transcript-viewer";
+import { FloatingSearchBox } from "./floating-search-box";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -129,7 +130,14 @@ export default function EditorArea({
 
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const transcriptRef = useRef<TranscriptEditorRef | { editor: TiptapEditor | null } | null>(null);
   const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
+  const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
+
+  // Update transcriptRef to point to the TranscriptEditorRef
+  useEffect(() => {
+    transcriptRef.current = transcriptEditorRef;
+  }, [transcriptEditorRef]);
 
   // Assign editor to global ref for access by other components (like chat tools)
   useEffect(() => {
@@ -143,6 +151,20 @@ export default function EditorArea({
       }
     };
   }, [editorRef.current?.editor]);
+
+  // Floating search keyboard listener for all tabs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        setIsFloatingSearchVisible(true);
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,
     [sessionId, showRaw],
@@ -315,6 +337,13 @@ export default function EditorArea({
           <Renderer ref={editorRef} initialContent={noteContent} />
         )}
       </div>
+
+      {/* Floating search box - positioned over all tabs */}
+      <FloatingSearchBox
+        editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
+        onClose={() => setIsFloatingSearchVisible(false)}
+        isVisible={isFloatingSearchVisible}
+      />
 
       {/* Add the text selection popover - but not for onboarding sessions */}
       {sessionId !== onboardingSessionId && (

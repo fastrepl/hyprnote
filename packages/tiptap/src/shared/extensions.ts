@@ -12,6 +12,7 @@ import { StreamingAnimation } from "./animation";
 import { ClipboardTextSerializer } from "./clipboard";
 import CustomListKeymap from "./custom-list-keymap";
 import { Hashtag } from "./hashtag";
+import { SearchAndReplace } from "../transcript/extensions/search-and-replace";
 
 export const extensions = [
   StarterKit.configure({
@@ -89,4 +90,8 @@ export const extensions = [
   CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,
+  SearchAndReplace.configure({
+    searchResultClass: "search-result",
+    disableRegex: true,
+  }),
 ];

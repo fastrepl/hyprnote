@@ -340,6 +340,7 @@ export default function EditorArea({
 
       {/* Floating search box - positioned over all tabs */}
       <FloatingSearchBox
+        key={activeTab} // Force remount when tab changes
         editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
         onClose={() => setIsFloatingSearchVisible(false)}
         isVisible={isFloatingSearchVisible}

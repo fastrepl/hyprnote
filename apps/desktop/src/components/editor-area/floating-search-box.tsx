@@ -18,18 +18,18 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
   const [resultCount, setResultCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Stable helper function to get the editor
-  const getEditor = useCallback(() => {
+  // Get the editor - NO useCallback, we want fresh ref every time
+  const getEditor = () => {
     const ref = editorRef.current;
     if (!ref) return null;
     
     // For both normal editor and transcript editor, just access the editor property
-    if ('editor' in ref) {
+    if ('editor' in ref && ref.editor) {
       return ref.editor;
     }
     
     return null;
-  }, [editorRef]);
+  };
 
   // Add ref for the search box container
   const searchBoxRef = useRef<HTMLDivElement>(null);
@@ -38,15 +38,20 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
   const debouncedSetSearchTerm = useDebouncedCallback(
     (value: string) => {
       const editor = getEditor();
-      if (editor) {
-        editor.commands.setSearchTerm(value);
-        editor.commands.resetIndex();
-        setTimeout(() => {
-          const storage = editor.storage.searchAndReplace;
-          const results = storage?.results || [];
-          setResultCount(results.length);
-          setCurrentIndex((storage?.resultIndex ?? 0) + 1);
-        }, 100);
+      if (editor && editor.commands) {
+        try {
+          editor.commands.setSearchTerm(value);
+          editor.commands.resetIndex();
+          setTimeout(() => {
+            const storage = editor.storage?.searchAndReplace;
+            const results = storage?.results || [];
+            setResultCount(results.length);
+            setCurrentIndex((storage?.resultIndex ?? 0) + 1);
+          }, 100);
+        } catch (e) {
+          // Editor might not be ready yet, ignore
+          console.warn("Editor not ready for search:", e);
+        }
       }
     },
     [], // Empty deps to prevent infinite re-creation
@@ -59,8 +64,12 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
 
   useEffect(() => {
     const editor = getEditor();
-    if (editor) {
-      editor.commands.setReplaceTerm(replaceTerm);
+    if (editor && editor.commands) {
+      try {
+        editor.commands.setReplaceTerm(replaceTerm);
+      } catch (e) {
+        // Editor might not be ready yet, ignore
+      }
     }
   }, [replaceTerm]); // Removed getEditor from deps
 
@@ -96,16 +105,20 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
     const editor = getEditor();
     if (!editor) return;
     
-    const editorElement = editor.view.dom;
-    const current = editorElement.querySelector(".search-result-current") as HTMLElement | null;
-    if (current) {
-      current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest",
-      });
+    try {
+      const editorElement = editor.view.dom;
+      const current = editorElement.querySelector(".search-result-current") as HTMLElement | null;
+      if (current) {
+        current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+      }
+    } catch (e) {
+      // Editor view not ready yet, ignore
     }
-  }, [getEditor]);
+  }, []);
 
   const handleNext = useCallback(() => {
     const editor = getEditor();
@@ -117,7 +130,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
         scrollCurrentResultIntoView();
       }, 100);
     }
-  }, [getEditor, scrollCurrentResultIntoView]);
+  }, [scrollCurrentResultIntoView]);
 
   const handlePrevious = useCallback(() => {
     const editor = getEditor();
@@ -129,7 +142,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
         scrollCurrentResultIntoView();
       }, 100);
     }
-  }, [getEditor, scrollCurrentResultIntoView]);
+  }, [scrollCurrentResultIntoView]);
 
   const handleReplace = useCallback(() => {
     const editor = getEditor();
@@ -142,7 +155,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
         setCurrentIndex((storage?.resultIndex ?? 0) + 1);
       }, 100);
     }
-  }, [getEditor]);
+  }, []);
 
   const handleReplaceAll = useCallback(() => {
     const editor = getEditor();
@@ -155,7 +168,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
         setCurrentIndex(0);
       }, 100);
     }
-  }, [getEditor]);
+  }, []);
 
   const handleClose = useCallback(() => {
     const editor = getEditor();
@@ -167,7 +180,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
     setResultCount(0);
     setCurrentIndex(0);
     onClose();
-  }, [getEditor, onClose]);
+  }, [onClose]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {

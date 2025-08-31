@@ -30,12 +30,23 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TranscriptEditorRef | null>(null);
 
-  // Notify parent when editor ref changes
+  // Notify parent when editor ref changes - check periodically for ref to be set
   useEffect(() => {
+    // Initial notification
     if (onEditorRefChange) {
       onEditorRefChange(editorRef.current);
     }
-  }, [editorRef.current, onEditorRefChange]);
+    
+    // Check if ref gets set later
+    const checkInterval = setInterval(() => {
+      if (editorRef.current?.editor && onEditorRefChange) {
+        onEditorRefChange(editorRef.current);
+        clearInterval(checkInterval);
+      }
+    }, 100);
+    
+    return () => clearInterval(checkInterval);
+  }, [onEditorRefChange]);
 
   // Removed ongoingSession since we no longer show the start recording UI
 

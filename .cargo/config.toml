@@ -1,3 +1,6 @@
+[build]
+rustflags = ["-C", "target-cpu=x86-64"]
+
 [env]
 MACOSX_DEPLOYMENT_TARGET = { value = "14.2", force = true }
 # Force whisper.cpp generic build
@@ -9,24 +12,39 @@ WHISPER_NO_AVX = { value = "1", force = true }
 WHISPER_NO_AVX2 = { value = "1", force = true }
 WHISPER_NO_FMA = { value = "1", force = true }
 # Fix bindgen struct size issues
-BINDGEN_EXTRA_CLANG_ARGS = { value = "-D_CRT_SECURE_NO_WARNINGS", force = true }
+BINDGEN_EXTRA_CLANG_ARGS = { value = "-D_CRT_SECURE_NO_WARNINGS -march=x86-64 -mtune=generic", force = true }
+# Force CMake to use generic build
+CMAKE_CXX_FLAGS = { value = "-march=x86-64 -mtune=generic -mno-avx -mno-avx2 -mno-fma", force = true }
+CMAKE_C_FLAGS = { value = "-march=x86-64 -mtune=generic -mno-avx -mno-avx2 -mno-fma", force = true }
 
 [target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = [
-  "-C",
-  "target-feature=-crt-static",
-  "-C",
-  "target-cpu=x86-64",
-  "-C",
-  "target-feature=-avx",
-  "-C",
-  "target-feature=-avx2",
-  "-C",
-  "target-feature=-fma",
-  "-C",
-  "target-feature=-f16c",
-  "-C",
-  "target-feature=-bmi1",
-  "-C",
-  "target-feature=-bmi2",
+    "-C",
+    "target-feature=-crt-static",
+    "-C",
+    "target-cpu=x86-64",
+    "-C",
+    "target-feature=-avx",
+    "-C",
+    "target-feature=-avx2",
+    "-C",
+    "target-feature=-avx512f",
+    "-C",
+    "target-feature=-fma",
+    "-C",
+    "target-feature=-f16c",
+    "-C",
+    "target-feature=-bmi1",
+    "-C",
+    "target-feature=-bmi2",
+    "-C",
+    "target-feature=-popcnt",
+    "-C",
+    "target-feature=-sse3",
+    "-C",
+    "target-feature=-ssse3",
+    "-C",
+    "target-feature=-sse4.1",
+    "-C",
+    "target-feature=-sse4.2",
 ]

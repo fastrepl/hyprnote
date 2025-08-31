@@ -197,6 +197,9 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
           >
             <MicIcon size={12} />
             Transcript
+            {isCurrentlyRecording && (
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            )}
           </button>
           </div>
         </div>

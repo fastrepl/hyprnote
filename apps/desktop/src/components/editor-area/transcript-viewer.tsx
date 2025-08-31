@@ -116,7 +116,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
 
   // Show editor for finished transcript
   return (
-    <div className="w-full h-full flex flex-col px-8 pt-4">
+    <div className="w-full h-full flex flex-col px-8 pt-4 -ml-4">
       <TranscriptEditor
         ref={editorRef}
         initialWords={words}

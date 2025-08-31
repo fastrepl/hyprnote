@@ -26,7 +26,8 @@ import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { MetadataModal } from "./metadata-modal";
-import { NoteHeader, TabHeader, TabSubHeader } from "./note-header";
+import { NoteHeader, TabHeader } from "./note-header";
+import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { TranscriptViewer } from "./transcript-viewer";
 import { FloatingSearchBox } from "./floating-search-box";
@@ -293,49 +294,57 @@ export default function EditorArea({
         showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
       />
 
-      <TabSubHeader 
-        sessionId={sessionId} 
-        onEnhance={enhance.mutate} 
-        isEnhancing={enhance.status === "pending"}
-        transcriptEditorRef={transcriptEditorRef}
-        progress={progress}
-        showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
-        hashtags={hashtags}
-      />
-
-      <div
-        className={cn([
-          "h-full overflow-y-auto",
-          enhancedContent && activeTab !== 'transcript' && "pb-10",
-        ])}
-        onClick={(e) => {
-          if (activeTab === 'transcript') return; // Don't focus editor on transcript tab
-          
-          const target = e.target as HTMLElement;
-          if (!target.closest("a[href]")) {
-            e.stopPropagation();
-            safelyFocusEditor();
-          }
-        }}
-      >
-        {activeTab === 'transcript' ? (
-          <TranscriptViewer sessionId={sessionId} onEditorRefChange={setTranscriptEditorRef} />
-        ) : editable ? (
-          <Editor
-            key={editorKey}
-            ref={editorRef}
-            handleChange={handleChangeNote}
-            initialContent={noteContent}
-            editable={enhance.status !== "pending"}
-            setContentFromOutside={!showRaw && enhance.status === "pending"}
-            mentionConfig={{
-              trigger: "@",
-              handleSearch: handleMentionSearch,
-            }}
-          />
-        ) : (
-          <Renderer ref={editorRef} initialContent={noteContent} />
+      {/* Editor region wrapper: keeps overlay fixed while inner content scrolls */}
+      <div className="relative flex-1 min-h-0">
+        {activeTab === 'enhanced' && (
+          <div
+            className="absolute right-0 top-0 z-20"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EnhancedNoteSubHeader
+              sessionId={sessionId}
+              onEnhance={enhance.mutate}
+              isEnhancing={enhance.status === "pending"}
+              progress={progress}
+              showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+            />
+          </div>
         )}
+        <div
+          className={cn([
+            "h-full overflow-y-auto pt-6",
+            enhancedContent && activeTab !== 'transcript' && "pb-10",
+          ])}
+          onClick={(e) => {
+            if (activeTab === 'transcript') return; // Don't focus editor on transcript tab
+            
+            const target = e.target as HTMLElement;
+            if (!target.closest("a[href]")) {
+              e.stopPropagation();
+              safelyFocusEditor();
+            }
+          }}
+        >
+          {activeTab === 'transcript' ? (
+            <TranscriptViewer sessionId={sessionId} onEditorRefChange={setTranscriptEditorRef} />
+          ) : editable ? (
+            <Editor
+              key={editorKey}
+              ref={editorRef}
+              handleChange={handleChangeNote}
+              initialContent={noteContent}
+              editable={enhance.status !== "pending"}
+              setContentFromOutside={!showRaw && enhance.status === "pending"}
+              mentionConfig={{
+                trigger: "@",
+                handleSearch: handleMentionSearch,
+              }}
+            />
+          ) : (
+            <Renderer ref={editorRef} initialContent={noteContent} />
+          )}
+        </div>
       </div>
 
       {/* Floating search box - positioned over all tabs */}

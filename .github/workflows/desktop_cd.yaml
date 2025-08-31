@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
-  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
+  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
+  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
 
 jobs:
   build:
@@ -147,7 +147,7 @@ jobs:
           path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/hyprnote-staging-${{ matrix.target }}.tar.gz
           retention-days: 3
   publish:
-    if: ${{ ((github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) && ((github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))) }}
+    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) }}
     needs: build
     runs-on: ubuntu-24.04
     steps:

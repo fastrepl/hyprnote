@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Calendar, Folder, Hash, Table, Users } from "lucide-react";
+import { Calendar, Hash, Table, Users } from "lucide-react";
 
 type ViewType = "folder" | "calendar" | "table" | "contact" | "tags";
 
@@ -12,6 +12,8 @@ interface ViewSelectorProps {
 export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
   return (
     <div className="flex items-center gap-1 bg-neutral-100 rounded-md">
+      {
+        /*
       <Button
         variant={currentView === "folder" ? "default" : "ghost"}
         size="sm"
@@ -24,6 +26,8 @@ export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
         <Folder size={14} />
         {currentView === "folder" && "Folder"}
       </Button>
+      */
+      }
 
       <Button
         variant={currentView === "calendar" ? "default" : "ghost"}

@@ -2,12 +2,14 @@ mod device_monitor;
 mod errors;
 mod mic;
 mod norm;
+mod resampler;
 mod speaker;
 
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
+pub use resampler::*;
 pub use speaker::*;
 
 pub use cpal;

@@ -75,6 +75,7 @@ export const prepareMessageHistory = async (
     || modelId === "anthropic/claude-sonnet-4"
     || modelId === "openai/gpt-4o"
     || modelId === "gpt-4o"
+    || modelId === "openai/gpt-5"
     || (apiBase && apiBase.includes("pro.hyprnote.com"))
   );
 

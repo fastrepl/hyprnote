@@ -29,6 +29,7 @@ import { MetadataModal } from "./metadata-modal";
 import { NoteHeader, TabHeader } from "./note-header";
 import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+import { LocalSearchBar } from "./local-search-bar";
 import { TranscriptViewer } from "./transcript-viewer";
 import { FloatingSearchBox } from "./floating-search-box";
 
@@ -270,8 +271,18 @@ export default function EditorArea({
 
   return (
     <div className="relative flex h-full flex-col w-full">
-      {/* Date placeholder at the very top */}
-      <div className="flex justify-center -mt-3 pb-4 px-8">
+      {/* Local search bar (slide-down) */}
+      <LocalSearchBar
+        key={activeTab}
+        editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
+        onClose={() => setIsFloatingSearchVisible(false)}
+        isVisible={isFloatingSearchVisible}
+      />
+      {/* Date placeholder - closer when search bar is visible */}
+      <div className={cn([
+        "flex justify-center pb-4 px-8",
+        isFloatingSearchVisible ? "pt-1" : "pt-1"  // ← Less top padding when search bar is visible
+      ])}>
         <MetadataModal sessionId={sessionId} hashtags={hashtags}>
           <span className="text-xs text-neutral-300 font-medium hover:text-neutral-600 transition-colors">
             Today, December 19, 2024
@@ -347,13 +358,15 @@ export default function EditorArea({
         </div>
       </div>
 
-      {/* Floating search box - positioned over all tabs */}
-      <FloatingSearchBox
-        key={activeTab} // Force remount when tab changes
-        editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
-        onClose={() => setIsFloatingSearchVisible(false)}
-        isVisible={isFloatingSearchVisible}
-      />
+      {/**
+       * FloatingSearchBox temporarily disabled in favor of LocalSearchBar
+       * <FloatingSearchBox
+       *   key={activeTab}
+       *   editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
+       *   onClose={() => setIsFloatingSearchVisible(false)}
+       *   isVisible={isFloatingSearchVisible}
+       * />
+       */}
 
       {/* Add the text selection popover - but not for onboarding sessions */}
       {sessionId !== onboardingSessionId && (

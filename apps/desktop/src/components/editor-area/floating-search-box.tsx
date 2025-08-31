@@ -205,7 +205,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
   }
 
   return (
-    <div className="absolute top-4 right-4 z-50">
+    <div className="absolute top-6 right-6 z-50">
       <div
         ref={searchBoxRef}
         className="bg-white border border-neutral-200 rounded-lg shadow-lg p-3 min-w-96"

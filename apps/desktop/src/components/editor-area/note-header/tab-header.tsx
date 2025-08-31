@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession, useOngoingSession } from "@hypr/utils/contexts";
 import { cn } from "@hypr/ui/lib/utils";
-import { FileTextIcon, SparklesIcon, MicIcon, ChevronDownIcon, RefreshCwIcon, PlusIcon } from "lucide-react";
+import { PencilIcon, ZapIcon, MicIcon, ChevronDownIcon, RefreshCwIcon, PlusIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { TemplateService } from "@/utils/template-service";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { useEnhancePendingState } from "@/hooks/enhance-pending";
 
 interface TabHeaderProps {
   sessionId: string;
@@ -111,28 +112,24 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
   const isCurrentlyRecording = ongoingSessionStatus === "running_active" && ongoingSessionId === sessionId;
   const isSessionInactive = ongoingSessionStatus === "inactive" || session.id !== ongoingSessionId;
   const hasEnhancedMemo = !!session?.enhanced_memo_html;
-  
-  // Only show tabs when a meeting has started (either recording or has transcript)
-  const isMeetingSession = hasTranscript || isCurrentlyRecording;
-  
-  // Show Enhanced Note tab when: session ended OR transcript exists OR enhanced memo exists
+
   const canEnhanceTranscript = hasTranscript && isSessionInactive;
-  const shouldShowEnhancedTab = hasEnhancedMemo || canEnhanceTranscript;
+
+  // Keep the "meeting session" concept for overall tab visibility
+  const isMeetingSession = hasTranscript || isCurrentlyRecording || isEnhancing;
+
+  // BUT use floating button logic for Enhanced tab visibility
+  const isEnhancePending = useEnhancePendingState(sessionId);
+  const shouldShowEnhancedTab = hasEnhancedMemo || isEnhancePending || canEnhanceTranscript;
 
   // Automatic tab switching logic following existing conventions
-  useEffect(() => {
-    // When recording starts for this session -> switch to transcript
-    if (ongoingSessionStatus === "running_active" && ongoingSessionId === sessionId) {
-      setActiveTab('transcript');
-    }
-  }, [ongoingSessionStatus, ongoingSessionId, sessionId, setActiveTab]);
 
   useEffect(() => {
-    // When recording ends and session has transcript -> switch to enhanced note
-    if (ongoingSessionStatus === "inactive" && hasTranscript && shouldShowEnhancedTab) {
+    // When enhancement starts (immediately after recording ends) -> switch to enhanced note
+    if (isEnhancePending || (ongoingSessionStatus === "inactive" && hasTranscript && shouldShowEnhancedTab)) {
       setActiveTab('enhanced');
     }
-  }, [ongoingSessionStatus, hasTranscript, shouldShowEnhancedTab, setActiveTab]);
+  }, [isEnhancePending, ongoingSessionStatus, hasTranscript, shouldShowEnhancedTab, setActiveTab]);
 
   // Set default tab to 'raw' for blank notes (no meeting session)
   useEffect(() => {
@@ -166,7 +163,7 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
                 : "text-neutral-600 border-transparent hover:text-neutral-800"
             )}
           >
-            <FileTextIcon size={12} />
+            <PencilIcon size={12} />
             Memos
           </button>
 
@@ -181,7 +178,7 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
                   : "text-neutral-600 border-transparent hover:text-neutral-800"
               )}
             >
-              <SparklesIcon size={12} />
+              <ZapIcon size={12} />
               Summary
               
              

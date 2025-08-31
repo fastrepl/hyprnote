@@ -115,7 +115,7 @@ export function EnhancedNoteSubHeader({
   };
 
   return (
-    <div className="flex items-center justify-end px-8 py-2">
+    <div className="flex items-center justify-end px-8 pt-2 pb-0.5">
       {/* Regenerate button */}
       <div className="flex items-center gap-2">
         {/* Share button 
@@ -150,7 +150,7 @@ export function EnhancedNoteSubHeader({
               size="sm"
               onClick={handleRegenerateDefault}
               disabled={isEnhancing}
-              className="rounded-r-none text-xs h-8 px-3 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-r-none text-xs h-[28px] px-3 hover:bg-neutral-100 disabled:opacity-50"
             >
               {isEnhancing ? (
                 <>
@@ -176,7 +176,7 @@ export function EnhancedNoteSubHeader({
                 variant="outline"
                 size="sm"
                 disabled={isEnhancing}
-                className="rounded-l-none px-1.5 h-8 border-l-0 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-l-none px-1.5 h-[28px] border-l-0 hover:bg-neutral-100 disabled:opacity-50"
               >
                 <ChevronDownIcon size={14} />
               </Button>
@@ -186,7 +186,7 @@ export function EnhancedNoteSubHeader({
 
           <PopoverContent
             side="bottom"
-            align="start"
+            align="end"
             className="w-64 p-0 shadow-[0_4px_8px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.03)]"
             sideOffset={4}
           >

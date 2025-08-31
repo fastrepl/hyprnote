@@ -29,7 +29,7 @@ export function TabSubHeader({ sessionId, onEnhance, isEnhancing, transcriptEdit
   
   if (activeTab === 'raw') {
     // Empty sub-header with same dimensions as enhanced tab for consistent layout
-    return <div className="flex items-center justify-end px-8 py-2"></div>;
+    return <div className="flex items-center justify-end px-8 py-2 h-[20px]"></div>;
   }
   
   return null;

@@ -1,5 +1,6 @@
 [env]
 MACOSX_DEPLOYMENT_TARGET = { value = "14.2", force = true }
+# Force whisper.cpp generic build
 GGML_NO_AVX = { value = "1", force = true }
 GGML_NO_AVX2 = { value = "1", force = true }
 GGML_NO_FMA = { value = "1", force = true }
@@ -7,6 +8,8 @@ GGML_NO_F16C = { value = "1", force = true }
 WHISPER_NO_AVX = { value = "1", force = true }
 WHISPER_NO_AVX2 = { value = "1", force = true }
 WHISPER_NO_FMA = { value = "1", force = true }
+# Fix bindgen struct size issues
+BINDGEN_EXTRA_CLANG_ARGS = { value = "-D_CRT_SECURE_NO_WARNINGS", force = true }
 
 [target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = [

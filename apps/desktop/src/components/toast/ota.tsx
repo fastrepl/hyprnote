@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
+// exported for manual update checks
 export async function createUpdateToast(update: any, toastId: string = "ota-notification") {
   const appName = await getName();
   const appPath = await join("/Applications", `${appName}.app`);
@@ -78,6 +79,7 @@ export async function handleUpdateInstall(update: any, toastId: string, appInApp
     }
   });
 }
+// ---export ends---
 
 export default function OtaNotification() {
   const appInApplicationsFolder = useQuery({

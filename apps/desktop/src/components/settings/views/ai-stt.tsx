@@ -8,11 +8,13 @@ import { showSttModelDownloadToast } from "../../toast/shared";
 import { SharedSTTProps, STTModel } from "../components/ai/shared";
 import { STTViewLocal } from "../components/ai/stt-view-local";
 import { STTViewRemote } from "../components/ai/stt-view-remote";
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 export default function SttAI() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
-
+  const { userId } = useHypr();
   const providerQuery = useQuery({
     queryKey: ["stt-provider"],
     queryFn: () => localSttCommands.getProvider(),
@@ -44,7 +46,13 @@ export default function SttAI() {
   }, [provider]);
 
   const setProviderToLocal = () => setProviderMutation.mutate("Local");
-  const setProviderToCustom = () => setProviderMutation.mutate("Custom");
+  const setProviderToCustom = () => {
+    setProviderMutation.mutate("Custom");
+    analyticsCommands.event({
+      event: "custom_stt_selected",
+      distinct_id: userId,
+    });
+  };
 
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");

@@ -150,7 +150,7 @@ export function EnhancedNoteSubHeader({
               size="sm"
               onClick={() => setIsTemplateDropdownOpen(true)}
               disabled={isEnhancing}
-              className="rounded-r-none text-xs h-[28px] px-3 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-r-none text-xs h-[28px] px-3 hover:bg-neutral-100 disabled:opacity-100"
             >
               {isEnhancing ? (
                 <>
@@ -176,7 +176,7 @@ export function EnhancedNoteSubHeader({
                 variant="outline"
                 size="sm"
                 disabled={isEnhancing}
-                className="rounded-l-none px-1.5 h-[28px] border-l-0 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-l-none px-1.5 h-[28px] border-l-0 hover:bg-neutral-100 disabled:opacity-100"
               >
                 <ChevronDownIcon size={14} />
               </Button>

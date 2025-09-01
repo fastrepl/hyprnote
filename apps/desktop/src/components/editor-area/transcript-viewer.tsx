@@ -99,13 +99,13 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
   // Show simple text for live transcript
   if (isLive) {
     return (
-      <div className="h-full overflow-hidden">
+      <div className="relative h-full flex flex-col">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden px-8 pt-4 pb-6"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pt-4 pb-6"
           onScroll={handleScroll}
         >
-          <div className="text-[15px] text-gray-800 leading-relaxed break-all">
+          <div className="px-8 text-[15px] text-gray-800 leading-relaxed break-all">
             {words.map(word => word.text).join(" ")}
           </div>
         </div>
@@ -127,7 +127,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
 
   // Show editor for finished transcript
   return (
-    <div className="w-full h-full flex flex-col px-8 pt-4 -ml-4">
+    <div className="w-full h-full flex flex-col pt-4">
       <TranscriptEditor
         ref={editorRef}
         initialWords={words}

@@ -5,16 +5,15 @@ mod ext;
 pub use errors::*;
 pub use ext::*;
 
+use std::{fs, path::PathBuf};
+use tauri::Manager;
+
+use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
 
 const PLUGIN_NAME: &str = "tracing";
-
-pub type ManagedState = std::sync::Mutex<State>;
-
-#[derive(Default)]
-pub struct State {}
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
@@ -32,21 +31,54 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            {
-                let env_filter = EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| EnvFilter::new("info"))
-                    .add_directive("ort=warn".parse().unwrap());
+            let env_filter = EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new("info"))
+                .add_directive("ort=warn".parse().unwrap());
 
+            let bundle_id = app.config().identifier.clone();
+
+            if let Some((file_writer, guard)) = make_file_writer_if_enabled(true, &bundle_id) {
                 tracing_subscriber::Registry::default()
-                    .with(fmt::layer())
                     .with(env_filter)
                     .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
+                    .with(fmt::layer())
+                    .with(fmt::layer().with_ansi(false).with_writer(file_writer))
+                    .init();
+                assert!(app.manage(guard));
+            } else {
+                tracing_subscriber::Registry::default()
+                    .with(env_filter)
+                    .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
+                    .with(fmt::layer())
                     .init();
             }
 
             Ok(())
         })
         .build()
+}
+
+fn make_file_writer_if_enabled(
+    enabled: bool,
+    bundle_identifier: &str,
+) -> Option<(tracing_appender::non_blocking::NonBlocking, WorkerGuard)> {
+    if !enabled {
+        return None;
+    }
+
+    let base_dir: PathBuf = match dirs::data_dir() {
+        Some(p) => p,
+        None => return None,
+    };
+
+    let logs_dir = base_dir.join(bundle_identifier).join("logs");
+    if let Err(_e) = fs::create_dir_all(&logs_dir) {
+        return None;
+    }
+
+    let file_appender = rolling::daily(&logs_dir, "log.txt");
+    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+    Some((non_blocking, guard))
 }
 
 #[cfg(test)]

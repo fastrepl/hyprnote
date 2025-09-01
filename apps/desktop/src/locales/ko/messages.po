@@ -670,7 +670,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:107
+#: src/components/settings/views/ai-stt.tsx:115
 msgid "Custom"
 msgstr ""
 
@@ -695,7 +695,7 @@ msgid "Custom Vocabulary"
 msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:104
+#: src/components/settings/views/ai-stt.tsx:112
 msgid "Default"
 msgstr ""
 

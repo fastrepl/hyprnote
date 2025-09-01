@@ -3,6 +3,7 @@ import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide
 import { useEffect, useRef, useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { isDefaultTemplate } from "@/utils/default-templates";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
@@ -12,7 +13,6 @@ import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { fetch } from "@hypr/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { isDefaultTemplate } from "@/utils/default-templates";
 
 function AnimatedEnhanceIcon({ size = 20 }: { size?: number }) {
   const [currentFrame, setCurrentFrame] = useState(1);
@@ -149,22 +149,20 @@ export function FloatingButton({
   };
 
   const handleTemplateSelect = async (templateId: string) => {
-   
     if (templateId !== "auto" && isDefaultTemplate(templateId)) {
       try {
         const templateName = templateId.replace("default-", "").replace(/-/g, "_");
         const eventName = `${templateName}_builtin_selected`;
-           
+
         await analyticsCommands.event({
           event: eventName,
           distinct_id: userId,
           template_id: templateId,
         });
-        
       } catch (error) {
         console.error("Failed to track template selection:", error);
       }
-    } 
+    }
     setShowTemplatePopover(false);
     handleEnhanceWithTemplate(templateId);
   };

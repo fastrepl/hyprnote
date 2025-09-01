@@ -2,14 +2,14 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { showSttModelDownloadToast } from "../../toast/shared";
 import { SharedSTTProps, STTModel } from "../components/ai/shared";
 import { STTViewLocal } from "../components/ai/stt-view-local";
 import { STTViewRemote } from "../components/ai/stt-view-remote";
-import { useHypr } from "@/contexts";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
 export default function SttAI() {
   const queryClient = useQueryClient();

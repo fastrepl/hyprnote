@@ -670,7 +670,7 @@ msgstr "Create your first template to get started"
 #~ msgstr "Current Plan"
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:107
+#: src/components/settings/views/ai-stt.tsx:115
 msgid "Custom"
 msgstr "Custom"
 
@@ -691,7 +691,7 @@ msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:104
+#: src/components/settings/views/ai-stt.tsx:112
 msgid "Default"
 msgstr "Default"
 

@@ -5,6 +5,10 @@ mod ext;
 pub use errors::*;
 pub use ext::*;
 
+use tracing_subscriber::{
+    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
+
 const PLUGIN_NAME: &str = "tracing";
 
 pub type ManagedState = std::sync::Mutex<State>;
@@ -27,6 +31,18 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
+
+            {
+                let env_filter = EnvFilter::try_from_default_env()
+                    .unwrap_or_else(|_| EnvFilter::new("info"))
+                    .add_directive("ort=warn".parse().unwrap());
+
+                tracing_subscriber::Registry::default()
+                    .with(fmt::layer())
+                    .with(env_filter)
+                    .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
+                    .init();
+            }
 
             Ok(())
         })

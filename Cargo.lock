@@ -3880,14 +3880,12 @@ dependencies = [
  "tauri-plugin-tray",
  "tauri-plugin-updater",
  "tauri-plugin-webhook",
- "tauri-plugin-window-state",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
  "tracing",
- "tracing-subscriber",
  "turso",
  "url",
  "uuid",
@@ -15066,8 +15064,11 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-sentry",
  "tauri-specta",
  "thiserror 2.0.16",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -15134,21 +15135,6 @@ dependencies = [
  "thiserror 2.0.16",
  "utoipa",
  "uuid",
-]
-
-[[package]]
-name = "tauri-plugin-window-state"
-version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d5f6fe3291bfa609c7e0b0ee3bedac294d94c7018934086ce782c1d0f2a468e"
-dependencies = [
- "bitflags 2.9.3",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.16",
 ]
 
 [[package]]

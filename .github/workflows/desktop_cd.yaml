@@ -28,9 +28,9 @@ jobs:
           - platform: "macos"
             target: "x86_64-apple-darwin"
             runner: "macos-latest"
-          # - platform: "windows"
-          #   target: "x86_64-pc-windows-msvc"
-          #   runner: "windows-latest"
+          - platform: "windows"
+            target: "x86_64-pc-windows-msvc"
+            runner: "windows-latest"
     runs-on: ${{ matrix.runner }}
     defaults:
       run:

@@ -324,7 +324,7 @@ export default function EditorArea({
         )}
         <div
           className={cn([
-            "h-full overflow-y-auto pt-6",
+            activeTab === 'transcript' ? "h-full overflow-hidden pt-0" : "h-full overflow-y-auto pt-6",
             enhancedContent && activeTab !== 'transcript' && "pb-10",
           ])}
           onClick={(e) => {

@@ -123,6 +123,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
             }
         }
 
+        // Enable whisper process isolation on Windows to avoid CPU instruction crashes
+        #[cfg(target_os = "windows")]
+        {
+            std::env::set_var("WHISPER_USE_PROCESS", "1");
+            tracing::info!("Enabled whisper process isolation for Windows compatibility");
+        }
+
         {
             use tauri_plugin_local_stt::LocalSttPluginExt;
 

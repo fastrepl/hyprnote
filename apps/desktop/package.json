@@ -35,6 +35,7 @@
     "@hypr/plugin-task": "workspace:^",
     "@hypr/plugin-template": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
+    "@hypr/plugin-tracing": "workspace:^",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",

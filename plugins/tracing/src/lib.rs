@@ -1,48 +1,52 @@
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
-};
-
-pub use models::*;
-
-#[cfg(desktop)]
-mod desktop;
-#[cfg(mobile)]
-mod mobile;
-
 mod commands;
-mod error;
-mod models;
+mod errors;
+mod ext;
 
-pub use error::{Error, Result};
+pub use errors::*;
+pub use ext::*;
 
-#[cfg(desktop)]
-use desktop::Tracing;
-#[cfg(mobile)]
-use mobile::Tracing;
+const PLUGIN_NAME: &str = "tracing";
 
-/// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the tracing APIs.
-pub trait TracingExt<R: Runtime> {
-    fn tracing(&self) -> &Tracing<R>;
+pub type ManagedState = std::sync::Mutex<State>;
+
+#[derive(Default)]
+pub struct State {}
+
+fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
+        .plugin_name(PLUGIN_NAME)
+        .events(tauri_specta::collect_events![])
+        .commands(tauri_specta::collect_commands![commands::hi::<tauri::Wry>])
+        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-impl<R: Runtime, T: Manager<R>> crate::TracingExt<R> for T {
-    fn tracing(&self) -> &Tracing<R> {
-        self.state::<Tracing<R>>().inner()
-    }
-}
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    let specta_builder = make_specta_builder();
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("tracing")
-        .invoke_handler(tauri::generate_handler![commands::ping])
-        .setup(|app, api| {
-            #[cfg(mobile)]
-            let tracing = mobile::init(app, api)?;
-            #[cfg(desktop)]
-            let tracing = desktop::init(app, api)?;
-            app.manage(tracing);
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
             Ok(())
         })
         .build()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn export_types() {
+        make_specta_builder()
+            .export(
+                specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck\n\n")
+                    .formatter(specta_typescript::formatter::prettier)
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
+                "./js/bindings.gen.ts",
+            )
+            .unwrap()
+    }
 }

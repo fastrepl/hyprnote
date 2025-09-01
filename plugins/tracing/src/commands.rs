@@ -1,13 +1,7 @@
-use tauri::{command, AppHandle, Runtime};
+use crate::TracingPluginExt;
 
-use crate::models::*;
-use crate::Result;
-use crate::TracingExt;
-
-#[command]
-pub(crate) async fn ping<R: Runtime>(
-    app: AppHandle<R>,
-    payload: PingRequest,
-) -> Result<PingResponse> {
-    app.tracing().ping(payload)
+#[tauri::command]
+#[specta::specta]
+pub async fn hi<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.hi().map_err(|e| e.to_string())
 }

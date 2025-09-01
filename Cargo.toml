@@ -85,10 +85,10 @@ owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-confi
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
 owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" }
 
-tauri = "2.7"
-tauri-build = "2.3"
+tauri = "2.8"
+tauri-build = "2.4"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
-tauri-plugin = "2.3"
+tauri-plugin = "2.4"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
@@ -118,6 +118,7 @@ tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
+tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }

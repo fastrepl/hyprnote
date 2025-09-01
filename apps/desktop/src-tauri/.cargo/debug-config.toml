@@ -10,18 +10,18 @@ rustflags = [
 
 [env]
 # Force all C/C++ compilation to use debug runtime
-CFLAGS = "/MDd /D_DEBUG /Od"
-CXXFLAGS = "/MDd /D_DEBUG /Od"
+CFLAGS = { value = "/MDd /D_DEBUG /Od", force = true }
+CXXFLAGS = { value = "/MDd /D_DEBUG /Od", force = true }
 
 # CMake configuration for debug runtime
-CMAKE_CXX_FLAGS = "/MDd /D_DEBUG /Od"
-CMAKE_C_FLAGS = "/MDd /D_DEBUG /Od"
-CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreadedDebugDLL"
-CMAKE_BUILD_TYPE = "Debug"
+CMAKE_CXX_FLAGS = { value = "/MDd /D_DEBUG /Od", force = true }
+CMAKE_C_FLAGS = { value = "/MDd /D_DEBUG /Od", force = true }
+CMAKE_MSVC_RUNTIME_LIBRARY = { value = "MultiThreadedDebugDLL", force = true }
+CMAKE_BUILD_TYPE = { value = "Debug", force = true }
 
 # Global debug flags
-DEBUG = "1"
-_DEBUG = "1"
+DEBUG = { value = "1", force = true }
+_DEBUG = { value = "1", force = true }
 
 # ORG
-ORT_DYLIB_PATH = "./dlls/onnxruntime.dll"
+ORT_DYLIB_PATH = { value = "./dlls/onnxruntime.dll", force = true }

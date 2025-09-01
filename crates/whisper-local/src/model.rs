@@ -5,7 +5,7 @@ use regex::Regex;
 
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
-    WhisperTokenId,
+    WhisperToken,
 };
 
 use hypr_whisper::Language;
@@ -121,7 +121,7 @@ pub struct Whisper {
     languages: Vec<Language>,
     dynamic_prompt: String,
     state: WhisperState,
-    token_beg: WhisperTokenId,
+    token_beg: WhisperToken,
 }
 
 impl Whisper {
@@ -177,22 +177,20 @@ impl Whisper {
         };
 
         self.state.full(params, &audio[..])?;
-        let num_segments = self.state.full_n_segments();
+        let num_segments = self.state.full_n_segments()?;
 
         let mut segments = Vec::new();
         for i in 0..num_segments {
-            let segment = match self.state.get_segment(i) {
-                Some(seg) => seg,
-                None => continue,
-            };
-
+            let start = self.state.full_get_segment_t0(i)?;
+            let end = self.state.full_get_segment_t1(i)?;
+            
             let (start, end) = (
-                (segment.start_timestamp() as f64) / 100.0,
-                (segment.end_timestamp() as f64) / 100.0,
+                (start as f64) / 100.0,
+                (end as f64) / 100.0,
             );
 
             let text = {
-                let segment_text = segment.to_str_lossy()?;
+                let segment_text = self.state.full_get_segment_text(i)?;
                 TRAILING_DOTS.replace(&segment_text, "").to_string()
             };
 
@@ -282,7 +280,7 @@ impl Whisper {
             .collect()
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
@@ -295,13 +293,13 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperTokenId);
+            let token_beg_id = *(user_data as *const WhisperToken);
             *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
         params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
+            token_beg as *const WhisperToken as *mut std::ffi::c_void,
         );
     }
 }

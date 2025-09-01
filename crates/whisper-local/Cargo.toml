@@ -3,7 +3,7 @@ name = "whisper-local"
 version = "0.1.0"
 edition = "2021"
 
-# https://github.com/tazz4843/whisper-rs/blob/e3d67d5/Cargo.toml
+# Using forked whisper-rs from devgony
 [features]
 default = []
 coreml = ["whisper-rs/coreml"]
@@ -30,7 +30,7 @@ dasp = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 log = { workspace = true }
 rodio = { workspace = true }
-whisper-rs = { version = "0.15.0", features = ["raw-api", "tracing_backend"] }
+whisper-rs = { git = "https://github.com/devgony/whisper-rs", features = ["raw-api", "tracing_backend"] }
 
 futures-util = { workspace = true }
 tracing = { workspace = true }

@@ -515,6 +515,10 @@ msgstr ""
 #~ msgid "Chat with your meeting notes"
 #~ msgstr ""
 
+#: src/components/left-sidebar/top-area/settings-button.tsx:147
+msgid "Check Updates"
+msgstr ""
+
 #: src/components/settings/views/general.tsx:185
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
 #~ msgstr ""
@@ -1105,7 +1109,7 @@ msgstr ""
 #~ msgid "Much better AI performance"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:108
+#: src/components/left-sidebar/top-area/settings-button.tsx:141
 msgid "My Profile"
 msgstr ""
 
@@ -1451,7 +1455,7 @@ msgstr ""
 msgid "Set up Your AI Provider"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:101
+#: src/components/left-sidebar/top-area/settings-button.tsx:134
 msgid "Settings"
 msgstr ""
 
@@ -1540,7 +1544,7 @@ msgstr ""
 msgid "System Instruction"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:114
+#: src/components/left-sidebar/top-area/settings-button.tsx:153
 msgid "Talk to Founders"
 msgstr ""
 

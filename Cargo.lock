@@ -9989,6 +9989,7 @@ dependencies = [
 name = "onnx"
 version = "0.1.0"
 dependencies = [
+ "log",
  "ndarray",
  "ort",
  "thiserror 2.0.16",

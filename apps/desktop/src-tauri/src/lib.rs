@@ -38,7 +38,7 @@ pub async fn main() {
 
             #[cfg(debug_assertions)]
             {
-                ""
+                option_env!("SENTRY_DSN").unwrap_or_default()
             }
         },
         tauri_plugin_sentry::sentry::ClientOptions {
@@ -50,15 +50,6 @@ pub async fn main() {
     ));
 
     let _guard = tauri_plugin_sentry::minidump::init(&sentry_client);
-    
-    // Add panic hook to capture crashes before ORT initialization
-    std::panic::set_hook(Box::new(|panic_info| {
-        let crash_file = std::env::temp_dir().join("hyprnote_panic.txt");
-        let crash_msg = format!("PANIC: {}\nLocation: {:?}\nTime: {:?}\n", 
-            panic_info, panic_info.location(), std::time::SystemTime::now());
-        std::fs::write(&crash_file, crash_msg).ok();
-        eprintln!("Crash logged to: {:?}", crash_file);
-    }));
 
     let mut builder = tauri::Builder::default();
 

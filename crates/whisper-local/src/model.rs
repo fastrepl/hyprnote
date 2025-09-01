@@ -5,7 +5,7 @@ use regex::Regex;
 
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, WhisperState,
-    WhisperToken,
+    WhisperTokenId,
 };
 
 use hypr_whisper::Language;
@@ -37,65 +37,19 @@ impl WhisperBuilder {
         let context_param = {
             let mut p = WhisperContextParameters::default();
             p.gpu_device = 0;
-            p.use_gpu = false;
+            p.use_gpu = true;
             p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
-            log::info!("Context params: gpu={}, flash_attn={}", p.use_gpu, p.flash_attn);
             p
         };
 
         let model_path = self.model_path.unwrap();
-        log::info!("Loading Whisper model from: {}", model_path);
-        
         if !std::path::Path::new(&model_path).exists() {
-            log::error!("Model file not found: {}", model_path);
             return Err(crate::Error::ModelNotFound);
         }
 
-        log::info!("Model file exists, initializing WhisperContext with GPU={}", context_param.use_gpu);
-        let ctx = WhisperContext::new_with_params(&model_path, context_param)
-            .map_err(|e| {
-                log::error!("Failed to create WhisperContext: {:?}", e);
-                e
-            })?;
-        log::info!("WhisperContext created successfully");
-        
-        log::info!("Creating WhisperState...");
-        log::info!("Validating CPU features...");
-        
-        // Check if CPU supports required features for whisper.cpp
-        #[cfg(target_arch = "x86_64")]
-        {
-            if !std::arch::is_x86_feature_detected!("sse2") {
-                log::error!("CPU missing SSE2 support required for whisper.cpp");
-                return Err(crate::error::Error::LocalWhisperError(whisper_rs::WhisperError::InitError));
-            }
-            log::info!("✓ CPU has SSE2 support");
-            
-            if std::arch::is_x86_feature_detected!("avx") {
-                log::info!("✓ CPU has AVX support");
-            } else {
-                log::warn!("CPU missing AVX - performance may be reduced");
-            }
-        }
-        
-        log::info!("About to call ctx.create_state()");
-        
-        let state = match std::panic::catch_unwind(|| ctx.create_state()) {
-            Ok(Ok(state)) => state,
-            Ok(Err(e)) => {
-                log::error!("Failed to create WhisperState: {:?}", e);
-                return Err(crate::error::Error::LocalWhisperError(e));
-            },
-            Err(_) => {
-                log::error!("Whisper state creation panicked - likely missing system dependencies");
-                log::error!("This usually happens when Visual C++ Runtime or native dependencies are missing");
-                log::error!("Please ensure the application was installed properly with all required dependencies");
-                return Err(crate::error::Error::LocalWhisperError(whisper_rs::WhisperError::InitError));
-            }
-        };
-        log::info!("WhisperState created successfully");
-        
+        let ctx = WhisperContext::new_with_params(&model_path, context_param)?;
+        let state = ctx.create_state()?;
         let token_beg = ctx.token_beg();
 
         Ok(Whisper {
@@ -121,7 +75,7 @@ pub struct Whisper {
     languages: Vec<Language>,
     dynamic_prompt: String,
     state: WhisperState,
-    token_beg: WhisperToken,
+    token_beg: WhisperTokenId,
 }
 
 impl Whisper {
@@ -177,20 +131,22 @@ impl Whisper {
         };
 
         self.state.full(params, &audio[..])?;
-        let num_segments = self.state.full_n_segments()?;
+        let num_segments = self.state.full_n_segments();
 
         let mut segments = Vec::new();
         for i in 0..num_segments {
-            let start = self.state.full_get_segment_t0(i)?;
-            let end = self.state.full_get_segment_t1(i)?;
-            
+            let segment = match self.state.get_segment(i) {
+                Some(seg) => seg,
+                None => continue,
+            };
+
             let (start, end) = (
-                (start as f64) / 100.0,
-                (end as f64) / 100.0,
+                (segment.start_timestamp() as f64) / 100.0,
+                (segment.end_timestamp() as f64) / 100.0,
             );
 
             let text = {
-                let segment_text = self.state.full_get_segment_text(i)?;
+                let segment_text = segment.to_str_lossy()?;
                 TRAILING_DOTS.replace(&segment_text, "").to_string()
             };
 
@@ -280,7 +236,7 @@ impl Whisper {
             .collect()
     }
 
-    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperToken) {
+    unsafe fn suppress_beg(params: &mut FullParams, token_beg: &WhisperTokenId) {
         unsafe extern "C" fn logits_filter_callback(
             _ctx: *mut whisper_rs::whisper_rs_sys::whisper_context,
             _state: *mut whisper_rs::whisper_rs_sys::whisper_state,
@@ -293,13 +249,13 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperToken);
+            let token_beg_id = *(user_data as *const WhisperTokenId);
             *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
         }
 
         params.set_filter_logits_callback(Some(logits_filter_callback));
         params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperToken as *mut std::ffi::c_void,
+            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
         );
     }
 }

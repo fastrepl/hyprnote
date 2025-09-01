@@ -1,3 +1,5 @@
 apps/app
 crates/*
 plugins/*
+owhisper/
+

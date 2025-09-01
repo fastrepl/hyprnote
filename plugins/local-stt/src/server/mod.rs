@@ -9,4 +9,16 @@ pub enum ServerType {
     Internal,
     #[serde(rename = "external")]
     External,
+    #[serde(rename = "custom")]
+    Custom,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, specta::Type,
+)]
+#[serde(rename_all = "lowercase")]
+pub enum ServerHealth {
+    Unreachable,
+    Loading,
+    Ready,
 }

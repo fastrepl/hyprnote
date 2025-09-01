@@ -17,11 +17,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         &self,
         mut payload: hypr_analytics::AnalyticsPayload,
     ) -> Result<(), crate::Error> {
-        let disabled = {
-            let store = self.scoped_store(crate::PLUGIN_NAME)?;
-            store.get(crate::StoreKey::Disabled)?.unwrap_or(false)
-        };
-
         let app_version = self.config().version.clone();
         let app_identifier = self.config().identifier.clone();
         let git_hash = self.get_git_hash();
@@ -47,7 +42,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
             .entry("git_hash".into())
             .or_insert(git_hash.into());
 
-        if !disabled {
+        if !self.is_disabled()? {
             let client = self.state::<hypr_analytics::AnalyticsClient>();
             client
                 .event(payload)

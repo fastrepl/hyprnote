@@ -1,46 +1,14 @@
 import { useMatch } from "@tanstack/react-router";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 
+import { useTitleGenerationPendingState } from "@/hooks/enhance-pending";
+import { useContainerWidth } from "@/hooks/use-container-width";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
-import { useTitleGenerationPendingState } from "../../../hooks/enhance-pending";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
 import TitleInput from "./title-input";
 import TitleShimmer from "./title-shimmer";
-
-function useContainerWidth(ref: React.RefObject<HTMLElement>) {
-  const [width, setWidth] = useState(0);
-  const [debouncedWidth, setDebouncedWidth] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedWidth(width);
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [width]);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) {
-      return;
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setWidth(entry.contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(element);
-    setWidth(element.getBoundingClientRect().width);
-
-    return () => resizeObserver.disconnect();
-  }, [ref]);
-
-  return debouncedWidth;
-}
 
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;

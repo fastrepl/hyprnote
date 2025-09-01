@@ -6,7 +6,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 
 export async function showModelSelectToast(language: string) {
-  const currentModel = await localSttCommands.getCurrentModel();
+  const currentModel = await localSttCommands.getLocalModel();
   const englishModels: SupportedSttModel[] = ["QuantizedTinyEn", "QuantizedBaseEn", "QuantizedSmallEn"];
 
   if (language === "en" || !englishModels.includes(currentModel)) {

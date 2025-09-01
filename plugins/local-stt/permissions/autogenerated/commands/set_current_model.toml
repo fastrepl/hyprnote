@@ -4,10 +4,10 @@
 
 [[permission]]
 identifier = "allow-set-current-model"
-description = "Enables the set_current_model command without any pre-configured scope."
-commands.allow = ["set_current_model"]
+description = "Enables the set_local_model command without any pre-configured scope."
+commands.allow = ["set_local_model"]
 
 [[permission]]
 identifier = "deny-set-current-model"
-description = "Denies the set_current_model command without any pre-configured scope."
-commands.deny = ["set_current_model"]
+description = "Denies the set_local_model command without any pre-configured scope."
+commands.deny = ["set_local_model"]

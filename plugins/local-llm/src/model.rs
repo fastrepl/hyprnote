@@ -15,8 +15,8 @@ pub struct ModelInfo {
 #[derive(Debug, Eq, Hash, PartialEq, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum SupportedModel {
     Llama3p2_3bQ4,
-    HyprLLM,
     Gemma3_4bQ4,
+    HyprLLM,
 }
 
 impl SupportedModel {

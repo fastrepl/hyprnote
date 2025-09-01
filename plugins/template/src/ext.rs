@@ -1,7 +1,7 @@
 pub trait TemplatePluginExt<R: tauri::Runtime> {
     fn render(
         &self,
-        name: impl Into<hypr_template::Template>,
+        name: hypr_template::Template,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String>;
     fn register_template(
@@ -11,11 +11,11 @@ pub trait TemplatePluginExt<R: tauri::Runtime> {
     ) -> Result<(), String>;
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::TemplatePluginExt<R> for T {
+impl<R: tauri::Runtime, T: tauri::Manager<R>> TemplatePluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     fn render(
         &self,
-        name: impl Into<hypr_template::Template>,
+        name: hypr_template::Template,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String> {
         let state = self.state::<crate::ManagedState>();

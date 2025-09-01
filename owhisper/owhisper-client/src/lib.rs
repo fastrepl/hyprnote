@@ -69,19 +69,40 @@ impl ListenClientBuilder {
         {
             let mut query_pairs = url.query_pairs_mut();
 
-            for lang in &params.languages {
-                query_pairs.append_pair("languages", lang.iso639().code());
+            // https://developers.deepgram.com/docs/language-detection#restricting-the-detectable-languages
+            // https://www.rfc-editor.org/info/bcp47
+            match params.languages.len() {
+                0 => {
+                    query_pairs.append_pair("detect_language", "true");
+                }
+                1 => {
+                    let code = params.languages[0].iso639().code();
+                    query_pairs.append_pair("language", code);
+                    query_pairs.append_pair("languages", code);
+                }
+                _ => {
+                    query_pairs.append_pair("language", params.languages[0].iso639().code());
+
+                    for lang in &params.languages {
+                        let code = lang.iso639().code();
+
+                        query_pairs.append_pair("languages", code);
+                        query_pairs.append_pair("detect_language", code);
+                    }
+                }
             }
+
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
                 .append_pair("interim_results", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
+                .append_pair("multichannel", "true")
                 .append_pair("channels", &channels.to_string())
                 .append_pair(
                     "redemption_time_ms",
-                    &params.redemption_time_ms.unwrap_or(500).to_string(),
+                    &params.redemption_time_ms.unwrap_or(400).to_string(),
                 );
         }
 
@@ -307,6 +328,7 @@ mod tests {
                 .transcription()
                 .stream_request_with_options(
                     deepgram::common::options::Options::builder()
+                        .language(deepgram::common::options::Language::en)
                         .model(deepgram::common::options::Model::CustomId(
                             "whisper-cpp-small-q8".to_string(),
                         ))

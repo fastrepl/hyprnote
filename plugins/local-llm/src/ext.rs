@@ -95,6 +95,19 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         let m = model.clone();
         let path = self.models_dir().join(m.file_name());
 
+        {
+            let existing = {
+                let state = self.state::<crate::SharedState>();
+                let mut s = state.lock().await;
+                s.download_task.remove(&model)
+            };
+
+            if let Some(existing_task) = existing {
+                existing_task.abort();
+                let _ = existing_task.await;
+            }
+        }
+
         let task = tokio::spawn(async move {
             let callback = |progress: DownloadProgress| match progress {
                 DownloadProgress::Started => {
@@ -118,10 +131,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         {
             let state = self.state::<crate::SharedState>();
             let mut s = state.lock().await;
-
-            if let Some(existing_task) = s.download_task.remove(&model) {
-                existing_task.abort();
-            }
             s.download_task.insert(model.clone(), task);
         }
 
@@ -164,6 +173,10 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self) -> Result<String, crate::Error> {
+        if self.is_server_running().await {
+            return Err(crate::Error::ServerAlreadyRunning);
+        }
+
         let current_model = self.get_current_model()?;
 
         let model_path = self.models_dir().join(current_model.file_name());

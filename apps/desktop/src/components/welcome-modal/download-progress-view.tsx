@@ -172,7 +172,7 @@ export const DownloadProgressView = ({
     const handleSttCompletion = async () => {
       if (sttDownload.completed) {
         try {
-          await localSttCommands.setCurrentModel(selectedSttModel);
+          await localSttCommands.setLocalModel(selectedSttModel);
           await localSttCommands.startServer(null);
         } catch (error) {
           console.error("Error setting up STT:", error);

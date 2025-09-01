@@ -22,6 +22,7 @@ import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
+import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
@@ -128,6 +129,19 @@ export default function EditorArea({
   }));
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+
+  // Assign editor to global ref for access by other components (like chat tools)
+  useEffect(() => {
+    if (editorRef.current?.editor) {
+      globalEditorRef.current = editorRef.current.editor;
+    }
+    // Clear on unmount
+    return () => {
+      if (globalEditorRef.current === editorRef.current?.editor) {
+        globalEditorRef.current = null;
+      }
+    };
+  }, [editorRef.current?.editor]);
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,
     [sessionId, showRaw],
@@ -287,6 +301,8 @@ export default function EditorArea({
           isEnhancedNote={isEnhancedNote}
           onAnnotate={handleAnnotate}
           isAnnotationBoxOpen={!!annotationBox}
+          sessionId={sessionId}
+          editorRef={editorRef}
         />
       )}
 
@@ -317,6 +333,7 @@ export default function EditorArea({
               isError={enhance.status === "error" && !isCancelled}
               progress={progress}
               showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+              userId={userId}
             />
           </div>
         </motion.div>
@@ -402,7 +419,8 @@ export function useEnhanceMutation({
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
-      const [{ type }, config, words] = await Promise.all([
+
+      const [{ type, connection }, config, words] = await Promise.all([
         connectorCommands.getLlmConnection(),
         dbCommands.getConfig(),
         getWordsFunc(sessionId),
@@ -433,13 +451,15 @@ export function useEnhanceMutation({
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
 
-      const eventName = selectedTemplate?.tags.includes("builtin")
-        ? "builtin_template_enhancement_started"
-        : "custom_template_enhancement_started";
-      analyticsCommands.event({
-        event: eventName,
-        distinct_id: userId,
-      });
+      if (selectedTemplate !== null) {
+        const eventName = selectedTemplate?.tags.includes("builtin")
+          ? "builtin_template_enhancement_started"
+          : "custom_template_enhancement_started";
+        analyticsCommands.event({
+          event: eventName,
+          distinct_id: userId,
+        });
+      }
 
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
       const grammarSections = selectedTemplate?.sections.map(s => s.title) || null;
@@ -477,8 +497,7 @@ export function useEnhanceMutation({
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
 
-      console.log("model: ", model);
-      console.log("provider: ", provider);
+      const isHyprCloud = type !== "HyprLocal" && connection && connection.api_base.includes("pro.hyprnote.com");
 
       if (sessionId !== onboardingSessionId) {
         analyticsCommands.event({
@@ -486,6 +505,7 @@ export function useEnhanceMutation({
           distinct_id: userId,
           session_id: sessionId,
           connection_type: type,
+          is_hypr_cloud: isHyprCloud,
         });
       }
 

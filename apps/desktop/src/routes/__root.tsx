@@ -10,7 +10,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { CatchNotFoundFallback, ErrorComponent, NotFoundComponent } from "@/components/control";
 import { HyprProvider } from "@/contexts";
 import type { Context } from "@/types";
-import { events as windowsEvents, init as windowsInit } from "@hypr/plugin-windows";
+import { commands as windowsCommands, events as windowsEvents, init as windowsInit } from "@hypr/plugin-windows";
 
 export const Route = createRootRouteWithContext<Required<Context>>()({
   component: Component,
@@ -28,6 +28,7 @@ declare global {
 
 function Component() {
   const navigate = useNavigate();
+  const { onboardingSessionId, thankYouSessionId } = Route.useRouteContext();
 
   const showDevtools = useQuery({
     queryKey: ["showDevtools"],
@@ -41,13 +42,25 @@ function Component() {
 
   useEffect(() => {
     window.__HYPR_NAVIGATE__ = (to: string) => {
-      navigate({ to });
+      const noteMatch = to.match(/^\/app\/note\/(.+)$/);
+
+      if (noteMatch) {
+        const sessionId = noteMatch[1];
+
+        if (sessionId === onboardingSessionId || sessionId === thankYouSessionId) {
+          navigate({ to });
+        } else {
+          windowsCommands.windowShow({ type: "note", value: sessionId });
+        }
+      } else {
+        navigate({ to });
+      }
     };
 
     return () => {
       window.__HYPR_NAVIGATE__ = undefined;
     };
-  }, [navigate]);
+  }, [navigate, onboardingSessionId, thankYouSessionId]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;

@@ -1,5 +1,9 @@
-import { message } from "@tauri-apps/plugin-dialog";
-import { useRef, useState } from "react";
+import { showProGateModal } from "@/components/pro-gate-modal/service";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import type { SelectionData } from "@/contexts/right-panel";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -7,20 +11,27 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { fetch as tauriFetch } from "@hypr/utils";
 import {
   dynamicTool,
   experimental_createMCPClient,
   modelProvider,
+  smoothStream,
   stepCountIs,
   streamText,
   tool,
 } from "@hypr/utils/ai";
 import { useSessions } from "@hypr/utils/contexts";
 import { useQueryClient } from "@tanstack/react-query";
+import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { z } from "zod";
 import type { ActiveEntityInfo, Message } from "../types/chat-types";
 import { prepareMessageHistory } from "../utils/chat-utils";
 import { parseMarkdownBlocks } from "../utils/markdown-parser";
+import { buildVercelToolsFromMcp } from "../utils/mcp-http-wrapper";
+import { createEditEnhancedNoteTool } from "../utils/tools/edit_enhanced_note";
+import { createSearchSessionDateRangeTool } from "../utils/tools/search_session_date_range";
+import { createSearchSessionTool } from "../utils/tools/search_session_multi_keywords";
 
 interface UseChatLogicProps {
   sessionId: string | null;
@@ -56,9 +67,24 @@ export function useChatLogic({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStreamingText, setIsStreamingText] = useState(false);
   const isGeneratingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const sessions = useSessions((state) => state.sessions);
   const { getLicense } = useLicense();
   const queryClient = useQueryClient();
+
+  // Reset generation state and abort ongoing streams when session changes
+  useEffect(() => {
+    // Abort any ongoing generation when session changes
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Reset generation state for new session
+    setIsGenerating(false);
+    setIsStreamingText(false);
+    isGeneratingRef.current = false;
+  }, [sessionId]);
 
   const handleApplyMarkdown = async (markdownContent: string) => {
     if (!sessionId) {
@@ -75,7 +101,19 @@ export function useChatLogic({
     try {
       const html = await miscCommands.opinionatedMdToHtml(markdownContent);
 
-      sessionStore.getState().updateEnhancedNote(html);
+      const { session, showRaw } = sessionStore.getState();
+
+      const hasEnhancedNote = !!session.enhanced_memo_html;
+
+      if (!hasEnhancedNote) {
+        sessionStore.getState().updateRawNote(html);
+      } else {
+        if (showRaw) {
+          sessionStore.getState().updateRawNote(html);
+        } else {
+          sessionStore.getState().updateEnhancedNote(html);
+        }
+      }
     } catch (error) {
       console.error("Failed to apply markdown content:", error);
     }
@@ -85,6 +123,8 @@ export function useChatLogic({
     content: string,
     analyticsEvent: string,
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData,
+    htmlContent?: string,
   ) => {
     if (!content.trim() || isGenerating) {
       return;
@@ -92,17 +132,14 @@ export function useChatLogic({
 
     const userMessageCount = messages.filter(msg => msg.isUser).length;
 
-    if (userMessageCount >= 3 && !getLicense.data?.valid) {
+    if (userMessageCount >= 4 && !getLicense.data?.valid) {
       if (userId) {
         await analyticsCommands.event({
           event: "pro_license_required_chat",
           distinct_id: userId,
         });
       }
-      await message("3 messages are allowed per conversation for free users.", {
-        title: "Pro License Required",
-        kind: "info",
-      });
+      await showProGateModal("chat");
       return;
     }
 
@@ -122,12 +159,19 @@ export function useChatLogic({
 
     const groupId = await getChatGroupId();
 
+    // Prepare toolDetails before creating the message
+    let toolDetails = null;
+    if (htmlContent && (mentionedContent?.length || selectionData)) {
+      toolDetails = { htmlContent };
+    }
+
     const userMessage: Message = {
       id: crypto.randomUUID(),
       content: content,
       isUser: true,
       timestamp: new Date(),
       type: "text-delta",
+      toolDetails: toolDetails, // Include toolDetails in the message object
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -140,6 +184,7 @@ export function useChatLogic({
       role: "User",
       content: userMessage.content.trim(),
       type: "text-delta",
+      tool_details: toolDetails ? JSON.stringify(toolDetails) : null,
     });
 
     const aiMessageId = crypto.randomUUID();
@@ -156,18 +201,48 @@ export function useChatLogic({
       const apiBase = llmConnection.connection?.api_base;
 
       let newMcpTools: Record<string, any> = {};
+      let hyprMcpTools: Record<string, any> = {};
       let mcpToolsArray: any[] = [];
       const allMcpClients: any[] = [];
+      let hyprMcpClient: Client | null = null;
 
-      const shouldUseMcpTools = type !== "HyprLocal"
+      const shouldUseTools = type !== "HyprLocal"
         && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
           || model.modelId === "anthropic/claude-sonnet-4"
           || model.modelId === "openai/gpt-4o"
-          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com"));
+          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com") || model.modelId === "openai/gpt-5");
 
-      if (shouldUseMcpTools) {
+      if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
         const enabledSevers = mcpServers.filter((server) => server.enabled);
+
+        if (apiBase?.includes("pro.hyprnote.com") && getLicense.data?.valid) {
+          try {
+            const licenseKey = await getLicenseKey();
+
+            const transport = new StreamableHTTPClientTransport(
+              new URL("https://pro.hyprnote.com/mcp"),
+              {
+                fetch: tauriFetch,
+                requestInit: {
+                  headers: {
+                    "x-hyprnote-license-key": licenseKey || "",
+                  },
+                },
+              },
+            );
+            hyprMcpClient = new Client({
+              name: "hyprmcp",
+              version: "0.1.0",
+            });
+
+            await hyprMcpClient.connect(transport);
+
+            hyprMcpTools = await buildVercelToolsFromMcp(hyprMcpClient);
+          } catch (error) {
+            console.error("Error creating and adding hyprmcp client:", error);
+          }
+        }
 
         for (const server of enabledSevers) {
           try {
@@ -210,7 +285,26 @@ export function useChatLogic({
             inputSchema: tool.inputSchema || "No input schema provided",
           }))
           : [];
+
+        for (const [toolKey, tool] of Object.entries(hyprMcpTools)) {
+          mcpToolsArray.push({
+            name: toolKey,
+            description: tool.description || `Tool: ${tool.name}`,
+            inputSchema: tool.inputSchema || "No input schema provided",
+          });
+        }
       }
+
+      // Create tools using the refactored tool factories
+      const searchTool = createSearchSessionTool(userId);
+      const editEnhancedNoteTool = createEditEnhancedNoteTool({
+        sessionId,
+        sessions,
+        selectionData,
+      });
+      const searchSessionDateRangeTool = createSearchSessionDateRangeTool(userId);
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
       const { fullStream } = streamText({
         model,
@@ -224,72 +318,20 @@ export function useChatLogic({
           sessionId,
           userId,
           apiBase,
+          selectionData, // Pass selectionData to prepareMessageHistory
         ),
-        ...(type === "HyprLocal" && {
-          tools: {
-            update_progress: tool({ inputSchema: z.any() }),
-          },
-        }),
-        ...(shouldUseMcpTools && {
-          stopWhen: stepCountIs(3),
-          tools: {
+        stopWhen: stepCountIs(5),
+        tools: {
+          ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
+          ...(shouldUseTools && {
             ...newMcpTools,
-            search_sessions_multi_keywords: tool({
-              description:
-                "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
-              inputSchema: z.object({
-                keywords: z.array(z.string()).min(3).max(5).describe(
-                  "List of 3-5 keywords to search for, each keyword should be concise",
-                ),
-              }),
-              execute: async ({ keywords }) => {
-                const searchPromises = keywords.map(keyword =>
-                  dbCommands.listSessions({
-                    type: "search",
-                    query: keyword,
-                    user_id: userId || "",
-                    limit: 3,
-                  })
-                );
-
-                const searchResults = await Promise.all(searchPromises);
-
-                const combinedResults = new Map();
-
-                searchResults.forEach((sessions, index) => {
-                  const keyword = keywords[index];
-                  sessions.forEach(session => {
-                    if (combinedResults.has(session.id)) {
-                      combinedResults.get(session.id).matchedKeywords.push(keyword);
-                    } else {
-                      combinedResults.set(session.id, {
-                        ...session,
-                        matchedKeywords: [keyword],
-                      });
-                    }
-                  });
-                });
-
-                const finalResults = Array.from(combinedResults.values())
-                  .sort((a, b) => b.matchedKeywords.length - a.matchedKeywords.length);
-
-                return {
-                  results: finalResults,
-                  summary: {
-                    totalSessions: finalResults.length,
-                    keywordsSearched: keywords,
-                    sessionsByKeywordCount: finalResults.reduce((acc, session) => {
-                      const count = session.matchedKeywords.length;
-                      acc[count] = (acc[count] || 0) + 1;
-                      return acc;
-                    }, {} as Record<number, number>),
-                  },
-                };
-              },
-            }),
-          },
-        }),
-
+            search_sessions_multi_keywords: searchTool,
+            ...hyprMcpTools,
+            // Add the edit tool when there's selection data
+            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
+            search_sessions_date_range: searchSessionDateRangeTool,
+          }),
+        },
         onError: (error) => {
           console.error("On Error Catch:", error);
           setIsGenerating(false);
@@ -300,7 +342,14 @@ export function useChatLogic({
           for (const client of allMcpClients) {
             client.close();
           }
+          // close hyprmcp client
+          hyprMcpClient?.close();
         },
+        abortSignal: abortController.signal,
+        experimental_transform: smoothStream({
+          delayInMs: 70,
+          chunking: "word",
+        }),
       });
 
       let aiResponse = "";
@@ -370,6 +419,7 @@ export function useChatLogic({
                   role: "Assistant",
                   type: "text-delta",
                   content: aiResponse.trim(),
+                  tool_details: null,
                 });
               } catch (error) {
                 console.error("Failed to save AI text:", error);
@@ -387,6 +437,7 @@ export function useChatLogic({
             isUser: false,
             timestamp: new Date(),
             type: "tool-start",
+            toolDetails: chunk.input,
           };
           setMessages((prev) => [...prev, toolStartMessage]);
 
@@ -398,11 +449,20 @@ export function useChatLogic({
             role: "Assistant",
             content: toolStartMessage.content,
             type: "tool-start",
+            tool_details: JSON.stringify(chunk.input),
+          });
+
+          // log if user is using tools in chat
+          analyticsCommands.event({
+            event: "chat_tool_call",
+            distinct_id: userId || "",
           });
         }
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
+
+          console.log("tool result: ", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
@@ -421,6 +481,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolResultMessage.content,
             type: "tool-result",
+            tool_details: null,
           });
         }
 
@@ -442,6 +503,7 @@ export function useChatLogic({
             role: "Assistant",
             content: toolErrorMessage.content,
             type: "tool-error",
+            tool_details: null,
           });
         }
 
@@ -456,35 +518,49 @@ export function useChatLogic({
           role: "Assistant",
           type: "text-delta",
           content: aiResponse.trim(),
+          tool_details: null,
         });
       }
 
       setIsGenerating(false);
       setIsStreamingText(false);
       isGeneratingRef.current = false;
+      abortControllerRef.current = null; // Clear the abort controller on successful completion
     } catch (error) {
-      console.error("AI error:", error);
+      console.error(error);
 
-      const errorMsg = (error as any)?.error || "Unknown error";
+      let errorMsg = "Unknown error";
+      if (typeof error === "string") {
+        errorMsg = error;
+      } else if (error instanceof Error) {
+        errorMsg = error.message || error.name || "Unknown error";
+      } else if ((error as any)?.error) {
+        errorMsg = (error as any).error;
+      } else if ((error as any)?.message) {
+        errorMsg = (error as any).message;
+      }
 
-      let finalErrorMesage = "";
+      let finalErrorMessage = "";
 
       if (String(errorMsg).includes("too large")) {
-        finalErrorMesage =
+        finalErrorMessage =
           "Sorry, I encountered an error. Please try again. Your transcript or meeting notes might be too large. Please try again with a smaller transcript or meeting notes."
           + "\n\n" + errorMsg;
+      } else if (String(errorMsg).includes("Request cancelled") || String(errorMsg).includes("Request canceled")) {
+        finalErrorMessage = "Request was cancelled mid-stream. Try again with a different message.";
       } else {
-        finalErrorMesage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
+        finalErrorMessage = "Sorry, I encountered an error. Please try again. " + "\n\n" + errorMsg;
       }
 
       setIsGenerating(false);
       setIsStreamingText(false);
       isGeneratingRef.current = false;
+      abortControllerRef.current = null; // Clear the abort controller on error
 
       // Create error message
       const errorMessage: Message = {
         id: aiMessageId,
-        content: finalErrorMesage,
+        content: finalErrorMessage,
         isUser: false,
         timestamp: new Date(),
         type: "text-delta",
@@ -497,18 +573,23 @@ export function useChatLogic({
         group_id: groupId,
         created_at: new Date().toISOString(),
         role: "Assistant",
-        content: finalErrorMesage,
+        content: finalErrorMessage,
         type: "text-delta",
+        tool_details: null,
       });
     }
   };
 
-  const handleSubmit = async (mentionedContent?: Array<{ id: string; type: string; label: string }>) => {
-    await processUserMessage(inputValue, "chat_message_sent", mentionedContent);
+  const handleSubmit = async (
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData,
+    htmlContent?: string,
+  ) => {
+    await processUserMessage(inputValue, "chat_message_sent", mentionedContent, selectionData, htmlContent);
   };
 
   const handleQuickAction = async (prompt: string) => {
-    await processUserMessage(prompt, "chat_quickaction_sent");
+    await processUserMessage(prompt, "chat_quickaction_sent", undefined, undefined);
 
     if (chatInputRef.current) {
       chatInputRef.current.focus();
@@ -522,6 +603,13 @@ export function useChatLogic({
     }
   };
 
+  const handleStop = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   return {
     isGenerating,
     isStreamingText,
@@ -529,5 +617,6 @@ export function useChatLogic({
     handleQuickAction,
     handleApplyMarkdown,
     handleKeyDown,
+    handleStop,
   };
 }

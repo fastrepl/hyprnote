@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpIcon, BuildingIcon, FileTextIcon, UserIcon } from "lucide-react";
+import { ArrowUpIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
+import type { SelectionData } from "@/contexts/right-panel";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -14,13 +15,18 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 interface ChatInputProps {
   inputValue: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (mentionedContent?: Array<{ id: string; type: string; label: string }>) => void;
+  onSubmit: (
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: SelectionData,
+    htmlContent?: string,
+  ) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   autoFocus?: boolean;
   entityId?: string;
   entityType?: BadgeType;
   onNoteBadgeClick?: () => void;
   isGenerating?: boolean;
+  onStop?: () => void;
 }
 
 export function ChatInput(
@@ -34,10 +40,11 @@ export function ChatInput(
     entityType = "note",
     onNoteBadgeClick,
     isGenerating = false,
+    onStop,
   }: ChatInputProps,
 ) {
   const { userId } = useHypr();
-  const { chatInputRef } = useRightPanel();
+  const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
 
   const lastBacklinkSearchTime = useRef<number>(0);
 
@@ -134,6 +141,7 @@ export function ChatInput(
   }, [onChange, extractPlainText]);
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const processedSelectionRef = useRef<string | null>(null);
 
   const extractMentionedContent = useCallback(() => {
     if (!editorRef.current?.editor) {
@@ -183,7 +191,20 @@ export function ChatInput(
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
 
-    onSubmit(mentionedContent);
+    // Extract HTML content before clearing the editor
+    let htmlContent = "";
+    if (editorRef.current?.editor) {
+      htmlContent = editorRef.current.editor.getHTML();
+    }
+
+    // Pass the pending selection data and HTML content to the submit handler
+    onSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
+
+    // Clear the selection after submission
+    clearPendingSelection();
+
+    // Reset processed selection so new selections can be processed
+    processedSelectionRef.current = null;
 
     if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setContent("<p></p>");
@@ -195,7 +216,7 @@ export function ChatInput(
 
       onChange(syntheticEvent);
     }
-  }, [onSubmit, onChange, extractMentionedContent]);
+  }, [onSubmit, onChange, extractMentionedContent, pendingSelection, clearPendingSelection]);
 
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {
@@ -203,15 +224,73 @@ export function ChatInput(
     }
   }, [chatInputRef]);
 
+  // Handle pending selection from text selection popover
+  useEffect(() => {
+    if (pendingSelection && editorRef.current?.editor) {
+      // Create a unique ID for this selection to avoid processing it multiple times
+      const selectionId = `${pendingSelection.startOffset}-${pendingSelection.endOffset}-${pendingSelection.timestamp}`;
+
+      // Only process if we haven't already processed this exact selection
+      if (processedSelectionRef.current !== selectionId) {
+        // Create compact reference with text preview instead of just positions
+        const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
+
+        const selectedHtml = pendingSelection.text || "";
+
+        // Strip HTML tags to get plain text
+        const stripHtml = (html: string): string => {
+          const temp = document.createElement("div");
+          temp.innerHTML = html;
+          return temp.textContent || temp.innerText || "";
+        };
+
+        const selectedText = stripHtml(selectedHtml).trim();
+
+        const textPreview = selectedText.length > 0
+          ? (selectedText.length > 6
+            ? `'${selectedText.slice(0, 6)}...'` // Use single quotes instead!
+            : `'${selectedText}'`)
+          : "NO_TEXT";
+
+        const selectionRef = textPreview !== "NO_TEXT"
+          ? `[${noteName} - ${textPreview}(${pendingSelection.startOffset}:${pendingSelection.endOffset})]`
+          : `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
+
+        // Escape quotes for HTML attribute
+        const escapedSelectionRef = selectionRef.replace(/"/g, "&quot;");
+
+        const referenceText =
+          `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${escapedSelectionRef}" contenteditable="false">${selectionRef}</a> `;
+
+        editorRef.current.editor.commands.setContent(referenceText);
+        editorRef.current.editor.commands.focus("end");
+
+        // Clear the input value to match editor content
+        const syntheticEvent = {
+          target: { value: selectionRef },
+          currentTarget: { value: selectionRef },
+        } as React.ChangeEvent<HTMLTextAreaElement>;
+        onChange(syntheticEvent);
+
+        // Mark this selection as processed
+        processedSelectionRef.current = selectionId;
+      }
+    }
+  }, [pendingSelection, onChange, noteData?.title, humanData?.full_name, organizationData?.name]);
+
   useEffect(() => {
     const editor = editorRef.current?.editor;
     if (editor) {
       // override TipTap's Enter behavior completely
       editor.setOptions({
         editorProps: {
-          ...editor.options.editorProps,
           handleKeyDown: (view, event) => {
             if (event.key === "Enter" && !event.shiftKey) {
+              const mentionDropdown = document.querySelector(".mention-container");
+              if (mentionDropdown) {
+                return false;
+              }
+
               const isEmpty = view.state.doc.textContent.trim() === "";
               if (isEmpty) {
                 return true;
@@ -271,12 +350,12 @@ export function ChatInput(
   const getBadgeIcon = () => {
     switch (entityType) {
       case "human":
-        return <UserIcon className="size-3" />;
+        return <UserIcon className="size-3 shrink-0" />;
       case "organization":
-        return <BuildingIcon className="size-3" />;
+        return <BuildingIcon className="size-3 shrink-0" />;
       case "note":
       default:
-        return <FileTextIcon className="size-3" />;
+        return <FileTextIcon className="size-3 shrink-0" />;
     }
   };
 
@@ -294,15 +373,16 @@ export function ChatInput(
           font-size: 14px !important;
           line-height: 1.5 !important;
         }
-        .chat-editor .tiptap-normal strong,
-        .chat-editor .tiptap-normal em,
-        .chat-editor .tiptap-normal u,
-        .chat-editor .tiptap-normal h1,
-        .chat-editor .tiptap-normal h2,
-        .chat-editor .tiptap-normal h3,
-        .chat-editor .tiptap-normal ul,
-        .chat-editor .tiptap-normal ol,
-        .chat-editor .tiptap-normal blockquote {
+        .chat-editor .tiptap-normal strong:not(.selection-ref),
+        .chat-editor .tiptap-normal em:not(.selection-ref),
+        .chat-editor .tiptap-normal u:not(.selection-ref),
+        .chat-editor .tiptap-normal h1:not(.selection-ref),
+        .chat-editor .tiptap-normal h2:not(.selection-ref),
+        .chat-editor .tiptap-normal h3:not(.selection-ref),
+        .chat-editor .tiptap-normal ul:not(.selection-ref),
+        .chat-editor .tiptap-normal ol:not(.selection-ref),
+        .chat-editor .tiptap-normal blockquote:not(.selection-ref),
+        .chat-editor .tiptap-normal span:not(.selection-ref) {
           all: unset !important;
           display: inline !important;
         }
@@ -310,7 +390,7 @@ export function ChatInput(
           margin: 0 !important;
           display: block !important;  
         }
-        .chat-editor .mention {
+        .chat-editor .mention:not(.selection-ref) {
           color: #3b82f6 !important;
           font-weight: 500 !important;
           text-decoration: none !important;
@@ -321,7 +401,7 @@ export function ChatInput(
           cursor: default !important;
           pointer-events: none !important;
         }
-        .chat-editor .mention:hover {
+        .chat-editor .mention:not(.selection-ref):hover {
           background-color: rgba(59, 130, 246, 0.08) !important;
           text-decoration: none !important;
         }
@@ -373,7 +453,9 @@ export function ChatInput(
               className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-white max-w-48"
               onClick={onNoteBadgeClick}
             >
-              {getBadgeIcon()}
+              <div className="shrink-0">
+                {getBadgeIcon()}
+              </div>
               <span className="truncate">{entityTitle}</span>
             </Badge>
           )
@@ -381,10 +463,18 @@ export function ChatInput(
 
         <Button
           size="icon"
-          onClick={handleSubmit}
-          disabled={!inputValue.trim() || isGenerating}
+          onClick={isGenerating ? onStop : handleSubmit}
+          disabled={isGenerating ? false : (!inputValue.trim())}
         >
-          <ArrowUpIcon className="h-4 w-4" />
+          {isGenerating
+            ? (
+              <Square
+                className="h-4 w-4"
+                fill="currentColor"
+                strokeWidth={0}
+              />
+            )
+            : <ArrowUpIcon className="h-4 w-4" />}
         </Button>
       </div>
     </div>

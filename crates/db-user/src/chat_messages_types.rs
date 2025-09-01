@@ -34,5 +34,6 @@ user_common_derives! {
         pub role: ChatMessageRole,
         pub content: String,
         pub r#type: ChatMessageType,
+        pub tool_details: Option<String>,
     }
 }

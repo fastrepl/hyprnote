@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { open } from "@tauri-apps/plugin-shell";
-import { CloudIcon, DownloadIcon, FolderIcon, HelpCircleIcon } from "lucide-react";
+import { CloudIcon, DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as localLlmCommands, type SupportedModel } from "@hypr/plugin-local-llm";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { type LLMModel, SharedLLMProps } from "./shared";
@@ -91,43 +92,67 @@ export function LLMLocalView({
           <div
             className={cn(
               "group relative p-3 rounded-lg border-2 transition-all",
-              isPro ? "" : "opacity-50",
               isHyprCloudSelected
                 ? "border-solid border-blue-500 bg-blue-50"
                 : "border-dashed border-gray-300 hover:border-gray-400 bg-white",
             )}
           >
             <div className="flex items-center justify-between">
-              <button
-                onClick={handleHyprCloudSelection}
-                disabled={!isPro}
-                className={cn(
-                  buttonResetClass,
-                  isPro ? "cursor-pointer" : "cursor-not-allowed",
-                  "flex-1 min-w-0 block",
-                )}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-base text-gray-900 flex items-center gap-2">
-                      <CloudIcon className="w-4 h-4" />
-                      HyprCloud
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Managed LLM endpoint for Pro users. Click blue button to learn more.
-                    </p>
+              <div className="relative flex-1">
+                {/* Main button */}
+                <button
+                  onClick={handleHyprCloudSelection}
+                  disabled={!isPro}
+                  className={cn(
+                    buttonResetClass,
+                    isPro ? "cursor-pointer" : "cursor-not-allowed",
+                    "block w-full",
+                  )}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-base text-gray-900 flex items-center gap-2">
+                        <CloudIcon className={cn("w-4 h-4", isPro ? "" : "opacity-50")} />
+                        <span className={isPro ? "" : "opacity-50"}>HyprCloud</span>
+                      </h3>
+                      <p className={cn("text-sm text-gray-600", isPro ? "" : "opacity-50")}>
+                        Connect to Hyprnote's Cloud hosted AI model.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open("https://docs.hyprnote.com/pro/cloud");
-                }}
-                className="text-blue-600 hover:text-blue-800 transition-colors relative z-10 ml-2"
-              >
-                <HelpCircleIcon className="w-4 h-4" />
-              </button>
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    open("https://docs.hyprnote.com/pro/cloud");
+                  }}
+                  className="absolute top-[-2px] left-[113px] z-10"
+                >
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-200 text-blue-800 hover:bg-blue-100 transition-colors">
+                    Pro
+                  </span>
+                </button>
+              </div>
+
+              {!isPro && (
+                <Button
+                  onClick={() => {
+                    windowsCommands.windowShow({ type: "settings" }).then(() => {
+                      setTimeout(() => {
+                        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+                          path: "/app/settings",
+                          search: { tab: "billing" },
+                        });
+                      }, 500);
+                    });
+                  }}
+                  size="sm"
+                  className="ml-4 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Upgrade to Pro
+                </Button>
+              )}
             </div>
           </div>
 
@@ -218,9 +243,7 @@ export function LLMLocalView({
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
-                        console.log("model download clicked");
                         e.stopPropagation();
-                        console.log("model download clicked 2");
                         handleModelDownload(model.key);
                       }}
                       className="text-xs h-7 px-2 flex items-center gap-1"

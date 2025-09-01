@@ -6,7 +6,7 @@ mod commands;
 mod error;
 mod events;
 mod ext;
-mod fsm;
+pub mod fsm;
 mod manager;
 
 pub use error::*;
@@ -19,6 +19,12 @@ pub type SharedState = Mutex<State>;
 
 pub struct State {
     fsm: statig::awaitable::StateMachine<fsm::Session>,
+}
+
+impl State {
+    pub fn get_state(&self) -> fsm::State {
+        self.fsm.state().clone()
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

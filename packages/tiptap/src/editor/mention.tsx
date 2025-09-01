@@ -264,18 +264,18 @@ export const mention = (config: MentionConfig) => {
         return {
           id: {
             default: null,
-            parseHTML: (element) => element.getAttribute("data-id"),
-            renderHTML: (attributes) => ({ "data-id": attributes.id }),
+            parseHTML: (element: Element) => element.getAttribute("data-id"),
+            renderHTML: (attributes: { id: string }) => ({ "data-id": attributes.id }),
           },
           type: {
             default: null,
-            parseHTML: (element) => element.getAttribute("data-type"),
-            renderHTML: (attributes) => ({ "data-type": attributes.type }),
+            parseHTML: (element: Element) => element.getAttribute("data-type"),
+            renderHTML: (attributes: { type: string }) => ({ "data-type": attributes.type }),
           },
           label: {
             default: null,
-            parseHTML: (element) => element.getAttribute("data-label"),
-            renderHTML: (attributes) => ({ "data-label": attributes.label }),
+            parseHTML: (element: Element) => element.getAttribute("data-label"),
+            renderHTML: (attributes: { label: string }) => ({ "data-label": attributes.label }),
           },
         };
       },

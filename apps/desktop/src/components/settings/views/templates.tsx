@@ -1,6 +1,6 @@
+import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { message } from "@tauri-apps/plugin-dialog";
 import { open } from "@tauri-apps/plugin-shell";
 import { ArrowLeftIcon, CheckIcon, InfoIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function TemplatesView() {
     setViewState("editor");
   };
 
-  const handleNewTemplate = () => {
+  const handleNewTemplate = async () => {
     if (!getLicense.data?.valid) {
       if (customTemplates.length > 1) {
         analyticsCommands.event({
@@ -117,10 +117,7 @@ export default function TemplatesView() {
           distinct_id: userId,
         });
 
-        message("Free users can create only two custom templates. Upgrade to Pro for unlimited templates.", {
-          title: "Pro License Required",
-          kind: "info",
-        });
+        await showProGateModal("template");
         return;
       }
     }
@@ -199,6 +196,44 @@ export default function TemplatesView() {
     }
   };
 
+  const handleDuplicateTemplate = async (template: Template) => {
+    try {
+      if (!getLicense.data?.valid) {
+        analyticsCommands.event({
+          event: "pro_license_required_template",
+          distinct_id: userId,
+        });
+        await showProGateModal("template_duplicate");
+        return;
+      }
+
+      const emojiMatch = template.title?.match(/^(\p{Emoji})\s*/u);
+      const originalEmoji = emojiMatch ? emojiMatch[1] : "📄";
+      const titleWithoutEmoji = template.title?.replace(/^(\p{Emoji})\s*/u, "") || "Untitled";
+      const duplicatedTemplate: Template = {
+        ...template,
+        id: crypto.randomUUID(),
+        user_id: userId,
+        title: `${originalEmoji} ${titleWithoutEmoji} (Copy)`,
+        tags: template.tags?.filter(tag => tag !== "builtin") || [],
+      };
+
+      await TemplateService.saveTemplate(duplicatedTemplate);
+
+      await loadTemplates();
+
+      setSelectedTemplate(duplicatedTemplate);
+      setViewState("editor");
+
+      analyticsCommands.event({
+        event: "template_duplicated",
+        distinct_id: userId,
+      });
+    } catch (error) {
+      console.error("Failed to duplicate template:", error);
+    }
+  };
+
   // Check if current template is being viewed (read-only)
   const isViewingTemplate = selectedTemplate && !TemplateService.canEditTemplate(selectedTemplate.id);
 
@@ -224,6 +259,7 @@ export default function TemplatesView() {
             template={selectedTemplate}
             onTemplateUpdate={handleTemplateUpdate}
             onDelete={handleTemplateDeleteFromEditor}
+            onDuplicate={handleDuplicateTemplate}
             isCreator={true}
           />
         )}

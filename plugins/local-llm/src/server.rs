@@ -184,7 +184,6 @@ impl LocalProvider {
             .and_then(|v| v.get("grammar"))
             .and_then(|v| serde_json::from_value::<hypr_gbnf::Grammar>(v.clone()).ok());
 
-        // TODO: this is temporary hack to disable grammar for hypr-llm
         let grammar = match maybe_grammar {
             None => None,
             Some(g) => {
@@ -199,7 +198,23 @@ impl LocalProvider {
             }
         };
 
-        let request = hypr_llama::LlamaRequest { messages, grammar };
+        let tools = request
+            .tools
+            .as_ref()
+            .map(|tools| {
+                tools
+                    .iter()
+                    .filter(|tool| tool.function.name != "update_progress")
+                    .cloned()
+                    .collect::<Vec<_>>()
+            })
+            .filter(|tools| !tools.is_empty());
+
+        let request = hypr_llama::LlamaRequest {
+            messages,
+            grammar,
+            tools,
+        };
 
         let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
 

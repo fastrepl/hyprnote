@@ -32,7 +32,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput }: EmptyChatSt
   const handleCustomEndpointsClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     windowsCommands.windowShow({ type: "settings" }).then(() => {
-      windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=ai");
+      windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=ai-llm");
     });
   }, []);
 

@@ -23,7 +23,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
@@ -59,31 +59,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const { onboardingSessionId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 
-  const modelDownloaded = useQuery({
-    queryKey: ["check-stt-model-downloaded"],
-    refetchInterval: 1000,
-    queryFn: async () => {
-      const currentModel = await localSttCommands.getCurrentModel();
-      const isDownloaded = await localSttCommands.isModelDownloaded(currentModel);
-      const servers = await localSttCommands.getServers();
-      const isServerAvailable = servers.external || servers.internal;
-      return isDownloaded && isServerAvailable;
-    },
-  });
-
-  const anySttModelExists = useQuery({
-    queryKey: ["check-any-stt-model-downloaded"],
-    refetchInterval: 3000,
-    queryFn: async () => {
-      const supportedModels = await localSttCommands.listSupportedModels();
-      const sttDownloadStatuses = await Promise.all(
-        supportedModels.map((model) => localSttCommands.isModelDownloaded(model.key as SupportedSttModel)),
-      );
-      return sttDownloadStatuses.some(Boolean);
-    },
-    enabled: isOnboarding,
-  });
-
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
@@ -93,6 +68,20 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     stop: s.stop,
     loading: s.loading,
   }));
+
+  const modelDownloaded = useQuery({
+    queryKey: ["check-stt-model-downloaded"],
+    refetchInterval: 1500,
+    enabled: ongoingSessionStatus !== "running_active",
+    queryFn: async () => {
+      const currentModel = await localSttCommands.getLocalModel();
+      const isDownloaded = await localSttCommands.isModelDownloaded(currentModel);
+      const servers = await localSttCommands.getServers();
+      const isServerAvailable = (servers.external === "ready") || (servers.internal === "ready")
+        || (servers.custom === "ready");
+      return isDownloaded && isServerAvailable;
+    },
+  });
 
   const sessionWords = useSession(sessionId, (s) => s.session.words);
 
@@ -117,7 +106,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     if (ongoingSessionStatus === "inactive") {
       ongoingSessionStore.start(sessionId);
 
-      // Set mic muted after starting if it's onboarding
       if (isOnboarding) {
         listenerCommands.setMicMuted(true);
       }
@@ -143,13 +131,13 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
         onClick={handleResumeSession}
         className={cn(
           `${
-            isCompact ? "w-12" : "w-16"
+            isCompact ? "w-16" : "w-16"
           } h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium`,
           "bg-red-100 border-2 border-red-400 text-red-600",
           "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         )}
       >
-        <Trans>{isCompact ? "Go" : "Resume"}</Trans>
+        <Trans>{isCompact ? "Resume" : "Resume"}</Trans>
       </button>
     );
   }
@@ -157,7 +145,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   if (ongoingSessionStatus === "inactive") {
     const buttonProps = {
       disabled: isOnboarding
-        ? !anySttModelExists.data || (meetingEnded && isEnhancePending)
+        ? !modelDownloaded.data || (meetingEnded && isEnhancePending)
         : !modelDownloaded.data || (meetingEnded && isEnhancePending),
       onClick: handleStartSession,
     };
@@ -218,7 +206,7 @@ function WhenInactiveAndMeetingEnded(
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         `${
-          isCompact ? "w-12" : "w-16"
+          isCompact ? "w-16" : "w-16"
         } h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium`,
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
@@ -227,7 +215,9 @@ function WhenInactiveAndMeetingEnded(
           : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>{disabled ? "Wait..." : isHovered ? (isCompact ? "Go" : "Resume") : (isCompact ? "End" : "Ended")}</Trans>
+      <Trans>
+        {disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}
+      </Trans>
     </button>
   );
 }

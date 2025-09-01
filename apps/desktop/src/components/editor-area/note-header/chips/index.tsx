@@ -1,27 +1,30 @@
-import { useRightPanel } from "@/contexts";
-import { MessageCircleMore } from "lucide-react";
+// Temporarily commented out chat functionality
+// import { useRightPanel } from "@/contexts";
+// import { MessageCircleMore } from "lucide-react";
 import { EventChip } from "./event-chip";
 import { ParticipantsChip } from "./participants-chip";
 import { PastNotesChip } from "./past-notes-chip";
+import { ShareChip } from "./share-chip";
 import { TagChip } from "./tag-chip";
 
-function StartChatButton({ isVeryNarrow }: { isVeryNarrow: boolean }) {
-  const { togglePanel } = useRightPanel();
+// Temporarily commented out StartChatButton
+// function StartChatButton({ isVeryNarrow }: { isVeryNarrow: boolean }) {
+//   const { togglePanel } = useRightPanel();
 
-  const handleChatClick = () => {
-    togglePanel("chat");
-  };
+//   const handleChatClick = () => {
+//     togglePanel("chat");
+//   };
 
-  return (
-    <button
-      onClick={handleChatClick}
-      className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs transition-colors"
-    >
-      <MessageCircleMore size={14} className="flex-shrink-0" />
-      {!isVeryNarrow && <span className="truncate">Chat</span>}
-    </button>
-  );
-}
+//   return (
+//     <button
+//       onClick={handleChatClick}
+//       className="flex flex-row items-center gap-1 rounded-md px-2 py-1.5 hover:bg-neutral-100 flex-shrink-0 text-xs transition-colors"
+//     >
+//       <MessageCircleMore size={14} className="flex-shrink-0" />
+//       {!isVeryNarrow && <span className="truncate">Chat</span>}
+//     </button>
+//   );
+// }
 
 export default function NoteHeaderChips({
   sessionId,
@@ -45,7 +48,9 @@ export default function NoteHeaderChips({
       <EventChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <ParticipantsChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <TagChip sessionId={sessionId} hashtags={hashtags} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
-      <StartChatButton isVeryNarrow={isVeryNarrow} />
+      <ShareChip isVeryNarrow={isVeryNarrow} />
+      {/* Temporarily commented out chat button */}
+      {/* <StartChatButton isVeryNarrow={isVeryNarrow} /> */}
       <PastNotesChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
     </div>
   );

@@ -44,6 +44,7 @@ hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
@@ -52,7 +53,8 @@ hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
 hypr-notification = { path = "crates/notification", package = "notification" }
-hypr-notification2 = { path = "crates/notification2", package = "notification2" }
+hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
+hypr-notification-macos = { path = "crates/notification-macos", package = "notification-macos" }
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
@@ -94,9 +96,9 @@ tauri-plugin-fs = "2.4"
 tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
 tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
-tauri-plugin-opener = "2.4"
+tauri-plugin-opener = "2.5"
 tauri-plugin-shell = "2.3"
-tauri-plugin-store = "2.3"
+tauri-plugin-store = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
@@ -201,11 +203,11 @@ apalis = "0.7.0"
 apalis-cron = "0.7.0"
 apalis-sql = "0.7.0"
 
-specta = "2.0.0-rc.21"
+specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = { git = "https://github.com/yury/cidre", rev = "6f9d1f4" }
+cidre = { git = "https://github.com/yury/cidre", rev = "a9587fa" }
 cpal = "0.15.3"
 dasp = "0.11.0"
 flume = "0.11.1"
@@ -234,6 +236,9 @@ objc2-user-notifications = "0.3"
 
 rmcp = "0.5.0"
 tokenizers = "0.21.4"
+
+swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9" }
+sysinfo = "0.37.0"
 
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }

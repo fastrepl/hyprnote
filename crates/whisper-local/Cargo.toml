@@ -16,7 +16,6 @@ openmp = ["whisper-rs/openmp"]
 
 [dev-dependencies]
 hypr-data = { workspace = true }
-hypr-llama = { workspace = true }
 
 dirs = { workspace = true }
 futures-util = { workspace = true }

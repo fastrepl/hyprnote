@@ -6,6 +6,7 @@ mod store;
 use ext::*;
 use store::*;
 
+use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
 use tracing_subscriber::{
@@ -74,6 +75,11 @@ pub async fn main() {
         builder = builder.plugin(tauri_nspanel::init());
     }
 
+    let ctrl_n_shortcut = {
+        use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
+        Shortcut::new(Some(Modifiers::META | Modifiers::ALT), Code::KeyH)
+    };
+
     builder = builder
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_sse::init())
@@ -109,10 +115,36 @@ pub async fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(move |app, shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+                    use tauri_plugin_windows::{HyprWindow, Navigate};
+
+                    if shortcut == &ctrl_n_shortcut {
+                        match event.state() {
+                            ShortcutState::Pressed => {
+                                if let Ok(_) = HyprWindow::Main.show(&app) {
+                                    std::thread::sleep(std::time::Duration::from_millis(100));
+
+                                    let _ = HyprWindow::Main.emit_navigate(
+                                        &app,
+                                        Navigate {
+                                            path: "/app/new?record=true".to_string(),
+                                            search: None,
+                                        },
+                                    );
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                })
+                .build(),
+        )
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![]),
+            Some(vec!["--background"]),
         ));
 
     {
@@ -153,15 +185,30 @@ pub async fn main() {
 
     let specta_builder = make_specta_builder();
 
+    let args: Vec<String> = std::env::args().collect();
+    let is_background_launch = args.contains(&"--background".to_string());
+
     let app = builder
         .invoke_handler({
             let handler = specta_builder.invoke_handler();
             move |invoke| handler(invoke)
         })
+        .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
             let app = app.handle().clone();
 
             specta_builder.mount_events(&app);
+
+            #[cfg(target_os = "macos")]
+            {
+                let app_handle = app.clone();
+                hypr_intercept::setup_quit_handler(create_quit_handler(app_handle));
+            }
+
+            {
+                use tauri_plugin_global_shortcut::GlobalShortcutExt;
+                app.global_shortcut().register(ctrl_n_shortcut)?;
+            }
 
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
@@ -177,10 +224,17 @@ pub async fn main() {
                         return;
                     };
 
-                    let dests = deeplink::parse(url);
-                    for dest in dests {
-                        if app_clone.window_show(dest.window.clone()).is_ok() {
-                            let _ = app_clone.window_navigate(dest.window, &dest.url);
+                    let actions = deeplink::parse(url);
+                    for action in actions {
+                        match action {
+                            deeplink::DeeplinkAction::OpenInternal(window, url) => {
+                                if app_clone.window_show(window.clone()).is_ok() {
+                                    let _ = app_clone.window_navigate(window, &url);
+                                }
+                            }
+                            deeplink::DeeplinkAction::OpenExternal(url) => {
+                                let _ = app_clone.opener().open_url(url.as_str(), None::<String>);
+                            }
                         }
                     }
                 });
@@ -216,6 +270,16 @@ pub async fn main() {
                                 let _ =
                                     sentry_client.close(Some(std::time::Duration::from_secs(1)));
                             }
+
+                            {
+                                use tauri_plugin_autostart::ManagerExt;
+                                let autostart_manager = app_clone.autolaunch();
+                                if config.general.autostart {
+                                    let _ = autostart_manager.enable();
+                                } else {
+                                    let _ = autostart_manager.disable();
+                                }
+                            }
                         }
 
                         tauri_plugin_sentry::sentry::configure_scope(|scope| {
@@ -226,20 +290,6 @@ pub async fn main() {
                         });
                     }
                 }
-
-                // Start event notification after DB is initialized
-                {
-                    use tauri_plugin_notification::NotificationPluginExt;
-                    if app_clone.get_event_notification().unwrap_or(false) {
-                        if let Err(e) = app_clone.start_event_notification().await {
-                            tracing::error!("start_event_notification_failed: {:?}", e);
-                        }
-                    }
-                }
-
-                tokio::spawn(async move {
-                    app_clone.setup_local_ai().await.unwrap();
-                });
             });
 
             Ok(())
@@ -247,8 +297,14 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
-    let app_handle = app.handle().clone();
-    HyprWindow::Main.show(&app_handle).unwrap();
+    if !is_background_launch {
+        let app_handle = app.handle().clone();
+
+        #[cfg(target_os = "macos")]
+        let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+        HyprWindow::Main.show(&app_handle).unwrap();
+    }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
@@ -256,6 +312,53 @@ pub async fn main() {
             HyprWindow::Main.show(app).unwrap();
         }
     });
+}
+
+#[cfg(target_os = "macos")]
+fn create_quit_handler(app_handle: tauri::AppHandle) -> impl Fn() -> bool {
+    use tauri::Manager;
+    use tauri_plugin_dialog::DialogExt;
+    use tauri_plugin_listener::ListenerPluginExt;
+
+    move || {
+        let mut is_exit_intent = false;
+
+        if let Some(shared_state) = app_handle.try_state::<tauri_plugin_listener::SharedState>() {
+            if let Ok(guard) = shared_state.try_lock() {
+                let state = guard.get_state();
+                if !matches!(
+                    state,
+                    tauri_plugin_listener::fsm::State::RunningActive { .. }
+                ) {
+                    is_exit_intent = true;
+                } else {
+                    is_exit_intent = app_handle
+                        .dialog()
+                        .message("Hyprnote is currently recording.")
+                        .title("Do you really want to quit?")
+                        .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(
+                            "Quit".to_string(),
+                            "Cancel".to_string(),
+                        ))
+                        .kind(tauri_plugin_dialog::MessageDialogKind::Info)
+                        .blocking_show()
+                }
+            }
+        }
+
+        if is_exit_intent {
+            let _ = app_handle.close_all_windows();
+            let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+
+            let app_handle_clone = app_handle.clone();
+            tokio::spawn(async move {
+                let _ = app_handle_clone.stop_session().await;
+            });
+        }
+
+        false
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

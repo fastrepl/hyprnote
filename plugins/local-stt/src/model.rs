@@ -1,7 +1,7 @@
 use hypr_am::AmModel;
 use hypr_whisper_local_model::WhisperModel;
 
-pub static SUPPORTED_MODELS: [SupportedSttModel; 10] = [
+pub static SUPPORTED_MODELS: [SupportedSttModel; 9] = [
     SupportedSttModel::Whisper(WhisperModel::QuantizedTiny),
     SupportedSttModel::Whisper(WhisperModel::QuantizedTinyEn),
     SupportedSttModel::Whisper(WhisperModel::QuantizedBase),
@@ -11,7 +11,6 @@ pub static SUPPORTED_MODELS: [SupportedSttModel; 10] = [
     SupportedSttModel::Whisper(WhisperModel::QuantizedLargeTurbo),
     SupportedSttModel::Am(AmModel::ParakeetV2),
     SupportedSttModel::Am(AmModel::ParakeetV3),
-    SupportedSttModel::Am(AmModel::WhisperLargeV3),
 ];
 
 #[derive(serde::Serialize, serde::Deserialize, specta::Type)]
@@ -26,6 +25,18 @@ pub struct SttModelInfo {
 pub enum SupportedSttModel {
     Whisper(WhisperModel),
     Am(AmModel),
+    // must be the last item
+    Custom(String),
+}
+
+impl std::fmt::Display for SupportedSttModel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SupportedSttModel::Whisper(model) => write!(f, "whisper-{}", model),
+            SupportedSttModel::Am(model) => write!(f, "am-{}", model),
+            SupportedSttModel::Custom(model) => write!(f, "{}", model),
+        }
+    }
 }
 
 impl SupportedSttModel {
@@ -180,6 +191,7 @@ impl SupportedSttModel {
                 hypr_am::AmModel::ParakeetV3 => parakeet_v3_languages,
                 hypr_am::AmModel::WhisperLargeV3 => whisper_multi_languages,
             },
+            SupportedSttModel::Custom(_) => vec![],
         }
     }
 
@@ -194,6 +206,11 @@ impl SupportedSttModel {
                 key: self.clone(),
                 display_name: model.display_name().to_string(),
                 size_bytes: model.model_size_bytes(),
+            },
+            SupportedSttModel::Custom(_) => SttModelInfo {
+                key: self.clone(),
+                display_name: "Custom".to_string(),
+                size_bytes: 0,
             },
         }
     }

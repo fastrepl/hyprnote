@@ -7,10 +7,18 @@ const COMMANDS: &[&str] = &[
     "start_server",
     "stop_server",
     "get_servers",
-    "get_current_model",
-    "set_current_model",
+    "get_local_model",
+    "set_local_model",
     "list_supported_models",
     "list_supported_languages",
+    "get_custom_base_url",
+    "get_custom_api_key",
+    "set_custom_base_url",
+    "set_custom_api_key",
+    "get_provider",
+    "set_provider",
+    "get_custom_model",
+    "set_custom_model",
 ];
 
 fn main() {

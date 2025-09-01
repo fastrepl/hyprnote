@@ -1,25 +1,38 @@
+use super::ServerHealth;
+
 pub struct ServerHandle {
     pub base_url: String,
     api_key: Option<String>,
     shutdown: tokio::sync::watch::Sender<()>,
-    child: tauri_plugin_shell::process::CommandChild,
     client: hypr_am::Client,
 }
 
+impl Drop for ServerHandle {
+    fn drop(&mut self) {
+        tracing::info!("stopping");
+        let _ = self.shutdown.send(());
+    }
+}
+
 impl ServerHandle {
-    pub async fn health(&self) -> bool {
+    pub async fn health(&self) -> ServerHealth {
         let res = self.client.status().await;
         if res.is_err() {
-            return false;
+            tracing::error!("{:?}", res);
+            return ServerHealth::Unreachable;
         }
 
-        matches!(res.unwrap().status, hypr_am::ServerStatusType::Ready)
-    }
+        let res = res.unwrap();
 
-    pub fn terminate(self) -> Result<(), crate::Error> {
-        let _ = self.shutdown.send(());
-        self.child.kill().map_err(|e| crate::Error::ShellError(e))?;
-        Ok(())
+        if res.model_state == hypr_am::ModelState::Loading {
+            return ServerHealth::Loading;
+        }
+
+        if res.model_state == hypr_am::ModelState::Loaded {
+            return ServerHealth::Ready;
+        }
+
+        ServerHealth::Unreachable
     }
 
     pub async fn init(
@@ -43,43 +56,62 @@ pub async fn run_server(
     cmd: tauri_plugin_shell::process::Command,
     am_key: String,
 ) -> Result<ServerHandle, crate::Error> {
-    let port = 8282;
-    let _ = port_killer::kill(port);
-
+    let port = port_check::free_local_port().unwrap();
     let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
     let base_url = format!("http://localhost:{}", port);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
     let client = hypr_am::Client::new(&base_url);
 
     tokio::spawn(async move {
+        let mut process_ended = false;
+
         loop {
             tokio::select! {
                 _ = shutdown_rx.changed() => {
-                    tracing::info!("external_server_shutdown");
+                    tracing::info!("shutdown_signal_received");
                     break;
                 }
                 event = rx.recv() => {
-                    if event.is_none() {
-                        break;
-                    }
-
-                    match event.unwrap() {
-                        tauri_plugin_shell::process::CommandEvent::Stdout(bytes) => {
+                    match event {
+                        Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                tracing::info!("{}", text);
+                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
+                                    tracing::info!("{}", text);
+                                }
                             }
                         }
-                        tauri_plugin_shell::process::CommandEvent::Stderr(bytes) => {
+                        Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
                             if let Ok(text) = String::from_utf8(bytes) {
                                 let text = text.trim();
-                                tracing::info!("{}", text);
+                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
+                                    tracing::info!("{}", text);
+                                }
                             }
+                        }
+                        Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
+                            tracing::error!("terminated: {:?}", payload);
+                            process_ended = true;
+                            break;
+                        }
+                        Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
+                            tracing::error!("{}", error);
+                            break;
+                        }
+                        None => {
+                            tracing::warn!("closed");
+                            process_ended = true;
+                            break;
                         }
                         _ => {}
-
                     }
                 }
+            }
+        }
+
+        if !process_ended {
+            if let Err(e) = child.kill() {
+                tracing::error!("{:?}", e);
             }
         }
     });
@@ -88,7 +120,6 @@ pub async fn run_server(
         api_key: Some(am_key),
         base_url,
         shutdown: shutdown_tx,
-        child,
         client,
     })
 }

@@ -83,6 +83,7 @@ impl Server {
             .route("/health", axum::routing::get(health))
             .route("/models", axum::routing::get(list_models))
             .route("/v1/models", axum::routing::get(list_models))
+            .route("/v1/status", axum::routing::get(status))
             .with_state(app_state.clone());
 
         let app = other_router
@@ -267,6 +268,10 @@ async fn handle_transcription(
 
 async fn health() -> &'static str {
     "OK"
+}
+
+async fn status() -> StatusCode {
+    StatusCode::NO_CONTENT
 }
 
 #[derive(serde::Serialize)]

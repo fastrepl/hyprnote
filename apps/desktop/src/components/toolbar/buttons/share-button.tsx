@@ -23,7 +23,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { useSession } from "@hypr/utils/contexts";
-import { exportToPDF } from "../utils/pdf-export";
+import { exportToPDF, getAvailableThemes, type ThemeName } from "../utils/pdf-export";
 
 export function ShareButton() {
   const param = useParams({ from: "/app/note/$id", shouldThrow: false });
@@ -38,6 +38,7 @@ function ShareButtonInNote() {
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedObsidianFolder, setSelectedObsidianFolder] = useState<string>("default");
+  const [selectedPdfTheme, setSelectedPdfTheme] = useState<ThemeName>("default");
   const [includeTranscript, setIncludeTranscript] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const hasEnhancedNote = !!session?.enhanced_memo_html;
@@ -161,7 +162,7 @@ function ShareButtonInNote() {
       if (optionId === "copy") {
         result = await exportHandlers.copy(session);
       } else if (optionId === "pdf") {
-        result = await exportHandlers.pdf(session);
+        result = await exportHandlers.pdf(session, selectedPdfTheme);
       } else if (optionId === "email") {
         try {
           // fetch participants directly, bypassing cache
@@ -331,6 +332,29 @@ function ShareButtonInNote() {
                         </button>
                       </div>
 
+                      {option.id === "pdf" && (
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Theme
+                          </label>
+                          <Select
+                            value={selectedPdfTheme}
+                            onValueChange={(value) => setSelectedPdfTheme(value as ThemeName)}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue placeholder="Select theme" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-48 overflow-y-auto">
+                              {getAvailableThemes().map((theme: ThemeName) => (
+                                <SelectItem key={theme} value={theme} className="text-xs">
+                                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
                       {option.id === "obsidian" && (
                         <>
                           <div className="mb-3">
@@ -440,8 +464,11 @@ const exportHandlers = {
     }
   },
 
-  pdf: async (session: Session): Promise<ExportResult> => {
-    const path = await exportToPDF(session);
+  pdf: async (session: Session, theme: ThemeName = "default"): Promise<ExportResult> => {
+    const path = await exportToPDF(session, theme);
+    if (path) {
+      await message(`Meeting summary saved to your 'Downloads' folder ("${path}")`);
+    }
     return { type: "pdf", path };
   },
 

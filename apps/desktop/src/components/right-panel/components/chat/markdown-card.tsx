@@ -1,7 +1,7 @@
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import Renderer from "@hypr/tiptap/renderer";
 import { Button } from "@hypr/ui/components/ui/button";
-import { CopyIcon, FileTextIcon, PlayIcon } from "lucide-react";
+import { FileTextIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface MarkdownCardProps {
@@ -16,21 +16,10 @@ export function MarkdownCard(
   { content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false }: MarkdownCardProps,
 ) {
   const [htmlContent, setHtmlContent] = useState<string>("");
-  const [isCopied, setIsCopied] = useState(false);
 
   const handleApplyClick = () => {
     if (onApplyMarkdown) {
       onApplyMarkdown(content);
-    }
-  };
-
-  const handleCopyClick = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
-    } catch (error) {
-      console.error("Failed to copy to clipboard:", error);
     }
   };
 
@@ -129,28 +118,14 @@ export function MarkdownCard(
             {sessionTitle || "Hyprnote Suggestion"}
           </div>
 
-          {/* Conditional button based on hasEnhancedNote */}
-          {hasEnhancedNote
-            ? (
-              <Button
-                variant="ghost"
-                className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-                onClick={handleApplyClick}
-              >
-                <PlayIcon className="size-3" />
-                Apply
-              </Button>
-            )
-            : (
-              <Button
-                variant="ghost"
-                className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
-                onClick={handleCopyClick}
-              >
-                <CopyIcon className="size-3" />
-                {isCopied ? "Copied" : "Copy"}
-              </Button>
-            )}
+          <Button
+            variant="ghost"
+            className="hover:bg-neutral-200 h-6 px-2 text-xs text-neutral-600 flex items-center gap-1"
+            onClick={handleApplyClick}
+          >
+            <PlayIcon className="size-3" />
+            Apply
+          </Button>
         </div>
 
         {/* Content section - Add selectable class */}

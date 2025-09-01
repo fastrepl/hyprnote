@@ -80,7 +80,7 @@ export function showSttModelDownloadToast(
             channel={sttChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
-              localSttCommands.setCurrentModel(model);
+              localSttCommands.setLocalModel(model);
               localSttCommands.startServer(null);
               if (onComplete) {
                 onComplete();

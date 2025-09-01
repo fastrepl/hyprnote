@@ -13,6 +13,7 @@ thiserror = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["multipart", "stream"] }
 tokio = { workspace = true, features = ["rt", "macros", "fs"] }
+tokio-util = "0.7"
 tracing = { workspace = true }
 
 [dev-dependencies]

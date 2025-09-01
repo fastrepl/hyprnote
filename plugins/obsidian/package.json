@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "@hypr/obsidian": "workspace:^",
-    "@tauri-apps/api": "^2.7.0"
+    "@tauri-apps/api": "^2.8.0"
   }
 }

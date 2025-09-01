@@ -6,6 +6,7 @@ use tokio::sync::Mutex;
 
 mod commands;
 mod error;
+mod events;
 mod ext;
 mod manager;
 mod model;
@@ -13,6 +14,7 @@ mod server;
 mod store;
 
 pub use error::*;
+use events::*;
 pub use ext::*;
 pub use manager::*;
 pub use model::*;
@@ -83,6 +85,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             Ok(())
         })
+        .on_event(on_event)
         .build()
 }
 

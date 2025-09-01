@@ -1,3 +1,5 @@
+// https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md
+
 #[derive(specta::Type, serde::Serialize, serde::Deserialize)]
 #[serde(tag = "task")]
 pub enum Grammar {
@@ -17,17 +19,6 @@ impl Grammar {
             Grammar::Tags => build_tags_grammar(),
         }
     }
-}
-
-#[allow(dead_code)]
-fn build_enhance_hypr_grammar(_s: &Option<Vec<String>>) -> String {
-    vec![
-        r##"root ::= think content"##,
-        r##"line ::= "- " [A-Z] [^*.\n[(]+ ".\n""##,
-        r##"think ::= "<think>\n" line line? line? line? "</think>""##,
-        r##"content ::= .*"##,
-    ]
-    .join("\n")
 }
 
 fn build_known_sections_grammar(sections: &[String]) -> String {
@@ -58,15 +49,13 @@ fn build_known_sections_grammar(sections: &[String]) -> String {
 
 fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
     let auto = vec![
-        r##"root ::= thinking sectionf section section section? section?"##,
-        r##"sectionf ::= "# Objective\n\n" line line? line? "\n""##,
+        r##"root ::= thinking section section section section? section?"##,
         r##"section ::= header "\n\n" bline bline bline? bline? bline? "\n""##,
-        r##"header ::= "# " [^*.\n]+"##,
+        r##"header ::= "# " [A-Z][^*.\n]+"##,
         r##"line ::= "- " [A-Z] [^*.\n[(]+ ".\n""##,
         r##"bline ::= "- **" [A-Z] [^*\n:]+ "**: " ([^*;,[.\n] | link)+ ".\n""##,
-        r##"hsf ::= "- Objective\n""##,
         r##"hd ::= "- " [A-Z] [^[(*\n]+ "\n""##,
-        r##"thinking ::= "<thinking>\n" hsf hd hd? hd? hd? "</thinking>""##,
+        r##"thinking ::= "<thinking>\n" hd hd hd? hd? hd? "</thinking>""##,
         r##"link ::= "[" [^\]]+ "]" "(" [^)]+ ")""##,
     ]
     .join("\n");
@@ -80,9 +69,11 @@ fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
 
 fn build_title_grammar() -> String {
     vec![
-        r##"lowercase ::= [a-z0-9]"##,
+        r##"lowercase ::= [a-z]"##,
         r##"uppercase ::= [A-Z]"##,
-        r##"word ::= uppercase lowercase*"##,
+        r##"number ::= [0-9]"##,
+        r##"acronym ::= uppercase{2,}"##,
+        r##"word ::= acronym | (uppercase | number) (lowercase | number)*"##,
         r##"root ::= word (" " word)*"##,
     ]
     .join("\n")
@@ -90,9 +81,10 @@ fn build_title_grammar() -> String {
 
 fn build_tags_grammar() -> String {
     vec![
-        r##"root ::= \"[\" \"\" word \"\" (\",\" ws \"\" word \"\")* \"]\""##,
-        r##"word ::= [a-zA-Z0-9_-]+"##,
-        r##"ws ::= \" \"*"##,
+        r##"root ::= "[" ws string ("," ws string)* ws "]""##,
+        r##"string ::= "\"" tag "\"""##,
+        r##"tag ::= [a-zA-Z] ([a-zA-Z0-9_-])*"##,
+        r##"ws ::= [ \t\n\r]*"##,
     ]
     .join("\n")
 }
@@ -108,13 +100,10 @@ mod tests {
 
         for (input, expected) in vec![
             ("Meeting Summary", true),
-            ("Product Review Discussion", true),
-            ("A", true),
-            ("Planning Session", true),
-            ("Q1 Planning Session", true),
-            ("meeting summary", false),
-            ("Meeting-Summary", false),
+            ("2024 Budget Review", true),
+            ("API Design Meeting", true),
             ("", false),
+            ("   ", false),
         ] {
             let result = gbnf.validate(&build_title_grammar(), input).unwrap();
             assert_eq!(result, expected, "failed: {}", input);
@@ -126,10 +115,20 @@ mod tests {
         let gbnf = gbnf_validator::Validator::new().unwrap();
 
         for (input, expected) in vec![
-            ("[\"meeting\", \"summary\"]", true),
-            ("[\"meeting\", \"summary\", \"\"]", false),
+            (
+                serde_json::to_string(&vec!["meeting", "summary"]).unwrap(),
+                true,
+            ),
+            (
+                serde_json::to_string(&vec!["meeting", "summary", ""]).unwrap(),
+                false,
+            ),
+            (
+                serde_json::to_string(&vec!["@meeting", "#summary"]).unwrap(),
+                false,
+            ),
         ] {
-            let result = gbnf.validate(&build_tags_grammar(), input).unwrap();
+            let result = gbnf.validate(&build_tags_grammar(), &input).unwrap();
             assert_eq!(result, expected, "failed: {}", input);
         }
     }

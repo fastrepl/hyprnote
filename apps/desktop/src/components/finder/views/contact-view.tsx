@@ -1,8 +1,9 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
+import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User, UserPlus } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { type Human, type Organization } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -12,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import { getInitials } from "@hypr/utils";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { LinkProps } from "node_modules/@tanstack/react-router/dist/esm/link";
 
 interface ContactViewProps {
@@ -371,6 +373,39 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                             )}
                             {selectedPersonData.organization_id && (
                               <OrganizationInfo organizationId={selectedPersonData.organization_id} />
+                            )}
+                            {!selectedPersonData.is_user && selectedPersonData.email && (
+                              <button
+                                onClick={() => {
+                                  analyticsCommands.event({
+                                    event: "recommend_button_clicked",
+                                    distinct_id: userId,
+                                  });
+
+                                  const subject = encodeURIComponent("I'd like to recommend Hyprnote to you");
+                                  const body = encodeURIComponent(`Hi ${selectedPersonData.full_name || "there"},
+
+I wanted to share Hyprnote with you - it's an AI notetaker for private meetings.
+
+Hyprnote is super cool because you can transcribe your meetings and summarize them with AI, fully locally (even works offline).
+
+It's great to use if your company policy doesn't allow cloud-based AI notetakers like Granola or Otter.
+
+You can check it out at: https://www.hyprnote.com
+
+Let me know what you think!
+
+Best regards`);
+
+                                  const mailtoUrl =
+                                    `mailto:${selectedPersonData.email}?subject=${subject}&body=${body}`;
+                                  openUrl(mailtoUrl);
+                                }}
+                                className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
+                              >
+                                <UserPlus className="h-3 w-3" />
+                                Recommend Hyprnote to {selectedPersonData.full_name}
+                              </button>
                             )}
                           </div>
                           <div className="flex gap-2">

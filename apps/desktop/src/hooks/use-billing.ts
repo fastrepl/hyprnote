@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { fetch } from "@hypr/utils";
 
@@ -64,13 +65,13 @@ export function useBilling({
   const portal = useMutation({
     mutationFn: async () => {
       const response = await fetch(`${SERVER_BASE_URL}/portal`, {
-        method: "POST",
+        method: "GET",
         headers: { "Accept": "application/json" },
       });
       return response.json() as Promise<{ url: string }>;
     },
     onSuccess: ({ url }) => {
-      window.open(url, "_blank");
+      openUrl(url);
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : String(error);

@@ -85,7 +85,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        .on_event(on_event)
         .build()
 }
 

@@ -3,6 +3,8 @@ import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide
 import { useEffect, useRef, useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { isDefaultTemplate } from "@/utils/default-templates";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -49,6 +51,7 @@ interface FloatingButtonProps {
   isError: boolean;
   progress?: number;
   showProgress?: boolean;
+  userId: string;
 }
 
 export function FloatingButton({
@@ -59,6 +62,7 @@ export function FloatingButton({
   isError,
   progress = 0,
   showProgress,
+  userId,
 }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
@@ -144,7 +148,21 @@ export function FloatingButton({
     }, 100);
   };
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = async (templateId: string) => {
+    if (templateId !== "auto" && isDefaultTemplate(templateId)) {
+      try {
+        const templateName = templateId.replace("default-", "").replace(/-/g, "_");
+        const eventName = `${templateName}_builtin_selected`;
+
+        await analyticsCommands.event({
+          event: eventName,
+          distinct_id: userId,
+          template_id: templateId,
+        });
+      } catch (error) {
+        console.error("Failed to track template selection:", error);
+      }
+    }
     setShowTemplatePopover(false);
     handleEnhanceWithTemplate(templateId);
   };
@@ -168,12 +186,18 @@ export function FloatingButton({
     }
   };
 
+  if (ongoingSessionStatus !== "inactive") {
+    return null;
+  }
+
   if (isError) {
     const errorRetryButtonClasses = cn(
-      "rounded-xl border",
+      "rounded-xl border relative",
       "border-border px-4 py-2.5 transition-all ease-in-out",
-      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+      "bg-gradient-to-b from-red-500 to-red-600 text-destructive-foreground hover:from-red-400 hover:to-red-500",
       "hover:scale-105 transition-transform duration-200",
+      "shadow-[inset_0_1px_2px_rgba(255,255,255,0.1),0_2px_4px_rgba(220,38,38,0.15)]",
+      "hover:shadow-[inset_0_1px_3px_rgba(255,255,255,0.15),0_3px_6px_rgba(220,38,38,0.2)]",
     );
 
     return (
@@ -182,6 +206,9 @@ export function FloatingButton({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={errorRetryButtonClasses}
+        style={{
+          transformStyle: "preserve-3d",
+        }}
       >
         <RunOrRerun showRefresh={isHovered} />
       </button>
@@ -195,32 +222,37 @@ export function FloatingButton({
   }
 
   const rawButtonClasses = cn(
-    "rounded-l-xl border-l border-y",
+    "rounded-l-xl border-l border-y relative",
     "border-border px-4 py-2.5 transition-all ease-in-out",
+    "before:absolute before:inset-0 before:rounded-l-xl before:transition-all",
     showRaw
-      ? "bg-primary text-primary-foreground border-black hover:bg-neutral-800"
-      : "bg-background text-neutral-400 hover:bg-neutral-100",
+      ? "bg-gradient-to-b from-neutral-700 to-neutral-800 text-primary-foreground border-black hover:from-neutral-600 hover:to-neutral-700 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]"
+      : "bg-gradient-to-b from-white to-neutral-50 text-neutral-400 hover:from-neutral-50 hover:to-neutral-100 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]",
   );
 
   const enhanceButtonClasses = cn(
-    "rounded-r-xl border-r border-y",
+    "rounded-r-xl border-r border-y relative",
     "border border-border px-4 py-2.5 transition-all ease-in-out",
+    "before:absolute before:inset-0 before:rounded-r-xl before:transition-all",
     showRaw
-      ? "bg-background text-neutral-400 hover:bg-neutral-100"
-      : "bg-primary text-primary-foreground border-black hover:bg-neutral-800",
+      ? "bg-gradient-to-b from-white to-neutral-50 text-neutral-400 hover:from-neutral-50 hover:to-neutral-100 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]"
+      : "bg-gradient-to-b from-neutral-700 to-neutral-800 text-primary-foreground border-black hover:from-neutral-600 hover:to-neutral-700 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]",
   );
 
   const showRefresh = !showRaw && (isHovered || showTemplatePopover) && showRefreshIcon;
   const shouldShowProgress = showProgress && progress < 1.0;
 
   return (
-    <div className="flex w-fit flex-row items-center group hover:scale-105 transition-transform duration-200">
+    <div className="flex w-fit flex-row items-center group hover:scale-105 transition-transform duration-200 drop-shadow-[0_2px_4px_rgba(0,0,0,0.08)] hover:drop-shadow-[0_3px_6px_rgba(0,0,0,0.1)]">
       <button
         disabled={isEnhancePending}
         onClick={handleRawView}
         className={rawButtonClasses}
+        style={{
+          transformStyle: "preserve-3d",
+        }}
       >
-        <TypeOutlineIcon size={20} />
+        <TypeOutlineIcon size={20} className="relative z-10" />
       </button>
 
       <Popover open={showTemplatePopover && !showRaw && !isEnhancePending} onOpenChange={setShowTemplatePopover}>
@@ -236,47 +268,52 @@ export function FloatingButton({
             }}
             onClick={handleEnhanceOrReset}
             className={enhanceButtonClasses}
+            style={{
+              transformStyle: "preserve-3d",
+            }}
           >
-            {isEnhancePending
-              ? isHovered
-                ? (
-                  <div className="flex items-center gap-2">
-                    <XIcon size={20} />
-                    {shouldShowProgress && (
-                      <span className="text-xs font-mono">
-                        {Math.round(progress * 100)}%
-                      </span>
-                    )}
-                  </div>
-                )
-                : (
-                  <div className="flex items-center gap-2">
-                    {shouldShowProgress
-                      ? <AnimatedEnhanceIcon size={20} />
-                      : <EnhanceWIP size={20} strokeWidth={2} />}
-                    {shouldShowProgress && (
-                      <span className="text-xs font-mono">
-                        {Math.round(progress * 100)}%
-                      </span>
-                    )}
-                  </div>
-                )
-              : <RunOrRerun showRefresh={showRefresh} />}
+            <div className="relative z-10">
+              {isEnhancePending
+                ? isHovered
+                  ? (
+                    <div className="flex items-center gap-2">
+                      <XIcon size={20} />
+                      {shouldShowProgress && (
+                        <span className="text-xs font-mono">
+                          {Math.round(progress * 100)}%
+                        </span>
+                      )}
+                    </div>
+                  )
+                  : (
+                    <div className="flex items-center gap-2">
+                      {shouldShowProgress
+                        ? <AnimatedEnhanceIcon size={20} />
+                        : <EnhanceWIP size={20} strokeWidth={2} />}
+                      {shouldShowProgress && (
+                        <span className="text-xs font-mono">
+                          {Math.round(progress * 100)}%
+                        </span>
+                      )}
+                    </div>
+                  )
+                : <RunOrRerun showRefresh={showRefresh} />}
+            </div>
           </button>
         </PopoverTrigger>
 
         <PopoverContent
           side="top"
           align="center"
-          className="w-48 p-0"
+          className="w-48 p-0 shadow-[0_4px_8px_rgba(0,0,0,0.08),0_0_0_1px_rgba(0,0,0,0.03)] backdrop-blur-sm"
           sideOffset={8}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onMouseEnter={showPopover}
           onMouseLeave={hidePopover}
         >
-          <div className="max-h-44 overflow-y-auto p-2 space-y-1">
+          <div className="max-h-44 overflow-y-auto p-2 space-y-1 bg-gradient-to-b from-white to-neutral-50 rounded-lg">
             <div
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-neutral-50 cursor-pointer text-xs text-neutral-400 hover:text-neutral-600"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-neutral-100 cursor-pointer text-xs text-neutral-400 hover:text-neutral-600 transition-all"
               onClick={handleAddTemplate}
             >
               <PlusIcon className="w-3 h-3" />
@@ -288,7 +325,7 @@ export function FloatingButton({
 
             {/* Auto option */}
             <div
-              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm"
+              className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm transition-all"
               onClick={() => handleTemplateSelect("auto")}
             >
               <span className="text-sm">⚡</span>
@@ -305,7 +342,7 @@ export function FloatingButton({
                   return (
                     <div
                       key={template.id}
-                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm"
+                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-neutral-100 cursor-pointer text-sm transition-all"
                       onClick={() => handleTemplateSelect(template.id)}
                     >
                       <span className="text-sm">{emoji}</span>

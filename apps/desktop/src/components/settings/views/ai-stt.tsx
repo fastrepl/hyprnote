@@ -1,7 +1,9 @@
 import { Trans } from "@lingui/react/macro";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { showSttModelDownloadToast } from "../../toast/shared";
@@ -12,6 +14,45 @@ import { STTViewRemote } from "../components/ai/stt-view-remote";
 export default function SttAI() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
+  const { userId } = useHypr();
+  const providerQuery = useQuery({
+    queryKey: ["stt-provider"],
+    queryFn: () => localSttCommands.getProvider(),
+  });
+
+  const setProviderMutation = useMutation({
+    mutationFn: (provider: "Local" | "Custom") => {
+      if (provider === "Custom") {
+        localSttCommands.stopServer(null);
+      }
+      return localSttCommands.setProvider(provider);
+    },
+    onSuccess: () => {
+      providerQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to set provider:", error);
+    },
+  });
+
+  const provider = providerQuery.data ?? "Local";
+
+  useEffect(() => {
+    if (provider === "Custom") {
+      setActiveTab("custom");
+    } else {
+      setActiveTab("default");
+    }
+  }, [provider]);
+
+  const setProviderToLocal = () => setProviderMutation.mutate("Local");
+  const setProviderToCustom = () => {
+    setProviderMutation.mutate("Custom");
+    analyticsCommands.event({
+      event: "custom_stt_selected",
+      distinct_id: userId,
+    });
+  };
 
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
@@ -36,11 +77,17 @@ export default function SttAI() {
       });
 
       setSelectedSTTModel(modelKey);
-      localSttCommands.setCurrentModel(modelKey as any);
+      localSttCommands.setLocalModel(modelKey as any);
+      setProviderToLocal();
     }, queryClient);
   };
 
-  const sttProps: SharedSTTProps & { isWerModalOpen: boolean; setIsWerModalOpen: (open: boolean) => void } = {
+  const sttProps: SharedSTTProps & {
+    isWerModalOpen: boolean;
+    setIsWerModalOpen: (open: boolean) => void;
+    provider: "Local" | "Custom";
+    setProviderToLocal: () => void;
+  } = {
     selectedSTTModel,
     setSelectedSTTModel,
     sttModels,
@@ -49,6 +96,8 @@ export default function SttAI() {
     handleModelDownload,
     isWerModalOpen,
     setIsWerModalOpen,
+    provider,
+    setProviderToLocal,
   };
 
   return (
@@ -70,7 +119,7 @@ export default function SttAI() {
           <STTViewLocal {...sttProps} />
         </TabsContent>
         <TabsContent value="custom">
-          <STTViewRemote />
+          <STTViewRemote provider={provider} setProviderToCustom={setProviderToCustom} />
         </TabsContent>
       </Tabs>
     </div>

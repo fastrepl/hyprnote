@@ -7,8 +7,13 @@ edition = "2021"
 lazy_static = { workspace = true }
 regex = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["rt", "sync", "time"] }
 url = { workspace = true }
+
+tokio = { workspace = true, features = ["rt", "sync", "time"] }
+tracing = { workspace = true }
+
+serde = { workspace = true, features = ["derive"] }
+specta = { workspace = true, features = ["derive"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cidre = { workspace = true }
@@ -17,6 +22,7 @@ objc2-foundation = { workspace = true }
 objc2-app-kit = { workspace = true }
 objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }
-
 objc2-application-services = { workspace = true }
+
 macos-accessibility-client = "0.0.1"
+plist = "1.7"

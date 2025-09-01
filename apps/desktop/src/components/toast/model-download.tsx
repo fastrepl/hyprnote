@@ -15,7 +15,7 @@ export default function ModelDownloadNotification() {
   });
   const currentSttModel = useQuery({
     queryKey: ["current-stt-model"],
-    queryFn: () => localSttCommands.getCurrentModel(),
+    queryFn: () => localSttCommands.getLocalModel(),
   });
 
   const currentLlmModel = useQuery({

@@ -15,8 +15,9 @@ impl UserDatabase {
                     created_at,
                     role,
                     content,
-                    type
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    type, 
+                    tool_details
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 RETURNING *",
                 vec![
                     message.id,
@@ -25,6 +26,7 @@ impl UserDatabase {
                     message.role.to_string(),
                     message.content,
                     message.r#type.to_string(),
+                    message.tool_details.unwrap_or_default(),
                 ],
             )
             .await?;

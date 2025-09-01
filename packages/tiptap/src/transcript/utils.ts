@@ -71,14 +71,6 @@ export const fromWordsToEditor = (words: Word2[]): DocContent => {
         lastSpeaker.content.push({
           type: "text",
           text: word.text,
-          marks: [
-            {
-              type: "interim",
-              attrs: {
-                interim: true,
-              },
-            },
-          ],
         });
       } else {
         lastSpeaker.content.push({ type: "text", text: word.text });

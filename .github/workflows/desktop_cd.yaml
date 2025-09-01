@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
-  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
+  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
+  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
 
 jobs:
   build:
@@ -37,7 +37,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
+        run: |
           VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
@@ -78,12 +79,16 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - run: |
+          aws s3 cp s3://hyprnote-private/hyprnote-${{ env.RELEASE_CHANNEL }}.provisionprofile apps/desktop/src-tauri/assets/hyprnote-${{ env.RELEASE_CHANNEL }}.provisionprofile \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
           aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-          aws s3 cp s3://hyprnote-cache2/v0/binaries/passthrough apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -92,9 +97,6 @@ jobs:
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
           chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          chmod +x ./apps/desktop/src-tauri/binaries/passthrough-${{ matrix.target }}
-          codesign --force --options runtime -s "${{ steps.apple-cert.outputs.cert-id }}" ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
-          codesign -dv ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
       - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
         env:
@@ -134,10 +136,15 @@ jobs:
           framework: tauri
           working-directory: ./apps/desktop
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'macos' }}
+        run: |
+          cd apps/desktop/src-tauri/target/${{ matrix.target }}/release
+          tar -czf hyprnote-staging-${{ matrix.target }}.tar.gz bundle/
+        shell: bash
+      - if: ${{ env.RELEASE_CHANNEL == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-${{ matrix.target }}
-          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/hyprnote-staging-${{ matrix.target }}.tar.gz
           retention-days: 3
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'windows' }}
         uses: actions/upload-artifact@v4
@@ -148,7 +155,7 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
           retention-days: 3
   publish:
-    if: ${{ ((github.event_name == 'workflow_dispatch') || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) && ((github.event_name == 'release' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/'))) }}
+    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) }}
     needs: build
     runs-on: ubuntu-24.04
     steps:

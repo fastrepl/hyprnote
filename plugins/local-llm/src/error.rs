@@ -16,6 +16,8 @@ pub enum Error {
     StoreError(#[from] tauri_plugin_store2::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
+    #[error("server already running")]
+    ServerAlreadyRunning,
 }
 
 impl Serialize for Error {

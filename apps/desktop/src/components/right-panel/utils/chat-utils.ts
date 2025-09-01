@@ -1,3 +1,4 @@
+import type { SelectionData } from "@/contexts/right-panel";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands } from "@hypr/plugin-template";
@@ -42,6 +43,7 @@ export const prepareMessageHistory = async (
   sessionId?: string | null,
   userId?: string | null,
   apiBase?: string | null,
+  selectionData?: SelectionData, // Add selectionData parameter
 ) => {
   const refetchResult = await sessionData?.refetch();
   let freshSessionData = refetchResult?.data;
@@ -67,7 +69,17 @@ export const prepareMessageHistory = async (
     }`
     : "";
 
-  const systemContent = await templateCommands.render("ai_chat.system", {
+  const toolEnabled = !!(
+    modelId === "gpt-4.1"
+    || modelId === "openai/gpt-4.1"
+    || modelId === "anthropic/claude-sonnet-4"
+    || modelId === "openai/gpt-4o"
+    || modelId === "gpt-4o"
+    || modelId === "openai/gpt-5"
+    || (apiBase && apiBase.includes("pro.hyprnote.com"))
+  );
+
+  const systemContent = await templateCommands.render("chat.system", {
     session: freshSessionData,
     words: JSON.stringify(freshSessionData?.words || []),
     title: freshSessionData?.title,
@@ -78,12 +90,9 @@ export const prepareMessageHistory = async (
     date: currentDateTime,
     participants: participants,
     event: eventInfo,
-    modelId: modelId,
+    toolEnabled: toolEnabled,
     mcpTools: mcpToolsArray,
-    apiBase: apiBase,
   });
-
-  console.log("system prompt", systemContent);
 
   const conversationHistory: Array<{
     role: "system" | "user" | "assistant";
@@ -99,15 +108,9 @@ export const prepareMessageHistory = async (
     });
   });
 
-  if (mentionedContent && mentionedContent.length > 0) {
-    currentUserMessage +=
-      "[[From here is an automatically appended content from the mentioned notes & people, not what the user wrote. Use this only as a reference for more context. Your focus should always be the current meeting user is viewing]]"
-      + "\n\n";
-  }
+  const processedMentions: Array<{ type: string; label: string; content: string }> = [];
 
   if (mentionedContent && mentionedContent.length > 0) {
-    const noteContents: string[] = [];
-
     for (const mention of mentionedContent) {
       try {
         if (mention.type === "note") {
@@ -124,7 +127,11 @@ export const prepareMessageHistory = async (
               continue;
             }
 
-            noteContents.push(`\n\n--- Content from the note"${mention.label}" ---\n${noteContent}`);
+            processedMentions.push({
+              type: "note",
+              label: mention.label,
+              content: noteContent,
+            });
           }
         }
 
@@ -177,23 +184,38 @@ export const prepareMessageHistory = async (
           }
 
           if (humanData) {
-            noteContents.push(`\n\n--- Content about the person "${mention.label}" ---\n${humanContent}`);
+            processedMentions.push({
+              type: "human",
+              label: mention.label,
+              content: humanContent,
+            });
           }
         }
       } catch (error) {
         console.error(`Error fetching content for "${mention.label}":`, error);
       }
     }
-
-    if (noteContents.length > 0) {
-      currentUserMessage = currentUserMessage + noteContents.join("");
-    }
   }
 
+  // Use the user template to format the user message
   if (currentUserMessage) {
+    const userContent = await templateCommands.render("chat.user", {
+      message: currentUserMessage,
+      mentionedContent: processedMentions,
+      selectionData: selectionData
+        ? {
+          text: selectionData.text,
+          startOffset: selectionData.startOffset,
+          endOffset: selectionData.endOffset,
+          sessionId: selectionData.sessionId,
+          timestamp: selectionData.timestamp,
+        }
+        : undefined, // Convert to plain object for JsonValue compatibility
+    });
+
     conversationHistory.push({
       role: "user" as const,
-      content: currentUserMessage,
+      content: userContent,
     });
   }
 

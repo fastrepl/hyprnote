@@ -10,6 +10,7 @@ export {
   experimental_createMCPClient,
   generateObject,
   generateText,
+  jsonSchema,
   type Provider,
   smoothStream,
   stepCountIs,

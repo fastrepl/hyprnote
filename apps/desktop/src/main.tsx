@@ -40,6 +40,10 @@ const queryClient = new QueryClient({
     queries: {
       // for most case, we don't want cache
       gcTime: 0,
+      networkMode: "always",
+    },
+    mutations: {
+      networkMode: "always",
     },
   },
 });

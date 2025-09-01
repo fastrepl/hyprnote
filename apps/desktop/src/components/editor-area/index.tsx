@@ -333,6 +333,7 @@ export default function EditorArea({
               isError={enhance.status === "error" && !isCancelled}
               progress={progress}
               showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+              userId={userId}
             />
           </div>
         </motion.div>

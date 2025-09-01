@@ -3,6 +3,7 @@ import { PlusIcon, RefreshCwIcon, TypeOutlineIcon, XIcon, ZapIcon } from "lucide
 import { useEffect, useRef, useState } from "react";
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { Session, Template } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -11,6 +12,7 @@ import { SplashLoader as EnhanceWIP } from "@hypr/ui/components/ui/splash";
 import { cn } from "@hypr/ui/lib/utils";
 import { fetch } from "@hypr/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
+import { isDefaultTemplate } from "@/utils/default-templates";
 
 function AnimatedEnhanceIcon({ size = 20 }: { size?: number }) {
   const [currentFrame, setCurrentFrame] = useState(1);
@@ -49,6 +51,7 @@ interface FloatingButtonProps {
   isError: boolean;
   progress?: number;
   showProgress?: boolean;
+  userId: string;
 }
 
 export function FloatingButton({
@@ -59,6 +62,7 @@ export function FloatingButton({
   isError,
   progress = 0,
   showProgress,
+  userId,
 }: FloatingButtonProps) {
   const [showRaw, setShowRaw] = useSession(session.id, (s) => [
     s.showRaw,
@@ -144,7 +148,23 @@ export function FloatingButton({
     }, 100);
   };
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = async (templateId: string) => {
+   
+    if (templateId !== "auto" && isDefaultTemplate(templateId)) {
+      try {
+        const templateName = templateId.replace("default-", "").replace(/-/g, "_");
+        const eventName = `${templateName}_builtin_selected`;
+           
+        await analyticsCommands.event({
+          event: eventName,
+          distinct_id: userId,
+          template_id: templateId,
+        });
+        
+      } catch (error) {
+        console.error("Failed to track template selection:", error);
+      }
+    } 
     setShowTemplatePopover(false);
     handleEnhanceWithTemplate(templateId);
   };

@@ -19,7 +19,9 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
     tauri_specta::Builder::<tauri::Wry>::new()
         .plugin_name(PLUGIN_NAME)
         .events(tauri_specta::collect_events![])
-        .commands(tauri_specta::collect_commands![commands::hi::<tauri::Wry>])
+        .commands(tauri_specta::collect_commands![
+            commands::logs_dir::<tauri::Wry>
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
@@ -35,9 +37,10 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .unwrap_or_else(|_| EnvFilter::new("info"))
                 .add_directive("ort=warn".parse().unwrap());
 
-            let bundle_id = app.config().identifier.clone();
-
-            if let Some((file_writer, guard)) = make_file_writer_if_enabled(true, &bundle_id) {
+            if let Some((file_writer, guard)) = make_file_writer_if_enabled(
+                true,
+                &app.logs_dir(app.config().identifier.clone()).unwrap(),
+            ) {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
                     .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
@@ -60,23 +63,13 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
 fn make_file_writer_if_enabled(
     enabled: bool,
-    bundle_identifier: &str,
+    logs_dir: &PathBuf,
 ) -> Option<(tracing_appender::non_blocking::NonBlocking, WorkerGuard)> {
     if !enabled {
         return None;
     }
 
-    let base_dir: PathBuf = match dirs::data_dir() {
-        Some(p) => p,
-        None => return None,
-    };
-
-    let logs_dir = base_dir.join(bundle_identifier).join("logs");
-    if let Err(_e) = fs::create_dir_all(&logs_dir) {
-        return None;
-    }
-
-    let file_appender = rolling::daily(&logs_dir, "log.txt");
+    let file_appender = rolling::daily(logs_dir, "log");
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
     Some((non_blocking, guard))
 }

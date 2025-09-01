@@ -7,8 +7,8 @@
 
 
 export const commands = {
-async hi() : Promise<null> {
-    return await TAURI_INVOKE("plugin:tracing|hi");
+async logsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:tracing|logs_dir");
 }
 }
 

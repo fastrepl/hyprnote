@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the hi command without any pre-configured scope."
         },
         {
+          "description": "Enables the logs_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-logs-dir",
+          "markdownDescription": "Enables the logs_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the logs_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-logs-dir",
+          "markdownDescription": "Denies the logs_dir command without any pre-configured scope."
+        },
+        {
           "description": "Enables the ping command without any pre-configured scope.",
           "type": "string",
           "const": "allow-ping",
@@ -319,10 +331,10 @@
           "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-hi`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-hi`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`"
         }
       ]
     }

@@ -7,6 +7,7 @@ pub struct InstalledApp {
     pub bundle_path: String,
 }
 
+#[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
     let app_dirs = [
         "/Applications",
@@ -43,6 +44,7 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
     apps
 }
 
+#[cfg(target_os = "macos")]
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
     let info_plist_path = app_path.join("Contents/Info.plist");
 

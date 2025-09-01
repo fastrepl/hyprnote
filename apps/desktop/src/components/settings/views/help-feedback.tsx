@@ -1,6 +1,8 @@
 import { Trans } from "@lingui/react/macro";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { Book, Bug, ExternalLinkIcon, MessageSquare } from "lucide-react";
+
+import { commands as tracingCommands } from "@hypr/plugin-tracing";
 
 export default function HelpFeedback() {
   const handleOpenFeedback = () => {
@@ -8,13 +10,17 @@ export default function HelpFeedback() {
   };
 
   const handleOpenDocs = () => {
-    // You can update this URL to your actual documentation
-    openUrl("https://hyprnote.com/docs");
+    openUrl("https://docs.hyprnote.com");
   };
 
   const handleReportBug = () => {
-    // You can update this URL to your bug reporting page
     openUrl("https://hyprnote.canny.io/bugs");
+  };
+
+  const handleOpenLogs = () => {
+    tracingCommands.logsDir().then((logsDir) => {
+      openPath(logsDir);
+    });
   };
 
   return (
@@ -81,16 +87,26 @@ export default function HelpFeedback() {
             </div>
             <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
           </button>
-        </div>
-      </div>
 
-      <div className="pt-6 border-t">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">
-          <Trans>About</Trans>
-        </h3>
-        <p className="text-sm text-gray-500">
-          <Trans>Hyprnote - Your intelligent note-taking companion</Trans>
-        </p>
+          {/* Logs */}
+          <button
+            onClick={handleOpenLogs}
+            className="w-full flex items-center justify-between p-4 bg-white rounded-lg border hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Bug className="h-5 w-5 text-gray-600" />
+              <div className="text-left">
+                <div className="font-medium">
+                  <Trans>Logs</Trans>
+                </div>
+                <div className="text-sm text-gray-500">
+                  <Trans>View logs</Trans>
+                </div>
+              </div>
+            </div>
+            <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
+          </button>
+        </div>
       </div>
     </div>
   );

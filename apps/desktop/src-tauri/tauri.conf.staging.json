@@ -16,6 +16,14 @@
       "icons/staging/icon.icns",
       "icons/staging/icon.ico"
     ],
+    "resources": {
+      "dlls/*": "./"
+    },
+    "windows": {
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
+    },
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"

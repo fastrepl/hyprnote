@@ -138,15 +138,26 @@ export function ChatView() {
 
   if (showHistory) {
     return (
-      <ChatHistoryView
-        chatHistory={chatHistory}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
-        onBackToChat={handleBackToChat}
-        formatDate={formatDate}
-      />
+      <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+        <FloatingActionButtons
+          onNewChat={handleNewChat}
+          onViewHistory={handleViewHistory}
+          chatGroups={chatGroupsQuery.data}
+          onSelectChatGroup={handleSelectChatGroup}
+        />
+        
+        <div className="pt-16 flex-1 overflow-hidden">
+          <ChatHistoryView
+            chatHistory={chatHistory}
+            searchValue={searchValue}
+            onSearchChange={handleSearchChange}
+            onSelectChat={handleSelectChat}
+            onNewChat={handleNewChat}
+            onBackToChat={handleBackToChat}
+            formatDate={formatDate}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -159,37 +170,39 @@ export function ChatView() {
         onSelectChatGroup={handleSelectChatGroup}
       />
 
-      {messages.length === 0
-        ? (
-          <EmptyChatState
-            onQuickAction={handleQuickAction}
-            onFocusInput={handleFocusInput}
-          />
-        )
-        : (
-          <ChatMessagesView
-            messages={messages}
-            sessionTitle={sessionData.data?.title || "Untitled"}
-            hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
-            onApplyMarkdown={handleApplyMarkdown}
-            isGenerating={isGenerating}
-            isStreamingText={isStreamingText}
-          />
-        )}
+      <div className="pt-16 flex-1 flex flex-col overflow-hidden">
+        {messages.length === 0
+          ? (
+            <EmptyChatState
+              onQuickAction={handleQuickAction}
+              onFocusInput={handleFocusInput}
+            />
+          )
+          : (
+            <ChatMessagesView
+              messages={messages}
+              sessionTitle={sessionData.data?.title || "Untitled"}
+              hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
+              onApplyMarkdown={handleApplyMarkdown}
+              isGenerating={isGenerating}
+              isStreamingText={isStreamingText}
+            />
+          )}
 
-      <ChatInput
-        inputValue={inputValue}
-        onChange={handleInputChange}
-        onSubmit={(mentionedContent, selectionData, htmlContent) =>
-          handleSubmit(mentionedContent, selectionData, htmlContent)}
-        onKeyDown={handleKeyDown}
-        autoFocus={true}
-        entityId={activeEntity?.id}
-        entityType={activeEntity?.type}
-        onNoteBadgeClick={handleNoteBadgeClick}
-        isGenerating={isGenerating}
-        onStop={handleStop}
-      />
+        <ChatInput
+          inputValue={inputValue}
+          onChange={handleInputChange}
+          onSubmit={(mentionedContent, selectionData, htmlContent) =>
+            handleSubmit(mentionedContent, selectionData, htmlContent)}
+          onKeyDown={handleKeyDown}
+          autoFocus={true}
+          entityId={activeEntity?.id}
+          entityType={activeEntity?.type}
+          onNoteBadgeClick={handleNoteBadgeClick}
+          isGenerating={isGenerating}
+          onStop={handleStop}
+        />
+      </div>
     </div>
   );
 }

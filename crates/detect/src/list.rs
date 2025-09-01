@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct InstalledApp {
     pub bundle_id: String,
@@ -7,7 +5,10 @@ pub struct InstalledApp {
     pub bundle_path: String,
 }
 
+#[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
+    use std::path::PathBuf;
+    
     let app_dirs = [
         "/Applications",
         &format!("{}/Applications", std::env::var("HOME").unwrap_or_default()),
@@ -43,6 +44,12 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
     apps
 }
 
+#[cfg(not(target_os = "macos"))]
+pub fn list_installed_apps() -> Vec<InstalledApp> {
+    Vec::new()
+}
+
+#[cfg(target_os = "macos")]
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
     let info_plist_path = app_path.join("Contents/Info.plist");
 

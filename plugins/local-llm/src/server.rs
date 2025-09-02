@@ -448,7 +448,7 @@ async fn build_chat_completion_response(
                                         delta: ChatCompletionStreamResponseDelta {
                                             tool_calls: Some(vec![
                                                 ChatCompletionMessageToolCallChunk {
-                                                    index: 0,
+                                                    index: index.try_into().unwrap_or(0),
                                                     id: Some(uuid::Uuid::new_v4().to_string()),
                                                     r#type: Some(ChatCompletionToolType::Function),
                                                     function: Some(FunctionCallStream {

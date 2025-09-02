@@ -306,6 +306,12 @@ export function useChatLogic({
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
+      const baseTools = {
+        ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
+        search_sessions_date_range: searchSessionDateRangeTool,
+        search_sessions_multi_keywords: searchTool,
+      };
+
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
@@ -322,15 +328,9 @@ export function useChatLogic({
         ),
         stopWhen: stepCountIs(5),
         tools: {
+          ...baseTools,
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
-          ...(shouldUseTools && {
-            ...newMcpTools,
-            search_sessions_multi_keywords: searchTool,
-            ...hyprMcpTools,
-            // Add the edit tool when there's selection data
-            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
-            search_sessions_date_range: searchSessionDateRangeTool,
-          }),
+          ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);

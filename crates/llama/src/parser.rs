@@ -2,7 +2,7 @@ use nom::{
     bytes::complete::{tag, take_until},
     character::complete::multispace0,
     combinator::map,
-    sequence::delimited,
+    sequence::{delimited, terminated},
     IResult, Parser,
 };
 use std::collections::HashMap;
@@ -100,7 +100,10 @@ impl StreamingParser {
 
 fn parse_think_block(input: &str) -> IResult<&str, String> {
     let mut parser = map(
-        delimited(tag("<think>"), take_until("</think>"), tag("</think>")),
+        terminated(
+            delimited(tag("<think>"), take_until("</think>"), tag("</think>")),
+            multispace0,
+        ),
         |content: &str| content.trim().to_string(),
     );
     parser.parse(input)
@@ -111,6 +114,7 @@ fn parse_tool_call_block(input: &str) -> IResult<&str, (String, String)> {
     let (input, _) = multispace0(input)?;
     let (input, json_content) = take_until("</tool_call>")(input)?;
     let (input, _) = tag("</tool_call>")(input)?;
+    let (input, _) = multispace0(input)?;
 
     let json_trimmed = json_content.trim();
     let parsed: serde_json::Value = serde_json::from_str(json_trimmed)
@@ -167,7 +171,7 @@ mod tests {
             items,
             [
                 Response::Reasoning("I need to process this request.".to_string()),
-                Response::TextDelta("\nHere's my ".to_string()),
+                Response::TextDelta("Here's my ".to_string()),
                 Response::TextDelta("response.".to_string())
             ]
         );

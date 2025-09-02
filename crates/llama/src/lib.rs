@@ -419,13 +419,7 @@ mod tests {
 
         while let Some(response) = stream.next().await {
             responses.push(response.clone());
-            match response {
-                Response::TextDelta(text) => print!("{}", text),
-                Response::Reasoning(text) => println!("<think>{}</think>", text),
-                Response::ToolCall { name, arguments } => {
-                    println!("<tool_call>{} {:?}</tool_call>", name, arguments)
-                }
-            }
+            println!("{:?}", response);
         }
 
         responses

@@ -319,7 +319,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       const style = document.createElement("style");
       style.textContent = `
         [role="dialog"][aria-modal="true"] {
-          width: 800px !important;
+          width: 600px !important;
           max-width: 90vw !important;
         }
       `;

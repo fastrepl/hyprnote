@@ -74,6 +74,7 @@ export function NoteHeader(
           isCompact={isCompact}
         />
         */}
+        
       </div>
 
       {isInNoteMain && <ListenButton sessionId={sessionId} isCompact={isCompact} />}

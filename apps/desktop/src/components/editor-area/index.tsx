@@ -284,8 +284,8 @@ export default function EditorArea({
         isFloatingSearchVisible ? "pt-1" : "pt-1"  // ← Less top padding when search bar is visible
       ])}>
         <MetadataModal sessionId={sessionId} hashtags={hashtags}>
-          <div className="cursor-pointer px-2 py-1 rounded-lg hover:bg-neutral-50/50 transition-colors duration-200">
-            <span className="text-xs text-neutral-300 font-medium hover:text-neutral-600 transition-colors">
+          <div className="cursor-pointer px-2 py-1">
+            <span className="text-xs text-neutral-300 font-medium transition-colors">
               Today, December 19, 2024
             </span>
           </div>

@@ -47,7 +47,7 @@ export default function NoteHeaderChips({
     >
       <EventChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <ParticipantsChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
-      {/*<TagChip sessionId={sessionId} hashtags={hashtags} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />*/}
+      <TagChip sessionId={sessionId} hashtags={hashtags} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       {/*<ShareChip isVeryNarrow={isVeryNarrow} />*/}
       {/* Temporarily commented out chat button */}
       {/* <StartChatButton isVeryNarrow={isVeryNarrow} /> */}

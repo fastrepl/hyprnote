@@ -157,7 +157,7 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
             </TooltipProvider>
           </PopoverTrigger>
 
-          <PopoverContent align="start" className="shadow-lg w-80 relative event-chip-container">
+          <PopoverContent align="center" className="shadow-lg w-80 relative event-chip-container">
             {(() => {
               const startDateObj = new Date(event.data.start_date);
               const endDateObj = new Date(event.data.end_date);

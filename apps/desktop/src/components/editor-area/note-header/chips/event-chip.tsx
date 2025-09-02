@@ -253,7 +253,7 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
             </div>
           </PopoverTrigger>
 
-          <PopoverContent align="start" className="shadow-lg w-80 event-chip-container">
+          <PopoverContent align="center" className="shadow-lg w-80 event-chip-container">
             {noteIsBlank
               ? (
                 <div className="mt-1">

@@ -69,7 +69,7 @@ export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarr
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="shadow-lg w-80" align="start">
+      <PopoverContent className="shadow-lg w-80" align="center">
         <TagChipInner sessionId={sessionId} hashtags={hashtags} />
       </PopoverContent>
     </Popover>

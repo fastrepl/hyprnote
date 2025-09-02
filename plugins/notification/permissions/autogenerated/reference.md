@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-list-applications`
 - `allow-show-notification`
 - `allow-get-event-notification`
 - `allow-set-event-notification`
@@ -16,6 +17,8 @@ Default permissions for the plugin
 - `allow-stop-detect-notification`
 - `allow-start-event-notification`
 - `allow-stop-event-notification`
+- `allow-get-ignored-platforms`
+- `allow-set-ignored-platforms`
 
 ## Permission Table
 
@@ -100,6 +103,58 @@ Enables the get_event_notification command without any pre-configured scope.
 <td>
 
 Denies the get_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-get-ignored-platforms`
+
+</td>
+<td>
+
+Enables the get_ignored_platforms command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-get-ignored-platforms`
+
+</td>
+<td>
+
+Denies the get_ignored_platforms command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-list-applications`
+
+</td>
+<td>
+
+Enables the list_applications command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-list-applications`
+
+</td>
+<td>
+
+Denies the list_applications command without any pre-configured scope.
 
 </td>
 </tr>
@@ -204,6 +259,32 @@ Enables the set_event_notification command without any pre-configured scope.
 <td>
 
 Denies the set_event_notification command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-set-ignored-platforms`
+
+</td>
+<td>
+
+Enables the set_ignored_platforms command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-set-ignored-platforms`
+
+</td>
+<td>
+
+Denies the set_ignored_platforms command without any pre-configured scope.
 
 </td>
 </tr>

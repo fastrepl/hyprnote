@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the set_disabled command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_properties command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-properties",
+          "markdownDescription": "Enables the set_properties command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_properties command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-properties",
+          "markdownDescription": "Denies the set_properties command without any pre-configured scope."
+        },
+        {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-event`\n- `allow-set-disabled`\n- `allow-is-disabled`",
           "type": "string",
           "const": "default",

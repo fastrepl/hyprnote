@@ -250,7 +250,7 @@ impl HyprWindow {
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
         if self == &Self::Main {
-            use tauri_plugin_analytics::{hypr_analytics::AnalyticsPayload, AnalyticsPluginExt};
+            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
             use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
             let user_id = app
@@ -531,9 +531,7 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
             };
 
             {
-                use tauri_plugin_analytics::{
-                    hypr_analytics::AnalyticsPayload, AnalyticsPluginExt,
-                };
+                use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
                 let e = AnalyticsPayload::for_user(user_id)
                     .event(event_name)

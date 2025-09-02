@@ -80,9 +80,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
         self.db_attach(db).await.unwrap();
 
         if let Ok(true) = self.db_ensure_user(&user_id).await {
-            use tauri_plugin_analytics::{hypr_analytics, AnalyticsPluginExt};
+            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
-            let e = hypr_analytics::AnalyticsPayload::for_user(&user_id)
+            let e = AnalyticsPayload::for_user(&user_id)
                 .event("user_created")
                 .build();
 

@@ -171,7 +171,7 @@ impl Whisper {
             .join(" ");
 
         if !full_text.is_empty() {
-            tracing::info!(text = ?full_text, "transcribe_completed");
+            tracing::info!(text_length = full_text.len(), "transcribe_completed");
             self.dynamic_prompt = full_text;
         }
 

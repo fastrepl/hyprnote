@@ -179,6 +179,7 @@ pub struct Session {
     silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
     session_state_tx: Option<tokio::sync::watch::Sender<State>>,
     tasks: Option<JoinSet<()>>,
+    session_start_timestamp_ms: Option<u64>,
 }
 
 impl Session {
@@ -196,6 +197,7 @@ impl Session {
             silence_stream_tx: None,
             tasks: None,
             session_state_tx: None,
+            session_start_timestamp_ms: None,
         }
     }
 
@@ -229,6 +231,13 @@ impl Session {
             .db_get_session(&session_id)
             .await?
             .ok_or(crate::Error::NoneSession)?;
+
+        self.session_start_timestamp_ms = Some(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as u64,
+        );
 
         let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
         let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
@@ -447,6 +456,7 @@ impl Session {
         tasks.spawn({
             let app = self.app.clone();
             let stop_tx = stop_tx.clone();
+            let session_start_timestamp_ms = self.session_start_timestamp_ms.unwrap_or(0);
 
             async move {
                 let (listen_stream, _listen_handle) = listen_client
@@ -456,7 +466,8 @@ impl Session {
 
                 futures_util::pin_mut!(listen_stream);
 
-                let mut manager = TranscriptManager::default();
+                let mut manager =
+                    TranscriptManager::with_unix_timestamp(session_start_timestamp_ms);
 
                 loop {
                     match tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()).await {
@@ -753,6 +764,8 @@ impl Session {
             use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
             let _ = self.app.window_hide(HyprWindow::Control);
         }
+
+        self.session_start_timestamp_ms = None;
 
         if let Some(session_id) = &self.session_id {
             use tauri_plugin_db::DatabasePluginExt;

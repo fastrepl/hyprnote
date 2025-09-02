@@ -1,6 +1,7 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
+  "allow-list-applications",
   "allow-show-notification",
   "allow-get-event-notification",
   "allow-set-event-notification",
@@ -12,5 +13,7 @@ permissions = [
   "allow-start-detect-notification",
   "allow-stop-detect-notification",
   "allow-start-event-notification",
-  "allow-stop-event-notification"
+  "allow-stop-event-notification",
+  "allow-get-ignored-platforms",
+  "allow-set-ignored-platforms"
 ]

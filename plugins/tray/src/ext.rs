@@ -136,16 +136,15 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         let app_commit = app.get_git_hash();
                         let app_backends = app.list_ggml_backends();
 
+                        let backends_formatted = app_backends
+                            .iter()
+                            .map(|b| format!("{:?}", b))
+                            .collect::<Vec<_>>()
+                            .join("\n");
+
                         let message = format!(
-                            "{} v{}\n\nSHA: {}\n\nBackends: {}",
-                            app_name,
-                            app_version,
-                            app_commit,
-                            app_backends
-                                .iter()
-                                .map(|b| format!("{:?}", b))
-                                .collect::<Vec<_>>()
-                                .join("\n")
+                            "• App Name: {}\n• App Version: {}\n• SHA:\n  {}\n• Backends:\n{}",
+                            app_name, app_version, app_commit, backends_formatted
                         );
 
                         let app_clone = app.clone();
@@ -153,7 +152,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         app.dialog()
                             .message(&message)
                             .title("About Hyprnote")
-                            .buttons(MessageDialogButtons::OkCustom("Copy".to_string()))
+                            .buttons(MessageDialogButtons::OkCancelCustom(
+                                "Copy".to_string(),
+                                "Cancel".to_string(),
+                            ))
                             .show(move |result| {
                                 if result {
                                     let _ = app_clone.clipboard().write_text(&message);

@@ -22,10 +22,12 @@ impl DetectState {
         {
             let notification_tx = self.notification_tx.as_ref().unwrap().clone();
             let mut detector = hypr_detect::Detector::default();
+
             detector.start(hypr_detect::new_callback(move |event| {
                 if let Err(e) =
                     notification_tx.send(NotificationTrigger::Detect(NotificationTriggerDetect {
                         event,
+                        timestamp: std::time::SystemTime::now(),
                     }))
                 {
                     tracing::error!("{}", e);

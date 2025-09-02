@@ -52,6 +52,46 @@ impl DetectorState {
     }
 }
 
+fn get_mic_using_apps_coreaudio() -> Vec<String> {
+    let processes = ca::System::processes().ok().unwrap();
+    let default_in = ca::System::default_input_device().ok().unwrap();
+
+    let mut out = Vec::<String>::new();
+    for p in processes {
+        let running_in = p.is_running_input().unwrap_or(false);
+        if !running_in {
+            continue;
+        }
+
+        let uses_default = p
+            .prop_vec(
+                &ca::PropSelector::PROCESS_DEVICES
+                    .addr(ca::PropScope::INPUT, ca::PropElement::MAIN),
+            )
+            .ok()
+            .map(|ds: Vec<ca::Device>| ds.iter().any(|d| d.0 == default_in.0))
+            .unwrap_or(false);
+        if !uses_default {
+            continue;
+        }
+
+        if let Ok(pid) = p.pid() {
+            if let Some(running_app) = cidre::ns::RunningApp::with_pid(pid) {
+                if let Some(localized_name) = running_app.localized_name() {
+                    out.push(localized_name.to_string());
+                    continue;
+                }
+            }
+        }
+
+        if let Some(name) = p.bundle_id().ok().map(|s| s.to_string()) {
+            out.push(name);
+        };
+    }
+
+    out
+}
+
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
@@ -98,9 +138,19 @@ impl crate::Observer for Detector {
                                     if let Ok(mut state_guard) = state.lock() {
                                         if state_guard.should_trigger(mic_in_use) {
                                             if mic_in_use {
-                                                if let Ok(guard) = callback.lock() {
-                                                    (*guard)(DetectEvent::MicStarted);
-                                                }
+                                                let cb = callback.clone();
+
+                                                std::thread::spawn(move || {
+                                                    let apps = get_mic_using_apps_coreaudio();
+                                                    tracing::info!(
+                                                        "detect_device_listener: {:?}",
+                                                        apps
+                                                    );
+
+                                                    if let Ok(guard) = cb.lock() {
+                                                        (*guard)(DetectEvent::MicStarted(apps));
+                                                    }
+                                                });
                                             } else {
                                                 if let Ok(guard) = callback.lock() {
                                                     (*guard)(DetectEvent::MicStopped);
@@ -171,9 +221,21 @@ impl crate::Observer for Detector {
                                         if let Ok(mut state_guard) = state.lock() {
                                             if state_guard.should_trigger(mic_in_use) {
                                                 if mic_in_use {
-                                                    if let Ok(callback_guard) = data.0.lock() {
-                                                        (*callback_guard)(DetectEvent::MicStarted);
-                                                    }
+                                                    let cb = data.0.clone();
+
+                                                    std::thread::spawn(move || {
+                                                        let apps = get_mic_using_apps_coreaudio();
+                                                        tracing::info!(
+                                                            "detect_system_listener: {:?}",
+                                                            apps
+                                                        );
+
+                                                        if let Ok(callback_guard) = cb.lock() {
+                                                            (*callback_guard)(
+                                                                DetectEvent::MicStarted(apps),
+                                                            );
+                                                        }
+                                                    });
                                                 }
                                             }
                                         }
@@ -235,11 +297,6 @@ impl crate::Observer for Detector {
 
                         if let Ok(mut state_guard) = detector_state.lock() {
                             state_guard.last_state = mic_in_use;
-                            if mic_in_use {
-                                if let Ok(callback_guard) = callback.lock() {
-                                    (*callback_guard)(DetectEvent::MicStarted);
-                                }
-                            }
                         }
                     } else {
                         tracing::error!("adding_device_listener_failed");
@@ -289,7 +346,7 @@ mod tests {
             println!("{:?}", v);
         }));
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
         detector.stop();
     }
 }

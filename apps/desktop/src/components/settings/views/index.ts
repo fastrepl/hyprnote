@@ -3,6 +3,7 @@ export { default as AISTT } from "./ai-stt";
 export { default as Billing } from "./billing";
 export { default as Calendar } from "./calendar";
 export { default as General } from "./general";
+export { default as HelpFeedback } from "./help-feedback";
 export { default as Integrations } from "./integrations";
 export { default as Lab } from "./lab";
 export { default as MCP } from "./mcp";

@@ -94,4 +94,30 @@ Denies the set_disabled command without any pre-configured scope.
 
 </td>
 </tr>
+
+<tr>
+<td>
+
+`analytics:allow-set-properties`
+
+</td>
+<td>
+
+Enables the set_properties command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`analytics:deny-set-properties`
+
+</td>
+<td>
+
+Denies the set_properties command without any pre-configured scope.
+
+</td>
+</tr>
 </table>

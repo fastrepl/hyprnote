@@ -12,6 +12,7 @@ pub enum NotificationTrigger {
 #[derive(Debug, Clone)]
 pub struct NotificationTriggerDetect {
     pub event: hypr_detect::DetectEvent,
+    pub timestamp: std::time::SystemTime,
 }
 
 #[derive(Debug, Clone)]
@@ -58,22 +59,44 @@ impl NotificationHandler {
     }
 
     fn handle_detect_event(app_handle: &AppHandle<tauri::Wry>, trigger: NotificationTriggerDetect) {
-        let window_visible = app_handle
+        let main_window_visible = app_handle
             .window_is_visible(HyprWindow::Main)
             .unwrap_or(false);
 
+        if !main_window_visible {
+            tracing::info!("skip_notification_due_to_main_window_visible");
+            return;
+        }
+
         match trigger.event {
-            hypr_detect::DetectEvent::MicStarted => {
-                if !window_visible {
-                    hypr_notification::show(
-                        &hypr_notification::Notification::builder()
-                            .title("Meeting detected")
-                            .message("Based on your microphone activity")
-                            .url("hypr://hyprnote.com/app/new?record=true")
-                            .timeout(std::time::Duration::from_secs(300))
-                            .build(),
-                    );
+            hypr_detect::DetectEvent::MicStarted(apps) => {
+                let ignore_platforms = {
+                    use crate::NotificationPluginExt;
+                    app_handle.get_ignored_platforms().unwrap_or_default()
+                };
+
+                if apps.iter().any(|app| ignore_platforms.contains(app)) {
+                    tracing::info!("skip_notification_due_to_ignored_platform");
+                    return;
                 }
+
+                let timestamp_secs = trigger
+                    .timestamp
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or(std::time::Duration::from_secs(0))
+                    .as_secs();
+                let window_key = timestamp_secs / 10;
+                let key = format!("mic-detection-{}", window_key);
+
+                hypr_notification::show(
+                    &hypr_notification::Notification::builder()
+                        .title("Meeting detected")
+                        .key(key)
+                        .message("Based on your microphone activity")
+                        .url("hypr://hyprnote.com/app/new?record=true")
+                        .timeout(std::time::Duration::from_secs(300))
+                        .build(),
+                );
             }
             hypr_detect::DetectEvent::MicStopped => {
                 use tauri_plugin_listener::ListenerPluginExt;
@@ -90,11 +113,16 @@ impl NotificationHandler {
         app_handle: &AppHandle<tauri::Wry>,
         trigger: NotificationTriggerEvent,
     ) {
-        let window_visible = app_handle
+        let main_window_visible = app_handle
             .window_is_visible(HyprWindow::Main)
             .unwrap_or(false);
 
-        if !window_visible || trigger.minutes_until_start < 3 {
+        if !main_window_visible {
+            tracing::info!("skip_notification_due_to_main_window_visible");
+            return;
+        }
+
+        if trigger.minutes_until_start < 3 {
             if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 hypr_notification::show(
                     &hypr_notification::Notification::builder()

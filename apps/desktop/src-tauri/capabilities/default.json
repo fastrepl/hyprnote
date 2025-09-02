@@ -94,6 +94,7 @@
         { "url": "http://**" }
       ]
     },
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "tracing:default"
   ]
 }

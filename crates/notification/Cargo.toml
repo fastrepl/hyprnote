@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 hypr-notification-interface = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+tracing = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 hypr-notification-macos = { workspace = true }

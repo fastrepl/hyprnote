@@ -175,6 +175,11 @@ export function TextSelectionPopover(
       return;
     }
 
+    analyticsCommands.event({
+      event: "ask_ai_clicked",
+      distinct_id: userId,
+    });
+
     // Get TipTap/ProseMirror positions (much more accurate)
     const tipTapPositions = getTipTapPositions();
     if (!tipTapPositions) {

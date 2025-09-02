@@ -25,7 +25,10 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
             .retain(|_, &mut timestamp| now.duration_since(timestamp) < DEDUPE_WINDOW);
 
         if let Some(&last_shown) = recent_notifications.get(key) {
-            if now.duration_since(last_shown) < DEDUPE_WINDOW {
+            let duration = now.duration_since(last_shown);
+
+            if duration < DEDUPE_WINDOW {
+                tracing::info!(key = key, duration = ?duration, "skipping_notification");
                 return;
             }
         }

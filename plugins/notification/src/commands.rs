@@ -2,6 +2,14 @@ use crate::NotificationPluginExt;
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn list_applications<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Vec<hypr_detect::InstalledApp> {
+    app.list_applications()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn show_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     v: hypr_notification::Notification,
@@ -77,4 +85,22 @@ pub(crate) async fn stop_event_notification<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
     app.stop_event_notification().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn get_ignored_platforms<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.get_ignored_platforms().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub(crate) async fn set_ignored_platforms<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    platforms: Vec<String>,
+) -> Result<(), String> {
+    app.set_ignored_platforms(platforms)
+        .map_err(|e| e.to_string())
 }

@@ -125,23 +125,21 @@ impl SpeakerInput {
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
             {
                 if let Some(data) = view.data_f32_at(0) {
-                    let buffer_size = data.len();
-                    let pushed = ctx.producer.push_slice(data);
-                    if pushed < buffer_size {
-                        tracing::warn!("macos_speaker_dropped_{}_samples", buffer_size - pushed,);
-                    }
-
-                    let mut waker_state = ctx.waker_state.lock().unwrap();
-                    if pushed > 0 && !waker_state.has_data {
-                        waker_state.has_data = true;
-                        if let Some(waker) = waker_state.waker.take() {
-                            drop(waker_state);
-                            waker.wake();
-                        }
-                    }
+                    process_audio_data(ctx, data);
+                } else {
+                    tracing::warn!("macos_speaker_view_no_channel_0");
                 }
             } else {
-                tracing::warn!("macos_speaker_empty_buffer");
+                let first_buffer = &input_data.buffers[0];
+                let byte_count = first_buffer.data_bytes_size as usize;
+                let float_count = byte_count / std::mem::size_of::<f32>();
+
+                if float_count > 0 {
+                    let data = unsafe {
+                        std::slice::from_raw_parts(first_buffer.data as *const f32, float_count)
+                    };
+                    process_audio_data(ctx, data);
+                }
             }
 
             os::Status::NO_ERR
@@ -184,6 +182,26 @@ impl SpeakerInput {
             _tap: self.tap,
             waker_state,
             current_sample_rate,
+        }
+    }
+}
+
+fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
+    let buffer_size = data.len();
+    let pushed = ctx.producer.push_slice(data);
+
+    if pushed < buffer_size {
+        tracing::warn!("macos_speaker_dropped_{}_samples", buffer_size - pushed);
+    }
+
+    if pushed > 0 {
+        let mut waker_state = ctx.waker_state.lock().unwrap();
+        if !waker_state.has_data {
+            waker_state.has_data = true;
+            if let Some(waker) = waker_state.waker.take() {
+                drop(waker_state);
+                waker.wake();
+            }
         }
     }
 }

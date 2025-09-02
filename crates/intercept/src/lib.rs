@@ -20,6 +20,13 @@ where
     }
 }
 
+pub fn reset_quit_handler() {
+    #[cfg(target_os = "macos")]
+    {
+        *QUIT_CALLBACK.lock().unwrap() = None;
+    }
+}
+
 #[no_mangle]
 #[cfg(target_os = "macos")]
 pub extern "C" fn rust_should_quit() -> bool {

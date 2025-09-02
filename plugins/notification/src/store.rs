@@ -4,6 +4,7 @@ use tauri_plugin_store2::ScopedStoreKey;
 pub enum StoreKey {
     EventNotification,
     DetectNotification,
+    IgnoredPlatforms,
 }
 
 impl ScopedStoreKey for StoreKey {}

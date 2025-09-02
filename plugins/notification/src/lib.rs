@@ -7,10 +7,12 @@ mod error;
 mod event;
 mod ext;
 mod handler;
+mod quit;
 mod store;
 
 pub use error::*;
 pub use ext::*;
+pub use quit::*;
 pub use store::*;
 
 const PLUGIN_NAME: &str = "notification";
@@ -40,6 +42,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::list_applications::<tauri::Wry>,
             commands::show_notification::<tauri::Wry>,
             commands::get_event_notification::<tauri::Wry>,
             commands::set_event_notification::<tauri::Wry>,
@@ -49,6 +52,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::stop_detect_notification::<tauri::Wry>,
             commands::start_event_notification::<tauri::Wry>,
             commands::stop_event_notification::<tauri::Wry>,
+            commands::get_ignored_platforms::<tauri::Wry>,
+            commands::set_ignored_platforms::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -60,6 +65,13 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let state = State::new(app.clone());
+
+            #[cfg(target_os = "macos")]
+            if app.get_detect_notification().unwrap_or(false) || app.get_event_notification().unwrap_or(false) {
+                let app = app.clone();
+                let _ = hypr_intercept::setup_quit_handler(crate::create_quit_handler(app));
+            }
+
             app.manage(Mutex::new(state));
             Ok(())
         })
@@ -75,9 +87,31 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 if app.get_event_notification().unwrap_or(false) {
                     let app_clone = app.clone();
                     tokio::spawn(async move {
-                        match app_clone.start_event_notification().await {
-                            Ok(_) => tracing::info!("event_notification_start_success"),
-                            Err(_) => tracing::error!("event_notification_start_failed"),
+                        let mut retries = 0;
+                        const MAX_RETRIES: u32 = 10;
+
+                        loop {
+                            let db_state = app_clone.state::<tauri_plugin_db::ManagedState>();
+                            let is_ready = {
+                                let guard = db_state.lock().await;
+                                guard.db.is_some() && guard.user_id.is_some()
+                            };
+
+                            if is_ready {
+                                match app_clone.start_event_notification().await {
+                                    Ok(_) => tracing::info!("event_notification_start_success"),
+                                    Err(e) => tracing::error!("event_notification_start_failed: {}", e),
+                                }
+                                break;
+                            }
+
+                            retries += 1;
+                            if retries >= MAX_RETRIES {
+                                tracing::error!("event_notification_start_failed: database not ready after {} seconds", MAX_RETRIES);
+                                break;
+                            }
+
+                            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                         }
                     });
                 }

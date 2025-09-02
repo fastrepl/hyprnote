@@ -1,9 +1,9 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
-  BlocksIcon,
   Calendar,
   CreditCard,
+  HelpCircle,
   LayoutTemplate,
   MessageSquare,
   NetworkIcon,
@@ -20,10 +20,10 @@ export type Tab =
   | "notifications"
   | "sound"
   | "templates"
-  | "feedback"
   | "integrations"
   | "mcp"
-  | "billing";
+  | "billing"
+  | "help-feedback";
 
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "general", icon: Settings },
@@ -36,5 +36,5 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "integrations", icon: MessageSquare },
   { name: "mcp", icon: NetworkIcon },
   { name: "billing", icon: CreditCard },
-  { name: "feedback", icon: BlocksIcon },
+  { name: "help-feedback", icon: HelpCircle },
 ];

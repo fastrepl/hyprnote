@@ -1,22 +1,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { commands as notificationCommands } from "@hypr/plugin-notification";
+import { Badge } from "@hypr/ui/components/ui/badge";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
 const schema = z.object({
   detect: z.boolean().optional(),
   event: z.boolean().optional(),
+  ignoredPlatforms: z.array(z.string()).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
 
 export default function NotificationsComponent() {
+  const [newAppName, setNewAppName] = useState("");
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
   const eventNotification = useQuery({
     queryKey: ["notification", "event"],
     queryFn: () => notificationCommands.getEventNotification(),
@@ -27,11 +36,22 @@ export default function NotificationsComponent() {
     queryFn: () => notificationCommands.getDetectNotification(),
   });
 
+  const ignoredPlatforms = useQuery({
+    queryKey: ["notification", "ignoredPlatforms"],
+    queryFn: () => notificationCommands.getIgnoredPlatforms(),
+  });
+
+  const applications = useQuery({
+    queryKey: ["notification", "applications"],
+    queryFn: () => notificationCommands.listApplications(),
+  });
+
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     values: {
       detect: detectNotification.data ?? false,
       event: eventNotification.data ?? false,
+      ignoredPlatforms: ignoredPlatforms.data ?? [],
     },
   });
 
@@ -49,6 +69,7 @@ export default function NotificationsComponent() {
       if (active) {
         notificationCommands.startEventNotification();
         notificationCommands.showNotification({
+          key: null,
           title: "You're all set!",
           message: "This is how notifications look.",
           timeout: { secs: 10, nanos: 0 },
@@ -74,6 +95,7 @@ export default function NotificationsComponent() {
       if (active) {
         notificationCommands.startDetectNotification();
         notificationCommands.showNotification({
+          key: null,
           title: "You're all set!",
           message: "This is how notifications look.",
           timeout: { secs: 10, nanos: 0 },
@@ -85,18 +107,53 @@ export default function NotificationsComponent() {
     },
   });
 
+  const ignoredPlatformsMutation = useMutation({
+    mutationFn: async (platforms: string[]) => {
+      await notificationCommands.setIgnoredPlatforms(platforms);
+      return platforms;
+    },
+    onSuccess: () => {
+      ignoredPlatforms.refetch();
+    },
+  });
+
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === "detect") {
-        detectMutation.mutate(value);
+      if (name === "detect" && value.detect !== undefined) {
+        detectMutation.mutate({ detect: value.detect });
       }
-      if (name === "event") {
-        eventMutation.mutate(value);
+      if (name === "event" && value.event !== undefined) {
+        eventMutation.mutate({ event: value.event });
+      }
+      if (name === "ignoredPlatforms" && value.ignoredPlatforms) {
+        const filteredPlatforms = value.ignoredPlatforms.filter((p): p is string => !!p);
+        ignoredPlatformsMutation.mutate(filteredPlatforms);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [eventMutation, detectMutation]);
+  }, [eventMutation, detectMutation, ignoredPlatformsMutation]);
+
+  const handleAddIgnoredApp = (appName: string) => {
+    const trimmedName = appName.trim();
+    if (trimmedName) {
+      const currentIgnored = form.getValues("ignoredPlatforms") ?? [];
+      if (!currentIgnored.includes(trimmedName)) {
+        const updated = [...currentIgnored, trimmedName];
+        form.setValue("ignoredPlatforms", updated);
+        ignoredPlatformsMutation.mutate(updated);
+      }
+      setNewAppName("");
+      setPopoverOpen(false);
+    }
+  };
+
+  const handleRemoveIgnoredApp = (app: string) => {
+    const currentIgnored = form.getValues("ignoredPlatforms") ?? [];
+    const updated = currentIgnored.filter(a => a !== app);
+    form.setValue("ignoredPlatforms", updated);
+    ignoredPlatformsMutation.mutate(updated);
+  };
 
   return (
     <div>
@@ -104,17 +161,20 @@ export default function NotificationsComponent() {
         <form className="space-y-6">
           <FormField
             control={form.control}
-            name="detect"
+            name="event"
             render={({ field }) => (
               <FormItem className="space-y-6">
                 <div className="flex flex-row items-center justify-between">
                   <div>
-                    <FormLabel>
-                      <Trans>(Beta) Detect meetings automatically</Trans>
+                    <FormLabel className="flex items-center gap-2">
+                      <Trans>Upcoming meeting notifications</Trans>
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        Preview
+                      </span>
                     </FormLabel>
                     <FormDescription>
                       <Trans>
-                        Show notifications when you join a meeting.
+                        Show notifications when you have meetings starting soon in your calendar.
                       </Trans>
                     </FormDescription>
                   </div>
@@ -131,17 +191,20 @@ export default function NotificationsComponent() {
           />
           <FormField
             control={form.control}
-            name="event"
+            name="detect"
             render={({ field }) => (
               <FormItem className="space-y-6">
                 <div className="flex flex-row items-center justify-between">
                   <div>
-                    <FormLabel>
-                      <Trans>(Beta) Upcoming meeting notifications</Trans>
+                    <FormLabel className="flex items-center gap-2">
+                      <Trans>Detect meetings automatically</Trans>
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        Preview
+                      </span>
                     </FormLabel>
                     <FormDescription>
                       <Trans>
-                        Show notifications when you have meetings starting soon in your calendar.
+                        Show notifications when you join a meeting.
                       </Trans>
                     </FormDescription>
                   </div>
@@ -153,6 +216,104 @@ export default function NotificationsComponent() {
                     />
                   </FormControl>
                 </div>
+
+                <FormItem className={`ml-6 mt-4 border-l-2 border-muted pl-6 pt-2 ${!field.value ? "opacity-50" : ""}`}>
+                  <div className="space-y-1 mb-3">
+                    <FormLabel className="text-sm">
+                      <Trans>Exclude apps from detection</Trans>
+                    </FormLabel>
+                    <FormDescription className="text-xs">
+                      <Trans>These apps will not trigger meeting detection</Trans>
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md ${
+                          !field.value ? "bg-muted/50" : ""
+                        }`}
+                      >
+                        {(form.watch("ignoredPlatforms") || []).map((app) => (
+                          <Badge
+                            key={app}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                          >
+                            {app}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                              onClick={() => field.value && handleRemoveIgnoredApp(app)}
+                              disabled={!field.value}
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
+                      <Popover
+                        open={popoverOpen && field.value}
+                        onOpenChange={(open) => field.value && setPopoverOpen(open)}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-[38px] w-[38px]"
+                            disabled={!field.value}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[220px] p-0" align="end">
+                          <Command>
+                            <CommandInput
+                              placeholder="Enter app name..."
+                              className="h-9"
+                              value={newAppName}
+                              onValueChange={setNewAppName}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddIgnoredApp(newAppName);
+                                }
+                              }}
+                            />
+                            <CommandEmpty>
+                              {newAppName
+                                ? (
+                                  <button
+                                    className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                                    onClick={() => handleAddIgnoredApp(newAppName)}
+                                  >
+                                    Add "{newAppName}"
+                                  </button>
+                                )
+                                : (
+                                  "Type an app name to add"
+                                )}
+                            </CommandEmpty>
+                            <CommandGroup className="max-h-[200px] overflow-auto">
+                              {applications.data?.map(app => app.localized_name)
+                                .filter(app => !(form.watch("ignoredPlatforms") || []).includes(app))
+                                .map((app) => (
+                                  <CommandItem
+                                    key={app}
+                                    onSelect={() => handleAddIgnoredApp(app)}
+                                  >
+                                    {app}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </FormControl>
+                </FormItem>
               </FormItem>
             )}
           />

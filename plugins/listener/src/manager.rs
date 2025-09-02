@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub struct TranscriptManager {
     id: uuid::Uuid,
     partial_words_by_channel: HashMap<usize, Vec<owhisper_interface::Word>>,
+    session_start_timestamp_ms: u64,
 }
 
 impl Default for TranscriptManager {
@@ -11,6 +12,17 @@ impl Default for TranscriptManager {
         Self {
             id: uuid::Uuid::new_v4(),
             partial_words_by_channel: HashMap::new(),
+            session_start_timestamp_ms: 0,
+        }
+    }
+}
+
+impl TranscriptManager {
+    pub fn with_unix_timestamp(session_start_timestamp_ms: u64) -> Self {
+        Self {
+            id: uuid::Uuid::new_v4(),
+            partial_words_by_channel: HashMap::new(),
+            session_start_timestamp_ms,
         }
     }
 }
@@ -93,6 +105,11 @@ impl TranscriptManager {
                             w.speaker = Some(speaker);
                         }
 
+                        let start_ms = self.session_start_timestamp_ms as f64 + (w.start * 1000.0);
+                        let end_ms = self.session_start_timestamp_ms as f64 + (w.end * 1000.0);
+
+                        w.start = start_ms / 1000.0;
+                        w.end = end_ms / 1000.0;
                         w
                     })
                     .collect::<Vec<_>>();

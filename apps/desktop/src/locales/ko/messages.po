@@ -249,12 +249,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:113
-msgid "(Beta) Detect meetings automatically"
-msgstr ""
+#~ msgid "(Beta) Detect meetings automatically"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:140
-msgid "(Beta) Upcoming meeting notifications"
-msgstr ""
+#~ msgid "(Beta) Upcoming meeting notifications"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:628
 msgid "(Optional for localhost)"
@@ -462,6 +462,11 @@ msgstr ""
 #~ msgid "Billing"
 #~ msgstr ""
 
+#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:112
+msgid "Billing & License"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:104
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr ""
@@ -471,7 +476,8 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:59
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:102
 msgid "Calendar"
 msgstr ""
 
@@ -514,6 +520,10 @@ msgstr ""
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:26
 #~ msgid "Chat with your meeting notes"
 #~ msgstr ""
+
+#: src/components/left-sidebar/top-area/settings-button.tsx:147
+msgid "Check Updates"
+msgstr ""
 
 #: src/components/settings/views/general.tsx:185
 #~ msgid "Choose the language you want to use for the speech-to-text model and language model"
@@ -670,7 +680,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:107
+#: src/components/settings/views/ai-stt.tsx:115
 msgid "Custom"
 msgstr ""
 
@@ -695,7 +705,7 @@ msgid "Custom Vocabulary"
 msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:104
+#: src/components/settings/views/ai-stt.tsx:112
 msgid "Default"
 msgstr ""
 
@@ -721,12 +731,20 @@ msgstr ""
 #~ msgid "Description"
 #~ msgstr ""
 
+#: src/components/settings/views/notifications.tsx:200
+msgid "Detect meetings automatically"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:349
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:312
 msgid "Display language"
+msgstr ""
+
+#: src/components/settings/views/help-feedback.tsx:43
+msgid "Documentation"
 msgstr ""
 
 #: src/components/settings/components/ai/stt-view.tsx:237
@@ -817,6 +835,10 @@ msgstr ""
 msgid "Enter the model name required by your STT endpoint"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:223
+msgid "Exclude apps from detection"
+msgstr ""
+
 #: src/routes/app.settings.tsx:72
 #~ msgid "Extensions"
 #~ msgstr ""
@@ -825,10 +847,14 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
+#: src/components/settings/views/help-feedback.tsx:62
+msgid "Feature Requests"
+msgstr ""
+
 #: src/routes/app.settings.tsx:69
 #: src/routes/app.settings.tsx:106
-msgid "Feedback"
-msgstr ""
+#~ msgid "Feedback"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
 msgid "Finish Onboarding"
@@ -862,7 +888,8 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:53
+#: src/routes/app.settings.tsx:42
+#: src/routes/app.settings.tsx:96
 msgid "General"
 msgstr ""
 
@@ -889,6 +916,19 @@ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:194
 msgid "Grant both permissions to continue"
+msgstr ""
+
+#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:116
+msgid "Help & Feedback"
+msgstr ""
+
+#: src/components/settings/views/help-feedback.tsx:30
+msgid "Help & Support"
+msgstr ""
+
+#: src/components/settings/views/help-feedback.tsx:84
+msgid "Help us improve by reporting issues"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:212
@@ -931,11 +971,13 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:124
-#: src/routes/app.settings.tsx:67
+#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:110
 msgid "Integrations"
 msgstr ""
 
-#: src/routes/app.settings.tsx:55
+#: src/routes/app.settings.tsx:44
+#: src/routes/app.settings.tsx:98
 msgid "Intelligence"
 msgstr ""
 
@@ -983,6 +1025,10 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
+#: src/components/settings/views/help-feedback.tsx:46
+msgid "Learn how to use Hyprnote"
+msgstr ""
+
 #: src/components/settings/views/ai-llm.tsx:716
 msgid "Learn more about AI autonomy"
 msgstr ""
@@ -996,8 +1042,8 @@ msgid "Learn more about templates"
 msgstr ""
 
 #: src/routes/app.settings.tsx:71
-msgid "License"
-msgstr ""
+#~ msgid "License"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"
@@ -1048,6 +1094,10 @@ msgstr ""
 #~ msgid "Local Models"
 #~ msgstr ""
 
+#: src/components/settings/views/help-feedback.tsx:100
+msgid "Logs"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:39
 #~ msgid "Long-term memory for past meetings and attendees"
 #~ msgstr ""
@@ -1056,7 +1106,8 @@ msgstr ""
 msgid "Make it public"
 msgstr ""
 
-#: src/routes/app.settings.tsx:73
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:114
 msgid "MCP"
 msgstr ""
 
@@ -1105,7 +1156,7 @@ msgstr ""
 #~ msgid "Much better AI performance"
 #~ msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:108
+#: src/components/left-sidebar/top-area/settings-button.tsx:141
 msgid "My Profile"
 msgstr ""
 
@@ -1186,7 +1237,8 @@ msgstr ""
 msgid "No upcoming events with this contact"
 msgstr ""
 
-#: src/routes/app.settings.tsx:61
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:104
 msgid "Notifications"
 msgstr ""
 
@@ -1318,6 +1370,10 @@ msgstr ""
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:222
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
+
+#: src/components/settings/views/help-feedback.tsx:81
+msgid "Report a Bug"
+msgstr ""
 
 #: src/components/settings/views/sound.tsx:61
 #: src/components/welcome-modal/audio-permissions-view.tsx:79
@@ -1451,7 +1507,7 @@ msgstr ""
 msgid "Set up Your AI Provider"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:101
+#: src/components/left-sidebar/top-area/settings-button.tsx:134
 msgid "Settings"
 msgstr ""
 
@@ -1463,11 +1519,11 @@ msgstr ""
 msgid "Shorten summary"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:143
+#: src/components/settings/views/notifications.tsx:176
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:116
+#: src/components/settings/views/notifications.tsx:206
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
@@ -1479,7 +1535,8 @@ msgstr ""
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 
-#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:108
 msgid "Sound"
 msgstr ""
 
@@ -1515,6 +1572,10 @@ msgstr ""
 #~ msgid "Submit Feedback"
 #~ msgstr ""
 
+#: src/components/settings/views/help-feedback.tsx:65
+msgid "Suggest new features and improvements"
+msgstr ""
+
 #: src/routes/app.settings.tsx:54
 #~ msgid "Summarization"
 #~ msgstr ""
@@ -1540,7 +1601,7 @@ msgstr ""
 msgid "System Instruction"
 msgstr ""
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:114
+#: src/components/left-sidebar/top-area/settings-button.tsx:153
 msgid "Talk to Founders"
 msgstr ""
 
@@ -1560,7 +1621,8 @@ msgstr ""
 msgid "Template"
 msgstr ""
 
-#: src/routes/app.settings.tsx:63
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:106
 msgid "Templates"
 msgstr ""
 
@@ -1579,6 +1641,10 @@ msgstr ""
 #: src/components/settings/views/billing.tsx:113
 #~ msgid "There's a plan for everyone"
 #~ msgstr ""
+
+#: src/components/settings/views/notifications.tsx:226
+msgid "These apps will not trigger meeting detection"
+msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:157
 msgid "These permissions are optional but recommended"
@@ -1624,7 +1690,8 @@ msgstr ""
 #~ msgid "Transcribing"
 #~ msgstr ""
 
-#: src/routes/app.settings.tsx:57
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:100
 msgid "Transcription"
 msgstr ""
 
@@ -1658,6 +1725,10 @@ msgstr ""
 
 #: src/components/organization-profile/upcoming-events.tsx:51
 msgid "Upcoming Events"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:170
+msgid "Upcoming meeting notifications"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:69
@@ -1699,6 +1770,10 @@ msgstr ""
 #: src/components/editor-area/note-header/chips/event-chip.tsx:209
 #: src/components/left-sidebar/events-list.tsx:193
 msgid "View in calendar"
+msgstr ""
+
+#: src/components/settings/views/help-feedback.tsx:103
+msgid "View logs"
 msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:59

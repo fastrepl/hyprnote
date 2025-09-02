@@ -12,6 +12,75 @@ import { useEffect } from "react";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { DownloadProgress } from "./shared";
 
+// exported for manual update checks
+export async function createUpdateToast(update: any, toastId: string = "ota-notification") {
+  const appName = await getName();
+  const appPath = await join("/Applications", `${appName}.app`);
+  const appInApplicationsFolder = await exists(appPath);
+
+  return {
+    id: toastId,
+    title: "Update Available",
+    content: `Version ${update.version} is available to install`,
+    buttons: [
+      {
+        label: "Update Now",
+        onClick: () => handleUpdateInstall(update, toastId, appInApplicationsFolder),
+        primary: true,
+      },
+    ],
+    dismissible: true,
+  };
+}
+
+export async function handleUpdateInstall(update: any, toastId: string, appInApplicationsFolder: boolean) {
+  sonnerToast.dismiss(toastId);
+
+  const updateChannel = new Channel<number>();
+  let totalDownloaded = 0;
+  let contentLength: number | undefined;
+
+  toast({
+    id: `${toastId}-download`,
+    title: `Downloading Update ${update.version}`,
+    content: (
+      <div className="space-y-1">
+        <div>This may take a while...</div>
+        <DownloadProgress channel={updateChannel} />
+      </div>
+    ),
+    dismissible: false,
+  });
+
+  update.downloadAndInstall((progressEvent: any) => {
+    if (progressEvent.event === "Started") {
+      totalDownloaded = 0;
+      contentLength = progressEvent.data.contentLength;
+    } else if (progressEvent.event === "Progress") {
+      totalDownloaded += progressEvent.data.chunkLength;
+      const totalSize = contentLength || (50 * 1024 * 1024);
+      const progressPercentage = Math.min(Math.round((totalDownloaded / totalSize) * 100), 99);
+      updateChannel.onmessage(progressPercentage);
+    } else if (progressEvent.event === "Finished") {
+      updateChannel.onmessage(100);
+    }
+  }).then(() => {
+    message("The app will now restart", { kind: "info", title: "Update Installed" });
+    setTimeout(relaunch, 2000);
+  }).catch((err: any) => {
+    Sentry.captureException(err);
+    if (!appInApplicationsFolder) {
+      message("Please move the app to the Applications folder and try again", {
+        kind: "error",
+        title: "Update Installation Failed",
+      });
+    } else {
+      message(err, { kind: "error", title: "Update Installation Failed" });
+    }
+  });
+}
+// ---export ends---
+
 export default function OtaNotification() {
   const appInApplicationsFolder = useQuery({
     queryKey: ["app-in-applications-folder"],

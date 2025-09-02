@@ -331,6 +331,30 @@
           "markdownDescription": "Denies the get_event_notification command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_ignored_platforms command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-ignored-platforms",
+          "markdownDescription": "Enables the get_ignored_platforms command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_ignored_platforms command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-ignored-platforms",
+          "markdownDescription": "Denies the get_ignored_platforms command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_applications command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-applications",
+          "markdownDescription": "Enables the list_applications command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_applications command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-applications",
+          "markdownDescription": "Denies the list_applications command without any pre-configured scope."
+        },
+        {
           "description": "Enables the open_notification_settings command without any pre-configured scope.",
           "type": "string",
           "const": "allow-open-notification-settings",
@@ -377,6 +401,18 @@
           "type": "string",
           "const": "deny-set-event-notification",
           "markdownDescription": "Denies the set_event_notification command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_ignored_platforms command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-ignored-platforms",
+          "markdownDescription": "Enables the set_ignored_platforms command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_ignored_platforms command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-ignored-platforms",
+          "markdownDescription": "Denies the set_ignored_platforms command without any pre-configured scope."
         },
         {
           "description": "Enables the show_notification command without any pre-configured scope.",
@@ -439,10 +475,10 @@
           "markdownDescription": "Denies the stop_event_notification command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-applications`\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`\n- `allow-get-ignored-platforms`\n- `allow-set-ignored-platforms`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-applications`\n- `allow-show-notification`\n- `allow-get-event-notification`\n- `allow-set-event-notification`\n- `allow-get-detect-notification`\n- `allow-set-detect-notification`\n- `allow-open-notification-settings`\n- `allow-request-notification-permission`\n- `allow-check-notification-permission`\n- `allow-start-detect-notification`\n- `allow-stop-detect-notification`\n- `allow-start-event-notification`\n- `allow-stop-event-notification`\n- `allow-get-ignored-platforms`\n- `allow-set-ignored-platforms`"
         }
       ]
     }

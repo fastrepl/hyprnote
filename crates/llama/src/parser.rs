@@ -57,11 +57,8 @@ impl StreamingParser {
         }
 
         if let Ok((remaining, (name, arguments))) = parse_tool_call_block(&self.buffer) {
-            let arguments =
-                match serde_json::from_str::<HashMap<String, serde_json::Value>>(&arguments) {
-                    Ok(arguments) => arguments,
-                    Err(_) => return None,
-                };
+            let arguments: HashMap<String, serde_json::Value> =
+                serde_json::from_str(&arguments).unwrap_or_default();
 
             self.buffer = remaining.to_string();
             return Some(Response::ToolCall { name, arguments });

@@ -257,8 +257,8 @@ impl Llama {
         let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
         let mut parser = StreamingParser::new();
 
-        while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
-            if cancellation_token.is_cancelled() {
+        'generation: while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
+            if cancellation_token.is_cancelled() || response_sender.is_closed() {
                 break;
             }
 
@@ -281,7 +281,7 @@ impl Llama {
             let responses = parser.process_chunk(&output_string);
             for response in responses {
                 if response_sender.send(response).is_err() {
-                    break;
+                    break 'generation;
                 }
             }
 
@@ -289,6 +289,9 @@ impl Llama {
             batch.add(token, n_cur, &[0], true).unwrap();
 
             n_cur += 1;
+            if cancellation_token.is_cancelled() || response_sender.is_closed() {
+                break;
+            }
             ctx.decode(&mut batch).unwrap();
         }
 

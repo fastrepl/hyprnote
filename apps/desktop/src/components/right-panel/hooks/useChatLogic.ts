@@ -206,11 +206,13 @@ export function useChatLogic({
       const allMcpClients: any[] = [];
       let hyprMcpClient: Client | null = null;
 
-      const shouldUseTools = type !== "HyprLocal"
-        && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
-          || model.modelId === "anthropic/claude-sonnet-4"
-          || model.modelId === "openai/gpt-4o"
-          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com") || model.modelId === "openai/gpt-5");
+      const shouldUseTools = model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
+        || model.modelId === "anthropic/claude-sonnet-4"
+        || model.modelId === "openai/gpt-4o"
+        || model.modelId === "gpt-4o"
+        || apiBase?.includes("pro.hyprnote.com")
+        || model.modelId === "openai/gpt-5"
+        || type === "HyprLocal";
 
       if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
@@ -328,9 +330,9 @@ export function useChatLogic({
         ),
         stopWhen: stepCountIs(5),
         tools: {
-          ...baseTools,
           ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
           ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
+          ...(shouldUseTools && baseTools),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);
@@ -365,6 +367,7 @@ export function useChatLogic({
         }
 
         if (chunk.type === "text-delta") {
+          console.log("text delta: ", chunk);
           setIsStreamingText(true);
 
           setMessages((prev) => {
@@ -409,6 +412,7 @@ export function useChatLogic({
 
         if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
+          console.log("tool call: ", chunk);
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
               try {

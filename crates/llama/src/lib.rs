@@ -15,6 +15,7 @@ use tokio_util::sync::CancellationToken;
 use hypr_gguf::GgufExt;
 
 mod error;
+mod parser;
 mod types;
 
 pub use error::*;
@@ -451,22 +452,38 @@ mod tests {
             grammar: None,
             messages: vec![LlamaMessage {
                 role: "user".into(),
-                content: "hi".into(),
+                content: "response, and say hi".into(),
             }],
-            tools: Some(vec![async_openai::types::ChatCompletionTool {
-                r#type: async_openai::types::ChatCompletionToolType::Function,
-                function: async_openai::types::FunctionObject {
-                    name: "greet".into(),
-                    description: Some("Greet the user".into()),
-                    strict: None,
-                    parameters: Some(serde_json::json!({
-                        "type": "object",
-                        "properties": {
-                            "name": { "type": "string" },
-                        }
-                    })),
+            tools: Some(vec![
+                async_openai::types::ChatCompletionTool {
+                    r#type: async_openai::types::ChatCompletionToolType::Function,
+                    function: async_openai::types::FunctionObject {
+                        name: "greet".into(),
+                        description: Some("Greet the user".into()),
+                        strict: None,
+                        parameters: Some(serde_json::json!({
+                            "type": "object",
+                            "properties": {
+                                "text": { "type": "string" },
+                            }
+                        })),
+                    },
                 },
-            }]),
+                async_openai::types::ChatCompletionTool {
+                    r#type: async_openai::types::ChatCompletionToolType::Function,
+                    function: async_openai::types::FunctionObject {
+                        name: "response".into(),
+                        description: Some("Response to the user".into()),
+                        strict: None,
+                        parameters: Some(serde_json::json!({
+                            "type": "object",
+                            "properties": {
+                                "text": { "type": "string" },
+                            }
+                        })),
+                    },
+                },
+            ]),
         };
 
         run(&llama, request).await;

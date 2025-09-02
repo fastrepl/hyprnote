@@ -33,7 +33,9 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 
-[dev-dependencies]
+nom = "8.0.0"
+uuid = { workspace = true }
+
 hypr-buffer = { workspace = true }
 hypr-data = { workspace = true }
 hypr-gbnf = { workspace = true }
@@ -42,8 +44,3 @@ owhisper-interface = { workspace = true }
 
 dirs = { workspace = true }
 rand = "0.9.0"
-serde_json = { workspace = true }
-
-llguidance = "1.1.0"
-toktrie_hf_downloader = "1.1.0"
-toktrie_hf_tokenizers = "1.1.0"

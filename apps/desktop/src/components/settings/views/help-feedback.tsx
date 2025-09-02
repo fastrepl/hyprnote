@@ -100,7 +100,7 @@ export default function HelpFeedback() {
                   <Trans>Logs</Trans>
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>View logs</Trans>
+                  <Trans>Got an error? Send your logs file to us at founders@hyprnote.com</Trans>
                 </div>
               </div>
             </div>

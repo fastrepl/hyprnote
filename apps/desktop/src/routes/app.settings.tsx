@@ -58,8 +58,8 @@ function TabButton({ tab, isActive, onClick }: { tab: Tab; isActive: boolean; on
         return t`Billing & License`;
       case "mcp":
         return t`MCP`;
-      case "help-feedback":
-        return t`Help & Feedback`;
+      case "help-support":
+        return t`Help & Support`;
       default:
         return tab;
     }
@@ -112,8 +112,8 @@ function Component() {
         return t`Billing & License`;
       case "mcp":
         return t`MCP`;
-      case "help-feedback":
-        return t`Help & Feedback`;
+      case "help-support":
+        return t`Help & Support`;
       default:
         return tab;
     }
@@ -133,7 +133,7 @@ function Component() {
             <div className="flex h-[calc(100%-2.75rem)] flex-col">
               <div className="flex-1 overflow-y-auto p-2 min-h-0">
                 <div className="space-y-1">
-                  {TABS.filter(tab => tab.name !== "help-feedback" && tab.name !== "billing").map((tab) => (
+                  {TABS.filter(tab => tab.name !== "help-support" && tab.name !== "billing").map((tab) => (
                     <TabButton
                       key={tab.name}
                       tab={tab.name}
@@ -152,9 +152,9 @@ function Component() {
                     onClick={() => handleClickTab("billing")}
                   />
                   <TabButton
-                    tab="help-feedback"
-                    isActive={search.tab === "help-feedback"}
-                    onClick={() => handleClickTab("help-feedback")}
+                    tab="help-support"
+                    isActive={search.tab === "help-support"}
+                    onClick={() => handleClickTab("help-support")}
                   />
                 </div>
               </div>
@@ -186,7 +186,7 @@ function Component() {
               {search.tab === "integrations" && <Integrations />}
               {search.tab === "mcp" && <MCP />}
               {search.tab === "billing" && <Billing />}
-              {search.tab === "help-feedback" && <HelpFeedback />}
+              {search.tab === "help-support" && <HelpFeedback />}
             </div>
           </div>
         </div>

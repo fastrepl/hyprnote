@@ -34,7 +34,6 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 
 nom = "8.0.0"
-uuid = { workspace = true }
 
 hypr-buffer = { workspace = true }
 hypr-data = { workspace = true }

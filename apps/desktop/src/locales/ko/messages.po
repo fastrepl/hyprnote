@@ -905,6 +905,10 @@ msgstr ""
 msgid "Google Gemini"
 msgstr ""
 
+#: src/components/settings/views/help-feedback.tsx:103
+msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
+msgstr ""
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
 msgid "Grant Access"
@@ -920,10 +924,12 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:62
 #: src/routes/app.settings.tsx:116
-msgid "Help & Feedback"
-msgstr ""
+#~ msgid "Help & Feedback"
+#~ msgstr ""
 
 #: src/components/settings/views/help-feedback.tsx:30
+#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:116
 msgid "Help & Support"
 msgstr ""
 
@@ -1773,8 +1779,8 @@ msgid "View in calendar"
 msgstr ""
 
 #: src/components/settings/views/help-feedback.tsx:103
-msgid "View logs"
-msgstr ""
+#~ msgid "View logs"
+#~ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:59
 msgid "View Note"

@@ -727,7 +727,7 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Description"
 #~ msgstr "Description"
 
-#: src/components/settings/views/notifications.tsx:249
+#: src/components/settings/views/notifications.tsx:252
 msgid "Detect meetings automatically"
 msgstr "Detect meetings automatically"
 
@@ -743,7 +743,7 @@ msgstr "Display language"
 msgid "Documentation"
 msgstr "Documentation"
 
-#: src/components/settings/views/notifications.tsx:392
+#: src/components/settings/views/notifications.tsx:395
 msgid "Don't show notifications when Do Not Disturb is enabled on your system."
 msgstr "Don't show notifications when Do Not Disturb is enabled on your system."
 
@@ -835,7 +835,7 @@ msgstr "Enter the base URL for your custom STT endpoint"
 msgid "Enter the model name required by your STT endpoint"
 msgstr "Enter the model name required by your STT endpoint"
 
-#: src/components/settings/views/notifications.tsx:272
+#: src/components/settings/views/notifications.tsx:275
 msgid "Exclude apps from detection"
 msgstr "Exclude apps from detection"
 
@@ -901,7 +901,7 @@ msgstr "Generating title..."
 msgid "Get Started"
 msgstr "Get Started"
 
-#: src/components/settings/views/notifications.tsx:377
+#: src/components/settings/views/notifications.tsx:380
 msgid "Global Settings"
 msgstr "Global Settings"
 
@@ -1403,7 +1403,7 @@ msgstr "Required to transcribe other people's voice during meetings"
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
 
-#: src/components/settings/views/notifications.tsx:389
+#: src/components/settings/views/notifications.tsx:392
 msgid "Respect Do Not Disturb"
 msgstr "Respect Do Not Disturb"
 
@@ -1533,11 +1533,11 @@ msgstr "Share usage data"
 msgid "Shorten summary"
 msgstr "Shorten summary"
 
-#: src/components/settings/views/notifications.tsx:225
+#: src/components/settings/views/notifications.tsx:228
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr "Show notifications when you have meetings starting soon in your calendar."
 
-#: src/components/settings/views/notifications.tsx:255
+#: src/components/settings/views/notifications.tsx:258
 msgid "Show notifications when you join a meeting."
 msgstr "Show notifications when you join a meeting."
 
@@ -1656,7 +1656,7 @@ msgstr "The name of your Obsidian vault."
 #~ msgid "There's a plan for everyone"
 #~ msgstr "There's a plan for everyone"
 
-#: src/components/settings/views/notifications.tsx:275
+#: src/components/settings/views/notifications.tsx:278
 msgid "These apps will not trigger meeting detection"
 msgstr "These apps will not trigger meeting detection"
 
@@ -1741,7 +1741,7 @@ msgstr "Upcoming"
 msgid "Upcoming Events"
 msgstr "Upcoming Events"
 
-#: src/components/settings/views/notifications.tsx:219
+#: src/components/settings/views/notifications.tsx:222
 msgid "Upcoming meeting notifications"
 msgstr "Upcoming meeting notifications"
 

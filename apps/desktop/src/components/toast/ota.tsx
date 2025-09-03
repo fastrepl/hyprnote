@@ -10,7 +10,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { useEffect, useRef } from "react";
 
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
-// import { useOngoingSession } from "@hypr/utils/contexts";
+import { useOngoingSession } from "@hypr/utils/contexts";
 import { DownloadProgress } from "./shared";
 
 // exported for manual update checks
@@ -86,13 +86,11 @@ export default function OtaNotification() {
   // Track dismissed update versions to prevent showing same notification repeatedly
   const dismissedVersions = useRef(new Set<string>());
 
-  /*
   // Check if there's an active meeting session
   const ongoingSession = useOngoingSession((state) => ({
     status: state.status,
     sessionId: state.sessionId,
   }));
-  */
 
   const appInApplicationsFolder = useQuery({
     queryKey: ["app-in-applications-folder"],
@@ -112,7 +110,7 @@ export default function OtaNotification() {
 
       return null;
     },
-    refetchInterval: 1000 * 60,
+    refetchInterval: 1000 * 60 * 3,
     refetchIntervalInBackground: true,
   });
 
@@ -129,11 +127,9 @@ export default function OtaNotification() {
     }
 
     // Don't show update notifications during active meetings
-    /*
     if (ongoingSession.status === "running_active" || ongoingSession.status === "running_paused") {
       return;
     }
-    */
 
     // Mark this version as shown
     dismissedVersions.current.add(update.version);

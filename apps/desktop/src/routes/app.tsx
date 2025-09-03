@@ -173,6 +173,7 @@ function Component() {
                             router.invalidate();
                           }}
                         />
+                        {showNotifications && <Notifications />}
                       </EditModeProvider>
                     </SearchProvider>
                   </NewNoteProvider>
@@ -196,7 +197,6 @@ function Component() {
           {content}
         </LicenseRefreshProvider>
       )}
-      {showNotifications && <Notifications />}
     </>
   );
 }

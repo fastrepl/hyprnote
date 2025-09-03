@@ -14,7 +14,7 @@ export function STTViewRemote({
   setProviderToCustom,
 }: {
   provider: "Local" | "Custom";
-  setProviderToCustom: () => void;
+  setProviderToCustom: () => Promise<void>;
 }) {
   const apiBaseQuery = useQuery({
     queryKey: ["custom-stt-base-url"],

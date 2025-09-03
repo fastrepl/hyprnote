@@ -731,7 +731,7 @@ msgstr ""
 #~ msgid "Description"
 #~ msgstr ""
 
-#: src/components/settings/views/notifications.tsx:225
+#: src/components/settings/views/notifications.tsx:249
 msgid "Detect meetings automatically"
 msgstr ""
 
@@ -745,6 +745,10 @@ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:43
 msgid "Documentation"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:392
+msgid "Don't show notifications when Do Not Disturb is enabled on your system."
 msgstr ""
 
 #: src/components/settings/components/ai/stt-view.tsx:237
@@ -835,7 +839,7 @@ msgstr ""
 msgid "Enter the model name required by your STT endpoint"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:248
+#: src/components/settings/views/notifications.tsx:272
 msgid "Exclude apps from detection"
 msgstr ""
 
@@ -899,6 +903,10 @@ msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:36
 msgid "Get Started"
+msgstr ""
+
+#: src/components/settings/views/notifications.tsx:377
+msgid "Global Settings"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:385
@@ -1399,6 +1407,10 @@ msgstr ""
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
+#: src/components/settings/views/notifications.tsx:389
+msgid "Respect Do Not Disturb"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:148
 #~ msgid "Resume"
 #~ msgstr ""
@@ -1525,11 +1537,11 @@ msgstr ""
 msgid "Shorten summary"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:201
+#: src/components/settings/views/notifications.tsx:225
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:231
+#: src/components/settings/views/notifications.tsx:255
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
@@ -1648,7 +1660,7 @@ msgstr ""
 #~ msgid "There's a plan for everyone"
 #~ msgstr ""
 
-#: src/components/settings/views/notifications.tsx:251
+#: src/components/settings/views/notifications.tsx:275
 msgid "These apps will not trigger meeting detection"
 msgstr ""
 
@@ -1733,7 +1745,7 @@ msgstr ""
 msgid "Upcoming Events"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:195
+#: src/components/settings/views/notifications.tsx:219
 msgid "Upcoming meeting notifications"
 msgstr ""
 

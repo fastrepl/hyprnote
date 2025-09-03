@@ -52,7 +52,10 @@ export default function NotificationsComponent() {
 
   const applications = useQuery({
     queryKey: ["notification", "applications"],
-    queryFn: () => notificationCommands.listApplications(),
+    queryFn: async () => {
+      const apps = await notificationCommands.listApplications();
+      return Array.from(new Set(apps.map(app => app.localized_name)));
+    },
   });
 
   const form = useForm<Schema>({
@@ -346,7 +349,7 @@ export default function NotificationsComponent() {
                                 )}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
-                              {applications.data?.map(app => app.localized_name)
+                              {(applications.data ?? [])
                                 .filter(app => !(form.watch("ignoredPlatforms") || []).includes(app))
                                 .map((app) => (
                                   <CommandItem

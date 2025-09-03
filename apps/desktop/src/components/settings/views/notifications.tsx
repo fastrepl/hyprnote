@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -23,6 +25,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function NotificationsComponent() {
+  const { userId } = useHypr();
   const [newAppName, setNewAppName] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -64,8 +67,19 @@ export default function NotificationsComponent() {
       }
       return v.event;
     },
-    onSuccess: (active) => {
+    onSuccess: async (active) => {
       eventNotification.refetch();
+      
+      // Track notification setting change in analytics
+      if (userId) {
+        await analyticsCommands.setProperties({
+          distinct_id: userId,
+          set: {
+            event_notification: active
+          }
+        });
+      }
+      
       if (active) {
         notificationCommands.startEventNotification();
         notificationCommands.showNotification({
@@ -90,8 +104,19 @@ export default function NotificationsComponent() {
       }
       return v.detect;
     },
-    onSuccess: (active) => {
+    onSuccess: async (active) => {
       detectNotification.refetch();
+      
+      // Track notification setting change in analytics
+      if (userId) {
+        await analyticsCommands.setProperties({
+          distinct_id: userId,
+          set: {
+            detect_notification: active
+          }
+        });
+      }
+      
       if (active) {
         notificationCommands.startDetectNotification();
         notificationCommands.showNotification({

@@ -10,6 +10,8 @@ Default permissions for the plugin
 - `allow-set-event-notification`
 - `allow-get-detect-notification`
 - `allow-set-detect-notification`
+- `allow-get-respect-do-not-disturb`
+- `allow-set-respect-do-not-disturb`
 - `allow-open-notification-settings`
 - `allow-request-notification-permission`
 - `allow-check-notification-permission`
@@ -129,6 +131,32 @@ Enables the get_ignored_platforms command without any pre-configured scope.
 <td>
 
 Denies the get_ignored_platforms command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-get-respect-do-not-disturb`
+
+</td>
+<td>
+
+Enables the get_respect_do_not_disturb command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-get-respect-do-not-disturb`
+
+</td>
+<td>
+
+Denies the get_respect_do_not_disturb command without any pre-configured scope.
 
 </td>
 </tr>
@@ -285,6 +313,32 @@ Enables the set_ignored_platforms command without any pre-configured scope.
 <td>
 
 Denies the set_ignored_platforms command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:allow-set-respect-do-not-disturb`
+
+</td>
+<td>
+
+Enables the set_respect_do_not_disturb command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`notification:deny-set-respect-do-not-disturb`
+
+</td>
+<td>
+
+Denies the set_respect_do_not_disturb command without any pre-configured scope.
 
 </td>
 </tr>

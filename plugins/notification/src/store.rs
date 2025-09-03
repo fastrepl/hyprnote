@@ -5,6 +5,7 @@ pub enum StoreKey {
     EventNotification,
     DetectNotification,
     IgnoredPlatforms,
+    RespectDoNotDisturb,
 }
 
 impl ScopedStoreKey for StoreKey {}

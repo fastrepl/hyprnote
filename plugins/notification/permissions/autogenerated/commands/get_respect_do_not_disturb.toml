@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-respect-do-not-disturb"
+description = "Enables the get_respect_do_not_disturb command without any pre-configured scope."
+commands.allow = ["get_respect_do_not_disturb"]
+
+[[permission]]
+identifier = "deny-get-respect-do-not-disturb"
+description = "Denies the get_respect_do_not_disturb command without any pre-configured scope."
+commands.deny = ["get_respect_do_not_disturb"]

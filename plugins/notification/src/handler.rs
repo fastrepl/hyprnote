@@ -1,5 +1,7 @@
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread::JoinHandle;
+
+use crate::NotificationPluginExt;
 use tauri::AppHandle;
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
@@ -63,20 +65,27 @@ impl NotificationHandler {
             .window_is_visible(HyprWindow::Main)
             .unwrap_or(false);
 
-        if !main_window_visible {
-            tracing::info!("skip_notification_due_to_main_window_visible");
+        let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
+
+        if main_window_visible {
+            tracing::info!(reason = "main_window_visible", "skip_handle_detect_event");
             return;
         }
 
         match trigger.event {
             hypr_detect::DetectEvent::MicStarted(apps) => {
-                let ignore_platforms = {
-                    use crate::NotificationPluginExt;
-                    app_handle.get_ignored_platforms().unwrap_or_default()
-                };
+                if apps.iter().any(|app| {
+                    app_handle
+                        .get_ignored_platforms()
+                        .unwrap_or_default()
+                        .contains(app)
+                }) {
+                    tracing::info!(reason = "ignore_platforms", "skip_notification");
+                    return;
+                }
 
-                if apps.iter().any(|app| ignore_platforms.contains(app)) {
-                    tracing::info!("skip_notification_due_to_ignored_platform");
+                if respect_do_not_disturb && hypr_notification::is_do_not_disturb() {
+                    tracing::info!(reason = "respect_do_not_disturb", "skip_notification");
                     return;
                 }
 
@@ -117,8 +126,15 @@ impl NotificationHandler {
             .window_is_visible(HyprWindow::Main)
             .unwrap_or(false);
 
-        if !main_window_visible {
-            tracing::info!("skip_notification_due_to_main_window_visible");
+        let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
+
+        if main_window_visible {
+            tracing::info!(reason = "main_window_visible", "handle_calendar_event");
+            return;
+        }
+
+        if respect_do_not_disturb && hypr_notification::is_do_not_disturb() {
+            tracing::info!(reason = "respect_do_not_disturb", "skip_notification");
             return;
         }
 

@@ -19,6 +19,7 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 const schema = z.object({
   detect: z.boolean().optional(),
   event: z.boolean().optional(),
+  respectDoNotDisturb: z.boolean().optional(),
   ignoredPlatforms: z.array(z.string()).optional(),
 });
 
@@ -44,6 +45,11 @@ export default function NotificationsComponent() {
     queryFn: () => notificationCommands.getIgnoredPlatforms(),
   });
 
+  const respectDoNotDisturb = useQuery({
+    queryKey: ["notification", "respectDoNotDisturb"],
+    queryFn: () => notificationCommands.getRespectDoNotDisturb(),
+  });
+
   const applications = useQuery({
     queryKey: ["notification", "applications"],
     queryFn: () => notificationCommands.listApplications(),
@@ -54,6 +60,7 @@ export default function NotificationsComponent() {
     values: {
       detect: detectNotification.data ?? false,
       event: eventNotification.data ?? false,
+      respectDoNotDisturb: respectDoNotDisturb.data ?? false,
       ignoredPlatforms: ignoredPlatforms.data ?? [],
     },
   });
@@ -132,6 +139,20 @@ export default function NotificationsComponent() {
     },
   });
 
+  const respectDoNotDisturbMutation = useMutation({
+    mutationFn: async (v: Schema) => {
+      if (v.respectDoNotDisturb) {
+        notificationCommands.setRespectDoNotDisturb(true);
+      } else {
+        notificationCommands.setRespectDoNotDisturb(false);
+      }
+      return v.respectDoNotDisturb;
+    },
+    onSuccess: () => {
+      respectDoNotDisturb.refetch();
+    },
+  });
+
   const ignoredPlatformsMutation = useMutation({
     mutationFn: async (platforms: string[]) => {
       await notificationCommands.setIgnoredPlatforms(platforms);
@@ -150,6 +171,9 @@ export default function NotificationsComponent() {
       if (name === "event" && value.event !== undefined) {
         eventMutation.mutate({ event: value.event });
       }
+      if (name === "respectDoNotDisturb" && value.respectDoNotDisturb !== undefined) {
+        respectDoNotDisturbMutation.mutate({ respectDoNotDisturb: value.respectDoNotDisturb });
+      }
       if (name === "ignoredPlatforms" && value.ignoredPlatforms) {
         const filteredPlatforms = value.ignoredPlatforms.filter((p): p is string => !!p);
         ignoredPlatformsMutation.mutate(filteredPlatforms);
@@ -157,7 +181,7 @@ export default function NotificationsComponent() {
     });
 
     return () => subscription.unsubscribe();
-  }, [eventMutation, detectMutation, ignoredPlatformsMutation]);
+  }, [eventMutation, detectMutation, respectDoNotDisturbMutation, ignoredPlatformsMutation]);
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
@@ -183,7 +207,7 @@ export default function NotificationsComponent() {
   return (
     <div>
       <Form {...form}>
-        <form className="space-y-6">
+        <form className="space-y-8">
           <FormField
             control={form.control}
             name="event"
@@ -342,6 +366,47 @@ export default function NotificationsComponent() {
               </FormItem>
             )}
           />
+          {(form.watch("event") || form.watch("detect")) && (
+            <>
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-background px-4 text-muted-foreground font-medium">
+                    <Trans>Global Settings</Trans>
+                  </span>
+                </div>
+              </div>
+              <FormField
+                control={form.control}
+                name="respectDoNotDisturb"
+                render={({ field }) => (
+                  <FormItem className="space-y-6">
+                    <div className="flex flex-row items-center justify-between">
+                      <div>
+                        <FormLabel>
+                          <Trans>Respect Do Not Disturb</Trans>
+                        </FormLabel>
+                        <FormDescription>
+                          <Trans>
+                            Don't show notifications when Do Not Disturb is enabled on your system.
+                          </Trans>
+                        </FormDescription>
+                      </div>
+
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </form>
       </Form>
     </div>

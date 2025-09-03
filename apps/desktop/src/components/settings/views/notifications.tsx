@@ -69,17 +69,17 @@ export default function NotificationsComponent() {
     },
     onSuccess: async (active) => {
       eventNotification.refetch();
-      
+
       // Track notification setting change in analytics
       if (userId) {
         await analyticsCommands.setProperties({
           distinct_id: userId,
           set: {
-            event_notification: active
-          }
+            event_notification: active,
+          },
         });
       }
-      
+
       if (active) {
         notificationCommands.startEventNotification();
         notificationCommands.showNotification({
@@ -106,17 +106,17 @@ export default function NotificationsComponent() {
     },
     onSuccess: async (active) => {
       detectNotification.refetch();
-      
+
       // Track notification setting change in analytics
       if (userId) {
         await analyticsCommands.setProperties({
           distinct_id: userId,
           set: {
-            detect_notification: active
-          }
+            audio_notification: active,
+          },
         });
       }
-      
+
       if (active) {
         notificationCommands.startDetectNotification();
         notificationCommands.showNotification({

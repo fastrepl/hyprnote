@@ -680,7 +680,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:115
+#: src/components/settings/views/ai-stt.tsx:120
 msgid "Custom"
 msgstr ""
 
@@ -705,7 +705,7 @@ msgid "Custom Vocabulary"
 msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:112
+#: src/components/settings/views/ai-stt.tsx:117
 msgid "Default"
 msgstr ""
 
@@ -731,7 +731,7 @@ msgstr ""
 #~ msgid "Description"
 #~ msgstr ""
 
-#: src/components/settings/views/notifications.tsx:200
+#: src/components/settings/views/notifications.tsx:225
 msgid "Detect meetings automatically"
 msgstr ""
 
@@ -835,7 +835,7 @@ msgstr ""
 msgid "Enter the model name required by your STT endpoint"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:223
+#: src/components/settings/views/notifications.tsx:248
 msgid "Exclude apps from detection"
 msgstr ""
 
@@ -1525,11 +1525,11 @@ msgstr ""
 msgid "Shorten summary"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:176
+#: src/components/settings/views/notifications.tsx:201
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:206
+#: src/components/settings/views/notifications.tsx:231
 msgid "Show notifications when you join a meeting."
 msgstr ""
 
@@ -1648,7 +1648,7 @@ msgstr ""
 #~ msgid "There's a plan for everyone"
 #~ msgstr ""
 
-#: src/components/settings/views/notifications.tsx:226
+#: src/components/settings/views/notifications.tsx:251
 msgid "These apps will not trigger meeting detection"
 msgstr ""
 
@@ -1733,7 +1733,7 @@ msgstr ""
 msgid "Upcoming Events"
 msgstr ""
 
-#: src/components/settings/views/notifications.tsx:170
+#: src/components/settings/views/notifications.tsx:195
 msgid "Upcoming meeting notifications"
 msgstr ""
 

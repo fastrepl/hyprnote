@@ -251,7 +251,17 @@ function ParticipentItem({
         )}
         {member.linkedin_username && (
           <a
-            href={`https://linkedin.com/in/${member.linkedin_username}`}
+            href={(() => {
+              const username = member.linkedin_username;
+              if (
+                username.startsWith("https://")
+                || username.startsWith("www.linkedin.com")
+                || username.startsWith("linkedin.com")
+              ) {
+                return username;
+              }
+              return `https://linkedin.com/in/${username}`;
+            })()}
             target="_blank"
             rel="noopener noreferrer"
             className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"

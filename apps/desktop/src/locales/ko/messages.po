@@ -352,7 +352,7 @@ msgstr ""
 msgid "Add more quotes"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:340
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:350
 msgid "Add participant"
 msgstr ""
 
@@ -650,7 +650,7 @@ msgstr ""
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:518
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:528
 #: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr ""

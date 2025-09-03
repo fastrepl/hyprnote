@@ -367,7 +367,6 @@ export function useChatLogic({
         }
 
         if (chunk.type === "text-delta") {
-          console.log("text delta: ", chunk);
           setIsStreamingText(true);
 
           setMessages((prev) => {
@@ -412,7 +411,6 @@ export function useChatLogic({
 
         if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
-          console.log("tool call: ", chunk);
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
               try {
@@ -465,8 +463,6 @@ export function useChatLogic({
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
-
-          console.log("tool result: ", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),

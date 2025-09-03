@@ -85,7 +85,6 @@ export async function handleUpdateInstall(update: any, toastId: string, appInApp
 export default function OtaNotification() {
   // Track dismissed update versions to prevent showing same notification repeatedly
   const dismissedVersions = useRef(new Set<string>());
-  // Track if download is in progress
 
   /*
   // Check if there's an active meeting session

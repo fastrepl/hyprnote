@@ -16,6 +16,8 @@ openmp = ["llama-cpp-2/openmp"]
 hypr-gguf = { workspace = true }
 
 encoding_rs = "0.8.35"
+nom = "8.0.0"
+
 llama-cpp-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-08-21" }
 llama-cpp-sys-2 = { git = "https://github.com/utilityai/llama-cpp-rs", default-features = false, branch = "update-llama-cpp-2025-08-21" }
 
@@ -33,13 +35,11 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 
-nom = "8.0.0"
-
+[dev-dependencies]
 hypr-buffer = { workspace = true }
 hypr-data = { workspace = true }
 hypr-gbnf = { workspace = true }
 hypr-template = { workspace = true }
-owhisper-interface = { workspace = true }
 
 dirs = { workspace = true }
 rand = "0.9.0"

@@ -743,7 +743,7 @@ msgstr ""
 msgid "Display language"
 msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:43
+#: src/components/settings/views/help-support.tsx:43
 msgid "Documentation"
 msgstr ""
 
@@ -847,7 +847,7 @@ msgstr ""
 msgid "Extract action items"
 msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:62
+#: src/components/settings/views/help-support.tsx:62
 msgid "Feature Requests"
 msgstr ""
 
@@ -905,7 +905,7 @@ msgstr ""
 msgid "Google Gemini"
 msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:103
+#: src/components/settings/views/help-support.tsx:103
 msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
 msgstr ""
 
@@ -927,13 +927,13 @@ msgstr ""
 #~ msgid "Help & Feedback"
 #~ msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:30
+#: src/components/settings/views/help-support.tsx:30
 #: src/routes/app.settings.tsx:62
 #: src/routes/app.settings.tsx:116
 msgid "Help & Support"
 msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:84
+#: src/components/settings/views/help-support.tsx:84
 msgid "Help us improve by reporting issues"
 msgstr ""
 
@@ -1031,7 +1031,7 @@ msgstr ""
 #~ msgid "Language Model"
 #~ msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:46
+#: src/components/settings/views/help-support.tsx:46
 msgid "Learn how to use Hyprnote"
 msgstr ""
 
@@ -1100,7 +1100,7 @@ msgstr ""
 #~ msgid "Local Models"
 #~ msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:100
+#: src/components/settings/views/help-support.tsx:100
 msgid "Logs"
 msgstr ""
 
@@ -1377,7 +1377,7 @@ msgstr ""
 #~ msgid "Remove {0} from list"
 #~ msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:81
+#: src/components/settings/views/help-support.tsx:81
 msgid "Report a Bug"
 msgstr ""
 
@@ -1578,7 +1578,7 @@ msgstr ""
 #~ msgid "Submit Feedback"
 #~ msgstr ""
 
-#: src/components/settings/views/help-feedback.tsx:65
+#: src/components/settings/views/help-support.tsx:65
 msgid "Suggest new features and improvements"
 msgstr ""
 

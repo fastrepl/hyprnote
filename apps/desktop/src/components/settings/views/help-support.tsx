@@ -4,7 +4,7 @@ import { Book, Bug, ExternalLinkIcon, MessageSquare } from "lucide-react";
 
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
 
-export default function HelpFeedback() {
+export default function HelpSupport() {
   const handleOpenFeedback = () => {
     openUrl("https://hyprnote.canny.io/feature-requests");
   };
@@ -14,7 +14,7 @@ export default function HelpFeedback() {
   };
 
   const handleReportBug = () => {
-    openUrl("https://hyprnote.canny.io/bugs");
+    openUrl("https://hyprnote.canny.io/bug-report");
   };
 
   const handleOpenLogs = () => {

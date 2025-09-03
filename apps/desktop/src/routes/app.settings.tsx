@@ -11,7 +11,7 @@ import {
   Billing,
   Calendar,
   General,
-  HelpFeedback,
+  HelpSupport,
   Integrations,
   MCP,
   Notifications,
@@ -186,7 +186,7 @@ function Component() {
               {search.tab === "integrations" && <Integrations />}
               {search.tab === "mcp" && <MCP />}
               {search.tab === "billing" && <Billing />}
-              {search.tab === "help-support" && <HelpFeedback />}
+              {search.tab === "help-support" && <HelpSupport />}
             </div>
           </div>
         </div>

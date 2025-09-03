@@ -1,5 +1,5 @@
 import { Trans } from "@lingui/react/macro";
-import { Briefcase, Check, Edit3, EyeOff, GraduationCap, Hospital, Landmark, Rocket, Users } from "lucide-react";
+import { Briefcase, Check, Code, Edit3, GraduationCap, Hospital, Rocket, Scale, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -13,14 +13,14 @@ interface IndustryViewProps {
 }
 
 const INDUSTRY_OPTIONS = [
-  { value: "finance", label: "Finance", icon: Briefcase },
+  { value: "tech", label: "Tech", icon: Code },
+  { value: "startup", label: "Startup", icon: Rocket },
   { value: "consulting", label: "Consulting", icon: Users },
-  { value: "startup-tech", label: "Startup/Tech", icon: Rocket },
+  { value: "legal", label: "Legal", icon: Scale },
   { value: "healthcare", label: "Healthcare", icon: Hospital },
-  { value: "government", label: "Government", icon: Landmark },
+  { value: "finance", label: "Finance", icon: Briefcase },
   { value: "student", label: "Student", icon: GraduationCap },
   { value: "other", label: "Other", icon: Edit3 },
-  { value: "prefer-not-to-say", label: "Prefer not to say", icon: EyeOff },
 ];
 
 export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, selectedIndustry }) => {
@@ -69,7 +69,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
       </h2>
 
       {/* Industry Options Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl mb-6">
         {INDUSTRY_OPTIONS.map((option) => {
           const IconComponent = option.icon;
           const isOther = option.value === "other";
@@ -81,8 +81,8 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
               onClick={() => handleOptionClick(option.value)}
               variant="outline"
               className={cn(
-                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
-                isSelected && "bg-black text-white hover:bg-black hover:text-white",
+                "h-20 px-4 flex flex-col items-center justify-center gap-2 hover:bg-neutral-50 transition-all",
+                isSelected && "ring-2 ring-blue-500 bg-blue-50 hover:bg-blue-100",
                 showCustomInput && isOther && "ring-2 ring-blue-500 bg-blue-50",
               )}
               disabled={showCustomInput && !isOther}

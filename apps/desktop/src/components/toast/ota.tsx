@@ -85,6 +85,8 @@ export async function handleUpdateInstall(update: any, toastId: string, appInApp
 export default function OtaNotification() {
   // Track dismissed update versions to prevent showing same notification repeatedly
   const dismissedVersions = useRef(new Set<string>());
+  // Track if download is in progress
+  const isDownloading = useRef(false);
 
   /*
   // Check if there's an active meeting session
@@ -128,6 +130,10 @@ export default function OtaNotification() {
       return;
     }
 
+    if (isDownloading.current) {
+      return;
+    }
+
     // Don't show update notifications during active meetings
     /*
     if (ongoingSession.status === "running_active" || ongoingSession.status === "running_paused") {
@@ -146,6 +152,7 @@ export default function OtaNotification() {
         {
           label: "Update Now",
           onClick: async () => {
+            isDownloading.current = true;
             sonnerToast.dismiss("ota-notification");
 
             const updateChannel = new Channel<number>();
@@ -180,6 +187,7 @@ export default function OtaNotification() {
               message("The app will now restart", { kind: "info", title: "Update Installed" });
               setTimeout(relaunch, 2000);
             }).catch((err: any) => {
+              isDownloading.current = false;
               Sentry.captureException(err);
               if (!appInApplicationsFolder.data) {
                 message("Please move the app to the Applications folder and try again", {

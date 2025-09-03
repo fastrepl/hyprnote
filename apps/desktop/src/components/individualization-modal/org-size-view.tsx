@@ -40,8 +40,8 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
               onClick={() => onSelect(option.value)}
               variant="outline"
               className={cn(
-                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
-                isSelected && "bg-black text-white hover:bg-black hover:text-white",
+                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-neutral-50 transition-all",
+                isSelected && "ring-2 ring-blue-500 bg-blue-50 hover:bg-blue-100",
               )}
             >
               <IconComponent className="h-6 w-6" />

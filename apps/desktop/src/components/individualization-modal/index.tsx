@@ -76,7 +76,7 @@ export function IndividualizationModal({ isOpen, onClose }: IndividualizationMod
       await analyticsCommands.event({
         event: "survey_completed",
         distinct_id: userId,
-        survey_version: "v1",
+        survey_version: "v2",
         completed_at: new Date().toISOString(),
         $set: {
           industry: finalProfile.industry,

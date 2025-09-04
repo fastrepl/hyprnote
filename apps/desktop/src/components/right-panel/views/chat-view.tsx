@@ -56,6 +56,7 @@ export function ChatView() {
     setMessages,
     isGenerating,
     sendMessage,
+    status,
   } = useChat2({
     sessionId,
     userId,
@@ -155,7 +156,11 @@ export function ChatView() {
     // Need backend support for this
   };
 
-  const isStreamingText = isGenerating; // For compatibility
+  // Derive precise status flags from useChat status
+  const isSubmitted = status === "submitted"; // Request sent, waiting for response
+  const isStreaming = status === "streaming"; // Actively receiving response
+  const isReady = status === "ready"; 
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -255,8 +260,9 @@ export function ChatView() {
             sessionTitle={sessionData?.title || "Untitled"}
             hasEnhancedNote={!!(sessionData?.enhancedContent)}
             onApplyMarkdown={handleApplyMarkdown}
-            isGenerating={isGenerating}
-            isStreamingText={isStreamingText}
+            isSubmitted={isSubmitted}
+            isStreaming={isStreaming}
+            isReady={isReady}
           />
         )}
 

@@ -180,8 +180,11 @@ export const prepareMessagesForAI = async (
     mcpTools: mcpToolsArray,
   });
 
-  // Convert UIMessages to model messages
-  const modelMessages = convertToModelMessages(messages);
+  // Clean UIMessages to remove problematic tool states before conversion
+  const cleanedMessages = cleanUIMessages(messages);
+  
+  // Convert cleaned UIMessages to model messages
+  const modelMessages = convertToModelMessages(cleanedMessages);
   const preparedMessages: any[] = [];
 
   // Always add system message first

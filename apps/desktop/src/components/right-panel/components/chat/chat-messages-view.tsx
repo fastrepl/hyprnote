@@ -7,8 +7,9 @@ interface ChatMessagesViewProps {
   sessionTitle?: string;
   hasEnhancedNote?: boolean;
   onApplyMarkdown?: (markdownContent: string) => void;
-  isGenerating?: boolean;
-  isStreamingText?: boolean;
+  isSubmitted?: boolean;
+  isStreaming?: boolean;
+  isReady?: boolean;
 }
 
 function ThinkingIndicator() {
@@ -41,29 +42,39 @@ function ThinkingIndicator() {
 }
 
 export function ChatMessagesView(
-  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isGenerating, isStreamingText }: ChatMessagesViewProps,
+  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady }: ChatMessagesViewProps,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
   const thinkingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const shouldShowThinking = () => {
-    if (!isGenerating) {
-      return false;
-    }
-
-    if (messages.length === 0) {
+    // Show thinking when request is submitted but not yet streaming
+    if (isSubmitted) {
       return true;
     }
 
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage.role === "user") {
+    /*
+    // Keep showing if we're generating but haven't started streaming text yet
+    if (isStreaming) {
+      // Check if we have any assistant content streaming
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        // Hide thinking if assistant has started responding with text
+        if (lastMessage.role === "assistant" && 
+            lastMessage.parts?.some(p => p.type === "text" && p.text)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    */
+
+    if (!isReady && !isStreaming) {
       return true;
     }
 
-    if (lastMessage.role === "assistant" && !isStreamingText) {
-      return true;
-    }
+   
 
     return false;
   };
@@ -89,7 +100,7 @@ export function ChatMessagesView(
         clearTimeout(thinkingTimeoutRef.current);
       }
     };
-  }, [isGenerating, isStreamingText, messages]);
+  }, [isSubmitted, isStreaming, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -1,5 +1,6 @@
 pub mod calendars;
 pub mod chats;
+pub mod chats_v2;
 pub mod configs;
 pub mod events;
 pub mod humans;

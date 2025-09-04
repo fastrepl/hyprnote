@@ -22,8 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@hypr/ui/components/ui/form";
-import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
 
@@ -302,6 +302,7 @@ export default function General() {
             )}
           />
 
+          {/*
           <FormField
             control={form.control}
             name="displayLanguage"
@@ -330,6 +331,7 @@ export default function General() {
               </FormItem>
             )}
           />
+          */}
 
           <FormField
             control={form.control}
@@ -411,7 +413,6 @@ export default function General() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="jargons"
@@ -428,13 +429,21 @@ export default function General() {
                   </FormDescription>
                 </div>
                 <FormControl>
-                  <Input
+                  <Textarea
                     {...field}
+                    rows={3}
                     onBlur={() => mutation.mutate(form.getValues())}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault(); 
+                        mutation.mutate(form.getValues());
+                        e.currentTarget.blur(); 
+                      }
+                    }}
                     placeholder={t({
                       id: "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)",
                     })}
-                    className="focus-visible:ring-1 focus-visible:ring-ring"
+                    className="focus-visible:ring-1 focus-visible:ring-ring resize-none"
                   />
                 </FormControl>
                 <FormMessage />

@@ -8,7 +8,7 @@ pub struct InstalledApp {
 #[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
     use std::path::PathBuf;
-    
+
     let app_dirs = [
         "/Applications",
         &format!("{}/Applications", std::env::var("HOME").unwrap_or_default()),

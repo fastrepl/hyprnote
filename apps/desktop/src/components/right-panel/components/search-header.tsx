@@ -1,5 +1,7 @@
+import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { ChevronDownIcon, ChevronUpIcon, ReplaceIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +15,44 @@ export function SearchHeader({ editorRef, onClose }: SearchHeaderProps) {
   const [replaceTerm, setReplaceTerm] = useState("");
   const [resultCount, setResultCount] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const queryClient = useQueryClient();
+
+  const config = useQuery({
+    queryKey: ["config", "general"],
+    queryFn: async () => {
+      const result = await dbCommands.getConfig();
+      return result;
+    },
+  });
+
+  const updateJargonsMutation = useMutation({
+    mutationFn: async (newJargon: string) => {
+      if (!config.data) {
+        return;
+      }
+
+      const currentJargons = config.data.general.jargons || [];
+      const trimmedJargon = newJargon.trim();
+
+      if (!trimmedJargon || currentJargons.includes(trimmedJargon)) {
+        return;
+      }
+
+      const updatedJargons = [...currentJargons, trimmedJargon];
+
+      await dbCommands.setConfig({
+        ...config.data,
+        general: {
+          ...config.data.general,
+          jargons: updatedJargons,
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["config", "general"] });
+    },
+  });
 
   // Add ref for the search header container
   const searchHeaderRef = useRef<HTMLDivElement>(null);
@@ -108,6 +148,11 @@ export function SearchHeader({ editorRef, onClose }: SearchHeaderProps) {
   const handleReplaceAll = () => {
     if (editorRef.current && searchTerm) {
       editorRef.current.editor.commands.replaceAll();
+
+      if (replaceTerm && replaceTerm.trim() && resultCount > 0) {
+        updateJargonsMutation.mutate(replaceTerm);
+      }
+
       setTimeout(() => {
         const storage = editorRef.current.editor.storage.searchAndReplace;
         const results = storage.results || [];

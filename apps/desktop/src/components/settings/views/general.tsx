@@ -23,9 +23,9 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
@@ -302,7 +302,8 @@ export default function General() {
             )}
           />
 
-          {/*
+          {
+            /*
           <FormField
             control={form.control}
             name="displayLanguage"
@@ -331,7 +332,8 @@ export default function General() {
               </FormItem>
             )}
           />
-          */}
+          */
+          }
 
           <FormField
             control={form.control}
@@ -434,10 +436,10 @@ export default function General() {
                     rows={3}
                     onBlur={() => mutation.mutate(form.getValues())}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault(); 
+                      if (e.key === "Enter") {
+                        e.preventDefault();
                         mutation.mutate(form.getValues());
-                        e.currentTarget.blur(); 
+                        e.currentTarget.blur();
                       }
                     }}
                     placeholder={t({

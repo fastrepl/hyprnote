@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-create-message-v2"
+description = "Enables the create_message_v2 command without any pre-configured scope."
+commands.allow = ["create_message_v2"]
+
+[[permission]]
+identifier = "deny-create-message-v2"
+description = "Denies the create_message_v2 command without any pre-configured scope."
+commands.deny = ["create_message_v2"]

@@ -7,9 +7,10 @@ import { message } from "@tauri-apps/plugin-dialog";
 import { exists } from "@tauri-apps/plugin-fs";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
+import { useOngoingSession } from "@hypr/utils/contexts";
 import { DownloadProgress } from "./shared";
 
 // exported for manual update checks
@@ -82,6 +83,15 @@ export async function handleUpdateInstall(update: any, toastId: string, appInApp
 // ---export ends---
 
 export default function OtaNotification() {
+  // Track dismissed update versions to prevent showing same notification repeatedly
+  const dismissedVersions = useRef(new Set<string>());
+
+  // Check if there's an active meeting session
+  const ongoingSession = useOngoingSession((state) => ({
+    status: state.status,
+    sessionId: state.sessionId,
+  }));
+
   const appInApplicationsFolder = useQuery({
     queryKey: ["app-in-applications-folder"],
     queryFn: async () => {
@@ -100,7 +110,7 @@ export default function OtaNotification() {
 
       return null;
     },
-    refetchInterval: 1000 * 60,
+    refetchInterval: 1000 * 60 * 3,
     refetchIntervalInBackground: true,
   });
 
@@ -110,6 +120,19 @@ export default function OtaNotification() {
     }
 
     const update = checkForUpdate.data;
+
+    // Don't show notification if this version was already dismissed
+    if (dismissedVersions.current.has(update.version)) {
+      return;
+    }
+
+    // Don't show update notifications during active meetings
+    if (ongoingSession.status === "running_active" || ongoingSession.status === "running_paused") {
+      return;
+    }
+
+    // Mark this version as shown
+    dismissedVersions.current.add(update.version);
 
     toast({
       id: "ota-notification",

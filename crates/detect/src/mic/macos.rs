@@ -148,12 +148,16 @@ impl crate::Observer for Detector {
                                                     );
 
                                                     if let Ok(guard) = cb.lock() {
-                                                        (*guard)(DetectEvent::MicStarted(apps));
+                                                        let event = DetectEvent::MicStarted(apps);
+                                                        tracing::info!(event = ?event, "detected");
+                                                        (*guard)(event);
                                                     }
                                                 });
                                             } else {
                                                 if let Ok(guard) = callback.lock() {
-                                                    (*guard)(DetectEvent::MicStopped);
+                                                    let event = DetectEvent::MicStopped;
+                                                    tracing::info!(event = ?event, "detected");
+                                                    (*guard)(event);
                                                 }
                                             }
                                         }

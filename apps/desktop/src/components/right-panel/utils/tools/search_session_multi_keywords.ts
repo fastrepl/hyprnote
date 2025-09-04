@@ -7,8 +7,8 @@ export const createSearchSessionTool = (userId: string | null) => {
     description:
       "Search for sessions (meeting notes) with multiple keywords. The keywords should be the most important things that the user is talking about. This could be either topics, people, or company names.",
     inputSchema: z.object({
-      keywords: z.array(z.string()).min(3).max(5).describe(
-        "List of 3-5 keywords to search for, each keyword should be concise",
+      keywords: z.array(z.string()).min(1).max(5).describe(
+        "List of 1 ~ 3 keywords to search for, each keyword should be concise",
       ),
     }),
     execute: async ({ keywords }) => {

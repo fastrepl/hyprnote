@@ -32,7 +32,6 @@ hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-appl
 hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
 hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
-hypr-clova = { path = "crates/clova", package = "clova" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
@@ -60,7 +59,6 @@ hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
-hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
@@ -85,18 +83,19 @@ owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-confi
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
 owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" }
 
-tauri = "2.7"
-tauri-build = "2.3"
+tauri = "2.8"
+tauri-build = "2.4"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
-tauri-plugin = "2.3"
+tauri-plugin = "2.4"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
 tauri-plugin-fs = "2.4"
-tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
+tauri-plugin-http = "2.5"
 tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.5"
+tauri-plugin-sentry = { version = "0.4.1" }
 tauri-plugin-shell = "2.3"
 tauri-plugin-store = "2.4"
 
@@ -118,6 +117,7 @@ tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
+tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
@@ -175,11 +175,6 @@ tower-http = "0.6.2"
 
 chrono = "0.4.39"
 chrono-tz = "0.10.1"
-
-prost = "0.13.4"
-prost-build = "0.13.4"
-tonic = "0.12.3"
-tonic-build = "0.12.3"
 
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }

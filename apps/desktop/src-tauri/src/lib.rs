@@ -9,25 +9,9 @@ use store::*;
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 
-use tracing_subscriber::{
-    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
-};
-
 #[tokio::main]
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
-
-    {
-        let env_filter = EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new("info"))
-            .add_directive("ort=warn".parse().unwrap());
-
-        tracing_subscriber::Registry::default()
-            .with(fmt::layer())
-            .with(env_filter)
-            .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
-            .init();
-    }
 
     let sentry_client = tauri_plugin_sentry::sentry::init((
         {
@@ -76,6 +60,7 @@ pub async fn main() {
         .plugin(tauri_plugin_sse::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_db::init())
+        .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
@@ -93,7 +78,6 @@ pub async fn main() {
         .plugin(tauri_plugin_obsidian::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -190,12 +174,6 @@ pub async fn main() {
 
             specta_builder.mount_events(&app);
 
-            #[cfg(target_os = "macos")]
-            {
-                let app_handle = app.clone();
-                hypr_intercept::setup_quit_handler(create_quit_handler(app_handle));
-            }
-
             {
                 use tauri_plugin_global_shortcut::GlobalShortcutExt;
                 app.global_shortcut().register(ctrl_n_shortcut)?;
@@ -290,10 +268,6 @@ pub async fn main() {
 
     if !is_background_launch {
         let app_handle = app.handle().clone();
-
-        #[cfg(target_os = "macos")]
-        let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
         HyprWindow::Main.show(&app_handle).unwrap();
     }
 
@@ -303,53 +277,6 @@ pub async fn main() {
             HyprWindow::Main.show(app).unwrap();
         }
     });
-}
-
-#[cfg(target_os = "macos")]
-fn create_quit_handler(app_handle: tauri::AppHandle) -> impl Fn() -> bool {
-    use tauri::Manager;
-    use tauri_plugin_dialog::DialogExt;
-    use tauri_plugin_listener::ListenerPluginExt;
-
-    move || {
-        let mut is_exit_intent = false;
-
-        if let Some(shared_state) = app_handle.try_state::<tauri_plugin_listener::SharedState>() {
-            if let Ok(guard) = shared_state.try_lock() {
-                let state = guard.get_state();
-                if !matches!(
-                    state,
-                    tauri_plugin_listener::fsm::State::RunningActive { .. }
-                ) {
-                    is_exit_intent = true;
-                } else {
-                    is_exit_intent = app_handle
-                        .dialog()
-                        .message("Hyprnote is currently recording.")
-                        .title("Do you really want to quit?")
-                        .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(
-                            "Quit".to_string(),
-                            "Cancel".to_string(),
-                        ))
-                        .kind(tauri_plugin_dialog::MessageDialogKind::Info)
-                        .blocking_show()
-                }
-            }
-        }
-
-        if is_exit_intent {
-            let _ = app_handle.close_all_windows();
-            let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
-            hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-
-            let app_handle_clone = app_handle.clone();
-            tokio::spawn(async move {
-                let _ = app_handle_clone.stop_session().await;
-            });
-        }
-
-        false
-    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

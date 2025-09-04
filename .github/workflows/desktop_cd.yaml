@@ -24,10 +24,10 @@ jobs:
         include:
           - platform: "macos"
             target: "aarch64-apple-darwin"
-            runner: "macos-latest"
+            runner: "macos-14"
           - platform: "macos"
             target: "x86_64-apple-darwin"
-            runner: "macos-latest"
+            runner: "macos-14"
           - platform: "windows"
             target: "x86_64-pc-windows-msvc"
             runner: "windows-latest"

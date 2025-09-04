@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::process::Command;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -41,3 +42,40 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
 
 #[cfg(not(target_os = "macos"))]
 pub fn show(notification: &hypr_notification_interface::Notification) {}
+
+#[cfg(target_os = "macos")]
+pub fn is_do_not_disturb() -> bool {
+    match Command::new("defaults")
+        .args([
+            "read",
+            "com.apple.controlcenter",
+            "NSStatusItem Visible FocusModes",
+        ])
+        .output()
+    {
+        Ok(output) => {
+            if output.status.success() {
+                let out = String::from_utf8_lossy(&output.stdout);
+                out.trim() == "1"
+            } else {
+                false
+            }
+        }
+        Err(_) => false,
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn is_do_not_disturb() -> bool {
+    false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_do_not_disturb() {
+        println!("Do Not Disturb: {}", is_do_not_disturb());
+    }
+}

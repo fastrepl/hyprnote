@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-hi"
+description = "Enables the hi command without any pre-configured scope."
+commands.allow = ["hi"]
+
+[[permission]]
+identifier = "deny-hi"
+description = "Denies the hi command without any pre-configured scope."
+commands.deny = ["hi"]

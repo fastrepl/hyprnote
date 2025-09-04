@@ -249,12 +249,12 @@ msgstr "{weeks} weeks later"
 #~ msgstr "in {hours} hours"
 
 #: src/components/settings/views/notifications.tsx:113
-msgid "(Beta) Detect meetings automatically"
-msgstr "(Beta) Detect meetings automatically"
+#~ msgid "(Beta) Detect meetings automatically"
+#~ msgstr "(Beta) Detect meetings automatically"
 
 #: src/components/settings/views/notifications.tsx:140
-msgid "(Beta) Upcoming meeting notifications"
-msgstr "(Beta) Upcoming meeting notifications"
+#~ msgid "(Beta) Upcoming meeting notifications"
+#~ msgstr "(Beta) Upcoming meeting notifications"
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:628
 msgid "(Optional for localhost)"
@@ -352,7 +352,7 @@ msgstr "Add members"
 msgid "Add more quotes"
 msgstr "Add more quotes"
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:340
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:350
 msgid "Add participant"
 msgstr "Add participant"
 
@@ -462,6 +462,11 @@ msgstr "Base URL"
 #~ msgid "Billing"
 #~ msgstr "Billing"
 
+#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:112
+msgid "Billing & License"
+msgstr "Billing & License"
+
 #: src/components/settings/views/billing.tsx:104
 #~ msgid "Billing features are currently under development and will be available in a future update."
 #~ msgstr "Billing features are currently under development and will be available in a future update."
@@ -471,7 +476,8 @@ msgstr "Base URL"
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:59
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:102
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -644,7 +650,7 @@ msgstr "Control how autonomous the AI enhancement should be."
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr "Control how creative the AI enhancement should be"
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:518
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:528
 #: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr "Create"
@@ -674,7 +680,7 @@ msgstr "Create your first template to get started"
 #~ msgstr "Current Plan"
 
 #: src/components/settings/views/ai-llm.tsx:671
-#: src/components/settings/views/ai-stt.tsx:115
+#: src/components/settings/views/ai-stt.tsx:120
 msgid "Custom"
 msgstr "Custom"
 
@@ -695,7 +701,7 @@ msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
 #: src/components/settings/views/ai-llm.tsx:668
-#: src/components/settings/views/ai-stt.tsx:112
+#: src/components/settings/views/ai-stt.tsx:117
 msgid "Default"
 msgstr "Default"
 
@@ -721,6 +727,10 @@ msgstr "Describe the content and purpose of this section"
 #~ msgid "Description"
 #~ msgstr "Description"
 
+#: src/components/settings/views/notifications.tsx:252
+msgid "Detect meetings automatically"
+msgstr "Detect meetings automatically"
+
 #: src/components/editor-area/note-header/listen-button.tsx:349
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr "Did you get consent from everyone in the meeting?"
@@ -728,6 +738,14 @@ msgstr "Describe the content and purpose of this section"
 #: src/components/settings/views/general.tsx:312
 msgid "Display language"
 msgstr "Display language"
+
+#: src/components/settings/views/help-support.tsx:43
+msgid "Documentation"
+msgstr "Documentation"
+
+#: src/components/settings/views/notifications.tsx:395
+msgid "Don't show notifications when Do Not Disturb is enabled on your system."
+msgstr "Don't show notifications when Do Not Disturb is enabled on your system."
 
 #: src/components/settings/components/ai/stt-view.tsx:237
 #~ msgid "Download {0}"
@@ -817,6 +835,10 @@ msgstr "Enter the base URL for your custom STT endpoint"
 msgid "Enter the model name required by your STT endpoint"
 msgstr "Enter the model name required by your STT endpoint"
 
+#: src/components/settings/views/notifications.tsx:275
+msgid "Exclude apps from detection"
+msgstr "Exclude apps from detection"
+
 #: src/routes/app.settings.tsx:72
 #~ msgid "Extensions"
 #~ msgstr "Extensions"
@@ -825,10 +847,14 @@ msgstr "Enter the model name required by your STT endpoint"
 msgid "Extract action items"
 msgstr "Extract action items"
 
+#: src/components/settings/views/help-support.tsx:62
+msgid "Feature Requests"
+msgstr "Feature Requests"
+
 #: src/routes/app.settings.tsx:69
 #: src/routes/app.settings.tsx:106
-msgid "Feedback"
-msgstr "Feedback"
+#~ msgid "Feedback"
+#~ msgstr "Feedback"
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
 msgid "Finish Onboarding"
@@ -862,7 +888,8 @@ msgstr "Finish Onboarding"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:53
+#: src/routes/app.settings.tsx:42
+#: src/routes/app.settings.tsx:96
 msgid "General"
 msgstr "General"
 
@@ -874,9 +901,17 @@ msgstr "Generating title..."
 msgid "Get Started"
 msgstr "Get Started"
 
+#: src/components/settings/views/notifications.tsx:380
+msgid "Global Settings"
+msgstr "Global Settings"
+
 #: src/components/settings/components/ai/llm-custom-view.tsx:385
 msgid "Google Gemini"
 msgstr "Google Gemini"
+
+#: src/components/settings/views/help-support.tsx:103
+msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
+msgstr "Got an error? Send your logs file to us at founders@hyprnote.com"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
@@ -890,6 +925,21 @@ msgstr "Grant Access"
 #: src/components/welcome-modal/audio-permissions-view.tsx:194
 msgid "Grant both permissions to continue"
 msgstr "Grant both permissions to continue"
+
+#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:116
+#~ msgid "Help & Feedback"
+#~ msgstr "Help & Feedback"
+
+#: src/components/settings/views/help-support.tsx:30
+#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:116
+msgid "Help & Support"
+msgstr "Help & Support"
+
+#: src/components/settings/views/help-support.tsx:84
+msgid "Help us improve by reporting issues"
+msgstr "Help us improve by reporting issues"
 
 #: src/components/settings/views/general.tsx:212
 #~ msgid "Help us improve Hyprnote by sharing anonymous usage data"
@@ -931,11 +981,13 @@ msgstr "Important Q&As"
 #~ msgstr "Integration with other apps like Notion and Google Calendar"
 
 #: src/components/settings/views/integrations.tsx:124
-#: src/routes/app.settings.tsx:67
+#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:110
 msgid "Integrations"
 msgstr "Integrations"
 
-#: src/routes/app.settings.tsx:55
+#: src/routes/app.settings.tsx:44
+#: src/routes/app.settings.tsx:98
 msgid "Intelligence"
 msgstr "Intelligence"
 
@@ -983,6 +1035,10 @@ msgstr "Language for AI-generated summaries"
 #~ msgid "Language Model"
 #~ msgstr "Language Model"
 
+#: src/components/settings/views/help-support.tsx:46
+msgid "Learn how to use Hyprnote"
+msgstr "Learn how to use Hyprnote"
+
 #: src/components/settings/views/ai-llm.tsx:716
 msgid "Learn more about AI autonomy"
 msgstr "Learn more about AI autonomy"
@@ -996,8 +1052,8 @@ msgid "Learn more about templates"
 msgstr "Learn more about templates"
 
 #: src/routes/app.settings.tsx:71
-msgid "License"
-msgstr "License"
+#~ msgid "License"
+#~ msgstr "License"
 
 #: src/components/settings/views/profile.tsx:210
 msgid "LinkedIn username"
@@ -1048,6 +1104,10 @@ msgstr "Loading..."
 #~ msgid "Local Models"
 #~ msgstr "Local Models"
 
+#: src/components/settings/views/help-support.tsx:100
+msgid "Logs"
+msgstr "Logs"
+
 #: src/components/settings/views/billing.tsx:39
 #~ msgid "Long-term memory for past meetings and attendees"
 #~ msgstr "Long-term memory for past meetings and attendees"
@@ -1056,7 +1116,8 @@ msgstr "Loading..."
 msgid "Make it public"
 msgstr "Make it public"
 
-#: src/routes/app.settings.tsx:73
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:114
 msgid "MCP"
 msgstr "MCP"
 
@@ -1186,7 +1247,8 @@ msgstr "No upcoming events for this organization"
 msgid "No upcoming events with this contact"
 msgstr "No upcoming events with this contact"
 
-#: src/routes/app.settings.tsx:61
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:104
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1319,6 +1381,10 @@ msgstr "Recent Notes"
 #~ msgid "Remove {0} from list"
 #~ msgstr "Remove {0} from list"
 
+#: src/components/settings/views/help-support.tsx:81
+msgid "Report a Bug"
+msgstr "Report a Bug"
+
 #: src/components/settings/views/sound.tsx:61
 #: src/components/welcome-modal/audio-permissions-view.tsx:79
 msgid "Requesting..."
@@ -1336,6 +1402,10 @@ msgstr "Required to transcribe other people's voice during meetings"
 #: src/components/settings/views/sound.tsx:128
 msgid "Required to transcribe your voice during meetings"
 msgstr "Required to transcribe your voice during meetings"
+
+#: src/components/settings/views/notifications.tsx:392
+msgid "Respect Do Not Disturb"
+msgstr "Respect Do Not Disturb"
 
 #: src/components/editor-area/note-header/listen-button.tsx:148
 #~ msgid "Resume"
@@ -1463,11 +1533,11 @@ msgstr "Share usage data"
 msgid "Shorten summary"
 msgstr "Shorten summary"
 
-#: src/components/settings/views/notifications.tsx:143
+#: src/components/settings/views/notifications.tsx:228
 msgid "Show notifications when you have meetings starting soon in your calendar."
 msgstr "Show notifications when you have meetings starting soon in your calendar."
 
-#: src/components/settings/views/notifications.tsx:116
+#: src/components/settings/views/notifications.tsx:258
 msgid "Show notifications when you join a meeting."
 msgstr "Show notifications when you join a meeting."
 
@@ -1479,7 +1549,8 @@ msgstr "Show notifications when you join a meeting."
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 
-#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:108
 msgid "Sound"
 msgstr "Sound"
 
@@ -1514,6 +1585,10 @@ msgstr "Stop"
 #: src/components/settings/views/feedback.tsx:107
 #~ msgid "Submit Feedback"
 #~ msgstr "Submit Feedback"
+
+#: src/components/settings/views/help-support.tsx:65
+msgid "Suggest new features and improvements"
+msgstr "Suggest new features and improvements"
 
 #: src/routes/app.settings.tsx:54
 #~ msgid "Summarization"
@@ -1560,7 +1635,8 @@ msgstr "Teamspace"
 msgid "Template"
 msgstr "Template"
 
-#: src/routes/app.settings.tsx:63
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:106
 msgid "Templates"
 msgstr "Templates"
 
@@ -1579,6 +1655,10 @@ msgstr "The name of your Obsidian vault."
 #: src/components/settings/views/billing.tsx:113
 #~ msgid "There's a plan for everyone"
 #~ msgstr "There's a plan for everyone"
+
+#: src/components/settings/views/notifications.tsx:278
+msgid "These apps will not trigger meeting detection"
+msgstr "These apps will not trigger meeting detection"
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:157
 msgid "These permissions are optional but recommended"
@@ -1624,7 +1704,8 @@ msgstr "Toggle transcript panel"
 #~ msgid "Transcribing"
 #~ msgstr "Transcribing"
 
-#: src/routes/app.settings.tsx:57
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:100
 msgid "Transcription"
 msgstr "Transcription"
 
@@ -1659,6 +1740,10 @@ msgstr "Upcoming"
 #: src/components/organization-profile/upcoming-events.tsx:51
 msgid "Upcoming Events"
 msgstr "Upcoming Events"
+
+#: src/components/settings/views/notifications.tsx:222
+msgid "Upcoming meeting notifications"
+msgstr "Upcoming meeting notifications"
 
 #: src/components/settings/views/billing.tsx:69
 #~ msgid "Upgrade"
@@ -1700,6 +1785,10 @@ msgstr "View calendar"
 #: src/components/left-sidebar/events-list.tsx:193
 msgid "View in calendar"
 msgstr "View in calendar"
+
+#: src/components/settings/views/help-feedback.tsx:103
+#~ msgid "View logs"
+#~ msgstr "View logs"
 
 #: src/components/organization-profile/recent-notes.tsx:59
 msgid "View Note"

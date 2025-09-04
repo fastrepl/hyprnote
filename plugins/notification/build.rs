@@ -5,6 +5,8 @@ const COMMANDS: &[&str] = &[
     "set_event_notification",
     "get_detect_notification",
     "set_detect_notification",
+    "get_respect_do_not_disturb",
+    "set_respect_do_not_disturb",
     "start_detect_notification",
     "stop_detect_notification",
     "start_event_notification",

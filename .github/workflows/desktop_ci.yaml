@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-latest"
+            runner: "macos-14"
           - platform: "windows"
             runner: "windows-latest"
     runs-on: ${{ matrix.runner }}

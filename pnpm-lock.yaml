@@ -229,6 +229,9 @@ importers:
       '@hypr/plugin-template':
         specifier: workspace:^
         version: link:../../plugins/template
+      '@hypr/plugin-tracing':
+        specifier: workspace:^
+        version: link:../../plugins/tracing
       '@hypr/plugin-windows':
         specifier: workspace:^
         version: link:../../plugins/windows
@@ -1002,6 +1005,12 @@ importers:
         version: 2.8.0
 
   plugins/template:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.8.0
+        version: 2.8.0
+
+  plugins/tracing:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.8.0

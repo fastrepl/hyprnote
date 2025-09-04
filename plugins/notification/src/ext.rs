@@ -9,6 +9,9 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn list_applications(&self) -> Vec<hypr_detect::InstalledApp>;
     fn show_notification(&self, v: hypr_notification::Notification) -> Result<(), Error>;
 
+    fn get_respect_do_not_disturb(&self) -> Result<bool, Error>;
+    fn set_respect_do_not_disturb(&self, enabled: bool) -> Result<(), Error>;
+
     fn get_event_notification(&self) -> Result<bool, Error>;
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error>;
 
@@ -56,8 +59,40 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     fn set_event_notification(&self, enabled: bool) -> Result<(), Error> {
         let store = self.notification_store();
+
         store
             .set(crate::StoreKey::EventNotification, enabled)
+            .and_then(|v| {
+                if enabled {
+                    #[cfg(target_os = "macos")]
+                    {
+                        let app = self.app_handle().clone();
+                        let _ = hypr_intercept::setup_quit_handler(crate::create_quit_handler(app));
+                    }
+                } else if self.get_detect_notification().unwrap_or(false) {
+                    #[cfg(target_os = "macos")]
+                    let _ = hypr_intercept::reset_quit_handler();
+                }
+
+                Ok(v)
+            })
+            .map_err(Error::Store)
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn get_respect_do_not_disturb(&self) -> Result<bool, Error> {
+        let store = self.notification_store();
+        store
+            .get(crate::StoreKey::RespectDoNotDisturb)
+            .map_err(Error::Store)
+            .map(|v| v.unwrap_or(false))
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn set_respect_do_not_disturb(&self, enabled: bool) -> Result<(), Error> {
+        let store = self.notification_store();
+        store
+            .set(crate::StoreKey::RespectDoNotDisturb, enabled)
             .map_err(Error::Store)
     }
 
@@ -75,6 +110,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         let store = self.notification_store();
         store
             .set(crate::StoreKey::DetectNotification, enabled)
+            .and_then(|v| {
+                if enabled {
+                    #[cfg(target_os = "macos")]
+                    {
+                        let app = self.app_handle().clone();
+                        let _ = hypr_intercept::setup_quit_handler(crate::create_quit_handler(app));
+                    }
+                } else if self.get_event_notification().unwrap_or(false) {
+                    #[cfg(target_os = "macos")]
+                    let _ = hypr_intercept::reset_quit_handler();
+                }
+
+                Ok(v)
+            })
             .map_err(Error::Store)
     }
 

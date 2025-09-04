@@ -9,7 +9,7 @@ pub use error::{Error, Result};
 pub use ext::*;
 use store::*;
 
-pub use hypr_analytics;
+pub use hypr_analytics::*;
 
 const PLUGIN_NAME: &str = "analytics";
 
@@ -18,6 +18,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::event::<tauri::Wry>,
+            commands::set_properties::<tauri::Wry>,
             commands::set_disabled::<tauri::Wry>,
             commands::is_disabled::<tauri::Wry>,
         ])

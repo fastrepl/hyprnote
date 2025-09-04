@@ -30,6 +30,8 @@ tasks:
           perl -i -pe "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/Cargo.toml
           perl -i -pe "s/^  \"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/  \"version\": \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/tauri.conf.json
 
+          cargo update -p desktop
+
   i18n:
     cmds:
       - |

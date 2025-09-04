@@ -144,7 +144,7 @@ class CloseButton: NSButton {
   weak var notification: NotificationInstance?
   var trackingArea: NSTrackingArea?
 
-  static let buttonSize: CGFloat = 12
+  static let buttonSize: CGFloat = 13
   static let symbolPointSize: CGFloat = 8
 
   override init(frame frameRect: NSRect) {
@@ -171,11 +171,11 @@ class CloseButton: NSButton {
     } else {
       image = NSImage(named: NSImage.stopProgressTemplateName)
     }
-    contentTintColor = NSColor.white.withAlphaComponent(0.95)
+    contentTintColor = NSColor.white
 
     layer?.cornerRadius = Self.buttonSize / 2
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
-    layer?.borderColor = NSColor.white.withAlphaComponent(0.18).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
+    layer?.borderColor = NSColor.black.withAlphaComponent(0.3).cgColor
     layer?.borderWidth = 0.5
 
     alphaValue = 0
@@ -200,21 +200,21 @@ class CloseButton: NSButton {
   }
 
   override func mouseDown(with event: NSEvent) {
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.26).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-      self.layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
+      self.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
     }
     notification?.dismiss()
   }
 
   override func mouseEntered(with event: NSEvent) {
     super.mouseEntered(with: event)
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.20).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.6).cgColor
   }
 
   override func mouseExited(with event: NSEvent) {
     super.mouseExited(with: event)
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
   }
 }
 
@@ -374,11 +374,12 @@ class NotificationManager {
 
   private func repositionNotifications() {
     guard let screen = NSScreen.main else { return }
+    let screenRect = screen.visibleFrame
+    let topPosition = screenRect.maxY - Config.notificationHeight - Config.topMargin
+
     let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
     for (index, notification) in sorted.enumerated() {
-      let newY =
-        calculateYPosition(screen: screen) + CGFloat(index)
-        * (Config.notificationHeight + notificationSpacing)
+      let newY = topPosition - CGFloat(index) * (Config.notificationHeight + notificationSpacing)
       let f = notification.panel.frame
       let newFrame = NSRect(x: f.minX, y: newY, width: f.width, height: f.height)
       NSAnimationContext.runAnimationGroup { context in
@@ -622,8 +623,8 @@ class NotificationManager {
     effectView.addSubview(closeButton)
 
     NSLayoutConstraint.activate([
-      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 6),
-      closeButton.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -6),
+      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 5),
+      closeButton.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 4),
       closeButton.widthAnchor.constraint(equalToConstant: CloseButton.buttonSize),
       closeButton.heightAnchor.constraint(equalToConstant: CloseButton.buttonSize),
     ])

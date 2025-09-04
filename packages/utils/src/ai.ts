@@ -5,7 +5,11 @@ import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { fetch as customFetch } from "@hypr/utils";
 
+
+export { useChat } from "@ai-sdk/react";
+
 export {
+  convertToModelMessages,
   dynamicTool,
   experimental_createMCPClient,
   generateObject,
@@ -16,6 +20,11 @@ export {
   stepCountIs,
   streamText,
   tool,
+  type ChatRequestOptions,
+  type ChatTransport,
+  type LanguageModel,
+  type UIMessageChunk,
+  type UIMessage,
 } from "ai";
 
 export const localProviderName = "hypr-llm-local";

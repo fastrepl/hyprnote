@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ChatMessage } from "./chat-message";
-import { Message } from "./types";
+import type { UIMessage } from "@hypr/utils/ai";
+import { UIMessageComponent } from "./ui-message";
 
 interface ChatMessagesViewProps {
-  messages: Message[];
+  messages: UIMessage[];
   sessionTitle?: string;
   hasEnhancedNote?: boolean;
   onApplyMarkdown?: (markdownContent: string) => void;
@@ -57,11 +57,11 @@ export function ChatMessagesView(
     }
 
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage.isUser) {
+    if (lastMessage.role === "user") {
       return true;
     }
 
-    if (!lastMessage.isUser && !isStreamingText) {
+    if (lastMessage.role === "assistant" && !isStreamingText) {
       return true;
     }
 
@@ -98,7 +98,7 @@ export function ChatMessagesView(
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
       {messages.map((message) => (
-        <ChatMessage
+        <UIMessageComponent
           key={message.id}
           message={message}
           sessionTitle={sessionTitle}

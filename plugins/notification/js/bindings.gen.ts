@@ -62,7 +62,7 @@ async setIgnoredPlatforms(platforms: string[]) : Promise<null> {
 /** user-defined types **/
 
 export type Duration = { secs: number; nanos: number }
-export type InstalledApp = { bundle_id: string; localized_name: string; bundle_path: string }
+export type InstalledApp = { bundle_id: string; localized_name: string }
 export type Notification = { key: string | null; title: string; message: string; url: string | null; timeout: Duration | null }
 
 /** tauri-specta globals **/

@@ -1,13 +1,8 @@
+use cidre::core_audio as ca;
+
+use super::InstalledApp;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct InstalledApp {
-    pub bundle_id: String,
-    pub localized_name: String,
-    pub bundle_path: String,
-}
-
-#[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
     let app_dirs = [
         "/Applications",
@@ -44,7 +39,37 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
     apps
 }
 
-#[cfg(target_os = "macos")]
+pub fn list_mic_using_apps() -> Vec<InstalledApp> {
+    let processes = ca::System::processes().ok().unwrap();
+
+    let mut out = Vec::<InstalledApp>::new();
+    for p in processes {
+        if !p.is_running_input().unwrap_or(false) {
+            continue;
+        }
+
+        if let Ok(pid) = p.pid() {
+            if let Some(running_app) = cidre::ns::RunningApp::with_pid(pid) {
+                let bundle_id = running_app
+                    .bundle_id()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default();
+                let localized_name = running_app
+                    .localized_name()
+                    .map(|s| s.to_string())
+                    .unwrap_or_default();
+
+                out.push(InstalledApp {
+                    bundle_id,
+                    localized_name,
+                });
+            }
+        }
+    }
+
+    out
+}
+
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
     let info_plist_path = app_path.join("Contents/Info.plist");
 
@@ -64,10 +89,42 @@ fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
             return Some(InstalledApp {
                 bundle_id,
                 localized_name,
-                bundle_path: app_path.to_string_lossy().to_string(),
             });
         }
     }
 
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    fn test_list_installed_apps() {
+        let apps = list_installed_apps();
+        println!("Got {} apps\n---", apps.len());
+        println!(
+            "{}",
+            apps.iter()
+                .map(|a| format!("- {} ({})", a.localized_name, a.bundle_id))
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_list_mic_using_apps() {
+        let apps = list_mic_using_apps();
+        println!("Got {} apps\n---", apps.len());
+        println!(
+            "{}",
+            apps.iter()
+                .map(|a| format!("- {} ({})", a.localized_name, a.bundle_id))
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
+    }
 }

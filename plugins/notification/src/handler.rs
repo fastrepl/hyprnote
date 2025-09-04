@@ -74,6 +74,11 @@ impl NotificationHandler {
 
         match trigger.event {
             hypr_detect::DetectEvent::MicStarted(apps) => {
+                if apps.is_empty() {
+                    tracing::info!(reason = "apps.is_empty", "skip_notification");
+                    return;
+                }
+
                 if apps.iter().any(|app| {
                     app_handle
                         .get_ignored_platforms()
@@ -109,9 +114,12 @@ impl NotificationHandler {
             }
             hypr_detect::DetectEvent::MicStopped => {
                 use tauri_plugin_listener::ListenerPluginExt;
+                use tauri_plugin_windows::HyprWindow;
+
                 let app_handle = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
                     app_handle.pause_session().await;
+                    let _ = HyprWindow::Main.show(&app_handle);
                 });
             }
             _ => {}

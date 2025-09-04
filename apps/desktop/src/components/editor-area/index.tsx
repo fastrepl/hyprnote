@@ -480,8 +480,6 @@ export function useEnhanceMutation({
         },
       );
 
-      console.log("systemMessage", systemMessage);
-
       const userMessage = await templateCommands.render(
         "enhance.user",
         {

@@ -189,7 +189,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     };
 
     return {
-      ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
+      //...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
       ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
       ...(shouldUseTools && baseTools),
     };

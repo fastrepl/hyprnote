@@ -54,27 +54,32 @@ export function ChatMessagesView(
       return true;
     }
 
-    /*
-    // Keep showing if we're generating but haven't started streaming text yet
-    if (isStreaming) {
-      // Check if we have any assistant content streaming
-      if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        // Hide thinking if assistant has started responding with text
-        if (lastMessage.role === "assistant" && 
-            lastMessage.parts?.some(p => p.type === "text" && p.text)) {
-          return false;
+    // Check if we're in transition between parts (text → tool or tool → text)
+    if (isStreaming && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === "assistant" && lastMessage.parts) {
+        const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
+        
+        // Text part finished but still streaming (tool coming)
+        if (lastPart?.type === "text" && !(lastPart as any).state) {
+          return true;
+        }
+        
+        // Tool finished but still streaming (more text/tools coming)
+        if (lastPart?.type?.startsWith("tool-") || lastPart?.type === "dynamic-tool") {
+          const toolPart = lastPart as any;
+          if (toolPart.state === "output-available" || 
+              toolPart.state === "output-error") {
+            return true;
+          }
         }
       }
-      return true;
     }
-    */
 
+    // Fallback for other transition states
     if (!isReady && !isStreaming) {
       return true;
     }
-
-   
 
     return false;
   };
@@ -100,7 +105,7 @@ export function ChatMessagesView(
         clearTimeout(thinkingTimeoutRef.current);
       }
     };
-  }, [isSubmitted, isStreaming, messages]);
+  }, [isSubmitted, isStreaming, isReady, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

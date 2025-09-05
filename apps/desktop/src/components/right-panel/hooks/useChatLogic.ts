@@ -313,8 +313,6 @@ export function useChatLogic({
         search_sessions_multi_keywords: searchTool,
       };
 
-      console.log("type", type);
-
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
@@ -369,7 +367,6 @@ export function useChatLogic({
 
         if (chunk.type === "text-delta") {
           setIsStreamingText(true);
-          console.log("chunk", chunk);
 
           setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
@@ -413,7 +410,7 @@ export function useChatLogic({
 
         if (chunk.type === "tool-call" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
-          console.log("chunk", chunk);
+
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
               try {
@@ -466,7 +463,6 @@ export function useChatLogic({
 
         if (chunk.type === "tool-result" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
-          console.log("chunk", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
@@ -490,7 +486,6 @@ export function useChatLogic({
         }
 
         if (chunk.type === "tool-error" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
-          console.log("chunk", chunk);
           didInitializeAiResponse = false;
           const toolErrorMessage: Message = {
             id: crypto.randomUUID(),

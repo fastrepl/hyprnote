@@ -2,6 +2,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
+import { useLicense } from "@/hooks/use-license";
+import { showProGateModal } from "@/components/pro-gate-modal/service";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import {
   ChatHistoryView,
   ChatInput,
@@ -20,6 +23,7 @@ export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef } = useRightPanel();
   const { userId } = useHypr();
+  const { getLicense } = useLicense();
 
   const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -109,6 +113,19 @@ export function ChatView() {
     htmlContent?: string
   ) => {
     if (!inputValue.trim()) return;
+
+    // Check message limit for free users (4 messages per conversation)
+    const userMessageCount = messages.filter(m => m.role === "user").length;
+    if (userMessageCount >= 4 && !getLicense.data?.valid) {
+      // Track analytics event
+      await analyticsCommands.event({
+        event: "pro_license_required_chat",
+        distinct_id: userId,
+      });
+      // Show pro gate modal
+      await showProGateModal("chat");
+      return;
+    }
 
     // Get or create conversation if needed
     let convId = currentConversationId;

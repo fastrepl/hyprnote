@@ -31,7 +31,7 @@ function ThinkingIndicator() {
           }
         `}
       </style>
-      <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "4px 0" }}>
+      <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "0 0 8px 0" }}>
         <span>Thinking</span>
         <span className="thinking-dot">.</span>
         <span className="thinking-dot">.</span>
@@ -112,7 +112,7 @@ export function ChatMessagesView(
   }, [messages, showThinking]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
+    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 select-text">
       {messages.map((message) => (
         <UIMessageComponent
           key={message.id}

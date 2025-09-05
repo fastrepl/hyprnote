@@ -4,7 +4,6 @@ import { diffWords } from "diff";
 import { motion } from "motion/react";
 import { AnimatePresence } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
@@ -20,7 +19,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -512,11 +511,6 @@ export function useEnhanceMutation({
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        ...(freshIsLocalLlm && {
-          tools: {
-            update_progress: tool({ inputSchema: z.any() }),
-          },
-        }),
         onError: (error) => {
           toast({
             id: "something went wrong",

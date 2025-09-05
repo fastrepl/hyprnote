@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:434
+#: src/components/settings/views/general.tsx:445
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -356,7 +356,7 @@ msgstr "Add more quotes"
 msgid "Add participant"
 msgstr "Add participant"
 
-#: src/components/settings/views/general.tsx:425
+#: src/components/settings/views/general.tsx:428
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -696,7 +696,7 @@ msgstr "Custom"
 msgid "Custom Speech-to-Text endpoint"
 msgstr "Custom Speech-to-Text endpoint"
 
-#: src/components/settings/views/general.tsx:422
+#: src/components/settings/views/general.tsx:425
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
@@ -736,8 +736,8 @@ msgstr "Detect meetings automatically"
 #~ msgstr "Did you get consent from everyone in the meeting?"
 
 #: src/components/settings/views/general.tsx:312
-msgid "Display language"
-msgstr "Display language"
+#~ msgid "Display language"
+#~ msgstr "Display language"
 
 #: src/components/settings/views/help-support.tsx:43
 msgid "Documentation"
@@ -1337,8 +1337,8 @@ msgstr "people"
 #~ msgstr "Play video"
 
 #: src/components/settings/views/general.tsx:315
-msgid "Primary language for the interface"
-msgstr "Primary language for the interface"
+#~ msgid "Primary language for the interface"
+#~ msgstr "Primary language for the interface"
 
 #: src/components/settings/views/billing.tsx:33
 #~ msgid "Pro"
@@ -1501,7 +1501,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:344
+#: src/components/settings/views/general.tsx:348
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1558,7 +1558,7 @@ msgstr "Sound"
 #~ msgid "Speech to Text Model"
 #~ msgstr "Speech to Text Model"
 
-#: src/components/settings/views/general.tsx:341
+#: src/components/settings/views/general.tsx:345
 msgid "Spoken languages"
 msgstr "Spoken languages"
 

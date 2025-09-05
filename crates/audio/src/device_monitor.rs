@@ -43,7 +43,7 @@ impl DeviceMonitor {
         let thread_handle = std::thread::spawn(move || {
             #[cfg(target_os = "macos")]
             {
-                macos_monitor(event_tx, stop_rx);
+                crate::device_monitor::macos::monitor(event_tx, stop_rx);
             }
 
             #[cfg(not(target_os = "macos"))]
@@ -106,7 +106,7 @@ mod macos {
         }
     }
 
-    pub(super) fn macos_monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
+    pub(super) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
         let selectors = [
             ca::PropSelector::HW_DEFAULT_INPUT_DEVICE,
             ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE,
@@ -152,9 +152,6 @@ mod macos {
         tracing::info!("monitor_stopped");
     }
 }
-
-#[cfg(target_os = "macos")]
-use macos::macos_monitor;
 
 #[cfg(test)]
 mod tests {

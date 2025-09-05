@@ -21,13 +21,13 @@ pub async fn list_supported_model() -> Result<Vec<ModelInfo>, String> {
         ModelInfo {
             key: SupportedModel::Gemma3_4bQ4,
             name: "Gemma 3 4B Q4".to_string(),
-            description: "General purpose model. Heavier than HyprLLM.".to_string(),
+            description: "Deprecated. Exists only for backward compatibility.".to_string(),
             size_bytes: SupportedModel::Gemma3_4bQ4.model_size(),
         },
         ModelInfo {
             key: SupportedModel::Llama3p2_3bQ4,
             name: "Llama 3.2 3B Q4".to_string(),
-            description: "Not recommended. Exists only for backward compatibility.".to_string(),
+            description: "Deprecated. Exists only for backward compatibility.".to_string(),
             size_bytes: SupportedModel::Llama3p2_3bQ4.model_size(),
         },
     ])

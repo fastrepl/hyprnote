@@ -13,6 +13,9 @@ mod model;
 mod server;
 mod store;
 
+#[cfg(target_os = "macos")]
+mod lmstudio;
+
 pub use error::*;
 use events::*;
 pub use ext::*;

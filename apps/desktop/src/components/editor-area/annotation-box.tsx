@@ -2,13 +2,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { toast } from "@hypr/ui/components/ui/toast";
-import { modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
+import { modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 
 interface AnnotationBoxProps {
   selectedText: string;
@@ -51,14 +50,8 @@ export function AnnotationBox({ selectedText, selectedRect, sessionId, onCancel 
       abortControllerRef.current = abortController;
 
       const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
-      const [{ type }, words] = await Promise.all([
-        connectorCommands.getLlmConnection(),
-        getWordsFunc(sessionId),
-      ]);
+      const words = await getWordsFunc(sessionId);
 
-      const freshIsLocalLlm = type === "HyprLocal";
-
-      // Create transcript text from words
       const transcriptText = words.map(word => word.text).join(" ");
 
       const systemMessage =
@@ -99,11 +92,6 @@ export function AnnotationBox({ selectedText, selectedRect, sessionId, onCancel 
       const { fullStream } = streamText({
         abortSignal, // ← This makes cancellation actually work!
         model,
-        ...(freshIsLocalLlm && {
-          tools: {
-            update_progress: tool({ inputSchema: z.any() }),
-          },
-        }),
         onError: (error) => {
           toast({
             id: "source-analysis-error",

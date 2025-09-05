@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:434
+#: src/components/settings/views/general.tsx:445
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -356,7 +356,7 @@ msgstr ""
 msgid "Add participant"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:425
+#: src/components/settings/views/general.tsx:428
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr ""
 
@@ -700,7 +700,7 @@ msgstr ""
 #~ msgid "Custom STT Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:422
+#: src/components/settings/views/general.tsx:425
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -740,8 +740,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:312
-msgid "Display language"
-msgstr ""
+#~ msgid "Display language"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:43
 msgid "Documentation"
@@ -1341,8 +1341,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:315
-msgid "Primary language for the interface"
-msgstr ""
+#~ msgid "Primary language for the interface"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:33
 #~ msgid "Pro"
@@ -1505,7 +1505,7 @@ msgstr ""
 msgid "Select how you want to process your meeting notes"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:344
+#: src/components/settings/views/general.tsx:348
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1562,7 +1562,7 @@ msgstr ""
 #~ msgid "Speech to Text Model"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:341
+#: src/components/settings/views/general.tsx:345
 msgid "Spoken languages"
 msgstr ""
 

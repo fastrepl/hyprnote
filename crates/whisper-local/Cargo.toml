@@ -14,18 +14,13 @@ metal = ["whisper-rs/metal"]
 vulkan = ["whisper-rs/vulkan"]
 openmp = ["whisper-rs/openmp"]
 
-[dev-dependencies]
-hypr-data = { workspace = true }
-
-dirs = { workspace = true }
-futures-util = { workspace = true }
-tokio = { workspace = true }
-
 [dependencies]
 hypr-audio-utils = { workspace = true }
 hypr-whisper = { workspace = true }
 
 dasp = { workspace = true }
+hound = { workspace = true }
+
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true }
 whisper-rs = { git = "https://github.com/fastrepl/whisper-rs", rev = "de11c2d", features = ["raw-api", "tracing_backend"] }
@@ -40,3 +35,11 @@ thiserror = { workspace = true }
 
 lazy_static = { workspace = true }
 regex = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+
+dirs = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }

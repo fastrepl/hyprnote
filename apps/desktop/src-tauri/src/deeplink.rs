@@ -16,13 +16,16 @@ pub fn parse(url: String) -> Vec<DeeplinkAction> {
     };
 
     let dests = match parsed_url.path() {
-        // Specified in notification related codebase
         "/notification" => parse_notification_query(&parsed_url),
-        // Specified in /apps/admin
         "/register" => parse_register_query(&parsed_url),
-        // Specified in email template
         "/license" => parse_license_query(&parsed_url),
-        _ => vec![],
+
+        path => {
+            vec![DeeplinkAction::OpenInternal(
+                HyprWindow::Main,
+                path.to_string(),
+            )]
+        }
     };
 
     tracing::info!("deeplink: {:?}", dests);

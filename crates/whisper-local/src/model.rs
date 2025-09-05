@@ -53,6 +53,8 @@ impl WhisperBuilder {
         let token_beg = ctx.token_beg();
 
         Ok(Whisper {
+            id: uuid::Uuid::new_v4().to_string(),
+            index: 0,
             languages: self.languages.unwrap_or_default(),
             dynamic_prompt: "".to_string(),
             state,
@@ -72,6 +74,10 @@ impl WhisperBuilder {
 }
 
 pub struct Whisper {
+    #[allow(dead_code)]
+    id: String,
+    #[allow(dead_code)]
+    index: usize,
     languages: Vec<Language>,
     dynamic_prompt: String,
     state: WhisperState,
@@ -84,6 +90,9 @@ impl Whisper {
     }
 
     pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
+        #[cfg(debug_assertions)]
+        self.debug(audio);
+
         let input_audio_length_sec = audio.len() as f32 / 16000.0;
         if input_audio_length_sec < 0.1 {
             tracing::warn!(input_audio_length_sec = ?input_audio_length_sec, "transcribe_skipped");
@@ -257,6 +266,29 @@ impl Whisper {
         params.set_filter_logits_callback_user_data(
             token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
         );
+    }
+
+    fn debug(&mut self, audio: &[f32]) {
+        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG") {
+            if v == "1" {
+                let mut writer = hound::WavWriter::create(
+                    format!("./whisper_{}_{}.wav", self.id, self.index),
+                    hound::WavSpec {
+                        channels: 1,
+                        sample_rate: 16000,
+                        bits_per_sample: 32,
+                        sample_format: hound::SampleFormat::Float,
+                    },
+                )
+                .unwrap();
+                self.index += 1;
+
+                for sample in audio {
+                    writer.write_sample(*sample).unwrap();
+                }
+                writer.finalize().unwrap();
+            }
+        }
     }
 }
 

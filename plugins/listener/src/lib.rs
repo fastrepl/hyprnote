@@ -19,6 +19,7 @@ pub type SharedState = Mutex<State>;
 
 pub struct State {
     fsm: statig::awaitable::StateMachine<fsm::Session>,
+    _device_monitor_handle: Option<hypr_audio::DeviceMonitorHandle>,
 }
 
 impl State {
@@ -64,7 +65,51 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let handle = app.app_handle();
             let fsm = fsm::Session::new(handle.clone()).state_machine();
-            let state: SharedState = Mutex::new(State { fsm });
+
+            let device_monitor_handle = {
+                let (event_tx, event_rx) = std::sync::mpsc::channel();
+                let device_monitor_handle = hypr_audio::DeviceMonitor::spawn(event_tx);
+
+                let app_handle = handle.clone();
+                std::thread::spawn(move || {
+                    while let Ok(event) = event_rx.recv() {
+                        if let hypr_audio::DeviceEvent::DefaultInputChanged = event {
+                            let new_device = hypr_audio::AudioInput::get_default_mic_device_name();
+
+                            let app_handle_clone = app_handle.clone();
+                            let device_name = new_device.clone();
+
+                            app_handle_clone
+                                .run_on_main_thread({
+                                    let app_handle_inner = app_handle_clone.clone();
+                                    let device_name_inner = device_name.clone();
+                                    move || {
+                                        tauri::async_runtime::spawn(async move {
+                                            if let Some(state) =
+                                                app_handle_inner.try_state::<SharedState>()
+                                            {
+                                                let mut guard = state.lock().await;
+                                                let event = fsm::StateEvent::MicChange(Some(
+                                                    device_name_inner,
+                                                ));
+                                                guard.fsm.handle(&event).await;
+                                            }
+                                        });
+                                    }
+                                })
+                                .ok();
+                        }
+                    }
+                });
+
+                device_monitor_handle
+            };
+
+            let state: SharedState = Mutex::new(State {
+                fsm,
+                _device_monitor_handle: Some(device_monitor_handle),
+            });
+
             app.manage(state);
             Ok(())
         })

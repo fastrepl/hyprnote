@@ -44,17 +44,17 @@ pub async fn perform_event_notification(_job: Job, ctx: Data<WorkerState>) -> Re
     if let Some(event) = latest_event.first() {
         tracing::info!("found_upcoming_event: {}", event.name);
 
-        let minutes_until_start = event
+        let seconds_until_start = event
             .start_date
             .signed_duration_since(Utc::now())
-            .num_minutes();
+            .num_seconds();
 
         if let Err(e) =
             ctx.notification_tx
                 .send(NotificationTrigger::Event(NotificationTriggerEvent {
                     event_id: event.id.clone(),
                     event_name: event.name.clone(),
-                    minutes_until_start,
+                    seconds_until_start,
                 }))
         {
             tracing::error!("{}", e);

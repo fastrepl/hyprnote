@@ -335,7 +335,8 @@ impl Session {
 
                     let now = Instant::now();
                     if now.duration_since(last_broadcast) >= AUDIO_AMPLITUDE_THROTTLE {
-                        if let Err(e) = SessionEvent::from((&mic_chunk, &speaker_chunk)).emit(&app)
+                        if let Err(e) =
+                            emit(&app, &SessionEvent::from((&mic_chunk, &speaker_chunk)))
                         {
                             tracing::error!("broadcast_error: {:?}", e);
                         }
@@ -490,11 +491,13 @@ impl Session {
                                     )
                                 })
                                 .collect();
-                            SessionEvent::PartialWords {
-                                words: partial_words_by_channel,
-                            }
-                            .emit(&app)
-                            .unwrap();
+
+                            let _ = emit(
+                                &app,
+                                &SessionEvent::PartialWords {
+                                    words: partial_words_by_channel,
+                                },
+                            );
 
                             let final_words_by_channel: HashMap<
                                 usize,
@@ -526,11 +529,12 @@ impl Session {
                             .await
                             .unwrap();
 
-                            SessionEvent::FinalWords {
-                                words: final_words_by_channel,
-                            }
-                            .emit(&app)
-                            .unwrap();
+                            let _ = emit(
+                                &app,
+                                &SessionEvent::FinalWords {
+                                    words: final_words_by_channel,
+                                },
+                            );
                         }
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");
@@ -608,6 +612,23 @@ impl Session {
     }
 }
 
+fn emit(handle: &tauri::AppHandle<tauri::Wry>, event: &SessionEvent) -> tauri::Result<()> {
+    match event {
+        SessionEvent::Inactive { .. }
+        | SessionEvent::RunningActive { .. }
+        | SessionEvent::RunningPaused { .. } => {
+            if let Err(e) = tauri_plugin_windows::HyprWindow::Main.show(handle) {
+                tracing::error!("{:?}", e);
+            } else {
+                tracing::info!("show_main_window_when_state_transition");
+            }
+        }
+        _ => {}
+    };
+
+    event.emit(handle)
+}
+
 async fn setup_listen_client<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     languages: Vec<hypr_language::Language>,
@@ -672,14 +693,14 @@ impl Session {
             StateEvent::MicMuted(muted) => {
                 if let Some(tx) = &self.mic_muted_tx {
                     let _ = tx.send(*muted);
-                    let _ = SessionEvent::MicMuted { value: *muted }.emit(&self.app);
+                    let _ = emit(&self.app, &SessionEvent::MicMuted { value: *muted });
                 }
                 Handled
             }
             StateEvent::SpeakerMuted(muted) => {
                 if let Some(tx) = &self.speaker_muted_tx {
                     let _ = tx.send(*muted);
-                    let _ = SessionEvent::SpeakerMuted { value: *muted }.emit(&self.app);
+                    let _ = emit(&self.app, &SessionEvent::SpeakerMuted { value: *muted });
                 }
                 Handled
             }
@@ -806,11 +827,11 @@ impl Session {
         #[cfg(debug_assertions)]
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);
 
-        match target {
-            State::RunningActive {} => SessionEvent::RunningActive {}.emit(&self.app).unwrap(),
-            State::RunningPaused {} => SessionEvent::RunningPaused {}.emit(&self.app).unwrap(),
-            State::Inactive {} => SessionEvent::Inactive {}.emit(&self.app).unwrap(),
-        }
+        let _ = match target {
+            State::RunningActive {} => emit(&self.app, &SessionEvent::RunningActive {}),
+            State::RunningPaused {} => emit(&self.app, &SessionEvent::RunningPaused {}),
+            State::Inactive {} => emit(&self.app, &SessionEvent::Inactive {}),
+        };
 
         if let Some(tx) = &self.session_state_tx {
             let _ = tx.send(target.clone());

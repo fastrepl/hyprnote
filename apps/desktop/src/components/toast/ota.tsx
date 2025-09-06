@@ -127,7 +127,7 @@ export default function OtaNotification() {
     }
 
     // Don't show update notifications during active meetings
-    if (ongoingSession.status === "running_active" || ongoingSession.status === "running_paused") {
+    if (ongoingSession.status === "running_active") {
       return;
     }
 

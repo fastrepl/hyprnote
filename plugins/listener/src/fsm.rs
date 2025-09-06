@@ -241,8 +241,6 @@ impl Session {
 
         let (mic_muted_tx, mic_muted_rx_main) = tokio::sync::watch::channel(false);
         let (speaker_muted_tx, speaker_muted_rx_main) = tokio::sync::watch::channel(false);
-        let (session_state_tx, session_state_rx) =
-            tokio::sync::watch::channel(State::RunningActive {});
 
         let (stop_tx, mut stop_rx) = tokio::sync::mpsc::channel::<()>(1);
 
@@ -250,7 +248,6 @@ impl Session {
         self.mic_muted_rx = Some(mic_muted_rx_main.clone());
         self.speaker_muted_tx = Some(speaker_muted_tx);
         self.speaker_muted_rx = Some(speaker_muted_rx_main.clone());
-        self.session_state_tx = Some(session_state_tx);
 
         let listen_client =
             setup_listen_client(&self.app, languages, session_id == onboarding_session_id).await?;
@@ -323,12 +320,6 @@ impl Session {
                             mic_chunk_raw
                         }
                     };
-
-                    if matches!(*session_state_rx.borrow(), State::RunningPaused {}) {
-                        let mut rx = session_state_rx.clone();
-                        let _ = rx.changed().await;
-                        continue;
-                    }
 
                     let processed_mic = mic_chunk.clone();
                     let processed_speaker = speaker_chunk.clone();
@@ -546,7 +537,7 @@ impl Session {
 
                             if let Some(state) = app.try_state::<crate::SharedState>() {
                                 let mut guard = state.lock().await;
-                                guard.fsm.handle(&crate::fsm::StateEvent::Pause).await;
+                                guard.fsm.handle(&crate::fsm::StateEvent::Stop).await;
                             }
                         }
                     }
@@ -653,8 +644,6 @@ async fn update_session<R: tauri::Runtime>(
 pub enum StateEvent {
     Start(String),
     Stop,
-    Pause,
-    Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
     MicChange(Option<String>),
@@ -709,24 +698,6 @@ impl Session {
                 _ => Handled,
             },
             StateEvent::Stop => Transition(State::inactive()),
-            StateEvent::Pause => Transition(State::running_paused()),
-            StateEvent::Resume => Handled,
-            _ => Super,
-        }
-    }
-
-    #[state(superstate = "common")]
-    async fn running_paused(&mut self, event: &StateEvent) -> Response<State> {
-        match event {
-            StateEvent::Start(incoming_session_id) => match &self.session_id {
-                Some(current_id) if current_id != incoming_session_id => {
-                    Transition(State::inactive())
-                }
-                _ => Handled,
-            },
-            StateEvent::Stop => Transition(State::inactive()),
-            StateEvent::Pause => Handled,
-            StateEvent::Resume => Transition(State::running_active()),
             _ => Super,
         }
     }
@@ -747,8 +718,6 @@ impl Session {
                 }
             },
             StateEvent::Stop => Handled,
-            StateEvent::Pause => Handled,
-            StateEvent::Resume => Handled,
             _ => Super,
         }
     }
@@ -808,7 +777,6 @@ impl Session {
 
         match target {
             State::RunningActive {} => SessionEvent::RunningActive {}.emit(&self.app).unwrap(),
-            State::RunningPaused {} => SessionEvent::RunningPaused {}.emit(&self.app).unwrap(),
             State::Inactive {} => SessionEvent::Inactive {}.emit(&self.app).unwrap(),
         }
 
@@ -826,7 +794,6 @@ impl serde::Serialize for State {
         match self {
             State::Inactive {} => serializer.serialize_str("inactive"),
             State::RunningActive {} => serializer.serialize_str("running_active"),
-            State::RunningPaused {} => serializer.serialize_str("running_paused"),
         }
     }
 }

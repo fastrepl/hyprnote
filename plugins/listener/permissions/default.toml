@@ -12,8 +12,6 @@ permissions = [
     "allow-open-system-audio-access-settings",
     "allow-start-session",
     "allow-stop-session",
-    "allow-pause-session",
-    "allow-resume-session",
     "allow-get-mic-muted",
     "allow-set-mic-muted",
     "allow-get-speaker-muted",

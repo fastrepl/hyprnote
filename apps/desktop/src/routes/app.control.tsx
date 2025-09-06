@@ -28,9 +28,7 @@ function Component() {
     micMuted,
     speakerMuted,
     isRecording,
-    isRecordingActive,
     toggleRecording,
-    pauseRecording,
     toggleMic,
     toggleSpeaker,
   } = useRecordingState();
@@ -97,10 +95,8 @@ function Component() {
 
             <RecordingControls
               isRecording={isRecording}
-              isRecordingActive={isRecordingActive}
               recordingLoading={recordingLoading}
               onToggleRecording={toggleRecording}
-              onPauseRecording={pauseRecording}
             />
 
             <Divider />
@@ -147,32 +143,15 @@ function AudioControls({
 
 function RecordingControls({
   isRecording,
-  isRecordingActive,
   recordingLoading,
   onToggleRecording,
-  onPauseRecording,
 }: {
   isRecording: boolean;
-  isRecordingActive: boolean;
   recordingLoading: boolean;
   onToggleRecording: () => void;
-  onPauseRecording: () => void;
 }) {
   return (
     <div className="flex gap-1 items-center">
-      {isRecording && (
-        <IconButton
-          onClick={isRecordingActive ? onPauseRecording : onToggleRecording}
-          tooltip={isRecordingActive ? "Pause Recording" : "Resume Recording"}
-          className={isRecordingActive
-            ? "bg-amber-600/60 hover:bg-amber-500/80"
-            : "bg-green-600/60 hover:bg-green-500/80"}
-          disabled={recordingLoading}
-        >
-          {recordingLoading ? <LoadingSpinner /> : isRecordingActive ? <PauseIcon /> : <Circle size={16} />}
-        </IconButton>
-      )}
-
       <IconButton
         onClick={onToggleRecording}
         tooltip={isRecording ? "Stop Recording" : "Start Recording"}
@@ -208,15 +187,6 @@ function DragHandle({ onMouseDown }: { onMouseDown: (e: React.MouseEvent) => voi
 
 function LoadingSpinner() {
   return <div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />;
-}
-
-function PauseIcon() {
-  return (
-    <div className="flex gap-0.5">
-      <div className="w-1 h-3 bg-white rounded-sm" />
-      <div className="w-1 h-3 bg-white rounded-sm" />
-    </div>
-  );
 }
 
 function IconButton({
@@ -466,14 +436,12 @@ function useFloatingPosition(toolbarRef: React.RefObject<HTMLDivElement>) {
 }
 
 function useRecordingState() {
-  const [recordingStatus, setRecordingStatus] = useState<"inactive" | "running_active" | "running_paused">("inactive");
+  const [recordingStatus, setRecordingStatus] = useState<"inactive" | "running_active">("inactive");
   const [recordingLoading, setRecordingLoading] = useState(false);
   const [micMuted, setMicMuted] = useState(false);
   const [speakerMuted, setSpeakerMuted] = useState(false);
 
   const isRecording = recordingStatus !== "inactive";
-  const isRecordingActive = recordingStatus === "running_active";
-  const isRecordingPaused = recordingStatus === "running_paused";
 
   useEffect(() => {
     const initializeState = async () => {
@@ -484,7 +452,7 @@ function useRecordingState() {
           listenerCommands.getSpeakerMuted(),
         ]);
 
-        if (["running_active", "running_paused", "inactive"].includes(currentState)) {
+        if (["running_active", "inactive"].includes(currentState)) {
           setRecordingStatus(currentState as any);
         }
 
@@ -498,7 +466,7 @@ function useRecordingState() {
     initializeState();
 
     const unsubscribeSession = listenerEvents.sessionEvent.listen(({ payload }) => {
-      if (["inactive", "running_active", "running_paused"].includes(payload.type)) {
+      if (["inactive", "running_active"].includes(payload.type)) {
         setRecordingStatus(payload.type as any);
         setRecordingLoading(false);
       }
@@ -522,30 +490,13 @@ function useRecordingState() {
       setRecordingLoading(true);
 
       if (isRecording) {
-        if (isRecordingActive) {
-          await listenerCommands.stopSession();
-        } else if (isRecordingPaused) {
-          await listenerCommands.resumeSession();
-        }
+        await listenerCommands.stopSession();
       } else {
         const newSessionId = `control-session-${Date.now()}`;
         await listenerCommands.startSession(newSessionId);
       }
     } catch (error) {
       console.error("[Control Bar] Recording error:", error);
-    } finally {
-      setRecordingLoading(false);
-    }
-  };
-
-  const pauseRecording = async () => {
-    try {
-      setRecordingLoading(true);
-      if (isRecordingActive) {
-        await listenerCommands.pauseSession();
-      }
-    } catch (error) {
-      console.error("[Control Bar] Pause error:", error);
     } finally {
       setRecordingLoading(false);
     }
@@ -579,10 +530,7 @@ function useRecordingState() {
     micMuted,
     speakerMuted,
     isRecording,
-    isRecordingActive,
-    isRecordingPaused,
     toggleRecording,
-    pauseRecording,
     toggleMic,
     toggleSpeaker,
   };

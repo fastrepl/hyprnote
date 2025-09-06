@@ -33,8 +33,6 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
     fn start_session(&self, id: impl Into<String>) -> impl Future<Output = ()>;
-    fn pause_session(&self) -> impl Future<Output = ()>;
-    fn resume_session(&self) -> impl Future<Output = ()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -243,28 +241,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         {
             let mut guard = state.lock().await;
             let event = crate::fsm::StateEvent::Stop;
-            guard.fsm.handle(&event).await;
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn pause_session(&self) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Pause;
-            guard.fsm.handle(&event).await;
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn resume_session(&self) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Resume;
             guard.fsm.handle(&event).await;
         }
     }

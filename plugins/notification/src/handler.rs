@@ -121,7 +121,7 @@ impl NotificationHandler {
 
                 let app_handle = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
-                    app_handle.pause_session().await;
+                    app_handle.stop_session().await;
                 });
             }
             _ => {}

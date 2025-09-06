@@ -130,16 +130,27 @@ function ParticipantsChipInner(
 }
 
 export const ParticipantList = (
-  { sessionId, handleClickHuman, allowRemove = true }: {
+  { sessionId, handleClickHuman, allowMutate = true }: {
     sessionId: string;
     handleClickHuman: (human: Human) => void;
-    allowRemove?: boolean;
+    allowMutate?: boolean;
   },
 ) => {
   const participants = useParticipantsWithOrg(sessionId);
 
   return (
     <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+      {(!allowMutate && participants.length === 0) && (
+        <div className="bg-neutral-50 rounded-lg border border-neutral-200 p-4 flex items-center gap-3">
+          <span className="bg-neutral-100 rounded-full w-8 h-8 flex items-center justify-center text-lg flex-shrink-0">
+            ↖
+          </span>
+          <div className="flex flex-col">
+            <span className="text-neutral-700 text-sm font-medium">Add participants</span>
+            <span className="text-neutral-500 text-xs">in the note section</span>
+          </div>
+        </div>
+      )}
       {participants.map(({ organization, participants }) => (
         <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
           <div className="text-xs font-medium text-neutral-400 truncate">
@@ -153,7 +164,7 @@ export const ParticipantList = (
                 sessionId={sessionId}
                 isLast={index === (participants ?? []).length - 1}
                 handleClickHuman={handleClickHuman}
-                allowRemove={allowRemove}
+                allowRemove={allowMutate}
               />
             ))}
           </div>

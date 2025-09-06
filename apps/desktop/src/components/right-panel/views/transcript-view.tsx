@@ -482,7 +482,7 @@ const MemoizedSpeakerSelector = memo(({
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
             <ParticipantList
-              allowRemove={false}
+              allowMutate={false}
               sessionId={sessionId}
               handleClickHuman={handleClickHuman}
             />

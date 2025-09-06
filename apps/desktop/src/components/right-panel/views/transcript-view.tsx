@@ -482,12 +482,14 @@ const MemoizedSpeakerSelector = memo(({
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
             <ParticipantList
+              selectedHuman={candidate}
               allowMutate={false}
               sessionId={sessionId}
               handleClickHuman={handleClickHuman}
             />
             {candidate && (
               <div className="flex flex-col gap-2">
+                <hr className="mb-2" />
                 <SpeakerRangeSelector
                   value={speakerRange}
                   onChange={setSpeakerRange}

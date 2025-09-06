@@ -130,8 +130,9 @@ function ParticipantsChipInner(
 }
 
 export const ParticipantList = (
-  { sessionId, handleClickHuman, allowMutate = true }: {
+  { sessionId, handleClickHuman, allowMutate = true, selectedHuman }: {
     sessionId: string;
+    selectedHuman?: Human | null;
     handleClickHuman: (human: Human) => void;
     allowMutate?: boolean;
   },
@@ -162,9 +163,9 @@ export const ParticipantList = (
                 key={member.id}
                 member={member}
                 sessionId={sessionId}
-                isLast={index === (participants ?? []).length - 1}
                 handleClickHuman={handleClickHuman}
                 allowRemove={allowMutate}
+                selected={member.id === selectedHuman?.id}
               />
             ))}
           </div>
@@ -177,15 +178,15 @@ export const ParticipantList = (
 function ParticipentItem({
   member,
   sessionId,
-  isLast = false,
   handleClickHuman,
   allowRemove = true,
+  selected = false,
 }: {
   member: Human;
   sessionId: string;
-  isLast?: boolean;
   handleClickHuman: (human: Human) => void;
   allowRemove?: boolean;
+  selected?: boolean;
 }) {
   const queryClient = useQueryClient();
   const { userId } = useHypr();
@@ -206,8 +207,8 @@ function ParticipentItem({
     <div
       className={clsx(
         "flex items-center justify-between gap-2 py-2 px-3",
-        "hover:bg-neutral-100 cursor-pointer group transition-colors",
-        !isLast && "border-b border-neutral-100",
+        selected ? "border border-gray-400 rounded-md" : "hover:bg-neutral-100",
+        "cursor-pointer group transition-colors",
       )}
       onClick={() => handleClickHuman(member)}
     >

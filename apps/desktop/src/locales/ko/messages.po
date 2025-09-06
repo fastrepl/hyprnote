@@ -650,7 +650,7 @@ msgstr ""
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:528
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:563
 #: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr ""
@@ -860,7 +860,7 @@ msgstr ""
 #~ msgid "Feedback"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:350
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:385
 msgid "Find person"
 msgstr ""
 

@@ -32,6 +32,7 @@ import TranscriptEditor, {
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
@@ -405,6 +406,7 @@ const MemoizedSpeakerSelector = memo(({
   const [speakerRange, setSpeakerRange] = useState<SpeakerChangeRange>("current");
   const inactive = useOngoingSession(s => s.status === "inactive");
   const [human, setHuman] = useState<Human | null>(null);
+  const [candidate, setCandidate] = useState<Human | null>(null);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
@@ -430,8 +432,7 @@ const MemoizedSpeakerSelector = memo(({
   }, [participants, speakerId]);
 
   const handleClickHuman = (human: Human) => {
-    setHuman(human);
-    setIsOpen(false);
+    setCandidate(human);
   };
 
   if (!sessionId) {
@@ -477,14 +478,17 @@ const MemoizedSpeakerSelector = memo(({
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
-            <div className="border-b border-neutral-100 pb-3">
-              <SpeakerRangeSelector
-                value={speakerRange}
-                onChange={setSpeakerRange}
-              />
-            </div>
-
             <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
+            {candidate?.id && (
+              <div className="flex items-center gap-1 text-sm">
+                <span>Assign</span>
+                <span className="font-semibold border rounded-md py-1 px-2 text-xs truncate">
+                  {candidate.full_name}
+                </span>
+                <span className="text-neutral-500">→</span>
+                <SpeakerRangeSelector onChange={setSpeakerRange} />
+              </div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
@@ -492,47 +496,28 @@ const MemoizedSpeakerSelector = memo(({
   );
 });
 
-interface SpeakerRangeSelectorProps {
-  value: SpeakerChangeRange;
+function SpeakerRangeSelector({ onChange }: {
   onChange: (value: SpeakerChangeRange) => void;
-}
-
-function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
+}) {
   const options = [
-    { value: "current" as const, label: "Just this" },
-    { value: "all" as const, label: "Replace all" },
+    { value: "current" as const, label: "This only" },
+    { value: "all" as const, label: "All" },
     { value: "fromHere" as const, label: "From here" },
   ];
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex rounded-md border border-neutral-200 p-0.5 bg-neutral-50">
+    <Select onValueChange={onChange}>
+      <SelectTrigger className="h-7 max-w-32 text-xs px-2">
+        <SelectValue placeholder="Choose range" />
+      </SelectTrigger>
+      <SelectContent>
         {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex-1 cursor-pointer"
-          >
-            <input
-              type="radio"
-              name="speaker-range"
-              value={option.value}
-              className="sr-only"
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <div
-              className={`px-2 py-1 text-xs font-medium text-center rounded transition-colors ${
-                value === option.value
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/50"
-              }`}
-            >
-              {option.label}
-            </div>
-          </label>
+          <SelectItem key={option.value} value={option.value} className="text-xs">
+            {option.label}
+          </SelectItem>
         ))}
-      </div>
-    </div>
+      </SelectContent>
+    </Select>
   );
 }
 

@@ -14,7 +14,7 @@ import { getInitials } from "@hypr/utils";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
 
-export function useParticipantsWithOrg(sessionId: string) {
+function useParticipantsWithOrg(sessionId: string) {
   const { data: participants = [] } = useQuery({
     queryKey: ["participants", sessionId],
     queryFn: async () => {
@@ -122,7 +122,6 @@ export function ParticipantsChipInner(
       ? <ParticipantAddControl sessionId={sessionId} />
       : (
         <div className="flex flex-col gap-3">
-          <div className="text-sm font-medium text-neutral-700">Participants</div>
           <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
             {participants.map(({ organization, participants }) => (
               <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">

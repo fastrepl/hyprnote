@@ -267,9 +267,9 @@ msgstr "(Optional)"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:193
-#: src/components/editor-area/note-header/listen-button.tsx:217
-#: src/components/editor-area/note-header/listen-button.tsx:237
+#: src/components/editor-area/note-header/listen-button.tsx:187
+#: src/components/editor-area/note-header/listen-button.tsx:211
+#: src/components/editor-area/note-header/listen-button.tsx:231
 #: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr "{0}"
@@ -1231,8 +1231,8 @@ msgstr "No recent notes with this organization"
 #~ msgstr "No Template"
 
 #: src/components/editor-area/note-header/listen-button.tsx:473
-msgid "No Template (Default)"
-msgstr "No Template (Default)"
+#~ msgid "No Template (Default)"
+#~ msgstr "No Template (Default)"
 
 #: src/components/settings/views/templates.tsx:342
 msgid "No templates yet"
@@ -1428,8 +1428,8 @@ msgid "Save audio recording locally alongside the transcript."
 msgstr "Save audio recording locally alongside the transcript."
 
 #: src/components/editor-area/note-header/listen-button.tsx:443
-msgid "Save current recording"
-msgstr "Save current recording"
+#~ msgid "Save current recording"
+#~ msgstr "Save current recording"
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:595
 msgid "Save Date"
@@ -1577,11 +1577,11 @@ msgstr "Start automatically at login"
 #~ msgid "Start Monthly Plan"
 #~ msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:164
+#: src/components/editor-area/note-header/listen-button.tsx:158
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:420
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Stop"
 msgstr "Stop"
 
@@ -1635,8 +1635,8 @@ msgid "Teamspace"
 msgstr "Teamspace"
 
 #: src/components/editor-area/note-header/listen-button.tsx:464
-msgid "Template"
-msgstr "Template"
+#~ msgid "Template"
+#~ msgstr "Template"
 
 #: src/routes/app.settings.tsx:52
 #: src/routes/app.settings.tsx:106

@@ -70,7 +70,6 @@ export const createOngoingSessionStore = (
       );
     },
     start: (sessionId: string) => {
-      console.log("start", sessionId);
       set((state) =>
         mutate(state, (draft) => {
           draft.sessionId = sessionId;
@@ -80,8 +79,6 @@ export const createOngoingSessionStore = (
 
       const sessionStore = sessionsStore.getState().sessions[sessionId];
       const currentSession = sessionStore.getState().session;
-
-      sessionStore.getState().persistSession(undefined, true);
 
       if (currentSession.raw_memo_html && currentSession.raw_memo_html != "<p></p>") {
         const preMeetingNote = currentSession.raw_memo_html;

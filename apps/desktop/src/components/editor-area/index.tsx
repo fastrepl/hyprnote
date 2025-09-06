@@ -199,11 +199,11 @@ export default function EditorArea({
 
   const handleEnhanceWithTemplate = useCallback((templateId: string) => {
     const targetTemplateId = templateId === "auto" ? null : templateId;
-    enhance.mutate({ templateId: targetTemplateId, triggerType: "template" });
+    enhance.mutate({ templateId: targetTemplateId });
   }, [enhance]);
 
   const handleClickEnhance = useCallback(() => {
-    enhance.mutate({ triggerType: "manual" });
+    enhance.mutate({});
   }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
@@ -403,12 +403,10 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async ({
-      triggerType,
       templateId,
     }: {
-      triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
-    } = { triggerType: "manual" }) => {
+    }) => {
       setIsCancelled(false);
       originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();

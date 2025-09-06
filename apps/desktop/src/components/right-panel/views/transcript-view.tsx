@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
+import { ParticipantList } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { useContainerWidth } from "@/hooks/use-container-width";
 import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
@@ -32,7 +32,6 @@ import TranscriptEditor, {
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
@@ -431,6 +430,10 @@ const MemoizedSpeakerSelector = memo(({
     }
   }, [participants, speakerId]);
 
+  useEffect(() => {
+    setCandidate(null);
+  }, [isOpen]);
+
   const handleClickHuman = (human: Human) => {
     setCandidate(human);
   };
@@ -478,15 +481,26 @@ const MemoizedSpeakerSelector = memo(({
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
-            <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
-            {candidate?.id && (
-              <div className="flex items-center gap-1 text-sm">
-                <span>Assign</span>
-                <span className="font-semibold border rounded-md py-1 px-2 text-xs truncate">
-                  {candidate.full_name}
-                </span>
-                <span className="text-neutral-500">→</span>
-                <SpeakerRangeSelector onChange={setSpeakerRange} />
+            <ParticipantList
+              allowRemove={false}
+              sessionId={sessionId}
+              handleClickHuman={handleClickHuman}
+            />
+            {candidate && (
+              <div className="flex flex-col gap-2">
+                <SpeakerRangeSelector
+                  value={speakerRange}
+                  onChange={setSpeakerRange}
+                />
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onSpeakerChange(candidate, speakerRange);
+                    setIsOpen(false);
+                  }}
+                >
+                  Apply Speaker Change
+                </Button>
               </div>
             )}
           </div>
@@ -496,28 +510,50 @@ const MemoizedSpeakerSelector = memo(({
   );
 });
 
-function SpeakerRangeSelector({ onChange }: {
+interface SpeakerRangeSelectorProps {
+  value: SpeakerChangeRange;
   onChange: (value: SpeakerChangeRange) => void;
-}) {
+}
+
+function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   const options = [
-    { value: "current" as const, label: "This only" },
-    { value: "all" as const, label: "All" },
+    { value: "current" as const, label: "Only this" },
     { value: "fromHere" as const, label: "From here" },
+    { value: "all" as const, label: "All" },
   ];
 
   return (
-    <Select onValueChange={onChange}>
-      <SelectTrigger className="h-7 max-w-32 text-xs px-2">
-        <SelectValue placeholder="Choose range" />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="text-xs">
-            {option.label}
-          </SelectItem>
+    <div className="space-y-1.5">
+      <div className="flex rounded-md border border-neutral-200 bg-white">
+        {options.map((option, index) => (
+          <label
+            key={option.value}
+            className="flex-1 cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="speaker-range"
+              value={option.value}
+              className="sr-only"
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+            />
+            <div
+              className={clsx(
+                "px-2 py-1.5 text-xs font-medium text-center transition-colors border-neutral-200",
+                index === 0 && "border-r rounded-l-md",
+                index === options.length - 1 && "border-l rounded-r-md",
+                value === option.value
+                  ? "bg-gray-100 text-neutral-900"
+                  : "hover:bg-gray-50 text-neutral-500",
+              )}
+            >
+              {option.label}
+            </div>
+          </label>
         ))}
-      </SelectContent>
-    </Select>
+      </div>
+    </div>
   );
 }
 

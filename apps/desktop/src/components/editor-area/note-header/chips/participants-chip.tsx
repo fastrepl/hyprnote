@@ -112,7 +112,7 @@ export function ParticipantsChip({
   );
 }
 
-export function ParticipantsChipInner(
+function ParticipantsChipInner(
   { sessionId, handleClickHuman }: { sessionId: string; handleClickHuman: (human: Human) => void },
 ) {
   const participants = useParticipantsWithOrg(sessionId);
@@ -122,42 +122,59 @@ export function ParticipantsChipInner(
       ? <ParticipantAddControl sessionId={sessionId} />
       : (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
-            {participants.map(({ organization, participants }) => (
-              <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
-                <div className="text-xs font-medium text-neutral-400 truncate">
-                  {organization?.name ?? "No organization"}
-                </div>
-                <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
-                  {(participants ?? []).map((member, index) => (
-                    <ParticipentItem
-                      key={member.id}
-                      member={member}
-                      sessionId={sessionId}
-                      isLast={index === (participants ?? []).length - 1}
-                      handleClickHuman={handleClickHuman}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <ParticipantList sessionId={sessionId} handleClickHuman={handleClickHuman} />
           <ParticipantAddControl sessionId={sessionId} />
         </div>
       )
   );
 }
 
+export const ParticipantList = (
+  { sessionId, handleClickHuman, allowRemove = true }: {
+    sessionId: string;
+    handleClickHuman: (human: Human) => void;
+    allowRemove?: boolean;
+  },
+) => {
+  const participants = useParticipantsWithOrg(sessionId);
+
+  return (
+    <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
+      {participants.map(({ organization, participants }) => (
+        <div key={organization?.id ?? NO_ORGANIZATION_ID} className="flex flex-col gap-1.5">
+          <div className="text-xs font-medium text-neutral-400 truncate">
+            {organization?.name ?? "No organization"}
+          </div>
+          <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
+            {(participants ?? []).map((member, index) => (
+              <ParticipentItem
+                key={member.id}
+                member={member}
+                sessionId={sessionId}
+                isLast={index === (participants ?? []).length - 1}
+                handleClickHuman={handleClickHuman}
+                allowRemove={allowRemove}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function ParticipentItem({
   member,
   sessionId,
   isLast = false,
   handleClickHuman,
+  allowRemove = true,
 }: {
   member: Human;
   sessionId: string;
   isLast?: boolean;
   handleClickHuman: (human: Human) => void;
+  allowRemove?: boolean;
 }) {
   const queryClient = useQueryClient();
   const { userId } = useHypr();
@@ -185,36 +202,43 @@ function ParticipentItem({
     >
       <div className="flex items-center gap-2.5 relative min-w-0">
         <div className="relative size-7 flex items-center justify-center flex-shrink-0">
-          <div className="absolute inset-0 flex items-center justify-center group-hover:opacity-0 transition-opacity">
+          <div
+            className={clsx(
+              "absolute inset-0 flex items-center justify-center transition-opacity",
+              allowRemove && "group-hover:opacity-0",
+            )}
+          >
             <Avatar className="size-7">
               <AvatarFallback className="text-xs bg-neutral-200 text-neutral-700 font-medium">
                 {member.full_name ? getInitials(member.full_name) : "?"}
               </AvatarFallback>
             </Avatar>
           </div>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRemoveParticipant(member.id);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
+          {allowRemove && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
                 e.stopPropagation();
                 handleRemoveParticipant(member.id);
-              }
-            }}
-            className={clsx([
-              "flex items-center justify-center",
-              "text-red-400 hover:text-red-600",
-              "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-              "bg-white shadow-sm",
-            ])}
-          >
-            <CircleMinus className="size-4" />
-          </div>
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRemoveParticipant(member.id);
+                }
+              }}
+              className={clsx([
+                "flex items-center justify-center",
+                "text-red-400 hover:text-red-600",
+                "absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+                "bg-white shadow-sm",
+              ])}
+            >
+              <CircleMinus className="size-4" />
+            </div>
+          )}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
           {member.full_name

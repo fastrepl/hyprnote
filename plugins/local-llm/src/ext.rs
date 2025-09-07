@@ -187,7 +187,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         let current_selection = self.get_current_model_selection()?;
         let model_path = current_selection.file_path(&self.models_dir());
 
-        // Verify the model file exists
         if !model_path.exists() {
             return Err(crate::Error::ModelNotDownloaded);
         }
@@ -234,7 +233,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
                 if is_migrated.unwrap_or(false) {
                     Ok(crate::SupportedModel::HyprLLM)
                 } else {
-                    // Preserve existing users' workflow by keeping their downloaded model
                     let old_model_path = self
                         .models_dir()
                         .join(crate::SupportedModel::Llama3p2_3bQ4.file_name());
@@ -297,18 +295,15 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn get_current_model_selection(&self) -> Result<crate::ModelSelection, crate::Error> {
         let store = self.local_llm_store();
 
-        // Check if we have a ModelSelection stored
         if let Ok(Some(selection)) =
             store.get::<crate::ModelSelection>(crate::StoreKey::ModelSelection)
         {
             return Ok(selection);
         }
 
-        // Fallback to migrating from old SupportedModel
         let current_model = self.get_current_model()?;
         let selection = crate::ModelSelection::Predefined(current_model);
 
-        // Store the migrated selection
         let _ = store.set(crate::StoreKey::ModelSelection, &selection);
         Ok(selection)
     }
@@ -320,7 +315,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     ) -> Result<(), crate::Error> {
         let store = self.local_llm_store();
 
-        // Also update the old Model key for backward compatibility if it's a predefined model
         if let crate::ModelSelection::Predefined(supported_model) = &model {
             let _ = store.set(crate::StoreKey::Model, supported_model.clone());
         }

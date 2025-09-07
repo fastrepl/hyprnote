@@ -64,14 +64,6 @@ mod tests {
     #[test]
     #[ignore]
     #[cfg(target_os = "macos")]
-    fn test_list_installed_apps() {
-        let apps = list_installed_apps();
-        println!("{:?}", apps);
-    }
-
-    #[test]
-    #[ignore]
-    #[cfg(target_os = "macos")]
     fn test_macos_check_accessibility_permission() {
         let detector = Detector::default();
         let is_trusted = detector.macos_check_accessibility_permission();

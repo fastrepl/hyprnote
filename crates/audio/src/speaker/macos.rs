@@ -1,11 +1,12 @@
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 
 use anyhow::Result;
 use futures_util::Stream;
+
 use ringbuf::{
-    traits::{Consumer, Producer, Split},
+    traits::{Consumer, Observer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
 };
 
@@ -44,6 +45,8 @@ struct Ctx {
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
+    consecutive_drops: Arc<AtomicU32>,
+    should_terminate: Arc<AtomicBool>,
 }
 
 impl SpeakerInput {
@@ -156,7 +159,7 @@ impl SpeakerInput {
         let asbd = self.tap.asbd().unwrap();
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let rb = HeapRb::<f32>::new(1024 * 16);
+        let rb = HeapRb::<f32>::new(1024 * 32);
         let (producer, consumer) = rb.split();
 
         let waker_state = Arc::new(Mutex::new(WakerState {
@@ -171,6 +174,8 @@ impl SpeakerInput {
             producer,
             waker_state: waker_state.clone(),
             current_sample_rate: current_sample_rate.clone(),
+            consecutive_drops: Arc::new(AtomicU32::new(0)),
+            should_terminate: Arc::new(AtomicBool::new(false)),
         });
 
         let device = self.start_device(&mut ctx).unwrap();
@@ -188,10 +193,31 @@ impl SpeakerInput {
 
 fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
     let buffer_size = data.len();
+    let available_space = ctx.producer.vacant_len();
+
+    let buffer_fill_ratio = 1.0 - (available_space as f32 / ctx.producer.capacity().get() as f32);
+    if buffer_fill_ratio > 0.7 {
+        tracing::warn!(ratio = buffer_fill_ratio, "buffer_nearly_full",);
+    }
+
     let pushed = ctx.producer.push_slice(data);
 
     if pushed < buffer_size {
-        tracing::warn!("macos_speaker_dropped_{}_samples", buffer_size - pushed);
+        let dropped = buffer_size - pushed;
+        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::Relaxed) + 1;
+
+        tracing::warn!(
+            dropped = dropped,
+            consecutive = consecutive,
+            "macos_speaker_dropped",
+        );
+
+        if consecutive > 10 {
+            ctx.should_terminate.store(true, Ordering::Relaxed);
+            return;
+        }
+    } else {
+        ctx.consecutive_drops.store(0, Ordering::Relaxed);
     }
 
     if pushed > 0 {
@@ -213,6 +239,10 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
+        if self._ctx.should_terminate.load(Ordering::Relaxed) {
+            return Poll::Ready(None);
+        }
+
         if let Some(sample) = self.consumer.try_pop() {
             return Poll::Ready(Some(sample));
         }

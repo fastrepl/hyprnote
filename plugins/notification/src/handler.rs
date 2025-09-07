@@ -51,10 +51,14 @@ impl NotificationHandler {
         while let Ok(trigger) = rx.recv() {
             match trigger {
                 NotificationTrigger::Detect(t) => {
-                    Self::handle_detect_event(&app_handle, t);
+                    if app_handle.get_detect_notification().unwrap_or(false) {
+                        Self::handle_detect_event(&app_handle, t);
+                    }
                 }
                 NotificationTrigger::Event(e) => {
-                    Self::handle_calendar_event(&app_handle, e);
+                    if app_handle.get_event_notification().unwrap_or(false) {
+                        Self::handle_calendar_event(&app_handle, e);
+                    }
                 }
             }
         }
@@ -74,6 +78,11 @@ impl NotificationHandler {
 
         match trigger.event {
             hypr_detect::DetectEvent::MicStarted(apps) => {
+                if apps.is_empty() {
+                    tracing::info!(reason = "apps.is_empty", "skip_notification");
+                    return;
+                }
+
                 if apps.iter().any(|app| {
                     app_handle
                         .get_ignored_platforms()
@@ -109,9 +118,10 @@ impl NotificationHandler {
             }
             hypr_detect::DetectEvent::MicStopped => {
                 use tauri_plugin_listener::ListenerPluginExt;
+
                 let app_handle = app_handle.clone();
                 tauri::async_runtime::spawn(async move {
-                    app_handle.pause_session().await;
+                    app_handle.stop_session().await;
                 });
             }
             _ => {}

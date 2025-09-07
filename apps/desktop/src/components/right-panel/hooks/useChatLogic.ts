@@ -211,8 +211,7 @@ export function useChatLogic({
         || model.modelId === "openai/gpt-4o"
         || model.modelId === "gpt-4o"
         || apiBase?.includes("pro.hyprnote.com")
-        || model.modelId === "openai/gpt-5"
-        || type === "HyprLocal";
+        || model.modelId === "openai/gpt-5";
 
       if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
@@ -330,9 +329,9 @@ export function useChatLogic({
         ),
         stopWhen: stepCountIs(5),
         tools: {
-          ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
           ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
           ...(shouldUseTools && baseTools),
+          ...(type === "HyprLocal" && { progress_update: tool({ inputSchema: z.any() }) }),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);
@@ -349,7 +348,7 @@ export function useChatLogic({
         },
         abortSignal: abortController.signal,
         experimental_transform: smoothStream({
-          delayInMs: 70,
+          delayInMs: 30,
           chunking: "word",
         }),
       });
@@ -409,8 +408,9 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-call" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
+
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
               try {
@@ -461,7 +461,7 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-result" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
 
           const toolResultMessage: Message = {
@@ -485,7 +485,7 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-error" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
           const toolErrorMessage: Message = {
             id: crypto.randomUUID(),

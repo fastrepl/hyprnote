@@ -23,7 +23,7 @@ hound = { workspace = true }
 
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true }
-whisper-rs = { git = "https://github.com/fastrepl/whisper-rs", rev = "de11c2d", features = ["raw-api", "tracing_backend"] }
+whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "5f054c9", features = ["raw-api", "tracing_backend"] }
 
 futures-util = { workspace = true }
 tracing = { workspace = true }

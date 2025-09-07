@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:434
+#: src/components/settings/views/general.tsx:445
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -267,10 +267,9 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:140
-#: src/components/editor-area/note-header/listen-button.tsx:218
-#: src/components/editor-area/note-header/listen-button.tsx:242
-#: src/components/editor-area/note-header/listen-button.tsx:262
+#: src/components/editor-area/note-header/listen-button.tsx:187
+#: src/components/editor-area/note-header/listen-button.tsx:211
+#: src/components/editor-area/note-header/listen-button.tsx:231
 #: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr ""
@@ -353,10 +352,10 @@ msgid "Add more quotes"
 msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:350
-msgid "Add participant"
-msgstr ""
+#~ msgid "Add participant"
+#~ msgstr ""
 
-#: src/components/settings/views/general.tsx:425
+#: src/components/settings/views/general.tsx:428
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr ""
 
@@ -650,7 +649,7 @@ msgstr ""
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:528
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:563
 #: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr ""
@@ -700,7 +699,7 @@ msgstr ""
 #~ msgid "Custom STT Endpoint"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:422
+#: src/components/settings/views/general.tsx:425
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -740,8 +739,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:312
-msgid "Display language"
-msgstr ""
+#~ msgid "Display language"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:43
 msgid "Documentation"
@@ -859,6 +858,10 @@ msgstr ""
 #: src/routes/app.settings.tsx:106
 #~ msgid "Feedback"
 #~ msgstr ""
+
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:385
+msgid "Find person"
+msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
 msgid "Finish Onboarding"
@@ -1231,9 +1234,9 @@ msgstr ""
 #~ msgid "No Template"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:517
-msgid "No Template (Default)"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:473
+#~ msgid "No Template (Default)"
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:342
 msgid "No templates yet"
@@ -1321,8 +1324,8 @@ msgid "Owner"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:363
-msgid "Pause"
-msgstr ""
+#~ msgid "Pause"
+#~ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
@@ -1341,8 +1344,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:315
-msgid "Primary language for the interface"
-msgstr ""
+#~ msgid "Primary language for the interface"
+#~ msgstr ""
 
 #: src/components/settings/views/billing.tsx:33
 #~ msgid "Pro"
@@ -1428,9 +1431,9 @@ msgstr ""
 msgid "Save audio recording locally alongside the transcript."
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:487
-msgid "Save current recording"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:443
+#~ msgid "Save current recording"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:595
 msgid "Save Date"
@@ -1505,7 +1508,7 @@ msgstr ""
 msgid "Select how you want to process your meeting notes"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:344
+#: src/components/settings/views/general.tsx:348
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1562,7 +1565,7 @@ msgstr ""
 #~ msgid "Speech to Text Model"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:341
+#: src/components/settings/views/general.tsx:345
 msgid "Spoken languages"
 msgstr ""
 
@@ -1578,11 +1581,11 @@ msgstr ""
 #~ msgid "Start Monthly Plan"
 #~ msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:189
+#: src/components/editor-area/note-header/listen-button.tsx:158
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:464
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Stop"
 msgstr ""
 
@@ -1635,9 +1638,9 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:508
-msgid "Template"
-msgstr ""
+#: src/components/editor-area/note-header/listen-button.tsx:464
+#~ msgid "Template"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:52
 #: src/routes/app.settings.tsx:106

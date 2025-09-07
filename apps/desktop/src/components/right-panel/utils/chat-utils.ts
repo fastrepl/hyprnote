@@ -77,7 +77,6 @@ export const prepareMessageHistory = async (
     || modelId === "gpt-4o"
     || modelId === "openai/gpt-5"
     || (apiBase && apiBase.includes("pro.hyprnote.com"))
-    || type === "HyprLocal"
   );
 
   const systemContent = await templateCommands.render("chat.system", {

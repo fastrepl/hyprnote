@@ -174,10 +174,10 @@ pub async fn main() {
 
             specta_builder.mount_events(&app);
 
-            {
-                use tauri_plugin_global_shortcut::GlobalShortcutExt;
-                app.global_shortcut().register(ctrl_n_shortcut)?;
-            }
+            // {
+            //     use tauri_plugin_global_shortcut::GlobalShortcutExt;
+            //     app.global_shortcut().register(ctrl_n_shortcut)?;
+            // }
 
             {
                 use tauri_plugin_deep_link::DeepLinkExt;

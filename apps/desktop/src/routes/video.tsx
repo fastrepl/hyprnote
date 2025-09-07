@@ -34,10 +34,6 @@ function Component() {
     let unlisten: () => void;
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
-      if (payload.type === "running_paused") {
-        player.current?.pause();
-      }
-
       if (payload.type === "running_active") {
         player.current?.play();
 

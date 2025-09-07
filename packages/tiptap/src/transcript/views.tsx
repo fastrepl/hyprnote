@@ -6,7 +6,7 @@ import type { Human } from "@hypr/plugin-db";
 import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
 
 export const createSpeakerView = (Comp: SpeakerViewInnerComponent): ComponentType<any> => {
-  return memo(({ node, editor, updateAttributes, getPos, ...props }: any) => {
+  return memo(({ node, editor, updateAttributes, getPos }: any) => {
     const speakerId = node.attrs?.[SPEAKER_ID_ATTR] ?? undefined;
     const speakerIndex = node.attrs?.[SPEAKER_INDEX_ATTR] ?? undefined;
     const speakerLabel = node.attrs?.[SPEAKER_LABEL_ATTR] ?? undefined;

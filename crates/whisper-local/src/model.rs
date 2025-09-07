@@ -349,8 +349,11 @@ mod tests {
             .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]) as f32 / 32768.0)
             .collect();
 
+        let start = std::time::Instant::now();
         let segments = whisper.transcribe(&audio).unwrap();
+        let duration = start.elapsed();
         println!("segments: {:#?}", segments);
+        println!("time: {:?}", duration);
         assert!(segments.len() > 0);
     }
 }

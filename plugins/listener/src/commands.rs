@@ -150,26 +150,6 @@ pub async fn stop_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 
 #[tauri::command]
 #[specta::specta]
-pub async fn pause_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.pause_session().await;
-    match app.get_state().await {
-        crate::fsm::State::RunningPaused { .. } => Ok(()),
-        _ => Err(crate::Error::PauseSessionFailed.to_string()),
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn resume_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.resume_session().await;
-    match app.get_state().await {
-        crate::fsm::State::RunningActive { .. } => Ok(()),
-        _ => Err(crate::Error::ResumeSessionFailed.to_string()),
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn get_state<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<crate::fsm::State, String> {

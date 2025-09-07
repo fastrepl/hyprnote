@@ -3,7 +3,7 @@ use std::thread::JoinHandle;
 
 #[derive(Debug, Clone)]
 pub enum DeviceEvent {
-    DefaultInputChanged,
+    DefaultInputChanged { headphone: bool },
     DefaultOutputChanged { headphone: bool },
 }
 
@@ -77,10 +77,11 @@ mod macos {
         for addr in addresses {
             match addr.selector {
                 ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
-                    let _ = event_tx.send(DeviceEvent::DefaultInputChanged);
+                    let headphone = detect_headphones(ca::System::default_input_device().ok());
+                    let _ = event_tx.send(DeviceEvent::DefaultInputChanged { headphone });
                 }
                 ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
-                    let headphone = detect_headphones();
+                    let headphone = detect_headphones(ca::System::default_output_device().ok());
                     let _ = event_tx.send(DeviceEvent::DefaultOutputChanged { headphone });
                 }
                 _ => {}
@@ -89,9 +90,9 @@ mod macos {
         os::Status::NO_ERR
     }
 
-    fn detect_headphones() -> bool {
-        match ca::System::default_output_device() {
-            Ok(device) => match device.streams() {
+    fn detect_headphones(device: Option<ca::Device>) -> bool {
+        match device {
+            Some(device) => match device.streams() {
                 Ok(streams) => streams.iter().any(|s| {
                     if let Ok(term_type) = s.terminal_type() {
                         term_type.0 == io::audio::output_term::HEADPHONES
@@ -102,7 +103,7 @@ mod macos {
                 }),
                 Err(_) => false,
             },
-            Err(_) => false,
+            None => false,
         }
     }
 

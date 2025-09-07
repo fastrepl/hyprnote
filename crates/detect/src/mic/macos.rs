@@ -52,46 +52,6 @@ impl DetectorState {
     }
 }
 
-fn get_mic_using_apps_coreaudio() -> Vec<String> {
-    let processes = ca::System::processes().ok().unwrap();
-    let default_in = ca::System::default_input_device().ok().unwrap();
-
-    let mut out = Vec::<String>::new();
-    for p in processes {
-        let running_in = p.is_running_input().unwrap_or(false);
-        if !running_in {
-            continue;
-        }
-
-        let uses_default = p
-            .prop_vec(
-                &ca::PropSelector::PROCESS_DEVICES
-                    .addr(ca::PropScope::INPUT, ca::PropElement::MAIN),
-            )
-            .ok()
-            .map(|ds: Vec<ca::Device>| ds.iter().any(|d| d.0 == default_in.0))
-            .unwrap_or(false);
-        if !uses_default {
-            continue;
-        }
-
-        if let Ok(pid) = p.pid() {
-            if let Some(running_app) = cidre::ns::RunningApp::with_pid(pid) {
-                if let Some(localized_name) = running_app.localized_name() {
-                    out.push(localized_name.to_string());
-                    continue;
-                }
-            }
-        }
-
-        if let Some(name) = p.bundle_id().ok().map(|s| s.to_string()) {
-            out.push(name);
-        };
-    }
-
-    out
-}
-
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
@@ -141,14 +101,21 @@ impl crate::Observer for Detector {
                                                 let cb = callback.clone();
 
                                                 std::thread::spawn(move || {
-                                                    let apps = get_mic_using_apps_coreaudio();
+                                                    let apps = crate::list_mic_using_apps();
                                                     tracing::info!(
                                                         "detect_device_listener: {:?}",
                                                         apps
                                                     );
 
                                                     if let Ok(guard) = cb.lock() {
+                                                        let apps = apps
+                                                            .into_iter()
+                                                            .map(|a| a.localized_name)
+                                                            .filter(|s| !s.is_empty())
+                                                            .collect::<Vec<_>>();
+
                                                         let event = DetectEvent::MicStarted(apps);
+
                                                         tracing::info!(event = ?event, "detected");
                                                         (*guard)(event);
                                                     }
@@ -228,13 +195,19 @@ impl crate::Observer for Detector {
                                                     let cb = data.0.clone();
 
                                                     std::thread::spawn(move || {
-                                                        let apps = get_mic_using_apps_coreaudio();
+                                                        let apps = crate::list_mic_using_apps();
                                                         tracing::info!(
                                                             "detect_system_listener: {:?}",
                                                             apps
                                                         );
 
                                                         if let Ok(callback_guard) = cb.lock() {
+                                                            let apps = apps
+                                                                .into_iter()
+                                                                .map(|a| a.localized_name)
+                                                                .filter(|s| !s.is_empty())
+                                                                .collect::<Vec<_>>();
+
                                                             (*callback_guard)(
                                                                 DetectEvent::MicStarted(apps),
                                                             );

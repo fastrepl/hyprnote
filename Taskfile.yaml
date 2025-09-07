@@ -13,6 +13,12 @@ tasks:
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
 
+  jsonschema:
+    cmds:
+      - |
+          jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/onboarding.json
+          jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/dev.json
+
   bump:
     cmds:
       - |

@@ -9,6 +9,9 @@ description = ""
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
+hypr-db-user = { workspace = true }
+schemars = { workspace = true, features = ["chrono"] }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }

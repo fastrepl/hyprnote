@@ -14,8 +14,6 @@ const COMMANDS: &[&str] = &[
     "set_speaker_muted",
     "start_session",
     "stop_session",
-    "pause_session",
-    "resume_session",
     "get_state",
 ];
 

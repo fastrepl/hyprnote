@@ -1,5 +1,5 @@
-use cidre::core_audio as ca;
 use super::InstalledApp;
+use cidre::core_audio as ca;
 
 #[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {

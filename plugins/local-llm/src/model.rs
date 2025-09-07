@@ -19,7 +19,7 @@ pub struct CustomModelInfo {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-#[serde(tag = "type")]
+#[serde(tag = "type", content = "content")]
 pub enum ModelSelection {
     Predefined { key: SupportedModel },
     Custom { path: String },

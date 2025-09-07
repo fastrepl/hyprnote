@@ -52,9 +52,9 @@ export function LLMLocalView({
     if (currentModelSelection.data && !customLLMEnabled.data) {
       const selection = currentModelSelection.data;
       if (selection.type === "Predefined") {
-        setSelectedLLMModel(selection.key);
+        setSelectedLLMModel(selection.content.key);
       } else if (selection.type === "Custom") {
-        setSelectedLLMModel(`custom-${selection.path}`);
+        setSelectedLLMModel(`custom-${selection.content.path}`);
       }
     }
   }, [currentModelSelection.data, customLLMEnabled.data, setSelectedLLMModel]);
@@ -63,7 +63,7 @@ export function LLMLocalView({
     if (model.available && model.downloaded) {
       setSelectedLLMModel(model.key);
 
-      const selection: ModelSelection = { type: "Predefined", key: model.key };
+      const selection: ModelSelection = { type: "Predefined", content: { key: model.key } };
       await localLlmCommands.setCurrentModelSelection(selection);
       queryClient.invalidateQueries({ queryKey: ["current-model-selection"] });
 
@@ -78,7 +78,7 @@ export function LLMLocalView({
   const handleCustomModelSelection = async (customModel: CustomModelInfo) => {
     setSelectedLLMModel(`custom-${customModel.path}`);
 
-    const selection: ModelSelection = { type: "Custom", path: customModel.path };
+    const selection: ModelSelection = { type: "Custom", content: { path: customModel.path } };
     await localLlmCommands.setCurrentModelSelection(selection);
     queryClient.invalidateQueries({ queryKey: ["current-model-selection"] });
 

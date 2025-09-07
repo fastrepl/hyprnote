@@ -66,7 +66,7 @@ async setCurrentModelSelection(model: ModelSelection) : Promise<null> {
 
 export type CustomModelInfo = { path: string; name: string }
 export type ModelInfo = { key: SupportedModel; name: string; description: string; size_bytes: number }
-export type ModelSelection = { type: "Predefined"; key: SupportedModel } | { type: "Custom"; path: string }
+export type ModelSelection = { type: "Predefined"; content: { key: SupportedModel } } | { type: "Custom"; content: { path: string } }
 export type SupportedModel = "Llama3p2_3bQ4" | "Gemma3_4bQ4" | "HyprLLM"
 export type TAURI_CHANNEL<TSend> = null
 

@@ -18,6 +18,8 @@ pub enum Error {
     ModelNotDownloaded,
     #[error("server already running")]
     ServerAlreadyRunning,
+    #[error("Other error: {0}")]
+    Other(String),
 }
 
 impl Serialize for Error {

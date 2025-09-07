@@ -27,6 +27,7 @@ tauri-plugin-store = { workspace = true }
 hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
+hypr-gguf = { workspace = true }
 hypr-llama = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
@@ -38,6 +39,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
+dirs = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

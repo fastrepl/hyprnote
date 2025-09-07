@@ -11,6 +11,9 @@ const COMMANDS: &[&str] = &[
     "set_current_model",
     "list_downloaded_model",
     "list_supported_model",
+    "list_custom_models",
+    "get_current_model_selection",
+    "set_current_model_selection",
 ];
 
 fn main() {

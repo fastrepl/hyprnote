@@ -13,4 +13,7 @@ permissions = [
     "allow-set-current-model",
     "allow-list-downloaded-model",
     "allow-list-supported-model",
+    "allow-list-custom-models",
+    "allow-get-current-model-selection",
+    "allow-set-current-model-selection",
 ]

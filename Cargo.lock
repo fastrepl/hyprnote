@@ -14456,6 +14456,7 @@ dependencies = [
  "file",
  "futures-util",
  "gbnf",
+ "gguf",
  "llama",
  "reqwest 0.12.23",
  "reqwest-streams",

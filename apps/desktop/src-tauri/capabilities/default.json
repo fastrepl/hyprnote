@@ -82,7 +82,9 @@
         { "path": "$APPDATA/*" },
         { "path": "$APPDATA/**" },
         { "path": "$DOWNLOAD/*" },
-        { "path": "$DOWNLOAD/**" }
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$HOME/.lmstudio/*" },
+        { "path": "$HOME/.lmstudio/**" }
       ]
     },
     {

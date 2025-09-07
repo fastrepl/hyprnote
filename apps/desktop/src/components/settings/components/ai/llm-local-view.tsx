@@ -52,13 +52,7 @@ export function LLMLocalView({
     if (currentModelSelection.data && !customLLMEnabled.data) {
       const selection = currentModelSelection.data;
       if (selection.type === "Predefined") {
-        if ("Llama3p2_3bQ4" in selection) {
-          setSelectedLLMModel("Llama3p2_3bQ4");
-        } else if ("HyprLLM" in selection) {
-          setSelectedLLMModel("HyprLLM");
-        } else if ("Gemma3_4bQ4" in selection) {
-          setSelectedLLMModel("Gemma3_4bQ4");
-        }
+        setSelectedLLMModel(selection.key);
       } else if (selection.type === "Custom") {
         setSelectedLLMModel(`custom-${selection.path}`);
       }
@@ -69,7 +63,7 @@ export function LLMLocalView({
     if (model.available && model.downloaded) {
       setSelectedLLMModel(model.key);
 
-      const selection: ModelSelection = { type: "Predefined", [model.key]: model.key } as any;
+      const selection: ModelSelection = { type: "Predefined", key: model.key };
       await localLlmCommands.setCurrentModelSelection(selection);
       queryClient.invalidateQueries({ queryKey: ["current-model-selection"] });
 

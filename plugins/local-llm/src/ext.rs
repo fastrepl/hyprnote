@@ -302,7 +302,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         }
 
         let current_model = self.get_current_model()?;
-        let selection = crate::ModelSelection::Predefined(current_model);
+        let selection = crate::ModelSelection::Predefined { key: current_model };
 
         let _ = store.set(crate::StoreKey::ModelSelection, &selection);
         Ok(selection)
@@ -315,8 +315,8 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     ) -> Result<(), crate::Error> {
         let store = self.local_llm_store();
 
-        if let crate::ModelSelection::Predefined(supported_model) = &model {
-            let _ = store.set(crate::StoreKey::Model, supported_model.clone());
+        if let crate::ModelSelection::Predefined { key } = &model {
+            let _ = store.set(crate::StoreKey::Model, key.clone());
         }
 
         store.set(crate::StoreKey::ModelSelection, model)?;

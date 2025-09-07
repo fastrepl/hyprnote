@@ -21,21 +21,21 @@ pub struct CustomModelInfo {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(tag = "type")]
 pub enum ModelSelection {
-    Predefined(SupportedModel),
+    Predefined { key: SupportedModel },
     Custom { path: String },
 }
 
 impl ModelSelection {
     pub fn file_path(&self, models_dir: &std::path::Path) -> std::path::PathBuf {
         match self {
-            ModelSelection::Predefined(model) => models_dir.join(model.file_name()),
+            ModelSelection::Predefined { key } => models_dir.join(key.file_name()),
             ModelSelection::Custom { path } => std::path::PathBuf::from(path),
         }
     }
 
     pub fn display_name(&self) -> String {
         match self {
-            ModelSelection::Predefined(model) => match model {
+            ModelSelection::Predefined { key } => match key {
                 SupportedModel::Llama3p2_3bQ4 => "Llama 3.2 3B Q4".to_string(),
                 SupportedModel::HyprLLM => "HyprLLM".to_string(),
                 SupportedModel::Gemma3_4bQ4 => "Gemma 3 4B Q4".to_string(),

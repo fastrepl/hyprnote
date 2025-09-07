@@ -19,11 +19,6 @@
     "resources": {
       "dlls/*": "./"
     },
-    "windows": {
-      "nsis": {
-        "installerHooks": "./windows/hooks.nsh"
-      }
-    },
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"

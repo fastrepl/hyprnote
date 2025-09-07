@@ -15,11 +15,6 @@
     "resources": {
       "dlls/*": "./"
     },
-    "windows": {
-      "nsis": {
-        "installerHooks": "./windows/hooks.nsh"
-      }
-    },
     "macOS": {
       "files": {
         "embedded.provisionprofile": "assets/hyprnote-stable.provisionprofile"

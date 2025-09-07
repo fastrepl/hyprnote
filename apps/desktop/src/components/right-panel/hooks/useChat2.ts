@@ -154,6 +154,21 @@ export function useChat2({
       try {
         // Save user message to database
         const userMessageId = crypto.randomUUID();
+        
+        // Debug prints for metadata and message creation
+        console.log("🔍 Message Creation Debug:");
+        console.log("  - Content:", content);
+        console.log("  - Conversation ID:", convId);
+        console.log("  - Message ID:", userMessageId);
+        console.log("  - Raw metadata:", metadata);
+        console.log("  - Serialized metadata:", JSON.stringify(metadata));
+        console.log("  - Metadata size:", JSON.stringify(metadata).length, "bytes");
+        
+        // Check if metadata contains expected fields
+        if (metadata.mentions) console.log("  - Has mentions:", metadata.mentions.length, "items");
+        if (metadata.selectionData) console.log("  - Has selectionData:", !!metadata.selectionData);
+        if (metadata.htmlContent) console.log("  - Has htmlContent:", metadata.htmlContent.substring(0, 100) + "...");
+        
         await dbCommands.createMessageV2({
           id: userMessageId,
           conversation_id: convId,
@@ -164,7 +179,7 @@ export function useChat2({
           updated_at: new Date().toISOString(),
         });
         
-        //console.log("Saved user message to DB:", userMessageId, "for conversation:", convId);
+        console.log("✅ Saved user message to DB:", userMessageId, "for conversation:", convId);
 
         // Send to AI using the correct method
         sendAIMessage({

@@ -174,6 +174,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     // Create base tools
     const searchTool = createSearchSessionTool(this.options.userId);
     const searchSessionDateRangeTool = createSearchSessionDateRangeTool(this.options.userId);
+    console.log("does selection data exist", this.options.selectionData);
     const editEnhancedNoteTool = this.options.selectionData
       ? createEditEnhancedNoteTool({
           sessionId: this.options.sessionId,
@@ -211,6 +212,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
 
       // Get tools
       const tools = await this.getTools();
+      console.log("available tools for transport", tools);
 
       // Prepare messages with system context and enhanced user message
       const preparedMessages = await prepareMessagesForAI(options.messages, {

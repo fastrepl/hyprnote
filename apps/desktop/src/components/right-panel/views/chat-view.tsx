@@ -67,7 +67,6 @@ export function ChatView() {
     conversationId: currentConversationId,
     sessionData: sessionData,
     selectionData: null,
-    sessions: null,
     onError: (err: Error) => {
       console.error("Chat error:", err);
     },

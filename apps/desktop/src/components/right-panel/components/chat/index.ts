@@ -4,5 +4,5 @@ export * from "./chat-input";
 export * from "./chat-messages-view";
 export * from "./empty-chat-state";
 export * from "./floating-action-buttons";
-export { UIMessageComponent } from "./ui-message";
 export * from "./types";
+export { UIMessageComponent } from "./ui-message";

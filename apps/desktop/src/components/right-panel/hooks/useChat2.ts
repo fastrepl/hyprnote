@@ -1,8 +1,8 @@
-import { useChat } from "@hypr/utils/ai";
-import { commands as dbCommands } from "@hypr/plugin-db";
-import { useCallback, useRef, useEffect } from "react";
-import { CustomChatTransport } from "../utils/chat-transport";
 import { useLicense } from "@/hooks/use-license";
+import { commands as dbCommands } from "@hypr/plugin-db";
+import { useChat } from "@hypr/utils/ai";
+import { useCallback, useEffect, useRef } from "react";
+import { CustomChatTransport } from "../utils/chat-transport";
 
 interface UseChat2Props {
   sessionId: string | null;
@@ -14,8 +14,6 @@ interface UseChat2Props {
   onError?: (error: Error) => void;
 }
 
-// This hook wraps useChat with custom transport and handles conversation persistence
-// Conversation switching is handled via setMessages in the parent component
 export function useChat2({
   sessionId,
   userId,
@@ -28,13 +26,11 @@ export function useChat2({
   const { getLicense } = useLicense();
   const transportRef = useRef<CustomChatTransport | null>(null);
   const conversationIdRef = useRef(conversationId);
-  
-  // Keep ref updated with latest conversation ID
+
   useEffect(() => {
     conversationIdRef.current = conversationId;
   }, [conversationId]);
 
-  // Create transport instance
   if (!transportRef.current) {
     transportRef.current = new CustomChatTransport({
       sessionId,
@@ -42,11 +38,10 @@ export function useChat2({
       sessionData,
       selectionData,
       sessions,
-      getLicense: getLicense as any, // Type assertion for getLicense
+      getLicense: getLicense as any,
     });
   }
 
-  // Update transport options when they change
   useEffect(() => {
     if (transportRef.current) {
       transportRef.current.updateOptions({
@@ -55,12 +50,11 @@ export function useChat2({
         sessionData,
         selectionData,
         sessions,
-        getLicense: getLicense as any, // Type assertion for getLicense
+        getLicense: getLicense as any,
       });
     }
   }, [sessionId, userId, sessionData, selectionData, sessions, getLicense]);
 
-  // Clean up transport on unmount
   useEffect(() => {
     return () => {
       if (transportRef.current) {
@@ -69,7 +63,6 @@ export function useChat2({
     };
   }, []);
 
-  // useChat with proper configuration
   const {
     messages,
     sendMessage: sendAIMessage,
@@ -80,31 +73,26 @@ export function useChat2({
     setMessages,
   } = useChat({
     transport: transportRef.current,
-    // Don't pass initial messages here - we'll load them via setMessages in chat-view
     messages: [],
-    // Use stable ID - conversation switching handled via setMessages
     id: sessionId || "default",
-    onError: async (err) => {
-
+    onError: async (err: any) => {
       const errorMessage = {
         id: crypto.randomUUID(),
         role: "assistant" as const,
         parts: [{
           type: "text" as const,
-          text: `⚠️ An error occurred: ${err.message}`
-        }] as any, // Type assertion needed for parts compatibility
+          text: `An error occurred: ${err.message}`,
+        }] as any,
         metadata: {
-          isError: true, // Mark as error in metadata
-          errorDetails: err
-        }
-      } as const; 
+          isError: true,
+          errorDetails: err,
+        },
+      } as const;
       setMessages((prev: any) => [...prev, errorMessage]);
-      stop(); 
+      stop();
       onError?.(err);
-      //
     },
-    onFinish: async ({ message }) => {
-      // Use ref to get current conversation ID (avoid stale closure)
+    onFinish: async ({ message }: { message: any }) => {
       const currentConvId = conversationIdRef.current;
       if (currentConvId && message && message.role === "assistant") {
         try {
@@ -126,7 +114,6 @@ export function useChat2({
     },
   });
 
-  // Helper to send a message with metadata
   const sendMessage = useCallback(
     async (
       content: string,
@@ -134,44 +121,34 @@ export function useChat2({
         mentionedContent?: Array<{ id: string; type: string; label: string }>;
         selectionData?: any;
         htmlContent?: string;
-        conversationId?: string; // Allow passing conversation ID directly
-      }
+        conversationId?: string;
+      },
     ) => {
-      // Create metadata for the message
       const metadata = {
         mentions: options?.mentionedContent,
         selectionData: options?.selectionData,
         htmlContent: options?.htmlContent,
       };
 
-      // Use passed conversation ID or the one from props
       const convId = options?.conversationId || conversationId;
-      
+
       if (!convId || !content.trim()) {
         return;
       }
-      
-      // Update transport with mentions and selection data for context enhancement
-      // MUST happen BEFORE sending message so tools are loaded correctly
+
       if (transportRef.current) {
         transportRef.current.updateOptions({
           mentionedContent: options?.mentionedContent,
           selectionData: options?.selectionData,
-          sessions: sessions || {}, // Keep sessions even if empty
+          sessions: sessions || {},
         });
       }
-      
+
       // Small delay to ensure options are updated before tools are loaded
       await new Promise(resolve => setTimeout(resolve, 10));
-      
+
       try {
-        // Save user message to database
         const userMessageId = crypto.randomUUID();
-        
-        
-        
-       
-        
         await dbCommands.createMessageV2({
           id: userMessageId,
           conversation_id: convId,
@@ -181,9 +158,7 @@ export function useChat2({
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
-        
 
-        // Send to AI using the correct method
         sendAIMessage({
           id: userMessageId,
           role: "user",
@@ -195,10 +170,9 @@ export function useChat2({
         onError?.(error as Error);
       }
     },
-    [sendAIMessage, conversationId]
+    [sendAIMessage, conversationId],
   );
 
-  // Helper to update message parts during streaming
   const updateMessageParts = useCallback(
     async (messageId: string, parts: any[]) => {
       if (conversationId) {
@@ -212,9 +186,8 @@ export function useChat2({
         }
       }
     },
-    [conversationId]
+    [conversationId],
   );
-
 
   return {
     messages,

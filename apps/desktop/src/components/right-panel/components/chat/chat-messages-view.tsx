@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import type { UIMessage } from "@hypr/utils/ai";
+import { useEffect, useRef, useState } from "react";
 import { UIMessageComponent } from "./ui-message";
 
 interface ChatMessagesViewProps {
@@ -43,7 +43,8 @@ function ThinkingIndicator() {
 }
 
 export function ChatMessagesView(
-  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady, isError }: ChatMessagesViewProps,
+  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady, isError }:
+    ChatMessagesViewProps,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
@@ -60,17 +61,19 @@ export function ChatMessagesView(
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === "assistant" && lastMessage.parts) {
         const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
-        
+
         // Text part finished but still streaming (tool coming)
         if (lastPart?.type === "text" && !(lastPart as any).state) {
           return true;
         }
-        
+
         // Tool finished but still streaming (more text/tools coming)
         if (lastPart?.type?.startsWith("tool-") || lastPart?.type === "dynamic-tool") {
           const toolPart = lastPart as any;
-          if (toolPart.state === "output-available" || 
-              toolPart.state === "output-error") {
+          if (
+            toolPart.state === "output-available"
+            || toolPart.state === "output-error"
+          ) {
             return true;
           }
         }

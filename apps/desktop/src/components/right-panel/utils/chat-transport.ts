@@ -1,6 +1,7 @@
+import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { commands as mcpCommands } from "@hypr/plugin-mcp";
+import { fetch as tauriFetch } from "@hypr/utils";
 import type { UIMessage } from "@hypr/utils/ai";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   type ChatRequestOptions,
   type ChatTransport,
@@ -10,21 +11,19 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
-  tool,
   type UIMessageChunk,
 } from "@hypr/utils/ai";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
-import { commands as mcpCommands } from "@hypr/plugin-mcp";
-import { fetch as tauriFetch } from "@hypr/utils";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { z } from "zod";
 
 // Import the custom tools
+import { prepareMessagesForAI } from "./chat-utils";
+import { buildVercelToolsFromMcp } from "./mcp-http-wrapper";
 import { createEditEnhancedNoteTool } from "./tools/edit_enhanced_note";
 import { createSearchSessionDateRangeTool } from "./tools/search_session_date_range";
 import { createSearchSessionTool } from "./tools/search_session_multi_keywords";
-import { buildVercelToolsFromMcp } from "./mcp-http-wrapper";
-import { prepareMessagesForAI } from "./chat-utils";
 
 interface CustomChatTransportOptions {
   sessionId: string | null;
@@ -46,11 +45,9 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
   }
 
   async initializeModel() {
-    // Always get fresh model with current connection settings
     const provider = await modelProvider();
     const model = provider.languageModel("defaultModel");
-   
-    
+
     return model;
   }
 
@@ -58,34 +55,30 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     let newMcpTools: Record<string, any> = {};
     let hyprMcpTools: Record<string, any> = {};
 
-    // Get LLM connection for tool detection
     const llmConnection = await connectorCommands.getLlmConnection();
     const { type } = llmConnection;
     const apiBase = llmConnection.connection?.api_base;
     const customModel = await connectorCommands.getCustomLlmModel();
-    
-    // Determine model ID based on connection type
+
     const modelId = type === "Custom" && customModel ? customModel : "gpt-4";
-    
-    const shouldUseTools = 
-      modelId === "gpt-4.1" || 
-      modelId === "openai/gpt-4.1" ||
-      modelId === "anthropic/claude-sonnet-4" ||
-      modelId === "openai/gpt-4o" ||
-      modelId === "gpt-4o" ||
-      apiBase?.includes("pro.hyprnote.com") ||
-      modelId === "openai/gpt-5" ||
-      type === "HyprLocal";
+
+    const shouldUseTools = modelId === "gpt-4.1"
+      || modelId === "openai/gpt-4.1"
+      || modelId === "anthropic/claude-sonnet-4"
+      || modelId === "openai/gpt-4o"
+      || modelId === "gpt-4o"
+      || apiBase?.includes("pro.hyprnote.com")
+      || modelId === "openai/gpt-5"
+      || type === "HyprLocal";
 
     if (!shouldUseTools) {
       return { newMcpTools, hyprMcpTools };
     }
 
-    // Load MCP servers
     const mcpServers = await mcpCommands.getServers();
     const enabledServers = mcpServers.filter((server) => server.enabled);
 
-    // Load Hyprnote cloud MCP if applicable
+    // load Hyprnote cloud MCP if applicable
     if (apiBase?.includes("pro.hyprnote.com") && this.options.getLicense?.data?.valid) {
       try {
         const licenseKey = await getLicenseKey();
@@ -111,7 +104,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       }
     }
 
-    // Load other MCP tools
     for (const server of enabledServers) {
       try {
         const mcpClient = await experimental_createMCPClient({
@@ -148,34 +140,30 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
   private async getTools() {
     const { newMcpTools, hyprMcpTools } = await this.loadMCPTools();
 
-    // Get LLM connection for type check
     const llmConnection = await connectorCommands.getLlmConnection();
     const { type } = llmConnection;
     const apiBase = llmConnection.connection?.api_base;
     const customModel = await connectorCommands.getCustomLlmModel();
-    
-    // Determine model ID based on connection type
-    const modelId = type === "Custom" && customModel ? customModel : "gpt-4";
-    
-    const shouldUseTools = 
-      modelId === "gpt-4.1" || 
-      modelId === "openai/gpt-4.1" ||
-      modelId === "anthropic/claude-sonnet-4" ||
-      modelId === "openai/gpt-4o" ||
-      modelId === "gpt-4o" ||
-      apiBase?.includes("pro.hyprnote.com") ||
-      modelId === "openai/gpt-5" ||
-      type === "HyprLocal";
 
-    // Create base tools
+    const modelId = type === "Custom" && customModel ? customModel : "gpt-4";
+
+    const shouldUseTools = modelId === "gpt-4.1"
+      || modelId === "openai/gpt-4.1"
+      || modelId === "anthropic/claude-sonnet-4"
+      || modelId === "openai/gpt-4o"
+      || modelId === "gpt-4o"
+      || apiBase?.includes("pro.hyprnote.com")
+      || modelId === "openai/gpt-5"
+      || type === "HyprLocal";
+
     const searchTool = createSearchSessionTool(this.options.userId);
     const searchSessionDateRangeTool = createSearchSessionDateRangeTool(this.options.userId);
     const editEnhancedNoteTool = this.options.selectionData
       ? createEditEnhancedNoteTool({
-          sessionId: this.options.sessionId,
-          sessions: this.options.sessions || {}, // Pass empty object if sessions not available
-          selectionData: this.options.selectionData,
-        })
+        sessionId: this.options.sessionId,
+        sessions: this.options.sessions || {},
+        selectionData: this.options.selectionData,
+      })
       : null;
 
     const baseTools = {
@@ -190,7 +178,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     };
   }
 
-
   async sendMessages(
     options: {
       chatId: string;
@@ -202,24 +189,16 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     } & ChatRequestOptions,
   ): Promise<ReadableStream<UIMessageChunk>> {
     try {
-      // Initialize model if not already done
       const model = await this.initializeModel();
 
-      // Check if the last message has selection data in metadata
-      // This is more reliable than relying on transport options being updated in time
       const lastMessage = options.messages[options.messages.length - 1];
-      // Type assertion needed because metadata is typed as {} by default
       const messageMetadata = lastMessage?.metadata as any;
       if (messageMetadata?.selectionData) {
         this.options.selectionData = messageMetadata.selectionData;
       }
 
-      // Get tools - this will use the latest options including any selection data
-      // Tools are loaded here after any option updates from useChat2
       const tools = await this.getTools();
-    
 
-      // Prepare messages with system context and enhanced user message
       const preparedMessages = await prepareMessagesForAI(options.messages, {
         sessionId: this.options.sessionId,
         userId: this.options.userId,
@@ -230,14 +209,11 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
 
       console.log("what gets sent to the model:", preparedMessages);
 
-    
-
-      // Stream text with tools
       const result = streamText({
         model,
         messages: preparedMessages,
         abortSignal: options.abortSignal,
-        stopWhen: stepCountIs(5),
+        stopWhen: stepCountIs(10),
         tools,
         toolChoice: "auto",
         experimental_transform: smoothStream({
@@ -245,7 +221,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
           chunking: "word",
         }),
         onFinish: () => {
-          // Clean up MCP clients
           for (const client of this.allMcpClients) {
             client.close();
           }
@@ -257,7 +232,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
         },
       });
 
-      // Convert to UI message stream
       return result.toUIMessageStream({
         onError: (error) => {
           if (error == null) {
@@ -283,16 +257,14 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       chatId: string;
     } & ChatRequestOptions,
   ): Promise<ReadableStream<UIMessageChunk> | null> {
-    // We don't support reconnecting to streams yet
     return null;
   }
 
-  // Helper method to update options (for selection data, session data, etc.)
+  // helper method to update options (for selection data, session data, etc.)
   updateOptions(newOptions: Partial<CustomChatTransportOptions>) {
     this.options = { ...this.options, ...newOptions };
   }
 
-  // Clean up method
   cleanup() {
     for (const client of this.allMcpClients) {
       client.close();

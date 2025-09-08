@@ -51,17 +51,19 @@ export const cleanUIMessages = (messages: UIMessage[]): UIMessage[] => {
       // Check if this is a tool part (dynamic-tool or tool-*)
       if (part.type === "dynamic-tool" || part.type?.startsWith("tool-")) {
         const toolPart = part as any;
-        
+
         // Filter out UI-specific states that cause conversion errors
         // Keep only text parts and tool parts without problematic states
-        if (toolPart.state === "input-available" || 
-            toolPart.state === "output-available" ||
-            toolPart.state === "input-streaming" ||
-            toolPart.state === "output-error") {
+        if (
+          toolPart.state === "input-available"
+          || toolPart.state === "output-available"
+          || toolPart.state === "input-streaming"
+          || toolPart.state === "output-error"
+        ) {
           return false; // Remove these tool parts
         }
       }
-      
+
       // Keep all other parts (text, etc.)
       return true;
     });
@@ -72,7 +74,6 @@ export const cleanUIMessages = (messages: UIMessage[]): UIMessage[] => {
     };
   });
 };
-
 
 /**
  * Prepares messages for AI model with system prompt and context.
@@ -86,14 +87,14 @@ export const prepareMessagesForAI = async (
     sessionData?: any;
     selectionData?: SelectionData;
     mentionedContent?: Array<{ id: string; type: string; label: string }>;
-  }
+  },
 ) => {
   const { sessionId, userId, sessionData, selectionData, mentionedContent } = options;
-  
+
   // sessionData is already the data object from the query, not the query itself
   // It doesn't have a refetch method - it's just the plain data
   let freshSessionData = sessionData;
-  
+
   // If no session data and we have sessionId, fetch it directly
   if (!freshSessionData && sessionId) {
     try {
@@ -120,10 +121,12 @@ export const prepareMessagesForAI = async (
   const modelId = type === "Custom" && customModel ? customModel : "gpt-4";
 
   // Get participants and calendar event
-  const participants = sessionId ? 
-    await dbCommands.sessionListParticipants(sessionId) : [];
-  const calendarEvent = sessionId ? 
-    await dbCommands.sessionGetEvent(sessionId) : null;
+  const participants = sessionId
+    ? await dbCommands.sessionListParticipants(sessionId)
+    : [];
+  const calendarEvent = sessionId
+    ? await dbCommands.sessionGetEvent(sessionId)
+    : null;
 
   // Format current date/time
   const currentDateTime = new Date().toLocaleString("en-US", {
@@ -144,14 +147,14 @@ export const prepareMessagesForAI = async (
 
   // Determine if tools are enabled
   const toolEnabled = !!(
-    modelId === "gpt-4.1" ||
-    modelId === "openai/gpt-4.1" ||
-    modelId === "anthropic/claude-sonnet-4" ||
-    modelId === "openai/gpt-4o" ||
-    modelId === "gpt-4o" ||
-    modelId === "openai/gpt-5" ||
-    apiBase?.includes("pro.hyprnote.com") ||
-    type === "HyprLocal"
+    modelId === "gpt-4.1"
+    || modelId === "openai/gpt-4.1"
+    || modelId === "anthropic/claude-sonnet-4"
+    || modelId === "openai/gpt-4o"
+    || modelId === "gpt-4o"
+    || modelId === "openai/gpt-5"
+    || apiBase?.includes("pro.hyprnote.com")
+    || type === "HyprLocal"
   );
 
   // Get MCP tools list for system prompt
@@ -159,7 +162,7 @@ export const prepareMessagesForAI = async (
   const mcpServers = await mcpCommands.getServers();
   const enabledServers = mcpServers.filter((server) => server.enabled);
   const mcpToolsArray = enabledServers.map((server) => ({
-    name: server.type,  // Using type as name since that's what's available
+    name: server.type, // Using type as name since that's what's available
     description: "",
     inputSchema: "{}",
   }));
@@ -182,7 +185,7 @@ export const prepareMessagesForAI = async (
 
   // Clean UIMessages to remove problematic tool states before conversion
   const cleanedMessages = cleanUIMessages(messages);
-  
+
   // Convert cleaned UIMessages to model messages
   const modelMessages = convertToModelMessages(cleanedMessages);
   const preparedMessages: any[] = [];
@@ -196,14 +199,14 @@ export const prepareMessagesForAI = async (
   // Process all messages, enhancing the last user message if needed
   for (let i = 0; i < modelMessages.length; i++) {
     const msg = modelMessages[i];
-    
+
     // Check if this is the last user message and we have context to add
     const isLastUserMessage = i === modelMessages.length - 1 && msg.role === "user";
-    
+
     if (isLastUserMessage && (mentionedContent || selectionData)) {
       // Process mentions
       const processedMentions: Array<{ type: string; label: string; content: string }> = [];
-      
+
       if (mentionedContent && mentionedContent.length > 0) {
         for (const mention of mentionedContent) {
           try {
@@ -225,7 +228,7 @@ export const prepareMessagesForAI = async (
                 });
               }
             }
-            
+
             if (mention.type === "human") {
               const humanData = await dbCommands.getHuman(mention.id);
               if (humanData) {
@@ -234,7 +237,7 @@ export const prepareMessagesForAI = async (
                 humanContent += "Email: " + humanData?.email + "\n";
                 humanContent += "Job Title: " + humanData?.job_title + "\n";
                 humanContent += "LinkedIn: " + humanData?.linkedin_username + "\n";
-                
+
                 // Add recent sessions for this person
                 if (humanData?.full_name) {
                   try {
@@ -244,7 +247,7 @@ export const prepareMessagesForAI = async (
                       user_id: userId || "",
                       limit: 5,
                     });
-                    
+
                     if (participantSessions.length > 0) {
                       humanContent += "\nNotes this person participated in:\n";
                       for (const session of participantSessions.slice(0, 2)) {
@@ -252,14 +255,14 @@ export const prepareMessagesForAI = async (
                         const isParticipant = participants.some((p: any) =>
                           p.full_name === humanData.full_name || p.email === humanData.email
                         );
-                        
+
                         if (isParticipant) {
                           let briefContent = "";
                           if (session.enhanced_memo_html && session.enhanced_memo_html.trim() !== "") {
                             // Strip HTML tags for brief content
-                            briefContent = session.enhanced_memo_html.replace(/<[^>]*>/g, '').slice(0, 200) + "...";
+                            briefContent = session.enhanced_memo_html.replace(/<[^>]*>/g, "").slice(0, 200) + "...";
                           } else if (session.raw_memo_html && session.raw_memo_html.trim() !== "") {
-                            briefContent = session.raw_memo_html.replace(/<[^>]*>/g, '').slice(0, 200) + "...";
+                            briefContent = session.raw_memo_html.replace(/<[^>]*>/g, "").slice(0, 200) + "...";
                           }
                           humanContent += `- "${session.title || "Untitled"}": ${briefContent}\n`;
                         }
@@ -269,7 +272,7 @@ export const prepareMessagesForAI = async (
                     console.error(`Error fetching notes for person "${humanData.full_name}":`, error);
                   }
                 }
-                
+
                 processedMentions.push({
                   type: "human",
                   label: mention.label,
@@ -282,11 +285,12 @@ export const prepareMessagesForAI = async (
           }
         }
       }
-      
+
       // Get the original user message content
-      const originalContent = typeof msg.content === 'string' ? msg.content : 
-        msg.content.map((part: any) => part.type === 'text' ? part.text : '').join('');
-      
+      const originalContent = typeof msg.content === "string"
+        ? msg.content
+        : msg.content.map((part: any) => part.type === "text" ? part.text : "").join("");
+
       // Use the user template to format the enhanced message
       const enhancedContent = await templateCommands.render("chat.user", {
         message: originalContent,
@@ -301,7 +305,7 @@ export const prepareMessagesForAI = async (
           }
           : undefined,
       });
-      
+
       preparedMessages.push({
         role: "user",
         content: enhancedContent,

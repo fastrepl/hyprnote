@@ -1,9 +1,9 @@
-import { type FC, useEffect, useState } from "react";
-import type { UIMessage } from "@hypr/utils/ai";
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import Renderer from "@hypr/tiptap/renderer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
+import type { UIMessage } from "@hypr/utils/ai";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
-import { commands as miscCommands } from "@hypr/plugin-misc";
+import { type FC, useEffect, useState } from "react";
 import { parseMarkdownBlocks } from "../../utils/markdown-parser";
 import { MarkdownCard } from "./markdown-card";
 
@@ -28,7 +28,7 @@ const TextContent: FC<{ content: string; isHtml?: boolean }> = ({ content, isHtm
       // Convert markdown to HTML
       try {
         let html = await miscCommands.opinionatedMdToHtml(content);
-        
+
         // Clean up empty paragraphs like reference code
         html = html
           .replace(/<p>\s*<\/p>/g, "")
@@ -37,7 +37,7 @@ const TextContent: FC<{ content: string; isHtml?: boolean }> = ({ content, isHtm
           .replace(/<p>\s+<\/p>/g, "")
           .replace(/<p> <\/p>/g, "")
           .trim();
-          
+
         setDisplayHtml(html);
       } catch (error) {
         console.error("Failed to convert markdown:", error);
@@ -151,33 +151,34 @@ const TextContent: FC<{ content: string; isHtml?: boolean }> = ({ content, isHtm
   );
 };
 
-export const UIMessageComponent: FC<UIMessageComponentProps> = ({ 
-  message, 
-  sessionTitle, 
-  hasEnhancedNote, 
-  onApplyMarkdown 
+export const UIMessageComponent: FC<UIMessageComponentProps> = ({
+  message,
+  sessionTitle,
+  hasEnhancedNote,
+  onApplyMarkdown,
 }) => {
   const isUser = message.role === "user";
-  
+
   // Extract text content from parts
   const getTextContent = () => {
-    if (!message.parts || message.parts.length === 0) return "";
-    
+    if (!message.parts || message.parts.length === 0) {
+      return "";
+    }
+
     const textParts = message.parts
       .filter(part => part.type === "text")
       .map(part => part.text || "")
       .join("");
-    
+
     return textParts;
   };
-
 
   // User message styling
   if (isUser) {
     // Check for HTML content in metadata (for mentions/selections)
     const htmlContent = (message.metadata as any)?.htmlContent;
     const textContent = getTextContent();
-    
+
     return (
       <div className="w-full flex justify-end">
         <div className="max-w-[80%]">
@@ -206,7 +207,7 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
         // Text content - parse for markdown blocks
         if (part.type === "text" && part.text) {
           const parsedParts = parseMarkdownBlocks(part.text);
-          
+
           return (
             <div key={`${message.id}-text-${index}`} className="space-y-4">
               {parsedParts.map((parsedPart, pIndex) => {
@@ -236,10 +237,10 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
         // Handle tool parts - check for dynamic tools or specific tool types
         if (part.type === "dynamic-tool" || part.type?.startsWith("tool-")) {
           const toolPart = part as any;
-          
+
           // Extract tool name - either from toolName field (dynamic) or from type (specific)
           const toolName = toolPart.toolName || part.type.replace("tool-", "");
-          
+
           // Tool execution start (input streaming or available)
           if (toolPart.state === "input-streaming" || toolPart.state === "input-available") {
             return (
@@ -265,10 +266,10 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
                           width: "100%",
                         }}
                       >
-                        <Loader2 
-                          size={16} 
-                          className="animate-spin" 
-                          color="rgb(115 115 115)" 
+                        <Loader2
+                          size={16}
+                          className="animate-spin"
+                          color="rgb(115 115 115)"
                         />
                         <span style={{ fontWeight: "400", flex: 1, textAlign: "left" }}>
                           {toolPart.state === "input-streaming" ? "Calling" : "Called"} tool: {toolName}
@@ -278,12 +279,14 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
                     <AccordionContent className="pt-3 pb-0">
                       {toolPart.input && (
                         <div>
-                          <div style={{ 
-                            fontSize: "0.75rem", 
-                            fontWeight: "500", 
-                            color: "rgb(107 114 128)",
-                            marginBottom: "6px"
-                          }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: "500",
+                              color: "rgb(107 114 128)",
+                              marginBottom: "6px",
+                            }}
+                          >
                             Input:
                           </div>
                           <pre
@@ -350,12 +353,14 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
                       {/* Show input */}
                       {toolPart.input && (
                         <div style={{ marginBottom: "12px" }}>
-                          <div style={{ 
-                            fontSize: "0.75rem", 
-                            fontWeight: "500", 
-                            color: "rgb(107 114 128)",
-                            marginBottom: "6px"
-                          }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: "500",
+                              color: "rgb(107 114 128)",
+                              marginBottom: "6px",
+                            }}
+                          >
                             Input:
                           </div>
                           <pre
@@ -380,16 +385,18 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
                           </pre>
                         </div>
                       )}
-                      
+
                       {/* Show output */}
                       {toolPart.output && (
                         <div>
-                          <div style={{ 
-                            fontSize: "0.75rem", 
-                            fontWeight: "500", 
-                            color: "rgb(107 114 128)",
-                            marginBottom: "6px"
-                          }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: "500",
+                              color: "rgb(107 114 128)",
+                              marginBottom: "6px",
+                            }}
+                          >
                             Output:
                           </div>
                           <pre

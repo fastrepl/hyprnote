@@ -1,12 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { useHypr, useRightPanel } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
-import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { useSession } from "@hypr/utils/contexts";
+import { useSessions } from "@hypr/utils/contexts";
 import {
   ChatHistoryView,
   ChatInput,
@@ -34,14 +34,14 @@ export function ChatView() {
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
   const { activeEntity, sessionId } = useActiveEntity({
-    setMessages: () => {}, // Messages managed by useChat2
+    setMessages: () => {},
     setInputValue,
     setShowHistory,
-    setHasChatStarted: () => {}, // Not needed with useChat2
+    setHasChatStarted: () => {},
   });
 
+  const sessions = useSessions((s) => s.sessions);
 
-  // First load conversations and session data
   const {
     conversations,
     sessionData,
@@ -52,11 +52,10 @@ export function ChatView() {
     userId,
     currentConversationId,
     setCurrentConversationId,
-    setMessages: () => {}, // Managed by useChat2
-    isGenerating: false
+    setMessages: () => {},
+    isGenerating: false,
   });
 
-  // Then initialize chat with proper transport
   const {
     messages,
     stop,
@@ -75,61 +74,59 @@ export function ChatView() {
     },
   });
 
-  // Load messages when conversation changes
   useEffect(() => {
+
     const loadMessages = async () => {
       if (currentConversationId) {
         try {
           const { commands } = await import("@hypr/plugin-db");
           const dbMessages = await commands.listMessagesV2(currentConversationId);
-          
-          // Convert to UIMessage format
+
           const uiMessages = dbMessages.map(msg => ({
             id: msg.id,
             role: msg.role as "user" | "assistant" | "system",
             parts: JSON.parse(msg.parts),
             metadata: msg.metadata ? JSON.parse(msg.metadata) : {},
           }));
-          
-          // Use setMessages to load historical messages
+
           setMessages(uiMessages);
           console.log("Loaded messages from DB:", uiMessages);
         } catch (error) {
           console.error("Failed to load messages:", error);
         }
       } else {
-        // Clear messages for new conversation
         setMessages([]);
         console.log("Cleared messages for new conversation");
       }
     };
-    
+
     loadMessages();
   }, [currentConversationId, setMessages]);
 
-
-  // Handle submit with conversation creation
   const handleSubmit = async (
     mentionedContent?: Array<{ id: string; type: string; label: string }>,
     selectionData?: any,
-    htmlContent?: string
+    htmlContent?: string,
   ) => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim()) {
+      return;
+    }
 
-    // Check message limit for free users (4 messages per conversation)
-    const userMessageCount = messages.filter(m => m.role === "user").length;
+    const userMessageCount = messages.filter((m: any) => m.role === "user").length;
     if (userMessageCount >= 4 && !getLicense.data?.valid) {
-      // Track analytics event
       await analyticsCommands.event({
         event: "pro_license_required_chat",
         distinct_id: userId,
       });
-      // Show pro gate modal
       await showProGateModal("chat");
       return;
     }
 
-    // Get or create conversation if needed
+    analyticsCommands.event({
+      event: "chat_message_sent",
+      distinct_id: userId,
+    });
+
     let convId = currentConversationId;
     if (!convId) {
       convId = await getOrCreateConversationId();
@@ -137,16 +134,14 @@ export function ChatView() {
         console.error("Failed to create conversation");
         return;
       }
-      // Update state
       setCurrentConversationId(convId);
     }
 
-    // Send message with the conversation ID directly (don't rely on state update)
     sendMessage(inputValue, {
       mentionedContent,
       selectionData,
       htmlContent,
-      conversationId: convId, // Pass the ID directly!
+      conversationId: convId,
     });
 
     setInputValue("");
@@ -164,32 +159,50 @@ export function ChatView() {
   };
 
   const handleQuickAction = async (action: string) => {
-    // Always create a new conversation for quick actions
     const convId = await createConversation();
     if (!convId) {
       console.error("Failed to create conversation");
       return;
     }
-    
-    // Update state so UI knows about the new conversation
+
     setCurrentConversationId(convId);
-    
-    // Send message directly with the new conversation ID
+
     sendMessage(action, {
       conversationId: convId,
     });
   };
 
-  const handleApplyMarkdown = async (content: string) => {
-    console.log("apply markdown", content);
+  const handleApplyMarkdown = async (markdownContent: string) => {
+    if (!sessionId) {
+      console.error("No session ID available");
+      return;
+    }
+
+    const sessionStore = sessions[sessionId];
+    if (!sessionStore) {
+      console.error("Session not found in store");
+      return;
+    }
+
+    try {
+      const html = await miscCommands.opinionatedMdToHtml(markdownContent);
+
+      const { showRaw, updateRawNote, updateEnhancedNote } = sessionStore.getState();
+
+      if (showRaw) {
+        updateRawNote(html);
+      } else {
+        updateEnhancedNote(html);
+      }
+    } catch (error) {
+      console.error("Failed to apply markdown content:", error);
+    }
   };
 
-  // Derive precise status flags from useChat status
-  const isSubmitted = status === "submitted"; // Request sent, waiting for response
-  const isStreaming = status === "streaming"; // Actively receiving response
+  const isSubmitted = status === "submitted";
+  const isStreaming = status === "streaming";
   const isReady = status === "ready";
-  const isError = status === "error"; // Error occurred during request 
-
+  const isError = status === "error";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -200,24 +213,27 @@ export function ChatView() {
   };
 
   const handleNewChat = () => {
-    // Only allow new chat if we have existing messages
     if (!messages || messages.length === 0) {
-      console.log("Already in empty state, not creating new chat");
       return;
     }
-    
+
     if (!sessionId || !userId) {
       return;
     }
 
-    // Reset to empty state - conversation will be created on first message
+    if(isGenerating) {
+      return;
+    }
+
     setCurrentConversationId(null);
     setInputValue("");
-    // Clear messages properly with setMessages
     setMessages([]);
   };
 
   const handleSelectChatGroup = async (groupId: string) => {
+    if(isGenerating) {
+      return;
+    }
     setCurrentConversationId(groupId);
   };
 

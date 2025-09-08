@@ -5,6 +5,8 @@ import { useHypr, useRightPanel } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
 import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { useSession } from "@hypr/utils/contexts";
 import {
   ChatHistoryView,
   ChatInput,
@@ -43,6 +45,7 @@ export function ChatView() {
   const {
     conversations,
     sessionData,
+    createConversation,
     getOrCreateConversationId,
   } = useChatQueries2({
     sessionId,
@@ -160,16 +163,25 @@ export function ChatView() {
     }
   };
 
-  const handleQuickAction = (action: string) => {
-    setInputValue(action);
-    focusInput(chatInputRef);
+  const handleQuickAction = async (action: string) => {
+    // Always create a new conversation for quick actions
+    const convId = await createConversation();
+    if (!convId) {
+      console.error("Failed to create conversation");
+      return;
+    }
+    
+    // Update state so UI knows about the new conversation
+    setCurrentConversationId(convId);
+    
+    // Send message directly with the new conversation ID
+    sendMessage(action, {
+      conversationId: convId,
+    });
   };
 
   const handleApplyMarkdown = async (content: string) => {
-    // TODO: Implement proper markdown apply functionality
-    console.log("Apply markdown to note:", content);
-    // This would update the session's enhanced_memo_html field
-    // Need backend support for this
+    console.log("apply markdown", content);
   };
 
   // Derive precise status flags from useChat status

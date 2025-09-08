@@ -89,7 +89,6 @@ export function ChatView() {
           }));
 
           setMessages(uiMessages);
-          console.log("Loaded messages from DB:", uiMessages);
         } catch (error) {
           console.error("Failed to load messages:", error);
         }

@@ -11,6 +11,7 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
+  tool,
   type UIMessageChunk,
 } from "@hypr/utils/ai";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -153,8 +154,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       || modelId === "openai/gpt-4o"
       || modelId === "gpt-4o"
       || apiBase?.includes("pro.hyprnote.com")
-      || modelId === "openai/gpt-5"
-      || type === "HyprLocal";
+      || modelId === "openai/gpt-5";
 
     const searchTool = createSearchSessionTool(this.options.userId);
     const searchSessionDateRangeTool = createSearchSessionDateRangeTool(this.options.userId);
@@ -175,6 +175,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     return {
       ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
       ...(shouldUseTools && baseTools),
+      ...(type === "HyprLocal" && { progress_update: tool({ inputSchema: z.any() }) }),
     };
   }
 
@@ -206,8 +207,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
         selectionData: this.options.selectionData,
         mentionedContent: this.options.mentionedContent,
       });
-
-      console.log("what gets sent to the model:", preparedMessages);
 
       const result = streamText({
         model,

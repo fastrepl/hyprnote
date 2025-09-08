@@ -37,6 +37,7 @@ pub struct SrcState {
     muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
     _device_monitor_handle: Option<DeviceMonitorHandle>,
+    _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
 }
 
 pub struct SourceActor;
@@ -70,6 +71,12 @@ impl Actor for SourceActor {
                 None
             };
 
+            let silence_stream_tx = if matches!(args.which, SrcWhich::Speaker) {
+                Some(hypr_audio::AudioOutput::silence())
+            } else {
+                None
+            };
+
             let mut st = SrcState {
                 which: args.which,
                 proc: args.proc,
@@ -77,7 +84,9 @@ impl Actor for SourceActor {
                 muted: Arc::new(AtomicBool::new(false)),
                 run_task: None,
                 _device_monitor_handle: device_monitor_handle,
+                _silence_stream_tx: silence_stream_tx,
             };
+
             start_source_loop(&myself, &mut st).await?;
             Ok(st)
         }
@@ -116,6 +125,8 @@ impl Actor for SourceActor {
             if let Some(task) = st.run_task.take() {
                 task.abort();
             }
+
+            st._silence_stream_tx = None;
 
             Ok(())
         }

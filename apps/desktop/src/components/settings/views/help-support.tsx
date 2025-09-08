@@ -3,8 +3,11 @@ import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { Book, Bug, ExternalLinkIcon, MessageSquare } from "lucide-react";
 
 import { commands as tracingCommands } from "@hypr/plugin-tracing";
+import { useHypr } from "../../../contexts/hypr";
 
 export default function HelpSupport() {
+  const { userId } = useHypr();
+
   const handleOpenFeedback = () => {
     openUrl("https://hyprnote.canny.io/feature-requests");
   };
@@ -106,6 +109,11 @@ export default function HelpSupport() {
             </div>
             <ExternalLinkIcon className="h-4 w-4 text-gray-400" />
           </button>
+          <br />
+          {/* User ID */}
+          <div className="text-sm text-gray-500">
+            User ID: <span className="font-mono bg-gray-100 px-1 rounded select-text cursor-text">{userId}</span>
+          </div>
         </div>
       </div>
     </div>

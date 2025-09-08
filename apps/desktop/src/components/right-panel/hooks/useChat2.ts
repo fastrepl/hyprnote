@@ -91,7 +91,6 @@ export function useChat2({
     onFinish: async ({ message }) => {
       // Use ref to get current conversation ID (avoid stale closure)
       const currentConvId = conversationIdRef.current;
-      //console.log("onFinish called with message:", message, "conversationId:", currentConvId);
       if (currentConvId && message && message.role === "assistant") {
         try {
           await dbCommands.createMessageV2({
@@ -103,7 +102,6 @@ export function useChat2({
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
-          //console.log("Saved assistant message to DB:", message.id);
         } catch (error) {
           console.error("Failed to save assistant message:", error);
         }
@@ -135,39 +133,29 @@ export function useChat2({
       const convId = options?.conversationId || conversationId;
       
       if (!convId || !content.trim()) {
-        console.error("Cannot send message without conversation ID", {
-          passedId: options?.conversationId,
-          propsId: conversationId,
-          content: content.trim()
-        });
         return;
       }
       
       // Update transport with mentions and selection data for context enhancement
+      // MUST happen BEFORE sending message so tools are loaded correctly
       if (transportRef.current) {
         transportRef.current.updateOptions({
           mentionedContent: options?.mentionedContent,
           selectionData: options?.selectionData,
+          sessions: sessions || {}, // Keep sessions even if empty
         });
       }
+      
+      // Small delay to ensure options are updated before tools are loaded
+      await new Promise(resolve => setTimeout(resolve, 10));
       
       try {
         // Save user message to database
         const userMessageId = crypto.randomUUID();
         
-        // Debug prints for metadata and message creation
-        console.log("🔍 Message Creation Debug:");
-        console.log("  - Content:", content);
-        console.log("  - Conversation ID:", convId);
-        console.log("  - Message ID:", userMessageId);
-        console.log("  - Raw metadata:", metadata);
-        console.log("  - Serialized metadata:", JSON.stringify(metadata));
-        console.log("  - Metadata size:", JSON.stringify(metadata).length, "bytes");
         
-        // Check if metadata contains expected fields
-        if (metadata.mentions) console.log("  - Has mentions:", metadata.mentions.length, "items");
-        if (metadata.selectionData) console.log("  - Has selectionData:", !!metadata.selectionData);
-        if (metadata.htmlContent) console.log("  - Has htmlContent:", metadata.htmlContent.substring(0, 100) + "...");
+        
+       
         
         await dbCommands.createMessageV2({
           id: userMessageId,
@@ -179,7 +167,6 @@ export function useChat2({
           updated_at: new Date().toISOString(),
         });
         
-        console.log("✅ Saved user message to DB:", userMessageId, "for conversation:", convId);
 
         // Send to AI using the correct method
         sendAIMessage({

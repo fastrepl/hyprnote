@@ -46,12 +46,10 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
   }
 
   async initializeModel() {
-    console.log("initializing model for transport - fetching fresh connection")
     // Always get fresh model with current connection settings
     const provider = await modelProvider();
     const model = provider.languageModel("defaultModel");
-    console.log("initializeModel - fresh model:", model);
-    console.log("provider", provider);
+   
     
     return model;
   }
@@ -62,11 +60,9 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
 
     // Get LLM connection for tool detection
     const llmConnection = await connectorCommands.getLlmConnection();
-    console.log("llmConnection", llmConnection);
     const { type } = llmConnection;
     const apiBase = llmConnection.connection?.api_base;
     const customModel = await connectorCommands.getCustomLlmModel();
-    console.log("customModel", customModel);
     
     // Determine model ID based on connection type
     const modelId = type === "Custom" && customModel ? customModel : "gpt-4";
@@ -174,11 +170,10 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     // Create base tools
     const searchTool = createSearchSessionTool(this.options.userId);
     const searchSessionDateRangeTool = createSearchSessionDateRangeTool(this.options.userId);
-    console.log("does selection data exist", this.options.selectionData);
     const editEnhancedNoteTool = this.options.selectionData
       ? createEditEnhancedNoteTool({
           sessionId: this.options.sessionId,
-          sessions: this.options.sessions,
+          sessions: this.options.sessions || {}, // Pass empty object if sessions not available
           selectionData: this.options.selectionData,
         })
       : null;
@@ -210,9 +205,19 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       // Initialize model if not already done
       const model = await this.initializeModel();
 
-      // Get tools
+      // Check if the last message has selection data in metadata
+      // This is more reliable than relying on transport options being updated in time
+      const lastMessage = options.messages[options.messages.length - 1];
+      // Type assertion needed because metadata is typed as {} by default
+      const messageMetadata = lastMessage?.metadata as any;
+      if (messageMetadata?.selectionData) {
+        this.options.selectionData = messageMetadata.selectionData;
+      }
+
+      // Get tools - this will use the latest options including any selection data
+      // Tools are loaded here after any option updates from useChat2
       const tools = await this.getTools();
-      console.log("available tools for transport", tools);
+    
 
       // Prepare messages with system context and enhanced user message
       const preparedMessages = await prepareMessagesForAI(options.messages, {
@@ -223,10 +228,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
         mentionedContent: this.options.mentionedContent,
       });
 
-      console.log("preparedMessages", preparedMessages);
-
-      console.log("model", model);
-
+    
 
       // Stream text with tools
       const result = streamText({

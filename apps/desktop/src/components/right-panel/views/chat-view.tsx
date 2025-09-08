@@ -21,7 +21,7 @@ import { focusInput, formatDate } from "../utils/chat-utils";
 
 export function ChatView() {
   const navigate = useNavigate();
-  const { isExpanded, chatInputRef } = useRightPanel();
+  const { isExpanded, chatInputRef, pendingSelection } = useRightPanel();
   const { userId } = useHypr();
   const { getLicense } = useLicense();
 
@@ -66,7 +66,7 @@ export function ChatView() {
     userId,
     conversationId: currentConversationId,
     sessionData: sessionData,
-    selectionData: null,
+    selectionData: pendingSelection,
     onError: (err: Error) => {
       console.error("Chat error:", err);
     },

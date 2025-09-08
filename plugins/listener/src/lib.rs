@@ -2,6 +2,7 @@ use statig::awaitable::IntoStateMachineExt;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
+mod actors;
 mod commands;
 mod error;
 mod events;

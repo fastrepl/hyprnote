@@ -4,7 +4,9 @@ use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use crate::actors::{AudioChunk, ProcMsg};
-use hypr_audio::ResampledAsyncSource;
+use hypr_audio::{
+    AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle, ResampledAsyncSource,
+};
 
 const SAMPLE_RATE: u32 = 16000;
 
@@ -30,6 +32,7 @@ pub struct SrcState {
     proc: ActorRef<ProcMsg>,
     token: CancellationToken,
     run_task: Option<tokio::task::JoinHandle<()>>,
+    _device_monitor_handle: Option<DeviceMonitorHandle>,
 }
 
 pub struct SourceActor;
@@ -44,11 +47,31 @@ impl Actor for SourceActor {
         args: Self::Arguments,
     ) -> impl std::future::Future<Output = Result<Self::State, ActorProcessingErr>> + Send {
         async move {
+            let device_monitor_handle = if matches!(args.which, SrcWhich::Mic { .. }) {
+                let (event_tx, event_rx) = std::sync::mpsc::channel();
+                let device_monitor_handle = DeviceMonitor::spawn(event_tx);
+
+                let myself_clone = myself.clone();
+                std::thread::spawn(move || {
+                    while let Ok(event) = event_rx.recv() {
+                        if let DeviceEvent::DefaultInputChanged { .. } = event {
+                            let new_device = AudioInput::get_default_mic_device_name();
+                            let _ = myself_clone.cast(SrcCtrl::ChangeDevice(Some(new_device)));
+                        }
+                    }
+                });
+
+                Some(device_monitor_handle)
+            } else {
+                None
+            };
+
             let mut st = SrcState {
                 which: args.which,
                 proc: args.proc,
                 token: args.token,
                 run_task: None,
+                _device_monitor_handle: device_monitor_handle,
             };
             start_source_loop(&myself, &mut st).await?;
             Ok(st)
@@ -75,6 +98,20 @@ impl Actor for SourceActor {
                 }
                 _ => {}
             }
+            Ok(())
+        }
+    }
+
+    fn post_stop(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        st: &mut Self::State,
+    ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
+        async move {
+            if let Some(task) = st.run_task.take() {
+                task.abort();
+            }
+
             Ok(())
         }
     }

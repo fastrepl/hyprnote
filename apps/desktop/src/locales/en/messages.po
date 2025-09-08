@@ -738,7 +738,7 @@ msgstr "Detect meetings automatically"
 #~ msgid "Display language"
 #~ msgstr "Display language"
 
-#: src/components/settings/views/help-support.tsx:43
+#: src/components/settings/views/help-support.tsx:46
 msgid "Documentation"
 msgstr "Documentation"
 
@@ -846,7 +846,7 @@ msgstr "Exclude apps from detection"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/components/settings/views/help-support.tsx:62
+#: src/components/settings/views/help-support.tsx:65
 msgid "Feature Requests"
 msgstr "Feature Requests"
 
@@ -912,7 +912,7 @@ msgstr "Global Settings"
 msgid "Google Gemini"
 msgstr "Google Gemini"
 
-#: src/components/settings/views/help-support.tsx:103
+#: src/components/settings/views/help-support.tsx:106
 msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
 msgstr "Got an error? Send your logs file to us at founders@hyprnote.com"
 
@@ -934,13 +934,13 @@ msgstr "Grant both permissions to continue"
 #~ msgid "Help & Feedback"
 #~ msgstr "Help & Feedback"
 
-#: src/components/settings/views/help-support.tsx:30
+#: src/components/settings/views/help-support.tsx:33
 #: src/routes/app.settings.tsx:62
 #: src/routes/app.settings.tsx:116
 msgid "Help & Support"
 msgstr "Help & Support"
 
-#: src/components/settings/views/help-support.tsx:84
+#: src/components/settings/views/help-support.tsx:87
 msgid "Help us improve by reporting issues"
 msgstr "Help us improve by reporting issues"
 
@@ -1038,7 +1038,7 @@ msgstr "Language for AI-generated summaries"
 #~ msgid "Language Model"
 #~ msgstr "Language Model"
 
-#: src/components/settings/views/help-support.tsx:46
+#: src/components/settings/views/help-support.tsx:49
 msgid "Learn how to use Hyprnote"
 msgstr "Learn how to use Hyprnote"
 
@@ -1107,7 +1107,7 @@ msgstr "Loading..."
 #~ msgid "Local Models"
 #~ msgstr "Local Models"
 
-#: src/components/settings/views/help-support.tsx:100
+#: src/components/settings/views/help-support.tsx:103
 msgid "Logs"
 msgstr "Logs"
 
@@ -1384,7 +1384,7 @@ msgstr "Recent Notes"
 #~ msgid "Remove {0} from list"
 #~ msgstr "Remove {0} from list"
 
-#: src/components/settings/views/help-support.tsx:81
+#: src/components/settings/views/help-support.tsx:84
 msgid "Report a Bug"
 msgstr "Report a Bug"
 
@@ -1589,7 +1589,7 @@ msgstr "Stop"
 #~ msgid "Submit Feedback"
 #~ msgstr "Submit Feedback"
 
-#: src/components/settings/views/help-support.tsx:65
+#: src/components/settings/views/help-support.tsx:68
 msgid "Suggest new features and improvements"
 msgstr "Suggest new features and improvements"
 

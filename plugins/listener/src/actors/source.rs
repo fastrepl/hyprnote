@@ -105,6 +105,7 @@ async fn start_source_loop(
                 }
             };
             tokio::pin!(stream);
+
             loop {
                 tokio::select! {
                     _ = token.cancelled() => { myself2.stop(None); return (); }

@@ -228,6 +228,8 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
         mentionedContent: this.options.mentionedContent,
       });
 
+      console.log("what gets sent to the model:", preparedMessages);
+
     
 
       // Stream text with tools

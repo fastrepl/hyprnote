@@ -175,7 +175,8 @@ export function ChatView() {
   // Derive precise status flags from useChat status
   const isSubmitted = status === "submitted"; // Request sent, waiting for response
   const isStreaming = status === "streaming"; // Actively receiving response
-  const isReady = status === "ready"; 
+  const isReady = status === "ready";
+  const isError = status === "error"; // Error occurred during request 
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -279,6 +280,7 @@ export function ChatView() {
             isSubmitted={isSubmitted}
             isStreaming={isStreaming}
             isReady={isReady}
+            isError={isError}
           />
         )}
 

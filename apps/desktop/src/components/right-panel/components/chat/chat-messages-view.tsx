@@ -10,6 +10,7 @@ interface ChatMessagesViewProps {
   isSubmitted?: boolean;
   isStreaming?: boolean;
   isReady?: boolean;
+  isError?: boolean;
 }
 
 function ThinkingIndicator() {
@@ -42,7 +43,7 @@ function ThinkingIndicator() {
 }
 
 export function ChatMessagesView(
-  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady }: ChatMessagesViewProps,
+  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady, isError }: ChatMessagesViewProps,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
@@ -77,7 +78,7 @@ export function ChatMessagesView(
     }
 
     // Fallback for other transition states
-    if (!isReady && !isStreaming) {
+    if (!isReady && !isStreaming && !isError) {
       return true;
     }
 

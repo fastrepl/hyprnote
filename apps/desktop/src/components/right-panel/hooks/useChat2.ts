@@ -84,9 +84,24 @@ export function useChat2({
     messages: [],
     // Use stable ID - conversation switching handled via setMessages
     id: sessionId || "default",
-    onError: (err) => {
-      console.error("Chat error:", err);
+    onError: async (err) => {
+
+      const errorMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        parts: [{
+          type: "text" as const,
+          text: `⚠️ An error occurred: ${err.message}`
+        }] as any, // Type assertion needed for parts compatibility
+        metadata: {
+          isError: true, // Mark as error in metadata
+          errorDetails: err
+        }
+      } as const; 
+      setMessages((prev: any) => [...prev, errorMessage]);
+      stop(); 
       onError?.(err);
+      //
     },
     onFinish: async ({ message }) => {
       // Use ref to get current conversation ID (avoid stale closure)

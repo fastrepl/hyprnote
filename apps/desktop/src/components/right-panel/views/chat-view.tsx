@@ -75,7 +75,6 @@ export function ChatView() {
   });
 
   useEffect(() => {
-
     const loadMessages = async () => {
       if (currentConversationId) {
         try {
@@ -221,7 +220,7 @@ export function ChatView() {
       return;
     }
 
-    if(isGenerating) {
+    if (isGenerating) {
       return;
     }
 
@@ -231,7 +230,7 @@ export function ChatView() {
   };
 
   const handleSelectChatGroup = async (groupId: string) => {
-    if(isGenerating) {
+    if (isGenerating) {
       return;
     }
     setCurrentConversationId(groupId);

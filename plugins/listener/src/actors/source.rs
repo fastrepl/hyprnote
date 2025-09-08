@@ -1,6 +1,9 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+
 use futures_util::StreamExt;
 use ractor::{Actor, ActorProcessingErr, ActorRef};
-use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use crate::actors::{AudioChunk, ProcMsg};
@@ -12,7 +15,7 @@ const SAMPLE_RATE: u32 = 16000;
 
 pub enum SrcCtrl {
     ChangeDevice(Option<String>),
-    Stop,
+    Mute(bool),
 }
 
 #[derive(Clone)]
@@ -31,6 +34,7 @@ pub struct SrcState {
     which: SrcWhich,
     proc: ActorRef<ProcMsg>,
     token: CancellationToken,
+    muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
     _device_monitor_handle: Option<DeviceMonitorHandle>,
 }
@@ -70,6 +74,7 @@ impl Actor for SourceActor {
                 which: args.which,
                 proc: args.proc,
                 token: args.token,
+                muted: Arc::new(AtomicBool::new(false)),
                 run_task: None,
                 _device_monitor_handle: device_monitor_handle,
             };
@@ -86,15 +91,15 @@ impl Actor for SourceActor {
     ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
         async move {
             match (msg, &mut st.which) {
+                (SrcCtrl::Mute(muted), _) => {
+                    st.muted.store(muted, Ordering::Relaxed);
+                }
                 (SrcCtrl::ChangeDevice(dev), SrcWhich::Mic { device }) => {
                     *device = dev;
                     if let Some(t) = st.run_task.take() {
                         t.abort();
                     }
                     start_source_loop(&myself, st).await?;
-                }
-                (SrcCtrl::Stop, _) => {
-                    myself.stop(None);
                 }
                 _ => {}
             }
@@ -121,10 +126,12 @@ async fn start_source_loop(
     myself: &ActorRef<SrcCtrl>,
     st: &mut SrcState,
 ) -> Result<(), ActorProcessingErr> {
+    let myself2 = myself.clone();
+
     let proc = st.proc.clone();
     let token = st.token.clone();
     let which = st.which.clone();
-    let myself2 = myself.clone();
+    let muted = st.muted.clone();
 
     let handle = tokio::spawn(async move {
         let mut seq: u64 = 0;
@@ -148,9 +155,15 @@ async fn start_source_loop(
                     _ = token.cancelled() => { myself2.stop(None); return (); }
                     next = stream.next() => {
                         if let Some(data) = next {
+                            let output_data = if muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
+                            } else {
+                                data
+                            };
+
                             let msg = match &which {
-                                SrcWhich::Mic {..} => ProcMsg::Mic(AudioChunk{ seq, data }),
-                                SrcWhich::Speaker => ProcMsg::Spk(AudioChunk{ seq, data }),
+                                SrcWhich::Mic {..} => ProcMsg::Mic(AudioChunk{ seq, data: output_data }),
+                                SrcWhich::Speaker => ProcMsg::Spk(AudioChunk{ seq, data: output_data }),
                             };
                             let _ = proc.cast(msg);
                             seq = seq.wrapping_add(1);

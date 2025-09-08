@@ -309,7 +309,7 @@ impl Llama {
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
         Self::setup_log();
 
-        let template = model_path.gguf_chat_format()?.unwrap();
+        let template = model_path.chat_format()?.unwrap();
 
         let backend = Self::get_backend();
         let model = Self::load_model(model_path)?;

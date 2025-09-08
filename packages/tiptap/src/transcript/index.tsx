@@ -10,11 +10,18 @@ import { forwardRef, useEffect, useRef } from "react";
 import { SearchAndReplace } from "./extensions/search-and-replace";
 import { SpeakerSplit } from "./extensions/speaker";
 import { SpeakerNode } from "./nodes";
-import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word2 } from "./utils";
+import {
+  fromEditorToWords,
+  fromWordsToEditor,
+  getSpeakerLabel,
+  type SpeakerAttributes,
+  type Word2,
+  wordsToSpeakerChunks,
+} from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
 export { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
-export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps };
+export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps, wordsToSpeakerChunks };
 
 interface TranscriptEditorProps {
   editable?: boolean;
@@ -175,9 +182,9 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       <div role="textbox" className="h-full flex-1 flex flex-col overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-4 pb-8"
+          className="flex-1 overflow-y-auto px-3"
         >
-          <EditorContent editor={editor} className="min-h-full pb-4" />
+          <EditorContent editor={editor} className="min-h-full" />
         </div>
       </div>
     );

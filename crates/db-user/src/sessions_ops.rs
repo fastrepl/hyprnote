@@ -5,11 +5,11 @@ use super::{
 use uuid;
 
 impl UserDatabase {
-    pub fn onboarding_session_id(&self) -> String {
+    pub fn onboarding_session_id() -> String {
         "df1d8c52-6d9d-4471-aff1-5dbd35899cbe".to_string()
     }
 
-    pub fn thank_you_session_id(&self) -> String {
+    pub fn thank_you_session_id() -> String {
         "872cf207-6a28-4229-bd66-492d0dce43c0".to_string()
     }
 

@@ -267,10 +267,9 @@ msgstr "(Optional)"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:140
-#: src/components/editor-area/note-header/listen-button.tsx:218
-#: src/components/editor-area/note-header/listen-button.tsx:242
-#: src/components/editor-area/note-header/listen-button.tsx:262
+#: src/components/editor-area/note-header/listen-button.tsx:187
+#: src/components/editor-area/note-header/listen-button.tsx:211
+#: src/components/editor-area/note-header/listen-button.tsx:231
 #: src/components/settings/views/templates.tsx:252
 msgid "{0}"
 msgstr "{0}"
@@ -353,8 +352,8 @@ msgid "Add more quotes"
 msgstr "Add more quotes"
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:350
-msgid "Add participant"
-msgstr "Add participant"
+#~ msgid "Add participant"
+#~ msgstr "Add participant"
 
 #: src/components/settings/views/general.tsx:428
 msgid "Add specific terms or jargon for improved transcription accuracy"
@@ -650,7 +649,7 @@ msgstr "Control how autonomous the AI enhancement should be."
 #~ msgid "Control how creative the AI enhancement should be"
 #~ msgstr "Control how creative the AI enhancement should be"
 
-#: src/components/editor-area/note-header/chips/participants-chip.tsx:528
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:563
 #: src/routes/app.human.$id.tsx:535
 msgid "Create"
 msgstr "Create"
@@ -739,7 +738,7 @@ msgstr "Detect meetings automatically"
 #~ msgid "Display language"
 #~ msgstr "Display language"
 
-#: src/components/settings/views/help-support.tsx:43
+#: src/components/settings/views/help-support.tsx:46
 msgid "Documentation"
 msgstr "Documentation"
 
@@ -847,7 +846,7 @@ msgstr "Exclude apps from detection"
 msgid "Extract action items"
 msgstr "Extract action items"
 
-#: src/components/settings/views/help-support.tsx:62
+#: src/components/settings/views/help-support.tsx:65
 msgid "Feature Requests"
 msgstr "Feature Requests"
 
@@ -855,6 +854,10 @@ msgstr "Feature Requests"
 #: src/routes/app.settings.tsx:106
 #~ msgid "Feedback"
 #~ msgstr "Feedback"
+
+#: src/components/editor-area/note-header/chips/participants-chip.tsx:385
+msgid "Find person"
+msgstr "Find person"
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
 msgid "Finish Onboarding"
@@ -909,7 +912,7 @@ msgstr "Global Settings"
 msgid "Google Gemini"
 msgstr "Google Gemini"
 
-#: src/components/settings/views/help-support.tsx:103
+#: src/components/settings/views/help-support.tsx:106
 msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
 msgstr "Got an error? Send your logs file to us at founders@hyprnote.com"
 
@@ -931,13 +934,13 @@ msgstr "Grant both permissions to continue"
 #~ msgid "Help & Feedback"
 #~ msgstr "Help & Feedback"
 
-#: src/components/settings/views/help-support.tsx:30
+#: src/components/settings/views/help-support.tsx:33
 #: src/routes/app.settings.tsx:62
 #: src/routes/app.settings.tsx:116
 msgid "Help & Support"
 msgstr "Help & Support"
 
-#: src/components/settings/views/help-support.tsx:84
+#: src/components/settings/views/help-support.tsx:87
 msgid "Help us improve by reporting issues"
 msgstr "Help us improve by reporting issues"
 
@@ -1035,7 +1038,7 @@ msgstr "Language for AI-generated summaries"
 #~ msgid "Language Model"
 #~ msgstr "Language Model"
 
-#: src/components/settings/views/help-support.tsx:46
+#: src/components/settings/views/help-support.tsx:49
 msgid "Learn how to use Hyprnote"
 msgstr "Learn how to use Hyprnote"
 
@@ -1104,7 +1107,7 @@ msgstr "Loading..."
 #~ msgid "Local Models"
 #~ msgstr "Local Models"
 
-#: src/components/settings/views/help-support.tsx:100
+#: src/components/settings/views/help-support.tsx:103
 msgid "Logs"
 msgstr "Logs"
 
@@ -1227,9 +1230,9 @@ msgstr "No recent notes with this organization"
 #~ msgid "No Template"
 #~ msgstr "No Template"
 
-#: src/components/editor-area/note-header/listen-button.tsx:517
-msgid "No Template (Default)"
-msgstr "No Template (Default)"
+#: src/components/editor-area/note-header/listen-button.tsx:473
+#~ msgid "No Template (Default)"
+#~ msgstr "No Template (Default)"
 
 #: src/components/settings/views/templates.tsx:342
 msgid "No templates yet"
@@ -1317,8 +1320,8 @@ msgid "Owner"
 msgstr "Owner"
 
 #: src/components/editor-area/note-header/listen-button.tsx:363
-msgid "Pause"
-msgstr "Pause"
+#~ msgid "Pause"
+#~ msgstr "Pause"
 
 #: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
@@ -1381,7 +1384,7 @@ msgstr "Recent Notes"
 #~ msgid "Remove {0} from list"
 #~ msgstr "Remove {0} from list"
 
-#: src/components/settings/views/help-support.tsx:81
+#: src/components/settings/views/help-support.tsx:84
 msgid "Report a Bug"
 msgstr "Report a Bug"
 
@@ -1424,9 +1427,9 @@ msgstr "Role"
 msgid "Save audio recording locally alongside the transcript."
 msgstr "Save audio recording locally alongside the transcript."
 
-#: src/components/editor-area/note-header/listen-button.tsx:487
-msgid "Save current recording"
-msgstr "Save current recording"
+#: src/components/editor-area/note-header/listen-button.tsx:443
+#~ msgid "Save current recording"
+#~ msgstr "Save current recording"
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:595
 msgid "Save Date"
@@ -1574,11 +1577,11 @@ msgstr "Start automatically at login"
 #~ msgid "Start Monthly Plan"
 #~ msgstr "Start Monthly Plan"
 
-#: src/components/editor-area/note-header/listen-button.tsx:189
+#: src/components/editor-area/note-header/listen-button.tsx:158
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:464
+#: src/components/editor-area/note-header/listen-button.tsx:367
 msgid "Stop"
 msgstr "Stop"
 
@@ -1586,7 +1589,7 @@ msgstr "Stop"
 #~ msgid "Submit Feedback"
 #~ msgstr "Submit Feedback"
 
-#: src/components/settings/views/help-support.tsx:65
+#: src/components/settings/views/help-support.tsx:68
 msgid "Suggest new features and improvements"
 msgstr "Suggest new features and improvements"
 
@@ -1631,9 +1634,9 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/components/editor-area/note-header/listen-button.tsx:508
-msgid "Template"
-msgstr "Template"
+#: src/components/editor-area/note-header/listen-button.tsx:464
+#~ msgid "Template"
+#~ msgstr "Template"
 
 #: src/routes/app.settings.tsx:52
 #: src/routes/app.settings.tsx:106

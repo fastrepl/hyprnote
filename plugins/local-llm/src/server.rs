@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
 use async_openai::types::{
-    ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk,
+    ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk, ChatCompletionRequestMessage,
     ChatCompletionResponseMessage, ChatCompletionStreamResponseDelta, ChatCompletionToolType,
     CreateChatCompletionRequest, CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
     FunctionCallStream, Role,
@@ -122,6 +122,45 @@ async fn chat_completions(
     AxumState(state): AxumState<ServerState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
+    // TODO
+    let request = {
+        let mut r = request.clone();
+        r.messages = r
+            .messages
+            .iter()
+            .filter_map(|m| match m {
+                ChatCompletionRequestMessage::Assistant(am) => {
+                    let mut cloned_am = am.clone();
+                    let filtered_tool_calls = cloned_am.tool_calls.as_ref().map(|tc| {
+                        tc.iter()
+                            .filter(|c| c.function.name != "progress_update")
+                            .cloned()
+                            .collect::<Vec<_>>()
+                    });
+
+                    let new_tool_calls = match filtered_tool_calls {
+                        Some(calls) if calls.is_empty() => None,
+                        Some(calls) => Some(calls),
+                        None => None,
+                    };
+
+                    cloned_am.tool_calls = new_tool_calls;
+                    Some(ChatCompletionRequestMessage::Assistant(cloned_am))
+                }
+                ChatCompletionRequestMessage::Tool(tm) => {
+                    if tm.tool_call_id == "progress_update" {
+                        None
+                    } else {
+                        Some(m.clone())
+                    }
+                }
+                _ => Some(m.clone()),
+            })
+            .collect();
+
+        r
+    };
+
     let response = if request.model == "mock-onboarding" {
         let provider = MockProvider::default();
         tracing::info!("using_mock_provider");
@@ -204,7 +243,7 @@ impl LocalProvider {
             .map(|tools| {
                 tools
                     .iter()
-                    .filter(|tool| tool.function.name != "update_progress")
+                    .filter(|tool| tool.function.name != "progress_update")
                     .cloned()
                     .collect::<Vec<_>>()
             })
@@ -480,7 +519,7 @@ async fn build_chat_completion_response(
                                                 id: Some("progress_update".to_string()),
                                                 r#type: Some(ChatCompletionToolType::Function),
                                                 function: Some(FunctionCallStream {
-                                                    name: Some("update_progress".to_string()),
+                                                    name: Some("progress_update".to_string()),
                                                     arguments: Some(
                                                         serde_json::to_string(&serde_json::json!({
                                                             "progress": progress

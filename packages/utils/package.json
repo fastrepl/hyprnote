@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^1.0.11",
+    "@ai-sdk/openai-compatible": "^1.0.15",
     "@date-fns/tz": "^1.4.1",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
@@ -22,7 +22,7 @@
     "@lingui/core": "^5.4.1",
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-http": "^2.5.2",
-    "ai": "^5.0.21",
+    "ai": "^5.0.34",
     "date-fns": "^4.1.0",
     "mutative": "^1.2.0",
     "p-debounce": "^4.0.0",
@@ -30,7 +30,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@types/react": "^18.3.23",
+    "@types/react": "^18.3.24",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {

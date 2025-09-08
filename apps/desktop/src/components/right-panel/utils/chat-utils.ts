@@ -153,8 +153,7 @@ export const prepareMessagesForAI = async (
     || modelId === "openai/gpt-4o"
     || modelId === "gpt-4o"
     || modelId === "openai/gpt-5"
-    || apiBase?.includes("pro.hyprnote.com")
-    || type === "HyprLocal"
+    || (apiBase && apiBase.includes("pro.hyprnote.com"))
   );
 
   // Get MCP tools list for system prompt

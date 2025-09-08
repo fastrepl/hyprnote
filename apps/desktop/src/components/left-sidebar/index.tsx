@@ -34,7 +34,7 @@ export default function LeftSidebar() {
   const isInOngoingNoteMain = activeSessionId === ongoingSessionId;
   const isInOngoingNoteSub = activeSessionId === ongoingSessionId;
   const isInOngoingNote = isInOngoingNoteMain || isInOngoingNoteSub;
-  const isMeetingRunning = status === "running_active" || status === "running_paused";
+  const isMeetingRunning = status === "running_active";
   const inMeetingAndNotInNote = isMeetingRunning
     && ongoingSessionId !== null
     && !isInOngoingNote;

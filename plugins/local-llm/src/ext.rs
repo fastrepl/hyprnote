@@ -19,8 +19,15 @@ pub trait LocalLlmPluginExt<R: Runtime> {
     fn list_downloaded_model(
         &self,
     ) -> impl Future<Output = Result<Vec<crate::SupportedModel>, crate::Error>>;
+
+    fn list_custom_models(
+        &self,
+    ) -> impl Future<Output = Result<Vec<crate::CustomModelInfo>, crate::Error>>;
     fn get_current_model(&self) -> Result<crate::SupportedModel, crate::Error>;
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error>;
+    fn get_current_model_selection(&self) -> Result<crate::ModelSelection, crate::Error>;
+    fn set_current_model_selection(&self, model: crate::ModelSelection)
+        -> Result<(), crate::Error>;
 
     fn download_model(
         &self,
@@ -177,9 +184,13 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
             return Err(crate::Error::ServerAlreadyRunning);
         }
 
-        let current_model = self.get_current_model()?;
+        let current_selection = self.get_current_model_selection()?;
+        let model_path = current_selection.file_path(&self.models_dir());
 
-        let model_path = self.models_dir().join(current_model.file_name());
+        if !model_path.exists() {
+            return Err(crate::Error::ModelNotDownloaded);
+        }
+
         let model_manager = crate::ModelManager::new(model_path);
         let state = self.state::<crate::SharedState>();
 
@@ -222,7 +233,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
                 if is_migrated.unwrap_or(false) {
                     Ok(crate::SupportedModel::HyprLLM)
                 } else {
-                    // Preserve existing users' workflow by keeping their downloaded model
                     let old_model_path = self
                         .models_dir()
                         .join(crate::SupportedModel::Llama3p2_3bQ4.file_name());
@@ -245,6 +255,71 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     fn set_current_model(&self, model: crate::SupportedModel) -> Result<(), crate::Error> {
         let store = self.local_llm_store();
         store.set(crate::StoreKey::Model, model)?;
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn list_custom_models(&self) -> Result<Vec<crate::CustomModelInfo>, crate::Error> {
+        #[cfg(target_os = "macos")]
+        {
+            let app_data_dir = dirs::data_dir().unwrap();
+            let gguf_files = crate::lmstudio::list_models(app_data_dir)?;
+
+            let mut custom_models = Vec::new();
+            for path_str in gguf_files {
+                let path = std::path::Path::new(&path_str);
+                if path.exists() {
+                    let name = {
+                        use hypr_gguf::GgufExt;
+                        path.model_name()
+                    };
+
+                    if let Ok(Some(name)) = name {
+                        custom_models.push(crate::CustomModelInfo {
+                            path: path_str,
+                            name,
+                        });
+                    }
+                }
+            }
+            Ok(custom_models)
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Ok(Vec::new())
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn get_current_model_selection(&self) -> Result<crate::ModelSelection, crate::Error> {
+        let store = self.local_llm_store();
+
+        if let Ok(Some(selection)) =
+            store.get::<crate::ModelSelection>(crate::StoreKey::ModelSelection)
+        {
+            return Ok(selection);
+        }
+
+        let current_model = self.get_current_model()?;
+        let selection = crate::ModelSelection::Predefined { key: current_model };
+
+        let _ = store.set(crate::StoreKey::ModelSelection, &selection);
+        Ok(selection)
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn set_current_model_selection(
+        &self,
+        model: crate::ModelSelection,
+    ) -> Result<(), crate::Error> {
+        let store = self.local_llm_store();
+
+        if let crate::ModelSelection::Predefined { key } = &model {
+            let _ = store.set(crate::StoreKey::Model, key.clone());
+        }
+
+        store.set(crate::StoreKey::ModelSelection, model)?;
         Ok(())
     }
 }

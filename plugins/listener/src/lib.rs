@@ -47,8 +47,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_speaker_muted::<tauri::Wry>,
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
-            commands::pause_session::<tauri::Wry>,
-            commands::resume_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![SessionEvent])
@@ -73,7 +71,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 let app_handle = handle.clone();
                 std::thread::spawn(move || {
                     while let Ok(event) = event_rx.recv() {
-                        if let hypr_audio::DeviceEvent::DefaultInputChanged = event {
+                        if let hypr_audio::DeviceEvent::DefaultInputChanged { .. } = event {
                             let new_device = hypr_audio::AudioInput::get_default_mic_device_name();
 
                             let app_handle_clone = app_handle.clone();

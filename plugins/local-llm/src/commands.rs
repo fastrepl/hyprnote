@@ -1,4 +1,4 @@
-use crate::{LocalLlmPluginExt, ModelInfo, SupportedModel};
+use crate::{CustomModelInfo, LocalLlmPluginExt, ModelInfo, ModelSelection, SupportedModel};
 
 use tauri::ipc::Channel;
 
@@ -113,4 +113,30 @@ pub async fn set_current_model<R: tauri::Runtime>(
     model: crate::SupportedModel,
 ) -> Result<(), String> {
     app.set_current_model(model).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_custom_models<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<CustomModelInfo>, String> {
+    app.list_custom_models().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_current_model_selection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ModelSelection, String> {
+    app.get_current_model_selection().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_current_model_selection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: ModelSelection,
+) -> Result<(), String> {
+    app.set_current_model_selection(model)
+        .map_err(|e| e.to_string())
 }

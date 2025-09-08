@@ -35,10 +35,9 @@ type SpeakerContent = {
   attrs: SpeakerAttributes;
 };
 
-export const fromWordsToEditor = (words: Word2[]): DocContent => {
-  return {
-    type: "doc",
-    content: words.reduce<{ cur: SpeakerIdentity | null; acc: SpeakerContent[] }>((state, word, index) => {
+export const wordsToSpeakerChunks = (words: Word2[]): { words: Word2[]; speaker: SpeakerIdentity | null }[] => {
+  return words.reduce<{ cur: SpeakerIdentity | null; acc: { words: Word2[]; speaker: SpeakerIdentity | null }[] }>(
+    (state, word, index) => {
       const isFirst = state.acc.length === 0;
 
       const isSameSpeaker = (!state.cur && !word.speaker)
@@ -51,33 +50,49 @@ export const fromWordsToEditor = (words: Word2[]): DocContent => {
         state.cur = word.speaker;
 
         state.acc.push({
-          type: "speaker",
-          attrs: {
-            [SPEAKER_INDEX_ATTR]: word.speaker?.type === "unassigned" ? word.speaker.value?.index : null,
-            [SPEAKER_ID_ATTR]: word.speaker?.type === "assigned" ? word.speaker.value?.id : null,
-            [SPEAKER_LABEL_ATTR]: word.speaker?.type === "assigned" ? word.speaker.value?.label || "" : null,
-          },
-          content: [],
+          speaker: word.speaker,
+          words: [],
         });
       }
 
-      const lastSpeaker = state.acc[state.acc.length - 1];
+      const lastChunk = state.acc[state.acc.length - 1];
+      lastChunk.words.push(word);
 
-      if (lastSpeaker.content.length > 0) {
-        lastSpeaker.content.push({ type: "text", text: " " });
-      }
+      return state;
+    },
+    { cur: null, acc: [] },
+  ).acc;
+};
 
-      if (word.confidence !== null && word.confidence < 0) {
-        lastSpeaker.content.push({
+export const fromWordsToEditor = (words: Word2[]): DocContent => {
+  const speakerChunks = wordsToSpeakerChunks(words);
+
+  return {
+    type: "doc",
+    content: speakerChunks.map(chunk => {
+      const textContent: TextContent[] = [];
+
+      chunk.words.forEach((word, index) => {
+        if (index > 0) {
+          textContent.push({ type: "text", text: " " });
+        }
+
+        textContent.push({
           type: "text",
           text: word.text,
         });
-      } else {
-        lastSpeaker.content.push({ type: "text", text: word.text });
-      }
+      });
 
-      return state;
-    }, { cur: null, acc: [] }).acc,
+      return {
+        type: "speaker",
+        attrs: {
+          [SPEAKER_INDEX_ATTR]: chunk.speaker?.type === "unassigned" ? chunk.speaker.value?.index : null,
+          [SPEAKER_ID_ATTR]: chunk.speaker?.type === "assigned" ? chunk.speaker.value?.id : null,
+          [SPEAKER_LABEL_ATTR]: chunk.speaker?.type === "assigned" ? chunk.speaker.value?.label || "" : null,
+        },
+        content: textContent,
+      };
+    }),
   };
 };
 

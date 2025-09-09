@@ -332,8 +332,8 @@ msgstr "Access multiple AI models through OpenRouter with your API key"
 #~ msgstr "Add a description..."
 
 #: src/components/settings/views/template.tsx:221
-msgid "Add a system instruction..."
-msgstr "Add a system instruction..."
+#~ msgid "Add a system instruction..."
+#~ msgstr "Add a system instruction..."
 
 #: src/components/welcome-modal/language-selection-view.tsx:171
 #~ msgid "Add languages you speak to improve transcription accuracy"
@@ -721,6 +721,20 @@ msgstr "Describe the content and purpose of this section"
 #: src/components/settings/views/feedback.tsx:78
 #~ msgid "Describe the issue"
 #~ msgstr "Describe the issue"
+
+#: src/components/settings/views/template.tsx:221
+msgid ""
+"Describe the summary you want to generate...\n"
+"            \n"
+"• what kind of meeting is this?\n"
+"• any format requirements?\n"
+"• what should AI remember when summarizing?"
+msgstr ""
+"Describe the summary you want to generate...\n"
+"            \n"
+"• what kind of meeting is this?\n"
+"• any format requirements?\n"
+"• what should AI remember when summarizing?"
 
 #: src/components/settings/views/template.tsx:227
 #~ msgid "Description"
@@ -1464,7 +1478,7 @@ msgstr "Search..."
 #~ msgid "Searching..."
 #~ msgstr "Searching..."
 
-#: src/components/settings/views/template.tsx:228
+#: src/components/settings/views/template.tsx:232
 msgid "Sections"
 msgstr "Sections"
 

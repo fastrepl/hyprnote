@@ -218,8 +218,12 @@ export default function TemplateEditor({
           disabled={isReadOnly}
           value={descriptionText}
           onChange={handleChangeDescription}
-          placeholder={t`Add a system instruction...`}
-          className="h-20 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder={t`Describe the summary you want to generate...
+            
+• what kind of meeting is this?
+• any format requirements?
+• what should AI remember when summarizing?`}
+          className="h-48 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
 

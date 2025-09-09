@@ -153,7 +153,7 @@ export default function EditorArea({
   });
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
+  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > (import.meta.env.DEV ? 5 : 100));
 
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],

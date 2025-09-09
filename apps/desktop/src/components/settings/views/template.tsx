@@ -1,10 +1,14 @@
 import { TemplateService } from "@/utils/template-service";
 import { type Template } from "@hypr/plugin-db";
+import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { Trans, useLingui } from "@lingui/react/macro";
+import { Plus, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 
@@ -60,6 +64,29 @@ const EMOJI_OPTIONS = [
   "🎮",
 ];
 
+// Placeholder data for tags and participants
+const PLACEHOLDER_TAGS = [
+  "Meeting",
+  "Project A", 
+  "Sprint Planning",
+  "Client Call",
+  "Team Sync",
+  "Review",
+  "Brainstorming",
+  "Decision Making"
+];
+
+const PLACEHOLDER_PARTICIPANTS = [
+  "John Doe",
+  "Jane Smith", 
+  "Alex Johnson",
+  "Sarah Wilson",
+  "Mike Brown",
+  "Emily Davis",
+  "David Lee",
+  "Lisa Chen"
+];
+
 export default function TemplateEditor({
   disabled,
   template,
@@ -93,6 +120,11 @@ export default function TemplateEditor({
   const [descriptionText, setDescriptionText] = useState(template.description || "");
   const [selectedEmoji, setSelectedEmoji] = useState(() => extractEmojiFromTitle(template.title || ""));
   const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
+  
+  // Context selection state
+  const [contextType, setContextType] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
   // Sync local state when template ID changes (new template loaded)
   useEffect(() => {
@@ -219,12 +251,195 @@ export default function TemplateEditor({
           value={descriptionText}
           onChange={handleChangeDescription}
           placeholder={t`Describe the summary you want to generate...
-            
+
 • what kind of meeting is this?
 • any format requirements?
 • what should AI remember when summarizing?`}
           className="h-48 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium">
+          <Trans>Context</Trans>
+        </h2>
+        
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-neutral-600">
+              <Trans>Refer to notes with</Trans>
+            </label>
+            <Select
+              disabled={isReadOnly}
+              value={contextType}
+              onValueChange={setContextType}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t`Select context type...`} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tags">
+                  <Trans>Tags</Trans>
+                </SelectItem>
+                <SelectItem value="participants">
+                  <Trans>Participants</Trans>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Multi-select for tags */}
+          {contextType === "tags" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-neutral-600">
+                <Trans>Select tags</Trans>
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
+                  {selectedTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                    >
+                      {tag}
+                      {!isReadOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                          onClick={() => {
+                            setSelectedTags(selectedTags.filter((t) => t !== tag));
+                          }}
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </Button>
+                      )}
+                    </Badge>
+                  ))}
+                  {selectedTags.length === 0 && (
+                    <span className="text-sm text-muted-foreground py-1">
+                      <Trans>No tags selected</Trans>
+                    </span>
+                  )}
+                </div>
+                {!isReadOnly && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-[38px] w-[38px]"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[220px] p-0" align="end">
+                      <Command>
+                        <CommandInput placeholder="Search tags..." className="h-9" />
+                        <CommandEmpty>No tag found.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {PLACEHOLDER_TAGS.filter(
+                            (tag) => !selectedTags.includes(tag),
+                          ).map((tag) => (
+                            <CommandItem
+                              key={tag}
+                              onSelect={() => {
+                                if (!selectedTags.includes(tag)) {
+                                  setSelectedTags([...selectedTags, tag]);
+                                }
+                              }}
+                            >
+                              {tag}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Multi-select for participants */}
+          {contextType === "participants" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-neutral-600">
+                <Trans>Select participants</Trans>
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
+                  {selectedParticipants.map((participant) => (
+                    <Badge
+                      key={participant}
+                      variant="secondary"
+                      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                    >
+                      {participant}
+                      {!isReadOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                          onClick={() => {
+                            setSelectedParticipants(selectedParticipants.filter((p) => p !== participant));
+                          }}
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </Button>
+                      )}
+                    </Badge>
+                  ))}
+                  {selectedParticipants.length === 0 && (
+                    <span className="text-sm text-muted-foreground py-1">
+                      <Trans>No participants selected</Trans>
+                    </span>
+                  )}
+                </div>
+                {!isReadOnly && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-[38px] w-[38px]"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[220px] p-0" align="end">
+                      <Command>
+                        <CommandInput placeholder="Search participants..." className="h-9" />
+                        <CommandEmpty>No participant found.</CommandEmpty>
+                        <CommandGroup className="max-h-[200px] overflow-auto">
+                          {PLACEHOLDER_PARTICIPANTS.filter(
+                            (participant) => !selectedParticipants.includes(participant),
+                          ).map((participant) => (
+                            <CommandItem
+                              key={participant}
+                              onSelect={() => {
+                                if (!selectedParticipants.includes(participant)) {
+                                  setSelectedParticipants([...selectedParticipants, participant]);
+                                }
+                              }}
+                            >
+                              {participant}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">

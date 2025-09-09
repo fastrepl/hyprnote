@@ -142,7 +142,7 @@ export const prepareMessagesForAI = async (
   const eventInfo = calendarEvent
     ? `${calendarEvent.name} (${calendarEvent.start_date} - ${calendarEvent.end_date}${
       calendarEvent.note ? ` - ${calendarEvent.note}` : ""
-    }`
+    })`
     : "";
 
   // Determine if tools are enabled

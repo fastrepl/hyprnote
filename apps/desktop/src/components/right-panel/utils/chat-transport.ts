@@ -69,8 +69,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       || modelId === "openai/gpt-4o"
       || modelId === "gpt-4o"
       || apiBase?.includes("pro.hyprnote.com")
-      || modelId === "openai/gpt-5"
-      || type === "HyprLocal";
+      || modelId === "openai/gpt-5";
 
     if (!shouldUseTools) {
       return { newMcpTools, hyprMcpTools };
@@ -116,7 +115,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
                 [server.headerKey]: server.headerValue,
               },
             }),
-            onerror: (error) => console.log("mcp client error:", error),
+            onerror: (error: any) => console.log("mcp client error:", error),
             onclose: () => console.log("mcp client closed"),
           },
         });

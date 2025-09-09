@@ -110,28 +110,6 @@ impl UserDatabase {
         let session_id = id.into();
         let conn = self.conn()?;
 
-        let mut rows = conn
-            .query(
-                "SELECT id FROM chat_conversations WHERE session_id = ?",
-                vec![session_id.clone()],
-            )
-            .await?;
-
-        while let Some(row) = rows.next().await? {
-            let conversation_id: String = row.get(0)?;
-            conn.execute(
-                "DELETE FROM chat_messages_v2 WHERE conversation_id = ?",
-                vec![conversation_id],
-            )
-            .await?;
-        }
-
-        conn.execute(
-            "DELETE FROM chat_conversations WHERE session_id = ?",
-            vec![session_id.clone()],
-        )
-        .await?;
-
         conn.execute("DELETE FROM sessions WHERE id = ?", vec![session_id])
             .await?;
 

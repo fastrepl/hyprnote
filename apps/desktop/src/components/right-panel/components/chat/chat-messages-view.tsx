@@ -109,7 +109,7 @@ export function ChatMessagesView(
         clearTimeout(thinkingTimeoutRef.current);
       }
     };
-  }, [isSubmitted, isStreaming, isReady, messages]);
+  }, [isSubmitted, isStreaming, isReady, isError, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

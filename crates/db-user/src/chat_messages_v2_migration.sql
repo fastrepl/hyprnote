@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS chat_messages_v2 (
   -- JSON string for mentions, selections, etc.
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id)
+  FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE
 );

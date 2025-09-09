@@ -94,7 +94,6 @@ export function ChatView() {
         }
       } else {
         setMessages([]);
-        console.log("Cleared messages for new conversation");
       }
     };
 

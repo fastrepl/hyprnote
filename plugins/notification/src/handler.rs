@@ -84,12 +84,24 @@ impl NotificationHandler {
                 }
 
                 if apps.iter().any(|app| {
+                    vec![
+                        "com.electron.wispr-flow",
+                        "com.seewillow.WillowMac",
+                        "com.superduper.superwhisper",
+                    ]
+                    .contains(&app.id.as_str())
+                }) {
+                    tracing::info!(reason = "ignore_platforms_default", "skip_notification");
+                    return;
+                }
+
+                if apps.iter().any(|app| {
                     app_handle
                         .get_ignored_platforms()
                         .unwrap_or_default()
-                        .contains(app)
+                        .contains(&app.name)
                 }) {
-                    tracing::info!(reason = "ignore_platforms", "skip_notification");
+                    tracing::info!(reason = "ignore_platforms_user", "skip_notification");
                     return;
                 }
 

@@ -11,7 +11,7 @@ use utils::*;
 
 #[derive(Debug, Clone)]
 pub enum DetectEvent {
-    MicStarted(Vec<String>),
+    MicStarted(Vec<InstalledApp>),
     MicStopped,
     MeetingAppStarted(String),
 }

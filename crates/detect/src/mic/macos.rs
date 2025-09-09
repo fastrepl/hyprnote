@@ -108,14 +108,7 @@ impl crate::Observer for Detector {
                                                     );
 
                                                     if let Ok(guard) = cb.lock() {
-                                                        let apps = apps
-                                                            .into_iter()
-                                                            .map(|a| a.localized_name)
-                                                            .filter(|s| !s.is_empty())
-                                                            .collect::<Vec<_>>();
-
                                                         let event = DetectEvent::MicStarted(apps);
-
                                                         tracing::info!(event = ?event, "detected");
                                                         (*guard)(event);
                                                     }
@@ -202,12 +195,6 @@ impl crate::Observer for Detector {
                                                         );
 
                                                         if let Ok(callback_guard) = cb.lock() {
-                                                            let apps = apps
-                                                                .into_iter()
-                                                                .map(|a| a.localized_name)
-                                                                .filter(|s| !s.is_empty())
-                                                                .collect::<Vec<_>>();
-
                                                             (*callback_guard)(
                                                                 DetectEvent::MicStarted(apps),
                                                             );

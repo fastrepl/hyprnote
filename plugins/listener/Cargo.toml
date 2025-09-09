@@ -60,12 +60,16 @@ uuid = { workspace = true, features = ["v4"] }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
 tracing = { workspace = true }
 
 hound = { workspace = true }
 
 flume = { workspace = true }
 statig = { workspace = true, features = ["async"] }
+
+ractor = "0.15"
+ractor_actors = "0.4"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }

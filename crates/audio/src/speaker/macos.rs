@@ -6,15 +6,13 @@ use anyhow::Result;
 use futures_util::Stream;
 
 use ringbuf::{
-    traits::{Consumer, Observer, Producer, Split},
+    traits::{Consumer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
 };
 
 use ca::aggregate_device_keys as agg_keys;
 use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
 
-// https://github.com/yury/cidre/blob/7bc6c3a/cidre/examples/core-audio-record/main.rs
-// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L41
 pub struct SpeakerInput {
     tap: ca::TapGuard,
     agg_desc: arc::Retained<cf::DictionaryOf<cf::String, cf::Type>>,
@@ -36,7 +34,7 @@ pub struct SpeakerStream {
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        self.current_sample_rate.load(Ordering::Relaxed)
+        self.current_sample_rate.load(Ordering::Acquire)
     }
 }
 
@@ -119,25 +117,21 @@ impl SpeakerInput {
                 device
                     .actual_sample_rate()
                     .unwrap_or(ctx.format.absd().sample_rate) as u32,
-                Ordering::Relaxed,
+                Ordering::Release,
             );
-
-            assert_eq!(ctx.format.common_format(), av::audio::CommonFormat::PcmF32);
 
             if let Some(view) =
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
             {
                 if let Some(data) = view.data_f32_at(0) {
                     process_audio_data(ctx, data);
-                } else {
-                    tracing::warn!("macos_speaker_view_no_channel_0");
                 }
-            } else {
+            } else if ctx.format.common_format() == av::audio::CommonFormat::PcmF32 {
                 let first_buffer = &input_data.buffers[0];
                 let byte_count = first_buffer.data_bytes_size as usize;
                 let float_count = byte_count / std::mem::size_of::<f32>();
 
-                if float_count > 0 {
+                if float_count > 0 && first_buffer.data != std::ptr::null_mut() {
                     let data = unsafe {
                         std::slice::from_raw_parts(first_buffer.data as *const f32, float_count)
                     };
@@ -157,9 +151,11 @@ impl SpeakerInput {
 
     pub fn stream(self) -> SpeakerStream {
         let asbd = self.tap.asbd().unwrap();
+
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let rb = HeapRb::<f32>::new(1024 * 32);
+        let buffer_size = 1024 * 128;
+        let rb = HeapRb::<f32>::new(buffer_size);
         let (producer, consumer) = rb.split();
 
         let waker_state = Arc::new(Mutex::new(WakerState {
@@ -193,41 +189,32 @@ impl SpeakerInput {
 
 fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
     let buffer_size = data.len();
-    let available_space = ctx.producer.vacant_len();
-
-    let buffer_fill_ratio = 1.0 - (available_space as f32 / ctx.producer.capacity().get() as f32);
-    if buffer_fill_ratio > 0.7 {
-        tracing::warn!(ratio = buffer_fill_ratio, "buffer_nearly_full",);
-    }
-
     let pushed = ctx.producer.push_slice(data);
 
     if pushed < buffer_size {
-        let dropped = buffer_size - pushed;
-        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::Relaxed) + 1;
-
-        tracing::warn!(
-            dropped = dropped,
-            consecutive = consecutive,
-            "macos_speaker_dropped",
-        );
+        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::AcqRel) + 1;
 
         if consecutive > 10 {
-            ctx.should_terminate.store(true, Ordering::Relaxed);
+            ctx.should_terminate.store(true, Ordering::Release);
             return;
         }
     } else {
-        ctx.consecutive_drops.store(0, Ordering::Relaxed);
+        ctx.consecutive_drops.store(0, Ordering::Release);
     }
 
     if pushed > 0 {
-        let mut waker_state = ctx.waker_state.lock().unwrap();
-        if !waker_state.has_data {
-            waker_state.has_data = true;
-            if let Some(waker) = waker_state.waker.take() {
-                drop(waker_state);
-                waker.wake();
+        let should_wake = {
+            let mut waker_state = ctx.waker_state.lock().unwrap();
+            if !waker_state.has_data {
+                waker_state.has_data = true;
+                waker_state.waker.take()
+            } else {
+                None
             }
+        };
+
+        if let Some(waker) = should_wake {
+            waker.wake();
         }
     }
 }
@@ -239,24 +226,29 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        if self._ctx.should_terminate.load(Ordering::Relaxed) {
-            return Poll::Ready(None);
-        }
-
         if let Some(sample) = self.consumer.try_pop() {
             return Poll::Ready(Some(sample));
+        }
+
+        if self._ctx.should_terminate.load(Ordering::Acquire) {
+            return match self.consumer.try_pop() {
+                Some(sample) => Poll::Ready(Some(sample)),
+                None => Poll::Ready(None),
+            };
         }
 
         {
             let mut state = self.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
-            drop(state);
         }
 
-        match self.consumer.try_pop() {
-            Some(sample) => Poll::Ready(Some(sample)),
-            None => Poll::Pending,
-        }
+        Poll::Pending
+    }
+}
+
+impl Drop for SpeakerStream {
+    fn drop(&mut self) {
+        self._ctx.should_terminate.store(true, Ordering::Release);
     }
 }

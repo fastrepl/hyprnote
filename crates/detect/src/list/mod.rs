@@ -16,6 +16,6 @@ pub fn list_mic_using_apps() -> Vec<String> {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct InstalledApp {
-    pub bundle_id: String,
-    pub localized_name: String,
+    pub id: String,
+    pub name: String,
 }

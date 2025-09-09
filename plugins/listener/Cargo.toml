@@ -65,9 +65,6 @@ tracing = { workspace = true }
 
 hound = { workspace = true }
 
-flume = { workspace = true }
-statig = { workspace = true, features = ["async"] }
-
 ractor = "0.15"
 ractor_actors = "0.4"
 

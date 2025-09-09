@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures_util::StreamExt;
-use ractor::{Actor, ActorProcessingErr, ActorRef};
+use ractor::{Actor, ActorProcessingErr, ActorRef, RpcReplyPort};
 use tokio_util::sync::CancellationToken;
 
 use crate::actors::{AudioChunk, ProcMsg};
@@ -15,7 +15,9 @@ const SAMPLE_RATE: u32 = 16000;
 
 pub enum SrcCtrl {
     ChangeDevice(Option<String>),
-    Mute(bool),
+    SetMute(bool),
+    GetMute(RpcReplyPort<bool>),
+    GetDeviceName(RpcReplyPort<Option<String>>),
 }
 
 #[derive(Clone)]
@@ -100,8 +102,22 @@ impl Actor for SourceActor {
     ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
         async move {
             match (msg, &mut st.which) {
-                (SrcCtrl::Mute(muted), _) => {
+                (SrcCtrl::SetMute(muted), _) => {
                     st.muted.store(muted, Ordering::Relaxed);
+                }
+                (SrcCtrl::GetMute(reply), _) => {
+                    if !reply.is_closed() {
+                        let _ = reply.send(st.muted.load(Ordering::Relaxed));
+                    }
+                }
+                (SrcCtrl::GetDeviceName(reply), _) => {
+                    if !reply.is_closed() {
+                        let device = match &st.which {
+                            SrcWhich::Mic { device } => device.clone(),
+                            SrcWhich::Speaker => None,
+                        };
+                        let _ = reply.send(device);
+                    }
                 }
                 (SrcCtrl::ChangeDevice(dev), SrcWhich::Mic { device }) => {
                     *device = dev;
@@ -145,7 +161,6 @@ async fn start_source_loop(
     let muted = st.muted.clone();
 
     let handle = tokio::spawn(async move {
-        let mut seq: u64 = 0;
         loop {
             let stream = match &which {
                 SrcWhich::Mic { device } => {
@@ -173,11 +188,10 @@ async fn start_source_loop(
                             };
 
                             let msg = match &which {
-                                SrcWhich::Mic {..} => ProcMsg::Mic(AudioChunk{ seq, data: output_data }),
-                                SrcWhich::Speaker => ProcMsg::Spk(AudioChunk{ seq, data: output_data }),
+                                SrcWhich::Mic {..} => ProcMsg::Mic(AudioChunk{ data: output_data }),
+                                SrcWhich::Speaker => ProcMsg::Spk(AudioChunk{ data: output_data }),
                             };
                             let _ = proc.cast(msg);
-                            seq = seq.wrapping_add(1);
                         } else {
                             break;
                         }

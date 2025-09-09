@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::VecDeque,
     time::{Duration, Instant},
 };
 
@@ -12,26 +12,19 @@ use crate::{
 };
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
-const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(60 * 15);
 
 pub enum ProcMsg {
     Mic(AudioChunk),
     Spk(AudioChunk),
-    MuteMic(bool),
-    MuteSpk(bool),
     AttachRecorder(ActorRef<RecMsg>),
     AttachListen(ActorRef<ListenMsg>),
 }
 
 pub struct ProcArgs {
     pub app: tauri::AppHandle,
-    pub rec_enabled: bool,
-    pub amp_throttle: Duration,
     pub mixed_to: Option<ActorRef<RecMsg>>,
     pub rec_to: Option<ActorRef<RecMsg>>,
     pub listen_tx: Option<ActorRef<ListenMsg>>,
-    pub mic_mute: bool,
-    pub spk_mute: bool,
 }
 
 pub struct ProcState {
@@ -43,14 +36,11 @@ pub struct ProcState {
     last_amp: Instant,
     recorder: Option<ActorRef<RecMsg>>,
     listen: Option<ActorRef<ListenMsg>>,
-    mic_mute: bool,
-    spk_mute: bool,
+    last_mic: Option<Vec<f32>>,
+    last_spk: Option<Vec<f32>>,
 }
 
-pub struct AudioProcessor {
-    pub app: tauri::AppHandle,
-}
-
+pub struct AudioProcessor {}
 impl Actor for AudioProcessor {
     type Msg = ProcMsg;
     type State = ProcState;
@@ -71,8 +61,8 @@ impl Actor for AudioProcessor {
                 last_amp: Instant::now(),
                 recorder: args.mixed_to.or(args.rec_to),
                 listen: args.listen_tx,
-                mic_mute: args.mic_mute,
-                spk_mute: args.spk_mute,
+                last_mic: None,
+                last_spk: None,
             })
         }
     }
@@ -87,22 +77,16 @@ impl Actor for AudioProcessor {
             match msg {
                 ProcMsg::AttachRecorder(r) => st.recorder = Some(r),
                 ProcMsg::AttachListen(l) => st.listen = Some(l),
-                ProcMsg::MuteMic(v) => st.mic_mute = v,
-                ProcMsg::MuteSpk(v) => st.spk_mute = v,
                 ProcMsg::Mic(mut c) => {
-                    if st.mic_mute {
-                        c.data.fill(0.0);
-                    }
                     st.agc_m.process(&mut c.data);
-                    st.joiner.push_mic(c);
+                    st.last_mic = Some(c.data.clone());
+                    st.joiner.push_mic(c.data);
                     process_ready(st).await;
                 }
                 ProcMsg::Spk(mut c) => {
-                    if st.spk_mute {
-                        c.data.fill(0.0);
-                    }
                     st.agc_s.process(&mut c.data);
-                    st.joiner.push_spk(c);
+                    st.last_spk = Some(c.data.clone());
+                    st.joiner.push_spk(c.data);
                     process_ready(st).await;
                 }
             }
@@ -112,59 +96,76 @@ impl Actor for AudioProcessor {
 }
 
 async fn process_ready(st: &mut ProcState) {
+    // Process any paired chunks for echo cancellation and sending to listeners
     while let Some((mic, spk)) = st.joiner.pop_pair() {
-        let mic_out = st
-            .aec
-            .process_streaming(&mic.data, &spk.data)
-            .unwrap_or(mic.data.clone());
-        if st.last_amp.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
-            SessionEvent::from((&mic_out, &spk.data)).emit(&st.app).ok();
-            st.last_amp = Instant::now();
-        }
+        let mic_out = st.aec.process_streaming(&mic, &spk).unwrap_or(mic.clone());
+
         if let Some(rec) = &st.recorder {
             let mixed: Vec<f32> = mic_out
                 .iter()
-                .zip(spk.data.iter())
+                .zip(spk.iter())
                 .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
                 .collect();
             rec.cast(RecMsg::Mixed(mixed)).ok();
         }
+
         if let Some(list) = &st.listen {
             let mic_bytes = hypr_audio_utils::f32_to_i16_bytes(mic_out.into_iter());
-            let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.data.into_iter());
+            let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.into_iter());
             list.cast(ListenMsg::Audio(mic_bytes.into(), spk_bytes.into()))
                 .ok();
+        }
+    }
+
+    // Emit amplitude events using the most recent samples from each source
+    if st.last_amp.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
+        if let (Some(mic_data), Some(spk_data)) = (&st.last_mic, &st.last_spk) {
+            if let Err(e) =
+                SessionEvent::from((mic_data.as_slice(), spk_data.as_slice())).emit(&st.app)
+            {
+                tracing::error!("Failed to emit AudioAmplitude event: {:?}", e);
+            }
+            st.last_amp = Instant::now();
         }
     }
 }
 
 struct Joiner {
-    next: u64,
-    mic: BTreeMap<u64, Vec<f32>>,
-    spk: BTreeMap<u64, Vec<f32>>,
+    mic: VecDeque<Vec<f32>>,
+    spk: VecDeque<Vec<f32>>,
 }
+
 impl Joiner {
     fn new() -> Self {
         Self {
-            next: 0,
-            mic: BTreeMap::new(),
-            spk: BTreeMap::new(),
+            mic: VecDeque::new(),
+            spk: VecDeque::new(),
         }
     }
-    fn push_mic(&mut self, c: AudioChunk) {
-        self.mic.insert(c.seq, c.data);
+
+    fn push_mic(&mut self, data: Vec<f32>) {
+        self.mic.push_back(data);
+        // Keep only recent chunks to avoid memory growth
+        if self.mic.len() > 10 {
+            self.mic.pop_front();
+        }
     }
-    fn push_spk(&mut self, c: AudioChunk) {
-        self.spk.insert(c.seq, c.data);
+
+    fn push_spk(&mut self, data: Vec<f32>) {
+        self.spk.push_back(data);
+        // Keep only recent chunks to avoid memory growth
+        if self.spk.len() > 10 {
+            self.spk.pop_front();
+        }
     }
-    fn pop_pair(&mut self) -> Option<(AudioChunk, AudioChunk)> {
-        let seq = self.next;
-        match (self.mic.remove(&seq), self.spk.remove(&seq)) {
-            (Some(m), Some(s)) => {
-                self.next += 1;
-                Some((AudioChunk { seq, data: m }, AudioChunk { seq, data: s }))
-            }
-            _ => None,
+
+    fn pop_pair(&mut self) -> Option<(Vec<f32>, Vec<f32>)> {
+        if !self.mic.is_empty() && !self.spk.is_empty() {
+            let mic = self.mic.pop_front()?;
+            let spk = self.spk.pop_front()?;
+            Some((mic, spk))
+        } else {
+            None
         }
     }
 }

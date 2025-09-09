@@ -11,7 +11,6 @@ pub use session::*;
 pub use source::*;
 
 #[derive(Clone)]
-struct AudioChunk {
-    seq: u64,
+pub struct AudioChunk {
     data: Vec<f32>,
 }

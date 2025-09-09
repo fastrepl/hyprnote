@@ -2,5 +2,8 @@
   "packageManager": "pnpm@10.11.1",
   "devDependencies": {
     "turbo": "^2.5.6"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^2.0.30"
   }
 }

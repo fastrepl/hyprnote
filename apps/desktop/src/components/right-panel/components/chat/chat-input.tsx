@@ -153,7 +153,7 @@ export function ChatInput(
 
     const traverseNode = (node: any) => {
       if (node.type === "mention" || node.type === "mention-@") {
-        if (node.attrs) {
+        if (node.attrs && node.attrs.type !== "selection") {
           mentions.push({
             id: node.attrs.id || node.attrs["data-id"],
             type: node.attrs.type || node.attrs["data-type"] || "note",

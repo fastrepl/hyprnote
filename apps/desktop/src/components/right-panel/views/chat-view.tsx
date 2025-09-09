@@ -1,9 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
+import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { useHypr, useRightPanel } from "@/contexts";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { useLicense } from "@/hooks/use-license";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { useSessions } from "@hypr/utils/contexts";
 import {
   ChatHistoryView,
   ChatInput,
@@ -14,72 +17,189 @@ import {
 } from "../components/chat";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
-import { useChatLogic } from "../hooks/useChatLogic";
-import { useChatQueries } from "../hooks/useChatQueries";
-import type { Message } from "../types/chat-types";
+import { useChat2 } from "../hooks/useChat2";
+import { useChatQueries2 } from "../hooks/useChatQueries2";
 import { focusInput, formatDate } from "../utils/chat-utils";
 
 export function ChatView() {
   const navigate = useNavigate();
-  const { isExpanded, chatInputRef } = useRightPanel();
+  const { isExpanded, chatInputRef, pendingSelection } = useRightPanel();
   const { userId } = useHypr();
+  const { getLicense } = useLicense();
 
-  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [hasChatStarted, setHasChatStarted] = useState(false);
-  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [chatHistory, _setChatHistory] = useState<ChatSession[]>([]);
 
-  const prevIsGenerating = useRef(false);
-
   const { activeEntity, sessionId } = useActiveEntity({
-    setMessages,
+    setMessages: () => {},
     setInputValue,
     setShowHistory,
-    setHasChatStarted,
+    setHasChatStarted: () => {},
   });
 
-  const llmConnectionQuery = useQuery({
-    queryKey: ["llm-connection"],
-    queryFn: () => connectorCommands.getLlmConnection(),
-    refetchOnWindowFocus: true,
-  });
+  const sessions = useSessions((s) => s.sessions);
 
-  const { chatGroupsQuery, sessionData, getChatGroupId } = useChatQueries({
+  const {
+    conversations,
+    sessionData,
+    createConversation,
+    getOrCreateConversationId,
+  } = useChatQueries2({
     sessionId,
     userId,
-    currentChatGroupId,
-    setCurrentChatGroupId,
-    setMessages,
-    setHasChatStarted,
-    prevIsGenerating,
+    currentConversationId,
+    setCurrentConversationId,
+    setMessages: () => {},
+    isGenerating: false,
   });
 
   const {
+    messages,
+    stop,
+    setMessages,
     isGenerating,
-    isStreamingText,
-    handleSubmit,
-    handleQuickAction,
-    handleApplyMarkdown,
-    handleKeyDown,
-    handleStop,
-  } = useChatLogic({
+    sendMessage,
+    status,
+  } = useChat2({
     sessionId,
     userId,
-    activeEntity,
-    messages,
-    inputValue,
-    hasChatStarted,
-    setMessages,
-    setInputValue,
-    setHasChatStarted,
-    getChatGroupId,
-    sessionData,
-    chatInputRef,
-    llmConnectionQuery,
+    conversationId: currentConversationId,
+    sessionData: sessionData,
+    selectionData: pendingSelection,
+    onError: (err: Error) => {
+      console.error("Chat error:", err);
+    },
   });
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (currentConversationId) {
+        try {
+          const { commands } = await import("@hypr/plugin-db");
+          const dbMessages = await commands.listMessagesV2(currentConversationId);
+
+          const uiMessages = dbMessages.map(msg => ({
+            id: msg.id,
+            role: msg.role as "user" | "assistant" | "system",
+            parts: JSON.parse(msg.parts),
+            metadata: msg.metadata ? JSON.parse(msg.metadata) : {},
+          }));
+
+          setMessages(uiMessages);
+        } catch (error) {
+          console.error("Failed to load messages:", error);
+        }
+      } else {
+        setMessages([]);
+      }
+    };
+
+    loadMessages();
+  }, [currentConversationId, setMessages]);
+
+  const handleSubmit = async (
+    mentionedContent?: Array<{ id: string; type: string; label: string }>,
+    selectionData?: any,
+    htmlContent?: string,
+  ) => {
+    if (!inputValue.trim()) {
+      return;
+    }
+
+    const userMessageCount = messages.filter((m: any) => m.role === "user").length;
+    if (userMessageCount >= 4 && !getLicense.data?.valid) {
+      await analyticsCommands.event({
+        event: "pro_license_required_chat",
+        distinct_id: userId,
+      });
+      await showProGateModal("chat");
+      return;
+    }
+
+    analyticsCommands.event({
+      event: "chat_message_sent",
+      distinct_id: userId,
+    });
+
+    let convId = currentConversationId;
+    if (!convId) {
+      convId = await getOrCreateConversationId();
+      if (!convId) {
+        console.error("Failed to create conversation");
+        return;
+      }
+      setCurrentConversationId(convId);
+    }
+
+    sendMessage(inputValue, {
+      mentionedContent,
+      selectionData,
+      htmlContent,
+      conversationId: convId,
+    });
+
+    setInputValue("");
+  };
+
+  const handleStop = () => {
+    stop();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const handleQuickAction = async (action: string) => {
+    const convId = await createConversation();
+    if (!convId) {
+      console.error("Failed to create conversation");
+      return;
+    }
+
+    setCurrentConversationId(convId);
+
+    sendMessage(action, {
+      conversationId: convId,
+    });
+  };
+
+  const handleApplyMarkdown = async (markdownContent: string) => {
+    if (!sessionId) {
+      console.error("No session ID available");
+      return;
+    }
+
+    const sessionStore = sessions[sessionId];
+    if (!sessionStore) {
+      console.error("Session not found in store");
+      return;
+    }
+
+    try {
+      const html = await miscCommands.opinionatedMdToHtml(markdownContent);
+
+      const { showRaw, updateRawNote, updateEnhancedNote } = sessionStore.getState();
+
+      if (showRaw) {
+        updateRawNote(html);
+      } else {
+        updateEnhancedNote(html);
+      }
+    } catch (error) {
+      console.error("Failed to apply markdown content:", error);
+    }
+  };
+
+  const isSubmitted = status === "submitted";
+  const isStreaming = status === "streaming";
+  const isReady = status === "ready";
+  const isError = status === "error";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -89,19 +209,29 @@ export function ChatView() {
     focusInput(chatInputRef);
   };
 
-  const handleNewChat = async () => {
+  const handleNewChat = () => {
+    if (!messages || messages.length === 0) {
+      return;
+    }
+
     if (!sessionId || !userId) {
       return;
     }
 
-    setCurrentChatGroupId(null);
-    setMessages([]);
-    setHasChatStarted(false);
+    if (isGenerating) {
+      return;
+    }
+
+    setCurrentConversationId(null);
     setInputValue("");
+    setMessages([]);
   };
 
   const handleSelectChatGroup = async (groupId: string) => {
-    setCurrentChatGroupId(groupId);
+    if (isGenerating) {
+      return;
+    }
+    setCurrentConversationId(groupId);
   };
 
   const handleViewHistory = () => {
@@ -112,7 +242,7 @@ export function ChatView() {
     setSearchValue(e.target.value);
   };
 
-  const handleSelectChat = (chatId: string) => {
+  const handleSelectChat = (_chatId: string) => {
     setShowHistory(false);
   };
 
@@ -155,7 +285,7 @@ export function ChatView() {
       <FloatingActionButtons
         onNewChat={handleNewChat}
         onViewHistory={handleViewHistory}
-        chatGroups={chatGroupsQuery.data}
+        chatGroups={conversations}
         onSelectChatGroup={handleSelectChatGroup}
       />
 
@@ -169,11 +299,13 @@ export function ChatView() {
         : (
           <ChatMessagesView
             messages={messages}
-            sessionTitle={sessionData.data?.title || "Untitled"}
-            hasEnhancedNote={!!(sessionData.data?.enhancedContent)}
+            sessionTitle={sessionData?.title || "Untitled"}
+            hasEnhancedNote={!!(sessionData?.enhancedContent)}
             onApplyMarkdown={handleApplyMarkdown}
-            isGenerating={isGenerating}
-            isStreamingText={isStreamingText}
+            isSubmitted={isSubmitted}
+            isStreaming={isStreaming}
+            isReady={isReady}
+            isError={isError}
           />
         )}
 

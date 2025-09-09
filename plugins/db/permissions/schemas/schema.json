@@ -319,6 +319,30 @@
           "markdownDescription": "Denies the create_chat_group command without any pre-configured scope."
         },
         {
+          "description": "Enables the create_conversation command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-conversation",
+          "markdownDescription": "Enables the create_conversation command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_conversation command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-conversation",
+          "markdownDescription": "Denies the create_conversation command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the create_message_v2 command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-create-message-v2",
+          "markdownDescription": "Enables the create_message_v2 command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the create_message_v2 command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-create-message-v2",
+          "markdownDescription": "Denies the create_message_v2 command without any pre-configured scope."
+        },
+        {
           "description": "Enables the delete_chat_messages command without any pre-configured scope.",
           "type": "string",
           "const": "allow-delete-chat-messages",
@@ -547,6 +571,18 @@
           "markdownDescription": "Denies the list_chat_messages command without any pre-configured scope."
         },
         {
+          "description": "Enables the list_conversations command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-conversations",
+          "markdownDescription": "Enables the list_conversations command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_conversations command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-conversations",
+          "markdownDescription": "Denies the list_conversations command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_events command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-events",
@@ -569,6 +605,18 @@
           "type": "string",
           "const": "deny-list-humans",
           "markdownDescription": "Denies the list_humans command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_messages_v2 command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-messages-v2",
+          "markdownDescription": "Enables the list_messages_v2 command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_messages_v2 command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-messages-v2",
+          "markdownDescription": "Denies the list_messages_v2 command without any pre-configured scope."
         },
         {
           "description": "Enables the list_organization_members command without any pre-configured scope.",
@@ -763,6 +811,18 @@
           "markdownDescription": "Denies the unassign_tag_from_session command without any pre-configured scope."
         },
         {
+          "description": "Enables the update_message_v2_parts command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-message-v2-parts",
+          "markdownDescription": "Enables the update_message_v2_parts command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_message_v2_parts command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-message-v2-parts",
+          "markdownDescription": "Denies the update_message_v2_parts command without any pre-configured scope."
+        },
+        {
           "description": "Enables the upsert_calendar command without any pre-configured scope.",
           "type": "string",
           "const": "allow-upsert-calendar",
@@ -859,10 +919,10 @@
           "markdownDescription": "Denies the visit_session command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-thank-you-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-words`\n- `allow-get-words-onboarding`\n- `allow-get-calendar`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-delete-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-delete-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-delete-chat-messages`\n- `allow-upsert-tag`\n- `allow-delete-tag`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-session-list-deleted-participant-ids`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-thank-you-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-words`\n- `allow-get-words-onboarding`\n- `allow-get-calendar`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-delete-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-delete-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-delete-chat-messages`\n- `allow-list-conversations`\n- `allow-create-message-v2`\n- `allow-create-conversation`\n- `allow-list-messages-v2`\n- `allow-update-message-v2-parts`\n- `allow-upsert-tag`\n- `allow-delete-tag`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-session-list-deleted-participant-ids`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-thank-you-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-words`\n- `allow-get-words-onboarding`\n- `allow-get-calendar`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-delete-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-delete-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-delete-chat-messages`\n- `allow-upsert-tag`\n- `allow-delete-tag`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-session-list-deleted-participant-ids`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-onboarding-session-id`\n- `allow-thank-you-session-id`\n- `allow-upsert-session`\n- `allow-list-sessions`\n- `allow-get-session`\n- `allow-visit-session`\n- `allow-delete-session`\n- `allow-set-session-event`\n- `allow-session-add-participant`\n- `allow-session-remove-participant`\n- `allow-session-list-participants`\n- `allow-session-get-event`\n- `allow-get-words`\n- `allow-get-words-onboarding`\n- `allow-get-calendar`\n- `allow-list-calendars`\n- `allow-upsert-calendar`\n- `allow-toggle-calendar-selected`\n- `allow-list-templates`\n- `allow-upsert-template`\n- `allow-delete-template`\n- `allow-get-event`\n- `allow-list-events`\n- `allow-get-config`\n- `allow-set-config`\n- `allow-get-human`\n- `allow-delete-human`\n- `allow-upsert-human`\n- `allow-list-humans`\n- `allow-get-organization`\n- `allow-get-organization-by-user-id`\n- `allow-list-organizations`\n- `allow-list-organization-members`\n- `allow-upsert-organization`\n- `allow-delete-organization`\n- `allow-list-chat-groups`\n- `allow-list-chat-messages`\n- `allow-create-chat-group`\n- `allow-upsert-chat-message`\n- `allow-delete-chat-messages`\n- `allow-list-conversations`\n- `allow-create-message-v2`\n- `allow-create-conversation`\n- `allow-list-messages-v2`\n- `allow-update-message-v2-parts`\n- `allow-upsert-tag`\n- `allow-delete-tag`\n- `allow-list-all-tags`\n- `allow-list-session-tags`\n- `allow-assign-tag-to-session`\n- `allow-unassign-tag-from-session`\n- `allow-session-list-deleted-participant-ids`"
         }
       ]
     }

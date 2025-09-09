@@ -29,9 +29,13 @@ export const createEditEnhancedNoteTool = ({
         return { success: false, error: "No session ID available" };
       }
 
-      const sessionStore = sessions[sessionId];
-      if (!sessionStore) {
-        return { success: false, error: "Session not found" };
+      // Skip session store check if sessions object is empty
+      // We rely on having a valid sessionId and editor ref instead
+      if (sessions && Object.keys(sessions).length > 0) {
+        const sessionStore = sessions[sessionId];
+        if (!sessionStore) {
+          console.warn("Session store not found in sessions object, but continuing with editor ref");
+        }
       }
 
       try {

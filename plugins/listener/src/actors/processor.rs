@@ -112,7 +112,7 @@ impl Actor for AudioProcessor {
 }
 
 async fn process_ready(st: &mut ProcState) {
-    while let Some((mut mic, mut spk)) = st.joiner.pop_pair() {
+    while let Some((mic, spk)) = st.joiner.pop_pair() {
         let mic_out = st
             .aec
             .process_streaming(&mic.data, &spk.data)

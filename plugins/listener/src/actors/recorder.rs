@@ -9,8 +9,8 @@ pub enum RecMsg {
 }
 
 pub struct RecArgs {
-    app_dir: PathBuf,
-    session_id: String,
+    pub app_dir: PathBuf,
+    pub session_id: String,
 }
 pub struct RecState {
     writer: Option<hound::WavWriter<std::io::BufWriter<std::fs::File>>>,

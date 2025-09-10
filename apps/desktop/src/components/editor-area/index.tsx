@@ -511,7 +511,7 @@ export function useEnhanceMutation({
           ...((contextText !== "" || contextText !== undefined || contextText !== null) ? { contextText } : {}),
         },
       );
-      
+
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 
       const provider = await modelProvider();

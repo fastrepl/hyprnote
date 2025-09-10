@@ -41,6 +41,14 @@ impl SeedData {
             if session.id == "550e8400-e29b-41d4-a716-446655442001" {
                 session.words = serde_json::from_str(hypr_data::english_3::WORDS_JSON).unwrap();
             }
+
+            if session.id == "08fc2a61-e54b-4310-92b7-efa45b7344c5" {
+                session.words = serde_json::from_str(hypr_data::english_8::WORDS_JSON).unwrap();
+            }
+
+            if session.id == "a1ee4374-7e80-4c5c-b7db-5247e9662126" {
+                session.words = serde_json::from_str(hypr_data::english_9::WORDS_JSON).unwrap();
+            }
         });
     }
 

@@ -486,6 +486,8 @@ export function useEnhanceMutation({
           participants,
         },
       );
+      
+      console.log("user message", userMessage);
 
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 

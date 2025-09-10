@@ -48,104 +48,99 @@ impl Actor for SourceActor {
     type State = SrcState;
     type Arguments = SrcArgs;
 
-    fn pre_start(
+    async fn pre_start(
         &self,
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
-    ) -> impl std::future::Future<Output = Result<Self::State, ActorProcessingErr>> + Send {
-        async move {
-            let device_monitor_handle = if matches!(args.which, SrcWhich::Mic { .. }) {
-                let (event_tx, event_rx) = std::sync::mpsc::channel();
-                let device_monitor_handle = DeviceMonitor::spawn(event_tx);
+    ) -> Result<Self::State, ActorProcessingErr> {
+        let device_monitor_handle = if matches!(args.which, SrcWhich::Mic { .. }) {
+            let (event_tx, event_rx) = std::sync::mpsc::channel();
+            let device_monitor_handle = DeviceMonitor::spawn(event_tx);
 
-                let myself_clone = myself.clone();
-                std::thread::spawn(move || {
-                    while let Ok(event) = event_rx.recv() {
-                        if let DeviceEvent::DefaultInputChanged { .. } = event {
-                            let new_device = AudioInput::get_default_mic_device_name();
-                            let _ = myself_clone.cast(SrcCtrl::SetDevice(Some(new_device)));
-                        }
+            let myself_clone = myself.clone();
+            std::thread::spawn(move || {
+                while let Ok(event) = event_rx.recv() {
+                    if let DeviceEvent::DefaultInputChanged { .. } = event {
+                        let new_device = AudioInput::get_default_mic_device_name();
+                        let _ = myself_clone.cast(SrcCtrl::SetDevice(Some(new_device)));
                     }
-                });
+                }
+            });
 
-                Some(device_monitor_handle)
-            } else {
-                None
-            };
+            Some(device_monitor_handle)
+        } else {
+            None
+        };
 
-            let silence_stream_tx = if matches!(args.which, SrcWhich::Speaker) {
-                Some(hypr_audio::AudioOutput::silence())
-            } else {
-                None
-            };
+        let silence_stream_tx = if matches!(args.which, SrcWhich::Speaker) {
+            Some(hypr_audio::AudioOutput::silence())
+        } else {
+            None
+        };
 
-            let mut st = SrcState {
-                which: args.which,
-                proc: args.proc,
-                token: args.token,
-                muted: Arc::new(AtomicBool::new(false)),
-                run_task: None,
-                _device_monitor_handle: device_monitor_handle,
-                _silence_stream_tx: silence_stream_tx,
-            };
+        let mut st = SrcState {
+            which: args.which,
+            proc: args.proc,
+            token: args.token,
+            muted: Arc::new(AtomicBool::new(false)),
+            run_task: None,
+            _device_monitor_handle: device_monitor_handle,
+            _silence_stream_tx: silence_stream_tx,
+        };
 
-            start_source_loop(&myself, &mut st).await?;
-            Ok(st)
-        }
+        start_source_loop(&myself, &mut st).await?;
+        Ok(st)
     }
 
-    fn handle(
+    async fn handle(
         &self,
         myself: ActorRef<Self::Msg>,
         msg: Self::Msg,
         st: &mut Self::State,
-    ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
-        async move {
-            match (msg, &mut st.which) {
-                (SrcCtrl::SetMute(muted), _) => {
-                    st.muted.store(muted, Ordering::Relaxed);
-                }
-                (SrcCtrl::GetMute(reply), _) => {
-                    if !reply.is_closed() {
-                        let _ = reply.send(st.muted.load(Ordering::Relaxed));
-                    }
-                }
-                (SrcCtrl::GetDevice(reply), _) => {
-                    if !reply.is_closed() {
-                        let device = match &st.which {
-                            SrcWhich::Mic { device } => device.clone(),
-                            SrcWhich::Speaker => None,
-                        };
-                        let _ = reply.send(device);
-                    }
-                }
-                (SrcCtrl::SetDevice(dev), SrcWhich::Mic { device }) => {
-                    *device = dev;
-                    if let Some(t) = st.run_task.take() {
-                        t.abort();
-                    }
-                    start_source_loop(&myself, st).await?;
-                }
-                _ => {}
+    ) -> Result<(), ActorProcessingErr> {
+        match (msg, &mut st.which) {
+            (SrcCtrl::SetMute(muted), _) => {
+                st.muted.store(muted, Ordering::Relaxed);
             }
-            Ok(())
+            (SrcCtrl::GetMute(reply), _) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.muted.load(Ordering::Relaxed));
+                }
+            }
+            (SrcCtrl::GetDevice(reply), _) => {
+                if !reply.is_closed() {
+                    let device = match &st.which {
+                        SrcWhich::Mic { device } => device.clone(),
+                        SrcWhich::Speaker => None,
+                    };
+                    let _ = reply.send(device);
+                }
+            }
+            (SrcCtrl::SetDevice(dev), SrcWhich::Mic { device }) => {
+                *device = dev;
+                if let Some(t) = st.run_task.take() {
+                    t.abort();
+                }
+                start_source_loop(&myself, st).await?;
+            }
+            _ => {}
         }
+
+        Ok(())
     }
 
-    fn post_stop(
+    async fn post_stop(
         &self,
         _myself: ActorRef<Self::Msg>,
         st: &mut Self::State,
-    ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
-        async move {
-            if let Some(task) = st.run_task.take() {
-                task.abort();
-            }
-
-            st._silence_stream_tx = None;
-
-            Ok(())
+    ) -> Result<(), ActorProcessingErr> {
+        if let Some(task) = st.run_task.take() {
+            task.abort();
         }
+
+        st._silence_stream_tx = None;
+
+        Ok(())
     }
 }
 

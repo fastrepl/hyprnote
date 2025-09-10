@@ -47,54 +47,50 @@ impl Actor for AudioProcessor {
     type State = ProcState;
     type Arguments = ProcArgs;
 
-    fn pre_start(
+    async fn pre_start(
         &self,
         _myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
-    ) -> impl std::future::Future<Output = Result<Self::State, ActorProcessingErr>> + Send {
-        async move {
-            Ok(ProcState {
-                app: args.app.clone(),
-                joiner: Joiner::new(),
-                aec: hypr_aec::AEC::new().unwrap(),
-                agc_m: hypr_agc::Agc::default(),
-                agc_s: hypr_agc::Agc::default(),
-                last_amp: Instant::now(),
-                recorder: args.mixed_to.or(args.rec_to),
-                listen: args.listen_tx,
-                last_mic: None,
-                last_spk: None,
-            })
-        }
+    ) -> Result<Self::State, ActorProcessingErr> {
+        Ok(ProcState {
+            app: args.app.clone(),
+            joiner: Joiner::new(),
+            aec: hypr_aec::AEC::new().unwrap(),
+            agc_m: hypr_agc::Agc::default(),
+            agc_s: hypr_agc::Agc::default(),
+            last_amp: Instant::now(),
+            recorder: args.mixed_to.or(args.rec_to),
+            listen: args.listen_tx,
+            last_mic: None,
+            last_spk: None,
+        })
     }
 
-    fn handle(
+    async fn handle(
         &self,
         _myself: ActorRef<Self::Msg>,
         msg: Self::Msg,
         st: &mut Self::State,
-    ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
-        async move {
-            match msg {
-                ProcMsg::AttachRecorder(r) => st.recorder = Some(r),
-                ProcMsg::AttachListen(l) => st.listen = Some(l),
-                ProcMsg::Mic(mut c) => {
-                    st.agc_m.process(&mut c.data);
-                    let arc = Arc::<[f32]>::from(c.data);
-                    st.last_mic = Some(arc.clone());
-                    st.joiner.push_mic(arc);
-                    process_ready(st).await;
-                }
-                ProcMsg::Spk(mut c) => {
-                    st.agc_s.process(&mut c.data);
-                    let arc = Arc::<[f32]>::from(c.data);
-                    st.last_spk = Some(arc.clone());
-                    st.joiner.push_spk(arc);
-                    process_ready(st).await;
-                }
+    ) -> Result<(), ActorProcessingErr> {
+        match msg {
+            ProcMsg::AttachRecorder(r) => st.recorder = Some(r),
+            ProcMsg::AttachListen(l) => st.listen = Some(l),
+            ProcMsg::Mic(mut c) => {
+                st.agc_m.process(&mut c.data);
+                let arc = Arc::<[f32]>::from(c.data);
+                st.last_mic = Some(arc.clone());
+                st.joiner.push_mic(arc);
+                process_ready(st).await;
             }
-            Ok(())
+            ProcMsg::Spk(mut c) => {
+                st.agc_s.process(&mut c.data);
+                let arc = Arc::<[f32]>::from(c.data);
+                st.last_spk = Some(arc.clone());
+                st.joiner.push_spk(arc);
+                process_ready(st).await;
+            }
         }
+        Ok(())
     }
 }
 

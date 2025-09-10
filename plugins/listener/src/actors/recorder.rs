@@ -3,18 +3,18 @@ use std::path::PathBuf;
 use ractor::{Actor, ActorProcessingErr, ActorRef};
 
 pub enum RecMsg {
-    Mixed(Vec<f32>),
-    Mic(Vec<f32>),
-    Spk(Vec<f32>),
+    Audio(Vec<f32>),
 }
 
 pub struct RecArgs {
     pub app_dir: PathBuf,
     pub session_id: String,
 }
+
 pub struct RecState {
     writer: Option<hound::WavWriter<std::io::BufWriter<std::fs::File>>>,
 }
+
 pub struct Recorder;
 impl Actor for Recorder {
     type Msg = RecMsg;
@@ -54,13 +54,16 @@ impl Actor for Recorder {
         st: &mut Self::State,
     ) -> impl std::future::Future<Output = Result<(), ActorProcessingErr>> + Send {
         async move {
-            if let RecMsg::Mixed(v) = msg {
-                if let Some(ref mut writer) = st.writer {
-                    for s in v {
-                        writer.write_sample(s)?;
+            match msg {
+                RecMsg::Audio(v) => {
+                    if let Some(ref mut writer) = st.writer {
+                        for s in v {
+                            writer.write_sample(s)?;
+                        }
                     }
                 }
             }
+
             Ok(())
         }
     }

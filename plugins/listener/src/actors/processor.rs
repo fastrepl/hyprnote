@@ -111,7 +111,7 @@ async fn process_ready(st: &mut ProcState) {
                 .zip(spk.iter())
                 .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
                 .collect();
-            rec.cast(RecMsg::Mixed(mixed)).ok();
+            rec.cast(RecMsg::Audio(mixed)).ok();
         }
 
         if let Some(list) = &st.listen {

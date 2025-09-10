@@ -43,7 +43,6 @@ pub struct SessionState {
     recorder: Option<ActorRef<RecMsg>>,
     listen: Option<ActorRef<ListenMsg>>,
 
-    mic_device: Option<String>,
     record_enabled: bool,
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
@@ -63,8 +62,6 @@ impl Actor for SessionSupervisor {
         _myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let mic_device = hypr_audio::AudioInput::get_default_mic_device_name();
-
         Ok(SessionState {
             app: args.app,
             state: State::Inactive,
@@ -75,7 +72,6 @@ impl Actor for SessionSupervisor {
             processor: None,
             recorder: None,
             listen: None,
-            mic_device: Some(mic_device),
             record_enabled: true,
             languages: vec![],
             onboarding: false,
@@ -125,7 +121,13 @@ impl Actor for SessionSupervisor {
 
             SessionMsg::GetMicDeviceName(reply) => {
                 if !reply.is_closed() {
-                    let _ = reply.send(state.mic_device.clone());
+                    let device_name = if let Some(mic) = &state.mic_source {
+                        call_t!(mic, SrcCtrl::GetDevice, 100).unwrap_or(None)
+                    } else {
+                        None
+                    };
+
+                    let _ = reply.send(device_name);
                 }
             }
 
@@ -154,9 +156,8 @@ impl Actor for SessionSupervisor {
             }
 
             SessionMsg::ChangeMicDevice(device) => {
-                state.mic_device = device.clone();
                 if let Some(mic) = &state.mic_source {
-                    mic.cast(SrcCtrl::ChangeDevice(device))?;
+                    mic.cast(SrcCtrl::SetDevice(device))?;
                 }
             }
 
@@ -178,20 +179,16 @@ impl Actor for SessionSupervisor {
     ) -> Result<(), ActorProcessingErr> {
         match event {
             SupervisionEvent::ActorStarted(actor) => {
-                tracing::info!("Child actor started: {:?}", actor.get_name());
+                tracing::info!("{:?}_actor_started", actor.get_name());
             }
 
             SupervisionEvent::ActorFailed(actor, _) => {
-                tracing::error!("Child actor {:?} failed", actor.get_name());
+                tracing::error!("{:?}_actor_failed", actor.get_name());
                 self.stop_session(state).await?;
             }
 
             SupervisionEvent::ActorTerminated(actor, _, exit_reason) => {
-                tracing::info!(
-                    "Child actor {:?} terminated: {:?}",
-                    actor.get_name(),
-                    exit_reason
-                );
+                tracing::info!("{:?}_actor_terminated: {:?}", actor.get_name(), exit_reason);
 
                 if matches!(state.state, State::RunningActive) {
                     self.stop_session(state).await?;
@@ -222,8 +219,6 @@ impl SessionSupervisor {
         session_id: String,
     ) -> Result<(), ActorProcessingErr> {
         use tauri_plugin_db::{DatabasePluginExt, UserDatabase};
-
-        tracing::info!("Starting session: {}", session_id);
 
         let user_id = state.app.db_user_id().await?.unwrap();
         let onboarding_session_id = UserDatabase::onboarding_session_id();
@@ -271,9 +266,7 @@ impl SessionSupervisor {
             Some("mic_source".to_string()),
             SourceActor,
             SrcArgs {
-                which: SrcWhich::Mic {
-                    device: state.mic_device.clone(),
-                },
+                which: SrcWhich::Mic { device: None },
                 proc: processor_ref.clone(),
                 token: state.token.clone(),
             },
@@ -335,8 +328,6 @@ impl SessionSupervisor {
         state.state = State::RunningActive;
         SessionEvent::RunningActive {}.emit(&state.app)?;
 
-        tracing::info!("Session started successfully: {}", session_id);
-
         Ok(())
     }
 
@@ -344,8 +335,6 @@ impl SessionSupervisor {
         if matches!(state.state, State::Inactive) {
             return Ok(());
         }
-
-        tracing::info!("Stopping session: {:?}", state.session_id);
 
         state.token.cancel();
 
@@ -389,8 +378,6 @@ impl SessionSupervisor {
         state.state = State::Inactive;
 
         SessionEvent::Inactive {}.emit(&state.app)?;
-
-        tracing::info!("Session stopped");
 
         Ok(())
     }

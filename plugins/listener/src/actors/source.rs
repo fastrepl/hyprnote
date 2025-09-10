@@ -14,10 +14,10 @@ use hypr_audio::{
 const SAMPLE_RATE: u32 = 16000;
 
 pub enum SrcCtrl {
-    ChangeDevice(Option<String>),
     SetMute(bool),
     GetMute(RpcReplyPort<bool>),
-    GetDeviceName(RpcReplyPort<Option<String>>),
+    SetDevice(Option<String>),
+    GetDevice(RpcReplyPort<Option<String>>),
 }
 
 #[derive(Clone)]
@@ -63,7 +63,7 @@ impl Actor for SourceActor {
                     while let Ok(event) = event_rx.recv() {
                         if let DeviceEvent::DefaultInputChanged { .. } = event {
                             let new_device = AudioInput::get_default_mic_device_name();
-                            let _ = myself_clone.cast(SrcCtrl::ChangeDevice(Some(new_device)));
+                            let _ = myself_clone.cast(SrcCtrl::SetDevice(Some(new_device)));
                         }
                     }
                 });
@@ -110,7 +110,7 @@ impl Actor for SourceActor {
                         let _ = reply.send(st.muted.load(Ordering::Relaxed));
                     }
                 }
-                (SrcCtrl::GetDeviceName(reply), _) => {
+                (SrcCtrl::GetDevice(reply), _) => {
                     if !reply.is_closed() {
                         let device = match &st.which {
                             SrcWhich::Mic { device } => device.clone(),
@@ -119,7 +119,7 @@ impl Actor for SourceActor {
                         let _ = reply.send(device);
                     }
                 }
-                (SrcCtrl::ChangeDevice(dev), SrcWhich::Mic { device }) => {
+                (SrcCtrl::SetDevice(dev), SrcWhich::Mic { device }) => {
                     *device = dev;
                     if let Some(t) = st.run_task.take() {
                         t.abort();

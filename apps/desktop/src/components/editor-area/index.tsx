@@ -9,7 +9,6 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
-import { prepareContextText } from "./utils/summary-prepare";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -28,6 +27,7 @@ import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+import { prepareContextText } from "./utils/summary-prepare";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -455,15 +455,12 @@ export function useEnhanceMutation({
         try {
           const contextConfig = JSON.parse(selectedTemplate.context_option);
           if (contextConfig.type === "tags" && contextConfig.selections?.length > 0) {
-            console.log("Selected context tags:", contextConfig.selections);
-            
             // Prepare and print context text from tagged sessions
             contextText = await prepareContextText(
               contextConfig.selections,
               sessionId,
-              userId
+              userId,
             );
-            console.log("Context text from tagged sessions:", contextText);
           }
         } catch (e) {
           // Silent catch for malformed JSON
@@ -507,11 +504,9 @@ export function useEnhanceMutation({
           editor: finalInput,
           words: JSON.stringify(words),
           participants,
-          ...((contextText !== ""  || contextText !== undefined  || contextText !== null )? { contextText } : {}),
+          ...((contextText !== "" || contextText !== undefined || contextText !== null) ? { contextText } : {}),
         },
       );
-
-      console.log("User message:", userMessage);
 
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 

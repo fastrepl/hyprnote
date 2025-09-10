@@ -100,7 +100,9 @@ mod tests {
                 description: "test".to_string(),
                 sections: vec![],
                 tags: vec![],
-                context_option: Some(r#"{"type":"tags","selections":["Meeting","Project A"]}"#.to_string()),
+                context_option: Some(
+                    r#"{"type":"tags","selections":["Meeting","Project A"]}"#.to_string(),
+                ),
             })
             .await
             .unwrap();

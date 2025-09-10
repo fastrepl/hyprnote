@@ -7,8 +7,8 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { useQuery } from "@tanstack/react-query";
 import { Trans, useLingui } from "@lingui/react/macro";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SectionsList } from "../components/template-sections";
@@ -65,7 +65,6 @@ const EMOJI_OPTIONS = [
   "🎮",
 ];
 
-
 export default function TemplateEditor({
   disabled,
   template,
@@ -105,7 +104,7 @@ export default function TemplateEditor({
   const [descriptionText, setDescriptionText] = useState(template.description || "");
   const [selectedEmoji, setSelectedEmoji] = useState(() => extractEmojiFromTitle(template.title || ""));
   const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
-  
+
   // Context selection state
   const [contextType, setContextType] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -119,7 +118,7 @@ export default function TemplateEditor({
       const parsed = JSON.parse(contextOption);
       return {
         type: parsed.type || "",
-        selections: parsed.selections || []
+        selections: parsed.selections || [],
       };
     } catch {
       return { type: "", selections: [] };
@@ -128,7 +127,9 @@ export default function TemplateEditor({
 
   // Stringify context config for saving
   const stringifyContextOption = (type: string, selections: string[]) => {
-    if (!type) return null;
+    if (!type) {
+      return null;
+    }
     return JSON.stringify({ type, selections });
   };
 
@@ -137,7 +138,7 @@ export default function TemplateEditor({
     setTitleText(getTitleWithoutEmoji(template.title || ""));
     setDescriptionText(template.description || "");
     setSelectedEmoji(extractEmojiFromTitle(template.title || ""));
-    
+
     // Parse and set context option
     const contextConfig = parseContextOption(template.context_option);
     setContextType(contextConfig.type);
@@ -270,140 +271,145 @@ export default function TemplateEditor({
         />
       </div>
 
-      <div className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium">
-          <Trans>Context</Trans>
-        </h2>
-        
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-neutral-600">
-              <Trans>Refer to past notes with:</Trans>
-            </label>
-            <Select
-              disabled={isReadOnly}
-              value={contextType}
-              onValueChange={(value) => {
-                let newContextType = "";
-                let newSelectedTags = selectedTags;
-                
-                if (value === "none") {
-                  newContextType = "";
-                  newSelectedTags = [];
-                } else {
-                  newContextType = value;
-                }
-                
-                setContextType(newContextType);
-                setSelectedTags(newSelectedTags);
-                
-                const contextOption = stringifyContextOption(newContextType, newSelectedTags);
-                onTemplateUpdate({ ...template, context_option: contextOption });
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t`Select what to use as context...`} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  <Trans>None (disabled)</Trans>
-                </SelectItem>
-                <SelectItem value="tags">
-                  <Trans>Tags</Trans>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Context section - only show for custom templates */}
+      {!isBuiltinTemplate && (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">
+            <Trans>Context</Trans>
+          </h2>
 
-          {/* Multi-select for tags */}
-          {contextType === "tags" && (
+          <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-neutral-600">
-                <Trans>Select tags</Trans>
+                <Trans>Refer to past notes with:</Trans>
               </label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
-                  {selectedTags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
-                    >
-                      {tag}
-                      {!isReadOnly && (
+              <Select
+                disabled={isReadOnly}
+                value={contextType}
+                onValueChange={(value) => {
+                  let newContextType = "";
+                  let newSelectedTags = selectedTags;
+
+                  if (value === "none") {
+                    newContextType = "";
+                    newSelectedTags = [];
+                  } else {
+                    newContextType = value;
+                  }
+
+                  setContextType(newContextType);
+                  setSelectedTags(newSelectedTags);
+
+                  const contextOption = stringifyContextOption(newContextType, newSelectedTags);
+                  onTemplateUpdate({ ...template, context_option: contextOption });
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t`Select what to use as context...`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    <Trans>None (disabled)</Trans>
+                  </SelectItem>
+                  <SelectItem value="tags">
+                    <Trans>Tags</Trans>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Multi-select for tags */}
+            {contextType === "tags" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-neutral-600">
+                  <Trans>Select tags</Trans>
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
+                    {selectedTags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                      >
+                        {tag}
+                        {!isReadOnly && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                            onClick={() => {
+                              const newSelectedTags = selectedTags.filter((t) => t !== tag);
+                              setSelectedTags(newSelectedTags);
+
+                              // Save to template immediately
+                              const contextOption = stringifyContextOption(contextType, newSelectedTags);
+                              onTemplateUpdate({ ...template, context_option: contextOption });
+                            }}
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </Button>
+                        )}
+                      </Badge>
+                    ))}
+                    {selectedTags.length === 0 && (
+                      <span className="text-sm text-muted-foreground py-1">
+                        <Trans>No tags selected</Trans>
+                      </span>
+                    )}
+                  </div>
+                  {!isReadOnly && (
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
-                          onClick={() => {
-                            const newSelectedTags = selectedTags.filter((t) => t !== tag);
-                            setSelectedTags(newSelectedTags);
-                            
-                            // Save to template immediately
-                            const contextOption = stringifyContextOption(contextType, newSelectedTags);
-                            onTemplateUpdate({ ...template, context_option: contextOption });
-                          }}
+                          variant="outline"
+                          size="icon"
+                          className="h-[38px] w-[38px]"
                         >
-                          <X className="h-2.5 w-2.5" />
+                          <Plus className="h-4 w-4" />
                         </Button>
-                      )}
-                    </Badge>
-                  ))}
-                  {selectedTags.length === 0 && (
-                    <span className="text-sm text-muted-foreground py-1">
-                      <Trans>No tags selected</Trans>
-                    </span>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[220px] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder="Search tags..." className="h-9" />
+                          <CommandEmpty>
+                            {allTags.length === 0
+                              ? "No tags available. Create tags by tagging your notes first."
+                              : "No tag found."}
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-[200px] overflow-auto">
+                            {allTags.filter(
+                              (tag) => !selectedTags.includes(tag.name),
+                            ).map((tag) => (
+                              <CommandItem
+                                key={tag.id}
+                                onSelect={() => {
+                                  if (!selectedTags.includes(tag.name)) {
+                                    const newSelectedTags = [...selectedTags, tag.name];
+                                    setSelectedTags(newSelectedTags);
+
+                                    // Save to template immediately
+                                    const contextOption = stringifyContextOption(contextType, newSelectedTags);
+                                    onTemplateUpdate({ ...template, context_option: contextOption });
+                                  }
+                                }}
+                              >
+                                {tag.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   )}
                 </div>
-                {!isReadOnly && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-[38px] w-[38px]"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[220px] p-0" align="end">
-                      <Command>
-                        <CommandInput placeholder="Search tags..." className="h-9" />
-                        <CommandEmpty>
-                          {allTags.length === 0 ? "No tags available. Create tags by tagging your notes first." : "No tag found."}
-                        </CommandEmpty>
-                        <CommandGroup className="max-h-[200px] overflow-auto">
-                          {allTags.filter(
-                            (tag) => !selectedTags.includes(tag.name),
-                          ).map((tag) => (
-                            <CommandItem
-                              key={tag.id}
-                              onSelect={() => {
-                                if (!selectedTags.includes(tag.name)) {
-                                  const newSelectedTags = [...selectedTags, tag.name];
-                                  setSelectedTags(newSelectedTags);
-                                  
-                                  // Save to template immediately
-                                  const contextOption = stringifyContextOption(contextType, newSelectedTags);
-                                  onTemplateUpdate({ ...template, context_option: contextOption });
-                                }
-                              }}
-                            >
-                              {tag.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">

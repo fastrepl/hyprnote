@@ -10,17 +10,15 @@ import { commands as dbCommands } from "@hypr/plugin-db";
 export async function prepareContextText(
   tags: string[],
   currentSessionId: string,
-  userId: string
+  userId: string,
 ): Promise<string> {
   if (!tags.length) {
     return "";
   }
 
-  // Get all tags to map names to IDs
   const allTags = await dbCommands.listAllTags();
   const tagMap = new Map(allTags.map(tag => [tag.name, tag.id]));
-  
-  // Find tag IDs for the provided tag names
+
   const tagIds = tags
     .map(tagName => tagMap.get(tagName))
     .filter((id): id is string => id !== undefined);
@@ -29,23 +27,23 @@ export async function prepareContextText(
     return "";
   }
 
-  // Collect sessions for each tag
-  const allSessions = new Map(); // Use Map to avoid duplicates by session ID
-  
+  const allSessions = new Map();
+
   for (const tagId of tagIds) {
     try {
       const sessions = await dbCommands.listSessions({
         type: "tagFilter",
         tag_ids: [tagId],
         user_id: userId,
-        limit: 10, // Get more than needed, we'll filter and sort
+        limit: 10,
       });
 
-      // Add sessions to map, excluding current session
       sessions.forEach(session => {
-        if (session.id !== currentSessionId && 
-            session.enhanced_memo_html && 
-            session.enhanced_memo_html.trim().length > 0) {
+        if (
+          session.id !== currentSessionId
+          && session.enhanced_memo_html
+          && session.enhanced_memo_html.trim().length > 0
+        ) {
           allSessions.set(session.id, session);
         }
       });
@@ -54,7 +52,6 @@ export async function prepareContextText(
     }
   }
 
-  // Sort by created_at (most recent first) and take top 2
   const sortedSessions = Array.from(allSessions.values())
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 2);
@@ -63,19 +60,17 @@ export async function prepareContextText(
     return "";
   }
 
-  // Combine session content into context text
   const contextParts = sortedSessions.map((session, index) => {
-    // Strip HTML tags from enhanced_memo_html
     const cleanContent = session.enhanced_memo_html!
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace &nbsp; with spaces
-      .replace(/&amp;/g, '&') // Replace &amp; with &
-      .replace(/&lt;/g, '<') // Replace &lt; with <
-      .replace(/&gt;/g, '>') // Replace &gt; with >
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
       .trim();
 
-    return `--- Session ${index + 1}: "${session.title || 'Untitled Note'}" ---\n${cleanContent}`;
+    return `--- Session ${index + 1}: "${session.title || "Untitled Note"}" ---\n${cleanContent}`;
   });
 
-  return contextParts.join('\n\n');
+  return contextParts.join("\n\n");
 }

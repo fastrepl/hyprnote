@@ -270,7 +270,7 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:187
 #: src/components/editor-area/note-header/listen-button.tsx:211
 #: src/components/editor-area/note-header/listen-button.tsx:231
-#: src/components/settings/views/templates.tsx:252
+#: src/components/settings/views/templates.tsx:253
 msgid "{0}"
 msgstr ""
 
@@ -471,7 +471,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:68
-#: src/components/settings/views/templates.tsx:355
+#: src/components/settings/views/templates.tsx:356
 msgid "Built-in Templates"
 msgstr ""
 
@@ -620,6 +620,10 @@ msgstr ""
 msgid "Contacts Access"
 msgstr ""
 
+#: src/components/settings/views/template.tsx:278
+msgid "Context"
+msgstr ""
+
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
 #: src/components/welcome-modal/custom-endpoint-view.tsx:595
@@ -666,7 +670,7 @@ msgstr ""
 msgid "Create Note"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:345
+#: src/components/settings/views/templates.tsx:346
 msgid "Create your first template to get started"
 msgstr ""
 
@@ -714,7 +718,7 @@ msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:336
 #: src/components/settings/views/team.tsx:165
-#: src/components/settings/views/template.tsx:205
+#: src/components/settings/views/template.tsx:249
 msgid "Delete"
 msgstr ""
 
@@ -726,14 +730,23 @@ msgstr ""
 #~ msgid "Describe the issue"
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:221
+#: src/components/settings/views/template.tsx:265
 msgid ""
 "Describe the summary you want to generate...\n"
-"            \n"
+"\n"
 "• what kind of meeting is this?\n"
 "• any format requirements?\n"
 "• what should AI remember when summarizing?"
 msgstr ""
+
+#: src/components/settings/views/template.tsx:221
+#~ msgid ""
+#~ "Describe the summary you want to generate...\n"
+#~ "            \n"
+#~ "• what kind of meeting is this?\n"
+#~ "• any format requirements?\n"
+#~ "• what should AI remember when summarizing?"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:227
 #~ msgid "Description"
@@ -775,7 +788,7 @@ msgstr ""
 msgid "Draft follow up"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:195
+#: src/components/settings/views/template.tsx:239
 msgid "Duplicate"
 msgstr ""
 
@@ -791,7 +804,7 @@ msgstr ""
 msgid "Email separated by commas"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:162
+#: src/components/settings/views/template.tsx:206
 msgid "Emoji"
 msgstr ""
 
@@ -1063,7 +1076,7 @@ msgstr ""
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr ""
 
-#: src/components/settings/views/templates.tsx:305
+#: src/components/settings/views/templates.tsx:306
 msgid "Learn more about templates"
 msgstr ""
 
@@ -1099,7 +1112,7 @@ msgstr ""
 msgid "Loading models..."
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:276
+#: src/components/settings/views/templates.tsx:277
 msgid "Loading templates..."
 msgstr ""
 
@@ -1239,6 +1252,10 @@ msgstr ""
 #~ msgid "No speech-to-text models available or failed to load."
 #~ msgstr ""
 
+#: src/components/settings/views/template.tsx:358
+msgid "No tags selected"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "No Template"
 #~ msgstr ""
@@ -1247,7 +1264,7 @@ msgstr ""
 #~ msgid "No Template (Default)"
 #~ msgstr ""
 
-#: src/components/settings/views/templates.tsx:342
+#: src/components/settings/views/templates.tsx:343
 msgid "No templates yet"
 msgstr ""
 
@@ -1261,6 +1278,10 @@ msgstr ""
 
 #: src/components/human-profile/upcoming-events.tsx:81
 msgid "No upcoming events with this contact"
+msgstr ""
+
+#: src/components/settings/views/template.tsx:312
+msgid "None (disabled)"
 msgstr ""
 
 #: src/routes/app.settings.tsx:50
@@ -1388,6 +1409,10 @@ msgstr ""
 #~ msgid "Redemption Time"
 #~ msgstr ""
 
+#: src/components/settings/views/template.tsx:284
+msgid "Refer to past notes with:"
+msgstr ""
+
 #: src/components/settings/views/ai-stt.tsx:66
 #: src/components/settings/views/ai-llm.tsx:620
 #~ msgid "Remote"
@@ -1477,7 +1502,7 @@ msgstr ""
 #~ msgid "Searching..."
 #~ msgstr ""
 
-#: src/components/settings/views/template.tsx:232
+#: src/components/settings/views/template.tsx:416
 msgid "Sections"
 msgstr ""
 
@@ -1489,7 +1514,7 @@ msgstr ""
 msgid "Select a provider above to configure"
 msgstr ""
 
-#: src/components/settings/views/templates.tsx:310
+#: src/components/settings/views/templates.tsx:311
 msgid "Select a template to enhance your meeting notes"
 msgstr ""
 
@@ -1524,6 +1549,14 @@ msgstr ""
 #: src/components/settings/components/ai/llm-view.tsx:253
 #~ msgid "Select or enter the model name required by your endpoint."
 #~ msgstr ""
+
+#: src/components/settings/views/template.tsx:325
+msgid "Select tags"
+msgstr ""
+
+#: src/components/settings/views/template.tsx:308
+msgid "Select what to use as context..."
+msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:89
 msgid "Select Your Languages"
@@ -1627,8 +1660,12 @@ msgstr ""
 msgid "System Audio Access"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:215
+#: src/components/settings/views/template.tsx:259
 msgid "System Instruction"
+msgstr ""
+
+#: src/components/settings/views/template.tsx:315
+msgid "Tags"
 msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:153
@@ -1745,7 +1782,7 @@ msgstr ""
 msgid "Untitled"
 msgstr ""
 
-#: src/components/settings/views/template.tsx:186
+#: src/components/settings/views/template.tsx:230
 msgid "Untitled Template"
 msgstr ""
 
@@ -1879,6 +1916,6 @@ msgid "Your Name"
 msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:45
-#: src/components/settings/views/templates.tsx:291
+#: src/components/settings/views/templates.tsx:292
 msgid "Your Templates"
 msgstr ""

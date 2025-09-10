@@ -134,6 +134,7 @@ export default function TemplatesView() {
       description: "",
       sections: [],
       tags: [],
+      context_option: null,
     };
     setSelectedTemplate(newTemplate);
     setViewState("new");

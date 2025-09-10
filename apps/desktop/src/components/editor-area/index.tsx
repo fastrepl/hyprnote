@@ -27,6 +27,7 @@ import { AnnotationBox } from "./annotation-box";
 import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+import { prepareContextText } from "./utils/summary-prepare";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -447,6 +448,25 @@ export function useEnhanceMutation({
         : config.general?.selected_template_id;
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
+      let contextText = "";
+
+      // Print context tags if they exist
+      if (selectedTemplate?.context_option) {
+        try {
+          const contextConfig = JSON.parse(selectedTemplate.context_option);
+          if (contextConfig.type === "tags" && contextConfig.selections?.length > 0) {
+            // Prepare and print context text from tagged sessions
+            contextText = await prepareContextText(
+              contextConfig.selections,
+              sessionId,
+              userId,
+            );
+          }
+        } catch (e) {
+          // Silent catch for malformed JSON
+          console.error("Error parsing context option:", e);
+        }
+      }
 
       if (selectedTemplate !== null) {
         const eventName = selectedTemplate?.tags.includes("builtin")
@@ -484,6 +504,7 @@ export function useEnhanceMutation({
           editor: finalInput,
           words: JSON.stringify(words),
           participants,
+          ...((contextText !== "" || contextText !== undefined || contextText !== null) ? { contextText } : {}),
         },
       );
       

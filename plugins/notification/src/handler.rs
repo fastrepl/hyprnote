@@ -88,6 +88,14 @@ impl NotificationHandler {
                         "com.electron.wispr-flow",
                         "com.seewillow.WillowMac",
                         "com.superduper.superwhisper",
+                        "dev.warp.Warp-Stable",
+                        "so.cap.desktop",
+                        "com.timpler.screenstudio",
+                        "com.loom.desktop",
+                        "com.obsproject.obs-studio",
+                        "com.prakashjoshipax.VoiceInk",
+                        "com.goodsnooze.macwhisper",
+                        "com.descript.beachcube",
                     ]
                     .contains(&app.id.as_str())
                 }) {

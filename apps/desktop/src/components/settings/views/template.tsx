@@ -263,7 +263,7 @@ export default function TemplateEditor({
           value={descriptionText}
           onChange={handleChangeDescription}
           placeholder={t`Describe the summary you want to generate...
-
+            
 • what kind of meeting is this?
 • any format requirements?
 • what should AI remember when summarizing?`}

@@ -13,7 +13,7 @@ use crate::{manager::TranscriptManager, SessionEvent};
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(60 * 15);
 
 pub enum ListenMsg {
-    Audio(Vec<u8>, Vec<u8>),
+    Audio(Bytes, Bytes),
 }
 
 pub struct ListenArgs {
@@ -168,9 +168,7 @@ impl Actor for ListenBridge {
     ) -> Result<(), ActorProcessingErr> {
         match message {
             ListenMsg::Audio(mic, spk) => {
-                let _ = state
-                    .tx
-                    .try_send(MixedMessage::Audio((Bytes::from(mic), Bytes::from(spk))));
+                let _ = state.tx.try_send(MixedMessage::Audio((mic, spk)));
             }
         }
         Ok(())

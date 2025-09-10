@@ -1,5 +1,6 @@
 use std::{
     collections::VecDeque,
+    sync::Arc,
     time::{Duration, Instant},
 };
 
@@ -36,8 +37,8 @@ pub struct ProcState {
     last_amp: Instant,
     recorder: Option<ActorRef<RecMsg>>,
     listen: Option<ActorRef<ListenMsg>>,
-    last_mic: Option<Vec<f32>>,
-    last_spk: Option<Vec<f32>>,
+    last_mic: Option<Arc<[f32]>>,
+    last_spk: Option<Arc<[f32]>>,
 }
 
 pub struct AudioProcessor {}
@@ -79,14 +80,16 @@ impl Actor for AudioProcessor {
                 ProcMsg::AttachListen(l) => st.listen = Some(l),
                 ProcMsg::Mic(mut c) => {
                     st.agc_m.process(&mut c.data);
-                    st.last_mic = Some(c.data.clone());
-                    st.joiner.push_mic(c.data);
+                    let arc = Arc::<[f32]>::from(c.data);
+                    st.last_mic = Some(arc.clone());
+                    st.joiner.push_mic(arc);
                     process_ready(st).await;
                 }
                 ProcMsg::Spk(mut c) => {
                     st.agc_s.process(&mut c.data);
-                    st.last_spk = Some(c.data.clone());
-                    st.joiner.push_spk(c.data);
+                    let arc = Arc::<[f32]>::from(c.data);
+                    st.last_spk = Some(arc.clone());
+                    st.joiner.push_spk(arc);
                     process_ready(st).await;
                 }
             }
@@ -96,9 +99,11 @@ impl Actor for AudioProcessor {
 }
 
 async fn process_ready(st: &mut ProcState) {
-    // Process any paired chunks for echo cancellation and sending to listeners
     while let Some((mic, spk)) = st.joiner.pop_pair() {
-        let mic_out = st.aec.process_streaming(&mic, &spk).unwrap_or(mic.clone());
+        let mic_out = st
+            .aec
+            .process_streaming(&mic, &spk)
+            .unwrap_or_else(|_| mic.to_vec());
 
         if let Some(rec) = &st.recorder {
             let mixed: Vec<f32> = mic_out
@@ -111,28 +116,27 @@ async fn process_ready(st: &mut ProcState) {
 
         if let Some(list) = &st.listen {
             let mic_bytes = hypr_audio_utils::f32_to_i16_bytes(mic_out.into_iter());
-            let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.into_iter());
+            let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.iter().copied());
             list.cast(ListenMsg::Audio(mic_bytes.into(), spk_bytes.into()))
                 .ok();
         }
     }
 
-    // Emit amplitude events using the most recent samples from each source
     if st.last_amp.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
         if let (Some(mic_data), Some(spk_data)) = (&st.last_mic, &st.last_spk) {
-            if let Err(e) =
-                SessionEvent::from((mic_data.as_slice(), spk_data.as_slice())).emit(&st.app)
+            if let Err(e) = SessionEvent::from((mic_data.as_ref(), spk_data.as_ref())).emit(&st.app)
             {
                 tracing::error!("Failed to emit AudioAmplitude event: {:?}", e);
             }
+
             st.last_amp = Instant::now();
         }
     }
 }
 
 struct Joiner {
-    mic: VecDeque<Vec<f32>>,
-    spk: VecDeque<Vec<f32>>,
+    mic: VecDeque<Arc<[f32]>>,
+    spk: VecDeque<Arc<[f32]>>,
 }
 
 impl Joiner {
@@ -143,23 +147,21 @@ impl Joiner {
         }
     }
 
-    fn push_mic(&mut self, data: Vec<f32>) {
+    fn push_mic(&mut self, data: Arc<[f32]>) {
         self.mic.push_back(data);
-        // Keep only recent chunks to avoid memory growth
         if self.mic.len() > 10 {
             self.mic.pop_front();
         }
     }
 
-    fn push_spk(&mut self, data: Vec<f32>) {
+    fn push_spk(&mut self, data: Arc<[f32]>) {
         self.spk.push_back(data);
-        // Keep only recent chunks to avoid memory growth
         if self.spk.len() > 10 {
             self.spk.pop_front();
         }
     }
 
-    fn pop_pair(&mut self) -> Option<(Vec<f32>, Vec<f32>)> {
+    fn pop_pair(&mut self) -> Option<(Arc<[f32]>, Arc<[f32]>)> {
         if !self.mic.is_empty() && !self.spk.is_empty() {
             let mic = self.mic.pop_front()?;
             let spk = self.spk.pop_front()?;

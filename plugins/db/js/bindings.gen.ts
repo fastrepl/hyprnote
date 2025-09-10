@@ -181,7 +181,7 @@ export type Platform = "Apple" | "Google" | "Outlook"
 export type Session = { id: string; created_at: string; visited_at: string; user_id: string; calendar_event_id: string | null; title: string; raw_memo_html: string; enhanced_memo_html: string | null; words: Word2[]; record_start: string | null; record_end: string | null; pre_meeting_memo_html: string | null }
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type Tag = { id: string; name: string }
-export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[] }
+export type Template = { id: string; user_id: string; title: string; description: string; sections: TemplateSection[]; tags: string[]; context_option: string | null }
 export type TemplateSection = { title: string; description: string }
 export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 

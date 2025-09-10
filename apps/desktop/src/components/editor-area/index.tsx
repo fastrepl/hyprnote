@@ -9,6 +9,7 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
+import { prepareContextText } from "./utils/summary-prepare";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -447,6 +448,28 @@ export function useEnhanceMutation({
         : config.general?.selected_template_id;
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
+      let contextText = "";
+
+      // Print context tags if they exist
+      if (selectedTemplate?.context_option) {
+        try {
+          const contextConfig = JSON.parse(selectedTemplate.context_option);
+          if (contextConfig.type === "tags" && contextConfig.selections?.length > 0) {
+            console.log("Selected context tags:", contextConfig.selections);
+            
+            // Prepare and print context text from tagged sessions
+            contextText = await prepareContextText(
+              contextConfig.selections,
+              sessionId,
+              userId
+            );
+            console.log("Context text from tagged sessions:", contextText);
+          }
+        } catch (e) {
+          // Silent catch for malformed JSON
+          console.error("Error parsing context option:", e);
+        }
+      }
 
       if (selectedTemplate !== null) {
         const eventName = selectedTemplate?.tags.includes("builtin")
@@ -484,8 +507,11 @@ export function useEnhanceMutation({
           editor: finalInput,
           words: JSON.stringify(words),
           participants,
+          ...((contextText !== ""  || contextText !== undefined  || contextText !== null )? { contextText } : {}),
         },
       );
+
+      console.log("User message:", userMessage);
 
       const abortSignal = AbortSignal.any([abortController.signal, AbortSignal.timeout(120 * 1000)]);
 

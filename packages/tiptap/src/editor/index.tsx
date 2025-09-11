@@ -15,6 +15,8 @@ interface EditorProps {
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
+  onImagePaste?: (file: File) => void;
+  onImageCopy?: (imageUrl: string) => void;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(

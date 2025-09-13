@@ -30,3 +30,9 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
         _ => {}
     }
 }
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub enum LLMEvent {
+    #[serde(rename = "progress")]
+    Progress(f64),
+}

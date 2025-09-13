@@ -40,6 +40,7 @@ pub struct State {
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
+        .events(tauri_specta::collect_events![events::LLMEvent])
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
             commands::list_supported_model,

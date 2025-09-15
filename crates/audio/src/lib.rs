@@ -1,6 +1,7 @@
 mod device_monitor;
 mod errors;
 mod mic;
+mod mixed;
 mod norm;
 mod resampler;
 mod speaker;
@@ -9,6 +10,7 @@ mod utils;
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
+pub use mixed::*;
 pub use norm::*;
 pub use resampler::*;
 pub use speaker::*;
@@ -218,4 +220,30 @@ impl kalosm_sound::AsyncSource for AudioStream {
             AudioStream::Recorded { .. } => 16000,
         }
     }
+}
+
+#[cfg(test)]
+pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
+    use rodio::{
+        cpal::SampleRate,
+        source::{Function::Sine, SignalGenerator, Source},
+        OutputStream,
+    };
+    use std::{
+        thread::{sleep, spawn},
+        time::Duration,
+    };
+
+    spawn(move || {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
+
+        let source = source
+            .convert_samples()
+            .take_duration(Duration::from_secs(seconds))
+            .amplify(0.01);
+
+        stream_handle.play_raw(source).unwrap();
+        sleep(Duration::from_secs(seconds));
+    })
 }

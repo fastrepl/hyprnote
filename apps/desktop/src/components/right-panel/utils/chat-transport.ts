@@ -11,7 +11,6 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
-  tool,
   type UIMessageChunk,
 } from "@hypr/utils/ai";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -174,7 +173,6 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     return {
       ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
       ...(shouldUseTools && baseTools),
-      ...(type === "HyprLocal" && { progress_update: tool({ inputSchema: z.any() }) }),
     };
   }
 

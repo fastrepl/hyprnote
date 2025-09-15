@@ -12,6 +12,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { events as localLlmEvents } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -360,6 +361,21 @@ export function useEnhanceMutation({
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
   const [isCancelled, setIsCancelled] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    let unlisten: () => void;
+    localLlmEvents.llmEvent.listen(({ payload }) => {
+      if (payload.progress) {
+        setProgress(payload.progress);
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten();
+    };
+  }, []);
 
   // Extract H1 headers at component level (always available)
   const extractH1Headers = useCallback((htmlContent: string): string[] => {

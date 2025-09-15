@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
 use async_openai::types::{
-    ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk, ChatCompletionRequestMessage,
+    ChatChoice, ChatChoiceStream, ChatCompletionMessageToolCallChunk,
     ChatCompletionResponseMessage, ChatCompletionStreamResponseDelta, ChatCompletionToolType,
     CreateChatCompletionRequest, CreateChatCompletionResponse, CreateChatCompletionStreamResponse,
     FunctionCallStream, Role,
@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::ModelManager;
+use crate::{events::LLMEvent, ModelManager};
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -38,13 +38,18 @@ impl ServerHandle {
 
 #[derive(Clone)]
 pub struct ServerState {
+    pub emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>,
     pub model_manager: ModelManager,
     pub cancellation_tokens: Arc<Mutex<Vec<CancellationToken>>>,
 }
 
 impl ServerState {
-    pub fn new(model_manager: ModelManager) -> Self {
+    pub fn new(
+        emitter: impl Fn(LLMEvent) + 'static + Send + Sync,
+        model_manager: ModelManager,
+    ) -> Self {
         Self {
+            emitter: Arc::new(emitter),
             model_manager,
             cancellation_tokens: Arc::new(Mutex::new(Vec::new())),
         }
@@ -122,51 +127,12 @@ async fn chat_completions(
     AxumState(state): AxumState<ServerState>,
     Json(request): Json<CreateChatCompletionRequest>,
 ) -> Result<Response, (StatusCode, String)> {
-    // TODO
-    let request = {
-        let mut r = request.clone();
-        r.messages = r
-            .messages
-            .iter()
-            .filter_map(|m| match m {
-                ChatCompletionRequestMessage::Assistant(am) => {
-                    let mut cloned_am = am.clone();
-                    let filtered_tool_calls = cloned_am.tool_calls.as_ref().map(|tc| {
-                        tc.iter()
-                            .filter(|c| c.function.name != "progress_update")
-                            .cloned()
-                            .collect::<Vec<_>>()
-                    });
-
-                    let new_tool_calls = match filtered_tool_calls {
-                        Some(calls) if calls.is_empty() => None,
-                        Some(calls) => Some(calls),
-                        None => None,
-                    };
-
-                    cloned_am.tool_calls = new_tool_calls;
-                    Some(ChatCompletionRequestMessage::Assistant(cloned_am))
-                }
-                ChatCompletionRequestMessage::Tool(tm) => {
-                    if tm.tool_call_id == "progress_update" {
-                        None
-                    } else {
-                        Some(m.clone())
-                    }
-                }
-                _ => Some(m.clone()),
-            })
-            .collect();
-
-        r
-    };
-
     let response = if request.model == "mock-onboarding" {
         let provider = MockProvider::default();
         tracing::info!("using_mock_provider");
         provider.chat_completions(request, &state).await
     } else {
-        let provider = LocalProvider::new(state.model_manager.clone());
+        let provider = LocalProvider::new(state.emitter.clone(), state.model_manager.clone());
         tracing::info!("using_local_provider");
         provider.chat_completions(request, &state).await
     };
@@ -177,12 +143,16 @@ async fn chat_completions(
 }
 
 struct LocalProvider {
+    emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>,
     model_manager: ModelManager,
 }
 
 impl LocalProvider {
-    fn new(model_manager: ModelManager) -> Self {
-        Self { model_manager }
+    fn new(emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>, model_manager: ModelManager) -> Self {
+        Self {
+            emitter,
+            model_manager,
+        }
     }
 
     async fn chat_completions(
@@ -193,11 +163,19 @@ impl LocalProvider {
         let model = self.model_manager.get_model().await?;
         tracing::info!("loaded_model: {:?}", model.name);
 
-        build_chat_completion_response(&request, || {
-            let (stream, token) = Self::build_stream(&model, &request)?;
-            state.register_token(token.clone());
-            Ok(stream)
-        })
+        let emitter = self.emitter.clone();
+
+        build_chat_completion_response(
+            &request,
+            || {
+                let (stream, token) = Self::build_stream(&model, &request)?;
+                state.register_token(token.clone());
+                Ok(stream)
+            },
+            move |v| {
+                emitter(LLMEvent::Progress(v));
+            },
+        )
         .await
     }
 
@@ -237,17 +215,7 @@ impl LocalProvider {
             }
         };
 
-        let tools = request
-            .tools
-            .as_ref()
-            .map(|tools| {
-                tools
-                    .iter()
-                    .filter(|tool| tool.function.name != "progress_update")
-                    .cloned()
-                    .collect::<Vec<_>>()
-            })
-            .filter(|tools| !tools.is_empty());
+        let tools = request.tools.clone();
 
         let request = hypr_llama::LlamaRequest {
             messages,
@@ -299,11 +267,15 @@ impl MockProvider {
         state: &ServerState,
     ) -> Result<ChatCompletionResponse, crate::Error> {
         let content = crate::ONBOARDING_ENHANCED_MD;
-        build_chat_completion_response(&request, || {
-            let (stream, token) = Self::build_stream(&content);
-            state.register_token(token.clone());
-            Ok(stream)
-        })
+        build_chat_completion_response(
+            &request,
+            || {
+                let (stream, token) = Self::build_stream(&content);
+                state.register_token(token.clone());
+                Ok(stream)
+            },
+            |_v| {},
+        )
         .await
     }
 
@@ -348,6 +320,7 @@ async fn build_chat_completion_response(
         Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
         crate::Error,
     >,
+    progress_fn: impl Fn(f64) + Send + Sync + 'static,
 ) -> Result<ChatCompletionResponse, crate::Error> {
     let id = uuid::Uuid::new_v4().to_string();
     let created = std::time::SystemTime::now()
@@ -508,34 +481,9 @@ async fn build_chat_completion_response(
                                 }))
                             }
                         },
-                        StreamEvent::Progress(progress) => {
-                            Some(Ok(CreateChatCompletionStreamResponse {
-                                choices: vec![ChatChoiceStream {
-                                    index: 0,
-                                    delta: ChatCompletionStreamResponseDelta {
-                                        tool_calls: Some(vec![
-                                            ChatCompletionMessageToolCallChunk {
-                                                index: index.try_into().unwrap_or(0),
-                                                id: Some("progress_update".to_string()),
-                                                r#type: Some(ChatCompletionToolType::Function),
-                                                function: Some(FunctionCallStream {
-                                                    name: Some("progress_update".to_string()),
-                                                    arguments: Some(
-                                                        serde_json::to_string(&serde_json::json!({
-                                                            "progress": progress
-                                                        }))
-                                                        .unwrap(),
-                                                    ),
-                                                }),
-                                            },
-                                        ]),
-                                        ..delta_template
-                                    },
-                                    finish_reason: None,
-                                    logprobs: None,
-                                }],
-                                ..response_template
-                            }))
+                        StreamEvent::Progress(v) => {
+                            progress_fn(v);
+                            None
                         }
                     }
                 })

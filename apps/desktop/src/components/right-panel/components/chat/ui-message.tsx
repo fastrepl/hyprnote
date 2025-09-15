@@ -244,7 +244,6 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
           // Tool execution start (input streaming or available)
           if (
             (toolPart.state === "input-streaming" || toolPart.state === "input-available")
-            && toolName !== "progress_update"
           ) {
             return (
               <div
@@ -322,7 +321,7 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
           }
 
           // Tool completion (output available)
-          if (toolPart.state === "output-available" && toolName !== "progress_update") {
+          if (toolPart.state === "output-available") {
             return (
               <div
                 key={`${message.id}-result-${index}`}
@@ -432,7 +431,7 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
           }
 
           // Tool error
-          if (toolPart.state === "output-error" && toolName !== "progress_update") {
+          if (toolPart.state === "output-error") {
             return (
               <div
                 key={`${message.id}-error-${index}`}

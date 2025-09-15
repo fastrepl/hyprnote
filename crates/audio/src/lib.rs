@@ -66,6 +66,7 @@ impl AudioOutput {
 pub enum AudioSource {
     RealtimeMic,
     RealtimeSpeaker,
+    RealtimeMixed,
     Recorded,
 }
 
@@ -73,23 +74,26 @@ pub struct AudioInput {
     source: AudioSource,
     mic: Option<MicInput>,
     speaker: Option<SpeakerInput>,
+    mixed: Option<MixedInput>,
     data: Option<Vec<u8>>,
 }
 
-pub struct AudioDevice {
-    pub name: String,
-    pub input: bool,
-    pub headphone: bool,
-}
-
 impl AudioInput {
-    pub fn get_default_mic_device() -> AudioDevice {
-        let host = cpal::default_host();
-        let device = host.default_input_device().unwrap();
+    pub fn get_default_mic_name() -> String {
+        let name = {
+            let host = cpal::default_host();
+            let device = host.default_input_device().unwrap();
+            device.name().unwrap_or("Unknown Microphone".to_string())
+        };
+
+        name
+    }
+
+    pub fn is_using_headphone() -> bool {
         let headphone = {
             #[cfg(target_os = "macos")]
             {
-                utils::macos::is_headphone_from_default_device()
+                utils::macos::is_headphone_from_default_output_device()
             }
             #[cfg(not(target_os = "macos"))]
             {
@@ -97,11 +101,7 @@ impl AudioInput {
             }
         };
 
-        AudioDevice {
-            name: device.name().unwrap_or("Unknown Microphone".to_string()),
-            input: true,
-            headphone,
-        }
+        headphone
     }
 
     pub fn list_mic_devices() -> Vec<String> {
@@ -126,6 +126,7 @@ impl AudioInput {
             source: AudioSource::RealtimeMic,
             mic: Some(mic),
             speaker: None,
+            mixed: None,
             data: None,
         })
     }
@@ -135,8 +136,21 @@ impl AudioInput {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
             speaker: Some(SpeakerInput::new().unwrap()),
+            mixed: None,
             data: None,
         }
+    }
+
+    pub fn from_mixed() -> Result<Self, crate::Error> {
+        let mixed = MixedInput::new().unwrap();
+
+        Ok(Self {
+            source: AudioSource::RealtimeMixed,
+            mic: None,
+            speaker: None,
+            mixed: Some(mixed),
+            data: None,
+        })
     }
 
     pub fn from_recording(data: Vec<u8>) -> Self {
@@ -144,6 +158,7 @@ impl AudioInput {
             source: AudioSource::Recorded,
             mic: None,
             speaker: None,
+            mixed: None,
             data: Some(data),
         }
     }
@@ -151,8 +166,9 @@ impl AudioInput {
     pub fn device_name(&self) -> String {
         match &self.source {
             AudioSource::RealtimeMic => self.mic.as_ref().unwrap().device_name(),
-            AudioSource::RealtimeSpeaker => "TODO".to_string(),
-            AudioSource::Recorded => "TODO".to_string(),
+            AudioSource::RealtimeSpeaker => "RealtimeSpeaker".to_string(),
+            AudioSource::RealtimeMixed => "Mixed Audio".to_string(),
+            AudioSource::Recorded => "Recorded".to_string(),
         }
     }
 
@@ -163,6 +179,9 @@ impl AudioInput {
             },
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
+            },
+            AudioSource::RealtimeMixed => AudioStream::RealtimeMixed {
+                mixed: self.mixed.take().unwrap().stream(),
             },
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
@@ -175,6 +194,7 @@ impl AudioInput {
 pub enum AudioStream {
     RealtimeMic { mic: MicStream },
     RealtimeSpeaker { speaker: SpeakerStream },
+    RealtimeMixed { mixed: MixedStream },
     Recorded { data: Vec<u8>, position: usize },
 }
 
@@ -191,7 +211,7 @@ impl Stream for AudioStream {
         match &mut *self {
             AudioStream::RealtimeMic { mic } => mic.poll_next_unpin(cx),
             AudioStream::RealtimeSpeaker { speaker } => speaker.poll_next_unpin(cx),
-            // assume pcm_s16le, without WAV header
+            AudioStream::RealtimeMixed { mixed } => mixed.poll_next_unpin(cx),
             AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
                     let bytes = [data[*position], data[*position + 1]];
@@ -217,6 +237,7 @@ impl kalosm_sound::AsyncSource for AudioStream {
         match self {
             AudioStream::RealtimeMic { mic } => mic.sample_rate(),
             AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
+            AudioStream::RealtimeMixed { mixed } => mixed.sample_rate(),
             AudioStream::Recorded { .. } => 16000,
         }
     }

@@ -124,7 +124,7 @@ impl MixedInput {
 
             ctx.current_sample_rate.store(
                 device
-                    .actual_sample_rate()
+                    .nominal_sample_rate()
                     .unwrap_or(ctx.format.absd().sample_rate) as u32,
                 Ordering::Release,
             );
@@ -133,6 +133,7 @@ impl MixedInput {
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
             {
                 let format = view.format();
+
                 if format.channel_count() > 1 {
                     let frame_count = view.frame_len() as usize;
                     let mut mixed_buffer = Vec::with_capacity(frame_count);

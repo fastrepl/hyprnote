@@ -28,7 +28,7 @@ pub struct SourceArgs {
 }
 
 pub struct SourceState {
-    device: Option<String>,
+    mic_device: Option<String>,
     proc: ActorRef<ProcMsg>,
     token: CancellationToken,
     mic_muted: Arc<AtomicBool>,
@@ -63,18 +63,21 @@ impl Actor for SourceActor {
         let myself_clone = myself.clone();
         std::thread::spawn(move || {
             while let Ok(event) = event_rx.recv() {
-                if let DeviceEvent::DefaultInputChanged { .. } = event {
-                    let new_device = AudioInput::get_default_mic_device().name;
-                    let _ = myself_clone.cast(SourceCtrl::SetMicDevice(Some(new_device)));
+                match event {
+                    DeviceEvent::DefaultInputChanged { .. }
+                    | DeviceEvent::DefaultOutputChanged { .. } => {
+                        let new_device = AudioInput::get_default_mic_name();
+                        let _ = myself_clone.cast(SourceCtrl::SetMicDevice(Some(new_device)));
+                    }
                 }
             }
         });
 
-        let device = AudioInput::get_default_mic_device().name;
+        let mic_device = AudioInput::get_default_mic_name();
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
 
         let mut st = SourceState {
-            device: Some(device),
+            mic_device: Some(mic_device),
             proc: args.proc,
             token: args.token,
             mic_muted: Arc::new(AtomicBool::new(false)),
@@ -114,11 +117,11 @@ impl Actor for SourceActor {
             }
             SourceCtrl::GetMicDevice(reply) => {
                 if !reply.is_closed() {
-                    let _ = reply.send(st.device.clone());
+                    let _ = reply.send(st.mic_device.clone());
                 }
             }
             SourceCtrl::SetMicDevice(dev) => {
-                st.device = dev;
+                st.mic_device = dev;
 
                 if let Some(cancel_token) = st.stream_cancel_token.take() {
                     cancel_token.cancel();
@@ -158,70 +161,118 @@ async fn start_source_loop(
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
     let myself2 = myself.clone();
-
     let proc = st.proc.clone();
     let token = st.token.clone();
     let mic_muted = st.mic_muted.clone();
     let spk_muted = st.spk_muted.clone();
+    let mic_device = st.mic_device.clone();
 
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
-    let mut mic_input = hypr_audio::AudioInput::from_mic(st.device.clone()).unwrap();
-    let mic_stream =
-        ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(hypr_aec::BLOCK_SIZE);
+    let use_mixed = !AudioInput::is_using_headphone();
+    tracing::info!(use_mixed = use_mixed);
 
-    let spk_input = hypr_audio::AudioInput::from_speaker().stream();
-    let spk_stream = ResampledAsyncSource::new(spk_input, SAMPLE_RATE).chunks(hypr_aec::BLOCK_SIZE);
+    let handle = if use_mixed {
+        tokio::spawn(async move {
+            let mixed_stream = {
+                let mut mixed_input = AudioInput::from_mixed().unwrap();
+                ResampledAsyncSource::new(mixed_input.stream(), SAMPLE_RATE)
+                    .chunks(hypr_aec::BLOCK_SIZE)
+            };
 
-    let handle = tokio::spawn(async move {
-        tokio::pin!(mic_stream);
-        tokio::pin!(spk_stream);
+            tokio::pin!(mixed_stream);
 
-        loop {
-            tokio::select! {
-                _ = token.cancelled() => {
-                    drop(mic_stream);
-                    drop(spk_stream);
-                    myself2.stop(None);
-                    return ();
-                }
-                _ = stream_cancel_token.cancelled() => {
-                    drop(mic_stream);
-                    drop(spk_stream);
-                    return ();
-                }
-                mic_next = mic_stream.next() => {
-                    if let Some(data) = mic_next {
-                        let output_data = if mic_muted.load(Ordering::Relaxed) {
-                            vec![0.0; data.len()]
-                        } else {
-                            data
-                        };
-
-                        let msg = ProcMsg::Mic(AudioChunk{ data: output_data });
-                        let _ = proc.cast(msg);
-                    } else {
-                        break;
+            loop {
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        drop(mixed_stream);
+                        myself2.stop(None);
+                        return;
                     }
-                }
-                spk_next = spk_stream.next() => {
-                    if let Some(data) = spk_next {
-                        let output_data = if spk_muted.load(Ordering::Relaxed) {
-                            vec![0.0; data.len()]
-                        } else {
-                            data
-                        };
+                    _ = stream_cancel_token.cancelled() => {
+                        drop(mixed_stream);
+                        return;
+                    }
+                    mixed_next = mixed_stream.next() => {
+                        if let Some(data) = mixed_next {
+                            let output_data = if mic_muted.load(Ordering::Relaxed) || spk_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
+                            } else {
+                                data
+                            };
 
-                        let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
-                        let _ = proc.cast(msg);
-                    } else {
-                        break;
+                            let msg = ProcMsg::Mixed(AudioChunk{ data: output_data });
+                            let _ = proc.cast(msg);
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
-        }
-    });
+        })
+    } else {
+        tokio::spawn(async move {
+            let mic_stream = {
+                let mut mic_input = hypr_audio::AudioInput::from_mic(mic_device).unwrap();
+                ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE)
+                    .chunks(hypr_aec::BLOCK_SIZE)
+            };
+
+            let spk_stream = {
+                let mut spk_input = hypr_audio::AudioInput::from_speaker();
+                ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE)
+                    .chunks(hypr_aec::BLOCK_SIZE)
+            };
+
+            tokio::pin!(mic_stream);
+            tokio::pin!(spk_stream);
+
+            loop {
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        drop(mic_stream);
+                        drop(spk_stream);
+                        myself2.stop(None);
+                        return;
+                    }
+                    _ = stream_cancel_token.cancelled() => {
+                        drop(mic_stream);
+                        drop(spk_stream);
+                        return;
+                    }
+                    mic_next = mic_stream.next() => {
+                        if let Some(data) = mic_next {
+                            let output_data = if mic_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
+                            } else {
+                                data
+                            };
+
+                            let msg = ProcMsg::Mic(AudioChunk{ data: output_data });
+                            let _ = proc.cast(msg);
+                        } else {
+                            break;
+                        }
+                    }
+                    spk_next = spk_stream.next() => {
+                        if let Some(data) = spk_next {
+                            let output_data = if spk_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
+                            } else {
+                                data
+                            };
+
+                            let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
+                            let _ = proc.cast(msg);
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        })
+    };
 
     st.run_task = Some(handle);
     Ok(())

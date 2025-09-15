@@ -52,13 +52,6 @@ impl SpeakerInput {
         let output_device = ca::System::default_output_device()?;
         let output_uid = output_device.uid()?;
 
-        tracing::info!(
-            name = ?output_device.name().unwrap_or("Unknown Speaker".into()),
-            nominal_sample_rate = ?output_device.nominal_sample_rate().unwrap(),
-            actual_sample_rate = ?output_device.actual_sample_rate().unwrap(),
-            "speaker_output_device"
-        );
-
         let sub_device = cf::DictionaryOf::with_keys_values(
             &[ca::sub_device_keys::uid()],
             &[output_uid.as_type_ref()],
@@ -115,7 +108,7 @@ impl SpeakerInput {
 
             ctx.current_sample_rate.store(
                 device
-                    .actual_sample_rate()
+                    .nominal_sample_rate()
                     .unwrap_or(ctx.format.absd().sample_rate) as u32,
                 Ordering::Release,
             );

@@ -3,7 +3,7 @@ use std::thread::JoinHandle;
 
 #[derive(Debug, Clone)]
 pub enum DeviceEvent {
-    DefaultInputChanged { headphone: bool },
+    DefaultInputChanged,
     DefaultOutputChanged { headphone: bool },
 }
 
@@ -63,7 +63,7 @@ impl DeviceMonitor {
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
-    use crate::utils::macos::is_headphone_from_default_device;
+    use crate::utils::macos::is_headphone_from_default_output_device;
     use cidre::{core_audio as ca, ns, os};
 
     extern "C-unwind" fn listener(
@@ -78,11 +78,10 @@ mod macos {
         for addr in addresses {
             match addr.selector {
                 ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
-                    let headphone = is_headphone_from_default_device();
-                    let _ = event_tx.send(DeviceEvent::DefaultInputChanged { headphone });
+                    let _ = event_tx.send(DeviceEvent::DefaultInputChanged);
                 }
                 ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
-                    let headphone = is_headphone_from_default_device();
+                    let headphone = is_headphone_from_default_output_device();
                     let _ = event_tx.send(DeviceEvent::DefaultOutputChanged { headphone });
                 }
                 _ => {}

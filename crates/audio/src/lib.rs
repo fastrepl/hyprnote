@@ -4,6 +4,7 @@ mod mic;
 mod norm;
 mod resampler;
 mod speaker;
+mod utils;
 
 pub use device_monitor::*;
 pub use errors::*;
@@ -11,6 +12,7 @@ pub use mic::*;
 pub use norm::*;
 pub use resampler::*;
 pub use speaker::*;
+pub use utils::*;
 
 pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -72,11 +74,32 @@ pub struct AudioInput {
     data: Option<Vec<u8>>,
 }
 
+pub struct AudioDevice {
+    pub name: String,
+    pub input: bool,
+    pub headphone: bool,
+}
+
 impl AudioInput {
-    pub fn get_default_mic_device_name() -> String {
+    pub fn get_default_mic_device() -> AudioDevice {
         let host = cpal::default_host();
         let device = host.default_input_device().unwrap();
-        device.name().unwrap_or("Unknown Microphone".to_string())
+        let headphone = {
+            #[cfg(target_os = "macos")]
+            {
+                utils::macos::is_headphone_from_default_device()
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                false
+            }
+        };
+
+        AudioDevice {
+            name: device.name().unwrap_or("Unknown Microphone".to_string()),
+            input: true,
+            headphone,
+        }
     }
 
     pub fn list_mic_devices() -> Vec<String> {

@@ -311,7 +311,7 @@ impl SessionSupervisor {
         )
         .await?;
         state.listen = Some(listen_ref.clone());
-        processor_ref.cast(ProcMsg::AttachListen(listen_ref))?;
+        processor_ref.cast(ProcMsg::AttachListener(listen_ref))?;
 
         {
             use tauri_plugin_tray::TrayPluginExt;

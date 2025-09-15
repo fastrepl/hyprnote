@@ -16,8 +16,9 @@ const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 
 pub enum ProcMsg {
     Mic(AudioChunk),
-    Spk(AudioChunk),
-    AttachListen(ActorRef<ListenMsg>),
+    Speaker(AudioChunk),
+    Mixed(AudioChunk),
+    AttachListener(ActorRef<ListenMsg>),
     AttachRecorder(ActorRef<RecMsg>),
 }
 
@@ -81,7 +82,7 @@ impl Actor for AudioProcessor {
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match msg {
-            ProcMsg::AttachListen(actor) => st.listen = Some(actor),
+            ProcMsg::AttachListener(actor) => st.listen = Some(actor),
             ProcMsg::AttachRecorder(actor) => st.recorder = Some(actor),
             ProcMsg::Mic(mut c) => {
                 st.agc_m.process(&mut c.data);
@@ -90,11 +91,18 @@ impl Actor for AudioProcessor {
                 st.joiner.push_mic(arc);
                 process_ready(st).await;
             }
-            ProcMsg::Spk(mut c) => {
+            ProcMsg::Speaker(mut c) => {
                 st.agc_s.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
                 st.last_spk = Some(arc.clone());
                 st.joiner.push_spk(arc);
+                process_ready(st).await;
+            }
+            ProcMsg::Mixed(mut c) => {
+                st.agc_m.process(&mut c.data);
+                let arc = Arc::<[f32]>::from(c.data);
+                st.last_mic = Some(arc.clone());
+                st.joiner.push_mic(arc);
                 process_ready(st).await;
             }
         }

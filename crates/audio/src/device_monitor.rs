@@ -63,7 +63,8 @@ impl DeviceMonitor {
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
-    use cidre::{core_audio as ca, io, ns, os};
+    use crate::utils::macos::is_headphone_from_default_device;
+    use cidre::{core_audio as ca, ns, os};
 
     extern "C-unwind" fn listener(
         _obj_id: ca::Obj,
@@ -77,34 +78,17 @@ mod macos {
         for addr in addresses {
             match addr.selector {
                 ca::PropSelector::HW_DEFAULT_INPUT_DEVICE => {
-                    let headphone = detect_headphones(ca::System::default_input_device().ok());
+                    let headphone = is_headphone_from_default_device();
                     let _ = event_tx.send(DeviceEvent::DefaultInputChanged { headphone });
                 }
                 ca::PropSelector::HW_DEFAULT_OUTPUT_DEVICE => {
-                    let headphone = detect_headphones(ca::System::default_output_device().ok());
+                    let headphone = is_headphone_from_default_device();
                     let _ = event_tx.send(DeviceEvent::DefaultOutputChanged { headphone });
                 }
                 _ => {}
             }
         }
         os::Status::NO_ERR
-    }
-
-    fn detect_headphones(device: Option<ca::Device>) -> bool {
-        match device {
-            Some(device) => match device.streams() {
-                Ok(streams) => streams.iter().any(|s| {
-                    if let Ok(term_type) = s.terminal_type() {
-                        term_type.0 == io::audio::output_term::HEADPHONES
-                            || term_type == ca::StreamTerminalType::HEADPHONES
-                    } else {
-                        false
-                    }
-                }),
-                Err(_) => false,
-            },
-            None => false,
-        }
     }
 
     pub(super) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {

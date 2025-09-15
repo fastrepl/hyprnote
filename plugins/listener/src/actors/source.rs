@@ -64,13 +64,13 @@ impl Actor for SourceActor {
         std::thread::spawn(move || {
             while let Ok(event) = event_rx.recv() {
                 if let DeviceEvent::DefaultInputChanged { .. } = event {
-                    let new_device = AudioInput::get_default_mic_device_name();
+                    let new_device = AudioInput::get_default_mic_device().name;
                     let _ = myself_clone.cast(SourceCtrl::SetMicDevice(Some(new_device)));
                 }
             }
         });
 
-        let device = AudioInput::get_default_mic_device_name();
+        let device = AudioInput::get_default_mic_device().name;
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
 
         let mut st = SourceState {
@@ -213,7 +213,7 @@ async fn start_source_loop(
                             data
                         };
 
-                        let msg = ProcMsg::Spk(AudioChunk{ data: output_data });
+                        let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
                         let _ = proc.cast(msg);
                     } else {
                         break;

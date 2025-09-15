@@ -1,9 +1,10 @@
+use super::InstalledApp;
 use cidre::core_audio as ca;
 
-use super::InstalledApp;
-use std::path::PathBuf;
-
+#[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
+    use std::path::PathBuf;
+
     let app_dirs = [
         "/Applications",
         &format!("{}/Applications", std::env::var("HOME").unwrap_or_default()),
@@ -35,10 +36,16 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
         }
     }
 
-    apps.sort_by(|a, b| a.localized_name.cmp(&b.localized_name));
+    apps.sort_by(|a, b| a.name.cmp(&b.name));
     apps
 }
 
+#[cfg(not(target_os = "macos"))]
+pub fn list_installed_apps() -> Vec<InstalledApp> {
+    Vec::new()
+}
+
+#[cfg(target_os = "macos")]
 pub fn list_mic_using_apps() -> Vec<InstalledApp> {
     let processes = ca::System::processes().ok().unwrap();
 
@@ -60,8 +67,8 @@ pub fn list_mic_using_apps() -> Vec<InstalledApp> {
                     .unwrap_or_default();
 
                 out.push(InstalledApp {
-                    bundle_id,
-                    localized_name,
+                    id: bundle_id,
+                    name: localized_name,
                 });
             }
         }
@@ -87,8 +94,8 @@ fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
                 .to_string();
 
             return Some(InstalledApp {
-                bundle_id,
-                localized_name,
+                id: bundle_id,
+                name: localized_name,
             });
         }
     }
@@ -108,7 +115,7 @@ mod tests {
         println!(
             "{}",
             apps.iter()
-                .map(|a| format!("- {} ({})", a.localized_name, a.bundle_id))
+                .map(|a| format!("- {} ({})", a.name, a.id))
                 .collect::<Vec<_>>()
                 .join("\n")
         );
@@ -122,7 +129,7 @@ mod tests {
         println!(
             "{}",
             apps.iter()
-                .map(|a| format!("- {} ({})", a.localized_name, a.bundle_id))
+                .map(|a| format!("- {} ({})", a.name, a.id))
                 .collect::<Vec<_>>()
                 .join("\n")
         );

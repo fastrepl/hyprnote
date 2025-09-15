@@ -12,6 +12,9 @@
     }
   },
   "bundle": {
+    "resources": {
+      "dlls/*": "./"
+    },
     "macOS": {
       "files": {
         "embedded.provisionprofile": "assets/hyprnote-stable.provisionprofile"

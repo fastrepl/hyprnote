@@ -30,19 +30,22 @@ impl UserDatabase {
                     title,
                     description,
                     sections,
-                    tags
+                    tags,
+                    context_option
                 ) VALUES (
                     :id,
                     :user_id,
                     :title,
                     :description,
                     :sections,
-                    :tags
+                    :tags,
+                    :context_option
                 ) ON CONFLICT(id) DO UPDATE SET
                     title = :title,
                     description = :description,
                     sections = :sections,
-                    tags = :tags
+                    tags = :tags,
+                    context_option = :context_option
                 RETURNING *",
                 libsql::named_params! {
                     ":id": template.id,
@@ -51,6 +54,7 @@ impl UserDatabase {
                     ":description": template.description,
                     ":sections": serde_json::to_string(&template.sections).unwrap(),
                     ":tags": serde_json::to_string(&template.tags).unwrap(),
+                    ":context_option": template.context_option.as_deref().unwrap_or(""),
                 },
             )
             .await?;
@@ -96,6 +100,9 @@ mod tests {
                 description: "test".to_string(),
                 sections: vec![],
                 tags: vec![],
+                context_option: Some(
+                    r#"{"type":"tags","selections":["Meeting","Project A"]}"#.to_string(),
+                ),
             })
             .await
             .unwrap();

@@ -8,6 +8,7 @@ user_common_derives! {
         pub description: String,
         pub sections: Vec<TemplateSection>,
         pub tags: Vec<String>,
+        pub context_option: Option<String>,
     }
 }
 
@@ -33,6 +34,7 @@ impl Template {
                 .get_str(5)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
+            context_option: row.get(6).ok(),
         })
     }
 }

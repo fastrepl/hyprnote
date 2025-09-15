@@ -84,12 +84,32 @@ impl NotificationHandler {
                 }
 
                 if apps.iter().any(|app| {
+                    vec![
+                        "com.electron.wispr-flow",
+                        "com.seewillow.WillowMac",
+                        "com.superduper.superwhisper",
+                        "dev.warp.Warp-Stable",
+                        "so.cap.desktop",
+                        "com.timpler.screenstudio",
+                        "com.loom.desktop",
+                        "com.obsproject.obs-studio",
+                        "com.prakashjoshipax.VoiceInk",
+                        "com.goodsnooze.macwhisper",
+                        "com.descript.beachcube",
+                    ]
+                    .contains(&app.id.as_str())
+                }) {
+                    tracing::info!(reason = "ignore_platforms_default", "skip_notification");
+                    return;
+                }
+
+                if apps.iter().any(|app| {
                     app_handle
                         .get_ignored_platforms()
                         .unwrap_or_default()
-                        .contains(app)
+                        .contains(&app.name)
                 }) {
-                    tracing::info!(reason = "ignore_platforms", "skip_notification");
+                    tracing::info!(reason = "ignore_platforms_user", "skip_notification");
                     return;
                 }
 
@@ -112,7 +132,7 @@ impl NotificationHandler {
                         .key(key)
                         .message("Based on your microphone activity")
                         .url("hypr://hyprnote.com/app/new?record=true")
-                        .timeout(std::time::Duration::from_secs(300))
+                        .timeout(std::time::Duration::from_secs(5))
                         .build(),
                 );
             }

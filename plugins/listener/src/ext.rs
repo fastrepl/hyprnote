@@ -1,12 +1,15 @@
 use std::future::Future;
 
 use futures_util::StreamExt;
+use ractor::call_t;
 
 #[cfg(target_os = "macos")]
 use {
     objc2::{class, msg_send, runtime::Bool},
     objc2_foundation::NSString,
 };
+
+use crate::actors::SessionMsg;
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
@@ -44,8 +47,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
         let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
-        Ok(s.fsm.get_current_mic_device())
+        let guard = state.lock().await;
+
+        if let Some(supervisor) = &guard.supervisor {
+            match call_t!(supervisor, SessionMsg::GetMicDeviceName, 100) {
+                Ok(device_name) => Ok(device_name),
+                Err(_) => Ok(None),
+            }
+        } else {
+            Ok(None)
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -54,11 +65,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::MicChange(Some(device_name.into()));
-            guard.fsm.handle(&event).await;
+        if let Some(supervisor) = &guard.supervisor {
+            let _ = supervisor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
         }
 
         Ok(())
@@ -178,70 +188,78 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn get_state(&self) -> crate::fsm::State {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
-        guard.fsm.state().clone()
+        guard.get_state().await
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let guard = state.lock().await;
-            guard.fsm.is_mic_muted()
+        if let Some(supervisor) = &guard.supervisor {
+            match call_t!(supervisor, SessionMsg::GetMicMute, 100) {
+                Ok(muted) => muted,
+                Err(_) => false,
+            }
+        } else {
+            false
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let guard = state.lock().await;
-            guard.fsm.is_speaker_muted()
+        if let Some(supervisor) = &guard.supervisor {
+            match call_t!(supervisor, SessionMsg::GetSpeakerMute, 100) {
+                Ok(muted) => muted,
+                Err(_) => false,
+            }
+        } else {
+            false
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::MicMuted(muted);
-            guard.fsm.handle(&event).await;
+        if let Some(supervisor) = &guard.supervisor {
+            let _ = supervisor.cast(SessionMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_speaker_muted(&self, muted: bool) {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::SpeakerMuted(muted);
-            guard.fsm.handle(&event).await;
+        if let Some(supervisor) = &guard.supervisor {
+            let _ = supervisor.cast(SessionMsg::SetSpeakerMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn start_session(&self, session_id: impl Into<String>) {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Start(session_id.into());
-            guard.fsm.handle(&event).await;
+        if let Some(supervisor) = &guard.supervisor {
+            let _ = supervisor.cast(SessionMsg::Start {
+                session_id: session_id.into(),
+            });
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Stop;
-            guard.fsm.handle(&event).await;
+        if let Some(supervisor) = &guard.supervisor {
+            let _ = supervisor.cast(SessionMsg::Stop);
         }
     }
 }

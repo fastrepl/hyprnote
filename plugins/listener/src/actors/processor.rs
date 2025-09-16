@@ -101,8 +101,11 @@ impl Actor for AudioProcessor {
             ProcMsg::Mixed(mut c) => {
                 st.agc_m.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
+
                 st.last_mic = Some(arc.clone());
-                st.joiner.push_mic(arc);
+                st.last_spk = Some(arc.clone());
+                st.joiner.push_mic(arc.clone());
+                st.joiner.push_spk(arc);
                 process_ready(st).await;
             }
         }

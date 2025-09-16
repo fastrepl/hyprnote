@@ -7,12 +7,6 @@ pub mod macos {
             Some(device) => match device.streams() {
                 Ok(streams) => streams.iter().any(|s| {
                     if let Ok(term_type) = s.terminal_type() {
-                        println!(
-                            "device={} / term_type={:?}",
-                            device.name().unwrap(),
-                            term_type
-                        );
-
                         term_type.0 == io::audio::output_term::HEADPHONES
                             || term_type == ca::StreamTerminalType::HEADPHONES
                     } else {

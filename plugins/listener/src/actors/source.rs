@@ -73,11 +73,13 @@ impl Actor for SourceActor {
             }
         });
 
-        let mic_device = AudioInput::get_default_mic_name();
+        let mic_device = args
+            .device
+            .or_else(|| Some(AudioInput::get_default_mic_name()));
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
 
         let mut st = SourceState {
-            mic_device: Some(mic_device),
+            mic_device,
             proc: args.proc,
             token: args.token,
             mic_muted: Arc::new(AtomicBool::new(false)),
@@ -170,10 +172,14 @@ async fn start_source_loop(
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
+    #[cfg(target_os = "macos")]
     let use_mixed = !AudioInput::is_using_headphone();
-    tracing::info!(use_mixed = use_mixed);
+
+    #[cfg(not(target_os = "macos"))]
+    let use_mixed = false;
 
     let handle = if use_mixed {
+        #[cfg(target_os = "macos")]
         tokio::spawn(async move {
             let mixed_stream = {
                 let mut mixed_input = AudioInput::from_mixed().unwrap();
@@ -196,7 +202,8 @@ async fn start_source_loop(
                     }
                     mixed_next = mixed_stream.next() => {
                         if let Some(data) = mixed_next {
-                            let output_data = if mic_muted.load(Ordering::Relaxed) || spk_muted.load(Ordering::Relaxed) {
+                            // TODO: should be able to mute each stream
+                            let output_data = if mic_muted.load(Ordering::Relaxed) && spk_muted.load(Ordering::Relaxed) {
                                 vec![0.0; data.len()]
                             } else {
                                 data

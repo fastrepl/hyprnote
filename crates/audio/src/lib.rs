@@ -141,6 +141,7 @@ impl AudioInput {
         }
     }
 
+    #[cfg(target_os = "macos")]
     pub fn from_mixed() -> Result<Self, crate::Error> {
         let mixed = MixedInput::new().unwrap();
 

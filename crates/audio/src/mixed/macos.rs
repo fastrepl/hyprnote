@@ -74,6 +74,11 @@ impl MixedInput {
             &[input_uid.as_type_ref()],
         );
 
+        let output_sub_device = cf::DictionaryOf::with_keys_values(
+            &[sub_device_keys::uid()],
+            &[output_uid.as_type_ref()],
+        );
+
         let sub_tap = cf::DictionaryOf::with_keys_values(
             &[ca::sub_device_keys::uid()],
             &[tap.uid().unwrap().as_type_ref()],
@@ -98,7 +103,7 @@ impl MixedInput {
                 cf::str!(c"mixed-audio-tap"),
                 &output_uid,
                 &cf::Uuid::new().to_cf_string(),
-                &cf::ArrayOf::from_slice(&[input_sub_device.as_ref()]),
+                &cf::ArrayOf::from_slice(&[input_sub_device.as_ref(), output_sub_device.as_ref()]),
                 &cf::ArrayOf::from_slice(&[sub_tap.as_ref()]),
                 &input_uid, // Use input device as clock source for consistency
             ],

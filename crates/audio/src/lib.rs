@@ -182,7 +182,7 @@ impl AudioInput {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
             },
             AudioSource::RealtimeMixed => AudioStream::RealtimeMixed {
-                mixed: self.mixed.take().unwrap().stream(),
+                mixed: self.mixed.take().unwrap().stream().unwrap(),
             },
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),

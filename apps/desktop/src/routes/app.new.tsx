@@ -3,6 +3,7 @@ import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { logFrontendError } from "@/logging/frontend-logger";
 
 const schema = z.object({
   record: z.boolean().optional(),
@@ -86,7 +87,7 @@ export const Route = createFileRoute("/app/new")({
         params: { id: sessionId },
       });
     } catch (error) {
-      console.error(error);
+      logFrontendError("route.new.create_session_failed", error, { calendarEventId, record });
       return redirect({ to: "/app" });
     }
   },

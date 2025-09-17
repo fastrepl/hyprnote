@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { logFrontendError } from "@/logging/frontend-logger";
 
 import EditorArea from "@/components/editor-area";
 import { useHypr } from "@/contexts";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/app/note/$id")({
           ]);
           session = s;
         } catch (e) {
-          console.error(e);
+          logFrontendError("route.note.load_session_failed", e, { id });
         }
 
         if (!session) {
@@ -101,7 +102,7 @@ export const Route = createFileRoute("/app/note/$id")({
               }
             }
           } catch (error) {
-            console.error("Failed to sync participants:", error);
+            logFrontendError("route.note.sync_participants_failed", error, { id });
           }
         }
 
@@ -150,7 +151,7 @@ function Component() {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
     onError: (error) => {
-      console.error(error);
+      logFrontendError("route.note.delete_session_failed", error, { sessionId });
     },
   });
 

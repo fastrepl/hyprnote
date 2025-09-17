@@ -1,4 +1,5 @@
 import type { Template } from "@hypr/plugin-db";
+import { logFrontendError } from "@/logging/frontend-logger";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { DEFAULT_TEMPLATES, isDefaultTemplate } from "./default-templates";
 
@@ -11,7 +12,7 @@ export class TemplateService {
 
       return [...DEFAULT_TEMPLATES, ...filteredDbTemplates];
     } catch (error) {
-      console.error("Failed to load database templates:", error);
+      logFrontendError("templates.load_all_failed", error);
 
       return DEFAULT_TEMPLATES;
     }
@@ -27,7 +28,7 @@ export class TemplateService {
       const dbTemplates = await dbCommands.listTemplates();
       return dbTemplates.find(t => t.id === templateId) || null;
     } catch (error) {
-      console.error("Failed to load database template:", error);
+      logFrontendError("templates.load_one_failed", error, { templateId });
       return null;
     }
   }

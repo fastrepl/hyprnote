@@ -6,6 +6,9 @@ import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
+import FileHandler from "@tiptap/extension-file-handler";
+
+import { commands as miscCommands } from "@hypr/plugin-misc";
 
 import { AIHighlight } from "./ai-highlight";
 import { StreamingAnimation } from "./animation";
@@ -13,7 +16,13 @@ import { ClipboardTextSerializer } from "./clipboard";
 import CustomListKeymap from "./custom-list-keymap";
 import { Hashtag } from "./hashtag";
 
-export const extensions = [
+// Helper function to extract file extension
+const getFileExtension = (filename: string): string => {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  return ext || 'png';
+};
+
+export const createExtensions = (sessionId: string) => [
   StarterKit.configure({
     heading: {
       levels: [1],
@@ -89,4 +98,72 @@ export const extensions = [
   CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,
+  FileHandler.configure({
+    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+    onDrop: async (currentEditor, files, pos) => {
+      console.log("onDrop", files, pos)
+      for (const file of files) {
+        try {
+          // Convert file to bytes
+          const arrayBuffer = await file.arrayBuffer()
+          const bytes = new Uint8Array(arrayBuffer)
+          const extension = getFileExtension(file.name)
+          
+          // Upload via Tauri command
+          const imageUrl = await miscCommands.imageUpload(sessionId, Array.from(bytes), extension)
+          
+          // Insert URL (not base64!)
+          currentEditor
+            .chain()
+            .insertContentAt(pos, {
+              type: 'image',
+              attrs: {
+                src: imageUrl,
+              },
+            })
+            .focus()
+            .run()
+        } catch (error) {
+          console.error('Failed to upload image:', error)
+        }
+      }
+    },
+    onPaste: async (currentEditor, files, htmlContent) => {
+      for (const file of files) {
+        console.log("onPaste", files, htmlContent)
+        if (htmlContent) {
+          // if there is htmlContent, stop manual insertion & let other extensions handle insertion via inputRule
+          console.log(htmlContent) // eslint-disable-line no-console
+          return false
+        }
+
+        try {
+          // Convert file to bytes
+          const arrayBuffer = await file.arrayBuffer()
+          const bytes = new Uint8Array(arrayBuffer)
+          const extension = getFileExtension(file.name)
+          
+          // Upload via Tauri command
+          const imageUrl = await miscCommands.imageUpload(sessionId, Array.from(bytes), extension)
+          
+          // Insert URL (not base64!)
+          currentEditor
+            .chain()
+            .insertContentAt(currentEditor.state.selection.anchor, {
+              type: 'image',
+              attrs: {
+                src: imageUrl,
+              },
+            })
+            .focus()
+            .run()
+        } catch (error) {
+          console.error('Failed to upload image:', error)
+        }
+      }
+    },
+  }),
 ];
+
+// For backward compatibility - default extensions without session ID
+export const extensions = createExtensions('');

@@ -367,6 +367,30 @@
           "markdownDescription": "Denies the get_git_hash command without any pre-configured scope."
         },
         {
+          "description": "Enables the image_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-image-delete",
+          "markdownDescription": "Enables the image_delete command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the image_delete command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-image-delete",
+          "markdownDescription": "Denies the image_delete command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the image_upload command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-image-upload",
+          "markdownDescription": "Enables the image_upload command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the image_upload command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-image-upload",
+          "markdownDescription": "Denies the image_upload command without any pre-configured scope."
+        },
+        {
           "description": "Enables the opinionated_md_to_html command without any pre-configured scope.",
           "type": "string",
           "const": "allow-opinionated-md-to-html",
@@ -391,10 +415,10 @@
           "markdownDescription": "Denies the parse_meeting_link command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-image-upload`\n- `allow-image-delete`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-get-git-hash`\n- `allow-get-fingerprint`\n- `allow-opinionated-md-to-html`\n- `allow-delete-session-folder`\n- `allow-parse-meeting-link`\n- `allow-audio-open`\n- `allow-audio-exist`\n- `allow-audio-delete`\n- `allow-image-upload`\n- `allow-image-delete`"
         }
       ]
     }

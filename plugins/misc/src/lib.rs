@@ -16,6 +16,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::audio_exist::<tauri::Wry>,
             commands::audio_open::<tauri::Wry>,
             commands::audio_delete::<tauri::Wry>,
+            commands::image_upload::<tauri::Wry>,
+            commands::image_delete::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

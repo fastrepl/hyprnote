@@ -603,13 +603,13 @@ importers:
         version: link:../utils
       '@remixicon/react':
         specifier: ^4.6.0
-        version: 4.6.0(react@18.3.1)
+        version: 4.6.0(react@19.1.1)
       '@tanstack/react-query':
         specifier: ^5.87.1
-        version: 5.87.1(react@18.3.1)
+        version: 5.87.1(react@19.1.1)
       '@tanstack/react-router':
         specifier: ^1.131.35
-        version: 1.131.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.131.35(react-dom@18.3.1(react@19.1.1))(react@19.1.1)
       '@tiptap/core':
         specifier: ^3.4.1
         version: 3.4.1(@tiptap/pm@3.4.1)
@@ -619,6 +619,9 @@ importers:
       '@tiptap/extension-document':
         specifier: ^3.4.1
         version: 3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))
+      '@tiptap/extension-file-handler':
+        specifier: ^3.4.2
+        version: 3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/extension-text-style@3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1)))(@tiptap/pm@3.4.1)
       '@tiptap/extension-highlight':
         specifier: ^3.4.1
         version: 3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))
@@ -663,7 +666,7 @@ importers:
         version: 3.4.1
       '@tiptap/react':
         specifier: ^3.4.1
-        version: 3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)(@types/react-dom@18.3.7(@types/react@18.3.24))(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)(@types/react-dom@18.3.7(@types/react@18.3.24))(@types/react@18.3.24)(react-dom@18.3.1(react@19.1.1))(react@19.1.1)
       '@tiptap/starter-kit':
         specifier: ^3.4.1
         version: 3.4.1
@@ -675,7 +678,7 @@ importers:
         version: 2.1.1
       lucide-react:
         specifier: ^0.525.0
-        version: 0.525.0(react@18.3.1)
+        version: 0.525.0(react@19.1.1)
       prosemirror-commands:
         specifier: ^1.7.1
         version: 1.7.1
@@ -687,10 +690,10 @@ importers:
         version: 1.4.3
       react:
         specifier: ^18.3.1
-        version: 18.3.1
+        version: 19.1.1
       react-dom:
         specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
+        version: 18.3.1(react@19.1.1)
       turndown:
         specifier: ^7.2.1
         version: 7.2.1
@@ -4207,6 +4210,13 @@ packages:
     peerDependencies:
       '@tiptap/extensions': ^3.4.1
 
+  '@tiptap/extension-file-handler@3.4.2':
+    resolution: {integrity: sha512-MjX1Y58/pGg7pbsZrg3iIBQy0HDDa/meNdna+tUyQIx0wJoQax1bmuCUug2QFer9bEZ/BYLa+SoqxILvNz1Ojg==}
+    peerDependencies:
+      '@tiptap/core': ^3.4.2
+      '@tiptap/extension-text-style': ^3.4.2
+      '@tiptap/pm': ^3.4.2
+
   '@tiptap/extension-floating-menu@3.4.1':
     resolution: {integrity: sha512-9qGINja20Kz4XI0uESoYiwgGo+ejvDrHiSoRmd3jkDMv6fGMXj1U+HYzqhXZTV30kuQZQN8twNmbmzBu+jltYQ==}
     peerDependencies:
@@ -4313,6 +4323,11 @@ packages:
     resolution: {integrity: sha512-zalJ/WXd3mOQb60HRJyH3LhqjmxeruxC7F3e9ee/n4VObP99Ml5Gr5tOlk8+RN9osIrguByp5y+ySb2KShIN8Q==}
     peerDependencies:
       '@tiptap/extension-list': ^3.4.1
+
+  '@tiptap/extension-text-style@3.4.2':
+    resolution: {integrity: sha512-ioCf7VxWj2t+seC2vfzGtGlcToGKpwz6R5HMpo6/CSBDTZc5LsPTiJqJ6R6ahjqWwAKHI6SzlW5vtS36OywDzw==}
+    peerDependencies:
+      '@tiptap/core': ^3.4.2
 
   '@tiptap/extension-text@3.4.1':
     resolution: {integrity: sha512-6qcBjRAE4HpjbFShf9e44uBuq8jMvrumzvK4FwhAwZ7S8nyywN1WLZY3S1UQLMYJr3wZn+9IhKMb2CjBeGIPiA==}
@@ -14011,6 +14026,10 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  '@remixicon/react@4.6.0(react@19.1.1)':
+    dependencies:
+      react: 19.1.1
+
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
   '@rollup/plugin-alias@5.1.1(rollup@4.50.0)':
@@ -14471,6 +14490,17 @@ snapshots:
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
+  '@tanstack/react-router@1.131.35(react-dom@18.3.1(react@19.1.1))(react@19.1.1)':
+    dependencies:
+      '@tanstack/history': 1.131.2
+      '@tanstack/react-store': 0.7.4(react-dom@18.3.1(react@19.1.1))(react@19.1.1)
+      '@tanstack/router-core': 1.131.35
+      isbot: 5.1.30
+      react: 19.1.1
+      react-dom: 18.3.1(react@19.1.1)
+      tiny-invariant: 1.3.3
+      tiny-warning: 1.0.3
+
   '@tanstack/react-start-client@1.131.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/react-router': 1.131.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -14584,6 +14614,13 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       use-sync-external-store: 1.5.0(react@18.3.1)
+
+  '@tanstack/react-store@0.7.4(react-dom@18.3.1(react@19.1.1))(react@19.1.1)':
+    dependencies:
+      '@tanstack/store': 0.7.4
+      react: 19.1.1
+      react-dom: 18.3.1(react@19.1.1)
+      use-sync-external-store: 1.5.0(react@19.1.1)
 
   '@tanstack/router-core@1.131.35':
     dependencies:
@@ -14935,6 +14972,12 @@ snapshots:
     dependencies:
       '@tiptap/extensions': 3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)
 
+  '@tiptap/extension-file-handler@3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/extension-text-style@3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1)))(@tiptap/pm@3.4.1)':
+    dependencies:
+      '@tiptap/core': 3.4.1(@tiptap/pm@3.4.1)
+      '@tiptap/extension-text-style': 3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))
+      '@tiptap/pm': 3.4.1
+
   '@tiptap/extension-floating-menu@3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)':
     dependencies:
       '@floating-ui/dom': 1.7.4
@@ -15024,6 +15067,10 @@ snapshots:
     dependencies:
       '@tiptap/extension-list': 3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)
 
+  '@tiptap/extension-text-style@3.4.2(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))':
+    dependencies:
+      '@tiptap/core': 3.4.1(@tiptap/pm@3.4.1)
+
   '@tiptap/extension-text@3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))':
     dependencies:
       '@tiptap/core': 3.4.1(@tiptap/pm@3.4.1)
@@ -15062,7 +15109,7 @@ snapshots:
       prosemirror-transform: 1.10.4
       prosemirror-view: 1.41.0
 
-  '@tiptap/react@3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)(@types/react-dom@18.3.7(@types/react@18.3.24))(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@tiptap/react@3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)(@types/react-dom@18.3.7(@types/react@18.3.24))(@types/react@18.3.24)(react-dom@18.3.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@tiptap/core': 3.4.1(@tiptap/pm@3.4.1)
       '@tiptap/pm': 3.4.1
@@ -15070,9 +15117,9 @@ snapshots:
       '@types/react-dom': 18.3.7(@types/react@18.3.24)
       '@types/use-sync-external-store': 0.0.6
       fast-deep-equal: 3.1.3
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      use-sync-external-store: 1.5.0(react@18.3.1)
+      react: 19.1.1
+      react-dom: 18.3.1(react@19.1.1)
+      use-sync-external-store: 1.5.0(react@19.1.1)
     optionalDependencies:
       '@tiptap/extension-bubble-menu': 3.4.1(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)
       '@tiptap/extension-floating-menu': 3.4.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.4.1(@tiptap/pm@3.4.1))(@tiptap/pm@3.4.1)
@@ -19400,6 +19447,10 @@ snapshots:
     dependencies:
       react: 18.3.1
 
+  lucide-react@0.525.0(react@19.1.1):
+    dependencies:
+      react: 19.1.1
+
   luxon@3.7.1:
     optional: true
 
@@ -21442,7 +21493,6 @@ snapshots:
       loose-envify: 1.4.0
       react: 19.1.1
       scheduler: 0.23.2
-    optional: true
 
   react-draggable@4.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -23211,6 +23261,10 @@ snapshots:
   use-sync-external-store@1.5.0(react@18.3.1):
     dependencies:
       react: 18.3.1
+
+  use-sync-external-store@1.5.0(react@19.1.1):
+    dependencies:
+      react: 19.1.1
 
   userhome@1.0.1: {}
 

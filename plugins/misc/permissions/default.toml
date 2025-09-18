@@ -9,4 +9,6 @@ permissions = [
     "allow-audio-open",
     "allow-audio-exist",
     "allow-audio-delete",
+    "allow-image-upload", 
+    "allow-image-delete",
 ]

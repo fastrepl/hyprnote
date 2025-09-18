@@ -301,12 +301,11 @@ export default function EditorArea({
               initialContent={noteContent}
               editable={enhance.status !== "pending"}
               setContentFromOutside={!showRaw && enhance.status === "pending"}
-              onImagePaste={handleImagePaste}
-              onImageCopy={handleImageCopy}
               mentionConfig={{
                 trigger: "@",
                 handleSearch: handleMentionSearch,
               }}
+              sessionId={sessionId}
             />
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}

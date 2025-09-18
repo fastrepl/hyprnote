@@ -48,11 +48,6 @@ permissions = [
     "allow-create-chat-group",
     "allow-upsert-chat-message",
     "allow-delete-chat-messages",
-    "allow-list-conversations", 
-    "allow-create-message-v2", 
-    "allow-create-conversation", 
-    "allow-list-messages-v2", 
-    "allow-update-message-v2-parts", 
     # tag
     "allow-upsert-tag",
     "allow-delete-tag",

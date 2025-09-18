@@ -1,13 +1,9 @@
 mod calendars_ops;
 mod calendars_types;
-mod chat_conversations_ops;
-mod chat_conversations_types;
 mod chat_groups_ops;
 mod chat_groups_types;
 mod chat_messages_ops;
 mod chat_messages_types;
-mod chat_messages_v2_ops;
-mod chat_messages_v2_types;
 mod config_ops;
 mod config_types;
 mod events_ops;
@@ -30,10 +26,6 @@ pub use calendars_ops::*;
 #[allow(unused)]
 pub use calendars_types::*;
 #[allow(unused)]
-pub use chat_conversations_ops::*;
-#[allow(unused)]
-pub use chat_conversations_types::*;
-#[allow(unused)]
 pub use chat_groups_ops::*;
 #[allow(unused)]
 pub use chat_groups_types::*;
@@ -41,10 +33,6 @@ pub use chat_groups_types::*;
 pub use chat_messages_ops::*;
 #[allow(unused)]
 pub use chat_messages_types::*;
-#[allow(unused)]
-pub use chat_messages_v2_ops::*;
-#[allow(unused)]
-pub use chat_messages_v2_types::*;
 #[allow(unused)]
 pub use config_ops::*;
 #[allow(unused)]
@@ -142,7 +130,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 26] = [
+const MIGRATIONS: [&str; 25] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -167,8 +155,7 @@ const MIGRATIONS: [&str; 26] = [
     include_str!("./events_migration_2.sql"),
     include_str!("./chat_messages_migration_1.sql"),
     include_str!("./chat_messages_migration_2.sql"),
-    include_str!("./chat_conversations_migration.sql"),
-    include_str!("./chat_messages_v2_migration.sql"),
+    include_str!("./templates_migration_1.sql"),
 ];
 
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {

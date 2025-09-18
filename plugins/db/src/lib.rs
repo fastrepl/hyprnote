@@ -70,11 +70,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::tags::unassign_tag_from_session,
             commands::tags::upsert_tag,
             commands::tags::delete_tag,
-            commands::chats_v2::create_conversation,
-            commands::chats_v2::list_conversations,
-            commands::chats_v2::create_message_v2,
-            commands::chats_v2::list_messages_v2,
-            commands::chats_v2::update_message_v2_parts,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

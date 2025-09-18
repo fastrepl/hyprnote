@@ -40,7 +40,6 @@ pub struct State {
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .events(tauri_specta::collect_events![events::LLMEvent])
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
             commands::list_supported_model,
@@ -66,9 +65,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(move |app, _api| {
-            specta_builder.mount_events(app);
-
+        .setup(|app, _api| {
             let data_dir = app.path().app_data_dir().unwrap();
             let models_dir = app.models_dir();
 

@@ -1,16 +1,14 @@
-import type { UIMessage } from "@hypr/utils/ai";
 import { useEffect, useRef, useState } from "react";
-import { UIMessageComponent } from "./ui-message";
+import { ChatMessage } from "./chat-message";
+import { Message } from "./types";
 
 interface ChatMessagesViewProps {
-  messages: UIMessage[];
+  messages: Message[];
   sessionTitle?: string;
   hasEnhancedNote?: boolean;
   onApplyMarkdown?: (markdownContent: string) => void;
-  isSubmitted?: boolean;
-  isStreaming?: boolean;
-  isReady?: boolean;
-  isError?: boolean;
+  isGenerating?: boolean;
+  isStreamingText?: boolean;
 }
 
 function ThinkingIndicator() {
@@ -32,7 +30,7 @@ function ThinkingIndicator() {
           }
         `}
       </style>
-      <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "0 0 8px 0" }}>
+      <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "4px 0" }}>
         <span>Thinking</span>
         <span className="thinking-dot">.</span>
         <span className="thinking-dot">.</span>
@@ -43,45 +41,27 @@ function ThinkingIndicator() {
 }
 
 export function ChatMessagesView(
-  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady, isError }:
-    ChatMessagesViewProps,
+  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isGenerating, isStreamingText }: ChatMessagesViewProps,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
   const thinkingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const shouldShowThinking = () => {
-    // Show thinking when request is submitted but not yet streaming
-    if (isSubmitted) {
+    if (!isGenerating) {
+      return false;
+    }
+
+    if (messages.length === 0) {
       return true;
     }
 
-    // Check if we're in transition between parts (text → tool or tool → text)
-    if (isStreaming && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === "assistant" && lastMessage.parts) {
-        const lastPart = lastMessage.parts[lastMessage.parts.length - 1];
-
-        // Text part finished but still streaming (tool coming)
-        if (lastPart?.type === "text" && !(lastPart as any).state) {
-          return true;
-        }
-
-        // Tool finished but still streaming (more text/tools coming)
-        if (lastPart?.type?.startsWith("tool-") || lastPart?.type === "dynamic-tool") {
-          const toolPart = lastPart as any;
-          if (
-            toolPart.state === "output-available"
-            || toolPart.state === "output-error"
-          ) {
-            return true;
-          }
-        }
-      }
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.isUser) {
+      return true;
     }
 
-    // Fallback for other transition states
-    if (!isReady && !isStreaming && !isError) {
+    if (!lastMessage.isUser && !isStreamingText) {
       return true;
     }
 
@@ -109,16 +89,16 @@ export function ChatMessagesView(
         clearTimeout(thinkingTimeoutRef.current);
       }
     };
-  }, [isSubmitted, isStreaming, isReady, isError, messages]);
+  }, [isGenerating, isStreamingText, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showThinking]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 select-text">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
       {messages.map((message) => (
-        <UIMessageComponent
+        <ChatMessage
           key={message.id}
           message={message}
           sessionTitle={sessionTitle}

@@ -1,12 +1,7 @@
-// Simple type for parsed markdown parts
-export interface ParsedPart {
-  type: "text" | "markdown";
-  content: string;
-  isComplete?: boolean;
-}
+import { MessagePart } from "../components/chat/types";
 
-export const parseMarkdownBlocks = (text: string): ParsedPart[] => {
-  const parts: ParsedPart[] = [];
+export const parseMarkdownBlocks = (text: string): MessagePart[] => {
+  const parts: MessagePart[] = [];
   let currentIndex = 0;
   let inMarkdownBlock = false;
   let markdownStart = -1;

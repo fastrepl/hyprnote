@@ -2,7 +2,6 @@ use std::{future::Future, path::PathBuf};
 
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_store2::StorePluginExt;
-use tauri_specta::Event;
 
 use hypr_download_interface::DownloadProgress;
 use hypr_file::download_file_parallel;
@@ -191,12 +190,7 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         let model_manager = crate::ModelManager::new(model_path);
         let state = self.state::<crate::SharedState>();
 
-        let handle = self.app_handle().clone();
-        let emitter = move |event: crate::LLMEvent| {
-            let _ = event.emit(&handle);
-        };
-
-        let server_state = crate::ServerState::new(emitter, model_manager);
+        let server_state = crate::ServerState::new(model_manager);
         let server = crate::server::run_server(server_state).await?;
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 

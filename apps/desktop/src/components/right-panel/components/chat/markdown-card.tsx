@@ -110,7 +110,7 @@ export function MarkdownCard(
       </style>
 
       {/* Flat card with no shadow */}
-      <div className="border border-neutral-200 rounded-lg bg-white overflow-hidden">
+      <div className="mt-4 mb-4 border border-neutral-200 rounded-lg bg-white overflow-hidden">
         {/* Grey header section - Made thinner with py-1 */}
         <div className="bg-neutral-50 px-4 py-1 border-b border-neutral-200 flex items-center justify-between">
           <div className="text-sm text-neutral-600 flex items-center gap-2">

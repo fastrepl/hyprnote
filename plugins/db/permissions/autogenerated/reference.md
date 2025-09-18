@@ -44,11 +44,6 @@ Default permissions for the plugin
 - `allow-create-chat-group`
 - `allow-upsert-chat-message`
 - `allow-delete-chat-messages`
-- `allow-list-conversations`
-- `allow-create-message-v2`
-- `allow-create-conversation`
-- `allow-list-messages-v2`
-- `allow-update-message-v2-parts`
 - `allow-upsert-tag`
 - `allow-delete-tag`
 - `allow-list-all-tags`
@@ -114,58 +109,6 @@ Enables the create_chat_group command without any pre-configured scope.
 <td>
 
 Denies the create_chat_group command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-create-conversation`
-
-</td>
-<td>
-
-Enables the create_conversation command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-create-conversation`
-
-</td>
-<td>
-
-Denies the create_conversation command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-create-message-v2`
-
-</td>
-<td>
-
-Enables the create_message_v2 command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-create-message-v2`
-
-</td>
-<td>
-
-Denies the create_message_v2 command without any pre-configured scope.
 
 </td>
 </tr>
@@ -667,32 +610,6 @@ Denies the list_chat_messages command without any pre-configured scope.
 <tr>
 <td>
 
-`db:allow-list-conversations`
-
-</td>
-<td>
-
-Enables the list_conversations command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-list-conversations`
-
-</td>
-<td>
-
-Denies the list_conversations command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `db:allow-list-events`
 
 </td>
@@ -738,32 +655,6 @@ Enables the list_humans command without any pre-configured scope.
 <td>
 
 Denies the list_humans command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-list-messages-v2`
-
-</td>
-<td>
-
-Enables the list_messages_v2 command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-list-messages-v2`
-
-</td>
-<td>
-
-Denies the list_messages_v2 command without any pre-configured scope.
 
 </td>
 </tr>
@@ -1180,32 +1071,6 @@ Enables the unassign_tag_from_session command without any pre-configured scope.
 <td>
 
 Denies the unassign_tag_from_session command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:allow-update-message-v2-parts`
-
-</td>
-<td>
-
-Enables the update_message_v2_parts command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`db:deny-update-message-v2-parts`
-
-</td>
-<td>
-
-Denies the update_message_v2_parts command without any pre-configured scope.
 
 </td>
 </tr>

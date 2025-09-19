@@ -9,6 +9,7 @@ import {
 import { debounce } from "lodash-es";
 import type React from "react";
 import { createStore } from "zustand";
+import { logFrontendError } from "@/logging/frontend-logger";
 
 export type SearchMatch = {
   type: "session";
@@ -131,7 +132,7 @@ export const createSearchStore = (userId: string) => {
 
       setState({ matches, isSearching: false });
     } catch (error) {
-      console.error("Search error:", error);
+      logFrontendError("search.perform_failed", error, { query });
       setState({ isSearching: false });
     }
   }, 200);

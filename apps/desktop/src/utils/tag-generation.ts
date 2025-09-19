@@ -4,6 +4,7 @@ import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import { generateText, localProviderName, modelProvider } from "@hypr/utils/ai";
+import { logFrontendError } from "@/logging/frontend-logger";
 
 const extractHashtags = (text: string): string[] => {
   const hashtagRegex = /#(\w+)/g;
@@ -71,7 +72,7 @@ export async function generateTagsForSession(sessionId: string): Promise<string[
     const parsed = schema.safeParse(result.text);
     return parsed.success ? parsed.data : [];
   } catch (error) {
-    console.error("Tag generation failed:", error);
+    logFrontendError("tags.generate_for_session_failed", error, { sessionId });
     return [];
   }
 }
@@ -137,7 +138,7 @@ export async function autoTagGeneration(sessionId: string): Promise<string[]> {
     const parsed = schema.safeParse(result.text);
     return parsed.success ? parsed.data : [];
   } catch (error) {
-    console.error("Tag generation failed:", error);
+    logFrontendError("tags.auto_generate_failed", error, { sessionId });
     return [];
   }
 }

@@ -1,0 +1,15 @@
+[package]
+name = "notch"
+version = "0.1.0"
+edition = "2021"
+
+[target.'cfg(target_os = "macos")'.build-dependencies]
+swift-rs = { workspace = true, features = ["build"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+swift-rs = { workspace = true }
+
+[dev-dependencies]
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true }
+objc2-foundation = { workspace = true }

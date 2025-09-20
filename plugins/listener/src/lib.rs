@@ -77,7 +77,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             tokio::spawn(async move {
                 match Actor::spawn(
-                    Some("session_supervisor".to_string()),
+                    Some(SessionSupervisor::name()),
                     SessionSupervisor,
                     SessionArgs {
                         app: app_handle.clone(),

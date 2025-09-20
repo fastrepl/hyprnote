@@ -132,7 +132,7 @@ impl NotificationHandler {
                         .key(key)
                         .message("Based on your microphone activity")
                         .url("hypr://hyprnote.com/app/new?record=true")
-                        .timeout(std::time::Duration::from_secs(300))
+                        .timeout(std::time::Duration::from_secs(5))
                         .build(),
                 );
             }

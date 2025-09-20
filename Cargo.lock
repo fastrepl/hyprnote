@@ -310,6 +310,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aotuv_lancer_vorbis_sys"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c22da1eae146e1ac2956da45bd1856b2f9ad788e6f7af535b861df497d726a1"
+dependencies = [
+ "cc",
+ "ogg_next_sys",
+]
+
+[[package]]
 name = "apalis"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3748,7 +3758,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.79"
+version = "0.0.80"
 dependencies = [
  "anyhow",
  "bytes",
@@ -9815,6 +9825,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ogg_next_sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c990730c2782b922815753a62af535e4205267df190dfbd8aa5d74e11d7dcc3"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "oid-registry"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14416,7 +14435,6 @@ dependencies = [
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
- "aec",
  "agc",
  "audio",
  "audio-utils",
@@ -14463,6 +14481,7 @@ dependencies = [
  "url",
  "uuid",
  "vad",
+ "vorbis_rs",
 ]
 
 [[package]]
@@ -16786,6 +16805,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
+name = "vorbis_rs"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "874075ad757c0f6031d4706ed75703a9ba6c711164a0b1dab55af86800cd618f"
+dependencies = [
+ "aotuv_lancer_vorbis_sys",
+ "errno",
+ "getrandom 0.2.16",
+ "ogg_next_sys",
+ "thiserror 2.0.16",
+ "tinyvec",
+]
+
+[[package]]
 name = "vsimd"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -17270,7 +17303,7 @@ dependencies = [
 [[package]]
 name = "whisper-rs"
 version = "0.15.0"
-source = "git+https://codeberg.org/tazz4843/whisper-rs?rev=5f054c9#5f054c94b73346747b76c4062f47d4fe999bd105"
+source = "git+https://codeberg.org/tazz4843/whisper-rs?rev=0c509ec#0c509ec9c5d4e1d49d83e80bfe8a9060dfaca79b"
 dependencies = [
  "libc",
  "tracing",
@@ -17280,7 +17313,7 @@ dependencies = [
 [[package]]
 name = "whisper-rs-sys"
 version = "0.14.0"
-source = "git+https://codeberg.org/tazz4843/whisper-rs?rev=5f054c9#5f054c94b73346747b76c4062f47d4fe999bd105"
+source = "git+https://codeberg.org/tazz4843/whisper-rs?rev=0c509ec#0c509ec9c5d4e1d49d83e80bfe8a9060dfaca79b"
 dependencies = [
  "bindgen 0.71.1",
  "cfg-if",

@@ -10,6 +10,8 @@ use whisper_rs::{
 
 use hypr_whisper::Language;
 
+use crate::Segment;
+
 lazy_static! {
     static ref TRAILING_DOTS: Regex = Regex::new(r"\.{2,}$").unwrap();
 }
@@ -89,7 +91,7 @@ impl Whisper {
         WhisperBuilder::default()
     }
 
-    pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, super::Error> {
+    pub fn transcribe(&mut self, audio: &[f32]) -> Result<Vec<Segment>, crate::Error> {
         #[cfg(debug_assertions)]
         self.debug(audio);
 
@@ -187,7 +189,7 @@ impl Whisper {
         Ok(segments)
     }
 
-    fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, super::Error> {
+    fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, crate::Error> {
         if self.languages.len() == 0 {
             tracing::info!("no_language_specified");
             return Ok(None);
@@ -289,47 +291,6 @@ impl Whisper {
                 writer.finalize().unwrap();
             }
         }
-    }
-}
-
-// https://github.com/floneum/floneum/blob/52967ae/models/rwhisper/src/lib.rs#L116
-#[derive(Debug, Default)]
-pub struct Segment {
-    pub text: String,
-    pub language: Option<String>,
-    pub start: f64,
-    pub end: f64,
-    pub confidence: f32,
-    pub meta: Option<serde_json::Value>,
-}
-
-impl Segment {
-    pub fn text(&self) -> &str {
-        &self.text
-    }
-
-    pub fn language(&self) -> Option<&str> {
-        self.language.as_deref()
-    }
-
-    pub fn start(&self) -> f64 {
-        self.start
-    }
-
-    pub fn end(&self) -> f64 {
-        self.end
-    }
-
-    pub fn duration(&self) -> f64 {
-        self.end - self.start
-    }
-
-    pub fn confidence(&self) -> f32 {
-        self.confidence
-    }
-
-    pub fn meta(&self) -> Option<serde_json::Value> {
-        self.meta.clone()
     }
 }
 

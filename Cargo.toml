@@ -211,6 +211,7 @@ realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
+vorbis_rs = "0.5.5"
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }

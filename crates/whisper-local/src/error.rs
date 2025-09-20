@@ -4,6 +4,7 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error("model_not_found")]
     ModelNotFound,
+    #[cfg(feature = "actual")]
     #[error(transparent)]
     LocalWhisperError(#[from] whisper_rs::WhisperError),
 }

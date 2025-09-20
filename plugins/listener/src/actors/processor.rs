@@ -4,7 +4,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use ractor::{Actor, ActorProcessingErr, ActorRef};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_specta::Event;
 
 use crate::{
@@ -16,11 +16,10 @@ const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 
 pub enum ProcMsg {
     Mic(AudioChunk),
-    Spk(AudioChunk),
-    AttachListen(ActorRef<ListenMsg>),
+    Speaker(AudioChunk),
+    Mixed(AudioChunk),
+    AttachListener(ActorRef<ListenMsg>),
     AttachRecorder(ActorRef<RecMsg>),
-    AttachMicRecorder(ActorRef<RecMsg>),
-    AttachSpeakerRecorder(ActorRef<RecMsg>),
 }
 
 pub struct ProcArgs {
@@ -29,7 +28,6 @@ pub struct ProcArgs {
 
 pub struct ProcState {
     app: tauri::AppHandle,
-    aec: hypr_aec::AEC,
     agc_m: hypr_agc::Agc,
     agc_s: hypr_agc::Agc,
     joiner: Joiner,
@@ -43,6 +41,13 @@ pub struct ProcState {
 }
 
 pub struct AudioProcessor {}
+
+impl AudioProcessor {
+    pub fn name() -> ActorName {
+        "audio_processor".into()
+    }
+}
+
 impl Actor for AudioProcessor {
     type Msg = ProcMsg;
     type State = ProcState;
@@ -56,7 +61,6 @@ impl Actor for AudioProcessor {
         Ok(ProcState {
             app: args.app.clone(),
             joiner: Joiner::new(),
-            aec: hypr_aec::AEC::new().unwrap(),
             agc_m: hypr_agc::Agc::default(),
             agc_s: hypr_agc::Agc::default(),
             last_mic: None,
@@ -76,10 +80,8 @@ impl Actor for AudioProcessor {
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match msg {
-            ProcMsg::AttachListen(actor) => st.listen = Some(actor),
+            ProcMsg::AttachListener(actor) => st.listen = Some(actor),
             ProcMsg::AttachRecorder(actor) => st.recorder = Some(actor),
-            ProcMsg::AttachMicRecorder(actor) => st.mic_recorder = Some(actor),
-            ProcMsg::AttachSpeakerRecorder(actor) => st.speaker_recorder = Some(actor),
             ProcMsg::Mic(mut c) => {
                 st.agc_m.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
@@ -87,10 +89,22 @@ impl Actor for AudioProcessor {
                 st.joiner.push_mic(arc);
                 process_ready(st).await;
             }
-            ProcMsg::Spk(mut c) => {
+            ProcMsg::Speaker(mut c) => {
                 st.agc_s.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
                 st.last_spk = Some(arc.clone());
+                st.joiner.push_spk(arc);
+                process_ready(st).await;
+            }
+            ProcMsg::Mixed(mut c) => {
+                st.agc_m.process(&mut c.data);
+
+                let empty_arc = Arc::<[f32]>::from(vec![0.0; c.data.len()]);
+                let arc = Arc::<[f32]>::from(c.data);
+
+                st.last_mic = Some(empty_arc.clone());
+                st.last_spk = Some(arc.clone());
+                st.joiner.push_mic(empty_arc.clone());
                 st.joiner.push_spk(arc);
                 process_ready(st).await;
             }
@@ -101,14 +115,9 @@ impl Actor for AudioProcessor {
 
 async fn process_ready(st: &mut ProcState) {
     while let Some((mic, spk)) = st.joiner.pop_pair() {
-        let mic = st
-            .aec
-            .process_streaming(&mic, &spk)
-            .unwrap_or_else(|_| mic.to_vec());
-
         {
             if let Some(mic_rec) = &st.mic_recorder {
-                mic_rec.cast(RecMsg::Audio(mic.clone())).ok();
+                mic_rec.cast(RecMsg::Audio(mic.to_vec())).ok();
             }
             if let Some(spk_rec) = &st.speaker_recorder {
                 spk_rec.cast(RecMsg::Audio(spk.to_vec())).ok();
@@ -125,7 +134,7 @@ async fn process_ready(st: &mut ProcState) {
         }
 
         if let Some(actor) = &st.listen {
-            let mic_bytes = hypr_audio_utils::f32_to_i16_bytes(mic.into_iter());
+            let mic_bytes = hypr_audio_utils::f32_to_i16_bytes(mic.iter().copied());
             let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.iter().copied());
 
             actor

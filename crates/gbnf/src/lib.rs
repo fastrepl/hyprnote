@@ -81,10 +81,9 @@ fn build_title_grammar() -> String {
 
 fn build_tags_grammar() -> String {
     vec![
-        r##"root ::= "[" ws string ("," ws string)* ws "]""##,
+        r##"root ::= "[" string ("," string ("," string ("," string)?)?)? "]""##,
         r##"string ::= "\"" tag "\"""##,
         r##"tag ::= [a-zA-Z] ([a-zA-Z0-9_-])*"##,
-        r##"ws ::= [ \t\n\r]*"##,
     ]
     .join("\n")
 }
@@ -118,6 +117,13 @@ mod tests {
             (
                 serde_json::to_string(&vec!["meeting", "summary"]).unwrap(),
                 true,
+            ),
+            (
+                serde_json::to_string(&vec![
+                    "meeting", "summary", "meeting", "summary", "meeting", "summary",
+                ])
+                .unwrap(),
+                false,
             ),
             (
                 serde_json::to_string(&vec!["meeting", "summary", ""]).unwrap(),

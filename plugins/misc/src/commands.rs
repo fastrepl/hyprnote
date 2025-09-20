@@ -33,10 +33,16 @@ pub async fn audio_exist<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<bool, String> {
     let data_dir = app.path().app_data_dir().unwrap();
-    let audio_path = data_dir.join(session_id).join("audio.wav");
+    let session_dir = data_dir.join(session_id);
 
-    let v = std::fs::exists(audio_path).map_err(|e| e.to_string())?;
-    Ok(v)
+    ["audio.wav", "audio.ogg"]
+        .iter()
+        .map(|format| session_dir.join(format))
+        .try_fold(false, |acc, path| {
+            std::fs::exists(path)
+                .map(|exists| acc || exists)
+                .map_err(|e| e.to_string())
+        })
 }
 
 #[tauri::command]
@@ -59,10 +65,10 @@ pub async fn audio_open<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     let data_dir = app.path().app_data_dir().unwrap();
-    let audio_path = data_dir.join(session_id).join("audio.wav");
+    let session_dir = data_dir.join(session_id);
 
     app.opener()
-        .reveal_item_in_dir(&audio_path)
+        .open_path(session_dir.to_string_lossy(), None::<&str>)
         .map_err(|e| e.to_string())?;
 
     Ok(())

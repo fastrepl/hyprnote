@@ -111,6 +111,7 @@ export const createExtensions = (sessionId: string) => [
           
           // Upload via Tauri command
           const imageUrl = await miscCommands.imageUpload(sessionId, Array.from(bytes), extension)
+          console.log("full note html: ", currentEditor.getHTML())
           
           // Insert URL (not base64!)
           currentEditor
@@ -145,6 +146,7 @@ export const createExtensions = (sessionId: string) => [
           
           // Upload via Tauri command
           const imageUrl = await miscCommands.imageUpload(sessionId, Array.from(bytes), extension)
+          console.log("full note html: ", currentEditor.getHTML())
           
           // Insert URL (not base64!)
           currentEditor

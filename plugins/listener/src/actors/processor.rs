@@ -4,11 +4,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
+use ractor::{registry, Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{AudioChunk, ListenerMsg, RecMsg},
+    actors::{AudioChunk, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
     SessionEvent,
 };
 
@@ -18,8 +18,6 @@ pub enum ProcMsg {
     Mic(AudioChunk),
     Speaker(AudioChunk),
     Mixed(AudioChunk),
-    AttachListener(ActorRef<ListenerMsg>),
-    AttachRecorder(ActorRef<RecMsg>),
 }
 
 pub struct ProcArgs {
@@ -34,21 +32,17 @@ pub struct ProcState {
     last_mic: Option<Arc<[f32]>>,
     last_spk: Option<Arc<[f32]>>,
     last_amp: Instant,
-    listen: Option<ActorRef<ListenerMsg>>,
-    recorder: Option<ActorRef<RecMsg>>,
-    mic_recorder: Option<ActorRef<RecMsg>>,
-    speaker_recorder: Option<ActorRef<RecMsg>>,
 }
 
-pub struct AudioProcessor {}
+pub struct ProcessorActor {}
 
-impl AudioProcessor {
+impl ProcessorActor {
     pub fn name() -> ActorName {
-        "audio_processor".into()
+        "processor_actor".into()
     }
 }
 
-impl Actor for AudioProcessor {
+impl Actor for ProcessorActor {
     type Msg = ProcMsg;
     type State = ProcState;
     type Arguments = ProcArgs;
@@ -66,10 +60,6 @@ impl Actor for AudioProcessor {
             last_mic: None,
             last_spk: None,
             last_amp: Instant::now(),
-            listen: None,
-            recorder: None,
-            mic_recorder: None,
-            speaker_recorder: None,
         })
     }
 
@@ -80,8 +70,6 @@ impl Actor for AudioProcessor {
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match msg {
-            ProcMsg::AttachListener(actor) => st.listen = Some(actor),
-            ProcMsg::AttachRecorder(actor) => st.recorder = Some(actor),
             ProcMsg::Mic(mut c) => {
                 st.agc_m.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
@@ -116,27 +104,23 @@ impl Actor for AudioProcessor {
 async fn process_ready(st: &mut ProcState) {
     while let Some((mic, spk)) = st.joiner.pop_pair() {
         {
-            if let Some(mic_rec) = &st.mic_recorder {
-                mic_rec.cast(RecMsg::Audio(mic.to_vec())).ok();
-            }
-            if let Some(spk_rec) = &st.speaker_recorder {
-                spk_rec.cast(RecMsg::Audio(spk.to_vec())).ok();
-            }
-
-            if let Some(rec) = &st.recorder {
+            if let Some(cell) = registry::where_is(RecorderActor::name()) {
                 let mixed: Vec<f32> = mic
                     .iter()
                     .zip(spk.iter())
                     .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
                     .collect();
-                rec.cast(RecMsg::Audio(mixed)).ok();
+
+                let actor: ActorRef<RecMsg> = cell.into();
+                actor.cast(RecMsg::Audio(mixed)).ok();
             }
         }
 
-        if let Some(actor) = &st.listen {
+        if let Some(cell) = registry::where_is(ListenerActor::name()) {
             let mic_bytes = hypr_audio_utils::f32_to_i16_bytes(mic.iter().copied());
             let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.iter().copied());
 
+            let actor: ActorRef<ListenerMsg> = cell.into();
             actor
                 .cast(ListenerMsg::Audio(mic_bytes.into(), spk_bytes.into()))
                 .ok();

@@ -1,7 +1,9 @@
 use std::future::Future;
 
 use futures_util::StreamExt;
-use ractor::call_t;
+use ractor::{call_t, concurrency, registry, Actor, ActorRef};
+
+use tauri_specta::Event;
 
 #[cfg(target_os = "macos")]
 use {
@@ -9,7 +11,10 @@ use {
     objc2_foundation::NSString,
 };
 
-use crate::actors::SessionMsg;
+use crate::{
+    actors::{SessionActor, SessionArgs, SessionMsg},
+    SessionEvent,
+};
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
@@ -186,9 +191,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
-        guard.get_state().await
+        if let Some(_) = registry::where_is(SessionActor::name()) {
+            crate::fsm::State::RunningActive
+        } else {
+            crate::fsm::State::Inactive
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -246,20 +253,33 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
-        if let Some(supervisor) = &guard.supervisor {
-            let _ = supervisor.cast(SessionMsg::Start {
+        if let Ok(_) = Actor::spawn(
+            Some(SessionActor::name()),
+            SessionActor,
+            SessionArgs {
+                app: guard.app.clone(),
                 session_id: session_id.into(),
-            });
+            },
+        )
+        .await
+        {
+            SessionEvent::RunningActive {}.emit(&guard.app).unwrap();
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        if let Some(supervisor) = &guard.supervisor {
-            let _ = supervisor.cast(SessionMsg::Stop);
+            if let Ok(_) = actor
+                .stop_and_wait(None, Some(concurrency::Duration::from_secs(3)))
+                .await
+            {
+                let state = self.state::<crate::SharedState>();
+                let guard = state.lock().await;
+                SessionEvent::Inactive {}.emit(&guard.app).unwrap();
+            }
         }
     }
 }

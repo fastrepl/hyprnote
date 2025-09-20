@@ -29,15 +29,15 @@ pub struct ListenerState {
     rx_task: tokio::task::JoinHandle<()>,
 }
 
-pub struct Listener;
+pub struct ListenerActor;
 
-impl Listener {
+impl ListenerActor {
     pub fn name() -> ActorName {
-        "listen_bridge".into()
+        "listener_actor".into()
     }
 }
 
-impl Actor for Listener {
+impl Actor for ListenerActor {
     type Msg = ListenerMsg;
     type State = ListenerState;
     type Arguments = ListenerArgs;

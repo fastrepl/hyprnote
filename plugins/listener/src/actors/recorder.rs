@@ -21,11 +21,11 @@ pub struct RecState {
     ogg_path: PathBuf,
 }
 
-pub struct Recorder;
+pub struct RecorderActor;
 
-impl Recorder {
+impl RecorderActor {
     pub fn name() -> ActorName {
-        "recorder".into()
+        "recorder_actor".into()
     }
 
     async fn ogg_to_wav(ogg_path: &PathBuf, wav_path: &PathBuf) -> Result<(), ActorProcessingErr> {
@@ -89,7 +89,7 @@ impl Recorder {
     }
 }
 
-impl Actor for Recorder {
+impl Actor for RecorderActor {
     type Msg = RecMsg;
     type State = RecState;
     type Arguments = RecArgs;

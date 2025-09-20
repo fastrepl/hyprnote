@@ -12,6 +12,8 @@ Default permissions for the plugin
 - `allow-audio-open`
 - `allow-audio-exist`
 - `allow-audio-delete`
+- `allow-image-upload`
+- `allow-image-delete`
 
 ## Permission Table
 
@@ -174,6 +176,58 @@ Enables the get_git_hash command without any pre-configured scope.
 <td>
 
 Denies the get_git_hash command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-image-delete`
+
+</td>
+<td>
+
+Enables the image_delete command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-image-delete`
+
+</td>
+<td>
+
+Denies the image_delete command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-image-upload`
+
+</td>
+<td>
+
+Enables the image_upload command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-image-upload`
+
+</td>
+<td>
+
+Denies the image_upload command without any pre-configured scope.
 
 </td>
 </tr>

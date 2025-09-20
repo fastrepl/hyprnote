@@ -253,6 +253,21 @@ export default function EditorArea({
     setAnnotationBox(null);
   };
 
+  const handleImagePaste = useCallback(async (file: File) => {
+    // TODO: Handle pasted image file
+    // - Upload the file to storage
+    // - Get back image URL
+    // - Insert into editor at cursor position
+    console.log('Image pasted:', file.name, file.size);
+  }, []);
+
+  const handleImageCopy = useCallback(async (imageUrl: string) => {
+    // TODO: Handle copying image to clipboard
+    // - Fetch image as blob
+    // - Copy to clipboard
+    console.log('Image copy requested:', imageUrl);
+  }, []);
+
   const isEnhancedNote = !showRaw && !!enhancedContent;
 
   return (
@@ -290,6 +305,7 @@ export default function EditorArea({
                 trigger: "@",
                 handleSearch: handleMentionSearch,
               }}
+              sessionId={sessionId}
             />
           )
           : <Renderer ref={editorRef} initialContent={noteContent} />}

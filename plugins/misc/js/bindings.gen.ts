@@ -30,6 +30,12 @@ async audioOpen(sessionId: string) : Promise<null> {
 },
 async audioDelete(sessionId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:misc|audio_delete", { sessionId });
+},
+async imageUpload(sessionId: string, imageData: number[], extension: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:misc|image_upload", { sessionId, imageData, extension });
+},
+async imageDelete(sessionId: string, imageFilename: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:misc|image_delete", { sessionId, imageFilename });
 }
 }
 

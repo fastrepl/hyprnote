@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-image-delete"
+description = "Enables the image_delete command without any pre-configured scope."
+commands.allow = ["image_delete"]
+
+[[permission]]
+identifier = "deny-image-delete"
+description = "Denies the image_delete command without any pre-configured scope."
+commands.deny = ["image_delete"]

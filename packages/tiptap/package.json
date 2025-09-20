@@ -16,6 +16,7 @@
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
     "@hypr/plugin-db": "workspace:^",
+    "@hypr/plugin-misc": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@remixicon/react": "^4.6.0",
@@ -24,6 +25,7 @@
     "@tiptap/core": "^3.4.1",
     "@tiptap/extension-bubble-menu": "^3.4.1",
     "@tiptap/extension-document": "^3.4.1",
+    "@tiptap/extension-file-handler": "^3.4.2",
     "@tiptap/extension-highlight": "^3.4.1",
     "@tiptap/extension-history": "^3.4.1",
     "@tiptap/extension-image": "^3.4.1",

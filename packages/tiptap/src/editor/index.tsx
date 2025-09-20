@@ -15,10 +15,11 @@ interface EditorProps {
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
+  sessionId?: string;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, mentionConfig }, ref) => {
+  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, mentionConfig, sessionId }, ref) => {
     const previousContentRef = useRef<HTMLContent>(initialContent);
 
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
@@ -31,7 +32,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
     const editor = useEditor({
       extensions: [
-        ...shared.extensions,
+        ...(sessionId ? shared.createExtensions(sessionId) : shared.extensions),
         mention(mentionConfig),
       ],
       editable,

@@ -595,6 +595,9 @@ importers:
       '@hypr/plugin-db':
         specifier: workspace:^
         version: link:../../plugins/db
+      '@hypr/plugin-misc':
+        specifier: workspace:^
+        version: link:../../plugins/misc
       '@hypr/ui':
         specifier: workspace:^
         version: link:../ui

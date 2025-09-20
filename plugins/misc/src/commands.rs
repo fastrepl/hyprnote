@@ -107,7 +107,7 @@ pub async fn image_upload<R: tauri::Runtime>(
     image_data: Vec<u8>,
     extension: String,
 ) -> Result<String, String> {
-    let data_dir = app.path().app_data_dir().unwrap();
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(&session_id);
     let images_dir = session_dir.join("images");
     
@@ -134,7 +134,7 @@ pub async fn image_delete<R: tauri::Runtime>(
     session_id: String,
     image_filename: String,
 ) -> Result<(), String> {
-    let data_dir = app.path().app_data_dir().unwrap();
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let image_path = data_dir.join(session_id).join("images").join(image_filename);
     
     if image_path.exists() {

@@ -14,6 +14,7 @@ pub fn create_quit_handler<R: tauri::Runtime>(
                 let state = tokio::task::block_in_place(|| {
                     tokio::runtime::Handle::current().block_on(guard.get_state())
                 });
+
                 if !matches!(state, tauri_plugin_listener::fsm::State::RunningActive) {
                     is_exit_intent = true;
                 } else {

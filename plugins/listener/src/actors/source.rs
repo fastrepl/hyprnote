@@ -189,8 +189,11 @@ async fn start_source_loop(
                 tokio::pin!(mixed_stream);
 
                 loop {
-                    let proc: ActorRef<ProcMsg> =
-                        registry::where_is(ProcessorActor::name()).unwrap().into();
+                    let Some(cell) = registry::where_is(ProcessorActor::name()) else {
+                        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                        continue;
+                    };
+                    let proc: ActorRef<ProcMsg> = cell.into();
 
                     tokio::select! {
                         _ = token.cancelled() => {
@@ -241,48 +244,50 @@ async fn start_source_loop(
             tokio::pin!(spk_stream);
 
             loop {
-                if let Some(cell) = registry::where_is(ProcessorActor::name()) {
-                    let proc: ActorRef<ProcMsg> = cell.into();
+                let Some(cell) = registry::where_is(ProcessorActor::name()) else {
+                    tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                    continue;
+                };
+                let proc: ActorRef<ProcMsg> = cell.into();
 
-                    tokio::select! {
-                        _ = token.cancelled() => {
-                            drop(mic_stream);
-                            drop(spk_stream);
-                            myself2.stop(None);
-                            return;
-                        }
-                        _ = stream_cancel_token.cancelled() => {
-                            drop(mic_stream);
-                            drop(spk_stream);
-                            return;
-                        }
-                        mic_next = mic_stream.next() => {
-                            if let Some(data) = mic_next {
-                                let output_data = if mic_muted.load(Ordering::Relaxed) {
-                                    vec![0.0; data.len()]
-                                } else {
-                                    data
-                                };
-
-                                let msg = ProcMsg::Mic(AudioChunk{ data: output_data });
-                                let _ = proc.cast(msg);
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        drop(mic_stream);
+                        drop(spk_stream);
+                        myself2.stop(None);
+                        return;
+                    }
+                    _ = stream_cancel_token.cancelled() => {
+                        drop(mic_stream);
+                        drop(spk_stream);
+                        return;
+                    }
+                    mic_next = mic_stream.next() => {
+                        if let Some(data) = mic_next {
+                            let output_data = if mic_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
                             } else {
-                                break;
-                            }
-                        }
-                        spk_next = spk_stream.next() => {
-                            if let Some(data) = spk_next {
-                                let output_data = if spk_muted.load(Ordering::Relaxed) {
-                                    vec![0.0; data.len()]
-                                } else {
-                                    data
-                                };
+                                data
+                            };
 
-                                let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
-                                let _ = proc.cast(msg);
+                            let msg = ProcMsg::Mic(AudioChunk{ data: output_data });
+                            let _ = proc.cast(msg);
+                        } else {
+                            break;
+                        }
+                    }
+                    spk_next = spk_stream.next() => {
+                        if let Some(data) = spk_next {
+                            let output_data = if spk_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
                             } else {
-                                break;
-                            }
+                                data
+                            };
+
+                            let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
+                            let _ = proc.cast(msg);
+                        } else {
+                            break;
                         }
                     }
                 }

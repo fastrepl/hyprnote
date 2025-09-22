@@ -74,6 +74,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 let _ = hypr_intercept::setup_quit_handler(crate::create_quit_handler(app));
             }
 
+            hypr_notification::setup_notification_confirm_handler(|id| {
+                println!("confirmed: {}", id);
+            });
+
+            hypr_notification::setup_notification_dismiss_handler(|id, _reason| {
+                println!("dismissed: {}", id);
+            });
+
             app.manage(Mutex::new(state));
             Ok(())
         })
@@ -119,11 +127,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 }
             }
             tauri::RunEvent::WindowEvent { label, event, .. } => {
-                if let Ok(w) = tauri_plugin_windows::HyprWindow::from_str(label) {
-                    if w == tauri_plugin_windows::HyprWindow::Main {
-                        if let tauri::WindowEvent::Focused(true) = event {
-                            app.clear_notifications().unwrap();
-                        }
+                if let Ok(tauri_plugin_windows::HyprWindow::Main) = tauri_plugin_windows::HyprWindow::from_str(label.as_ref()) {
+                    if let tauri::WindowEvent::Focused(true) = event {
+                        app.clear_notifications().unwrap();
                     }
                 }
             }

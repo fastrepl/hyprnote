@@ -290,7 +290,7 @@ class NotificationManager {
 
   private struct Config {
     static let notificationWidth: CGFloat = 360
-    static let notificationHeight: CGFloat = 82
+    static let notificationHeight: CGFloat = 64
     static let rightMargin: CGFloat = 15
     static let topMargin: CGFloat = 15
     static let slideInOffset: CGFloat = 10
@@ -468,7 +468,7 @@ class NotificationManager {
       screen: targetScreen
     )
 
-    panel.level = .statusBar
+    panel.level = NSWindow.Level(rawValue: Int(Int32.max))
     panel.isFloatingPanel = true
     panel.hidesOnDeactivate = false
     panel.isOpaque = false
@@ -567,27 +567,27 @@ class NotificationManager {
     container.orientation = .horizontal
     container.alignment = .centerY
     container.distribution = .fill
-    container.spacing = 10
+    container.spacing = 8
 
     let iconContainer = NSView()
     iconContainer.wantsLayer = true
-    iconContainer.layer?.cornerRadius = 9
+    iconContainer.layer?.cornerRadius = 6
     iconContainer.translatesAutoresizingMaskIntoConstraints = false
-    iconContainer.widthAnchor.constraint(equalToConstant: 42).isActive = true
-    iconContainer.heightAnchor.constraint(equalToConstant: 42).isActive = true
+    iconContainer.widthAnchor.constraint(equalToConstant: 32).isActive = true
+    iconContainer.heightAnchor.constraint(equalToConstant: 32).isActive = true
 
     let iconImageView = createAppIconView()
     iconContainer.addSubview(iconImageView)
     NSLayoutConstraint.activate([
       iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
       iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-      iconImageView.widthAnchor.constraint(equalToConstant: 32),
-      iconImageView.heightAnchor.constraint(equalToConstant: 32),
+      iconImageView.widthAnchor.constraint(equalToConstant: 24),
+      iconImageView.heightAnchor.constraint(equalToConstant: 24),
     ])
 
     let textStack = NSStackView()
     textStack.orientation = .vertical
-    textStack.spacing = 4
+    textStack.spacing = 2
     textStack.alignment = .leading
     textStack.distribution = .fill
 
@@ -595,7 +595,7 @@ class NotificationManager {
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     let titleLabel = NSTextField(labelWithString: title)
-    titleLabel.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
+    titleLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
     titleLabel.lineBreakMode = .byTruncatingTail
     titleLabel.maximumNumberOfLines = 1
@@ -606,7 +606,7 @@ class NotificationManager {
     titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     let bodyLabel = NSTextField(labelWithString: body)
-    bodyLabel.font = NSFont.systemFont(ofSize: 12, weight: .light)
+    bodyLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
     bodyLabel.textColor = NSColor.secondaryLabelColor
     bodyLabel.lineBreakMode = .byTruncatingTail
     bodyLabel.maximumNumberOfLines = 1
@@ -724,7 +724,8 @@ class NotificationManager {
       display: false
     )
 
-    notification.panel.orderFront(nil)
+    notification.panel.orderFrontRegardless()
+    notification.panel.makeKeyAndOrderFront(nil)
 
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = 0.3

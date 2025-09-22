@@ -9,6 +9,11 @@ static RECENT_NOTIFICATIONS: OnceLock<Mutex<HashMap<String, Instant>>> = OnceLoc
 
 const DEDUPE_WINDOW: Duration = Duration::from_secs(60 * 5);
 
+pub enum NotificationMutation {
+    Confirm,
+    Dismiss,
+}
+
 #[cfg(target_os = "macos")]
 pub fn show(notification: &hypr_notification_interface::Notification) {
     let Some(key) = &notification.key else {
@@ -42,6 +47,27 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
 
 #[cfg(not(target_os = "macos"))]
 pub fn show(notification: &hypr_notification_interface::Notification) {}
+
+pub fn clear() {
+    #[cfg(target_os = "macos")]
+    hypr_notification_macos::dismiss_all();
+}
+
+pub fn setup_notification_dismiss_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    #[cfg(target_os = "macos")]
+    hypr_notification_macos::setup_notification_dismiss_handler(f);
+}
+
+pub fn setup_notification_confirm_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    #[cfg(target_os = "macos")]
+    hypr_notification_macos::setup_notification_confirm_handler(f);
+}
 
 #[cfg(target_os = "macos")]
 pub fn is_do_not_disturb() -> bool {

@@ -100,6 +100,7 @@ tokio-stream = { workspace = true }
 hound = { workspace = true }
 
 [features]
+devtools = ["tauri/devtools"]
 macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
 windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas", "stt-directml"]
 

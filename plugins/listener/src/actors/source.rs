@@ -73,10 +73,11 @@ impl Actor for SourceActor {
             }
         });
 
+        let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
         let mic_device = args
             .device
             .or_else(|| Some(AudioInput::get_default_mic_name()));
-        let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
+        tracing::info!(mic_device = ?mic_device);
 
         let mut st = SourceState {
             mic_device,
@@ -175,6 +176,8 @@ async fn start_source_loop(
 
     #[cfg(not(target_os = "macos"))]
     let use_mixed = false;
+
+    tracing::info!(use_mixed = use_mixed);
 
     let handle = if use_mixed {
         #[cfg(target_os = "macos")]

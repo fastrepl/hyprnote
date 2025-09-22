@@ -9,7 +9,6 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
-  PencilIcon,
   TextSearchIcon,
   UploadIcon,
 } from "lucide-react";
@@ -18,6 +17,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ParticipantList } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { useContainerWidth } from "@/hooks/use-container-width";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
@@ -94,6 +94,7 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
 }
 
 function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Word2[] }) {
+  const { userId } = useHypr();
   const queryClient = useQueryClient();
 
   const [editable, setEditable] = useState(false);
@@ -169,11 +170,18 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
             });
           }
         });
+      } else {
+        if (userId) {
+          analyticsCommands.event({
+            event: "transcript_toggle_edit",
+            distinct_id: userId,
+          });
+        }
       }
 
       return !v;
     });
-  }, [editorWords]);
+  }, [editorWords, userId]);
 
   const handleUpdate = (words: Word2[]) => {
     setEditorWords(words);
@@ -214,14 +222,14 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
   const EditToggle = () => {
     return (
       <Button
-        className="w-6 h-6"
+        className="px-2 py-0.5 h-6 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200"
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={handeToggleEdit}
       >
-        {editable
-          ? <CheckIcon size={12} className="text-neutral-600" />
-          : <PencilIcon size={12} className="text-neutral-600" />}
+        <span className="text-2xs text-neutral-600 font-normal">
+          {editable ? "Save" : "Edit"}
+        </span>
       </Button>
     );
   };
@@ -231,7 +239,9 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
       <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b">
         <div className="flex items-center">
           <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
-          <EditToggle />
+          <div className="ml-2">
+            <EditToggle />
+          </div>
         </div>
         <div className="not-draggable flex items-center">
           <Button
@@ -517,6 +527,13 @@ const MemoizedSpeakerSelector = memo(({
                   onClick={() => {
                     onSpeakerChange(candidate, speakerRange);
                     setIsOpen(false);
+
+                    if (userId) {
+                      analyticsCommands.event({
+                        event: "transcript_speaker_change",
+                        distinct_id: userId,
+                      });
+                    }
                   }}
                 >
                   Apply Speaker Change

@@ -18,6 +18,7 @@ import { z } from "zod";
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -49,7 +50,7 @@ const showConsentNotification = () => {
 };
 
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
-  const { onboardingSessionId } = useHypr();
+  const { onboardingSessionId, userId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
@@ -99,6 +100,14 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 
       if (isOnboarding) {
         listenerCommands.setMicMuted(true);
+      }
+
+      if (!isOnboarding && userId) {
+        analyticsCommands.event({
+          event: "recording_start_session",
+          distinct_id: userId,
+          properties: { session_id: sessionId },
+        });
       }
     }
   };
@@ -234,6 +243,7 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive({ sessionId }: { sessionId: string }) {
+  const { userId } = useHypr();
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     stop: s.stop,
@@ -248,6 +258,14 @@ function WhenActive({ sessionId }: { sessionId: string }) {
 
     if (sessionWords.length === 0) {
       sonnerToast.dismiss("recording-consent-reminder");
+    }
+
+    if (userId) {
+      analyticsCommands.event({
+        event: "recording_stop_session",
+        distinct_id: userId,
+        properties: { session_id: sessionId },
+      });
     }
   };
 

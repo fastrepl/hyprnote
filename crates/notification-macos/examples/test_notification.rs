@@ -47,6 +47,13 @@ fn main() {
     std::thread::spawn(|| {
         std::thread::sleep(Duration::from_millis(200));
 
+        setup_notification_confirm_handler(|id| {
+            println!("confirm: {}", id);
+        });
+        setup_notification_dismiss_handler(|id| {
+            println!("dismiss: {}", id);
+        });
+
         let notification = Notification::builder()
             .key("test_notification")
             .title("Test Notification")

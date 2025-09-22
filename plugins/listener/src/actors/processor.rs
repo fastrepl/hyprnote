@@ -154,6 +154,7 @@ impl Joiner {
     fn push_mic(&mut self, data: Arc<[f32]>) {
         self.mic.push_back(data);
         if self.mic.len() > 10 {
+            tracing::warn!("mic_queue_overflow");
             self.mic.pop_front();
         }
     }
@@ -161,17 +162,32 @@ impl Joiner {
     fn push_spk(&mut self, data: Arc<[f32]>) {
         self.spk.push_back(data);
         if self.spk.len() > 10 {
+            tracing::warn!("spk_queue_overflow");
             self.spk.pop_front();
         }
     }
 
     fn pop_pair(&mut self) -> Option<(Arc<[f32]>, Arc<[f32]>)> {
-        if !self.mic.is_empty() && !self.spk.is_empty() {
-            let mic = self.mic.pop_front()?;
-            let spk = self.spk.pop_front()?;
-            Some((mic, spk))
-        } else {
-            None
+        let mic_empty = self.mic.is_empty();
+        let spk_empty = self.spk.is_empty();
+
+        match (mic_empty, spk_empty) {
+            (true, true) => None,
+            (true, false) => {
+                let spk = self.spk.pop_front()?;
+                let mic = Arc::<[f32]>::from(vec![0.0; spk.len()]);
+                Some((mic, spk))
+            }
+            (false, true) => {
+                let mic = self.mic.pop_front()?;
+                let spk = Arc::<[f32]>::from(vec![0.0; mic.len()]);
+                Some((mic, spk))
+            }
+            (false, false) => {
+                let mic = self.mic.pop_front()?;
+                let spk = self.spk.pop_front()?;
+                Some((mic, spk))
+            }
         }
     }
 }

@@ -152,13 +152,11 @@ pub async fn main() {
         builder = builder.plugin(tauri_plugin_apple_calendar::init())
     }
 
-    /* 
-    #[cfg(not(debug_assertions))]
+    #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {
         let plugin = tauri_plugin_prevent_default::init();
         builder = builder.plugin(plugin);
     }
-    */
 
     let specta_builder = make_specta_builder();
 
@@ -183,7 +181,7 @@ pub async fn main() {
 
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
-                use tauri_plugin_windows::WindowsPluginExt;
+                use tauri_plugin_windows::{Navigate, WindowsPluginExt};
 
                 let app_clone = app.clone();
 
@@ -199,8 +197,10 @@ pub async fn main() {
                     for action in actions {
                         match action {
                             deeplink::DeeplinkAction::OpenInternal(window, url) => {
-                                if app_clone.window_show(window.clone()).is_ok() {
-                                    let _ = app_clone.window_navigate(window, &url);
+                                if let Ok(navigate) = url.parse::<Navigate>() {
+                                    if app_clone.window_show(window.clone()).is_ok() {
+                                        let _ = app_clone.window_emit_navigate(window, navigate);
+                                    }
                                 }
                             }
                             deeplink::DeeplinkAction::OpenExternal(url) => {

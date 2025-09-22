@@ -91,7 +91,12 @@ jobs:
         run: |
           chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
-      - run: pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose
+      - run: |
+          FEATURES_FLAG=""
+          if [[ "${{ env.RELEASE_CHANNEL }}" == "staging" ]]; then
+            FEATURES_FLAG="--features devtools"
+          fi
+          pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false

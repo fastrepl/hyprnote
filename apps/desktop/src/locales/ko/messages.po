@@ -219,9 +219,9 @@ msgstr ""
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:187
-#: src/components/editor-area/note-header/listen-button.tsx:211
-#: src/components/editor-area/note-header/listen-button.tsx:231
+#: src/components/editor-area/note-header/listen-button.tsx:196
+#: src/components/editor-area/note-header/listen-button.tsx:220
+#: src/components/editor-area/note-header/listen-button.tsx:240
 #: src/components/settings/views/templates.tsx:253
 msgid "{0}"
 msgstr ""
@@ -1077,11 +1077,11 @@ msgstr ""
 msgid "Start automatically at login"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:158
+#: src/components/editor-area/note-header/listen-button.tsx:167
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:367
+#: src/components/editor-area/note-header/listen-button.tsx:385
 msgid "Stop"
 msgstr ""
 

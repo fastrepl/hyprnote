@@ -159,7 +159,6 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
   }, [sessionId]);
 
   const handeToggleEdit = useCallback(() => {
-    console.log("user is toggling edit");
     setEditable((v) => {
       if (v) {
         dbCommands.getSession({ id: sessionId }).then((session) => {
@@ -185,7 +184,6 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
   }, [editorWords, userId]);
 
   const handleUpdate = (words: Word2[]) => {
-    console.log("user is making changes");
     setEditorWords(words);
   };
 

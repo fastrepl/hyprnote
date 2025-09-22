@@ -106,6 +106,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
         analyticsCommands.event({
           event: "recording_start_session",
           distinct_id: userId,
+          properties: { session_id: sessionId },
         });
       }
     }
@@ -263,6 +264,7 @@ function WhenActive({ sessionId }: { sessionId: string }) {
       analyticsCommands.event({
         event: "recording_stop_session",
         distinct_id: userId,
+        properties: { session_id: sessionId },
       });
     }
   };

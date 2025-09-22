@@ -129,10 +129,6 @@ async fn process_ready(st: &mut ProcState) {
 
     if st.last_amp.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
         if let (Some(mic_data), Some(spk_data)) = (&st.last_mic, &st.last_spk) {
-            let mic_sum = mic_data.iter().sum::<f32>();
-            let spk_sum = spk_data.iter().sum::<f32>();
-            tracing::info!("mic_sum: {} spk_sum: {}", mic_sum, spk_sum);
-
             if let Err(e) = SessionEvent::from((mic_data.as_ref(), spk_data.as_ref())).emit(&st.app)
             {
                 tracing::error!("{:?}", e);

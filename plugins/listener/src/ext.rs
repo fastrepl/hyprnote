@@ -51,11 +51,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        if let Some(supervisor) = &guard.supervisor {
-            match call_t!(supervisor, SessionMsg::GetMicDeviceName, 100) {
+            match call_t!(actor, SessionMsg::GetMicDeviceName, 100) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
@@ -69,11 +68,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
-
-        if let Some(supervisor) = &guard.supervisor {
-            let _ = supervisor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
         }
 
         Ok(())
@@ -200,11 +197,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        if let Some(supervisor) = &guard.supervisor {
-            match call_t!(supervisor, SessionMsg::GetMicMute, 100) {
+            match call_t!(actor, SessionMsg::GetMicMute, 100) {
                 Ok(muted) => muted,
                 Err(_) => false,
             }
@@ -215,11 +211,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        if let Some(supervisor) = &guard.supervisor {
-            match call_t!(supervisor, SessionMsg::GetSpeakerMute, 100) {
+            match call_t!(actor, SessionMsg::GetSpeakerMute, 100) {
                 Ok(muted) => muted,
                 Err(_) => false,
             }
@@ -230,21 +225,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
-
-        if let Some(supervisor) = &guard.supervisor {
-            let _ = supervisor.cast(SessionMsg::SetMicMute(muted));
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_speaker_muted(&self, muted: bool) {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
-
-        if let Some(supervisor) = &guard.supervisor {
-            let _ = supervisor.cast(SessionMsg::SetSpeakerMute(muted));
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::SetSpeakerMute(muted));
         }
     }
 

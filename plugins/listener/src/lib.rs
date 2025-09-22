@@ -1,4 +1,3 @@
-use ractor::ActorRef;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -14,15 +13,12 @@ pub use error::*;
 pub use events::*;
 pub use ext::*;
 
-use crate::actors::SessionMsg;
-
 const PLUGIN_NAME: &str = "listener";
 
 pub type SharedState = Mutex<State>;
 
 pub struct State {
     app: tauri::AppHandle,
-    supervisor: Option<ActorRef<SessionMsg>>,
 }
 
 impl State {
@@ -70,10 +66,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let app_handle = app.app_handle().clone();
 
-            let state: SharedState = Mutex::new(State {
-                app: app_handle,
-                supervisor: None,
-            });
+            let state: SharedState = Mutex::new(State { app: app_handle });
 
             app.manage(state);
             Ok(())

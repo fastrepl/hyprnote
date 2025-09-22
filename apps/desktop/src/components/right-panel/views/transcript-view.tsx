@@ -9,7 +9,6 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
-  PencilIcon,
   TextSearchIcon,
   UploadIcon,
 } from "lucide-react";
@@ -186,7 +185,7 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
   }, [editorWords, userId]);
 
   const handleUpdate = (words: Word2[]) => {
-    console.log("user is making changes")
+    console.log("user is making changes");
     setEditorWords(words);
   };
 
@@ -530,6 +529,13 @@ const MemoizedSpeakerSelector = memo(({
                   onClick={() => {
                     onSpeakerChange(candidate, speakerRange);
                     setIsOpen(false);
+
+                    if (userId) {
+                      analyticsCommands.event({
+                        event: "transcript_speaker_change",
+                        distinct_id: userId,
+                      });
+                    }
                   }}
                 >
                   Apply Speaker Change

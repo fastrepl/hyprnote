@@ -1,9 +1,11 @@
-pub use hypr_notification_interface::*;
+use std::ffi::CStr;
+use std::os::raw::c_char;
+use std::sync::Mutex;
 
-#[cfg(target_os = "macos")]
 use swift_rs::{swift, Bool, SRString};
 
-#[cfg(target_os = "macos")]
+pub use hypr_notification_interface::*;
+
 swift!(fn _show_notification(
     title: &SRString,
     message: &SRString,
@@ -11,7 +13,47 @@ swift!(fn _show_notification(
     timeout_seconds: f64
 ) -> Bool);
 
-#[cfg(target_os = "macos")]
+swift!(fn _dismiss_all_notifications() -> Bool);
+
+static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+
+pub fn setup_notification_dismiss_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *DISMISS_CB.lock().unwrap() = Some(Box::new(f));
+}
+
+pub fn setup_notification_confirm_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
+}
+
+#[no_mangle]
+pub extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
+    if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        cb(id);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
+    if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        cb(id);
+    }
+}
+
 pub fn show(notification: &hypr_notification_interface::Notification) {
     unsafe {
         let title = SRString::from(notification.title.as_str());
@@ -24,6 +66,12 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
         let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
         _show_notification(&title, &message, &url, timeout_seconds);
+    }
+}
+
+pub fn dismiss_all() {
+    unsafe {
+        _dismiss_all_notifications();
     }
 }
 

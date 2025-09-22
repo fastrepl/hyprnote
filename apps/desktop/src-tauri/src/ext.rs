@@ -114,6 +114,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
             self.start_worker(&user_id).await?;
         }
 
+        {
+            use tauri_plugin_notification::NotificationPluginExt;
+            self.start_notification_analytics(user_id).unwrap();
+        }
+
         Ok(())
     }
 

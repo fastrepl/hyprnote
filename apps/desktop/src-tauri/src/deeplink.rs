@@ -28,7 +28,7 @@ pub fn parse(url: String) -> Vec<DeeplinkAction> {
         }
     };
 
-    tracing::info!("deeplink: {:?}", dests);
+    tracing::info!(url = url, dests = ?dests, "deeplink");
     dests
 }
 

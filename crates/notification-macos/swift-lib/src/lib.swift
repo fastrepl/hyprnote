@@ -38,6 +38,13 @@ class NotificationInstance {
     }
   }
 
+  func dismissWithUserAction() {
+    self.id.uuidString.withCString { idPtr in
+      rustOnNotificationDismiss(idPtr)
+    }
+    dismiss()
+  }
+
   deinit {
     dismissTimer?.cancel()
   }
@@ -128,10 +135,15 @@ class ClickableView: NSView {
   override func mouseDown(with event: NSEvent) {
     alphaValue = 0.95
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.alphaValue = 1.0 }
-    if let urlString = notification?.url, let url = URL(string: urlString) {
-      NSWorkspace.shared.open(url)
+    if let notification = notification {
+      notification.id.uuidString.withCString { idPtr in
+        rustOnNotificationConfirm(idPtr)
+      }
+      if let urlString = notification.url, let url = URL(string: urlString) {
+        NSWorkspace.shared.open(url)
+      }
+      notification.dismissWithUserAction()
     }
-    notification?.dismiss()
   }
 
   override func viewDidMoveToWindow() {
@@ -144,8 +156,8 @@ class CloseButton: NSButton {
   weak var notification: NotificationInstance?
   var trackingArea: NSTrackingArea?
 
-  static let buttonSize: CGFloat = 13
-  static let symbolPointSize: CGFloat = 8
+  static let buttonSize: CGFloat = 15
+  static let symbolPointSize: CGFloat = 10
 
   override init(frame frameRect: NSRect) {
     super.init(frame: frameRect)
@@ -204,7 +216,7 @@ class CloseButton: NSButton {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
       self.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
     }
-    notification?.dismiss()
+    notification?.dismissWithUserAction()
   }
 
   override func mouseEntered(with event: NSEvent) {
@@ -279,7 +291,7 @@ class NotificationManager {
 
   private struct Config {
     static let notificationWidth: CGFloat = 360
-    static let notificationHeight: CGFloat = 82
+    static let notificationHeight: CGFloat = 64
     static let rightMargin: CGFloat = 15
     static let topMargin: CGFloat = 15
     static let slideInOffset: CGFloat = 10
@@ -457,7 +469,7 @@ class NotificationManager {
       screen: targetScreen
     )
 
-    panel.level = .statusBar
+    panel.level = NSWindow.Level(rawValue: Int(Int32.max))
     panel.isFloatingPanel = true
     panel.hidesOnDeactivate = false
     panel.isOpaque = false
@@ -556,27 +568,27 @@ class NotificationManager {
     container.orientation = .horizontal
     container.alignment = .centerY
     container.distribution = .fill
-    container.spacing = 10
+    container.spacing = 8
 
     let iconContainer = NSView()
     iconContainer.wantsLayer = true
-    iconContainer.layer?.cornerRadius = 9
+    iconContainer.layer?.cornerRadius = 6
     iconContainer.translatesAutoresizingMaskIntoConstraints = false
-    iconContainer.widthAnchor.constraint(equalToConstant: 42).isActive = true
-    iconContainer.heightAnchor.constraint(equalToConstant: 42).isActive = true
+    iconContainer.widthAnchor.constraint(equalToConstant: 32).isActive = true
+    iconContainer.heightAnchor.constraint(equalToConstant: 32).isActive = true
 
     let iconImageView = createAppIconView()
     iconContainer.addSubview(iconImageView)
     NSLayoutConstraint.activate([
       iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
       iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-      iconImageView.widthAnchor.constraint(equalToConstant: 32),
-      iconImageView.heightAnchor.constraint(equalToConstant: 32),
+      iconImageView.widthAnchor.constraint(equalToConstant: 24),
+      iconImageView.heightAnchor.constraint(equalToConstant: 24),
     ])
 
     let textStack = NSStackView()
     textStack.orientation = .vertical
-    textStack.spacing = 4
+    textStack.spacing = 2
     textStack.alignment = .leading
     textStack.distribution = .fill
 
@@ -584,7 +596,7 @@ class NotificationManager {
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     let titleLabel = NSTextField(labelWithString: title)
-    titleLabel.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
+    titleLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
     titleLabel.lineBreakMode = .byTruncatingTail
     titleLabel.maximumNumberOfLines = 1
@@ -595,7 +607,7 @@ class NotificationManager {
     titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     let bodyLabel = NSTextField(labelWithString: body)
-    bodyLabel.font = NSFont.systemFont(ofSize: 12, weight: .light)
+    bodyLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
     bodyLabel.textColor = NSColor.secondaryLabelColor
     bodyLabel.lineBreakMode = .byTruncatingTail
     bodyLabel.maximumNumberOfLines = 1
@@ -634,10 +646,13 @@ class NotificationManager {
 
   @objc private func handleActionButtonPress(_ sender: NSButton) {
     guard let btn = sender as? ActionButton, let notification = btn.notification else { return }
+    notification.id.uuidString.withCString { idPtr in
+      rustOnNotificationConfirm(idPtr)
+    }
     if let urlString = notification.url, let url = URL(string: urlString) {
       NSWorkspace.shared.open(url)
     }
-    notification.dismiss()
+    notification.dismissWithUserAction()
   }
 
   private func createAppIconView() -> NSImageView {
@@ -710,7 +725,8 @@ class NotificationManager {
       display: false
     )
 
-    notification.panel.orderFront(nil)
+    notification.panel.orderFrontRegardless()
+    notification.panel.makeKeyAndOrderFront(nil)
 
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = 0.3
@@ -780,6 +796,12 @@ class NotificationManager {
   }
 }
 
+@_silgen_name("rust_on_notification_confirm")
+func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
+
+@_silgen_name("rust_on_notification_dismiss")
+func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
+
 @_cdecl("_show_notification")
 public func _showNotification(
   title: SRString,
@@ -800,5 +822,11 @@ public func _showNotification(
   )
 
   Thread.sleep(forTimeInterval: 0.1)
+  return true
+}
+
+@_cdecl("_dismiss_all_notifications")
+public func _dismissAllNotifications() -> Bool {
+  NotificationManager.shared.dismissAll()
   return true
 }

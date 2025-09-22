@@ -121,6 +121,7 @@ impl Actor for SessionActor {
             }
         }
 
+        SessionEvent::RunningActive {}.emit(&state.app).unwrap();
         Ok(state)
     }
 

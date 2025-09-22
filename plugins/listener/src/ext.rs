@@ -253,7 +253,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
-        if let Ok(_) = Actor::spawn(
+        let _ = Actor::spawn(
             Some(SessionActor::name()),
             SessionActor,
             SessionArgs {
@@ -261,10 +261,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 session_id: session_id.into(),
             },
         )
-        .await
-        {
-            SessionEvent::RunningActive {}.emit(&guard.app).unwrap();
-        }
+        .await;
     }
 
     #[tracing::instrument(skip_all)]

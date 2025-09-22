@@ -105,7 +105,7 @@ impl MixedInput {
                 &cf::Uuid::new().to_cf_string(),
                 &cf::ArrayOf::from_slice(&[input_sub_device.as_ref(), output_sub_device.as_ref()]),
                 &cf::ArrayOf::from_slice(&[sub_tap.as_ref()]),
-                &input_uid, // Use input device as clock source for consistency
+                &input_uid,
             ],
         );
 
@@ -155,7 +155,6 @@ impl MixedInput {
                             }
                         }
 
-                        // Average the mixed sample
                         mixed_sample /= channel_count as f32;
                         mixed_buffer.push(mixed_sample);
                     }
@@ -316,5 +315,25 @@ mod tests {
 
         handle.join().unwrap();
         assert!(buffer.iter().any(|x| *x != 0.0));
+
+        {
+            let sample_rate = stream.sample_rate();
+
+            let mut writer = hound::WavWriter::create(
+                "./out.wav",
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+
+            for sample in buffer {
+                writer.write_sample(sample).unwrap();
+            }
+            writer.finalize().unwrap();
+        }
     }
 }

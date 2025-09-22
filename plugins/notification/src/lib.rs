@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{str::FromStr, sync::Mutex};
 use tauri::Manager;
 
 mod commands;
@@ -23,6 +23,7 @@ pub struct State {
     worker_handle: Option<tokio::task::JoinHandle<()>>,
     detect_state: detect::DetectState,
     notification_handler: handler::NotificationHandler,
+    analytics_task: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl State {
@@ -34,6 +35,7 @@ impl State {
             worker_handle: None,
             detect_state,
             notification_handler,
+            analytics_task: None,
         }
     }
 }
@@ -118,6 +120,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     });
                 }
             }
+            tauri::RunEvent::WindowEvent { label, event, .. } => {
+                if let Ok(tauri_plugin_windows::HyprWindow::Main) = tauri_plugin_windows::HyprWindow::from_str(label.as_ref()) {
+                    if let tauri::WindowEvent::Focused(true) = event {
+                        app.clear_notifications().unwrap();
+                    }
+                }
+            }
+            tauri::RunEvent::MainEventsCleared => {}
             _ => {}
         })
         .build()

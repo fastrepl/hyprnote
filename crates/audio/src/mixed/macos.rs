@@ -315,5 +315,25 @@ mod tests {
 
         handle.join().unwrap();
         assert!(buffer.iter().any(|x| *x != 0.0));
+
+        {
+            let sample_rate = stream.sample_rate();
+
+            let mut writer = hound::WavWriter::create(
+                "./out.wav",
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+
+            for sample in buffer {
+                writer.write_sample(sample).unwrap();
+            }
+            writer.finalize().unwrap();
+        }
     }
 }

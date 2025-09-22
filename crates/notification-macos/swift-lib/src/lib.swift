@@ -18,21 +18,15 @@ class NotificationInstance {
   func startDismissTimer(timeoutSeconds: Double) {
     dismissTimer?.cancel()
     let timer = DispatchWorkItem { [weak self] in
-      self?.dismiss(reason: "timeout")
+      self?.dismiss()
     }
     dismissTimer = timer
     DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
   }
 
-  func dismiss(reason: String) {
+  func dismiss() {
     dismissTimer?.cancel()
     dismissTimer = nil
-
-    self.id.uuidString.withCString { idPtr in
-      reason.withCString { reasonPtr in
-        rustOnNotificationDismiss(idPtr, reasonPtr)
-      }
-    }
 
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = 0.2
@@ -42,6 +36,13 @@ class NotificationInstance {
       self.panel.close()
       NotificationManager.shared.removeNotification(self)
     }
+  }
+
+  func dismissWithUserAction() {
+    self.id.uuidString.withCString { idPtr in
+      rustOnNotificationDismiss(idPtr)
+    }
+    dismiss()
   }
 
   deinit {
@@ -141,7 +142,7 @@ class ClickableView: NSView {
       if let urlString = notification.url, let url = URL(string: urlString) {
         NSWorkspace.shared.open(url)
       }
-      notification.dismiss(reason: "click")
+      notification.dismissWithUserAction()
     }
   }
 
@@ -155,8 +156,8 @@ class CloseButton: NSButton {
   weak var notification: NotificationInstance?
   var trackingArea: NSTrackingArea?
 
-  static let buttonSize: CGFloat = 13
-  static let symbolPointSize: CGFloat = 8
+  static let buttonSize: CGFloat = 15
+  static let symbolPointSize: CGFloat = 10
 
   override init(frame frameRect: NSRect) {
     super.init(frame: frameRect)
@@ -215,7 +216,7 @@ class CloseButton: NSButton {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
       self.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
     }
-    notification?.dismiss(reason: "close")
+    notification?.dismissWithUserAction()
   }
 
   override func mouseEntered(with event: NSEvent) {
@@ -360,12 +361,12 @@ class NotificationManager {
     if let mostRecent = activeNotifications.values.max(by: {
       $0.panel.frame.minY < $1.panel.frame.minY
     }) {
-      mostRecent.dismiss(reason: "programmatic")
+      mostRecent.dismiss()
     }
   }
 
   func dismissAll() {
-    activeNotifications.values.forEach { $0.dismiss(reason: "programmatic") }
+    activeNotifications.values.forEach { $0.dismiss() }
   }
 
   func removeNotification(_ notification: NotificationInstance) {
@@ -387,7 +388,7 @@ class NotificationManager {
       if let oldest = activeNotifications.values.min(by: {
         $0.panel.frame.minY > $1.panel.frame.minY
       }) {
-        oldest.dismiss(reason: "limit")
+        oldest.dismiss()
       }
     }
   }
@@ -651,7 +652,7 @@ class NotificationManager {
     if let urlString = notification.url, let url = URL(string: urlString) {
       NSWorkspace.shared.open(url)
     }
-    notification.dismiss(reason: "click")
+    notification.dismissWithUserAction()
   }
 
   private func createAppIconView() -> NSImageView {
@@ -799,7 +800,7 @@ class NotificationManager {
 func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
 
 @_silgen_name("rust_on_notification_dismiss")
-func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>, _ reasonPtr: UnsafePointer<CChar>)
+func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
 public func _showNotification(

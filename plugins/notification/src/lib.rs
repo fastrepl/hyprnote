@@ -23,6 +23,7 @@ pub struct State {
     worker_handle: Option<tokio::task::JoinHandle<()>>,
     detect_state: detect::DetectState,
     notification_handler: handler::NotificationHandler,
+    analytics_task: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl State {
@@ -34,6 +35,7 @@ impl State {
             worker_handle: None,
             detect_state,
             notification_handler,
+            analytics_task: None,
         }
     }
 }
@@ -73,14 +75,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 let app = app.clone();
                 let _ = hypr_intercept::setup_quit_handler(crate::create_quit_handler(app));
             }
-
-            hypr_notification::setup_notification_confirm_handler(|id| {
-                println!("confirmed: {}", id);
-            });
-
-            hypr_notification::setup_notification_dismiss_handler(|id, _reason| {
-                println!("dismissed: {}", id);
-            });
 
             app.manage(Mutex::new(state));
             Ok(())

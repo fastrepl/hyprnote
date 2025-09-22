@@ -16,11 +16,11 @@ swift!(fn _show_notification(
 swift!(fn _dismiss_all_notifications() -> Bool);
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
-static DISMISS_CB: Mutex<Option<Box<dyn Fn(String, String) + Send + Sync>>> = Mutex::new(None);
+static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
-    F: Fn(String, String) + Send + Sync + 'static,
+    F: Fn(String) + Send + Sync + 'static,
 {
     *DISMISS_CB.lock().unwrap() = Some(Box::new(f));
 }
@@ -44,17 +44,13 @@ pub extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
 }
 
 #[no_mangle]
-pub extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char, reason_ptr: *const c_char) {
+pub extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
         let id = unsafe { CStr::from_ptr(id_ptr) }
             .to_str()
             .unwrap()
             .to_string();
-        let reason = unsafe { CStr::from_ptr(reason_ptr) }
-            .to_str()
-            .unwrap()
-            .to_string();
-        cb(id, reason);
+        cb(id);
     }
 }
 

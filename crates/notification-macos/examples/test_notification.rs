@@ -50,8 +50,8 @@ fn main() {
         setup_notification_confirm_handler(|id| {
             println!("confirm: {}", id);
         });
-        setup_notification_dismiss_handler(|id, reason| {
-            println!("dismiss: {} (reason: {})", id, reason);
+        setup_notification_dismiss_handler(|id| {
+            println!("dismiss: {}", id);
         });
 
         let notification = Notification::builder()

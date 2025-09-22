@@ -27,6 +27,9 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
 
     fn start_detect_notification(&self) -> Result<(), Error>;
     fn stop_detect_notification(&self) -> Result<(), Error>;
+
+    fn start_notification_analytics(&self, user_id: String) -> Result<(), Error>;
+    fn stop_notification_analytics(&self) -> Result<(), Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
@@ -210,5 +213,65 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
         let mut guard = state.lock().unwrap();
 
         guard.detect_state.stop()
+    }
+
+    fn start_notification_analytics(&self, user_id: String) -> Result<(), Error> {
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().unwrap();
+
+        let analytics_task = {
+            use hypr_notification::NotificationMutation;
+            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
+
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<NotificationMutation>();
+            let app_handle = self.app_handle().clone();
+
+            let confirm_tx = tx.clone();
+            hypr_notification::setup_notification_confirm_handler(move |_id| {
+                confirm_tx.send(NotificationMutation::Confirm).unwrap();
+            });
+
+            let dismiss_tx = tx.clone();
+            hypr_notification::setup_notification_dismiss_handler(move |_id| {
+                dismiss_tx.send(NotificationMutation::Dismiss).unwrap();
+            });
+
+            tokio::spawn(async move {
+                while let Some(event) = rx.recv().await {
+                    match event {
+                        NotificationMutation::Confirm => {
+                            let _ = app_handle
+                                .event(
+                                    AnalyticsPayload::for_user(user_id.clone())
+                                        .event("notification_confirm")
+                                        .build(),
+                                )
+                                .await;
+                        }
+                        NotificationMutation::Dismiss => {
+                            let _ = app_handle
+                                .event(
+                                    AnalyticsPayload::for_user(user_id.clone())
+                                        .event("notification_dismiss")
+                                        .build(),
+                                )
+                                .await;
+                        }
+                    }
+                }
+            })
+        };
+
+        guard.analytics_task = Some(analytics_task);
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn stop_notification_analytics(&self) -> Result<(), Error> {
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().unwrap();
+
+        guard.analytics_task.take().unwrap().abort();
+        Ok(())
     }
 }

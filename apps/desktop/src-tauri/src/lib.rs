@@ -152,11 +152,13 @@ pub async fn main() {
         builder = builder.plugin(tauri_plugin_apple_calendar::init())
     }
 
+    /* 
     #[cfg(not(debug_assertions))]
     {
         let plugin = tauri_plugin_prevent_default::init();
         builder = builder.plugin(plugin);
     }
+    */
 
     let specta_builder = make_specta_builder();
 

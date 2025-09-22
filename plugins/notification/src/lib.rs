@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{str::FromStr, sync::Mutex};
 use tauri::Manager;
 
 mod commands;
@@ -118,6 +118,16 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     });
                 }
             }
+            tauri::RunEvent::WindowEvent { label, event, .. } => {
+                if let Ok(w) = tauri_plugin_windows::HyprWindow::from_str(label) {
+                    if w == tauri_plugin_windows::HyprWindow::Main {
+                        if let tauri::WindowEvent::Focused(true) = event {
+                            app.clear_notifications().unwrap();
+                        }
+                    }
+                }
+            }
+            tauri::RunEvent::MainEventsCleared => {}
             _ => {}
         })
         .build()

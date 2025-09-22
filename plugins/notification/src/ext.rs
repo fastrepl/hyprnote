@@ -7,6 +7,7 @@ pub trait NotificationPluginExt<R: tauri::Runtime> {
     fn notification_store(&self) -> tauri_plugin_store2::ScopedStore<R, crate::StoreKey>;
 
     fn list_applications(&self) -> Vec<hypr_detect::InstalledApp>;
+    fn clear_notifications(&self) -> Result<(), Error>;
     fn show_notification(&self, v: hypr_notification::Notification) -> Result<(), Error>;
 
     fn get_respect_do_not_disturb(&self) -> Result<bool, Error>;
@@ -44,6 +45,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
     #[tracing::instrument(skip(self))]
     fn show_notification(&self, v: hypr_notification::Notification) -> Result<(), Error> {
         hypr_notification::show(&v);
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    fn clear_notifications(&self) -> Result<(), Error> {
+        hypr_notification::clear();
         Ok(())
     }
 

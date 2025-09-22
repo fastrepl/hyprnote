@@ -1,16 +1,14 @@
-mod listen;
+mod listener;
 mod processor;
 mod recorder;
 mod session;
-mod source_mic;
-mod source_spk;
+mod source;
 
-pub use listen::*;
+pub use listener::*;
 pub use processor::*;
 pub use recorder::*;
 pub use session::*;
-pub use source_mic::*;
-pub use source_spk::*;
+pub use source::*;
 
 #[derive(Clone)]
 pub struct AudioChunk {

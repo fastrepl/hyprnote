@@ -59,7 +59,6 @@ CARGO_BUILD_TARGET=aarch64-apple-darwin pnpm exec turbo -F @hypr/desktop tauri:d
 
 We support:
 - MacOS Apple Silicon: `aarch64-apple-darwin`
-- MacOS x86 (intel): `x86_64-apple-darwin`
 - Windows x86 (intel/amd): `x86_64-pc-windows-msvc`
 
 #### macOS Version Warnings

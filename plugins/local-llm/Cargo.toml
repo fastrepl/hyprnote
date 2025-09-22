@@ -31,9 +31,11 @@ hypr-gguf = { workspace = true }
 hypr-llama = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-store2 = { workspace = true }
-tauri-plugin-windows = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-store2 = { workspace = true }
+tauri-plugin-template = { workspace = true }
+tauri-plugin-windows = { workspace = true }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }

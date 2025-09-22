@@ -5,6 +5,7 @@ mod commands;
 mod ext;
 
 pub use ext::TemplatePluginExt;
+pub use hypr_template::Template;
 
 const PLUGIN_NAME: &str = "template";
 

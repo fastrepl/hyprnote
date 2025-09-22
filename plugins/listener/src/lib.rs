@@ -1,4 +1,4 @@
-use ractor::{Actor, ActorRef};
+use ractor::ActorRef;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -14,25 +14,23 @@ pub use error::*;
 pub use events::*;
 pub use ext::*;
 
-use crate::actors::{SessionArgs, SessionMsg, SessionSupervisor};
+use crate::actors::SessionMsg;
 
 const PLUGIN_NAME: &str = "listener";
 
 pub type SharedState = Mutex<State>;
 
 pub struct State {
+    app: tauri::AppHandle,
     supervisor: Option<ActorRef<SessionMsg>>,
 }
 
 impl State {
     pub async fn get_state(&self) -> fsm::State {
-        if let Some(supervisor) = &self.supervisor {
-            match ractor::call_t!(supervisor, SessionMsg::GetState, 100) {
-                Ok(state) => state,
-                Err(_) => fsm::State::Inactive {},
-            }
+        if let Some(_) = ractor::registry::where_is(actors::SessionActor::name()) {
+            crate::fsm::State::RunningActive
         } else {
-            fsm::State::Inactive {}
+            crate::fsm::State::Inactive
         }
     }
 }
@@ -70,42 +68,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let state: SharedState = Mutex::new(State { supervisor: None });
-            app.manage(state);
-
             let app_handle = app.app_handle().clone();
 
-            tokio::spawn(async move {
-                match Actor::spawn(
-                    Some(SessionSupervisor::name()),
-                    SessionSupervisor,
-                    SessionArgs {
-                        app: app_handle.clone(),
-                    },
-                )
-                .await
-                {
-                    Ok((supervisor_ref, join_handle)) => {
-                        {
-                            let state_ref = app_handle.state::<SharedState>();
-                            let mut state = state_ref.lock().await;
-                            state.supervisor = Some(supervisor_ref);
-                        }
-
-                        tokio::spawn(async move {
-                            if let Err(e) = join_handle.await {
-                                tracing::error!("SessionSupervisor terminated with error: {:?}", e);
-                            } else {
-                                tracing::info!("SessionSupervisor terminated gracefully");
-                            }
-                        });
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to spawn SessionSupervisor: {}", e);
-                    }
-                }
+            let state: SharedState = Mutex::new(State {
+                app: app_handle,
+                supervisor: None,
             });
 
+            app.manage(state);
             Ok(())
         })
         .build()

@@ -13,6 +13,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { events as localLlmEvents } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -20,7 +21,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -36,35 +37,13 @@ async function generateTitleDirect(
   sessions: Record<string, any>,
   queryClient: QueryClient,
 ) {
-  const [config, { type }, provider] = await Promise.all([
-    dbCommands.getConfig(),
-    connectorCommands.getLlmConnection(),
-    modelProvider(),
-  ]);
-
-  const [systemMessage, userMessage] = await Promise.all([
-    templateCommands.render("create_title.system", { config, type }),
-    templateCommands.render("create_title.user", { type, enhanced_note: enhancedContent }),
-  ]);
-
-  const model = provider.languageModel("defaultModel");
-  const abortSignal = AbortSignal.timeout(60_000);
-
-  const { text } = await generateText({
-    abortSignal,
-    model,
-    messages: [
-      { role: "system", content: systemMessage },
-      { role: "user", content: userMessage },
-    ],
-    providerOptions: {
-      [localProviderName]: { metadata: { grammar: "title" } },
-    },
+  const title = await localLlmCommands.generateTitle({
+    enhanced_note: enhancedContent,
   });
 
   const session = await dbCommands.getSession({ id: targetSessionId });
   if (!session?.title && sessions[targetSessionId]?.getState) {
-    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    const cleanedTitle = title.replace(/^["']|["']$/g, "").trim();
     sessions[targetSessionId].getState().updateTitle(cleanedTitle);
   }
 

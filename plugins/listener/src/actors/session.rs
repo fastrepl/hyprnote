@@ -1,135 +1,157 @@
-use ractor::{
-    call_t, Actor, ActorCell, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort,
-    SupervisionEvent,
-};
+use std::collections::HashMap;
+
 use tauri::Manager;
 use tauri_specta::Event;
+
+use ractor::{
+    call_t, concurrency, registry, Actor, ActorCell, ActorName, ActorProcessingErr, ActorRef,
+    RpcReplyPort, SupervisionEvent,
+};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     actors::{
-        AudioProcessor, ListenArgs, ListenBridge, ListenMsg, MicArgs, MicCtrl, MicSourceActor,
-        ProcArgs, ProcMsg, RecArgs, RecMsg, Recorder, SpeakerSourceActor, SpkArgs, SpkCtrl,
+        ListenerActor, ListenerArgs, ListenerMsg, ProcArgs, ProcMsg, ProcessorActor, RecArgs,
+        RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
     },
-    fsm::State,
     SessionEvent,
 };
 
+const MAX_RESTART_ATTEMPTS: u32 = 3;
+
 #[derive(Debug)]
 pub enum SessionMsg {
-    Start { session_id: String },
-    Stop,
     SetMicMute(bool),
     SetSpeakerMute(bool),
     GetMicMute(RpcReplyPort<bool>),
     GetSpeakerMute(RpcReplyPort<bool>),
     GetMicDeviceName(RpcReplyPort<Option<String>>),
     ChangeMicDevice(Option<String>),
-    GetState(RpcReplyPort<State>),
 }
 
 pub struct SessionArgs {
     pub app: tauri::AppHandle,
+    pub session_id: String,
 }
 
 pub struct SessionState {
     app: tauri::AppHandle,
-    state: State,
-    session_id: Option<String>,
-    session_start_ts_ms: Option<u64>,
 
-    mic_source: Option<ActorRef<MicCtrl>>,
-    speaker_source: Option<ActorRef<SpkCtrl>>,
-    processor: Option<ActorRef<ProcMsg>>,
-    recorder: Option<ActorRef<RecMsg>>,
-    listen: Option<ActorRef<ListenMsg>>,
+    session_id: String,
+    session_start_ts_ms: u64,
 
-    record_enabled: bool,
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
 
     token: CancellationToken,
+
+    restart_attempts: HashMap<String, u32>,
+    supervisor: Option<ActorCell>,
 }
 
-pub struct SessionSupervisor;
+pub struct SessionActor;
 
-impl SessionSupervisor {
+impl SessionActor {
     pub fn name() -> ActorName {
-        "session_supervisor".into()
+        "session".into()
     }
 }
 
-impl Actor for SessionSupervisor {
+impl Actor for SessionActor {
     type Msg = SessionMsg;
     type State = SessionState;
     type Arguments = SessionArgs;
 
     async fn pre_start(
         &self,
-        _myself: ActorRef<Self::Msg>,
+        myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        Ok(SessionState {
+        use tauri_plugin_db::{DatabasePluginExt, UserDatabase};
+
+        let supervisor = myself.get_cell();
+        let session_id = args.session_id.clone();
+        let onboarding_session_id = UserDatabase::onboarding_session_id();
+        let onboarding = session_id == onboarding_session_id;
+        let user_id = args.app.db_user_id().await?.unwrap();
+
+        let config = args.app.db_get_config(&user_id).await?;
+        let record_enabled = config
+            .as_ref()
+            .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
+        let languages = config.as_ref().map_or_else(
+            || vec![hypr_language::ISO639::En.into()],
+            |c| c.general.spoken_languages.clone(),
+        );
+        let cancellation_token = CancellationToken::new();
+
+        if let Ok(Some(mut session)) = args.app.db_get_session(&args.session_id).await {
+            session.record_start = Some(chrono::Utc::now());
+            let _ = args.app.db_upsert_session(session).await;
+        }
+
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = args.app.set_start_disabled(true);
+        }
+
+        let session_start_ts_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
+        let state = SessionState {
             app: args.app,
-            state: State::Inactive,
-            session_id: None,
-            session_start_ts_ms: None,
-            mic_source: None,
-            speaker_source: None,
-            processor: None,
-            recorder: None,
-            listen: None,
-            record_enabled: true,
-            languages: vec![],
-            onboarding: false,
-            token: CancellationToken::new(),
-        })
+            session_id,
+            session_start_ts_ms,
+            languages,
+            onboarding,
+            token: cancellation_token,
+            restart_attempts: HashMap::new(),
+            supervisor: None,
+        };
+
+        {
+            Self::restart_processor(supervisor.clone(), &state).await?;
+            Self::restart_source(supervisor.clone(), &state).await?;
+            Self::restart_listener(supervisor.clone(), &state).await?;
+
+            if record_enabled {
+                Self::restart_recorder(supervisor, &state).await?;
+            }
+        }
+
+        Ok(state)
     }
 
     async fn handle(
         &self,
-        myself: ActorRef<Self::Msg>,
+        _myself: ActorRef<Self::Msg>,
         message: Self::Msg,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
-            SessionMsg::Start { session_id } => {
-                if let State::RunningActive = state.state {
-                    if let Some(current_id) = &state.session_id {
-                        if current_id != &session_id {
-                            self.stop_session(state).await?;
-                        } else {
-                            return Ok(());
-                        }
-                    }
-                }
-
-                self.start_session(myself.get_cell(), state, session_id)
-                    .await?;
-            }
-
-            SessionMsg::Stop => {
-                self.stop_session(state).await?;
-            }
-
             SessionMsg::SetMicMute(muted) => {
-                if let Some(mic) = &state.mic_source {
-                    mic.cast(MicCtrl::SetMute(muted))?;
+                if let Some(cell) = registry::where_is(SourceActor::name()) {
+                    let actor: ActorRef<SourceMsg> = cell.into();
+                    actor.cast(SourceMsg::SetMicMute(muted))?;
                 }
                 SessionEvent::MicMuted { value: muted }.emit(&state.app)?;
             }
 
             SessionMsg::SetSpeakerMute(muted) => {
-                if let Some(spk) = &state.speaker_source {
-                    spk.cast(SpkCtrl::SetMute(muted))?;
+                if let Some(cell) = registry::where_is(SourceActor::name()) {
+                    let actor: ActorRef<SourceMsg> = cell.into();
+                    actor.cast(SourceMsg::SetSpkMute(muted))?;
                 }
                 SessionEvent::SpeakerMuted { value: muted }.emit(&state.app)?;
             }
 
             SessionMsg::GetMicDeviceName(reply) => {
                 if !reply.is_closed() {
-                    let device_name = if let Some(mic) = &state.mic_source {
-                        call_t!(mic, MicCtrl::GetDevice, 100).unwrap_or(None)
+                    let device_name = if let Some(cell) = registry::where_is(SourceActor::name()) {
+                        let actor: ActorRef<SourceMsg> = cell.into();
+                        call_t!(actor, SourceMsg::GetMicDevice, 100).unwrap_or(None)
                     } else {
                         None
                     };
@@ -139,8 +161,9 @@ impl Actor for SessionSupervisor {
             }
 
             SessionMsg::GetMicMute(reply) => {
-                let muted = if let Some(mic) = &state.mic_source {
-                    call_t!(mic, MicCtrl::GetMute, 100)?
+                let muted = if let Some(cell) = registry::where_is(SourceActor::name()) {
+                    let actor: ActorRef<SourceMsg> = cell.into();
+                    call_t!(actor, SourceMsg::GetMicMute, 100)?
                 } else {
                     false
                 };
@@ -151,8 +174,9 @@ impl Actor for SessionSupervisor {
             }
 
             SessionMsg::GetSpeakerMute(reply) => {
-                let muted = if let Some(spk) = &state.speaker_source {
-                    call_t!(spk, SpkCtrl::GetMute, 100)?
+                let muted = if let Some(cell) = registry::where_is(SourceActor::name()) {
+                    let actor: ActorRef<SourceMsg> = cell.into();
+                    call_t!(actor, SourceMsg::GetSpkMute, 100)?
                 } else {
                     false
                 };
@@ -163,14 +187,9 @@ impl Actor for SessionSupervisor {
             }
 
             SessionMsg::ChangeMicDevice(device) => {
-                if let Some(mic) = &state.mic_source {
-                    mic.cast(MicCtrl::SetDevice(device))?;
-                }
-            }
-
-            SessionMsg::GetState(reply) => {
-                if !reply.is_closed() {
-                    let _ = reply.send(state.state.clone());
+                if let Some(cell) = registry::where_is(SourceActor::name()) {
+                    let actor: ActorRef<SourceMsg> = cell.into();
+                    actor.cast(SourceMsg::SetMicDevice(device))?;
                 }
             }
         }
@@ -186,27 +205,37 @@ impl Actor for SessionSupervisor {
     ) -> Result<(), ActorProcessingErr> {
         match event {
             SupervisionEvent::ActorStarted(actor) => {
-                if matches!(
-                    actor.get_name(),
-                    Some(name) if name == MicSourceActor::name() || name == SpeakerSourceActor::name()
-                ) {}
-
                 tracing::info!("{:?}_actor_started", actor.get_name());
-            }
 
-            SupervisionEvent::ActorFailed(actor, _) => {
-                tracing::error!("{:?}_actor_failed", actor.get_name());
-
-                if matches!(state.state, State::RunningActive) {
-                    self.stop_session(state).await?;
+                if let Some(name) = actor.get_name() {
+                    state.restart_attempts.remove(&name.to_string());
                 }
             }
 
-            SupervisionEvent::ActorTerminated(actor, _, exit_reason) => {
-                tracing::info!("{:?}_actor_terminated: {:?}", actor.get_name(), exit_reason);
+            SupervisionEvent::ActorFailed(actor, _)
+            | SupervisionEvent::ActorTerminated(actor, _, _) => {
+                let actor_name = actor
+                    .get_name()
+                    .map(|n| n.to_string())
+                    .unwrap_or_else(|| "unknown".to_string());
 
-                if matches!(state.state, State::RunningActive) {
-                    self.stop_session(state).await?;
+                let attempts = {
+                    let v = state
+                        .restart_attempts
+                        .entry(actor_name.clone())
+                        .or_insert(0);
+                    *v += 1;
+                    v
+                };
+
+                if *attempts >= MAX_RESTART_ATTEMPTS {
+                    actor.stop(None);
+                } else {
+                    tracing::info!("{}_attempting_restart", actor_name);
+
+                    if let Err(_) = SessionActor::restart_actor(&actor_name, state).await {
+                        actor.stop(None);
+                    }
                 }
             }
 
@@ -221,159 +250,20 @@ impl Actor for SessionSupervisor {
         _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        self.stop_session(state).await?;
-        Ok(())
-    }
-}
-
-impl SessionSupervisor {
-    async fn start_session(
-        &self,
-        supervisor: ActorCell,
-        state: &mut SessionState,
-        session_id: String,
-    ) -> Result<(), ActorProcessingErr> {
-        use tauri_plugin_db::{DatabasePluginExt, UserDatabase};
-
-        let user_id = state.app.db_user_id().await?.unwrap();
-        let onboarding_session_id = UserDatabase::onboarding_session_id();
-        state.onboarding = session_id == onboarding_session_id;
-
-        let config = state.app.db_get_config(&user_id).await?;
-        state.record_enabled = config
-            .as_ref()
-            .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
-        state.languages = config.as_ref().map_or_else(
-            || vec![hypr_language::ISO639::En.into()],
-            |c| c.general.spoken_languages.clone(),
-        );
-
-        state.session_id = Some(session_id.clone());
-        state.session_start_ts_ms = Some(
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as u64,
-        );
-
-        if let Ok(Some(mut session)) = state.app.db_get_session(&session_id).await {
-            session.record_start = Some(chrono::Utc::now());
-            let _ = state.app.db_upsert_session(session).await;
-        }
-
-        state.token = CancellationToken::new();
-
-        let (processor_ref, _) = Actor::spawn_linked(
-            Some(AudioProcessor::name()),
-            AudioProcessor {},
-            ProcArgs {
-                app: state.app.clone(),
-            },
-            supervisor.clone(),
-        )
-        .await?;
-        state.processor = Some(processor_ref.clone());
-
-        let (mic_ref, _) = Actor::spawn_linked(
-            Some(MicSourceActor::name()),
-            MicSourceActor,
-            MicArgs {
-                proc: processor_ref.clone(),
-                token: state.token.clone(),
-                device: None,
-            },
-            supervisor.clone(),
-        )
-        .await?;
-        state.mic_source = Some(mic_ref.clone());
-
-        let (spk_ref, _) = Actor::spawn_linked(
-            Some(SpeakerSourceActor::name()),
-            SpeakerSourceActor,
-            SpkArgs {
-                proc: processor_ref.clone(),
-                token: state.token.clone(),
-            },
-            supervisor.clone(),
-        )
-        .await?;
-        state.speaker_source = Some(spk_ref);
-
-        if state.record_enabled {
-            let app_dir = state.app.path().app_data_dir().unwrap();
-            let (rec_ref, _) = Actor::spawn_linked(
-                Some("recorder".to_string()),
-                Recorder,
-                RecArgs {
-                    app_dir: app_dir.clone(),
-                    session_id: session_id.clone(),
-                    file_suffix: None,
-                },
-                supervisor.clone(),
-            )
-            .await?;
-            state.recorder = Some(rec_ref.clone());
-            processor_ref.cast(ProcMsg::AttachRecorder(rec_ref))?;
-        }
-
-        let (listen_ref, _) = Actor::spawn_linked(
-            Some(ListenBridge::name()),
-            ListenBridge,
-            ListenArgs {
-                app: state.app.clone(),
-                session_id: session_id.clone(),
-                languages: state.languages.clone(),
-                onboarding: state.onboarding,
-                session_start_ts_ms: state.session_start_ts_ms.unwrap_or(0),
-            },
-            supervisor,
-        )
-        .await?;
-        state.listen = Some(listen_ref.clone());
-        processor_ref.cast(ProcMsg::AttachListen(listen_ref))?;
-
-        {
-            use tauri_plugin_tray::TrayPluginExt;
-            let _ = state.app.set_start_disabled(true);
-        }
-
-        state.state = State::RunningActive;
-        SessionEvent::RunningActive {}.emit(&state.app)?;
-
-        Ok(())
-    }
-
-    async fn stop_session(&self, state: &mut SessionState) -> Result<(), ActorProcessingErr> {
-        if matches!(state.state, State::Inactive) {
-            return Ok(());
-        }
-
         state.token.cancel();
 
-        if let Some(mic) = state.mic_source.take() {
-            mic.stop(None);
-        }
-        if let Some(spk) = state.speaker_source.take() {
-            spk.stop(None);
-        }
-        if let Some(proc) = state.processor.take() {
-            proc.stop(None);
-        }
-        if let Some(rec) = state.recorder.take() {
-            rec.stop(None);
+        {
+            Self::stop_source().await;
+            Self::stop_processor().await;
+            Self::stop_recorder().await;
+            Self::stop_listener().await;
         }
 
-        if let Some(listen) = state.listen.take() {
-            listen.stop(None);
-        }
+        use tauri_plugin_db::DatabasePluginExt;
 
-        if let Some(session_id) = &state.session_id {
-            use tauri_plugin_db::DatabasePluginExt;
-
-            if let Ok(Some(mut session)) = state.app.db_get_session(session_id).await {
-                session.record_end = Some(chrono::Utc::now());
-                let _ = state.app.db_upsert_session(session).await;
-            }
+        if let Ok(Some(mut session)) = state.app.db_get_session(&state.session_id).await {
+            session.record_end = Some(chrono::Utc::now());
+            let _ = state.app.db_upsert_session(session).await;
         }
 
         {
@@ -386,11 +276,164 @@ impl SessionSupervisor {
             let _ = state.app.window_hide(HyprWindow::Control);
         }
 
-        state.session_id = None;
-        state.session_start_ts_ms = None;
-        state.state = State::Inactive;
-
         SessionEvent::Inactive {}.emit(&state.app)?;
+
+        Ok(())
+    }
+}
+
+impl SessionActor {
+    async fn stop_source() {
+        if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(
+                    Some("restart".to_string()),
+                    Some(concurrency::Duration::from_secs(3)),
+                )
+                .await;
+        }
+    }
+
+    async fn restart_source(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<ActorRef<SourceMsg>, ActorProcessingErr> {
+        let _ = Self::stop_source().await;
+
+        let (ar, _) = Actor::spawn_linked(
+            Some(SourceActor::name()),
+            SourceActor,
+            SourceArgs {
+                token: state.token.clone(),
+                device: None,
+            },
+            supervisor,
+        )
+        .await?;
+        Ok(ar)
+    }
+
+    async fn stop_processor() {
+        if let Some(cell) = registry::where_is(ProcessorActor::name()) {
+            let actor: ActorRef<ProcMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(
+                    Some("restart".to_string()),
+                    Some(concurrency::Duration::from_secs(3)),
+                )
+                .await;
+        }
+    }
+
+    async fn restart_processor(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<ActorRef<ProcMsg>, ActorProcessingErr> {
+        let _ = Self::stop_processor().await;
+
+        let (ar, _) = Actor::spawn_linked(
+            Some(ProcessorActor::name()),
+            ProcessorActor {},
+            ProcArgs {
+                app: state.app.clone(),
+            },
+            supervisor,
+        )
+        .await?;
+        Ok(ar)
+    }
+
+    async fn stop_recorder() {
+        if let Some(cell) = registry::where_is(RecorderActor::name()) {
+            let actor: ActorRef<RecMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(
+                    Some("restart".to_string()),
+                    Some(concurrency::Duration::from_secs(3)),
+                )
+                .await;
+        }
+    }
+
+    async fn restart_recorder(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<ActorRef<RecMsg>, ActorProcessingErr> {
+        let _ = Self::stop_recorder().await;
+
+        let (rec_ref, _) = Actor::spawn_linked(
+            Some(RecorderActor::name()),
+            RecorderActor,
+            RecArgs {
+                app_dir: state.app.path().app_data_dir().unwrap(),
+                session_id: state.session_id.clone(),
+            },
+            supervisor,
+        )
+        .await?;
+        Ok(rec_ref)
+    }
+
+    async fn stop_listener() {
+        if let Some(cell) = registry::where_is(ListenerActor::name()) {
+            let actor: ActorRef<ListenerMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(
+                    Some("restart".to_string()),
+                    Some(concurrency::Duration::from_secs(3)),
+                )
+                .await;
+        }
+    }
+
+    async fn restart_listener(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<ActorRef<ListenerMsg>, ActorProcessingErr> {
+        let _ = Self::stop_listener().await;
+
+        let (listen_ref, _) = Actor::spawn_linked(
+            Some(ListenerActor::name()),
+            ListenerActor,
+            ListenerArgs {
+                app: state.app.clone(),
+                session_id: state.session_id.to_string(),
+                languages: state.languages.clone(),
+                onboarding: state.onboarding,
+                session_start_ts_ms: state.session_start_ts_ms,
+            },
+            supervisor,
+        )
+        .await?;
+        Ok(listen_ref)
+    }
+
+    async fn restart_actor(
+        actor_name: &str,
+        state: &SessionState,
+    ) -> Result<(), ActorProcessingErr> {
+        let supervisor = state
+            .supervisor
+            .as_ref()
+            .ok_or_else(|| ActorProcessingErr::from("No supervisor available"))?
+            .clone();
+
+        match actor_name {
+            name if name == ProcessorActor::name() => {
+                Self::restart_processor(supervisor, state).await?;
+            }
+            name if name == SourceActor::name() => {
+                Self::restart_source(supervisor, state).await?;
+            }
+            name if name == RecorderActor::name() => {
+                Self::restart_recorder(supervisor, state).await?;
+            }
+            name if name == ListenerActor::name() => {
+                Self::restart_listener(supervisor, state).await?;
+            }
+            _ => {}
+        }
 
         Ok(())
     }

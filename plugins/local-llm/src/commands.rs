@@ -1,4 +1,6 @@
-use crate::{CustomModelInfo, LocalLlmPluginExt, ModelInfo, ModelSelection, SupportedModel};
+use crate::{
+    CustomModelInfo, LocalLlmPluginExt, LocalLlmTaskExt, ModelInfo, ModelSelection, SupportedModel,
+};
 
 use tauri::ipc::Channel;
 
@@ -139,4 +141,22 @@ pub async fn set_current_model_selection<R: tauri::Runtime>(
 ) -> Result<(), String> {
     app.set_current_model_selection(model)
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn generate_title<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    ctx: serde_json::Map<String, serde_json::Value>,
+) -> Result<String, String> {
+    app.generate_title(ctx).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn generate_tags<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    ctx: serde_json::Map<String, serde_json::Value>,
+) -> Result<Vec<String>, String> {
+    app.generate_tags(ctx).await.map_err(|e| e.to_string())
 }

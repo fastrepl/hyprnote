@@ -5,14 +5,16 @@ edition = "2021"
 
 # https://github.com/tazz4843/whisper-rs/blob/e3d67d5/Cargo.toml
 [features]
-default = []
-coreml = ["whisper-rs/coreml"]
-cuda = ["whisper-rs/cuda"]
-hipblas = ["whisper-rs/hipblas"]
-openblas = ["whisper-rs/openblas"]
-metal = ["whisper-rs/metal"]
-vulkan = ["whisper-rs/vulkan"]
-openmp = ["whisper-rs/openmp"]
+default = ["actual"]
+actual = ["dep:whisper-rs"]
+
+coreml = ["actual", "whisper-rs/coreml"]
+cuda = ["actual", "whisper-rs/cuda"]
+hipblas = ["actual", "whisper-rs/hipblas"]
+openblas = ["actual", "whisper-rs/openblas"]
+metal = ["actual", "whisper-rs/metal"]
+vulkan = ["actual", "whisper-rs/vulkan"]
+openmp = ["actual", "whisper-rs/openmp"]
 
 [dependencies]
 hypr-audio-utils = { workspace = true }
@@ -23,7 +25,7 @@ hound = { workspace = true }
 
 kalosm-sound = { workspace = true, default-features = false }
 rodio = { workspace = true }
-whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "0c509ec", features = ["raw-api", "tracing_backend"] }
+whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "0c509ec", features = ["raw-api", "tracing_backend"], optional = true }
 
 futures-util = { workspace = true }
 tracing = { workspace = true }

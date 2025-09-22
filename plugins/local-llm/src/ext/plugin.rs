@@ -188,10 +188,6 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         let current_selection = self.get_current_model_selection()?;
         let model_path = current_selection.file_path(&self.models_dir());
 
-        if !model_path.exists() {
-            return Err(crate::Error::ModelNotDownloaded);
-        }
-
         let model_manager = crate::ModelManager::new(model_path);
         let state = self.state::<crate::SharedState>();
 

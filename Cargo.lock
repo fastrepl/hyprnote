@@ -310,6 +310,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aotuv_lancer_vorbis_sys"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c22da1eae146e1ac2956da45bd1856b2f9ad788e6f7af535b861df497d726a1"
+dependencies = [
+ "cc",
+ "ogg_next_sys",
+]
+
+[[package]]
 name = "apalis"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3748,7 +3758,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.79"
+version = "0.0.80"
 dependencies = [
  "anyhow",
  "bytes",
@@ -7806,7 +7816,19 @@ version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "863726d7afb6bc2590eeff7135d923545e5e964f004c2ccf8716c25e70a86f08"
 dependencies = [
- "jsonptr",
+ "jsonptr 0.6.3",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "json-patch"
+version = "4.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f300e415e2134745ef75f04562dd0145405c2f7fd92065db029ac4b16b57fe90"
+dependencies = [
+ "jsonptr 0.7.1",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -7828,6 +7850,16 @@ name = "jsonptr"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5dea2b27dd239b2556ed7a25ba842fe47fd602e7fc7433c2a8d6106d4d9edd70"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "jsonptr"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5a3cc660ba5d72bce0b3bb295bf20847ccbb40fd423f3f05b61273672e561fe"
 dependencies = [
  "serde",
  "serde_json",
@@ -9812,6 +9844,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6951b4e8bf21c8193da321bcce9c9dd2e13c858fe078bf9054a288b419ae5d6e"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "ogg_next_sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c990730c2782b922815753a62af535e4205267df190dfbd8aa5d74e11d7dcc3"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -14048,7 +14089,7 @@ dependencies = [
  "dirs 6.0.0",
  "glob",
  "heck 0.5.0",
- "json-patch",
+ "json-patch 3.0.1",
  "schemars 0.8.22",
  "semver",
  "serde",
@@ -14068,7 +14109,7 @@ dependencies = [
  "base64 0.22.1",
  "brotli",
  "ico",
- "json-patch",
+ "json-patch 3.0.1",
  "plist",
  "png 0.17.16",
  "proc-macro2",
@@ -14416,7 +14457,6 @@ dependencies = [
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [
- "aec",
  "agc",
  "audio",
  "audio-utils",
@@ -14463,6 +14503,7 @@ dependencies = [
  "url",
  "uuid",
  "vad",
+ "vorbis_rs",
 ]
 
 [[package]]
@@ -14490,6 +14531,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-store",
  "tauri-plugin-store2",
+ "tauri-plugin-template",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.16",
@@ -14515,6 +14557,7 @@ dependencies = [
  "futures-util",
  "host",
  "inventory",
+ "json-patch 4.1.0",
  "language",
  "owhisper-client",
  "owhisper-interface",
@@ -15091,7 +15134,7 @@ dependencies = [
  "html5ever",
  "http 1.3.1",
  "infer 0.19.0",
- "json-patch",
+ "json-patch 3.0.1",
  "kuchikiki",
  "log",
  "memchr",
@@ -16783,6 +16826,20 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "vorbis_rs"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "874075ad757c0f6031d4706ed75703a9ba6c711164a0b1dab55af86800cd618f"
+dependencies = [
+ "aotuv_lancer_vorbis_sys",
+ "errno",
+ "getrandom 0.2.16",
+ "ogg_next_sys",
+ "thiserror 2.0.16",
+ "tinyvec",
+]
 
 [[package]]
 name = "vsimd"

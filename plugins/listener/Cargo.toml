@@ -18,7 +18,6 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-aec = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
@@ -56,6 +55,7 @@ strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
+vorbis_rs = { workspace = true }
 
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
@@ -74,4 +74,3 @@ objc2-foundation = { workspace = true }
 
 [features]
 default = []
-load-dynamic = ["hypr-aec/load-dynamic"]

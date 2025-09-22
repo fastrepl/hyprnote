@@ -139,12 +139,19 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
     queryClient,
   );
 
-  const handleCopyAll = useCallback(async () => {
+  const handleCopyAll = () => {
     if (editorRef.current?.editor) {
       const text = editorRef.current.toText();
-      await writeTextToClipboard(text);
+      writeTextToClipboard(text);
+    } else {
+      const text = speakerChunks.map((chunk) => {
+        const speakerName = getSpeakerDisplayName(chunk);
+        const content = chunk.words.map(word => word.text).join(" ");
+        return `${speakerName}: ${content}`;
+      }).join("\n\n");
+      writeTextToClipboard(text);
     }
-  }, [editorRef]);
+  };
 
   const handleOpenSession = useCallback(() => {
     miscCommands.audioOpen(sessionId);

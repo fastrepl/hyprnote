@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn list_models(app_data_dir: PathBuf) -> Result<Vec<String>, crate::Error> {
@@ -18,11 +19,24 @@ pub fn list_models(app_data_dir: PathBuf) -> Result<Vec<String>, crate::Error> {
         None => return Ok(Vec::new()),
     };
 
-    let gguf_files = walk_directory_for_gguf(models_path)?;
-    Ok(gguf_files)
+    let files = {
+        let mut files = walk_directory_for_gguf(models_path)?
+            .into_iter()
+            .map(|path| {
+                let path_str = path.to_str().unwrap_or_default();
+                let file_size = fs::metadata(&path).map(|v| v.len()).unwrap_or(0);
+                (path_str.to_string(), file_size)
+            })
+            .filter(|(f, _)| !f.contains("mmproj") && !f.contains("embedding"))
+            .collect::<Vec<_>>();
+        files.sort_by(|a, b| b.1.cmp(&a.1));
+        files.into_iter().map(|(path, _)| path).collect()
+    };
+
+    Ok(files)
 }
 
-fn walk_directory_for_gguf(path: impl AsRef<Path>) -> Result<Vec<String>, crate::Error> {
+fn walk_directory_for_gguf(path: impl AsRef<Path>) -> Result<Vec<PathBuf>, crate::Error> {
     let dir = path.as_ref();
     let mut gguf_files = Vec::new();
 
@@ -36,9 +50,7 @@ fn walk_directory_for_gguf(path: impl AsRef<Path>) -> Result<Vec<String>, crate:
                 let mut sub_files = walk_directory_for_gguf(path)?;
                 gguf_files.append(&mut sub_files);
             } else if path.extension().and_then(|ext| ext.to_str()) == Some("gguf") {
-                if let Some(path_str) = path.to_str() {
-                    gguf_files.push(path_str.to_string());
-                }
+                gguf_files.push(path);
             }
         }
     }

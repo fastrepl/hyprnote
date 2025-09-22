@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use tauri::{Manager, Wry};
+use tauri::{path::BaseDirectory, Manager, Wry};
 use tokio::sync::Mutex;
 
 mod commands;
@@ -30,11 +30,11 @@ const PLUGIN_NAME: &str = "local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
-#[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
     pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
+    pub builtin_model: crate::ModelManager,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -57,6 +57,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_custom_models::<Wry>,
             commands::get_current_model_selection::<Wry>,
             commands::set_current_model_selection::<Wry>,
+            commands::generate_title::<Wry>,
+            commands::generate_tags::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -88,8 +90,16 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
-                let state: SharedState = Arc::new(Mutex::new(State::default()));
-                app.manage(state);
+                let state = State {
+                    api_base: None,
+                    server: None,
+                    download_task: HashMap::new(),
+                    builtin_model: crate::ModelManager::new(
+                        app.path()
+                            .resolve("resources/llm.gguf", BaseDirectory::Resource)?,
+                    ),
+                };
+                app.manage(Arc::new(Mutex::new(state)));
             }
 
             Ok(())

@@ -13,6 +13,8 @@ swift!(fn _show_notification(
     timeout_seconds: f64
 ) -> Bool);
 
+swift!(fn _dismiss_all_notifications() -> Bool);
+
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String, String) + Send + Sync>>> = Mutex::new(None);
 
@@ -68,6 +70,12 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
         let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
         _show_notification(&title, &message, &url, timeout_seconds);
+    }
+}
+
+pub fn dismiss_all() {
+    unsafe {
+        _dismiss_all_notifications();
     }
 }
 

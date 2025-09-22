@@ -9,6 +9,7 @@ use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 pub enum NotificationTrigger {
     Detect(NotificationTriggerDetect),
     Event(NotificationTriggerEvent),
+    Clear,
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +60,9 @@ impl NotificationHandler {
                     if app_handle.get_event_notification().unwrap_or(false) {
                         Self::handle_calendar_event(&app_handle, e);
                     }
+                }
+                NotificationTrigger::Clear => {
+                    hypr_notification::clear();
                 }
             }
         }

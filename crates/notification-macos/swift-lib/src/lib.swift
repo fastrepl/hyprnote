@@ -822,3 +822,9 @@ public func _showNotification(
   Thread.sleep(forTimeInterval: 0.1)
   return true
 }
+
+@_cdecl("_dismiss_all_notifications")
+public func _dismissAllNotifications() -> Bool {
+  NotificationManager.shared.dismissAll()
+  return true
+}

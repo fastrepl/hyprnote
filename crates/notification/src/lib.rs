@@ -40,8 +40,16 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
     hypr_notification_macos::show(notification);
 }
 
+#[cfg(target_os = "macos")]
+pub fn clear() {
+    hypr_notification_macos::dismiss_all();
+}
+
 #[cfg(not(target_os = "macos"))]
 pub fn show(notification: &hypr_notification_interface::Notification) {}
+
+#[cfg(not(target_os = "macos"))]
+pub fn clear() {}
 
 #[cfg(target_os = "macos")]
 pub fn is_do_not_disturb() -> bool {

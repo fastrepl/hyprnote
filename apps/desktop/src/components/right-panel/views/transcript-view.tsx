@@ -213,7 +213,6 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
                   event: "transcript_replace_all",
                   distinct_id: userId,
                 });
-                
               }
             }
           }}

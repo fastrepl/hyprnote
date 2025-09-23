@@ -16,9 +16,6 @@
       "icons/staging/icon.icns",
       "icons/staging/icon.ico"
     ],
-    "resources": {
-      "dlls/*": "./"
-    },
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"

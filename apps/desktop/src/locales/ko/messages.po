@@ -353,8 +353,8 @@ msgstr ""
 msgid "Base URL"
 msgstr ""
 
-#: src/routes/app.settings.tsx:58
-#: src/routes/app.settings.tsx:112
+#: src/routes/app.settings.tsx:61
+#: src/routes/app.settings.tsx:134
 msgid "Billing & License"
 msgstr ""
 
@@ -363,8 +363,8 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
-#: src/routes/app.settings.tsx:48
-#: src/routes/app.settings.tsx:102
+#: src/routes/app.settings.tsx:51
+#: src/routes/app.settings.tsx:124
 msgid "Calendar"
 msgstr ""
 
@@ -603,8 +603,8 @@ msgstr ""
 msgid "Full name"
 msgstr ""
 
-#: src/routes/app.settings.tsx:42
-#: src/routes/app.settings.tsx:96
+#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:118
 msgid "General"
 msgstr ""
 
@@ -638,8 +638,8 @@ msgid "Grant both permissions to continue"
 msgstr ""
 
 #: src/components/settings/views/help-support.tsx:33
-#: src/routes/app.settings.tsx:62
-#: src/routes/app.settings.tsx:116
+#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:138
 msgid "Help & Support"
 msgstr ""
 
@@ -663,13 +663,13 @@ msgid "Important Q&As"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:124
-#: src/routes/app.settings.tsx:56
-#: src/routes/app.settings.tsx:110
+#: src/routes/app.settings.tsx:59
+#: src/routes/app.settings.tsx:132
 msgid "Integrations"
 msgstr ""
 
-#: src/routes/app.settings.tsx:44
-#: src/routes/app.settings.tsx:98
+#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:120
 msgid "Intelligence"
 msgstr ""
 
@@ -741,8 +741,8 @@ msgstr ""
 msgid "Make it public"
 msgstr ""
 
-#: src/routes/app.settings.tsx:60
-#: src/routes/app.settings.tsx:114
+#: src/routes/app.settings.tsx:63
+#: src/routes/app.settings.tsx:136
 msgid "MCP"
 msgstr ""
 
@@ -844,8 +844,8 @@ msgstr ""
 msgid "None (disabled)"
 msgstr ""
 
-#: src/routes/app.settings.tsx:50
-#: src/routes/app.settings.tsx:104
+#: src/routes/app.settings.tsx:53
+#: src/routes/app.settings.tsx:126
 msgid "Notifications"
 msgstr ""
 
@@ -1064,8 +1064,8 @@ msgstr ""
 msgid "Some downloads failed, but you can continue"
 msgstr ""
 
-#: src/routes/app.settings.tsx:54
-#: src/routes/app.settings.tsx:108
+#: src/routes/app.settings.tsx:57
+#: src/routes/app.settings.tsx:130
 msgid "Sound"
 msgstr ""
 
@@ -1081,7 +1081,7 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
-#: src/components/editor-area/note-header/listen-button.tsx:385
+#: src/components/editor-area/note-header/listen-button.tsx:409
 msgid "Stop"
 msgstr ""
 
@@ -1118,8 +1118,8 @@ msgstr ""
 msgid "Teamspace"
 msgstr ""
 
-#: src/routes/app.settings.tsx:52
-#: src/routes/app.settings.tsx:106
+#: src/routes/app.settings.tsx:55
+#: src/routes/app.settings.tsx:128
 msgid "Templates"
 msgstr ""
 
@@ -1163,8 +1163,8 @@ msgstr ""
 msgid "Toggle transcript panel"
 msgstr ""
 
-#: src/routes/app.settings.tsx:46
-#: src/routes/app.settings.tsx:100
+#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:122
 msgid "Transcription"
 msgstr ""
 

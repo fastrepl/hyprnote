@@ -18,7 +18,10 @@ import {
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { cn } from "@hypr/ui/lib/utils";
+import { useEffect } from "react";
 
 const schema = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
@@ -85,6 +88,25 @@ function Component() {
   const { t } = useLingui();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
+  const { userId } = useHypr();
+
+  useEffect(() => {
+    if (userId) {
+      const eventMap = {
+        "general": "show_settings_window_general",
+        "ai-llm": "show_settings_window_intelligence",
+        "ai-stt": "show_settings_window_transcription",
+      };
+
+      const event = eventMap[search.tab as keyof typeof eventMap];
+      if (event) {
+        analyticsCommands.event({
+          event,
+          distinct_id: userId,
+        });
+      }
+    }
+  }, [search.tab, userId]);
 
   const handleClickTab = (tab: Tab) => {
     navigate({ to: PATH, search: { ...search, tab } });

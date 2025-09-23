@@ -44,9 +44,7 @@ pub struct SessionState {
     onboarding: bool,
 
     token: CancellationToken,
-
     restart_attempts: HashMap<String, u32>,
-    supervisor: Option<ActorCell>,
 }
 
 pub struct SessionActor;
@@ -69,7 +67,6 @@ impl Actor for SessionActor {
     ) -> Result<Self::State, ActorProcessingErr> {
         use tauri_plugin_db::{DatabasePluginExt, UserDatabase};
 
-        let supervisor = myself.get_cell();
         let session_id = args.session_id.clone();
         let onboarding_session_id = UserDatabase::onboarding_session_id();
         let onboarding = session_id == onboarding_session_id;
@@ -108,16 +105,17 @@ impl Actor for SessionActor {
             onboarding,
             token: cancellation_token,
             restart_attempts: HashMap::new(),
-            supervisor: None,
         };
 
         {
-            Self::restart_processor(supervisor.clone(), &state).await?;
-            Self::restart_source(supervisor.clone(), &state).await?;
-            Self::restart_listener(supervisor.clone(), &state).await?;
+            let c = myself.get_cell();
+
+            Self::restart_processor(c.clone(), &state).await?;
+            Self::restart_source(c.clone(), &state).await?;
+            Self::restart_listener(c.clone(), &state).await?;
 
             if record_enabled {
-                Self::restart_recorder(supervisor, &state).await?;
+                Self::restart_recorder(c, &state).await?;
             }
         }
 
@@ -200,7 +198,7 @@ impl Actor for SessionActor {
 
     async fn handle_supervisor_evt(
         &self,
-        _myself: ActorRef<Self::Msg>,
+        myself: ActorRef<Self::Msg>,
         event: SupervisionEvent,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
@@ -234,7 +232,9 @@ impl Actor for SessionActor {
                 } else {
                     tracing::info!("{}_attempting_restart", actor_name);
 
-                    if let Err(_) = SessionActor::restart_actor(&actor_name, state).await {
+                    if let Err(_) =
+                        SessionActor::restart_actor(myself.get_cell(), state, &actor_name).await
+                    {
                         actor.stop(None);
                     }
                 }
@@ -411,15 +411,10 @@ impl SessionActor {
     }
 
     async fn restart_actor(
-        actor_name: &str,
+        supervisor: ActorCell,
         state: &SessionState,
+        actor_name: &str,
     ) -> Result<(), ActorProcessingErr> {
-        let supervisor = state
-            .supervisor
-            .as_ref()
-            .ok_or_else(|| ActorProcessingErr::from("No supervisor available"))?
-            .clone();
-
         match actor_name {
             name if name == ProcessorActor::name() => {
                 Self::restart_processor(supervisor, state).await?;

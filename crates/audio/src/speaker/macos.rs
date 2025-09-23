@@ -34,7 +34,9 @@ pub struct SpeakerStream {
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        self.current_sample_rate.load(Ordering::Acquire)
+        let sample_rate = self.current_sample_rate.load(Ordering::Acquire);
+        tracing::info!(sample_rate = sample_rate, "requested");
+        sample_rate
     }
 }
 
@@ -106,12 +108,15 @@ impl SpeakerInput {
         ) -> os::Status {
             let ctx = ctx.unwrap();
 
-            ctx.current_sample_rate.store(
-                device
-                    .nominal_sample_rate()
-                    .unwrap_or(ctx.format.absd().sample_rate) as u32,
-                Ordering::Release,
-            );
+            let after = device
+                .nominal_sample_rate()
+                .unwrap_or(ctx.format.absd().sample_rate) as u32;
+            let before = ctx.current_sample_rate.load(Ordering::Acquire);
+
+            if before != after {
+                ctx.current_sample_rate.store(after, Ordering::Release);
+                tracing::debug!(before = before, after = after, "sample_rate",);
+            }
 
             if let Some(view) =
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)

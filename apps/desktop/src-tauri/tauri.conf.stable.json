@@ -10,10 +10,5 @@
         "https://desktop.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=stable"
       ]
     }
-  },
-  "bundle": {
-    "resources": {
-      "dlls/*": "./"
-    }
   }
 }

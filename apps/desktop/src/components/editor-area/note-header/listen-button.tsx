@@ -299,18 +299,42 @@ function RecordingControls({
   sessionId: string;
   onStop: () => void;
 }) {
-  const { onboardingSessionId } = useHypr();
+  const { onboardingSessionId, userId } = useHypr();
   const ongoingSessionMuted = useOngoingSession((s) => ({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
   }));
 
   const toggleMicMuted = useMutation({
-    mutationFn: () => listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted),
+    mutationFn: async () => {
+      const result = await listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted);
+
+      // only send analytics when muting (not unmuting)
+      if (!ongoingSessionMuted.micMuted && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_mic",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
   });
 
   const toggleSpeakerMuted = useMutation({
-    mutationFn: () => listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted),
+    mutationFn: async () => {
+      const result = await listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted);
+
+      // only send analytics when muting (not unmuting)
+      if (!ongoingSessionMuted.speakerMuted && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_system",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
   });
 
   return (
@@ -396,6 +420,7 @@ function MicrophoneSelector({
   onToggleMuted: () => void;
   disabled?: boolean;
 }) {
+  const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
 
   const allDevicesQuery = useQuery({
@@ -411,6 +436,13 @@ function MicrophoneSelector({
   const handleSelectDevice = (device: string) => {
     listenerCommands.setMicrophoneDevice(device).then(() => {
       currentDeviceQuery.refetch();
+
+      if (userId) {
+        analyticsCommands.event({
+          event: "recording_select_mic_trigger",
+          distinct_id: userId,
+        });
+      }
     });
   };
 
@@ -446,6 +478,14 @@ function MicrophoneSelector({
               variant="outline"
               className="rounded-l-none px-1.5 flex-shrink-0 h-10 transition-all hover:border-neutral-300 hover:bg-neutral-50"
               disabled={disabled}
+              onClick={() => {
+                if (userId) {
+                  analyticsCommands.event({
+                    event: "recording_select_mic_option",
+                    distinct_id: userId,
+                  });
+                }
+              }}
             >
               <ChevronDownIcon className="w-4 h-4 text-neutral-600" />
             </Button>

@@ -65,9 +65,10 @@
         ]
       }
     },
-    "resources": [
-      "resources/llm.gguf"
-    ]
+    "resources": {
+      "dlls/*": "./",
+      "resources/llm.gguf": "llm.gguf"
+    }
   },
   "plugins": {
     "deep-link": {

@@ -192,12 +192,6 @@ async fn start_source_loop(
                 tokio::pin!(mixed_stream);
 
                 loop {
-                    let Some(cell) = registry::where_is(ProcessorActor::name()) else {
-                        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-                        continue;
-                    };
-                    let proc: ActorRef<ProcMsg> = cell.into();
-
                     tokio::select! {
                         _ = token.cancelled() => {
                             drop(mixed_stream);
@@ -216,9 +210,17 @@ async fn start_source_loop(
                                 } else {
                                     data
                                 };
-
                                 let msg = ProcMsg::Mixed(AudioChunk{ data: output_data });
-                                let _ = proc.cast(msg);
+
+                                let Some(cell) = registry::where_is(ProcessorActor::name()) else {
+                                    tracing::warn!("processor_actor_not_found");
+                                    continue;
+                                };
+
+                                let actor: ActorRef<ProcMsg> = cell.into();
+                                if let Err(e) = actor.cast(msg) {
+                                    tracing::error!(error = %e, "cast_error");
+                                }
                             } else {
                                 break;
                             }

@@ -57,7 +57,7 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
         onClose={handleClose}
         size="md"
         showOverlay={false}
-        className="bg-background w-[448px] max-w-[90vw]"
+        className="bg-background w-[560px] max-w-[90vw]"
       >
         <div className="relative">
           <Button
@@ -76,27 +76,38 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
               </ModalTitle>
             </div>
 
-            <ModalDescription className="text-neutral-600 text-sm text-center mb-6">
+            <ModalDescription className="text-neutral-600 text-sm text-center mb-4">
               {currentTip.description}
             </ModalDescription>
 
             {/* Image/GIF placeholder */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4">
               {currentSlide === 0 ? (
                 <img 
                   src="/assets/waving.gif" 
                   alt="Celebration animation"
-                  className="w-80 h-40 object-contain rounded-lg"
+                  className="w-48 h-36 object-contain rounded-md"
                 />
+              ) : currentSlide === 1 ? (
+                <img 
+                  src="/assets/transcript-edit.gif" 
+                  alt="Transcript editing demonstration"
+                  className="w-full max-w-lg h-64 object-cover rounded-md"
+                  style={{ objectPosition: 'center top' }}
+                />
+              ) : currentSlide === 2 ? (
+                <div className="w-full max-w-md h-48 bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-md flex items-center justify-center">
+                  <span className="text-neutral-400 text-sm">Settings placeholder</span>
+                </div>
               ) : (
-                <div className="w-80 h-40 bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center">
-                  <span className="text-neutral-400 text-sm">Image/GIF placeholder</span>
+                <div className="w-full max-w-md h-48 bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-md flex items-center justify-center">
+                  <span className="text-neutral-400 text-sm">Intelligence placeholder</span>
                 </div>
               )}
             </div>
 
             {/* Slide indicator dots */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4">
               {tips.map((_, index) => (
                 <div
                   key={index}

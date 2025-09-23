@@ -353,8 +353,8 @@ msgstr "Base Folder"
 msgid "Base URL"
 msgstr "Base URL"
 
-#: src/routes/app.settings.tsx:58
-#: src/routes/app.settings.tsx:112
+#: src/routes/app.settings.tsx:61
+#: src/routes/app.settings.tsx:134
 msgid "Billing & License"
 msgstr "Billing & License"
 
@@ -363,8 +363,8 @@ msgstr "Billing & License"
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:48
-#: src/routes/app.settings.tsx:102
+#: src/routes/app.settings.tsx:51
+#: src/routes/app.settings.tsx:124
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -608,8 +608,8 @@ msgstr "Finish Onboarding"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:42
-#: src/routes/app.settings.tsx:96
+#: src/routes/app.settings.tsx:45
+#: src/routes/app.settings.tsx:118
 msgid "General"
 msgstr "General"
 
@@ -643,8 +643,8 @@ msgid "Grant both permissions to continue"
 msgstr "Grant both permissions to continue"
 
 #: src/components/settings/views/help-support.tsx:33
-#: src/routes/app.settings.tsx:62
-#: src/routes/app.settings.tsx:116
+#: src/routes/app.settings.tsx:65
+#: src/routes/app.settings.tsx:138
 msgid "Help & Support"
 msgstr "Help & Support"
 
@@ -668,13 +668,13 @@ msgid "Important Q&As"
 msgstr "Important Q&As"
 
 #: src/components/settings/views/integrations.tsx:124
-#: src/routes/app.settings.tsx:56
-#: src/routes/app.settings.tsx:110
+#: src/routes/app.settings.tsx:59
+#: src/routes/app.settings.tsx:132
 msgid "Integrations"
 msgstr "Integrations"
 
-#: src/routes/app.settings.tsx:44
-#: src/routes/app.settings.tsx:98
+#: src/routes/app.settings.tsx:47
+#: src/routes/app.settings.tsx:120
 msgid "Intelligence"
 msgstr "Intelligence"
 
@@ -746,8 +746,8 @@ msgstr "Logs"
 msgid "Make it public"
 msgstr "Make it public"
 
-#: src/routes/app.settings.tsx:60
-#: src/routes/app.settings.tsx:114
+#: src/routes/app.settings.tsx:63
+#: src/routes/app.settings.tsx:136
 msgid "MCP"
 msgstr "MCP"
 
@@ -849,8 +849,8 @@ msgstr "No upcoming events with this contact"
 msgid "None (disabled)"
 msgstr "None (disabled)"
 
-#: src/routes/app.settings.tsx:50
-#: src/routes/app.settings.tsx:104
+#: src/routes/app.settings.tsx:53
+#: src/routes/app.settings.tsx:126
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1069,8 +1069,8 @@ msgstr "Show notifications when you join a meeting."
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 
-#: src/routes/app.settings.tsx:54
-#: src/routes/app.settings.tsx:108
+#: src/routes/app.settings.tsx:57
+#: src/routes/app.settings.tsx:130
 msgid "Sound"
 msgstr "Sound"
 
@@ -1086,7 +1086,7 @@ msgstr "Start automatically at login"
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:385
+#: src/components/editor-area/note-header/listen-button.tsx:409
 msgid "Stop"
 msgstr "Stop"
 
@@ -1123,8 +1123,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:52
-#: src/routes/app.settings.tsx:106
+#: src/routes/app.settings.tsx:55
+#: src/routes/app.settings.tsx:128
 msgid "Templates"
 msgstr "Templates"
 
@@ -1168,8 +1168,8 @@ msgstr "Toggle left sidebar"
 msgid "Toggle transcript panel"
 msgstr "Toggle transcript panel"
 
-#: src/routes/app.settings.tsx:46
-#: src/routes/app.settings.tsx:100
+#: src/routes/app.settings.tsx:49
+#: src/routes/app.settings.tsx:122
 msgid "Transcription"
 msgstr "Transcription"
 

@@ -34,9 +34,7 @@ pub struct SpeakerStream {
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        let sample_rate = self.current_sample_rate.load(Ordering::Acquire);
-        tracing::info!(sample_rate = sample_rate, "requested");
-        sample_rate
+        self.current_sample_rate.load(Ordering::Acquire)
     }
 }
 

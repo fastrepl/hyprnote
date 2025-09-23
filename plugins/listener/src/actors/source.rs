@@ -239,12 +239,11 @@ async fn start_source_loop(
                 let mut mic_input = hypr_audio::AudioInput::from_mic(mic_device).unwrap();
                 ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(AEC_BLOCK_SIZE)
             };
-
+            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
             let spk_stream = {
                 let mut spk_input = hypr_audio::AudioInput::from_speaker();
                 ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE).chunks(AEC_BLOCK_SIZE)
             };
-
             tokio::pin!(mic_stream);
             tokio::pin!(spk_stream);
 

@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
+  Pointer,
   TextSearchIcon,
   UploadIcon,
 } from "lucide-react";
@@ -193,6 +194,28 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
         <SearchHeader
           editorRef={editorRef}
           onClose={() => setIsSearchActive(false)}
+          onReplaceAll={() => {
+            // get the updated words from the editor and save
+            if (editorRef.current?.editor) {
+              const updatedWords = editorRef.current.getWords();
+              if (updatedWords) {
+                dbCommands.getSession({ id: sessionId }).then((session) => {
+                  if (session) {
+                    dbCommands.upsertSession({ ...session, words: updatedWords }).then(() => {
+                      queryClient.invalidateQueries({
+                        queryKey: ["session", "words", sessionId],
+                      });
+                    });
+                  }
+                });
+
+                analyticsCommands.event({
+                  event: "transcript_replace_all",
+                  distinct_id: userId,
+                });
+              }
+            }
+          }}
         />
         <div className="flex-1 overflow-hidden flex flex-col">
           <TranscriptEditor
@@ -214,6 +237,10 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 
     if (chunk.speaker.type === "assigned") {
       return chunk.speaker.value.label;
+    }
+
+    if (chunk.speaker.value.index === 0) {
+      return "You";
     }
 
     return `Speaker ${chunk.speaker.value.index}`;
@@ -499,11 +526,12 @@ const MemoizedSpeakerSelector = memo(({
           <Button
             variant="outline"
             size="sm"
-            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1 flex items-center gap-1"
             onMouseDown={(e) => {
               e.preventDefault();
             }}
           >
+            <Pointer size={12} className="text-neutral-400" />
             {getDisplayName(human)}
           </Button>
         </PopoverTrigger>

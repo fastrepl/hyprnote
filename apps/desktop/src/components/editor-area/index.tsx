@@ -29,6 +29,7 @@ import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { prepareContextText } from "./utils/summary-prepare";
+import { showTipsModal } from "../tips-modal/service";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -151,6 +152,16 @@ export default function EditorArea({
     onSuccess: (content) => {
       if (hasTranscriptWords) {
         generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
+      }
+
+      if (sessionId !== onboardingSessionId) {
+        setTimeout(() => {
+          try {
+            showTipsModal();
+          } catch (error) {
+            console.error("Failed to show tips modal:", error);
+          }
+        }, 1200);
       }
     },
   });

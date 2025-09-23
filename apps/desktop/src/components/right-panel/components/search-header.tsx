@@ -160,7 +160,6 @@ export function SearchHeader({ editorRef, onClose, onReplaceAll }: SearchHeaderP
         setResultCount(results.length);
         setCurrentIndex(results.length > 0 ? 1 : 0);
 
-        // Call the save callback after replace is done
         if (onReplaceAll) {
           onReplaceAll();
         }

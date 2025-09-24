@@ -47,6 +47,8 @@ hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
+hypr-llm = { path = "crates/llm", package = "llm" }
+hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
@@ -72,6 +74,7 @@ hypr-transcribe-openai = { path = "crates/transcribe-openai", package = "transcr
 hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
+hypr-vad2 = { path = "crates/vad2", package = "vad2" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
@@ -220,7 +223,7 @@ kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", de
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.8", default-features = false }
-libsql = "0.9.17"
+libsql = "0.9.24"
 
 block2 = "0.6"
 objc2 = "0.6"

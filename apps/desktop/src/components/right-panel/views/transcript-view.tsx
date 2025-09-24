@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
+  Pointer,
   TextSearchIcon,
   UploadIcon,
 } from "lucide-react";
@@ -45,7 +46,7 @@ export function TranscriptView() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
   const sessionId = noteMatch.params.id;
 
-  const { words, isLive } = useTranscript(sessionId);
+  const { words, partialWords, finalWords, isLive } = useTranscript(sessionId);
   const showEmptyMessage = sessionId && words.length <= 0 && !isLive;
 
   if (!sessionId) {
@@ -57,14 +58,14 @@ export function TranscriptView() {
       {showEmptyMessage
         ? <RenderNotInMeetingEmpty sessionId={sessionId} panelWidth={panelWidth} />
         : isLive
-        ? <RenderInMeeting words={words} />
+        ? <RenderInMeeting partialWords={partialWords} finalWords={finalWords} />
         : <RenderNotInMeeting sessionId={sessionId} words={words} />}
     </div>
   );
 }
 
-function RenderInMeeting({ words }: { words: Word2[] }) {
-  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([words]);
+function RenderInMeeting({ partialWords, finalWords }: { partialWords: Word2[]; finalWords: Word2[] }) {
+  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([finalWords]);
 
   return (
     <div className="flex-1 relative">
@@ -73,9 +74,12 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
         className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4 absolute inset-0"
         onScroll={handleScroll}
       >
-        <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
-          {words.map(word => word.text).join(" ")}
-        </div>
+        <span className="text-[15px] text-gray-800 leading-relaxed pl-1">
+          {finalWords.map(word => word.text).join(" ")}
+        </span>
+        <span className="text-[15px] text-gray-400 leading-relaxed pl-1">
+          {partialWords.map(word => word.text).join(" ")}
+        </span>
       </div>
 
       {!isAtBottom && (
@@ -193,6 +197,28 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
         <SearchHeader
           editorRef={editorRef}
           onClose={() => setIsSearchActive(false)}
+          onReplaceAll={() => {
+            // get the updated words from the editor and save
+            if (editorRef.current?.editor) {
+              const updatedWords = editorRef.current.getWords();
+              if (updatedWords) {
+                dbCommands.getSession({ id: sessionId }).then((session) => {
+                  if (session) {
+                    dbCommands.upsertSession({ ...session, words: updatedWords }).then(() => {
+                      queryClient.invalidateQueries({
+                        queryKey: ["session", "words", sessionId],
+                      });
+                    });
+                  }
+                });
+
+                analyticsCommands.event({
+                  event: "transcript_replace_all",
+                  distinct_id: userId,
+                });
+              }
+            }
+          }}
         />
         <div className="flex-1 overflow-hidden flex flex-col">
           <TranscriptEditor
@@ -214,6 +240,10 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 
     if (chunk.speaker.type === "assigned") {
       return chunk.speaker.value.label;
+    }
+
+    if (chunk.speaker.value.index === 0) {
+      return "You";
     }
 
     return `Speaker ${chunk.speaker.value.index}`;
@@ -499,11 +529,12 @@ const MemoizedSpeakerSelector = memo(({
           <Button
             variant="outline"
             size="sm"
-            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1 flex items-center gap-1"
             onMouseDown={(e) => {
               e.preventDefault();
             }}
           >
+            <Pointer size={12} className="text-neutral-400" />
             {getDisplayName(human)}
           </Button>
         </PopoverTrigger>

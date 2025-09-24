@@ -1,13 +1,21 @@
+use std::pin::Pin;
+use std::task::{Context, Poll};
+
 use dasp::interpolate::Interpolator;
-use futures_util::Stream;
+use futures_util::{pin_mut, Stream};
 use kalosm_sound::AsyncSource;
 
 pub struct ResampledAsyncSource<S: AsyncSource> {
     source: S,
     target_sample_rate: u32,
-    sample_position: f64,
-    resampler: dasp::interpolate::linear::Linear<f32>,
     last_source_rate: u32,
+    ratio: f64,
+
+    phase: f64,
+
+    interp: dasp::interpolate::linear::Linear<f32>,
+    last_sample: f32,
+    seeded: bool,
 }
 
 impl<S: AsyncSource> ResampledAsyncSource<S> {
@@ -16,48 +24,67 @@ impl<S: AsyncSource> ResampledAsyncSource<S> {
         Self {
             source,
             target_sample_rate,
-            sample_position: initial_rate as f64 / target_sample_rate as f64,
-            resampler: dasp::interpolate::linear::Linear::new(0.0, 0.0),
             last_source_rate: initial_rate,
+            ratio: initial_rate as f64 / target_sample_rate as f64,
+            phase: 0.0,
+            interp: dasp::interpolate::linear::Linear::new(0.0, 0.0),
+            last_sample: 0.0,
+            seeded: false,
         }
+    }
+
+    #[inline]
+    fn handle_rate_change(&mut self) {
+        let new_rate = self.source.sample_rate();
+        if new_rate == self.last_source_rate {
+            return;
+        }
+
+        self.last_source_rate = new_rate;
+        self.ratio = new_rate as f64 / self.target_sample_rate as f64;
+        self.phase = 0.0;
+        self.interp = dasp::interpolate::linear::Linear::new(self.last_sample, self.last_sample);
     }
 }
 
 impl<S: AsyncSource + Unpin> Stream for ResampledAsyncSource<S> {
     type Item = f32;
 
-    fn poll_next(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Option<Self::Item>> {
-        let myself = self.get_mut();
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let me = self.get_mut();
 
-        let current_source_rate = myself.source.sample_rate();
-        if current_source_rate != myself.last_source_rate {
-            myself.last_source_rate = current_source_rate;
-        }
+        me.handle_rate_change();
 
-        let source_output_sample_ratio =
-            current_source_rate as f64 / myself.target_sample_rate as f64;
+        let inner = me.source.as_stream();
+        pin_mut!(inner);
 
-        let source = myself.source.as_stream();
-        let mut source = std::pin::pin!(source);
-
-        while myself.sample_position >= 1.0 {
-            match source.as_mut().poll_next(cx) {
-                std::task::Poll::Ready(Some(frame)) => {
-                    myself.sample_position -= 1.0;
-                    myself.resampler.next_source_frame(frame);
+        if !me.seeded {
+            match inner.as_mut().poll_next(cx) {
+                Poll::Ready(Some(frame)) => {
+                    me.last_sample = frame;
+                    me.interp = dasp::interpolate::linear::Linear::new(frame, frame);
+                    me.seeded = true;
                 }
-                std::task::Poll::Ready(None) => return std::task::Poll::Ready(None),
-                std::task::Poll::Pending => return std::task::Poll::Pending,
+                Poll::Ready(None) => return Poll::Ready(None),
+                Poll::Pending => return Poll::Pending,
             }
         }
 
-        let interpolated = myself.resampler.interpolate(myself.sample_position);
-        myself.sample_position += source_output_sample_ratio;
+        while me.phase >= 1.0 {
+            match inner.as_mut().poll_next(cx) {
+                Poll::Ready(Some(frame)) => {
+                    me.phase -= 1.0;
+                    me.last_sample = frame;
+                    me.interp.next_source_frame(frame);
+                }
+                Poll::Ready(None) => return Poll::Ready(None),
+                Poll::Pending => return Poll::Pending,
+            }
+        }
 
-        std::task::Poll::Ready(Some(interpolated))
+        let out = me.interp.interpolate(me.phase);
+        me.phase += me.ratio;
+        Poll::Ready(Some(out))
     }
 }
 
@@ -91,6 +118,7 @@ mod tests {
         (samples, sample_rate)
     }
 
+    #[derive(Clone)]
     struct DynamicRateSource {
         segments: Vec<(Vec<f32>, u32)>,
         current_segment: usize,
@@ -159,20 +187,27 @@ mod tests {
             get_samples_with_rate(hypr_data::english_1::AUDIO_PART6_48000HZ_PATH),
         ]);
 
-        let mut out_wav = hound::WavWriter::create(
-            "./out_1.wav",
-            hound::WavSpec {
-                channels: 1,
-                sample_rate: 16000,
-                bits_per_sample: 32,
-                sample_format: hound::SampleFormat::Float,
-            },
-        )
-        .unwrap();
+        {
+            let resampled = source.clone().resample(16000);
+            assert!(resampled.collect::<Vec<_>>().await.len() == 9896247);
+        }
 
-        let mut resampled = source.resample(16000);
-        while let Some(sample) = resampled.next().await {
-            out_wav.write_sample(sample).unwrap();
+        {
+            let mut resampled = source.clone().resample(16000);
+
+            let mut out_wav = hound::WavWriter::create(
+                "./out_1.wav",
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: 16000,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+            while let Some(sample) = resampled.next().await {
+                out_wav.write_sample(sample).unwrap();
+            }
         }
     }
 
@@ -187,20 +222,27 @@ mod tests {
             get_samples_with_rate(hypr_data::english_1::AUDIO_PART6_48000HZ_PATH),
         ]);
 
-        let mut out_wav = hound::WavWriter::create(
-            "./out_2.wav",
-            hound::WavSpec {
-                channels: 1,
-                sample_rate: 16000,
-                bits_per_sample: 32,
-                sample_format: hound::SampleFormat::Float,
-            },
-        )
-        .unwrap();
+        {
+            let resampled = ResampledAsyncSource::new(source.clone(), 16000);
+            assert!(resampled.collect::<Vec<_>>().await.len() == 2791777);
+        }
 
-        let mut resampled = ResampledAsyncSource::new(source, 16000);
-        while let Some(sample) = resampled.next().await {
-            out_wav.write_sample(sample).unwrap();
+        {
+            let mut resampled = ResampledAsyncSource::new(source.clone(), 16000);
+
+            let mut out_wav = hound::WavWriter::create(
+                "./out_2.wav",
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: 16000,
+                    bits_per_sample: 32,
+                    sample_format: hound::SampleFormat::Float,
+                },
+            )
+            .unwrap();
+            while let Some(sample) = resampled.next().await {
+                out_wav.write_sample(sample).unwrap();
+            }
         }
     }
 }

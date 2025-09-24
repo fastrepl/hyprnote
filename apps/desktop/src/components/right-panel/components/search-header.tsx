@@ -8,9 +8,10 @@ import { useEffect, useRef, useState } from "react";
 interface SearchHeaderProps {
   editorRef: React.RefObject<any>;
   onClose: () => void;
+  onReplaceAll?: () => void;
 }
 
-export function SearchHeader({ editorRef, onClose }: SearchHeaderProps) {
+export function SearchHeader({ editorRef, onClose, onReplaceAll }: SearchHeaderProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
   const [resultCount, setResultCount] = useState(0);
@@ -158,6 +159,10 @@ export function SearchHeader({ editorRef, onClose }: SearchHeaderProps) {
         const results = storage.results || [];
         setResultCount(results.length);
         setCurrentIndex(results.length > 0 ? 1 : 0);
+
+        if (onReplaceAll) {
+          onReplaceAll();
+        }
       }, 100);
     }
   };

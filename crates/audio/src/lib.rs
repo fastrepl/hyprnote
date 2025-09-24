@@ -79,7 +79,7 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
-    pub fn get_default_mic_name() -> String {
+    pub fn get_default_device_name() -> String {
         let name = {
             let host = cpal::default_host();
             let device = host.default_input_device().unwrap();
@@ -87,21 +87,6 @@ impl AudioInput {
         };
 
         name
-    }
-
-    pub fn is_using_headphone() -> bool {
-        let headphone = {
-            #[cfg(target_os = "macos")]
-            {
-                utils::macos::is_headphone_from_default_output_device()
-            }
-            #[cfg(not(target_os = "macos"))]
-            {
-                false
-            }
-        };
-
-        headphone
     }
 
     pub fn list_mic_devices() -> Vec<String> {
@@ -242,6 +227,21 @@ impl kalosm_sound::AsyncSource for AudioStream {
             AudioStream::Recorded { .. } => 16000,
         }
     }
+}
+
+pub fn is_using_headphone() -> bool {
+    let headphone = {
+        #[cfg(target_os = "macos")]
+        {
+            utils::macos::is_headphone_from_default_output_device()
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
+    };
+
+    headphone
 }
 
 #[cfg(test)]

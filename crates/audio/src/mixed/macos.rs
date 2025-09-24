@@ -292,7 +292,7 @@ impl Drop for MixedStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::play_sine_for_sec;
+    use crate::{play_sine_for_sec, AudioOutput};
 
     use futures_util::StreamExt;
 
@@ -303,16 +303,19 @@ mod tests {
 
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
+        let stop = AudioOutput::silence();
         let handle = play_sine_for_sec(2);
 
         let mut buffer = Vec::new();
+        let now = std::time::Instant::now();
         while let Some(sample) = stream.next().await {
             buffer.push(sample);
-            if buffer.len() > 48000 {
+            if now.elapsed() > std::time::Duration::from_secs(4) {
                 break;
             }
         }
 
+        stop.send(()).unwrap();
         handle.join().unwrap();
         assert!(buffer.iter().any(|x| *x != 0.0));
 

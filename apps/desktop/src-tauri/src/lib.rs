@@ -193,11 +193,14 @@ pub async fn main() {
                         return;
                     };
 
-                    let actions = deeplink::parse(url);
+                    let actions = deeplink::parse(&url);
+                    tracing::info!(url = url, actions = ?actions, "deeplink");
+
                     for action in actions {
                         match action {
                             deeplink::DeeplinkAction::OpenInternal(window, url) => {
                                 if let Ok(navigate) = url.parse::<Navigate>() {
+                                    tracing::info!(navigate = ?navigate, "deeplink");
                                     if app_clone.window_show(window.clone()).is_ok() {
                                         let _ = app_clone.window_emit_navigate(window, navigate);
                                     }

@@ -188,7 +188,9 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         let current_selection = self.get_current_model_selection()?;
         let model_path = current_selection.file_path(&self.models_dir());
 
-        let model_manager = crate::ModelManager::new(model_path);
+        let model_manager = crate::ModelManager::builder()
+            .model_path(model_path)
+            .build();
         let state = self.state::<crate::SharedState>();
 
         let handle = self.app_handle().clone();

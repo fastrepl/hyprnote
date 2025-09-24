@@ -168,26 +168,12 @@ impl Joiner {
     }
 
     fn pop_pair(&mut self) -> Option<(Arc<[f32]>, Arc<[f32]>)> {
-        let mic_empty = self.mic.is_empty();
-        let spk_empty = self.spk.is_empty();
-
-        match (mic_empty, spk_empty) {
-            (true, true) => None,
-            (true, false) => {
-                let spk = self.spk.pop_front()?;
-                let mic = Arc::<[f32]>::from(vec![0.0; spk.len()]);
-                Some((mic, spk))
-            }
-            (false, true) => {
-                let mic = self.mic.pop_front()?;
-                let spk = Arc::<[f32]>::from(vec![0.0; mic.len()]);
-                Some((mic, spk))
-            }
-            (false, false) => {
-                let mic = self.mic.pop_front()?;
-                let spk = self.spk.pop_front()?;
-                Some((mic, spk))
-            }
+        if !self.mic.is_empty() && !self.spk.is_empty() {
+            let mic = self.mic.pop_front()?;
+            let spk = self.spk.pop_front()?;
+            Some((mic, spk))
+        } else {
+            None
         }
     }
 }

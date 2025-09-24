@@ -1,5 +1,4 @@
-use std::sync::Mutex;
-use tauri::{Manager, Wry};
+use tauri::Wry;
 
 mod commands;
 mod ext;
@@ -9,27 +8,10 @@ pub use hypr_template::Template;
 
 const PLUGIN_NAME: &str = "template";
 
-pub type ManagedState = Mutex<State>;
-
-pub struct State {
-    env: hypr_template::minijinja::Environment<'static>,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            env: hypr_template::minijinja::Environment::new(),
-        }
-    }
-}
-
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::render::<Wry>,
-            commands::register_template::<Wry>,
-        ])
+        .commands(tauri_specta::collect_commands![commands::render::<Wry>,])
         .typ::<hypr_gbnf::Grammar>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -39,10 +21,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            let mut state = State::default();
-            hypr_template::init(&mut state.env);
-            app.manage(Mutex::new(state));
+        .setup(|_app, _api| {
+            let _ = hypr_template::get_environment();
             Ok(())
         })
         .build()

@@ -295,18 +295,6 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the register_template command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-register-template",
-          "markdownDescription": "Enables the register_template command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the register_template command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-register-template",
-          "markdownDescription": "Denies the register_template command without any pre-configured scope."
-        },
-        {
           "description": "Enables the render command without any pre-configured scope.",
           "type": "string",
           "const": "allow-render",
@@ -319,10 +307,10 @@
           "markdownDescription": "Denies the render command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-render`\n- `allow-register-template`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-render`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-render`\n- `allow-register-template`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-render`"
         }
       ]
     }

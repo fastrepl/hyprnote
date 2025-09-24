@@ -359,7 +359,7 @@ dependencies = [
  "apalis-core",
  "async-stream",
  "chrono",
- "cron 0.15.0",
+ "cron",
  "futures",
  "tower 0.5.2",
 ]
@@ -2300,9 +2300,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.36"
+version = "1.2.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5252b3d2648e5eedbc1a6f501e3c795e07025c1e93bbf8bbdd6eef7f447a6d54"
+checksum = "80f41ae168f955c12fb8960b057d70d0ca153fb83182b57d86380443527be7e9"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -3044,17 +3044,6 @@ dependencies = [
 
 [[package]]
 name = "cron"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f8c3e73077b4b4a6ab1ea5047c37c57aee77657bc8ecd6f29b0af082d0b0c07"
-dependencies = [
- "chrono",
- "nom 7.1.3",
- "once_cell",
-]
-
-[[package]]
-name = "cron"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5877d3fbf742507b66bc2a1945106bd30dd8504019d596901ddd012a4dd01740"
@@ -3758,7 +3747,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.80"
+version = "0.0.81"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4545,9 +4534,9 @@ dependencies = [
 
 [[package]]
 name = "find-msvc-tools"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fd99930f64d146689264c637b5af2f0233a933bef0d8570e2526bf9e083192d"
+checksum = "1ced73b1dacfc750a6db6c0a0c3a3853c8b41997e2e2c563dc90804ae6867959"
 
 [[package]]
 name = "find_cuda_helper"
@@ -8240,9 +8229,9 @@ dependencies = [
 
 [[package]]
 name = "libsql"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36fb477c6e2e4f6b87595c4f8dc31ee6c2f900c7e25fa13768ab9c5f9bb37201"
+checksum = "a76ffc6aaaac50c1362ebd22f7db457336ab4ee72ee115aaea11f47edf9d7720"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -8280,9 +8269,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-ffi"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f734c99f40a8cb757837e780711eb92ab60063f5c314f232af7c419f38b963f"
+checksum = "aaaa869a3c33a125231e8963f7890dae9c6de1ce4133e68121467203896203a0"
 dependencies = [
  "bindgen 0.66.1",
  "cc",
@@ -8292,9 +8281,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-hrana"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1ff3f941cc9412c647600d424f3f862ea9ee5d4f9fd3d9ed1a0edc5eb43f4c4"
+checksum = "28d0a122bc4af29ffe51a4bb27f7d1b61cf2a4ef5131dad3fecdf1f5fbc6329a"
 dependencies = [
  "base64 0.21.7",
  "bytes",
@@ -8304,9 +8293,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-rusqlite"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ee6c2a9c840619846be7413014977df5ac0e71c0d789f02051f89f2ef3ab8fc"
+checksum = "5c2e7739b3828a547d21834779ea699a3b46c3dcfafba75da103d36adcb7c0ab"
 dependencies = [
  "bitflags 2.9.4",
  "fallible-iterator 0.2.0",
@@ -8336,9 +8325,9 @@ dependencies = [
 
 [[package]]
 name = "libsql-sys"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43f24addd5c671ec2c5a91ceacfa117b2a28a867a7341d0ff8bcb897fec33927"
+checksum = "b075329f2ea5a8dc2c61b0d92ec095f823505954e1413c0a5220b40b0e4b0083"
 dependencies = [
  "bytes",
  "libsql-ffi",
@@ -8350,9 +8339,9 @@ dependencies = [
 
 [[package]]
 name = "libsql_replication"
-version = "0.9.23"
+version = "0.9.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb1c17412a063285c4f371ddca79ec31affac414f1d5033e1800fe29f1625e5b"
+checksum = "0b47841eedbf05399c552048a11529dcf1fe3d43c1ccc77de55209ba2769d44b"
 dependencies = [
  "aes 0.8.4",
  "async-stream",
@@ -8446,8 +8435,8 @@ dependencies = [
 
 [[package]]
 name = "llama-cpp-2"
-version = "0.1.121"
-source = "git+https://github.com/utilityai/llama-cpp-rs?tag=0.1.121#1ff8410d2609dce9cdb50aa81b9d0d3dcc05f289"
+version = "0.1.122"
+source = "git+https://github.com/utilityai/llama-cpp-rs?tag=0.1.122#da074b2303296b6f9bec258b8157a957e2b3f419"
 dependencies = [
  "enumflags2",
  "llama-cpp-sys-2",
@@ -8458,8 +8447,8 @@ dependencies = [
 
 [[package]]
 name = "llama-cpp-sys-2"
-version = "0.1.121"
-source = "git+https://github.com/utilityai/llama-cpp-rs?tag=0.1.121#1ff8410d2609dce9cdb50aa81b9d0d3dcc05f289"
+version = "0.1.122"
+source = "git+https://github.com/utilityai/llama-cpp-rs?tag=0.1.122#da074b2303296b6f9bec258b8157a957e2b3f419"
 dependencies = [
  "bindgen 0.72.1",
  "cc",
@@ -8467,6 +8456,31 @@ dependencies = [
  "find_cuda_helper",
  "glob",
  "walkdir",
+]
+
+[[package]]
+name = "llm"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "gbnf",
+ "llama",
+ "llm-interface",
+ "serde",
+ "serde_json",
+ "template",
+ "thiserror 2.0.16",
+ "tokio",
+]
+
+[[package]]
+name = "llm-interface"
+version = "0.1.0"
+dependencies = [
+ "llama",
+ "serde",
+ "thiserror 2.0.16",
+ "tokio",
 ]
 
 [[package]]
@@ -11209,23 +11223,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-time",
-]
-
-[[package]]
-name = "ractor_actors"
-version = "0.4.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5142ea740eeb967f05caa66e911f58d2863d33a405c0810bfc9fd9b17a9d5b15"
-dependencies = [
- "async-trait",
- "chrono",
- "cron 0.12.1",
- "notify",
- "ractor",
- "tokio",
- "tokio-rustls 0.26.2",
- "tokio-stream",
- "tracing",
 ]
 
 [[package]]
@@ -14471,13 +14468,13 @@ dependencies = [
  "hound",
  "insta",
  "language",
+ "llm",
  "objc2 0.6.2",
  "objc2-foundation 0.3.1",
  "ordered-float 5.0.0",
  "owhisper-client",
  "owhisper-interface",
  "ractor",
- "ractor_actors",
  "rodio",
  "serde",
  "serde_json",
@@ -14502,7 +14499,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "vad",
+ "vad2",
  "vorbis_rs",
 ]
 
@@ -14520,6 +14517,8 @@ dependencies = [
  "gbnf",
  "gguf",
  "llama",
+ "llm",
+ "llm-interface",
  "reqwest 0.12.23",
  "reqwest-streams",
  "serde",
@@ -14531,7 +14530,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-store",
  "tauri-plugin-store2",
- "tauri-plugin-template",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.16",
@@ -15203,6 +15201,20 @@ dependencies = [
  "serde_json",
  "specta",
  "strum 0.26.3",
+ "thiserror 2.0.16",
+]
+
+[[package]]
+name = "ten-vad-rs"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2cd081e2be8ae77e8f2a69bfa5c34d1931de1c79a32879ba02d93c55e084a5f"
+dependencies = [
+ "log",
+ "ndarray",
+ "ort",
+ "rubato",
+ "rustfft",
  "thiserror 2.0.16",
 ]
 
@@ -16763,6 +16775,15 @@ dependencies = [
  "thiserror 2.0.16",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "vad2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "ten-vad-rs",
+ "thiserror 2.0.16",
 ]
 
 [[package]]

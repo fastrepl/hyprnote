@@ -31,6 +31,40 @@ import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { prepareContextText } from "./utils/summary-prepare";
 
+const TIPS_MODAL_SHOWN_KEY = "hypr-tips-modal-shown-v1";
+
+async function shouldShowTipsModal(
+  userId: string,
+  onboardingSessionId: string,
+  thankYouSessionId: string,
+): Promise<boolean> {
+  try {
+    const hasSeenTips = localStorage.getItem(TIPS_MODAL_SHOWN_KEY) === "true";
+    if (hasSeenTips) {
+      return false;
+    }
+
+    const allSessions = await dbCommands.listSessions({
+      type: "recentlyVisited",
+      user_id: userId,
+      limit: 255,
+    });
+
+    const enhancedSessionsCount = allSessions.filter(session =>
+      session.id !== onboardingSessionId
+      && session.id !== thankYouSessionId
+      && session.enhanced_memo_html
+      && session.enhanced_memo_html.trim() !== ""
+    ).length;
+
+    return enhancedSessionsCount === 1;
+  } catch (error) {
+    console.error("Failed to check if tips modal should be shown:", error);
+    return false;
+  }
+}
+import { showTipsModal } from "../tips-modal/service";
+
 async function generateTitleDirect(
   enhancedContent: string,
   targetSessionId: string,
@@ -91,7 +125,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
-  const { userId, onboardingSessionId } = useHypr();
+  const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -152,6 +186,20 @@ export default function EditorArea({
     onSuccess: (content) => {
       if (hasTranscriptWords) {
         generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
+      }
+
+      if (sessionId !== onboardingSessionId) {
+        setTimeout(async () => {
+          try {
+            const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
+            if (shouldShow) {
+              localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
+              showTipsModal(userId);
+            }
+          } catch (error) {
+            console.error("Failed to show tips modal:", error);
+          }
+        }, 1200);
       }
     },
   });

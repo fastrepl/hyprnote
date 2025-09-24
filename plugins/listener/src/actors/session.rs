@@ -36,15 +36,13 @@ pub struct SessionArgs {
 
 pub struct SessionState {
     app: tauri::AppHandle,
-
     session_id: String,
     session_start_ts_ms: u64,
-
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
-
     token: CancellationToken,
     restart_attempts: HashMap<String, u32>,
+    record_enabled: bool,
 }
 
 pub struct SessionActor;
@@ -105,18 +103,12 @@ impl Actor for SessionActor {
             onboarding,
             token: cancellation_token,
             restart_attempts: HashMap::new(),
+            record_enabled,
         };
 
         {
             let c = myself.get_cell();
-
-            Self::restart_processor(c.clone(), &state).await?;
-            Self::restart_source(c.clone(), &state).await?;
-            Self::restart_listener(c.clone(), &state).await?;
-
-            if record_enabled {
-                Self::restart_recorder(c, &state).await?;
-            }
+            Self::start_all_actors(c, &state).await?;
         }
 
         SessionEvent::RunningActive {}.emit(&state.app).unwrap();
@@ -224,19 +216,19 @@ impl Actor for SessionActor {
                         .entry(actor_name.clone())
                         .or_insert(0);
                     *v += 1;
-                    v
+                    *v
                 };
 
-                if *attempts >= MAX_RESTART_ATTEMPTS {
-                    actor.stop(None);
+                if attempts >= MAX_RESTART_ATTEMPTS {
+                    myself.stop(Some("max_restart_attempts_reached".to_string()));
                 } else {
-                    tracing::info!("{}_attempting_restart", actor_name);
+                    tracing::info!(
+                        attempts = attempts,
+                        cause = actor_name,
+                        "restarting_all_actors"
+                    );
 
-                    if let Err(_) =
-                        SessionActor::restart_actor(myself.get_cell(), state, &actor_name).await
-                    {
-                        actor.stop(None);
-                    }
+                    Self::restart_all_actors(myself.get_cell(), state).await?;
                 }
             }
 
@@ -254,10 +246,7 @@ impl Actor for SessionActor {
         state.token.cancel();
 
         {
-            Self::stop_source().await;
-            Self::stop_processor().await;
-            Self::stop_recorder().await;
-            Self::stop_listener().await;
+            Self::stop_all_actors().await;
         }
 
         use tauri_plugin_db::DatabasePluginExt;
@@ -284,6 +273,56 @@ impl Actor for SessionActor {
 }
 
 impl SessionActor {
+    async fn start_all_actors(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<(), ActorProcessingErr> {
+        Self::start_processor(supervisor.clone(), state).await?;
+        Self::start_source(supervisor.clone(), state).await?;
+        Self::start_listener(supervisor.clone(), state).await?;
+
+        if state.record_enabled {
+            Self::start_recorder(supervisor, state).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn stop_all_actors() {
+        Self::stop_processor().await;
+        Self::stop_source().await;
+        Self::stop_listener().await;
+        Self::stop_recorder().await;
+    }
+
+    async fn restart_all_actors(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<(), ActorProcessingErr> {
+        Self::stop_all_actors().await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(250)).await;
+        Self::start_all_actors(supervisor, state).await?;
+        Ok(())
+    }
+
+    async fn start_source(
+        supervisor: ActorCell,
+        state: &SessionState,
+    ) -> Result<ActorRef<SourceMsg>, ActorProcessingErr> {
+        let (ar, _) = Actor::spawn_linked(
+            Some(SourceActor::name()),
+            SourceActor,
+            SourceArgs {
+                token: state.token.clone(),
+                mic_device: None,
+                onboarding: state.onboarding,
+            },
+            supervisor,
+        )
+        .await?;
+        Ok(ar)
+    }
+
     async fn stop_source() {
         if let Some(cell) = registry::where_is(SourceActor::name()) {
             let actor: ActorRef<SourceMsg> = cell.into();
@@ -296,18 +335,15 @@ impl SessionActor {
         }
     }
 
-    async fn restart_source(
+    async fn start_processor(
         supervisor: ActorCell,
         state: &SessionState,
-    ) -> Result<ActorRef<SourceMsg>, ActorProcessingErr> {
-        let _ = Self::stop_source().await;
-
+    ) -> Result<ActorRef<ProcMsg>, ActorProcessingErr> {
         let (ar, _) = Actor::spawn_linked(
-            Some(SourceActor::name()),
-            SourceActor,
-            SourceArgs {
-                token: state.token.clone(),
-                device: None,
+            Some(ProcessorActor::name()),
+            ProcessorActor {},
+            ProcArgs {
+                app: state.app.clone(),
             },
             supervisor,
         )
@@ -327,22 +363,21 @@ impl SessionActor {
         }
     }
 
-    async fn restart_processor(
+    async fn start_recorder(
         supervisor: ActorCell,
         state: &SessionState,
-    ) -> Result<ActorRef<ProcMsg>, ActorProcessingErr> {
-        let _ = Self::stop_processor().await;
-
-        let (ar, _) = Actor::spawn_linked(
-            Some(ProcessorActor::name()),
-            ProcessorActor {},
-            ProcArgs {
-                app: state.app.clone(),
+    ) -> Result<ActorRef<RecMsg>, ActorProcessingErr> {
+        let (rec_ref, _) = Actor::spawn_linked(
+            Some(RecorderActor::name()),
+            RecorderActor,
+            RecArgs {
+                app_dir: state.app.path().app_data_dir().unwrap(),
+                session_id: state.session_id.clone(),
             },
             supervisor,
         )
         .await?;
-        Ok(ar)
+        Ok(rec_ref)
     }
 
     async fn stop_recorder() {
@@ -357,43 +392,10 @@ impl SessionActor {
         }
     }
 
-    async fn restart_recorder(
-        supervisor: ActorCell,
-        state: &SessionState,
-    ) -> Result<ActorRef<RecMsg>, ActorProcessingErr> {
-        let _ = Self::stop_recorder().await;
-
-        let (rec_ref, _) = Actor::spawn_linked(
-            Some(RecorderActor::name()),
-            RecorderActor,
-            RecArgs {
-                app_dir: state.app.path().app_data_dir().unwrap(),
-                session_id: state.session_id.clone(),
-            },
-            supervisor,
-        )
-        .await?;
-        Ok(rec_ref)
-    }
-
-    async fn stop_listener() {
-        if let Some(cell) = registry::where_is(ListenerActor::name()) {
-            let actor: ActorRef<ListenerMsg> = cell.into();
-            let _ = actor
-                .stop_and_wait(
-                    Some("restart".to_string()),
-                    Some(concurrency::Duration::from_secs(3)),
-                )
-                .await;
-        }
-    }
-
-    async fn restart_listener(
+    async fn start_listener(
         supervisor: ActorCell,
         state: &SessionState,
     ) -> Result<ActorRef<ListenerMsg>, ActorProcessingErr> {
-        let _ = Self::stop_listener().await;
-
         let (listen_ref, _) = Actor::spawn_linked(
             Some(ListenerActor::name()),
             ListenerActor,
@@ -410,27 +412,15 @@ impl SessionActor {
         Ok(listen_ref)
     }
 
-    async fn restart_actor(
-        supervisor: ActorCell,
-        state: &SessionState,
-        actor_name: &str,
-    ) -> Result<(), ActorProcessingErr> {
-        match actor_name {
-            name if name == ProcessorActor::name() => {
-                Self::restart_processor(supervisor, state).await?;
-            }
-            name if name == SourceActor::name() => {
-                Self::restart_source(supervisor, state).await?;
-            }
-            name if name == RecorderActor::name() => {
-                Self::restart_recorder(supervisor, state).await?;
-            }
-            name if name == ListenerActor::name() => {
-                Self::restart_listener(supervisor, state).await?;
-            }
-            _ => {}
+    async fn stop_listener() {
+        if let Some(cell) = registry::where_is(ListenerActor::name()) {
+            let actor: ActorRef<ListenerMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(
+                    Some("restart".to_string()),
+                    Some(concurrency::Duration::from_secs(3)),
+                )
+                .await;
         }
-
-        Ok(())
     }
 }

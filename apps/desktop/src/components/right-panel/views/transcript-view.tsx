@@ -9,15 +9,16 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
   CopyIcon,
-  PencilIcon,
+  Pointer,
   TextSearchIcon,
   UploadIcon,
 } from "lucide-react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
+import { ParticipantList } from "@/components/editor-area/note-header/chips/participants-chip";
 import { useHypr } from "@/contexts";
 import { useContainerWidth } from "@/hooks/use-container-width";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
@@ -28,10 +29,12 @@ import TranscriptEditor, {
   type SpeakerChangeRange,
   type SpeakerViewInnerProps,
   type TranscriptEditorRef,
+  wordsToSpeakerChunks,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
 import { SearchHeader } from "../components/search-header";
 import { useTranscript } from "../hooks/useTranscript";
@@ -62,38 +65,7 @@ export function TranscriptView() {
 }
 
 function RenderInMeeting({ words }: { words: Word2[] }) {
-  const [isAtBottom, setIsAtBottom] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleScroll = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) {
-      return;
-    }
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const threshold = 100;
-    const atBottom = scrollHeight - scrollTop - clientHeight <= threshold;
-    setIsAtBottom(atBottom);
-  }, []);
-
-  const scrollToBottom = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) {
-      return;
-    }
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: "smooth",
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isAtBottom) {
-      scrollToBottom();
-    }
-  }, [words, isAtBottom, scrollToBottom]);
+  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([words]);
 
   return (
     <div className="flex-1 relative">
@@ -105,30 +77,6 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
         <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
           {words.map(word => word.text).join(" ")}
         </div>
-
-        {
-          /* {speakerChunks.map((chunk, index) => (
-          <div key={index} className="space-y-1">
-            <div className="inline-flex items-center bg-white border border-gray-200 rounded-lg px-1 py-1">
-              <span className="text-gray-600 flex-shrink-0">
-                {chunk.speaker === 0
-                  ? <MicIcon size={13} color="black" />
-                  : chunk.speaker === 1
-                  ? <HeadphonesIcon size={12} color="black" />
-                  : <UserCircleIcon size={12} color="black" />}
-              </span>
-              {typeof chunk.speaker !== "number" && (
-                <span className="text-xs font-medium text-gray-700">
-                  {chunk.speaker}
-                </span>
-              )}
-            </div>
-            <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
-              {chunk.words.map(word => word.text).join(" ")}
-            </div>
-          </div>
-        ))} */
-        }
       </div>
 
       {!isAtBottom && (
@@ -147,11 +95,16 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
 }
 
 function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Word2[] }) {
+  const { userId } = useHypr();
   const queryClient = useQueryClient();
 
   const [editable, setEditable] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const speakerChunks = useMemo(() => wordsToSpeakerChunks(words), [words]);
+  const [editorWords, setEditorWords] = useState<Word2[]>(words);
+
   const editorRef = useRef<TranscriptEditorRef | null>(null);
+  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([speakerChunks]);
 
   const ongoingSession = useOngoingSession((s) => ({
     isInactive: s.status === "inactive",
@@ -188,12 +141,19 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
     queryClient,
   );
 
-  const handleCopyAll = useCallback(async () => {
+  const handleCopyAll = () => {
     if (editorRef.current?.editor) {
       const text = editorRef.current.toText();
-      await writeTextToClipboard(text);
+      writeTextToClipboard(text);
+    } else {
+      const text = speakerChunks.map((chunk) => {
+        const speakerName = getSpeakerDisplayName(chunk);
+        const content = chunk.words.map(word => word.text).join(" ");
+        return `${speakerName}: ${content}`;
+      }).join("\n\n");
+      writeTextToClipboard(text);
     }
-  }, [editorRef]);
+  };
 
   const handleOpenSession = useCallback(() => {
     miscCommands.audioOpen(sessionId);
@@ -201,20 +161,31 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 
   const handeToggleEdit = useCallback(() => {
     setEditable((v) => {
-      const nextEditable = !v;
-      if (!nextEditable && editorRef.current?.editor) {
-        editorRef.current.editor.commands.blur();
+      if (v) {
+        dbCommands.getSession({ id: sessionId }).then((session) => {
+          if (session) {
+            dbCommands.upsertSession({ ...session, words: editorWords }).then(() => {
+              queryClient.invalidateQueries({
+                queryKey: ["session", "words", sessionId],
+              });
+            });
+          }
+        });
+      } else {
+        if (userId) {
+          analyticsCommands.event({
+            event: "transcript_toggle_edit",
+            distinct_id: userId,
+          });
+        }
       }
-      return nextEditable;
+
+      return !v;
     });
-  }, []);
+  }, [editorWords, userId]);
 
   const handleUpdate = (words: Word2[]) => {
-    dbCommands.getSession({ id: sessionId }).then((session) => {
-      if (session) {
-        dbCommands.upsertSession({ ...session, words });
-      }
-    });
+    setEditorWords(words);
   };
 
   if (isSearchActive) {
@@ -223,6 +194,28 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
         <SearchHeader
           editorRef={editorRef}
           onClose={() => setIsSearchActive(false)}
+          onReplaceAll={() => {
+            // get the updated words from the editor and save
+            if (editorRef.current?.editor) {
+              const updatedWords = editorRef.current.getWords();
+              if (updatedWords) {
+                dbCommands.getSession({ id: sessionId }).then((session) => {
+                  if (session) {
+                    dbCommands.upsertSession({ ...session, words: updatedWords }).then(() => {
+                      queryClient.invalidateQueries({
+                        queryKey: ["session", "words", sessionId],
+                      });
+                    });
+                  }
+                });
+
+                analyticsCommands.event({
+                  event: "transcript_replace_all",
+                  distinct_id: userId,
+                });
+              }
+            }
+          }}
         />
         <div className="flex-1 overflow-hidden flex flex-col">
           <TranscriptEditor
@@ -237,23 +230,47 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
     );
   }
 
+  function getSpeakerDisplayName(chunk: any) {
+    if (!chunk.speaker?.type) {
+      return "Unknown";
+    }
+
+    if (chunk.speaker.type === "assigned") {
+      return chunk.speaker.value.label;
+    }
+
+    if (chunk.speaker.value.index === 0) {
+      return "You";
+    }
+
+    return `Speaker ${chunk.speaker.value.index}`;
+  }
+
+  const EditToggle = () => {
+    return (
+      <Button
+        className="px-2 py-0.5 h-6 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200"
+        variant="ghost"
+        size="sm"
+        onClick={handeToggleEdit}
+      >
+        <span className="text-2xs text-neutral-600 font-normal">
+          {editable ? "Save" : "Edit"}
+        </span>
+      </Button>
+    );
+  };
+
   return (
     <>
-      <header className="flex items-center justify-between w-full px-4 py-1 my-1">
-        <div className="flex items-center gap-2">
+      <header className="flex items-center justify-between w-full px-4 py-1 my-1 border-b">
+        <div className="flex items-center">
           <h2 className="text-sm font-semibold text-neutral-900">Transcript</h2>
+          <div className="ml-2">
+            <EditToggle />
+          </div>
         </div>
         <div className="not-draggable flex items-center">
-          <Button
-            className="w-8 h-8"
-            variant="ghost"
-            size="icon"
-            onClick={handeToggleEdit}
-          >
-            {editable
-              ? <CheckIcon size={12} className="text-neutral-600" />
-              : <PencilIcon size={12} className="text-neutral-600" />}
-          </Button>
           <Button
             className="w-8 h-8"
             variant="ghost"
@@ -275,15 +292,53 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <TranscriptEditor
-          ref={editorRef}
-          initialWords={words}
-          editable={ongoingSession.isInactive && editable}
-          onUpdate={handleUpdate}
-          c={SpeakerSelector}
-        />
-      </div>
+      {editable
+        ? (
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <TranscriptEditor
+              ref={editorRef}
+              initialWords={words}
+              editable={ongoingSession.isInactive && editable}
+              onUpdate={handleUpdate}
+              c={SpeakerSelector}
+            />
+          </div>
+        )
+        : (
+          <div className="flex-1 relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto px-2 pt-4 pb-6 space-y-4 absolute inset-0"
+              onScroll={handleScroll}
+            >
+              {speakerChunks.map((chunk, index) => (
+                <div key={index} className="space-y-1">
+                  <span className="text-xs font-medium text-gray-700 p-1 rounded-md bg-white border border-gray-200">
+                    {getSpeakerDisplayName(chunk)}
+                  </span>
+                  <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
+                    {chunk.words.map(word => word.text).join(" ")}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {!isAtBottom && (
+              <Button
+                onClick={scrollToBottom}
+                size="sm"
+                className={cn([
+                  "absolute bottom-6 left-1/2 transform -translate-x-1/2 rounded-full shadow-xl",
+                  "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 z-10 flex items-center gap-1",
+                ])}
+                variant="outline"
+              >
+                <ChevronDownIcon size={14} />
+                <span className="text-xs">Go to bottom</span>
+              </Button>
+            )}
+          </div>
+        )}
     </>
   );
 }
@@ -405,6 +460,7 @@ const MemoizedSpeakerSelector = memo(({
   const [speakerRange, setSpeakerRange] = useState<SpeakerChangeRange>("current");
   const inactive = useOngoingSession(s => s.status === "inactive");
   const [human, setHuman] = useState<Human | null>(null);
+  const [candidate, setCandidate] = useState<Human | null>(null);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
@@ -429,9 +485,12 @@ const MemoizedSpeakerSelector = memo(({
     }
   }, [participants, speakerId]);
 
+  useEffect(() => {
+    setCandidate(null);
+  }, [isOpen]);
+
   const handleClickHuman = (human: Human) => {
-    setHuman(human);
-    setIsOpen(false);
+    setCandidate(human);
   };
 
   if (!sessionId) {
@@ -467,24 +526,48 @@ const MemoizedSpeakerSelector = memo(({
           <Button
             variant="outline"
             size="sm"
-            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1"
+            className="h-auto p-1 font-semibold text-neutral-700 hover:text-neutral-900 -ml-1 flex items-center gap-1"
             onMouseDown={(e) => {
               e.preventDefault();
             }}
           >
+            <Pointer size={12} className="text-neutral-400" />
             {getDisplayName(human)}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" side="bottom">
           <div className="space-y-4">
-            <div className="border-b border-neutral-100 pb-3">
-              <SpeakerRangeSelector
-                value={speakerRange}
-                onChange={setSpeakerRange}
-              />
-            </div>
+            <ParticipantList
+              selectedHuman={candidate}
+              allowMutate={false}
+              sessionId={sessionId}
+              handleClickHuman={handleClickHuman}
+            />
+            {candidate && (
+              <div className="flex flex-col gap-2">
+                <hr className="mb-2" />
+                <SpeakerRangeSelector
+                  value={speakerRange}
+                  onChange={setSpeakerRange}
+                />
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onSpeakerChange(candidate, speakerRange);
+                    setIsOpen(false);
 
-            <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
+                    if (userId) {
+                      analyticsCommands.event({
+                        event: "transcript_speaker_change",
+                        distinct_id: userId,
+                      });
+                    }
+                  }}
+                >
+                  Apply Speaker Change
+                </Button>
+              </div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
@@ -499,16 +582,15 @@ interface SpeakerRangeSelectorProps {
 
 function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
   const options = [
-    { value: "current" as const, label: "Just this" },
-    { value: "all" as const, label: "Replace all" },
+    { value: "current" as const, label: "Only this" },
     { value: "fromHere" as const, label: "From here" },
+    { value: "all" as const, label: "All" },
   ];
 
   return (
     <div className="space-y-1.5">
-      <p className="text-sm font-medium text-neutral-700">Apply speaker change to:</p>
-      <div className="flex rounded-md border border-neutral-200 p-0.5 bg-neutral-50">
-        {options.map((option) => (
+      <div className="flex rounded-md border border-neutral-200 bg-white">
+        {options.map((option, index) => (
           <label
             key={option.value}
             className="flex-1 cursor-pointer"
@@ -522,11 +604,14 @@ function SpeakerRangeSelector({ value, onChange }: SpeakerRangeSelectorProps) {
               onChange={() => onChange(option.value)}
             />
             <div
-              className={`px-2 py-1 text-xs font-medium text-center rounded transition-colors ${
+              className={clsx(
+                "px-2 py-1.5 text-xs font-medium text-center transition-colors border-neutral-200",
+                index === 0 && "border-r rounded-l-md",
+                index === options.length - 1 && "border-l rounded-r-md",
                 value === option.value
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/50"
-              }`}
+                  ? "bg-gray-100 text-neutral-900"
+                  : "hover:bg-gray-50 text-neutral-500",
+              )}
             >
               {option.label}
             </div>
@@ -557,4 +642,46 @@ function CopyButton({ onCopy }: { onCopy: () => void }) {
         : <CopyIcon size={14} className="text-neutral-600" />}
     </Button>
   );
+}
+
+function useScrollToBottom(dependencies: any[] = []) {
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const threshold = 100;
+    const atBottom = scrollHeight - scrollTop - clientHeight <= threshold;
+    setIsAtBottom(atBottom);
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isAtBottom) {
+      scrollToBottom();
+    }
+  }, [...dependencies, isAtBottom, scrollToBottom]);
+
+  return {
+    isAtBottom,
+    scrollContainerRef,
+    handleScroll,
+    scrollToBottom,
+  };
 }

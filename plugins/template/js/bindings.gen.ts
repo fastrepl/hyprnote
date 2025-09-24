@@ -9,9 +9,6 @@
 export const commands = {
 async render(name: Template, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
     return await TAURI_INVOKE("plugin:template|render", { name, ctx });
-},
-async registerTemplate(name: string, template: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:template|register_template", { name, template });
 }
 }
 
@@ -25,9 +22,9 @@ async registerTemplate(name: string, template: string) : Promise<null> {
 
 /** user-defined types **/
 
-export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" }
+export type Grammar = { task: "enhance"; sections: string[] | null } | { task: "title" } | { task: "tags" } | { task: "email-to-name" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type Template = "enhance.system" | "enhance.user" | "create_title.system" | "create_title.user" | "suggest_tags.system" | "suggest_tags.user" | "chat.system" | "chat.user" | "auto_generate_tags.system" | "auto_generate_tags.user"
+export type Template = "enhance.system" | "enhance.user" | "create_title.system" | "create_title.user" | "suggest_tags.system" | "suggest_tags.user" | "chat.system" | "chat.user" | "auto_generate_tags.system" | "auto_generate_tags.user" | "postprocess_transcript.system" | "postprocess_transcript.user"
 
 /** tauri-specta globals **/
 

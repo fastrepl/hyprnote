@@ -12,10 +12,17 @@
 {{ words | timeline }}
 </transcript>
 
+{% if contextText %}
+Below are additional context from previous notes, refer to them if necessary:
+<previous_context>
+{{ contextText }}
+</previous_context>
+{% endif %}
+
 Speaker 0 is the user who is speaking.
 
 Your job is to write a perfect note based on the above informations.
-Note that above given informations like participants, transcript, etc. are already displayed in the UI, so you don't need to repeat them.
+Note that above given informations like participants, transcript, previous context, etc. are already displayed in the UI, so you don't need to repeat them.
 
 MAKE SURE THAT contents in the 'raw_note' is well incorporated in the final enhanced note. It is paramount that the enhanced note contains contents
 of the raw note.

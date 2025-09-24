@@ -47,6 +47,8 @@ hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
+hypr-llm = { path = "crates/llm", package = "llm" }
+hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
@@ -72,6 +74,7 @@ hypr-transcribe-openai = { path = "crates/transcribe-openai", package = "transcr
 hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
+hypr-vad2 = { path = "crates/vad2", package = "vad2" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
@@ -91,7 +94,7 @@ tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
 tauri-plugin-fs = "2.4"
-tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
+tauri-plugin-http = "2.5"
 tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.5"
@@ -211,6 +214,7 @@ realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
+vorbis_rs = "0.5.5"
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
@@ -219,7 +223,7 @@ kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", de
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.8", default-features = false }
-libsql = "0.9.17"
+libsql = "0.9.24"
 
 block2 = "0.6"
 objc2 = "0.6"

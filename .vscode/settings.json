@@ -6,7 +6,8 @@
     "**/routeTree.gen.ts": true
   },
   "files.readonlyInclude": {
-    "**/routeTree.gen.ts": true
+    "**/routeTree.gen.ts": true,
+    "plugins/listener/assets/**/*.json*": true
   },
   "editor.wordBasedSuggestions": "off",
   "editor.quickSuggestionsDelay": 200,

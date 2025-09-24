@@ -132,40 +132,14 @@ pub async fn start_session<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     app.start_session(session_id).await;
-    match app.get_state().await {
-        crate::fsm::State::RunningActive { .. } => Ok(()),
-        _ => Err(crate::Error::StartSessionFailed.to_string()),
-    }
+    Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn stop_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.stop_session().await;
-    match app.get_state().await {
-        crate::fsm::State::Inactive { .. } => Ok(()),
-        _ => Err(crate::Error::StopSessionFailed.to_string()),
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn pause_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.pause_session().await;
-    match app.get_state().await {
-        crate::fsm::State::RunningPaused { .. } => Ok(()),
-        _ => Err(crate::Error::PauseSessionFailed.to_string()),
-    }
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn resume_session<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.resume_session().await;
-    match app.get_state().await {
-        crate::fsm::State::RunningActive { .. } => Ok(()),
-        _ => Err(crate::Error::ResumeSessionFailed.to_string()),
-    }
+    Ok(())
 }
 
 #[tauri::command]

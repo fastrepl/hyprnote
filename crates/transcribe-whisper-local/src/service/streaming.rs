@@ -21,6 +21,8 @@ use hypr_vad::VadExt;
 use hypr_ws_utils::{ConnectionGuard, ConnectionManager};
 use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
 
+use crate::GlobalTimer;
+
 #[derive(Clone)]
 pub struct TranscribeService {
     model_path: PathBuf,
@@ -136,12 +138,30 @@ async fn handle_websocket_connection(
         .map(|ms| Duration::from_millis(ms))
         .unwrap_or(Duration::from_millis(400));
 
+    let global_timer = GlobalTimer::new();
+
     match params.channels {
         1 => {
-            handle_single_channel(ws_sender, ws_receiver, model, guard, redemption_time).await;
+            handle_single_channel(
+                ws_sender,
+                ws_receiver,
+                model,
+                guard,
+                redemption_time,
+                global_timer,
+            )
+            .await;
         }
         _ => {
-            handle_dual_channel(ws_sender, ws_receiver, model, guard, redemption_time).await;
+            handle_dual_channel(
+                ws_sender,
+                ws_receiver,
+                model,
+                guard,
+                redemption_time,
+                global_timer,
+            )
+            .await;
         }
     }
 }
@@ -152,6 +172,7 @@ async fn handle_single_channel(
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
     redemption_time: Duration,
+    global_timer: GlobalTimer,
 ) {
     let audio_source = hypr_ws_utils::WebSocketAudioSource::new(ws_receiver, 16 * 1000);
     let vad_chunks = audio_source.speech_chunks(redemption_time);
@@ -159,7 +180,7 @@ async fn handle_single_channel(
     let chunked = hypr_whisper_local::AudioChunkStream(process_vad_stream(vad_chunks, "mixed"));
 
     let stream = hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(chunked, model);
-    process_transcription_stream(ws_sender, stream, guard, 1).await;
+    process_transcription_stream(ws_sender, stream, guard, 1, global_timer).await;
 }
 
 async fn handle_dual_channel(
@@ -168,6 +189,7 @@ async fn handle_dual_channel(
     model: hypr_whisper_local::Whisper,
     guard: ConnectionGuard,
     redemption_time: Duration,
+    global_timer: GlobalTimer,
 ) {
     let (mic_source, speaker_source) =
         hypr_ws_utils::split_dual_audio_sources(ws_receiver, 16 * 1000);
@@ -190,7 +212,7 @@ async fn handle_dual_channel(
     let stream =
         hypr_whisper_local::TranscribeMetadataAudioStreamExt::transcribe(merged_stream, model);
 
-    process_transcription_stream(ws_sender, stream, guard, 2).await;
+    process_transcription_stream(ws_sender, stream, guard, 2, global_timer).await;
 }
 
 async fn process_transcription_stream(
@@ -198,6 +220,7 @@ async fn process_transcription_stream(
     mut stream: impl futures_util::Stream<Item = hypr_whisper_local::Segment> + Unpin,
     guard: ConnectionGuard,
     channels: i32,
+    global_timer: GlobalTimer,
 ) {
     loop {
         tokio::select! {
@@ -211,9 +234,14 @@ async fn process_transcription_stream(
                 let meta = chunk.meta();
                 let text = chunk.text().to_string();
                 let language = chunk.language().map(|s| s.to_string()).map(|s| vec![s]).unwrap_or_default();
-                let start_f64 = chunk.start() as f64;
                 let duration_f64 = chunk.duration() as f64;
                 let confidence = chunk.confidence() as f64;
+
+                let global_offset = global_timer.add_audio_duration(duration_f64);
+
+                let adjusted_start_f64 = global_offset;
+                let adjusted_end_f64 = global_offset + duration_f64;
+
 
                 let source = meta.and_then(|meta|
                     meta.get("source")
@@ -232,8 +260,8 @@ async fn process_transcription_stream(
                     .filter(|w| !w.is_empty())
                     .map(|w| Word {
                         word: w.trim().to_string(),
-                        start: start_f64,
-                        end: start_f64 + duration_f64,
+                        start: adjusted_start_f64,
+                        end: adjusted_end_f64,
                         confidence,
                         speaker: speaker.clone(),
                         punctuated_word: None,
@@ -243,7 +271,7 @@ async fn process_transcription_stream(
 
                 let response = StreamResponse::TranscriptResponse {
                     type_field: "Results".to_string(),
-                    start: start_f64,
+                    start: adjusted_start_f64,
                     duration: duration_f64,
                     is_final: true,
                     speech_final: true,

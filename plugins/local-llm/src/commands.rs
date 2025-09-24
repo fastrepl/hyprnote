@@ -1,4 +1,6 @@
-use crate::{LocalLlmPluginExt, ModelInfo, SupportedModel};
+use crate::{
+    CustomModelInfo, LocalLlmPluginExt, LocalLlmTaskExt, ModelInfo, ModelSelection, SupportedModel,
+};
 
 use tauri::ipc::Channel;
 
@@ -21,13 +23,13 @@ pub async fn list_supported_model() -> Result<Vec<ModelInfo>, String> {
         ModelInfo {
             key: SupportedModel::Gemma3_4bQ4,
             name: "Gemma 3 4B Q4".to_string(),
-            description: "General purpose model. Heavier than HyprLLM.".to_string(),
+            description: "Deprecated. Exists only for backward compatibility.".to_string(),
             size_bytes: SupportedModel::Gemma3_4bQ4.model_size(),
         },
         ModelInfo {
             key: SupportedModel::Llama3p2_3bQ4,
             name: "Llama 3.2 3B Q4".to_string(),
-            description: "Not recommended. Exists only for backward compatibility.".to_string(),
+            description: "Deprecated. Exists only for backward compatibility.".to_string(),
             size_bytes: SupportedModel::Llama3p2_3bQ4.model_size(),
         },
     ])
@@ -113,4 +115,48 @@ pub async fn set_current_model<R: tauri::Runtime>(
     model: crate::SupportedModel,
 ) -> Result<(), String> {
     app.set_current_model(model).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_custom_models<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<CustomModelInfo>, String> {
+    app.list_custom_models().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_current_model_selection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<ModelSelection, String> {
+    app.get_current_model_selection().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_current_model_selection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: ModelSelection,
+) -> Result<(), String> {
+    app.set_current_model_selection(model)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn generate_title<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    ctx: serde_json::Map<String, serde_json::Value>,
+) -> Result<String, String> {
+    app.generate_title(ctx).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn generate_tags<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    ctx: serde_json::Map<String, serde_json::Value>,
+) -> Result<Vec<String>, String> {
+    app.generate_tags(ctx).await.map_err(|e| e.to_string())
 }

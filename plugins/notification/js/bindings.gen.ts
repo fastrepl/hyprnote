@@ -22,6 +22,12 @@ async setEventNotification(enabled: boolean) : Promise<null> {
 async getDetectNotification() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:notification|get_detect_notification");
 },
+async getRespectDoNotDisturb() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:notification|get_respect_do_not_disturb");
+},
+async setRespectDoNotDisturb(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_respect_do_not_disturb", { enabled });
+},
 async setDetectNotification(enabled: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|set_detect_notification", { enabled });
 },
@@ -56,7 +62,7 @@ async setIgnoredPlatforms(platforms: string[]) : Promise<null> {
 /** user-defined types **/
 
 export type Duration = { secs: number; nanos: number }
-export type InstalledApp = { bundle_id: string; localized_name: string; bundle_path: string }
+export type InstalledApp = { bundle_id: string; localized_name: string }
 export type Notification = { key: string | null; title: string; message: string; url: string | null; timeout: Duration | null }
 
 /** tauri-specta globals **/

@@ -23,7 +23,7 @@ export type Tab =
   | "integrations"
   | "mcp"
   | "billing"
-  | "help-feedback";
+  | "help-support";
 
 export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "general", icon: Settings },
@@ -36,5 +36,5 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "integrations", icon: MessageSquare },
   { name: "mcp", icon: NetworkIcon },
   { name: "billing", icon: CreditCard },
-  { name: "help-feedback", icon: HelpCircle },
+  { name: "help-support", icon: HelpCircle },
 ];

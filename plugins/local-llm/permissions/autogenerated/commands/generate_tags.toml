@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-generate-tags"
+description = "Enables the generate_tags command without any pre-configured scope."
+commands.allow = ["generate_tags"]
+
+[[permission]]
+identifier = "deny-generate-tags"
+description = "Denies the generate_tags command without any pre-configured scope."
+commands.deny = ["generate_tags"]

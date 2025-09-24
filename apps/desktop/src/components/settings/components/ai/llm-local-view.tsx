@@ -1,3 +1,4 @@
+import { LmStudio } from "@lobehub/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { open } from "@tauri-apps/plugin-shell";
@@ -5,7 +6,7 @@ import { CloudIcon, DownloadIcon, FolderIcon } from "lucide-react";
 import { useEffect } from "react";
 
 import { useLicense } from "@/hooks/use-license";
-import { commands as localLlmCommands, type SupportedModel } from "@hypr/plugin-local-llm";
+import { commands as localLlmCommands, type CustomModelInfo, type ModelSelection } from "@hypr/plugin-local-llm";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -32,9 +33,15 @@ export function LLMLocalView({
   const isPro = !!getLicense.data?.valid;
   const queryClient = useQueryClient();
 
-  const currentLLMModel = useQuery({
-    queryKey: ["current-llm-model"],
-    queryFn: () => localLlmCommands.getCurrentModel(),
+  const currentModelSelection = useQuery({
+    queryKey: ["current-model-selection"],
+    queryFn: () => localLlmCommands.getCurrentModelSelection(),
+  });
+
+  const customModels = useQuery({
+    queryKey: ["custom-models"],
+    queryFn: () => localLlmCommands.listCustomModels(),
+    refetchInterval: 5000,
   });
 
   const handleShowFileLocation = async () => {
@@ -42,34 +49,48 @@ export function LLMLocalView({
   };
 
   useEffect(() => {
-    // Auto-select current local model when switching away from remote endpoints
-    if (currentLLMModel.data && !customLLMEnabled.data) {
-      setSelectedLLMModel(currentLLMModel.data);
+    if (currentModelSelection.data && !customLLMEnabled.data) {
+      const selection = currentModelSelection.data;
+      if (selection.type === "Predefined") {
+        setSelectedLLMModel(selection.content.key);
+      } else if (selection.type === "Custom") {
+        setSelectedLLMModel(`custom-${selection.content.path}`);
+      }
     }
-  }, [currentLLMModel.data, customLLMEnabled.data, setSelectedLLMModel]);
+  }, [currentModelSelection.data, customLLMEnabled.data, setSelectedLLMModel]);
 
   const handleLocalModelSelection = async (model: LLMModel) => {
     if (model.available && model.downloaded) {
-      // Update UI state first for immediate feedback
       setSelectedLLMModel(model.key);
 
-      // Then update backend state
-      await localLlmCommands.setCurrentModel(model.key as SupportedModel);
-      queryClient.invalidateQueries({ queryKey: ["current-llm-model"] });
+      const selection: ModelSelection = { type: "Predefined", content: { key: model.key } };
+      await localLlmCommands.setCurrentModelSelection(selection);
+      queryClient.invalidateQueries({ queryKey: ["current-model-selection"] });
 
-      // Disable BOTH HyprCloud and custom when selecting local
       setCustomLLMEnabledMutation.mutate(false);
       setHyprCloudEnabledMutation.mutate(false);
       setOpenAccordion(null);
 
-      // Restart server for local model
       localLlmCommands.restartServer();
     }
   };
 
+  const handleCustomModelSelection = async (customModel: CustomModelInfo) => {
+    setSelectedLLMModel(`custom-${customModel.path}`);
+
+    const selection: ModelSelection = { type: "Custom", content: { path: customModel.path } };
+    await localLlmCommands.setCurrentModelSelection(selection);
+    queryClient.invalidateQueries({ queryKey: ["current-model-selection"] });
+
+    setCustomLLMEnabledMutation.mutate(false);
+    setHyprCloudEnabledMutation.mutate(false);
+    setOpenAccordion(null);
+
+    localLlmCommands.restartServer();
+  };
+
   const handleHyprCloudSelection = () => {
     setSelectedLLMModel("hyprcloud");
-    // Just use the configureCustomEndpoint which handles the flags
     configureCustomEndpoint({
       provider: "hyprcloud",
       api_base: "https://pro.hyprnote.com",
@@ -80,15 +101,12 @@ export function LLMLocalView({
   };
 
   const isHyprCloudSelected = hyprCloudEnabled.data;
-
-  // Base button class to remove default styling
   const buttonResetClass = "appearance-none border-0 outline-0 bg-transparent p-0 m-0 font-inherit text-left w-full";
 
   return (
     <div className="space-y-6">
       <div className="max-w-2xl">
         <div className="space-y-2">
-          {/* HyprCloud Option */}
           <div
             className={cn(
               "group relative p-3 rounded-lg border-2 transition-all",
@@ -99,7 +117,6 @@ export function LLMLocalView({
           >
             <div className="flex items-center justify-between">
               <div className="relative flex-1">
-                {/* Main button */}
                 <button
                   onClick={handleHyprCloudSelection}
                   disabled={!isPro}
@@ -156,7 +173,6 @@ export function LLMLocalView({
             </div>
           </div>
 
-          {/* Separator */}
           <div className="relative py-2">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200"></div>
@@ -166,7 +182,6 @@ export function LLMLocalView({
             </div>
           </div>
 
-          {/* Local Models */}
           {llmModelsState.map((model) => (
             <button
               key={model.key}
@@ -255,6 +270,48 @@ export function LLMLocalView({
               </div>
             </button>
           ))}
+
+          {customModels.data && customModels.data.length > 0 && (
+            <>
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-2 bg-gray-50 text-gray-500">custom GGUF models</span>
+                </div>
+              </div>
+
+              {customModels.data.map((customModel) => {
+                const isSelected = selectedLLMModel === `custom-${customModel.path}` && !customLLMEnabled.data;
+                return (
+                  <button
+                    key={customModel.path}
+                    onClick={() => handleCustomModelSelection(customModel)}
+                    className={cn(
+                      buttonResetClass,
+                      "group relative p-3 rounded-lg border-2 transition-all flex items-center justify-between",
+                      isSelected
+                        ? "border-solid border-blue-500 bg-blue-50 cursor-pointer"
+                        : "border-dashed border-gray-300 hover:border-gray-400 bg-white cursor-pointer",
+                    )}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-4">
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-base text-gray-900 flex items-center gap-2">
+                            <LmStudio size={14} />
+                            {customModel.name}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500">{customModel.path.split("/").slice(-1)[0]}</span>
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
     </div>

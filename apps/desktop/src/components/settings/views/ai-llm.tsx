@@ -730,16 +730,30 @@ export default function LlmAI() {
                                   <button
                                     key={level}
                                     type="button"
-                                    onClick={() => {
+                                    onClick={async () => {
                                       field.onChange(level);
                                       aiConfigMutation.mutate({
                                         aiSpecificity: level,
                                       });
+
+                                      // legacy: send analytics event
                                       analyticsCommands.event({
                                         event: "autonomy_selected",
                                         distinct_id: userId,
                                         level: level,
                                       });
+
+                                      // set user properties
+                                      if (userId) {
+                                        const autonomyValue = specificityLevels[level as keyof typeof specificityLevels]
+                                          ?.title.toLowerCase();
+                                        await analyticsCommands.setProperties({
+                                          distinct_id: userId,
+                                          set: {
+                                            "llm-autonomy": autonomyValue,
+                                          },
+                                        });
+                                      }
                                     }}
                                     disabled={!customLLMEnabled.data || hyprCloudEnabled.data}
                                     className={cn(

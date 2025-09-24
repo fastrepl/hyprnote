@@ -245,6 +245,12 @@ impl HyprWindow {
         })
     }
 
+    pub fn is_focused(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
+        self.get(app).map_or(Ok(false), |w| {
+            w.is_focused().map_err(crate::Error::TauriError)
+        })
+    }
+
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
         #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
@@ -474,6 +480,7 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
     fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
     fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error>;
+    fn window_is_focused(&self, window: HyprWindow) -> Result<bool, crate::Error>;
 
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error>;
     fn window_set_floating(&self, window: HyprWindow, v: bool) -> Result<(), crate::Error>;
@@ -572,6 +579,10 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
 
     fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error> {
         window.is_visible(self)
+    }
+
+    fn window_is_focused(&self, window: HyprWindow) -> Result<bool, crate::Error> {
+        window.is_focused(self)
     }
 
     fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error> {

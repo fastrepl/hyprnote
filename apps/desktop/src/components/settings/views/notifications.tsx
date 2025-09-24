@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -17,12 +19,14 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 const schema = z.object({
   detect: z.boolean().optional(),
   event: z.boolean().optional(),
+  respectDoNotDisturb: z.boolean().optional(),
   ignoredPlatforms: z.array(z.string()).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
 
 export default function NotificationsComponent() {
+  const { userId } = useHypr();
   const [newAppName, setNewAppName] = useState("");
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -41,9 +45,17 @@ export default function NotificationsComponent() {
     queryFn: () => notificationCommands.getIgnoredPlatforms(),
   });
 
+  const respectDoNotDisturb = useQuery({
+    queryKey: ["notification", "respectDoNotDisturb"],
+    queryFn: () => notificationCommands.getRespectDoNotDisturb(),
+  });
+
   const applications = useQuery({
     queryKey: ["notification", "applications"],
-    queryFn: () => notificationCommands.listApplications(),
+    queryFn: async () => {
+      const apps = await notificationCommands.listApplications();
+      return Array.from(new Set(apps.map(app => app.localized_name)));
+    },
   });
 
   const form = useForm<Schema>({
@@ -51,6 +63,7 @@ export default function NotificationsComponent() {
     values: {
       detect: detectNotification.data ?? false,
       event: eventNotification.data ?? false,
+      respectDoNotDisturb: respectDoNotDisturb.data ?? false,
       ignoredPlatforms: ignoredPlatforms.data ?? [],
     },
   });
@@ -64,8 +77,19 @@ export default function NotificationsComponent() {
       }
       return v.event;
     },
-    onSuccess: (active) => {
+    onSuccess: async (active) => {
       eventNotification.refetch();
+
+      // Track notification setting change in analytics
+      if (userId) {
+        await analyticsCommands.setProperties({
+          distinct_id: userId,
+          set: {
+            event_notification: active,
+          },
+        });
+      }
+
       if (active) {
         notificationCommands.startEventNotification();
         notificationCommands.showNotification({
@@ -90,8 +114,19 @@ export default function NotificationsComponent() {
       }
       return v.detect;
     },
-    onSuccess: (active) => {
+    onSuccess: async (active) => {
       detectNotification.refetch();
+
+      // Track notification setting change in analytics
+      if (userId) {
+        await analyticsCommands.setProperties({
+          distinct_id: userId,
+          set: {
+            audio_notification: active,
+          },
+        });
+      }
+
       if (active) {
         notificationCommands.startDetectNotification();
         notificationCommands.showNotification({
@@ -104,6 +139,20 @@ export default function NotificationsComponent() {
       } else {
         notificationCommands.stopDetectNotification();
       }
+    },
+  });
+
+  const respectDoNotDisturbMutation = useMutation({
+    mutationFn: async (v: Schema) => {
+      if (v.respectDoNotDisturb) {
+        notificationCommands.setRespectDoNotDisturb(true);
+      } else {
+        notificationCommands.setRespectDoNotDisturb(false);
+      }
+      return v.respectDoNotDisturb;
+    },
+    onSuccess: () => {
+      respectDoNotDisturb.refetch();
     },
   });
 
@@ -125,6 +174,9 @@ export default function NotificationsComponent() {
       if (name === "event" && value.event !== undefined) {
         eventMutation.mutate({ event: value.event });
       }
+      if (name === "respectDoNotDisturb" && value.respectDoNotDisturb !== undefined) {
+        respectDoNotDisturbMutation.mutate({ respectDoNotDisturb: value.respectDoNotDisturb });
+      }
       if (name === "ignoredPlatforms" && value.ignoredPlatforms) {
         const filteredPlatforms = value.ignoredPlatforms.filter((p): p is string => !!p);
         ignoredPlatformsMutation.mutate(filteredPlatforms);
@@ -132,7 +184,7 @@ export default function NotificationsComponent() {
     });
 
     return () => subscription.unsubscribe();
-  }, [eventMutation, detectMutation, ignoredPlatformsMutation]);
+  }, [eventMutation, detectMutation, respectDoNotDisturbMutation, ignoredPlatformsMutation]);
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
@@ -158,7 +210,7 @@ export default function NotificationsComponent() {
   return (
     <div>
       <Form {...form}>
-        <form className="space-y-6">
+        <form className="space-y-8">
           <FormField
             control={form.control}
             name="event"
@@ -297,7 +349,7 @@ export default function NotificationsComponent() {
                                 )}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
-                              {applications.data?.map(app => app.localized_name)
+                              {(applications.data ?? [])
                                 .filter(app => !(form.watch("ignoredPlatforms") || []).includes(app))
                                 .map((app) => (
                                   <CommandItem
@@ -317,6 +369,47 @@ export default function NotificationsComponent() {
               </FormItem>
             )}
           />
+          {(form.watch("event") || form.watch("detect")) && (
+            <>
+              <div className="relative flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-background px-4 text-muted-foreground font-medium">
+                    <Trans>Global Settings</Trans>
+                  </span>
+                </div>
+              </div>
+              <FormField
+                control={form.control}
+                name="respectDoNotDisturb"
+                render={({ field }) => (
+                  <FormItem className="space-y-6">
+                    <div className="flex flex-row items-center justify-between">
+                      <div>
+                        <FormLabel>
+                          <Trans>Respect Do Not Disturb</Trans>
+                        </FormLabel>
+                        <FormDescription>
+                          <Trans>
+                            Don't show notifications when Do Not Disturb is enabled on your system.
+                          </Trans>
+                        </FormDescription>
+                      </div>
+
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
         </form>
       </Form>
     </div>

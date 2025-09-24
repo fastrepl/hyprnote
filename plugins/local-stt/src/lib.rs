@@ -147,6 +147,7 @@ mod test {
     // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
     async fn test_local_stt() {
         let app = create_app(tauri::test::mock_builder());
+        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
         let model = app.get_local_model();
         println!("model: {:#?}", model);
     }

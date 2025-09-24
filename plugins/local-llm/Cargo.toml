@@ -27,17 +27,22 @@ tauri-plugin-store = { workspace = true }
 hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
+hypr-gguf = { workspace = true }
 hypr-llama = { workspace = true }
+hypr-llm = { workspace = true }
+hypr-llm-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-windows = { workspace = true }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
+dirs = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

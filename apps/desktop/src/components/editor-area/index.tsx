@@ -3,7 +3,6 @@ import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
@@ -12,6 +11,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -20,7 +20,7 @@ import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { generateText, localProviderName, modelProvider, smoothStream, streamText, tool } from "@hypr/utils/ai";
+import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -32,6 +32,7 @@ import { TextSelectionPopover } from "./text-selection-popover";
 import { LocalSearchBar } from "./local-search-bar";
 import { TranscriptViewer } from "./transcript-viewer";
 import { FloatingSearchBox } from "./floating-search-box";
+import { prepareContextText } from "./utils/summary-prepare";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -39,35 +40,13 @@ async function generateTitleDirect(
   sessions: Record<string, any>,
   queryClient: QueryClient,
 ) {
-  const [config, { type }, provider] = await Promise.all([
-    dbCommands.getConfig(),
-    connectorCommands.getLlmConnection(),
-    modelProvider(),
-  ]);
-
-  const [systemMessage, userMessage] = await Promise.all([
-    templateCommands.render("create_title.system", { config, type }),
-    templateCommands.render("create_title.user", { type, enhanced_note: enhancedContent }),
-  ]);
-
-  const model = provider.languageModel("defaultModel");
-  const abortSignal = AbortSignal.timeout(60_000);
-
-  const { text } = await generateText({
-    abortSignal,
-    model,
-    messages: [
-      { role: "system", content: systemMessage },
-      { role: "user", content: userMessage },
-    ],
-    providerOptions: {
-      [localProviderName]: { metadata: { grammar: "title" } },
-    },
+  const title = await localLlmCommands.generateTitle({
+    enhanced_note: enhancedContent,
   });
 
   const session = await dbCommands.getSession({ id: targetSessionId });
   if (!session?.title && sessions[targetSessionId]?.getState) {
-    const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+    const cleanedTitle = title.replace(/^["']|["']$/g, "").trim();
     sessions[targetSessionId].getState().updateTitle(cleanedTitle);
   }
 
@@ -175,7 +154,7 @@ export default function EditorArea({
 
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > 0);
+  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > (import.meta.env.DEV ? 5 : 100));
 
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
@@ -219,7 +198,14 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
+  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
+    const targetTemplateId = templateId === "auto" ? null : templateId;
+    enhance.mutate({ templateId: targetTemplateId });
+  }, [enhance]);
 
+  const handleClickEnhance = useCallback(() => {
+    enhance.mutate({});
+  }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
     if (editorRef.current?.editor && editorRef.current.editor.isEditable) {
@@ -480,12 +466,10 @@ export function useEnhanceMutation({
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
     mutationFn: async ({
-      triggerType,
       templateId,
     }: {
-      triggerType: "manual" | "template" | "auto";
       templateId?: string | null;
-    } = { triggerType: "manual" }) => {
+    }) => {
       setIsCancelled(false);
       originalContentRef.current = getCurrentEnhancedContent;
       const abortController = new AbortController();
@@ -526,6 +510,29 @@ export function useEnhanceMutation({
         : config.general?.selected_template_id;
 
       const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
+      let contextText = "";
+
+      // Print context tags if they exist
+      if (selectedTemplate?.context_option) {
+        analyticsCommands.event({
+          event: "enhance_with_context",
+          distinct_id: userId,
+        });
+        try {
+          const contextConfig = JSON.parse(selectedTemplate.context_option);
+          if (contextConfig.type === "tags" && contextConfig.selections?.length > 0) {
+            // Prepare and print context text from tagged sessions
+            contextText = await prepareContextText(
+              contextConfig.selections,
+              sessionId,
+              userId,
+            );
+          }
+        } catch (e) {
+          // Silent catch for malformed JSON
+          console.error("Error parsing context option:", e);
+        }
+      }
 
       if (selectedTemplate !== null) {
         const eventName = selectedTemplate?.tags.includes("builtin")
@@ -563,6 +570,7 @@ export function useEnhanceMutation({
           editor: finalInput,
           words: JSON.stringify(words),
           participants,
+          ...((contextText !== "" || contextText !== undefined || contextText !== null) ? { contextText } : {}),
         },
       );
 
@@ -588,11 +596,6 @@ export function useEnhanceMutation({
       const { text, fullStream } = streamText({
         abortSignal,
         model,
-        ...(freshIsLocalLlm && {
-          tools: {
-            update_progress: tool({ inputSchema: z.any() }),
-          },
-        }),
         onError: (error) => {
           toast({
             id: "something went wrong",

@@ -38,6 +38,13 @@ class NotificationInstance {
     }
   }
 
+  func dismissWithUserAction() {
+    self.id.uuidString.withCString { idPtr in
+      rustOnNotificationDismiss(idPtr)
+    }
+    dismiss()
+  }
+
   deinit {
     dismissTimer?.cancel()
   }
@@ -128,10 +135,15 @@ class ClickableView: NSView {
   override func mouseDown(with event: NSEvent) {
     alphaValue = 0.95
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.alphaValue = 1.0 }
-    if let urlString = notification?.url, let url = URL(string: urlString) {
-      NSWorkspace.shared.open(url)
+    if let notification = notification {
+      notification.id.uuidString.withCString { idPtr in
+        rustOnNotificationConfirm(idPtr)
+      }
+      if let urlString = notification.url, let url = URL(string: urlString) {
+        NSWorkspace.shared.open(url)
+      }
+      notification.dismissWithUserAction()
     }
-    notification?.dismiss()
   }
 
   override func viewDidMoveToWindow() {
@@ -144,8 +156,8 @@ class CloseButton: NSButton {
   weak var notification: NotificationInstance?
   var trackingArea: NSTrackingArea?
 
-  static let buttonSize: CGFloat = 12
-  static let symbolPointSize: CGFloat = 8
+  static let buttonSize: CGFloat = 15
+  static let symbolPointSize: CGFloat = 10
 
   override init(frame frameRect: NSRect) {
     super.init(frame: frameRect)
@@ -171,11 +183,11 @@ class CloseButton: NSButton {
     } else {
       image = NSImage(named: NSImage.stopProgressTemplateName)
     }
-    contentTintColor = NSColor.white.withAlphaComponent(0.95)
+    contentTintColor = NSColor.white
 
     layer?.cornerRadius = Self.buttonSize / 2
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
-    layer?.borderColor = NSColor.white.withAlphaComponent(0.18).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
+    layer?.borderColor = NSColor.black.withAlphaComponent(0.3).cgColor
     layer?.borderWidth = 0.5
 
     alphaValue = 0
@@ -200,21 +212,21 @@ class CloseButton: NSButton {
   }
 
   override func mouseDown(with event: NSEvent) {
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.26).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-      self.layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
+      self.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
     }
-    notification?.dismiss()
+    notification?.dismissWithUserAction()
   }
 
   override func mouseEntered(with event: NSEvent) {
     super.mouseEntered(with: event)
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.20).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.6).cgColor
   }
 
   override func mouseExited(with event: NSEvent) {
     super.mouseExited(with: event)
-    layer?.backgroundColor = NSColor.white.withAlphaComponent(0.16).cgColor
+    layer?.backgroundColor = NSColor.black.withAlphaComponent(0.5).cgColor
   }
 }
 
@@ -263,29 +275,75 @@ class ActionButton: NSButton {
   }
 }
 
-// MARK: - Notification Manager
 class NotificationManager {
   static let shared = NotificationManager()
-  private init() {}
+  private init() {
+    setupDisplayChangeObserver()
+  }
 
-  // MARK: - State Management
   private var activeNotifications: [UUID: NotificationInstance] = [:]
   private let maxNotifications = 5
   private let notificationSpacing: CGFloat = 10
 
   private var globalMouseMonitor: Any?
   private var hoverStates: [UUID: Bool] = [:]
+  private var displayChangeObserver: Any?
 
-  // MARK: - Configuration Constants
   private struct Config {
     static let notificationWidth: CGFloat = 360
-    static let notificationHeight: CGFloat = 82
+    static let notificationHeight: CGFloat = 64
     static let rightMargin: CGFloat = 15
     static let topMargin: CGFloat = 15
     static let slideInOffset: CGFloat = 10
   }
 
-  // MARK: - Public Methods
+  private func setupDisplayChangeObserver() {
+    displayChangeObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.didChangeScreenParametersNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      self?.handleDisplayChange()
+    }
+  }
+
+  private func handleDisplayChange() {
+    repositionAllNotifications()
+  }
+
+  private func repositionAllNotifications() {
+    guard let screen = getTargetScreen() else { return }
+    let screenRect = screen.visibleFrame
+    let topPosition = screenRect.maxY - Config.notificationHeight - Config.topMargin
+    let rightPosition = screenRect.maxX - Config.notificationWidth - Config.rightMargin
+
+    let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
+
+    for (index, notification) in sorted.enumerated() {
+      let newY = topPosition - CGFloat(index) * (Config.notificationHeight + notificationSpacing)
+      let newFrame = NSRect(
+        x: rightPosition,
+        y: newY,
+        width: Config.notificationWidth,
+        height: Config.notificationHeight
+      )
+
+      notification.panel.setFrame(newFrame, display: true)
+      notification.clickableView.updateTrackingAreas()
+      notification.clickableView.window?.invalidateCursorRects(for: notification.clickableView)
+      notification.clickableView.window?.resetCursorRects()
+    }
+
+    updateHoverForAll(atScreenPoint: NSEvent.mouseLocation)
+  }
+
+  private func getTargetScreen() -> NSScreen? {
+    if let menuBarScreen = NSScreen.screens.first(where: { $0.frame.origin == .zero }) {
+      return menuBarScreen
+    }
+    return NSScreen.main ?? NSScreen.screens.first
+  }
+
   func show(title: String, message: String, url: String?, timeoutSeconds: Double) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
@@ -338,7 +396,7 @@ class NotificationManager {
   private func createAndShowNotification(
     title: String, message: String, url: String?, timeoutSeconds: Double
   ) {
-    guard let screen = NSScreen.main else { return }
+    guard let screen = getTargetScreen() else { return }
 
     manageNotificationLimit()
 
@@ -364,8 +422,9 @@ class NotificationManager {
     ensureGlobalMouseMonitor()
   }
 
-  private func calculateYPosition(screen: NSScreen) -> CGFloat {
-    let screenRect = screen.visibleFrame
+  private func calculateYPosition(screen: NSScreen? = nil) -> CGFloat {
+    let targetScreen = screen ?? getTargetScreen() ?? NSScreen.main!
+    let screenRect = targetScreen.visibleFrame
     let baseY = screenRect.maxY - Config.notificationHeight - Config.topMargin
     let occupiedHeight =
       activeNotifications.count * Int(Config.notificationHeight + notificationSpacing)
@@ -373,14 +432,20 @@ class NotificationManager {
   }
 
   private func repositionNotifications() {
-    guard let screen = NSScreen.main else { return }
+    guard let screen = getTargetScreen() else { return }
+    let screenRect = screen.visibleFrame
+    let topPosition = screenRect.maxY - Config.notificationHeight - Config.topMargin
+    let rightPosition = screenRect.maxX - Config.notificationWidth - Config.rightMargin
+
     let sorted = activeNotifications.values.sorted { $0.panel.frame.minY > $1.panel.frame.minY }
     for (index, notification) in sorted.enumerated() {
-      let newY =
-        calculateYPosition(screen: screen) + CGFloat(index)
-        * (Config.notificationHeight + notificationSpacing)
-      let f = notification.panel.frame
-      let newFrame = NSRect(x: f.minX, y: newY, width: f.width, height: f.height)
+      let newY = topPosition - CGFloat(index) * (Config.notificationHeight + notificationSpacing)
+      let newFrame = NSRect(
+        x: rightPosition,
+        y: newY,
+        width: Config.notificationWidth,
+        height: Config.notificationHeight
+      )
       NSAnimationContext.runAnimationGroup { context in
         context.duration = 0.2
         context.timingFunction = CAMediaTimingFunction(name: .easeOut)
@@ -389,8 +454,9 @@ class NotificationManager {
     }
   }
 
-  private func createPanel(screen: NSScreen, yPosition: CGFloat) -> NSPanel {
-    let screenRect = screen.visibleFrame
+  private func createPanel(screen: NSScreen? = nil, yPosition: CGFloat) -> NSPanel {
+    let targetScreen = screen ?? getTargetScreen() ?? NSScreen.main!
+    let screenRect = targetScreen.visibleFrame
     let startXPos = screenRect.maxX + Config.slideInOffset
 
     let panel = NSPanel(
@@ -399,10 +465,11 @@ class NotificationManager {
         height: Config.notificationHeight),
       styleMask: [.borderless, .nonactivatingPanel],
       backing: .buffered,
-      defer: false
+      defer: false,
+      screen: targetScreen
     )
 
-    panel.level = .statusBar
+    panel.level = NSWindow.Level(rawValue: Int(Int32.max))
     panel.isFloatingPanel = true
     panel.hidesOnDeactivate = false
     panel.isOpaque = false
@@ -459,7 +526,6 @@ class NotificationManager {
     return effectView
   }
 
-  // MARK: - Content
   private func setupContent(
     effectView: NSVisualEffectView,
     title: String,
@@ -478,8 +544,7 @@ class NotificationManager {
     contentView.translatesAutoresizingMaskIntoConstraints = false
     effectView.addSubview(contentView)
 
-    // Adjust constraints to give more room for text if no button
-    let trailingConstant: CGFloat = hasUrl ? -10 : -35  // More room when no button
+    let trailingConstant: CGFloat = hasUrl ? -10 : -35
 
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
@@ -503,69 +568,61 @@ class NotificationManager {
     container.orientation = .horizontal
     container.alignment = .centerY
     container.distribution = .fill
-    container.spacing = 10
+    container.spacing = 8
 
-    // Icon container (unchanged)
     let iconContainer = NSView()
     iconContainer.wantsLayer = true
-    iconContainer.layer?.cornerRadius = 9
+    iconContainer.layer?.cornerRadius = 6
     iconContainer.translatesAutoresizingMaskIntoConstraints = false
-    iconContainer.widthAnchor.constraint(equalToConstant: 42).isActive = true
-    iconContainer.heightAnchor.constraint(equalToConstant: 42).isActive = true
+    iconContainer.widthAnchor.constraint(equalToConstant: 32).isActive = true
+    iconContainer.heightAnchor.constraint(equalToConstant: 32).isActive = true
 
     let iconImageView = createAppIconView()
     iconContainer.addSubview(iconImageView)
     NSLayoutConstraint.activate([
       iconImageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
       iconImageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-      iconImageView.widthAnchor.constraint(equalToConstant: 32),
-      iconImageView.heightAnchor.constraint(equalToConstant: 32),
+      iconImageView.widthAnchor.constraint(equalToConstant: 24),
+      iconImageView.heightAnchor.constraint(equalToConstant: 24),
     ])
 
-    // Middle: text stack
     let textStack = NSStackView()
     textStack.orientation = .vertical
-    textStack.spacing = 4
+    textStack.spacing = 2
     textStack.alignment = .leading
     textStack.distribution = .fill
 
     textStack.setContentHuggingPriority(.defaultLow, for: .horizontal)
     textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    // Title
     let titleLabel = NSTextField(labelWithString: title)
-    titleLabel.font = NSFont.systemFont(ofSize: 16, weight: .semibold)
+    titleLabel.font = NSFont.systemFont(ofSize: 14, weight: .semibold)
     titleLabel.textColor = NSColor.labelColor
-    titleLabel.lineBreakMode = .byTruncatingTail  // Shows "..." at end
+    titleLabel.lineBreakMode = .byTruncatingTail
     titleLabel.maximumNumberOfLines = 1
     titleLabel.allowsDefaultTighteningForTruncation = true
-    titleLabel.usesSingleLineMode = true  // Ensure single line mode
-    titleLabel.cell?.truncatesLastVisibleLine = true  // Force truncation
+    titleLabel.usesSingleLineMode = true
+    titleLabel.cell?.truncatesLastVisibleLine = true
 
-    // Set content priorities for title
     titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-    // Body with proper ellipsis handling
     let bodyLabel = NSTextField(labelWithString: body)
-    bodyLabel.font = NSFont.systemFont(ofSize: 12, weight: .light)
+    bodyLabel.font = NSFont.systemFont(ofSize: 11, weight: .regular)
     bodyLabel.textColor = NSColor.secondaryLabelColor
-    bodyLabel.lineBreakMode = .byTruncatingTail  // ADD THIS: Shows "..." at end
+    bodyLabel.lineBreakMode = .byTruncatingTail
     bodyLabel.maximumNumberOfLines = 1
-    bodyLabel.usesSingleLineMode = true  // ADD THIS: Ensure single line mode
-    bodyLabel.cell?.truncatesLastVisibleLine = true  // ADD THIS: Force truncation
+    bodyLabel.usesSingleLineMode = true
+    bodyLabel.cell?.truncatesLastVisibleLine = true
 
     bodyLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
     textStack.addArrangedSubview(titleLabel)
     textStack.addArrangedSubview(bodyLabel)
 
-    // Assemble components
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
 
-    // Right: action button (if provided)
     if let buttonTitle {
-      // Add a small fixed spacer
       let gap = NSView()
       gap.translatesAutoresizingMaskIntoConstraints = false
       gap.widthAnchor.constraint(equalToConstant: 8).isActive = true
@@ -578,7 +635,6 @@ class NotificationManager {
         target: self,
         action: #selector(handleActionButtonPress(_:))
       )
-      // Button should maintain its size
       btn.setContentHuggingPriority(.required, for: .horizontal)
       btn.setContentCompressionResistancePriority(.required, for: .horizontal)
       btn.notification = notification
@@ -590,10 +646,13 @@ class NotificationManager {
 
   @objc private func handleActionButtonPress(_ sender: NSButton) {
     guard let btn = sender as? ActionButton, let notification = btn.notification else { return }
+    notification.id.uuidString.withCString { idPtr in
+      rustOnNotificationConfirm(idPtr)
+    }
     if let urlString = notification.url, let url = URL(string: urlString) {
       NSWorkspace.shared.open(url)
     }
-    notification.dismiss()
+    notification.dismissWithUserAction()
   }
 
   private func createAppIconView() -> NSImageView {
@@ -622,8 +681,8 @@ class NotificationManager {
     effectView.addSubview(closeButton)
 
     NSLayoutConstraint.activate([
-      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 6),
-      closeButton.trailingAnchor.constraint(equalTo: effectView.trailingAnchor, constant: -6),
+      closeButton.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 5),
+      closeButton.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 4),
       closeButton.widthAnchor.constraint(equalToConstant: CloseButton.buttonSize),
       closeButton.heightAnchor.constraint(equalToConstant: CloseButton.buttonSize),
     ])
@@ -656,7 +715,18 @@ class NotificationManager {
     let finalXPos = screenRect.maxX - Config.notificationWidth - Config.rightMargin
     let currentFrame = notification.panel.frame
 
-    notification.panel.orderFront(nil)
+    notification.panel.setFrame(
+      NSRect(
+        x: screenRect.maxX + Config.slideInOffset,
+        y: currentFrame.minY,
+        width: Config.notificationWidth,
+        height: Config.notificationHeight
+      ),
+      display: false
+    )
+
+    notification.panel.orderFrontRegardless()
+    notification.panel.makeKeyAndOrderFront(nil)
 
     NSAnimationContext.runAnimationGroup({ context in
       context.duration = 0.3
@@ -679,7 +749,6 @@ class NotificationManager {
     }
   }
 
-  // MARK: - Global mouse monitoring
   private func ensureGlobalMouseMonitor() {
     guard globalMouseMonitor == nil else { return }
     globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
@@ -716,9 +785,23 @@ class NotificationManager {
       }
     }
   }
+
+  deinit {
+    if let observer = displayChangeObserver {
+      NotificationCenter.default.removeObserver(observer)
+    }
+    if let monitor = globalMouseMonitor {
+      NSEvent.removeMonitor(monitor)
+    }
+  }
 }
 
-// MARK: - C API Binding
+@_silgen_name("rust_on_notification_confirm")
+func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
+
+@_silgen_name("rust_on_notification_dismiss")
+func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
+
 @_cdecl("_show_notification")
 public func _showNotification(
   title: SRString,
@@ -739,5 +822,11 @@ public func _showNotification(
   )
 
   Thread.sleep(forTimeInterval: 0.1)
+  return true
+}
+
+@_cdecl("_dismiss_all_notifications")
+public func _dismissAllNotifications() -> Bool {
+  NotificationManager.shared.dismissAll()
   return true
 }

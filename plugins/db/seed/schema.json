@@ -1,0 +1,578 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SeedData",
+  "type": "object",
+  "required": [
+    "calendars",
+    "events",
+    "humans",
+    "organizations",
+    "sessions",
+    "tags"
+  ],
+  "properties": {
+    "organizations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Organization"
+      }
+    },
+    "humans": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Human"
+      }
+    },
+    "calendars": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Calendar"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Event"
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Session"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Tag"
+      }
+    },
+    "config": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Config"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Organization": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Human": {
+      "type": "object",
+      "required": [
+        "id",
+        "is_user"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "organization_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "is_user": {
+          "type": "boolean"
+        },
+        "full_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "job_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "linkedin_username": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Calendar": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "platform",
+        "selected",
+        "tracking_id",
+        "user_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "tracking_id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/Platform"
+        },
+        "name": {
+          "type": "string"
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google",
+        "Outlook"
+      ]
+    },
+    "Event": {
+      "type": "object",
+      "required": [
+        "end_date",
+        "id",
+        "is_recurring",
+        "name",
+        "note",
+        "start_date",
+        "tracking_id",
+        "user_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "tracking_id": {
+          "type": "string"
+        },
+        "calendar_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "google_event_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "participants": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "is_recurring": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Session": {
+      "type": "object",
+      "required": [
+        "created_at",
+        "id",
+        "raw_memo_html",
+        "title",
+        "user_id",
+        "visited_at",
+        "words"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "visited_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "calendar_event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "raw_memo_html": {
+          "type": "string"
+        },
+        "enhanced_memo_html": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Word2"
+          }
+        },
+        "record_start": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "record_end": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "pre_meeting_memo_html": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Word2": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "speaker": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SpeakerIdentity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "float"
+        },
+        "start_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "end_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "SpeakerIdentity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "unassigned"
+              ]
+            },
+            "value": {
+              "type": "object",
+              "required": [
+                "index"
+              ],
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "assigned"
+              ]
+            },
+            "value": {
+              "type": "object",
+              "required": [
+                "id",
+                "label"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Tag": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Config": {
+      "type": "object",
+      "required": [
+        "ai",
+        "general",
+        "id",
+        "notification",
+        "user_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "general": {
+          "$ref": "#/definitions/ConfigGeneral"
+        },
+        "notification": {
+          "$ref": "#/definitions/ConfigNotification"
+        },
+        "ai": {
+          "$ref": "#/definitions/ConfigAI"
+        }
+      }
+    },
+    "ConfigGeneral": {
+      "type": "object",
+      "required": [
+        "autostart",
+        "display_language",
+        "telemetry_consent"
+      ],
+      "properties": {
+        "autostart": {
+          "type": "boolean"
+        },
+        "display_language": {
+          "type": "string",
+          "pattern": "^[a-zA-Z]{2}$"
+        },
+        "spoken_languages": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Language"
+          }
+        },
+        "jargons": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "telemetry_consent": {
+          "type": "boolean"
+        },
+        "save_recordings": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "selected_template_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary_language": {
+          "default": "en",
+          "type": "string",
+          "pattern": "^[a-zA-Z]{2}$"
+        }
+      }
+    },
+    "Language": {
+      "type": "object",
+      "required": [
+        "iso639"
+      ],
+      "properties": {
+        "iso639": {
+          "type": "string",
+          "pattern": "^[a-zA-Z]{2}$"
+        }
+      }
+    },
+    "ConfigNotification": {
+      "type": "object",
+      "required": [
+        "auto",
+        "before"
+      ],
+      "properties": {
+        "before": {
+          "type": "boolean"
+        },
+        "auto": {
+          "type": "boolean"
+        },
+        "ignoredPlatforms": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ConfigAI": {
+      "type": "object",
+      "properties": {
+        "api_base": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "api_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ai_specificity": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "redemption_time_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-current-model-selection"
+description = "Enables the set_current_model_selection command without any pre-configured scope."
+commands.allow = ["set_current_model_selection"]
+
+[[permission]]
+identifier = "deny-set-current-model-selection"
+description = "Denies the set_current_model_selection command without any pre-configured scope."
+commands.deny = ["set_current_model_selection"]

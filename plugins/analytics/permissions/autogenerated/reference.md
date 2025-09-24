@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-event`
+- `allow-set-properties`
 - `allow-set-disabled`
 - `allow-is-disabled`
 

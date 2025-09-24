@@ -6,7 +6,7 @@ pub enum DeeplinkAction {
     OpenExternal(String),
 }
 
-pub fn parse(url: String) -> Vec<DeeplinkAction> {
+pub fn parse(url: &str) -> Vec<DeeplinkAction> {
     let parsed_url = match url::Url::parse(&url) {
         Ok(url) => url,
         Err(e) => {
@@ -16,16 +16,19 @@ pub fn parse(url: String) -> Vec<DeeplinkAction> {
     };
 
     let dests = match parsed_url.path() {
-        // Specified in notification related codebase
         "/notification" => parse_notification_query(&parsed_url),
-        // Specified in /apps/admin
         "/register" => parse_register_query(&parsed_url),
-        // Specified in email template
         "/license" => parse_license_query(&parsed_url),
-        _ => vec![],
+
+        path => {
+            vec![DeeplinkAction::OpenInternal(
+                HyprWindow::Main,
+                path.to_string(),
+            )]
+        }
     };
 
-    tracing::info!("deeplink: {:?}", dests);
+    tracing::info!(url = url, dests = ?dests, "deeplink");
     dests
 }
 
@@ -132,7 +135,7 @@ mod tests {
     fn test_parse_register_query() {
         let url = "hypr://hyprnote.com/register?base_url=http://localhost:3000&api_key=123";
 
-        let actions = parse(url.to_string());
+        let actions = parse(url);
         assert_eq!(actions.len(), 2);
 
         match &actions[0] {
@@ -159,7 +162,7 @@ mod tests {
     fn test_parse_license_query() {
         let url = "hypr://hyprnote.com/license?key=123";
 
-        let actions = parse(url.to_string());
+        let actions = parse(url);
         assert_eq!(actions.len(), 2);
 
         match &actions[0] {

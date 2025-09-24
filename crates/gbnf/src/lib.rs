@@ -9,6 +9,8 @@ pub enum Grammar {
     Title,
     #[serde(rename = "tags")]
     Tags,
+    #[serde(rename = "email-to-name")]
+    EmailToName,
 }
 
 impl Grammar {
@@ -17,6 +19,7 @@ impl Grammar {
             Grammar::Enhance { sections } => build_enhance_other_grammar(sections),
             Grammar::Title => build_title_grammar(),
             Grammar::Tags => build_tags_grammar(),
+            Grammar::EmailToName => build_email_to_name_grammar(),
         }
     }
 }
@@ -81,10 +84,18 @@ fn build_title_grammar() -> String {
 
 fn build_tags_grammar() -> String {
     vec![
-        r##"root ::= "[" ws string ("," ws string)* ws "]""##,
+        r##"root ::= "[" string ("," string ("," string ("," string)?)?)? "]""##,
         r##"string ::= "\"" tag "\"""##,
         r##"tag ::= [a-zA-Z] ([a-zA-Z0-9_-])*"##,
-        r##"ws ::= [ \t\n\r]*"##,
+    ]
+    .join("\n")
+}
+
+fn build_email_to_name_grammar() -> String {
+    vec![
+        r##"root ::= "{" ws "\"first_name\"" ws ":" ws string "," ws "\"last_name\"" ws ":" ws string "}" ws"##,
+        r##"string ::= "\"" [^"\n]* "\"" ws"##,
+        r##"ws ::= [ \t\n]*"##,
     ]
     .join("\n")
 }
@@ -120,6 +131,13 @@ mod tests {
                 true,
             ),
             (
+                serde_json::to_string(&vec![
+                    "meeting", "summary", "meeting", "summary", "meeting", "summary",
+                ])
+                .unwrap(),
+                false,
+            ),
+            (
                 serde_json::to_string(&vec!["meeting", "summary", ""]).unwrap(),
                 false,
             ),
@@ -129,6 +147,24 @@ mod tests {
             ),
         ] {
             let result = gbnf.validate(&build_tags_grammar(), &input).unwrap();
+            assert_eq!(result, expected, "failed: {}", input);
+        }
+    }
+
+    #[test]
+    fn test_email_to_name_grammar() {
+        let gbnf = gbnf_validator::Validator::new().unwrap();
+
+        for (input, expected) in vec![
+            (
+                serde_json::json!({"first_name": "John", "last_name": "Doe"}).to_string(),
+                true,
+            ),
+            (serde_json::json!({"first_name": "John"}).to_string(), false),
+        ] {
+            let result = gbnf
+                .validate(&build_email_to_name_grammar(), &input)
+                .unwrap();
             assert_eq!(result, expected, "failed: {}", input);
         }
     }

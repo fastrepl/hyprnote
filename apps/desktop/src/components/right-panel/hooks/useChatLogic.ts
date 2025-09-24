@@ -206,11 +206,12 @@ export function useChatLogic({
       const allMcpClients: any[] = [];
       let hyprMcpClient: Client | null = null;
 
-      const shouldUseTools = type !== "HyprLocal"
-        && (model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
-          || model.modelId === "anthropic/claude-sonnet-4"
-          || model.modelId === "openai/gpt-4o"
-          || model.modelId === "gpt-4o" || apiBase?.includes("pro.hyprnote.com") || model.modelId === "openai/gpt-5");
+      const shouldUseTools = model.modelId === "gpt-4.1" || model.modelId === "openai/gpt-4.1"
+        || model.modelId === "anthropic/claude-sonnet-4"
+        || model.modelId === "openai/gpt-4o"
+        || model.modelId === "gpt-4o"
+        || apiBase?.includes("pro.hyprnote.com")
+        || model.modelId === "openai/gpt-5";
 
       if (shouldUseTools) {
         const mcpServers = await mcpCommands.getServers();
@@ -306,6 +307,12 @@ export function useChatLogic({
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
+      const baseTools = {
+        ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
+        search_sessions_date_range: searchSessionDateRangeTool,
+        search_sessions_multi_keywords: searchTool,
+      };
+
       const { fullStream } = streamText({
         model,
         messages: await prepareMessageHistory(
@@ -322,15 +329,9 @@ export function useChatLogic({
         ),
         stopWhen: stepCountIs(5),
         tools: {
-          ...(type === "HyprLocal" && { update_progress: tool({ inputSchema: z.any() }) }),
-          ...(shouldUseTools && {
-            ...newMcpTools,
-            search_sessions_multi_keywords: searchTool,
-            ...hyprMcpTools,
-            // Add the edit tool when there's selection data
-            ...(selectionData && { edit_enhanced_note: editEnhancedNoteTool }),
-            search_sessions_date_range: searchSessionDateRangeTool,
-          }),
+          ...(shouldUseTools && { ...hyprMcpTools, ...newMcpTools }),
+          ...(shouldUseTools && baseTools),
+          ...(type === "HyprLocal" && { progress_update: tool({ inputSchema: z.any() }) }),
         },
         onError: (error) => {
           console.error("On Error Catch:", error);
@@ -347,7 +348,7 @@ export function useChatLogic({
         },
         abortSignal: abortController.signal,
         experimental_transform: smoothStream({
-          delayInMs: 70,
+          delayInMs: 30,
           chunking: "word",
         }),
       });
@@ -407,8 +408,9 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-call" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-call" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           // Save accumulated AI text before processing tool
+
           if (currentAiTextMessageId && aiResponse.trim()) {
             const saveAiText = async () => {
               try {
@@ -459,10 +461,8 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-result" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-result" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
-
-          console.log("tool result: ", chunk);
 
           const toolResultMessage: Message = {
             id: crypto.randomUUID(),
@@ -485,7 +485,7 @@ export function useChatLogic({
           });
         }
 
-        if (chunk.type === "tool-error" && !(chunk.toolName === "update_progress" && type === "HyprLocal")) {
+        if (chunk.type === "tool-error" && !(chunk.toolName === "progress_update" && type === "HyprLocal")) {
           didInitializeAiResponse = false;
           const toolErrorMessage: Message = {
             id: crypto.randomUUID(),

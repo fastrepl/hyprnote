@@ -5,7 +5,7 @@ mod ext;
 pub use errors::*;
 pub use ext::*;
 
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 use tauri::Manager;
 
 use tracing_appender::{non_blocking::WorkerGuard, rolling};

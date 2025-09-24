@@ -46,12 +46,17 @@ export default function SttAI() {
   }, [provider]);
 
   const setProviderToLocal = () => setProviderMutation.mutate("Local");
-  const setProviderToCustom = () => {
+  const setProviderToCustom = async () => {
     setProviderMutation.mutate("Custom");
-    analyticsCommands.event({
-      event: "custom_stt_selected",
-      distinct_id: userId,
-    });
+
+    if (userId) {
+      await analyticsCommands.setProperties({
+        distinct_id: userId,
+        set: {
+          stt: "custom",
+        },
+      });
+    }
   };
 
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);

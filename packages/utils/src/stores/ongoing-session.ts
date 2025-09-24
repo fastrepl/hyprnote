@@ -8,7 +8,7 @@ type State = {
   sessionId: string | null;
   sessionEventUnlisten?: () => void;
   loading: boolean;
-  status: "inactive" | "running_active" | "running_paused";
+  status: "inactive" | "running_active";
   amplitude: { mic: number; speaker: number };
   enhanceController: AbortController | null;
   micMuted: boolean;
@@ -23,8 +23,6 @@ type Actions = {
   setAutoEnhanceTemplate: (templateId: string | null) => void;
   start: (sessionId: string) => void;
   stop: () => void;
-  pause: () => void;
-  resume: () => void;
 };
 
 const initialState: State = {
@@ -72,7 +70,6 @@ export const createOngoingSessionStore = (
       );
     },
     start: (sessionId: string) => {
-      console.log("start", sessionId);
       set((state) =>
         mutate(state, (draft) => {
           draft.sessionId = sessionId;
@@ -82,8 +79,6 @@ export const createOngoingSessionStore = (
 
       const sessionStore = sessionsStore.getState().sessions[sessionId];
       const currentSession = sessionStore.getState().session;
-
-      sessionStore.getState().persistSession(undefined, true);
 
       if (currentSession.raw_memo_html && currentSession.raw_memo_html != "<p></p>") {
         const preMeetingNote = currentSession.raw_memo_html;
@@ -104,13 +99,6 @@ export const createOngoingSessionStore = (
           set((state) =>
             mutate(state, (draft) => {
               draft.status = "running_active";
-              draft.loading = false;
-            })
-          );
-        } else if (payload.type === "running_paused") {
-          set((state) =>
-            mutate(state, (draft) => {
-              draft.status = "running_paused";
               draft.loading = false;
             })
           );
@@ -176,63 +164,6 @@ export const createOngoingSessionStore = (
         }, 1500);
       }).catch((error) => {
         console.error("Failed to stop session:", error);
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.loading = false;
-          })
-        );
-      });
-    },
-    pause: () => {
-      const { sessionId } = get();
-
-      set((state) =>
-        mutate(state, (draft) => {
-          draft.loading = true;
-        })
-      );
-
-      listenerCommands.pauseSession().then(() => {
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.status = "running_paused";
-            draft.loading = false;
-          })
-        );
-
-        // We need refresh since session in store is now stale.
-        // setTimeout is needed because of debounce.
-        setTimeout(() => {
-          if (sessionId) {
-            const sessionStore = sessionsStore.getState().sessions[sessionId];
-            sessionStore.getState().refresh();
-          }
-        }, 1500);
-      }).catch((error) => {
-        console.error("Failed to pause session:", error);
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.loading = false;
-          })
-        );
-      });
-    },
-    resume: () => {
-      set((state) =>
-        mutate(state, (draft) => {
-          draft.loading = true;
-        })
-      );
-
-      listenerCommands.resumeSession().then(() => {
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.status = "running_active";
-            draft.loading = false;
-          })
-        );
-      }).catch((error) => {
-        console.error("Failed to resume session:", error);
         set((state) =>
           mutate(state, (draft) => {
             draft.loading = false;

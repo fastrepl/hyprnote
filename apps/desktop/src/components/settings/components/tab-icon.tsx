@@ -40,7 +40,7 @@ export function TabIcon({ tab }: { tab: Tab }) {
       return <BellIcon className="h-4 w-4" />;
     case "sound":
       return <AudioLinesIcon className="h-4 w-4" />;
-    case "help-feedback":
+    case "help-support":
       return <MessageSquareIcon className="h-4 w-4" />;
     case "ai-llm":
       return <SparklesIcon className="h-4 w-4" />;

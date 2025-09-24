@@ -12,16 +12,17 @@ export default function SoundIndicator(
 ) {
   const { mic, speaker } = useOngoingSession((state) => state.amplitude);
   const [amplitude, setAmplitude] = useState(0);
+  const u16max = 65535;
 
   useEffect(() => {
     let sample = 0;
 
     if (input === "all") {
-      sample = Math.max(mic, speaker) / 5;
+      sample = Math.max(mic, speaker) / u16max;
     } else if (input === "mic") {
-      sample = mic / 5;
+      sample = mic / u16max;
     } else if (input === "speaker") {
-      sample = speaker / 5;
+      sample = speaker / u16max;
     }
 
     setAmplitude(Math.min(sample, 1));

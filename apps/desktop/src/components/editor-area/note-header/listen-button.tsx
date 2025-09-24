@@ -1,12 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CheckIcon,
   ChevronDownIcon,
   MicIcon,
   MicOffIcon,
-  PauseIcon,
   PlayIcon,
   StopCircleIcon,
   Volume2Icon,
@@ -19,18 +18,13 @@ import { z } from "zod";
 import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
-import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@hypr/ui/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Switch } from "@hypr/ui/components/ui/switch";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
@@ -56,15 +50,13 @@ const showConsentNotification = () => {
 };
 
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
-  const { onboardingSessionId } = useHypr();
+  const { onboardingSessionId, userId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
     start: s.start,
-    resume: s.resume,
-    pause: s.pause,
     stop: s.stop,
     loading: s.loading,
   }));
@@ -109,11 +101,15 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
       if (isOnboarding) {
         listenerCommands.setMicMuted(true);
       }
-    }
-  };
 
-  const handleResumeSession = () => {
-    ongoingSessionStore.resume();
+      if (!isOnboarding && userId) {
+        analyticsCommands.event({
+          event: "recording_start_session",
+          distinct_id: userId,
+          properties: { session_id: sessionId },
+        });
+      }
+    }
   };
 
   if (ongoingSessionStore.loading) {
@@ -121,24 +117,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
       <div className="w-9 h-9 flex items-center justify-center">
         <Spinner color="black" />
       </div>
-    );
-  }
-
-  if (ongoingSessionStatus === "running_paused" && sessionId === ongoingSessionId) {
-    return (
-      <button
-        disabled={!modelDownloaded.data}
-        onClick={handleResumeSession}
-        className={cn(
-          `${
-            isCompact ? "w-16" : "w-16"
-          } h-9 rounded-full transition-all hover:scale-95 cursor-pointer outline-none p-0 flex items-center justify-center text-xs font-medium`,
-          "bg-red-100 border-2 border-red-400 text-red-600",
-          "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
-        )}
-      >
-        <Trans>{isCompact ? "Resume" : "Resume"}</Trans>
-      </button>
     );
   }
 
@@ -265,30 +243,29 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive({ sessionId }: { sessionId: string }) {
+  const { userId } = useHypr();
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
-    pause: s.pause,
     stop: s.stop,
     setAutoEnhanceTemplate: s.setAutoEnhanceTemplate,
   }));
   const sessionWords = useSession(ongoingSessionId!, (s) => s.session.words);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const handlePauseSession = () => {
-    ongoingSessionStore.pause();
-    setIsPopoverOpen(false);
-  };
-
-  const handleStopSession = (templateId?: string | null) => {
-    if (templateId !== undefined) {
-      ongoingSessionStore.setAutoEnhanceTemplate(templateId);
-    }
-
+  const handleStopSession = () => {
     ongoingSessionStore.stop();
     setIsPopoverOpen(false);
 
     if (sessionWords.length === 0) {
       sonnerToast.dismiss("recording-consent-reminder");
+    }
+
+    if (userId) {
+      analyticsCommands.event({
+        event: "recording_stop_session",
+        distinct_id: userId,
+        properties: { session_id: sessionId },
+      });
     }
   };
 
@@ -308,7 +285,6 @@ function WhenActive({ sessionId }: { sessionId: string }) {
       <PopoverContent className="w-64" align="end">
         <RecordingControls
           sessionId={sessionId}
-          onPause={handlePauseSession}
           onStop={handleStopSession}
         />
       </PopoverContent>
@@ -318,25 +294,47 @@ function WhenActive({ sessionId }: { sessionId: string }) {
 
 function RecordingControls({
   sessionId,
-  onPause,
   onStop,
 }: {
   sessionId: string;
-  onPause: () => void;
-  onStop: (templateId?: string | null) => void;
+  onStop: () => void;
 }) {
-  const { onboardingSessionId } = useHypr();
+  const { onboardingSessionId, userId } = useHypr();
   const ongoingSessionMuted = useOngoingSession((s) => ({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
   }));
 
   const toggleMicMuted = useMutation({
-    mutationFn: () => listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted),
+    mutationFn: async () => {
+      const result = await listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted);
+
+      // only send analytics when muting (not unmuting)
+      if (!ongoingSessionMuted.micMuted && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_mic",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
   });
 
   const toggleSpeakerMuted = useMutation({
-    mutationFn: () => listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted),
+    mutationFn: async () => {
+      const result = await listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted);
+
+      // only send analytics when muting (not unmuting)
+      if (!ongoingSessionMuted.speakerMuted && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_system",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
   });
 
   return (
@@ -353,20 +351,7 @@ function RecordingControls({
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          onClick={onPause}
-          className="flex-1 justify-center text-xs text-gray-700"
-        >
-          <PauseIcon className="w-4 h-4" />
-          <Trans>Pause</Trans>
-        </Button>
-        <StopButton
-          sessionId={sessionId}
-          onStop={onStop}
-        />
-      </div>
+      <StopButton onStop={onStop} />
     </>
   );
 }
@@ -378,22 +363,7 @@ const stopButtonSchema = z.object({
 
 type StopButtonFormData = z.infer<typeof stopButtonSchema>;
 
-function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templateId: string | null) => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { userId } = useHypr();
-
-  useEffect(() => {
-    if (isOpen) {
-      analyticsCommands.event({
-        event: "stop_button_dropdown_opened",
-        distinct_id: userId,
-        session_id: sessionId,
-      });
-    }
-  }, [isOpen]);
-
-  const queryClient = useQueryClient();
-
+function StopButton({ onStop }: { onStop: (templateId: string | null) => void }) {
   const defaultTemplateQuery = useQuery({
     queryKey: ["config"],
     queryFn: () => dbCommands.getConfig().then((config) => config.general.selected_template_id),
@@ -403,19 +373,6 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
   const saveRecordingsQuery = useQuery({
     queryKey: ["config", "save_recordings"],
     queryFn: () => dbCommands.getConfig().then((config) => config.general.save_recordings),
-    refetchOnWindowFocus: true,
-  });
-
-  const templatesQuery = useQuery({
-    queryKey: ["templates"],
-    queryFn: () =>
-      TemplateService.getAllTemplates().then((templates) =>
-        templates.map((template) => {
-          const title = template.title || "Untitled";
-          const truncatedTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
-          return { id: template.id, title: truncatedTitle };
-        })
-      ),
     refetchOnWindowFocus: true,
   });
 
@@ -439,98 +396,18 @@ function StopButton({ sessionId, onStop }: { sessionId: string; onStop: (templat
     }
   }, [saveRecordingsQuery.data, form]);
 
-  const handleSubmit = (data: StopButtonFormData) => {
-    const actualTemplateId = data.selectedTemplate === "auto" ? null : data.selectedTemplate;
-    if (!data.saveAudio) {
-      miscCommands.audioDelete(sessionId);
-    }
-    onStop(actualTemplateId);
-    queryClient.invalidateQueries({ predicate: (query) => query.queryKey[0] === "audio" });
-  };
-
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-1">
-          <Button
-            type="submit"
-            variant="destructive"
-            className="flex-1 rounded-r-none justify-center w-[90px] text-xs"
-          >
-            <StopCircleIcon
-              color="white"
-              className="w-4 h-4"
-            />
-            <Trans>Stop</Trans>
-          </Button>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="destructive"
-              className="rounded-l-none px-2 flex-shrink-0 transition-all border-l border-red-600"
-            >
-              <ChevronDownIcon className="w-4 h-4 text-white" />
-            </Button>
-          </PopoverTrigger>
-        </form>
-      </Form>
-
-      <PopoverContent className="w-96">
-        <Form {...form}>
-          <div className="space-y-3">
-            <FormField
-              control={form.control}
-              name="saveAudio"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between space-y-0">
-                  <FormLabel className="text-sm font-medium">
-                    <Trans>Save current recording</Trans>
-                  </FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <div className="border-t border-gray-200" />
-
-            <FormField
-              control={form.control}
-              name="selectedTemplate"
-              render={({ field }) => (
-                <FormItem className="flex flex-row gap-4 items-center space-y-0">
-                  <FormLabel className="text-sm font-medium whitespace-nowrap">
-                    <Trans>Template</Trans>
-                  </FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full text-sm">
-                        <SelectValue placeholder="Select template..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-44 overflow-y-auto w-[var(--radix-select-trigger-width)]">
-                        <SelectItem value="auto">
-                          <Trans>No Template (Default)</Trans>
-                        </SelectItem>
-                        {templatesQuery.data?.map((template) => (
-                          <SelectItem key={template.id} value={template.id} className="whitespace-nowrap">
-                            {template.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-        </Form>
-      </PopoverContent>
-    </Popover>
+    <Button
+      variant="destructive"
+      className="w-full flex-1 justify-center text-xs"
+      onClick={() => onStop(null)}
+    >
+      <StopCircleIcon
+        color="white"
+        className="w-4 h-4"
+      />
+      <Trans>Stop</Trans>
+    </Button>
   );
 }
 
@@ -543,6 +420,7 @@ function MicrophoneSelector({
   onToggleMuted: () => void;
   disabled?: boolean;
 }) {
+  const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
 
   const allDevicesQuery = useQuery({
@@ -558,6 +436,13 @@ function MicrophoneSelector({
   const handleSelectDevice = (device: string) => {
     listenerCommands.setMicrophoneDevice(device).then(() => {
       currentDeviceQuery.refetch();
+
+      if (userId) {
+        analyticsCommands.event({
+          event: "recording_select_mic_trigger",
+          distinct_id: userId,
+        });
+      }
     });
   };
 
@@ -593,6 +478,14 @@ function MicrophoneSelector({
               variant="outline"
               className="rounded-l-none px-1.5 flex-shrink-0 h-10 transition-all hover:border-neutral-300 hover:bg-neutral-50"
               disabled={disabled}
+              onClick={() => {
+                if (userId) {
+                  analyticsCommands.event({
+                    event: "recording_select_mic_option",
+                    distinct_id: userId,
+                  });
+                }
+              }}
             >
               <ChevronDownIcon className="w-4 h-4 text-neutral-600" />
             </Button>

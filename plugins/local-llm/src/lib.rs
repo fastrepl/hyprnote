@@ -1,22 +1,25 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use tauri::{Manager, Wry};
+use tauri::{path::BaseDirectory, Manager, Wry};
 use tokio::sync::Mutex;
+
+use hypr_llm::ModelManager;
 
 mod commands;
 mod error;
 mod events;
 mod ext;
-mod manager;
 mod model;
 mod server;
 mod store;
 
+#[cfg(target_os = "macos")]
+mod lmstudio;
+
 pub use error::*;
 use events::*;
 pub use ext::*;
-pub use manager::*;
 pub use model::*;
 pub use server::*;
 pub use store::*;
@@ -27,11 +30,11 @@ const PLUGIN_NAME: &str = "local-llm";
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
-#[derive(Default)]
 pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
     pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
+    pub builtin_model: ModelManager,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -50,6 +53,11 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_current_model::<Wry>,
             commands::set_current_model::<Wry>,
             commands::list_downloaded_model::<Wry>,
+            commands::list_custom_models::<Wry>,
+            commands::get_current_model_selection::<Wry>,
+            commands::set_current_model_selection::<Wry>,
+            commands::generate_title::<Wry>,
+            commands::generate_tags::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
@@ -79,8 +87,20 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
-                let state: SharedState = Arc::new(Mutex::new(State::default()));
-                app.manage(state);
+                let model_path = if cfg!(debug_assertions) {
+                    app.path()
+                        .resolve("resources/llm.gguf", BaseDirectory::Resource)?
+                } else {
+                    app.path().resolve("llm.gguf", BaseDirectory::Resource)?
+                };
+
+                let state = State {
+                    api_base: None,
+                    server: None,
+                    download_task: HashMap::new(),
+                    builtin_model: ModelManager::builder().model_path(model_path).build(),
+                };
+                app.manage(Arc::new(Mutex::new(state)));
             }
 
             Ok(())

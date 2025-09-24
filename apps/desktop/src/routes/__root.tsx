@@ -18,7 +18,7 @@ export const Route = createRootRouteWithContext<Required<Context>>()({
   notFoundComponent: NotFoundComponent,
 });
 
-const POSITION = "bottom-right";
+const POSITION = "bottom-left";
 
 declare global {
   interface Window {

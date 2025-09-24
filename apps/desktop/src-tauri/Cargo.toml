@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.75"
+version = "0.0.81"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -61,7 +61,7 @@ tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
 tauri-plugin-global-shortcut = "2.3"
-tauri-plugin-http = { workspace = true }
+tauri-plugin-http = { workspace = true, features = ["tracing", "unsafe-headers"] }
 tauri-plugin-keygen = { workspace = true }
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
@@ -100,10 +100,11 @@ tokio-stream = { workspace = true }
 hound = { workspace = true }
 
 [features]
+devtools = ["tauri/devtools"]
 macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
 windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas", "stt-directml"]
 
-load-dynamic = ["tauri-plugin-local-stt/load-dynamic", "tauri-plugin-listener/load-dynamic"]
+load-dynamic = ["tauri-plugin-local-stt/load-dynamic"]
 
 llm-metal = ["tauri-plugin-local-llm/metal"]
 llm-cuda = ["tauri-plugin-local-llm/cuda"]

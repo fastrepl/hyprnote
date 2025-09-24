@@ -16,6 +16,10 @@ Default permissions for the plugin
 - `allow-set-current-model`
 - `allow-list-downloaded-model`
 - `allow-list-supported-model`
+- `allow-list-custom-models`
+- `allow-get-current-model-selection`
+- `allow-set-current-model-selection`
+- `allow-generate-title`
 
 ## Permission Table
 
@@ -55,6 +59,58 @@ Denies the download_model command without any pre-configured scope.
 <tr>
 <td>
 
+`local-llm:allow-generate-tags`
+
+</td>
+<td>
+
+Enables the generate_tags command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-generate-tags`
+
+</td>
+<td>
+
+Denies the generate_tags command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-generate-title`
+
+</td>
+<td>
+
+Enables the generate_title command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-generate-title`
+
+</td>
+<td>
+
+Denies the generate_title command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `local-llm:allow-get-current-model`
 
 </td>
@@ -74,6 +130,32 @@ Enables the get_current_model command without any pre-configured scope.
 <td>
 
 Denies the get_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-get-current-model-selection`
+
+</td>
+<td>
+
+Enables the get_current_model_selection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-get-current-model-selection`
+
+</td>
+<td>
+
+Denies the get_current_model_selection command without any pre-configured scope.
 
 </td>
 </tr>
@@ -178,6 +260,32 @@ Enables the is_server_running command without any pre-configured scope.
 <td>
 
 Denies the is_server_running command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-list-custom-models`
+
+</td>
+<td>
+
+Enables the list_custom_models command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-list-custom-models`
+
+</td>
+<td>
+
+Denies the list_custom_models command without any pre-configured scope.
 
 </td>
 </tr>
@@ -308,6 +416,32 @@ Enables the set_current_model command without any pre-configured scope.
 <td>
 
 Denies the set_current_model command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:allow-set-current-model-selection`
+
+</td>
+<td>
+
+Enables the set_current_model_selection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-llm:deny-set-current-model-selection`
+
+</td>
+<td>
+
+Denies the set_current_model_selection command without any pre-configured scope.
 
 </td>
 </tr>

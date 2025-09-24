@@ -412,11 +412,9 @@ async fn list_system_events_for_calendars(
 
             let events = match tokio::runtime::Handle::try_current() {
                 Ok(rt) => {
-                    tracing::info!("  Using existing tokio runtime");
                     rt.block_on(handle.list_events(filter)).unwrap_or_default()
                 }
                 Err(_) => {
-                    tracing::info!("  Creating new tokio runtime");
                     let rt = tokio::runtime::Builder::new_current_thread()
                         .enable_all()
                         .build()

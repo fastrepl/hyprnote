@@ -22,9 +22,6 @@
     "macOS": {
       "dmg": {
         "background": "assets/dmg-background-nightly.png"
-      },
-      "files": {
-        "embedded.provisionprofile": "assets/hyprnote-nightly.provisionprofile"
       }
     }
   }

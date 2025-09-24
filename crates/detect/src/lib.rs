@@ -11,7 +11,7 @@ use utils::*;
 
 #[derive(Debug, Clone)]
 pub enum DetectEvent {
-    MicStarted(Vec<String>),
+    MicStarted(Vec<InstalledApp>),
     MicStopped,
     MeetingAppStarted(String),
 }
@@ -60,14 +60,6 @@ impl Detector {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    #[ignore]
-    #[cfg(target_os = "macos")]
-    fn test_list_installed_apps() {
-        let apps = list_installed_apps();
-        println!("{:?}", apps);
-    }
 
     #[test]
     #[ignore]

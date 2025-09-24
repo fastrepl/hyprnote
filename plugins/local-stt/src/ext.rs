@@ -326,9 +326,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     #[cfg(debug_assertions)]
                     {
                         let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("../../internal/passthrough-aarch64-apple-darwin");
+                            .join("../../resources/passthrough-aarch64-apple-darwin");
                         let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("../../internal/stt-aarch64-apple-darwin");
+                            .join("../../resources/stt-aarch64-apple-darwin");
 
                         if !passthrough_path.exists() || !stt_path.exists() {
                             return Err(crate::Error::AmBinaryNotFound);

@@ -10,11 +10,18 @@ import { forwardRef, useEffect, useRef } from "react";
 import { SearchAndReplace } from "./extensions/search-and-replace";
 import { SpeakerSplit } from "./extensions/speaker";
 import { SpeakerNode } from "./nodes";
-import { fromEditorToWords, fromWordsToEditor, getSpeakerLabel, type SpeakerAttributes, type Word2 } from "./utils";
+import {
+  fromEditorToWords,
+  fromWordsToEditor,
+  getSpeakerLabel,
+  type SpeakerAttributes,
+  type Word2,
+  wordsToSpeakerChunks,
+} from "./utils";
 import type { SpeakerChangeRange, SpeakerViewInnerComponent, SpeakerViewInnerProps } from "./views";
 
 export { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
-export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps };
+export { getSpeakerLabel, SpeakerChangeRange, SpeakerViewInnerProps, wordsToSpeakerChunks };
 
 interface TranscriptEditorProps {
   editable?: boolean;

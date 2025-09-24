@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
@@ -21,6 +22,26 @@ export default function ModelDownloadNotification() {
   const currentLlmModel = useQuery({
     queryKey: ["current-llm-model"],
     queryFn: () => localLlmCommands.getCurrentModel(),
+  });
+
+  const sttProvider = useQuery({
+    queryKey: ["stt-provider"],
+    queryFn: () => localSttCommands.getProvider(),
+  });
+
+  const llmProviderSource = useQuery({
+    queryKey: ["llm-provider-source"],
+    queryFn: () => connectorCommands.getProviderSource(),
+  });
+
+  const hyprcloudEnabled = useQuery({
+    queryKey: ["hyprcloud-enabled"],
+    queryFn: () => connectorCommands.getHyprcloudEnabled(),
+  });
+
+  const customLlmEnabled = useQuery({
+    queryKey: ["custom-llm-enabled"],
+    queryFn: () => connectorCommands.getCustomLlmEnabled(),
   });
 
   const checkForModelDownload = useQuery({
@@ -60,8 +81,12 @@ export default function ModelDownloadNotification() {
   });
 
   const sttModelExists = useQuery({
-    queryKey: ["stt-model-exists"],
+    queryKey: ["stt-model-exists", sttProvider.data],
     queryFn: async () => {
+      if (sttProvider.data === "Custom") {
+        return true;
+      }
+
       const results = await Promise.all([
         localSttCommands.isModelDownloaded("QuantizedTiny"),
         localSttCommands.isModelDownloaded("QuantizedTinyEn"),
@@ -75,11 +100,20 @@ export default function ModelDownloadNotification() {
       return results.some(Boolean);
     },
     refetchInterval: 3000,
+    enabled: !!sttProvider.data,
   });
 
   const llmModelExists = useQuery({
-    queryKey: ["llm-model-exists"],
+    queryKey: ["llm-model-exists", llmProviderSource.data, hyprcloudEnabled.data, customLlmEnabled.data],
     queryFn: async () => {
+      if (
+        hyprcloudEnabled.data || customLlmEnabled.data || llmProviderSource.data === "openai"
+        || llmProviderSource.data === "gemini" || llmProviderSource.data === "openrouter"
+        || llmProviderSource.data === "others"
+      ) {
+        return true;
+      }
+
       const results = await Promise.all([
         localLlmCommands.isModelDownloaded("Llama3p2_3bQ4"),
         localLlmCommands.isModelDownloaded("HyprLLM"),
@@ -89,6 +123,7 @@ export default function ModelDownloadNotification() {
       return results.some(Boolean);
     },
     refetchInterval: 3000,
+    enabled: !!llmProviderSource.data && hyprcloudEnabled.data !== undefined && customLlmEnabled.data !== undefined,
   });
 
   useEffect(() => {
@@ -172,6 +207,10 @@ export default function ModelDownloadNotification() {
     isDismissed,
     sttModelExists.data,
     llmModelExists.data,
+    sttProvider.data,
+    llmProviderSource.data,
+    hyprcloudEnabled.data,
+    customLlmEnabled.data,
   ]);
 
   return null;

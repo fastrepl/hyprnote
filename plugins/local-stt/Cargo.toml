@@ -63,6 +63,7 @@ tauri-plugin-task = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 dirs = { workspace = true }
+json-patch = "4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

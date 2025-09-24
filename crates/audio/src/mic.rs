@@ -57,6 +57,7 @@ impl MicInput {
         };
 
         let config = device.default_input_config().unwrap();
+        tracing::info!(sample_rate = ?config.sample_rate());
 
         Ok(Self {
             host,
@@ -105,7 +106,7 @@ impl MicInput {
                     cpal::SampleFormat::I32 => build_stream::<i32>(&device, &config, tx),
                     cpal::SampleFormat::F32 => build_stream::<f32>(&device, &config, tx),
                     sample_format => {
-                        tracing::error!("Unsupported sample format '{sample_format}'");
+                        tracing::error!(sample_format = ?sample_format, "unsupported");
                         return None;
                     }
                 };

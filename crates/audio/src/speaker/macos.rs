@@ -1,9 +1,10 @@
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 
 use anyhow::Result;
 use futures_util::Stream;
+
 use ringbuf::{
     traits::{Consumer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
@@ -12,8 +13,6 @@ use ringbuf::{
 use ca::aggregate_device_keys as agg_keys;
 use cidre::{arc, av, cat, cf, core_audio as ca, ns, os};
 
-// https://github.com/yury/cidre/blob/7bc6c3a/cidre/examples/core-audio-record/main.rs
-// https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L41
 pub struct SpeakerInput {
     tap: ca::TapGuard,
     agg_desc: arc::Retained<cf::DictionaryOf<cf::String, cf::Type>>,
@@ -35,7 +34,7 @@ pub struct SpeakerStream {
 
 impl SpeakerStream {
     pub fn sample_rate(&self) -> u32 {
-        self.current_sample_rate.load(Ordering::Relaxed)
+        self.current_sample_rate.load(Ordering::Acquire)
     }
 }
 
@@ -44,19 +43,14 @@ struct Ctx {
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
+    consecutive_drops: Arc<AtomicU32>,
+    should_terminate: Arc<AtomicBool>,
 }
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
         let output_device = ca::System::default_output_device()?;
         let output_uid = output_device.uid()?;
-
-        tracing::info!(
-            name = ?output_device.name().unwrap_or("Unknown Speaker".into()),
-            nominal_sample_rate = ?output_device.nominal_sample_rate().unwrap(),
-            actual_sample_rate = ?output_device.actual_sample_rate().unwrap(),
-            "speaker_output_device"
-        );
 
         let sub_device = cf::DictionaryOf::with_keys_values(
             &[ca::sub_device_keys::uid()],
@@ -112,29 +106,28 @@ impl SpeakerInput {
         ) -> os::Status {
             let ctx = ctx.unwrap();
 
-            ctx.current_sample_rate.store(
-                device
-                    .actual_sample_rate()
-                    .unwrap_or(ctx.format.absd().sample_rate) as u32,
-                Ordering::Relaxed,
-            );
+            let after = device
+                .nominal_sample_rate()
+                .unwrap_or(ctx.format.absd().sample_rate) as u32;
+            let before = ctx.current_sample_rate.load(Ordering::Acquire);
 
-            assert_eq!(ctx.format.common_format(), av::audio::CommonFormat::PcmF32);
+            if before != after {
+                ctx.current_sample_rate.store(after, Ordering::Release);
+                tracing::info!(before = before, after = after, "sample_rate",);
+            }
 
             if let Some(view) =
                 av::AudioPcmBuf::with_buf_list_no_copy(&ctx.format, input_data, None)
             {
                 if let Some(data) = view.data_f32_at(0) {
                     process_audio_data(ctx, data);
-                } else {
-                    tracing::warn!("macos_speaker_view_no_channel_0");
                 }
-            } else {
+            } else if ctx.format.common_format() == av::audio::CommonFormat::PcmF32 {
                 let first_buffer = &input_data.buffers[0];
                 let byte_count = first_buffer.data_bytes_size as usize;
                 let float_count = byte_count / std::mem::size_of::<f32>();
 
-                if float_count > 0 {
+                if float_count > 0 && first_buffer.data != std::ptr::null_mut() {
                     let data = unsafe {
                         std::slice::from_raw_parts(first_buffer.data as *const f32, float_count)
                     };
@@ -154,9 +147,11 @@ impl SpeakerInput {
 
     pub fn stream(self) -> SpeakerStream {
         let asbd = self.tap.asbd().unwrap();
+
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let rb = HeapRb::<f32>::new(1024 * 16);
+        let buffer_size = 1024 * 128;
+        let rb = HeapRb::<f32>::new(buffer_size);
         let (producer, consumer) = rb.split();
 
         let waker_state = Arc::new(Mutex::new(WakerState {
@@ -165,12 +160,15 @@ impl SpeakerInput {
         }));
 
         let current_sample_rate = Arc::new(AtomicU32::new(asbd.sample_rate as u32));
+        tracing::info!(init = asbd.sample_rate, "sample_rate");
 
         let mut ctx = Box::new(Ctx {
             format,
             producer,
             waker_state: waker_state.clone(),
             current_sample_rate: current_sample_rate.clone(),
+            consecutive_drops: Arc::new(AtomicU32::new(0)),
+            should_terminate: Arc::new(AtomicBool::new(false)),
         });
 
         let device = self.start_device(&mut ctx).unwrap();
@@ -191,17 +189,29 @@ fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
     let pushed = ctx.producer.push_slice(data);
 
     if pushed < buffer_size {
-        tracing::warn!("macos_speaker_dropped_{}_samples", buffer_size - pushed);
+        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::AcqRel) + 1;
+
+        if consecutive > 10 {
+            ctx.should_terminate.store(true, Ordering::Release);
+            return;
+        }
+    } else {
+        ctx.consecutive_drops.store(0, Ordering::Release);
     }
 
     if pushed > 0 {
-        let mut waker_state = ctx.waker_state.lock().unwrap();
-        if !waker_state.has_data {
-            waker_state.has_data = true;
-            if let Some(waker) = waker_state.waker.take() {
-                drop(waker_state);
-                waker.wake();
+        let should_wake = {
+            let mut waker_state = ctx.waker_state.lock().unwrap();
+            if !waker_state.has_data {
+                waker_state.has_data = true;
+                waker_state.waker.take()
+            } else {
+                None
             }
+        };
+
+        if let Some(waker) = should_wake {
+            waker.wake();
         }
     }
 }
@@ -217,16 +227,25 @@ impl Stream for SpeakerStream {
             return Poll::Ready(Some(sample));
         }
 
+        if self._ctx.should_terminate.load(Ordering::Acquire) {
+            return match self.consumer.try_pop() {
+                Some(sample) => Poll::Ready(Some(sample)),
+                None => Poll::Ready(None),
+            };
+        }
+
         {
             let mut state = self.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
-            drop(state);
         }
 
-        match self.consumer.try_pop() {
-            Some(sample) => Poll::Ready(Some(sample)),
-            None => Poll::Pending,
-        }
+        Poll::Pending
+    }
+}
+
+impl Drop for SpeakerStream {
+    fn drop(&mut self) {
+        self._ctx.should_terminate.store(true, Ordering::Release);
     }
 }

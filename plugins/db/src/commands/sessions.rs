@@ -1,36 +1,16 @@
+use hypr_db_user::UserDatabase;
+
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(state))]
-pub async fn thank_you_session_id(
-    state: tauri::State<'_, crate::ManagedState>,
-) -> Result<String, String> {
-    let guard = state.lock().await;
-
-    let db = guard
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDatabase)
-        .map_err(|e| e.to_string())?;
-
-    let id = db.thank_you_session_id();
+pub async fn thank_you_session_id() -> Result<String, String> {
+    let id = UserDatabase::thank_you_session_id();
     Ok(id)
 }
 
 #[tauri::command]
 #[specta::specta]
-#[tracing::instrument(skip(state))]
-pub async fn onboarding_session_id(
-    state: tauri::State<'_, crate::ManagedState>,
-) -> Result<String, String> {
-    let guard = state.lock().await;
-
-    let db = guard
-        .db
-        .as_ref()
-        .ok_or(crate::Error::NoneDatabase)
-        .map_err(|e| e.to_string())?;
-
-    let id = db.onboarding_session_id();
+pub async fn onboarding_session_id() -> Result<String, String> {
+    let id = UserDatabase::onboarding_session_id();
     Ok(id)
 }
 

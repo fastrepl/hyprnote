@@ -112,7 +112,7 @@ export function ParticipantsChip({
   );
 }
 
-function ParticipantsChipInner(
+export function ParticipantsChipInner(
   { sessionId, handleClickHuman }: { sessionId: string; handleClickHuman: (human: Human) => void },
 ) {
   const participants = useParticipantsWithOrg(sessionId);

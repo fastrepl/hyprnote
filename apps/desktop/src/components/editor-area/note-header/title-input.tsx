@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react/macro";
-import { type ChangeEvent, type KeyboardEvent } from "react";
+import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
 
 interface TitleInputProps {
   value: string;
@@ -7,6 +7,7 @@ interface TitleInputProps {
   onNavigateToEditor?: () => void;
   editable?: boolean;
   isGenerating?: boolean;
+  autoFocus?: boolean;
 }
 
 export default function TitleInput({
@@ -15,8 +16,10 @@ export default function TitleInput({
   onNavigateToEditor,
   editable,
   isGenerating = false,
+  autoFocus = false,
 }: TitleInputProps) {
   const { t } = useLingui();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === "Tab") {
@@ -32,8 +35,19 @@ export default function TitleInput({
     return t`Untitled`;
   };
 
+  useEffect(() => {
+    if (autoFocus && editable && !isGenerating && inputRef.current) {
+      const timeoutId = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 200);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [autoFocus, editable, isGenerating]);
+
   return (
     <input
+      ref={inputRef}
       disabled={!editable || isGenerating}
       id="note-title-input"
       type="text"

@@ -30,12 +30,19 @@ import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { prepareContextText } from "./utils/summary-prepare";
 
+const TIPS_MODAL_SHOWN_KEY = "hypr-tips-modal-shown-v1";
+
 async function shouldShowTipsModal(
   userId: string,
   onboardingSessionId: string,
   thankYouSessionId: string,
 ): Promise<boolean> {
   try {
+    const hasSeenTips = localStorage.getItem(TIPS_MODAL_SHOWN_KEY) === "true";
+    if (hasSeenTips) {
+      return false;
+    }
+
     const allSessions = await dbCommands.listSessions({
       type: "recentlyVisited",
       user_id: userId,
@@ -185,6 +192,7 @@ export default function EditorArea({
           try {
             const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
             if (shouldShow) {
+              localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
             }
           } catch (error) {

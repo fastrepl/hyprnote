@@ -1,30 +1,33 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody, ModalDescription, ModalTitle } from "@hypr/ui/components/ui/modal";
-import type { TipsModalProps, TipSlide } from "./types";
+import type { TipSlide, TipsModalProps } from "./types";
 
 const tips: TipSlide[] = [
   {
     title: "Hooray for your first meeting summarization!",
-    description: "We prepared some pro tips for you, so that you can make the most out of Hyprnote!",
+    description: "We prepared some pro tips for you! Interested?",
   },
   {
     title: "Edit Transcript",
-    description: "If you are not satisfied with quality, you can change stuff and replace identified speakers to improve accuracy.",
+    description:
+      "If you are not satisfied with the transcript quality, you can freely edit it and replace identified speakers to improve accuracy.",
   },
   {
     title: "Transcript Settings",
     description: "You can choose which AI model to use for meeting transcriptions in Settings → Transcription tab.",
   },
   {
-    title: "Intelligence Settings", 
-    description: "You can choose which AI model to use for meeting summarization and chat in Settings → Intelligence tab.",
+    title: "Intelligence Settings",
+    description:
+      "You can choose which AI model to use for meeting summarization and chat in Settings → Intelligence tab.",
   },
 ];
 
-export function TipsModal({ isOpen, onClose }: TipsModalProps) {
+export function TipsModal({ isOpen, onClose, userId }: TipsModalProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const handleNext = () => {
@@ -40,9 +43,48 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
   };
 
   const handleClose = () => {
-    setCurrentSlide(0); // Reset to first slide when closing
+    if (userId) {
+      analyticsCommands.event({
+        event: "tips_modal_dismiss",
+        distinct_id: userId,
+      });
+    }
+    setCurrentSlide(0);
     onClose();
   };
+
+  const handleComplete = () => {
+    if (userId) {
+      analyticsCommands.event({
+        event: "tips_modal_complete",
+        distinct_id: userId,
+      });
+    }
+    setCurrentSlide(0);
+    onClose();
+  };
+
+  // Track slide views
+  useEffect(() => {
+    if (userId) {
+      const events = [
+        "tips_modal_intro_show",
+        "tips_modal_transcript_show",
+        "tips_modal_transcription_show",
+        "tips_modal_intelligence_show",
+      ];
+
+      const event = events[currentSlide];
+      if (event) {
+        analyticsCommands.event({
+          event,
+          distinct_id: userId,
+        });
+      }
+    } else {
+      console.error("no userId available for analytics");
+    }
+  }, [currentSlide, userId]);
 
   const currentTip = tips[currentSlide];
   const isFirstSlide = currentSlide === 0;
@@ -82,28 +124,40 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
 
             {/* Image/GIF placeholder */}
             <div className="flex justify-center mb-4">
-              {currentSlide === 0 ? (
-                <img 
-                  src="/assets/waving.gif" 
-                  alt="Celebration animation"
-                  className="w-48 h-36 object-contain rounded-md"
-                />
-              ) : currentSlide === 1 ? (
-                <img 
-                  src="/assets/transcript-edit.gif" 
-                  alt="Transcript editing demonstration"
-                  className="w-full max-w-lg h-64 object-cover rounded-md"
-                  style={{ objectPosition: 'center top' }}
-                />
-              ) : currentSlide === 2 ? (
-                <div className="w-full max-w-md h-48 bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-md flex items-center justify-center">
-                  <span className="text-neutral-400 text-sm">Settings placeholder</span>
-                </div>
-              ) : (
-                <div className="w-full max-w-md h-48 bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-md flex items-center justify-center">
-                  <span className="text-neutral-400 text-sm">Intelligence placeholder</span>
-                </div>
-              )}
+              {currentSlide === 0
+                ? (
+                  <img
+                    src="/assets/waving.gif"
+                    alt="Celebration animation"
+                    className="w-48 h-36 object-contain rounded-md"
+                  />
+                )
+                : currentSlide === 1
+                ? (
+                  <img
+                    src="/assets/transcript-edit.gif"
+                    alt="Transcript editing demonstration"
+                    className="w-full max-w-lg h-64 object-cover rounded-md"
+                    style={{ objectPosition: "center top" }}
+                  />
+                )
+                : currentSlide === 2
+                ? (
+                  <img
+                    src="/assets/transcription-setting.gif"
+                    alt="Transcription settings demonstration"
+                    className="w-full max-w-lg h-64 object-cover rounded-md"
+                    style={{ objectPosition: "center top" }}
+                  />
+                )
+                : (
+                  <img
+                    src="/assets/intelligence-setting.gif"
+                    alt="Intelligence settings demonstration"
+                    className="w-full max-w-lg h-64 object-cover rounded-md"
+                    style={{ objectPosition: "center top" }}
+                  />
+                )}
             </div>
 
             {/* Slide indicator dots */}
@@ -130,22 +184,24 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
                 Previous
               </Button>
 
-              {isLastSlide ? (
-                <Button
-                  onClick={handleClose}
-                  className="bg-black text-white hover:bg-neutral-800"
-                >
-                  Got it!
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  className="flex items-center gap-2 bg-black text-white hover:bg-neutral-800"
-                >
-                  {isFirstSlide ? "Show Tips!" : "Next"}
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
+              {isLastSlide
+                ? (
+                  <Button
+                    onClick={handleComplete}
+                    className="bg-black text-white hover:bg-neutral-800"
+                  >
+                    Got it!
+                  </Button>
+                )
+                : (
+                  <Button
+                    onClick={handleNext}
+                    className="flex items-center gap-2 bg-black text-white hover:bg-neutral-800"
+                  >
+                    {isFirstSlide ? "Show Tips!" : "Next"}
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                )}
             </div>
           </ModalBody>
         </div>
@@ -154,4 +210,4 @@ export function TipsModal({ isOpen, onClose }: TipsModalProps) {
   );
 }
 
-export type { TipsModalProps, TipSlide } from "./types";
+export type { TipSlide, TipsModalProps } from "./types";

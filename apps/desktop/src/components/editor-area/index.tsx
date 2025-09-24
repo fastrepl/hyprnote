@@ -29,6 +29,32 @@ import { FloatingButton } from "./floating-button";
 import { NoteHeader } from "./note-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { prepareContextText } from "./utils/summary-prepare";
+
+async function shouldShowTipsModal(
+  userId: string,
+  onboardingSessionId: string,
+  thankYouSessionId: string,
+): Promise<boolean> {
+  try {
+    const allSessions = await dbCommands.listSessions({
+      type: "recentlyVisited",
+      user_id: userId,
+      limit: 255,
+    });
+
+    const enhancedSessionsCount = allSessions.filter(session =>
+      session.id !== onboardingSessionId
+      && session.id !== thankYouSessionId
+      && session.enhanced_memo_html
+      && session.enhanced_memo_html.trim() !== ""
+    ).length;
+
+    return enhancedSessionsCount === 1;
+  } catch (error) {
+    console.error("Failed to check if tips modal should be shown:", error);
+    return false;
+  }
+}
 import { showTipsModal } from "../tips-modal/service";
 
 async function generateTitleDirect(
@@ -91,7 +117,7 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
-  const { userId, onboardingSessionId } = useHypr();
+  const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -155,9 +181,12 @@ export default function EditorArea({
       }
 
       if (sessionId !== onboardingSessionId) {
-        setTimeout(() => {
+        setTimeout(async () => {
           try {
-            showTipsModal();
+            const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
+            if (shouldShow) {
+              showTipsModal(userId);
+            }
           } catch (error) {
             console.error("Failed to show tips modal:", error);
           }

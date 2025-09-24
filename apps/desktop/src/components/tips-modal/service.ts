@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { TipsModal } from "./index";
 
-export function showTipsModal(): Promise<void> {
+export function showTipsModal(userId?: string): Promise<void> {
   return new Promise((resolve) => {
     const modalDiv = document.createElement("div");
     document.body.appendChild(modalDiv);
@@ -19,6 +19,7 @@ export function showTipsModal(): Promise<void> {
       React.createElement(TipsModal, {
         isOpen: true,
         onClose: handleClose,
+        userId: userId,
       }),
     );
   });

@@ -29,12 +29,13 @@ hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
 hypr-gguf = { workspace = true }
 hypr-llama = { workspace = true }
+hypr-llm = { workspace = true }
+hypr-llm-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-store2 = { workspace = true }
-tauri-plugin-template = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 thiserror = { workspace = true }

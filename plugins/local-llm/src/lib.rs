@@ -4,11 +4,12 @@ use std::sync::Arc;
 use tauri::{path::BaseDirectory, Manager, Wry};
 use tokio::sync::Mutex;
 
+use hypr_llm::ModelManager;
+
 mod commands;
 mod error;
 mod events;
 mod ext;
-mod manager;
 mod model;
 mod server;
 mod store;
@@ -19,7 +20,6 @@ mod lmstudio;
 pub use error::*;
 use events::*;
 pub use ext::*;
-pub use manager::*;
 pub use model::*;
 pub use server::*;
 pub use store::*;
@@ -34,7 +34,7 @@ pub struct State {
     pub api_base: Option<String>,
     pub server: Option<crate::server::ServerHandle>,
     pub download_task: HashMap<SupportedModel, tokio::task::JoinHandle<()>>,
-    pub builtin_model: crate::ModelManager,
+    pub builtin_model: ModelManager,
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -87,14 +87,18 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
+                let model_path = if cfg!(debug_assertions) {
+                    app.path()
+                        .resolve("resources/llm.gguf", BaseDirectory::Resource)?
+                } else {
+                    app.path().resolve("llm.gguf", BaseDirectory::Resource)?
+                };
+
                 let state = State {
                     api_base: None,
                     server: None,
                     download_task: HashMap::new(),
-                    builtin_model: crate::ModelManager::new(
-                        app.path()
-                            .resolve("resources/llm.gguf", BaseDirectory::Resource)?,
-                    ),
+                    builtin_model: ModelManager::builder().model_path(model_path).build(),
                 };
                 app.manage(Arc::new(Mutex::new(state)));
             }

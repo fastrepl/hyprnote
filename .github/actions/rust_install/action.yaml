@@ -10,7 +10,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: rustup toolchain install 1.88.0 --profile minimal --no-self-update
+    - run: rustup toolchain install 1.90.0 --profile minimal --no-self-update
       shell: bash
     - if: inputs.platform == 'macos'
       run: rustup target add aarch64-apple-darwin x86_64-apple-darwin

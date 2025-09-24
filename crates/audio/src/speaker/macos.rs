@@ -113,7 +113,7 @@ impl SpeakerInput {
 
             if before != after {
                 ctx.current_sample_rate.store(after, Ordering::Release);
-                tracing::debug!(before = before, after = after, "sample_rate",);
+                tracing::info!(before = before, after = after, "sample_rate",);
             }
 
             if let Some(view) =
@@ -160,6 +160,7 @@ impl SpeakerInput {
         }));
 
         let current_sample_rate = Arc::new(AtomicU32::new(asbd.sample_rate as u32));
+        tracing::info!(init = asbd.sample_rate, "sample_rate");
 
         let mut ctx = Box::new(Ctx {
             format,

@@ -1,0 +1,10 @@
+[package]
+name = "vad2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+ten-vad-rs = "0.1.1"

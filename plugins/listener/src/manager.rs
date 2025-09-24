@@ -217,66 +217,53 @@ mod tests {
             .collect()
     }
 
-    #[test]
-    fn test_f7952672_5d18_4f75_8aa0_74ab8b02dac3() {
-        let mut manager = TranscriptManager::default();
-        let items = get_items(
-            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("f7952672-5d18-4f75-8aa0-74ab8b02dac3.jsonl"),
-        );
+    #[derive(Debug, serde::Serialize)]
+    struct TestDiff {
+        final_content: HashMap<usize, String>,
+        partial_content: HashMap<usize, String>,
+    }
 
-        let mut final_diffs = vec![];
-        let mut partial_diffs = vec![];
+    #[cfg(test)]
+    mod tests {
+        use super::*;
 
-        for item in items {
-            let diff = manager.append(item);
-            partial_diffs.push(diff.partial_content());
-            final_diffs.push(diff.final_content());
+        macro_rules! test_transcript {
+            ($name:ident, $uuid:expr) => {
+                #[test]
+                #[allow(non_snake_case)]
+                fn $name() {
+                    let mut manager = TranscriptManager::default();
+                    let items = get_items(
+                        &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("assets/raw")
+                            .join(concat!($uuid, ".jsonl")),
+                    );
+
+                    let mut diffs = vec![];
+                    for item in items {
+                        let diff = manager.append(item);
+                        diffs.push(TestDiff {
+                            final_content: diff.final_content(),
+                            partial_content: diff.partial_content(),
+                        });
+                    }
+
+                    std::fs::write(
+                        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("assets/diff")
+                            .join(concat!($uuid, ".json")),
+                        serde_json::to_string_pretty(&diffs).unwrap(),
+                    )
+                    .unwrap();
+                }
+            };
         }
 
-        let formatted_diffs: Vec<String> = final_diffs
-            .iter()
-            .zip(partial_diffs.iter())
-            .map(|(final_map, partial_map)| {
-                let final_str = final_map
-                    .values()
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(" ");
-                let partial_str = partial_map
-                    .values()
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(" ");
-                format!("{} | {}", final_str, partial_str)
-            })
-            .collect();
+        test_transcript!(
+            test_f7952672_5d18_4f75_8aa0_74ab8b02dac3,
+            "f7952672-5d18-4f75-8aa0-74ab8b02dac3"
+        );
 
-        insta::assert_debug_snapshot!(formatted_diffs, @r#"
-        [
-            " | I just learned a few",
-            "I just | learned a few",
-            " | learned a few basic tricks from",
-            " | learned a few basic tricks from people like my grandfather.",
-            "learned a few basic tricks from people | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather. - Now everybody's reading him.",
-            "like my grandfather. - Now | everybody's reading him.",
-            " | everybody's reading him on the note.",
-            " | everybody's reading him on the note. It's too late for you old guys.",
-            "everybody's reading | him on the note. It's too late for you old guys.",
-            " | him on the phone. It's too late for you old guys.",
-            " | him on the note. It's too late for you old guys.",
-            "him on the note. It's too late for | you old guys.",
-            " | you old guys.",
-            " | you old guys.",
-            " | you you old guys.",
-            " | you old guys.",
-            " | you you old guys. The, uh, no.",
-        ]
-        "#);
+        test_transcript!(test_council_011320_2022003V, "council_011320_2022003V");
     }
 }

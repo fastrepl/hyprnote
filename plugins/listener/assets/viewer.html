@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diff Viewer</title>
+  <script src="https://cdn.twind.style" crossorigin></script>
+</head>
+<body class="bg-gray-900 text-gray-100 h-screen">
+  <div id="app"></div>
+
+  <script type="module">
+    import { h, render } from 'https://esm.sh/preact';
+    import { useState, useEffect } from 'https://esm.sh/preact/hooks';
+    import htm from 'https://esm.sh/htm';
+
+    const html = htm.bind(h);
+
+    const App = () => {
+      const [data, setData] = useState([]);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [selectedFile, setSelectedFile] = useState('council_011320_2022003V');
+
+      useEffect(() => {
+        fetch(`./diff/${selectedFile}.json`)
+          .then(res => res.json())
+          .then(json => {
+            setData(json);
+            setCurrentIndex(0);
+          })
+          .catch(err => {
+            console.error('Failed to load file:', err);
+            setData([]);
+          });
+      }, [selectedFile]);
+
+      useEffect(() => {
+        const handleKeydown = (e) => {
+          if (e.key === 'ArrowLeft' && currentIndex > 0) {
+            setCurrentIndex(currentIndex - 1);
+          } else if (e.key === 'ArrowRight' && currentIndex < data.length - 1) {
+            setCurrentIndex(currentIndex + 1);
+          }
+        };
+        
+        window.addEventListener('keydown', handleKeydown);
+        return () => window.removeEventListener('keydown', handleKeydown);
+      }, [currentIndex, data.length]);
+
+      const currentItem = data[currentIndex] || { final_content: {}, partial_content: {} };
+      const hasPrev = currentIndex > 0;
+      const hasNext = currentIndex < data.length - 1;
+
+      const renderContent = () => {
+        const parts = [];
+        
+        Object.entries(currentItem.final_content).forEach(([key, value]) => {
+          parts.push(html`<span class="text-red-400">${value}</span>`);
+        });
+        
+        Object.entries(currentItem.partial_content).forEach(([key, value]) => {
+          parts.push(html`<span class="text-green-400">${value}</span>`);
+        });
+        
+        if (parts.length === 0) {
+          return html`<span class="text-gray-500">—</span>`;
+        }
+        
+        return html`<div class="space-x-1">${parts.map((part, i) => 
+          html`<span key=${i}>${i > 0 ? ' ' : ''}${part}</span>`
+        )}</div>`;
+      };
+
+      return html`
+        <div class="max-w-6xl mx-auto w-full h-full flex flex-col p-4">
+          <div class="flex items-center gap-4 mb-6">
+            <select 
+              value=${selectedFile}
+              onChange=${e => setSelectedFile(e.target.value)}
+              class="bg-gray-800 border border-gray-700 rounded px-4 py-2"
+            >
+              <option value="council_011320_2022003V">council_011320_2022003V</option>
+              <option value="f7952672-5d18-4f75-8aa0-74ab8b02dac3">f7952672-5d18-4f75-8aa0-74ab8b02dac3</option>
+            </select>
+            <div class="flex items-center gap-2">
+              <button 
+                onClick=${() => hasPrev && setCurrentIndex(currentIndex - 1)}
+                disabled=${!hasPrev}
+                class="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded ${!hasPrev ? 'opacity-50 cursor-not-allowed' : ''}"
+              >←</button>
+              <span class="text-sm text-gray-400">
+                ${data.length > 0 ? `${currentIndex + 1} / ${data.length}` : '0 / 0'}
+              </span>
+              <button 
+                onClick=${() => hasNext && setCurrentIndex(currentIndex + 1)}
+                disabled=${!hasNext}
+                class="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded ${!hasNext ? 'opacity-50 cursor-not-allowed' : ''}"
+              >→</button>
+            </div>
+          </div>
+          
+          <div class="flex-1 bg-gray-800 rounded p-6 overflow-auto">
+            <div class="flex gap-4 mb-4 text-xs font-semibold uppercase tracking-wider">
+              <span class="text-red-400">Final Content</span>
+              <span class="text-green-400">Partial Content</span>
+            </div>
+            <div class="font-mono text-lg leading-relaxed">
+              ${renderContent()}
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    render(html`<${App} />`, document.getElementById('app'));
+  </script>
+</body>
+</html>

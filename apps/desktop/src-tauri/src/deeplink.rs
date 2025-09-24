@@ -6,7 +6,7 @@ pub enum DeeplinkAction {
     OpenExternal(String),
 }
 
-pub fn parse(url: String) -> Vec<DeeplinkAction> {
+pub fn parse(url: &str) -> Vec<DeeplinkAction> {
     let parsed_url = match url::Url::parse(&url) {
         Ok(url) => url,
         Err(e) => {
@@ -135,7 +135,7 @@ mod tests {
     fn test_parse_register_query() {
         let url = "hypr://hyprnote.com/register?base_url=http://localhost:3000&api_key=123";
 
-        let actions = parse(url.to_string());
+        let actions = parse(url);
         assert_eq!(actions.len(), 2);
 
         match &actions[0] {
@@ -162,7 +162,7 @@ mod tests {
     fn test_parse_license_query() {
         let url = "hypr://hyprnote.com/license?key=123";
 
-        let actions = parse(url.to_string());
+        let actions = parse(url);
         assert_eq!(actions.len(), 2);
 
         match &actions[0] {

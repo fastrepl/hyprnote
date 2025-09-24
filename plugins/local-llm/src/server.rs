@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::ModelManager;
+use hypr_llm::ModelManager;
 
 #[derive(Clone)]
 pub struct ServerHandle {

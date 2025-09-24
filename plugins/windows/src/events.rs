@@ -56,7 +56,7 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
 macro_rules! common_event_derives {
     ($item:item) => {
         #[derive(
-            serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event,
+            Debug, serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event,
         )]
         $item
     };
@@ -113,19 +113,34 @@ mod test {
 
     #[test]
     fn navigate_from_str() {
-        let v: Navigate = "hypr://hyprnote.com/app/new?calendarEventId=123&record=true"
-            .parse()
-            .unwrap();
+        let test_cases = vec![
+            (
+                "hypr://hyprnote.com/app/new?calendarEventId=123&record=true",
+                "/app/new",
+                Some(serde_json::json!({ "calendarEventId": "123", "record": "true" })),
+            ),
+            (
+                "hypr://hyprnote.com/app/new?record=true",
+                "/app/new",
+                Some(serde_json::json!({ "record": "true" })),
+            ),
+        ];
 
-        assert_eq!(v.path, "/app/new");
-        assert_eq!(
-            v.search,
-            Some(
-                serde_json::json!({ "calendarEventId": "123", "record": "true" })
-                    .as_object()
-                    .cloned()
-                    .unwrap()
-            )
-        );
+        for (input, expected_path, expected_search) in test_cases {
+            let result: Navigate = input.parse().unwrap();
+
+            assert_eq!(result.path, expected_path,);
+
+            match (result.search, expected_search) {
+                (Some(actual), Some(expected)) => {
+                    let expected_map = expected.as_object().cloned().unwrap();
+                    assert_eq!(actual, expected_map);
+                }
+                (None, None) => {}
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
     }
 }

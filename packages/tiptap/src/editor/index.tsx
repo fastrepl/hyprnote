@@ -1,9 +1,9 @@
 import "../styles/tiptap.css";
 import "../styles/mention.css";
 
+import Document from "@tiptap/extension-document";
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
-import Document from "@tiptap/extension-document";
 
 import * as shared from "../shared";
 import { mention, type MentionConfig } from "./mention";

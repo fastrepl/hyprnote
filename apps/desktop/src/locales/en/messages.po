@@ -613,7 +613,7 @@ msgstr "Full name"
 msgid "General"
 msgstr "General"
 
-#: src/components/editor-area/note-header/title-input.tsx:30
+#: src/components/editor-area/note-header/title-input.tsx:33
 msgid "Generating title..."
 msgstr "Generating title..."
 
@@ -694,7 +694,7 @@ msgstr "It's ok to move on, downloads will continue in the background"
 msgid "Job title"
 msgstr "Job title"
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:199
+#: src/components/editor-area/note-header/chips/event-chip.tsx:201
 msgid "Join meeting"
 msgstr "Join meeting"
 
@@ -722,7 +722,7 @@ msgstr "LinkedIn username"
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:466
+#: src/components/editor-area/note-header/chips/event-chip.tsx:470
 msgid "Loading events..."
 msgstr "Loading events..."
 
@@ -813,7 +813,7 @@ msgstr "No language found."
 msgid "No members found"
 msgstr "No members found"
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:474
+#: src/components/editor-area/note-header/chips/event-chip.tsx:478
 msgid "No past events found."
 msgstr "No past events found."
 
@@ -960,7 +960,7 @@ msgstr "Role"
 msgid "Save audio recording locally alongside the transcript."
 msgstr "Save audio recording locally alongside the transcript."
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:595
+#: src/components/editor-area/note-header/chips/event-chip.tsx:599
 msgid "Save Date"
 msgstr "Save Date"
 
@@ -968,7 +968,7 @@ msgstr "Save Date"
 msgid "Save recordings"
 msgstr "Save recordings"
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:595
+#: src/components/editor-area/note-header/chips/event-chip.tsx:599
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -981,7 +981,7 @@ msgstr "Search names or emails"
 msgid "Search templates..."
 msgstr "Search templates..."
 
-#: src/components/search-bar.tsx:143
+#: src/components/search-bar.tsx:144
 msgid "Search..."
 msgstr "Search..."
 
@@ -1185,7 +1185,7 @@ msgstr "Type or paste in emails below, separated by commas. Your workspace will 
 msgid "Type to search..."
 msgstr "Type to search..."
 
-#: src/components/editor-area/note-header/title-input.tsx:32
+#: src/components/editor-area/note-header/title-input.tsx:35
 msgid "Untitled"
 msgstr "Untitled"
 
@@ -1229,7 +1229,7 @@ msgstr "Vault Name"
 msgid "View calendar"
 msgstr "View calendar"
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:209
+#: src/components/editor-area/note-header/chips/event-chip.tsx:211
 #: src/components/left-sidebar/events-list.tsx:193
 msgid "View in calendar"
 msgstr "View in calendar"

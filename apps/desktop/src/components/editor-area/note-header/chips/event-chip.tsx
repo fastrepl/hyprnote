@@ -147,7 +147,9 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                     {event.data.meetingLink
                       ? <VideoIcon size={14} className="flex-shrink-0 text-neutral-500" />
                       : <SpeechIcon size={14} className="flex-shrink-0 text-neutral-500" />}
-                    {!isVeryNarrow && <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>}
+                    {!isVeryNarrow && (
+                      <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>
+                    )}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -249,7 +251,9 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
               }`}
             >
               <CalendarIcon size={14} className="flex-shrink-0 text-neutral-500" />
-              {!isVeryNarrow && <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(sessionCreatedAt)}</p>}
+              {!isVeryNarrow && (
+                <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(sessionCreatedAt)}</p>
+              )}
             </div>
           </PopoverTrigger>
 

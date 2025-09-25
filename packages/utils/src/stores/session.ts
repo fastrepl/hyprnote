@@ -7,14 +7,14 @@ import pDebounce from "p-debounce";
 type State = {
   session: Session;
   showRaw: boolean;
-  activeTab: 'raw' | 'enhanced' | 'transcript';
+  activeTab: "raw" | "enhanced" | "transcript";
 };
 
 type Actions = {
   get: () => State & Actions;
   refresh: () => Promise<void>;
   setShowRaw: (showRaw: boolean) => void;
-  setActiveTab: (tab: 'raw' | 'enhanced' | 'transcript') => void;
+  setActiveTab: (tab: "raw" | "enhanced" | "transcript") => void;
   updateTitle: (title: string) => void;
   updatePreMeetingNote: (note: string) => void;
   updateRawNote: (note: string) => void;
@@ -28,7 +28,7 @@ export const createSessionStore = (session: Session) => {
   return createStore<State & Actions>((set, get) => ({
     session,
     showRaw: !session.enhanced_memo_html,
-    activeTab: 'raw',
+    activeTab: "raw",
     get,
     refresh: async () => {
       const { session: { id } } = get();
@@ -44,14 +44,14 @@ export const createSessionStore = (session: Session) => {
         })
       );
     },
-    setActiveTab: (tab: 'raw' | 'enhanced' | 'transcript') => {
+    setActiveTab: (tab: "raw" | "enhanced" | "transcript") => {
       set((state) =>
         mutate(state, (draft) => {
           draft.activeTab = tab;
           // Keep showRaw in sync for backward compatibility
-          if (tab === 'raw') {
+          if (tab === "raw") {
             draft.showRaw = true;
-          } else if (tab === 'enhanced') {
+          } else if (tab === "enhanced") {
             draft.showRaw = false;
           }
           // transcript doesn't affect showRaw

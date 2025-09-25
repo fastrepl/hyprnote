@@ -274,11 +274,11 @@ export function ChatView() {
           <FloatingActionButtons
             onNewChat={handleNewChat}
             onViewHistory={handleViewHistory}
-            chatGroups={chatGroupsQuery.data}
+            chatGroups={conversations}
             onSelectChatGroup={handleSelectChatGroup}
           />
         </div>
-        
+
         {/* Chat content starts below reserved space */}
         <div className="flex-1 overflow-hidden">
           <ChatHistoryView

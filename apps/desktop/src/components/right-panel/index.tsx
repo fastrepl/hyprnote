@@ -1,10 +1,10 @@
 import { useRightPanel } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizablePanel } from "@hypr/ui/components/ui/resizable";
-import { ChatView, TranscriptView } from "./views";
+import { ChatView } from "./views";
 
 export default function RightPanel() {
-  const { isExpanded, currentView } = useRightPanel();
+  const { isExpanded } = useRightPanel();
   const show = getCurrentWebviewWindowLabel() === "main" && isExpanded;
 
   if (!show) {

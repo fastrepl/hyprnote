@@ -7,10 +7,10 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
-import TitleInput from "./title-input";
-import TitleShimmer from "./title-shimmer";
 import { TabHeader } from "./tab-header";
 import { TabSubHeader } from "./tab-sub-header";
+import TitleInput from "./title-input";
+import TitleShimmer from "./title-shimmer";
 
 interface NoteHeaderProps {
   onNavigateToEditor?: () => void;
@@ -27,7 +27,7 @@ export function NoteHeader(
   const session = useSession(sessionId, (s) => s.session);
   const isTitleGenerating = useTitleGenerationPendingState(sessionId);
 
-  const isNewNote = !sessionTitle?.trim() 
+  const isNewNote = !sessionTitle?.trim()
     && (!session.raw_memo_html || session.raw_memo_html === "<p></p>")
     && (!session.enhanced_memo_html || session.enhanced_memo_html === "<p></p>")
     && session.words.length === 0;
@@ -71,8 +71,7 @@ export function NoteHeader(
             autoFocus={isNewNote && editable}
           />
         </TitleShimmer>
-        
-        
+
         <Chips
           sessionId={sessionId}
           hashtags={hashtags}
@@ -80,8 +79,6 @@ export function NoteHeader(
           isNarrow={isNarrow}
           isCompact={isCompact}
         />
-      
-        
       </div>
 
       {isInNoteMain && <ListenButton sessionId={sessionId} isCompact={isCompact} />}

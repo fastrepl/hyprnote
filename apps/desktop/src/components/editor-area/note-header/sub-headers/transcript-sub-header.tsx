@@ -1,12 +1,10 @@
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AudioLinesIcon } from "lucide-react";
+import { useCallback } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
-import { EventChip } from "../chips/event-chip";
-import { ParticipantsChip } from "../chips/participants-chip";
+import { Button } from "@hypr/ui/components/ui/button";
 
 interface TranscriptSubHeaderProps {
   sessionId: string;
@@ -32,30 +30,33 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
     <div className="px-8 py-3">
       {/* Full-width rounded box containing chips and buttons */}
       <div className="flex items-start justify-between p-3 bg-neutral-50 border border-neutral-200 rounded-lg w-full">
-        {/*
+        {
+          /*
         <div className="flex flex-col gap-2">
           <EventChip sessionId={sessionId} />
           <ParticipantsChip sessionId={sessionId} />
         </div>
-        */}
+        */
+        }
 
         {/* Right side - Action buttons */}
         <div className="flex items-center gap-2">
-        {/* Audio file button - only show if audio exists */}
-        {audioExist.data && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleOpenAudio}
-            className="text-xs h-8 px-3 hover:bg-neutral-100"
-          >
-            <AudioLinesIcon size={14} className="mr-1.5" />
-            Audio
-          </Button>
-        )}
+          {/* Audio file button - only show if audio exists */}
+          {audioExist.data && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenAudio}
+              className="text-xs h-8 px-3 hover:bg-neutral-100"
+            >
+              <AudioLinesIcon size={14} className="mr-1.5" />
+              Audio
+            </Button>
+          )}
 
-        {/* Copy button */}
-        {/*
+          {/* Copy button */}
+          {
+            /*
         <Button
           variant="outline"
           size="sm"
@@ -75,7 +76,8 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
             </>
           )}
         </Button>
-        */}
+        */
+          }
         </div>
       </div>
     </div>

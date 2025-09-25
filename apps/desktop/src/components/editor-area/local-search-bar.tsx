@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Input } from "@hypr/ui/components/ui/input";
-import { Button } from "@hypr/ui/components/ui/button";
-import { ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
-import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { type TiptapEditor } from "@hypr/tiptap/editor";
+import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
+import { ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface LocalSearchBarProps {
   editorRef: React.RefObject<TranscriptEditorRef | null> | React.RefObject<{ editor: TiptapEditor | null }>;
@@ -23,8 +23,12 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
 
   const getEditor = () => {
     const ref = editorRef.current as any;
-    if (!ref) return null;
-    if ("editor" in ref && ref.editor) return ref.editor as TiptapEditor;
+    if (!ref) {
+      return null;
+    }
+    if ("editor" in ref && ref.editor) {
+      return ref.editor as TiptapEditor;
+    }
     return null;
   };
 
@@ -56,12 +60,16 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
   }, []);
 
   useEffect(() => {
-    if (isVisible) applySearch(searchTerm);
+    if (isVisible) {
+      applySearch(searchTerm);
+    }
   }, [searchTerm, isVisible, applySearch]);
 
   // Replace term binding
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      return;
+    }
     const editor = getEditor();
     if (editor && editor.commands) {
       try {
@@ -88,9 +96,13 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
 
   // Close on Escape
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      return;
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
+      if (e.key === "Escape") {
+        handleClose();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -98,7 +110,9 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
 
   const scrollCurrentResultIntoView = useCallback(() => {
     const editor = getEditor();
-    if (!editor) return;
+    if (!editor) {
+      return;
+    }
     try {
       const editorElement = (editor as any).view?.dom as HTMLElement | undefined;
       const current = editorElement?.querySelector(".search-result-current") as HTMLElement | null;
@@ -161,7 +175,9 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
   const handleClose = useCallback(() => {
     const editor = getEditor();
     if (editor) {
-      try { editor.commands.setSearchTerm(""); } catch {}
+      try {
+        editor.commands.setSearchTerm("");
+      } catch {}
     }
     setSearchTerm("");
     setReplaceTerm("");
@@ -173,10 +189,18 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
   const handleEnterNav = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (e.shiftKey) handlePrevious(); else handleNext();
+      if (e.shiftKey) {
+        handlePrevious();
+      } else {
+        handleNext();
+      }
     } else if (e.key === "F3") {
       e.preventDefault();
-      if (e.shiftKey) handlePrevious(); else handleNext();
+      if (e.shiftKey) {
+        handlePrevious();
+      } else {
+        handleNext();
+      }
     }
   };
 
@@ -221,7 +245,13 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
             )}
 
             {/* Prev/Next */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handlePrevious} disabled={resultCount === 0}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={handlePrevious}
+              disabled={resultCount === 0}
+            >
               <ChevronUpIcon size={12} />
             </Button>
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={handleNext} disabled={resultCount === 0}>
@@ -258,4 +288,3 @@ export function LocalSearchBar({ editorRef, onClose, isVisible }: LocalSearchBar
     </div>
   );
 }
-

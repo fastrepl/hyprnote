@@ -608,7 +608,7 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: src/components/editor-area/note-header/title-input.tsx:30
+#: src/components/editor-area/note-header/title-input.tsx:33
 msgid "Generating title..."
 msgstr ""
 
@@ -689,7 +689,7 @@ msgstr ""
 msgid "Job title"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:199
+#: src/components/editor-area/note-header/chips/event-chip.tsx:201
 msgid "Join meeting"
 msgstr ""
 
@@ -717,7 +717,7 @@ msgstr ""
 msgid "Loading available models..."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:466
+#: src/components/editor-area/note-header/chips/event-chip.tsx:470
 msgid "Loading events..."
 msgstr ""
 
@@ -808,7 +808,7 @@ msgstr ""
 msgid "No members found"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:474
+#: src/components/editor-area/note-header/chips/event-chip.tsx:478
 msgid "No past events found."
 msgstr ""
 
@@ -955,7 +955,7 @@ msgstr ""
 msgid "Save audio recording locally alongside the transcript."
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:595
+#: src/components/editor-area/note-header/chips/event-chip.tsx:599
 msgid "Save Date"
 msgstr ""
 
@@ -963,7 +963,7 @@ msgstr ""
 msgid "Save recordings"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:595
+#: src/components/editor-area/note-header/chips/event-chip.tsx:599
 msgid "Saving..."
 msgstr ""
 
@@ -976,7 +976,7 @@ msgstr ""
 msgid "Search templates..."
 msgstr ""
 
-#: src/components/search-bar.tsx:143
+#: src/components/search-bar.tsx:144
 msgid "Search..."
 msgstr ""
 
@@ -1180,7 +1180,7 @@ msgstr ""
 msgid "Type to search..."
 msgstr ""
 
-#: src/components/editor-area/note-header/title-input.tsx:32
+#: src/components/editor-area/note-header/title-input.tsx:35
 msgid "Untitled"
 msgstr ""
 
@@ -1224,7 +1224,7 @@ msgstr ""
 msgid "View calendar"
 msgstr ""
 
-#: src/components/editor-area/note-header/chips/event-chip.tsx:209
+#: src/components/editor-area/note-header/chips/event-chip.tsx:211
 #: src/components/left-sidebar/events-list.tsx:193
 msgid "View in calendar"
 msgstr ""

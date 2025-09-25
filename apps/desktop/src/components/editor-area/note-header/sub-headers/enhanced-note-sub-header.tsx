@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon, RefreshCwIcon, PlusIcon, XIcon } from "lucide-react";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDownIcon, PlusIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { useState } from "react";
 
 import { TemplateService } from "@/utils/template-service";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
-import { useOngoingSession } from "@hypr/utils/contexts";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { fetch } from "@hypr/utils";
+import { useOngoingSession } from "@hypr/utils/contexts";
 // import { useShareLogic } from "../share-button-header";
 
 interface EnhancedNoteSubHeaderProps {
@@ -20,19 +20,19 @@ interface EnhancedNoteSubHeaderProps {
   showProgress?: boolean;
 }
 
-export function EnhancedNoteSubHeader({ 
-  sessionId, 
-  onEnhance, 
+export function EnhancedNoteSubHeader({
+  sessionId,
+  onEnhance,
   isEnhancing,
   progress = 0,
-  showProgress = false 
+  showProgress = false,
 }: EnhancedNoteSubHeaderProps) {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Cancel enhancement functionality
   const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
-  
+
   // Share functionality (currently commented out)
   // const { hasEnhancedNote } = useShareLogic();
 
@@ -61,7 +61,7 @@ export function EnhancedNoteSubHeader({
     if (isEnhancing) {
       // Cancel the enhancement
       cancelEnhance();
-      
+
       // Cancel local LLM endpoint if available
       if (localLlmBaseUrl.data) {
         fetch(`${localLlmBaseUrl.data}/cancel`, { method: "GET" });
@@ -144,7 +144,8 @@ export function EnhancedNoteSubHeader({
     <div className="flex items-center justify-end px-8 pt-2 pb-0.5">
       {/* Regenerate button */}
       <div className="flex items-center gap-2">
-        {/* Share button 
+        {
+          /* Share button
         <Popover open={isShareDropdownOpen} onOpenChange={handleShareOpenChange}>
           <PopoverTrigger asChild>
             <Button
@@ -164,7 +165,8 @@ export function EnhancedNoteSubHeader({
             <SharePopoverContent />
           </PopoverContent>
         </Popover>
-        */}
+        */
+        }
 
         {/* Regenerate button with template dropdown */}
         <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>
@@ -181,46 +183,51 @@ export function EnhancedNoteSubHeader({
               {/* Main content - centered in available space */}
               <div className="absolute inset-0 flex items-center justify-center pr-6">
                 <div className="flex items-center">
-                  {isEnhancing ? (
-                    isHovered ? (
-                      <>
-                        <div className="mr-1.5 w-3 h-3 flex items-center justify-center">
-                          <XIcon size={12} className="text-red-600" />
-                        </div>
-                        <span className="text-red-600">Cancel</span>
-                        {shouldShowProgress && (
-                          <span className="ml-2 text-xs font-mono">
-                            {Math.round(progress * 100)}%
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <Spinner className="mr-1.5 w-3 h-3" />
-                        <span>Generating...</span>
-                        {shouldShowProgress && (
-                          <span className="ml-2 text-xs font-mono">
-                            {Math.round(progress * 100)}%
-                          </span>
-                        )}
-                      </>
+                  {isEnhancing
+                    ? (
+                      isHovered
+                        ? (
+                          <>
+                            <div className="mr-1.5 w-3 h-3 flex items-center justify-center">
+                              <XIcon size={12} className="text-red-600" />
+                            </div>
+                            <span className="text-red-600">Cancel</span>
+                            {shouldShowProgress && (
+                              <span className="ml-2 text-xs font-mono">
+                                {Math.round(progress * 100)}%
+                              </span>
+                            )}
+                          </>
+                        )
+                        : (
+                          <>
+                            <Spinner className="mr-1.5 w-3 h-3" />
+                            <span>Generating...</span>
+                            {shouldShowProgress && (
+                              <span className="ml-2 text-xs font-mono">
+                                {Math.round(progress * 100)}%
+                              </span>
+                            )}
+                          </>
+                        )
                     )
-                  ) : (
-                    <>
-                      <RefreshCwIcon size={14} className="mr-1.5" />
-                      Regenerate
-                    </>
-                  )}
+                    : (
+                      <>
+                        <RefreshCwIcon size={14} className="mr-1.5" />
+                        Regenerate
+                      </>
+                    )}
                 </div>
               </div>
-              
+
               {/* Chevron - fixed position on right */}
               <ChevronDownIcon size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             </Button>
           </PopoverTrigger>
 
           {/* Commented out separate chevron button */}
-          {/*
+          {
+            /*
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -231,7 +238,8 @@ export function EnhancedNoteSubHeader({
               <ChevronDownIcon size={14} />
             </Button>
           </PopoverTrigger>
-          */}
+          */
+          }
 
           <PopoverContent
             side="bottom"

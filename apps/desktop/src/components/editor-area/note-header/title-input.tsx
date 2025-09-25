@@ -40,7 +40,7 @@ export default function TitleInput({
       const timeoutId = setTimeout(() => {
         inputRef.current?.focus();
       }, 200);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [autoFocus, editable, isGenerating]);

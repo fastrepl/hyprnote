@@ -1,10 +1,10 @@
+import { type TiptapEditor } from "@hypr/tiptap/editor";
+import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
-import { type TiptapEditor } from "@hypr/tiptap/editor";
 
 interface FloatingSearchBoxProps {
   editorRef: React.RefObject<TranscriptEditorRef | null> | React.RefObject<{ editor: TiptapEditor | null }>;
@@ -21,13 +21,15 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
   // Get the editor - NO useCallback, we want fresh ref every time
   const getEditor = () => {
     const ref = editorRef.current;
-    if (!ref) return null;
-    
+    if (!ref) {
+      return null;
+    }
+
     // For both normal editor and transcript editor, just access the editor property
-    if ('editor' in ref && ref.editor) {
+    if ("editor" in ref && ref.editor) {
       return ref.editor;
     }
-    
+
     return null;
   };
 
@@ -94,7 +96,7 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
         handleClose();
       }
     };
-    
+
     if (isVisible) {
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
@@ -103,8 +105,10 @@ export function FloatingSearchBox({ editorRef, onClose, isVisible }: FloatingSea
 
   const scrollCurrentResultIntoView = useCallback(() => {
     const editor = getEditor();
-    if (!editor) return;
-    
+    if (!editor) {
+      return;
+    }
+
     try {
       const editorElement = editor.view.dom;
       const current = editorElement.querySelector(".search-result-current") as HTMLElement | null;

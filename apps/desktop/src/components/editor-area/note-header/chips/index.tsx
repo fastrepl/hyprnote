@@ -4,7 +4,6 @@
 import { EventChip } from "./event-chip";
 import { ParticipantsChip } from "./participants-chip";
 import { PastNotesChip } from "./past-notes-chip";
-import { ShareChip } from "./share-chip";
 import { TagChip } from "./tag-chip";
 
 // Temporarily commented out StartChatButton

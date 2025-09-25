@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useRef, useState, memo } from "react";
-import { ChevronDownIcon } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useMatch } from "@tanstack/react-router";
-import TranscriptEditor, { 
-  type TranscriptEditorRef,
+import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
+import { useHypr } from "@/contexts";
+import { commands as dbCommands, type Human, type Word2 } from "@hypr/plugin-db";
+import TranscriptEditor, {
   getSpeakerLabel,
   SPEAKER_ID_ATTR,
   SPEAKER_INDEX_ATTR,
   SPEAKER_LABEL_ATTR,
   type SpeakerChangeRange,
   type SpeakerViewInnerProps,
+  type TranscriptEditorRef,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { commands as dbCommands, type Word2, type Human } from "@hypr/plugin-db";
-import { useTranscript } from "../right-panel/hooks/useTranscript";
 import { useOngoingSession } from "@hypr/utils/contexts";
-import { useHypr } from "@/contexts";
-import { ParticipantsChipInner } from "@/components/editor-area/note-header/chips/participants-chip";
+import { useQuery } from "@tanstack/react-query";
+import { useMatch } from "@tanstack/react-router";
+import { ChevronDownIcon } from "lucide-react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranscript } from "../right-panel/hooks/useTranscript";
 
 interface TranscriptViewerProps {
   sessionId: string;
@@ -36,7 +36,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
     if (onEditorRefChange) {
       onEditorRefChange(editorRef.current);
     }
-    
+
     // Check if ref gets set later
     const checkInterval = setInterval(() => {
       if (editorRef.current?.editor && onEditorRefChange) {
@@ -44,7 +44,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
         clearInterval(checkInterval);
       }
     }, 100);
-    
+
     return () => clearInterval(checkInterval);
   }, [onEditorRefChange]);
 
@@ -52,7 +52,9 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
 
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const { scrollTop, scrollHeight, clientHeight } = container;
     const threshold = 100;
@@ -62,7 +64,9 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
 
   const scrollToBottom = useCallback(() => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     container.scrollTo({
       top: container.scrollHeight,

@@ -239,7 +239,7 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    [showRaw, enhancedContent, rawContent],
+    [showRaw, showRaw ? rawContent : enhancedContent]  
   );
 
   const safelyFocusEditor = useCallback(() => {

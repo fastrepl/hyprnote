@@ -99,13 +99,13 @@ export function ParticipantsChip({
             isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
           }`}
         >
-          <Users2Icon size={14} className="flex-shrink-0" />
-          <span className="truncate">{buttonText}</span>
+          <Users2Icon size={14} className="flex-shrink-0 text-neutral-500" />
+          <span className="truncate text-neutral-500">{buttonText}</span>
           {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="shadow-lg w-80" align="center">
+      <PopoverContent className="shadow-lg w-80" align="start">
         <ParticipantsChipInner sessionId={sessionId} handleClickHuman={handleClickHuman} />
       </PopoverContent>
     </Popover>

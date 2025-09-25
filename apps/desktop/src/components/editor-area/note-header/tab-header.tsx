@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession, useOngoingSession } from "@hypr/utils/contexts";
 import { cn } from "@hypr/ui/lib/utils";
@@ -18,7 +18,11 @@ interface TabHeaderProps {
   showProgress?: boolean;
 }
 
-export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false }: TabHeaderProps) {
+export interface TabHeaderRef {
+  isVisible: boolean;
+}
+
+export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false }, ref) => {
   const [activeTab, setActiveTab] = useSession(sessionId, (s) => [
     s.activeTab,
     s.setActiveTab,
@@ -142,6 +146,11 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
     setActiveTab(tab);
   };
 
+  // Expose visibility state via ref
+  useImperativeHandle(ref, () => ({
+    isVisible: isMeetingSession ?? false,
+  }), [isMeetingSession]);
+
   // Don't render tabs at all for blank notes (no meeting session)
   if (!isMeetingSession) {
     return null;
@@ -157,13 +166,12 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
           <button
             onClick={() => handleTabClick('raw')}
             className={cn(
-              "relative px-4 py-2 pl-0 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+              "relative px-4 py-2 pl-1 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
               activeTab === 'raw'
                 ? "text-neutral-900 border-neutral-900"
                 : "text-neutral-600 border-transparent hover:text-neutral-800"
             )}
           >
-            <PencilIcon size={12} />
             Memos
           </button>
 
@@ -178,7 +186,6 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
                   : "text-neutral-600 border-transparent hover:text-neutral-800"
               )}
             >
-              <ZapIcon size={12} />
               Summary
               
              
@@ -195,7 +202,6 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
                 : "text-neutral-600 border-transparent hover:text-neutral-800"
             )}
           >
-            <MicIcon size={12} />
             Transcript
             {isCurrentlyRecording && (
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -206,4 +212,4 @@ export function TabHeader({ sessionId, onEnhance, isEnhancing, progress = 0, sho
       </div>
     </div>
   );
-}
+});

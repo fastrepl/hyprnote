@@ -36,13 +36,13 @@ export function MetadataModal({ sessionId, children, hashtags = [] }: MetadataMo
             {/* Light popover content */}
             <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-neutral-200/50 p-4 min-w-[300px] relative">
               <div className="flex flex-col gap-3">
-                <div className="flex justify-center">
+                <div className="flex justify-start">
                   <EventChip sessionId={sessionId} />
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-start">
                   <ParticipantsChip sessionId={sessionId} />
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-start">
                   <TagChip sessionId={sessionId} hashtags={hashtags} />
                 </div>
               </div>

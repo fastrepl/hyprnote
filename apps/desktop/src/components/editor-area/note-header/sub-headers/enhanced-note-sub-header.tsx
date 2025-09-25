@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDownIcon, RefreshCwIcon, PlusIcon } from "lucide-react";
+import { ChevronDownIcon, RefreshCwIcon, PlusIcon, XIcon } from "lucide-react";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 
 import { TemplateService } from "@/utils/template-service";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
+import { useOngoingSession } from "@hypr/utils/contexts";
+import { fetch } from "@hypr/utils";
 // import { useShareLogic } from "../share-button-header";
 
 interface EnhancedNoteSubHeaderProps {
@@ -25,6 +28,10 @@ export function EnhancedNoteSubHeader({
   showProgress = false 
 }: EnhancedNoteSubHeaderProps) {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Cancel enhancement functionality
+  const cancelEnhance = useOngoingSession((s) => s.cancelEnhance);
   
   // Share functionality (currently commented out)
   // const { hasEnhancedNote } = useShareLogic();
@@ -42,9 +49,28 @@ export function EnhancedNoteSubHeader({
     refetchOnWindowFocus: true,
   });
 
-  const handleRegenerateDefault = () => {
-    if (onEnhance) {
-      onEnhance({ triggerType: "manual" });
+  const localLlmBaseUrl = useQuery({
+    queryKey: ["local-llm"],
+    queryFn: async () => {
+      const { type, connection } = await connectorCommands.getLlmConnection();
+      return type === "HyprLocal" ? connection.api_base : null;
+    },
+  });
+
+  const handleRegenerateOrCancel = () => {
+    if (isEnhancing) {
+      // Cancel the enhancement
+      cancelEnhance();
+      
+      // Cancel local LLM endpoint if available
+      if (localLlmBaseUrl.data) {
+        fetch(`${localLlmBaseUrl.data}/cancel`, { method: "GET" });
+      }
+    } else {
+      // Start enhancement
+      if (onEnhance) {
+        onEnhance({ triggerType: "manual" });
+      }
     }
   };
 
@@ -142,47 +168,70 @@ export function EnhancedNoteSubHeader({
 
         {/* Regenerate button with template dropdown */}
         <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>
-          <div className="flex -space-x-px">
-            {/* Main regenerate button */}
-          
+          <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsTemplateDropdownOpen(true)}
-              disabled={isEnhancing}
-              className="rounded-r-none text-xs h-[28px] px-3 hover:bg-neutral-100 disabled:opacity-100"
+              onClick={isEnhancing ? handleRegenerateOrCancel : () => setIsTemplateDropdownOpen(true)}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              disabled={false}
+              className="text-xs h-[28px] px-3 hover:bg-neutral-100 relative w-[180px]"
             >
-              {isEnhancing ? (
-                <>
-                  <Spinner className="mr-1.5 w-3 h-3" />
-                  Generating...
-                  {shouldShowProgress && (
-                    <span className="ml-2 text-xs font-mono">
-                      {Math.round(progress * 100)}%
-                    </span>
+              {/* Main content - centered in available space */}
+              <div className="absolute inset-0 flex items-center justify-center pr-6">
+                <div className="flex items-center">
+                  {isEnhancing ? (
+                    isHovered ? (
+                      <>
+                        <div className="mr-1.5 w-3 h-3 flex items-center justify-center">
+                          <XIcon size={12} className="text-red-600" />
+                        </div>
+                        <span className="text-red-600">Cancel</span>
+                        {shouldShowProgress && (
+                          <span className="ml-2 text-xs font-mono">
+                            {Math.round(progress * 100)}%
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Spinner className="mr-1.5 w-3 h-3" />
+                        <span>Generating...</span>
+                        {shouldShowProgress && (
+                          <span className="ml-2 text-xs font-mono">
+                            {Math.round(progress * 100)}%
+                          </span>
+                        )}
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <RefreshCwIcon size={14} className="mr-1.5" />
+                      Regenerate
+                    </>
                   )}
-                </>
-              ) : (
-                <>
-                  <RefreshCwIcon size={14} className="mr-1.5" />
-                  Regenerate
-                </>
-              )}
+                </div>
+              </div>
+              
+              {/* Chevron - fixed position on right */}
+              <ChevronDownIcon size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             </Button>
-            
+          </PopoverTrigger>
 
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isEnhancing}
-                className="rounded-l-none px-1.5 h-[28px] border-l-0 hover:bg-neutral-100 disabled:opacity-100"
-              >
-                <ChevronDownIcon size={14} />
-              </Button>
-            </PopoverTrigger>
-            
-          </div>
+          {/* Commented out separate chevron button */}
+          {/*
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isEnhancing}
+              className="rounded-l-none px-1.5 h-[28px] border-l-0 hover:bg-neutral-100 disabled:opacity-100"
+            >
+              <ChevronDownIcon size={14} />
+            </Button>
+          </PopoverTrigger>
+          */}
 
           <PopoverContent
             side="bottom"

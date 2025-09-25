@@ -409,7 +409,7 @@ export function ChatInput(
           display: none !important;
         }
         .chat-editor:not(.has-content) .tiptap-normal .is-empty::before {
-          content: "Ask anything about this note..." !important;
+          content: "Ask anything, @ to add contexts..." !important;
           float: left;
           color: #9ca3af;
           pointer-events: none;
@@ -441,7 +441,7 @@ export function ChatInput(
           }}
         />
         {isGenerating && !inputValue.trim() && (
-          <div className="placeholder-overlay">Ask anything about this note...</div>
+          <div className="placeholder-overlay">Type @(person/note name) to add context...</div>
         )}
       </div>
 

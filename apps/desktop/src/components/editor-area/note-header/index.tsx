@@ -3,7 +3,6 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { useTitleGenerationPendingState } from "@/hooks/enhance-pending";
 import { useContainerWidth } from "@/hooks/use-container-width";
-import { useHyprSearch } from "@/contexts/search";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
 import Chips from "./chips";
@@ -27,7 +26,6 @@ export function NoteHeader(
   const sessionTitle = useSession(sessionId, (s) => s.session.title);
   const session = useSession(sessionId, (s) => s.session);
   const isTitleGenerating = useTitleGenerationPendingState(sessionId);
-  const isSearchFocused = useHyprSearch((s) => s.isSearchFocused);
 
   const isNewNote = !sessionTitle?.trim() 
     && (!session.raw_memo_html || session.raw_memo_html === "<p></p>")
@@ -70,11 +68,11 @@ export function NoteHeader(
             onChange={handleTitleChange}
             onNavigateToEditor={onNavigateToEditor}
             isGenerating={isTitleGenerating}
-            autoFocus={isNewNote && editable && !isSearchFocused}
+            autoFocus={isNewNote && editable}
           />
         </TitleShimmer>
         
-        {/*
+        
         <Chips
           sessionId={sessionId}
           hashtags={hashtags}
@@ -82,7 +80,7 @@ export function NoteHeader(
           isNarrow={isNarrow}
           isCompact={isCompact}
         />
-        */}
+      
         
       </div>
 
@@ -93,3 +91,4 @@ export function NoteHeader(
 
 // Export the TabHeader and TabSubHeader components for use outside this directory
 export { TabHeader, TabSubHeader };
+export type { TabHeaderRef } from "./tab-header";

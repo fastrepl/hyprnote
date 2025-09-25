@@ -27,7 +27,7 @@ import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { MetadataModal } from "./metadata-modal";
-import { NoteHeader, TabHeader } from "./note-header";
+import { NoteHeader, TabHeader, type TabHeaderRef } from "./note-header";
 import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { LocalSearchBar } from "./local-search-bar";
@@ -147,6 +147,7 @@ export default function EditorArea({
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const transcriptRef = useRef<TranscriptEditorRef | { editor: TiptapEditor | null } | null>(null);
+  const tabHeaderRef = useRef<TabHeaderRef>(null);
   const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
   const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
 
@@ -318,6 +319,7 @@ export default function EditorArea({
         "flex justify-center pb-4 px-8",
         isFloatingSearchVisible ? "pt-1" : "pt-1"  // ← Less top padding when search bar is visible
       ])}>
+        {/*
         <MetadataModal sessionId={sessionId} hashtags={hashtags}>
           <div className="cursor-pointer px-2 py-1">
             <span className="text-xs text-neutral-300 font-medium transition-colors">
@@ -325,6 +327,7 @@ export default function EditorArea({
             </span>
           </div>
         </MetadataModal>
+        */}
       </div>
       
       <NoteHeader
@@ -335,6 +338,7 @@ export default function EditorArea({
       />
 
       <TabHeader 
+        ref={tabHeaderRef}
         sessionId={sessionId} 
         onEnhance={enhance.mutate} 
         isEnhancing={enhance.status === "pending"}
@@ -361,7 +365,9 @@ export default function EditorArea({
         )}
         <div
           className={cn([
-            activeTab === 'transcript' ? "h-full overflow-hidden pt-0" : "h-full overflow-y-auto pt-6",
+            activeTab === 'transcript' 
+              ? "h-full overflow-hidden pt-0" 
+              : `h-full overflow-y-auto ${tabHeaderRef.current?.isVisible ? 'pt-6' : 'pt-3'}`,
             enhancedContent && activeTab !== 'transcript' && "pb-10",
           ])}
           onClick={(e) => {

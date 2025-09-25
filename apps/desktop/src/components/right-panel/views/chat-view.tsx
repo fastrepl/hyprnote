@@ -268,15 +268,19 @@ export function ChatView() {
 
   if (showHistory) {
     return (
-      <div className="flex-1 flex flex-col relative overflow-hidden h-full">
-        <FloatingActionButtons
-          onNewChat={handleNewChat}
-          onViewHistory={handleViewHistory}
-          chatGroups={chatGroupsQuery.data}
-          onSelectChatGroup={handleSelectChatGroup}
-        />
+      <div className="flex-1 flex flex-col overflow-hidden h-full">
+        {/* Reserved space for floating buttons */}
+        <div className="h-16 flex-shrink-0 relative">
+          <FloatingActionButtons
+            onNewChat={handleNewChat}
+            onViewHistory={handleViewHistory}
+            chatGroups={chatGroupsQuery.data}
+            onSelectChatGroup={handleSelectChatGroup}
+          />
+        </div>
         
-        <div className="pt-16 flex-1 overflow-hidden">
+        {/* Chat content starts below reserved space */}
+        <div className="flex-1 overflow-hidden">
           <ChatHistoryView
             chatHistory={chatHistory}
             searchValue={searchValue}
@@ -292,33 +296,38 @@ export function ChatView() {
   }
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden h-full">
-      <FloatingActionButtons
-        onNewChat={handleNewChat}
-        onViewHistory={handleViewHistory}
-        chatGroups={conversations}
-        onSelectChatGroup={handleSelectChatGroup}
-      />
+    <div className="flex-1 flex flex-col overflow-hidden h-full">
+      {/* Reserved space for floating buttons */}
+      <div className="h-14 flex-shrink-0 relative">
+        <FloatingActionButtons
+          onNewChat={handleNewChat}
+          onViewHistory={handleViewHistory}
+          chatGroups={conversations}
+          onSelectChatGroup={handleSelectChatGroup}
+        />
+      </div>
 
-      {messages.length === 0
-        ? (
-          <EmptyChatState
-            onQuickAction={handleQuickAction}
-            onFocusInput={handleFocusInput}
-          />
-        )
-        : (
-          <ChatMessagesView
-            messages={messages}
-            sessionTitle={sessionData?.title || "Untitled"}
-            hasEnhancedNote={!!(sessionData?.enhancedContent)}
-            onApplyMarkdown={handleApplyMarkdown}
-            isSubmitted={isSubmitted}
-            isStreaming={isStreaming}
-            isReady={isReady}
-            isError={isError}
-          />
-        )}
+      {/* Chat content starts below reserved space */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {messages.length === 0
+          ? (
+            <EmptyChatState
+              onQuickAction={handleQuickAction}
+              onFocusInput={handleFocusInput}
+            />
+          )
+          : (
+            <ChatMessagesView
+              messages={messages}
+              sessionTitle={sessionData?.title || "Untitled"}
+              hasEnhancedNote={!!(sessionData?.enhancedContent)}
+              onApplyMarkdown={handleApplyMarkdown}
+              isSubmitted={isSubmitted}
+              isStreaming={isStreaming}
+              isReady={isReady}
+              isError={isError}
+            />
+          )}
 
         <ChatInput
           inputValue={inputValue}
@@ -333,6 +342,7 @@ export function ChatView() {
           isGenerating={isGenerating}
           onStop={handleStop}
         />
+      </div>
     </div>
   );
 }

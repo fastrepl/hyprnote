@@ -5,7 +5,7 @@ use bytes::Bytes;
 use futures_util::StreamExt;
 
 use owhisper_interface::{ControlMessage, MixedMessage, Word2};
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
+use ractor::{pg, Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
 use crate::{manager::TranscriptManager, SessionEvent};
@@ -47,8 +47,18 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        pg::monitor(tauri_plugin_local_stt::GROUP.into(), myself.get_cell());
         let (tx, rx_task) = spawn_rx_task(args, myself).await.unwrap();
         Ok(ListenerState { tx, rx_task })
+    }
+
+    async fn post_stop(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        state.rx_task.abort();
+        Ok(())
     }
 
     async fn handle(
@@ -65,12 +75,20 @@ impl Actor for ListenerActor {
         Ok(())
     }
 
-    async fn post_stop(
+    async fn handle_supervisor_evt(
         &self,
-        _myself: ActorRef<Self::Msg>,
-        state: &mut Self::State,
+        myself: ActorRef<Self::Msg>,
+        message: SupervisionEvent,
+        _state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        state.rx_task.abort();
+        tracing::info!("supervisor_event: {:?}", message);
+
+        match message {
+            SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
+            SupervisionEvent::ActorFailed(_, _) | SupervisionEvent::ActorTerminated(_, _, _) => {
+                myself.stop(None)
+            }
+        }
         Ok(())
     }
 }

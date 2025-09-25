@@ -3,11 +3,11 @@ use tauri_plugin_shell::process::{Command, CommandChild};
 
 use super::ServerHealth;
 use backon::{ConstantBuilder, Retryable};
-use ractor::{Actor, ActorProcessingErr, ActorRef, RpcReplyPort};
+use ractor::{pg, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
-#[derive(Debug)]
 pub enum ExternalSTTMessage {
     GetHealth(RpcReplyPort<(String, ServerHealth)>),
+    ProcessTerminated(String),
 }
 
 pub struct ExternalSTTArgs {
@@ -29,6 +29,12 @@ pub struct ExternalSTTState {
 
 pub struct ExternalSTTActor;
 
+impl ExternalSTTActor {
+    pub fn name() -> ActorName {
+        "external_stt".into()
+    }
+}
+
 impl Actor for ExternalSTTActor {
     type Msg = ExternalSTTMessage;
     type State = ExternalSTTState;
@@ -36,9 +42,11 @@ impl Actor for ExternalSTTActor {
 
     async fn pre_start(
         &self,
-        _myself: ActorRef<Self::Msg>,
+        myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        pg::join(super::GROUP.into(), vec![myself.get_cell()]);
+
         let port = port_check::free_local_port().unwrap();
         let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}", port);
@@ -72,11 +80,14 @@ impl Actor for ExternalSTTActor {
                         }
                     }
                     Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
-                        tracing::error!("terminated: {:?}", payload);
+                        let e = format!("{:?}", payload);
+                        tracing::error!("{}", e);
+                        let _ = myself.send_message(ExternalSTTMessage::ProcessTerminated(e));
                         break;
                     }
                     Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
                         tracing::error!("{}", error);
+                        let _ = myself.send_message(ExternalSTTMessage::ProcessTerminated(error));
                         break;
                     }
                     None => {
@@ -134,9 +145,11 @@ impl Actor for ExternalSTTActor {
 
     async fn post_stop(
         &self,
-        _myself: ActorRef<Self::Msg>,
+        myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        pg::leave(super::GROUP.into(), vec![myself.get_cell()]);
+
         if let Some(process) = state.process_handle.take() {
             if let Err(e) = process.kill() {
                 tracing::error!("failed_to_kill_process: {:?}", e);
@@ -159,6 +172,7 @@ impl Actor for ExternalSTTActor {
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
+            ExternalSTTMessage::ProcessTerminated(e) => Err(e.into()),
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {
                     Ok(r) => match r.model_state {
@@ -173,7 +187,7 @@ impl Actor for ExternalSTTActor {
                 };
 
                 if let Err(e) = reply_port.send((state.base_url.clone(), status)) {
-                    tracing::error!("{:?}", e);
+                    return Err(e.into());
                 }
 
                 Ok(())

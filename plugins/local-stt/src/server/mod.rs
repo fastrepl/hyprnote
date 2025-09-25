@@ -1,6 +1,8 @@
 pub mod external;
 pub mod internal;
 
+pub const GROUP: &str = "stt";
+
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, specta::Type,
 )]

@@ -8,6 +8,7 @@ pub use service::*;
 // cargo test -p transcribe-whisper-local test_service -- --nocapture
 mod tests {
     use super::*;
+    use axum::{error_handling::HandleError, http::StatusCode};
     use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
 
@@ -18,7 +19,10 @@ mod tests {
             .join("com.hyprnote.dev")
             .join("stt/ggml-small-q8_0.bin");
 
-        let service = TranscribeService::builder().model_path(model_path).build();
+        let service = HandleError::new(
+            TranscribeService::builder().model_path(model_path).build(),
+            move |err: String| async move { (StatusCode::INTERNAL_SERVER_ERROR, err) },
+        );
 
         let app = axum::Router::new().route_service("/v1/listen", service);
 
@@ -43,8 +47,7 @@ mod tests {
         .to_i16_le_chunks(16000, 512);
         let input = audio.map(|chunk| owhisper_interface::MixedMessage::Audio(chunk));
 
-        let stream = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
+        let _ = client.from_realtime_audio(input).await.unwrap();
 
         server_handle.abort();
         Ok(())

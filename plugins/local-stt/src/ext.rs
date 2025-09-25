@@ -1,6 +1,6 @@
 use std::{collections::HashMap, future::Future, path::PathBuf};
 
-use ractor::{call_t, Actor};
+use ractor::{call_t, registry, Actor, ActorRef};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
@@ -152,17 +152,19 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                     SupportedSttModel::Am(_) => {
                         let existing_api_base = {
-                            let state = self.state::<crate::SharedState>();
-                            let guard = state.lock().await;
-
-                            match &guard.external_server {
-                                Some(server) => {
-                                    let (base_url, _) =
-                                        call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000)
-                                            .unwrap();
-                                    Some(base_url)
-                                }
-                                None => None,
+                            if let Some(cell) =
+                                registry::where_is(external::ExternalSTTActor::name())
+                            {
+                                let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
+                                let (base_url, _) = call_t!(
+                                    actor,
+                                    external::ExternalSTTMessage::GetHealth,
+                                    10 * 1000
+                                )
+                                .unwrap();
+                                Some(base_url)
+                            } else {
+                                None
                             }
                         };
 
@@ -190,11 +192,20 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         Ok(conn)
                     }
                     SupportedSttModel::Whisper(_) => {
-                        let existing_api_base = {
-                            let state = self.state::<crate::SharedState>();
-                            let guard = state.lock().await;
-                            guard.internal_server.as_ref().map(|s| s.base_url.clone())
-                        };
+                        let existing_api_base =
+                            match registry::where_is(internal::InternalSTTActor::name()) {
+                                Some(cell) => {
+                                    let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
+                                    let (base_url, _) = call_t!(
+                                        actor,
+                                        internal::InternalSTTMessage::GetHealth,
+                                        10 * 1000
+                                    )
+                                    .unwrap();
+                                    Some(base_url)
+                                }
+                                None => None,
+                            };
 
                         let conn = match existing_api_base {
                             Some(api_base) => Connection {
@@ -272,13 +283,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     return Err(crate::Error::ModelNotDownloaded);
                 }
 
-                if self
-                    .state::<crate::SharedState>()
-                    .lock()
-                    .await
-                    .internal_server
-                    .is_some()
-                {
+                if registry::where_is(internal::InternalSTTActor::name()).is_some() {
                     return Err(crate::Error::ServerAlreadyRunning);
                 }
 
@@ -289,31 +294,24 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
-                let server_state = internal::ServerState::builder()
-                    .model_cache_dir(cache_dir)
-                    .model_type(whisper_model)
-                    .build();
+                let (server, _) = Actor::spawn(
+                    Some(internal::InternalSTTActor::name()),
+                    internal::InternalSTTActor,
+                    internal::InternalSTTArgs {
+                        model_cache_dir: cache_dir,
+                        model_type: whisper_model,
+                    },
+                )
+                .await
+                .unwrap();
 
-                let server = internal::run_server(server_state).await?;
-                let base_url = server.base_url.clone();
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-                {
-                    let state = self.state::<crate::SharedState>();
-                    let mut s = state.lock().await;
-                    s.internal_server = Some(server);
-                }
+                let (base_url, _) =
+                    call_t!(server, internal::InternalSTTMessage::GetHealth, 10 * 1000).unwrap();
 
                 Ok(base_url)
             }
             ServerType::External => {
-                if self
-                    .state::<crate::SharedState>()
-                    .lock()
-                    .await
-                    .external_server
-                    .is_some()
-                {
+                if registry::where_is(external::ExternalSTTActor::name()).is_some() {
                     return Err(crate::Error::ServerAlreadyRunning);
                 }
 
@@ -363,7 +361,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 };
 
                 let (server, _) = Actor::spawn(
-                    Some("external_stt".to_string()),
+                    Some(external::ExternalSTTActor::name()),
                     external::ExternalSTTActor,
                     external::ExternalSTTArgs {
                         cmd,
@@ -378,12 +376,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let (base_url, _) =
                     call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000).unwrap();
 
-                {
-                    let state = self.state::<crate::SharedState>();
-                    let mut s = state.lock().await;
-                    s.external_server = Some(server);
-                }
-
                 Ok(base_url)
             }
         }
@@ -397,28 +389,32 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             return Ok(false);
         }
 
-        let state = self.state::<crate::SharedState>();
-        let mut s = state.lock().await;
-
         let mut stopped = false;
         match server_type {
             Some(ServerType::External) => {
-                if let Some(actor) = s.external_server.take() {
+                if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
+                    let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
                     actor.stop(None);
                     stopped = true;
                 }
             }
             Some(ServerType::Internal) => {
-                if let Some(_) = s.internal_server.take() {
+                if let Some(cell) = registry::where_is(internal::InternalSTTActor::name()) {
+                    let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
+                    actor.stop(None);
                     stopped = true;
                 }
             }
             Some(ServerType::Custom) => {}
             None => {
-                if let Some(_) = s.external_server.take() {
+                if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
+                    let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
+                    actor.stop(None);
                     stopped = true;
                 }
-                if let Some(_) = s.internal_server.take() {
+                if let Some(cell) = registry::where_is(internal::InternalSTTActor::name()) {
+                    let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
+                    actor.stop(None);
                     stopped = true;
                 }
             }
@@ -429,22 +425,25 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_servers(&self) -> Result<HashMap<ServerType, ServerHealth>, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        let internal_health =
+            if let Some(cell) = registry::where_is(internal::InternalSTTActor::name()) {
+                let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
+                let (_, status) =
+                    call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000).unwrap();
+                status
+            } else {
+                ServerHealth::Unreachable
+            };
 
-        let internal_health = if let Some(server) = &guard.internal_server {
-            let status = server.health().await;
-            status
-        } else {
-            ServerHealth::Unreachable
-        };
-
-        let external_health = if let Some(server) = &guard.external_server {
-            let (_, status) = call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000).unwrap();
-            status
-        } else {
-            ServerHealth::Unreachable
-        };
+        let external_health =
+            if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
+                let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
+                let (_, status) =
+                    call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000).unwrap();
+                status
+            } else {
+                ServerHealth::Unreachable
+            };
 
         let custom_health = {
             let provider = self.get_provider()?;

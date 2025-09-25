@@ -24,7 +24,7 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 pub struct State {
     pub am_api_key: Option<String>,
     pub internal_server: Option<server::internal::ServerHandle>,
-    pub external_server: Option<server::external::ServerHandle>,
+    pub external_server: Option<ractor::ActorRef<server::external::ExternalSTTMessage>>,
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
 }
 

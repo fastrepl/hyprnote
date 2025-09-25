@@ -1,5 +1,6 @@
 use std::{collections::HashMap, future::Future, path::PathBuf};
 
+use ractor::{call_t, Actor};
 use tauri::{ipc::Channel, Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
@@ -11,7 +12,10 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, ServerHealth, ServerType},
+    server::{
+        external::{self, ExternalSTTMessage},
+        internal, ServerHealth, ServerType,
+    },
     Connection, Provider, StoreKey,
 };
 
@@ -150,7 +154,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         let existing_api_base = {
                             let state = self.state::<crate::SharedState>();
                             let guard = state.lock().await;
-                            guard.external_server.as_ref().map(|s| s.base_url.clone())
+
+                            match &guard.external_server {
+                                Some(server) => {
+                                    let (base_url, _) =
+                                        call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000)
+                                            .unwrap();
+                                    Some(base_url)
+                                }
+                                None => None,
+                            }
                         };
 
                         let am_key = {
@@ -349,10 +362,21 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                         .args(["serve"])
                 };
 
-                let server = external::run_server(cmd, am_key).await?;
-                tokio::time::sleep(std::time::Duration::from_millis(250)).await;
-                let _ = server.init(am_model, data_dir).await;
-                let api_base = server.base_url.clone();
+                let (server, _) = Actor::spawn(
+                    Some("external_stt".to_string()),
+                    external::ExternalSTTActor,
+                    external::ExternalSTTArgs {
+                        cmd,
+                        api_key: am_key,
+                        model: am_model,
+                        models_dir: data_dir,
+                    },
+                )
+                .await
+                .unwrap();
+
+                let (base_url, _) =
+                    call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000).unwrap();
 
                 {
                     let state = self.state::<crate::SharedState>();
@@ -360,7 +384,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     s.external_server = Some(server);
                 }
 
-                Ok(api_base)
+                Ok(base_url)
             }
         }
     }
@@ -379,9 +403,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let mut stopped = false;
         match server_type {
             Some(ServerType::External) => {
-                hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-
-                if let Some(_) = s.external_server.take() {
+                if let Some(actor) = s.external_server.take() {
+                    actor.stop(None);
                     stopped = true;
                 }
             }
@@ -417,7 +440,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         };
 
         let external_health = if let Some(server) = &guard.external_server {
-            server.health().await
+            let (_, status) = call_t!(server, ExternalSTTMessage::GetHealth, 10 * 1000).unwrap();
+            status
         } else {
             ServerHealth::Unreachable
         };

@@ -153,12 +153,15 @@ impl Actor for ExternalSTTActor {
 
     async fn handle(
         &self,
-        _myself: ActorRef<Self::Msg>,
+        myself: ActorRef<Self::Msg>,
         message: Self::Msg,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
-            ExternalSTTMessage::ProcessTerminated(e) => Err(e.into()),
+            ExternalSTTMessage::ProcessTerminated(e) => {
+                myself.stop(Some(e));
+                Ok(())
+            }
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {
                     Ok(r) => match r.model_state {

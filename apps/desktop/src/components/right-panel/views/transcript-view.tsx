@@ -46,7 +46,7 @@ export function TranscriptView() {
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: true });
   const sessionId = noteMatch.params.id;
 
-  const { words, isLive } = useTranscript(sessionId);
+  const { words, partialWords, finalWords, isLive } = useTranscript(sessionId);
   const showEmptyMessage = sessionId && words.length <= 0 && !isLive;
 
   if (!sessionId) {
@@ -58,14 +58,14 @@ export function TranscriptView() {
       {showEmptyMessage
         ? <RenderNotInMeetingEmpty sessionId={sessionId} panelWidth={panelWidth} />
         : isLive
-        ? <RenderInMeeting words={words} />
+        ? <RenderInMeeting partialWords={partialWords} finalWords={finalWords} />
         : <RenderNotInMeeting sessionId={sessionId} words={words} />}
     </div>
   );
 }
 
-function RenderInMeeting({ words }: { words: Word2[] }) {
-  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([words]);
+function RenderInMeeting({ partialWords, finalWords }: { partialWords: Word2[]; finalWords: Word2[] }) {
+  const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([finalWords]);
 
   return (
     <div className="flex-1 relative">
@@ -74,9 +74,12 @@ function RenderInMeeting({ words }: { words: Word2[] }) {
         className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4 absolute inset-0"
         onScroll={handleScroll}
       >
-        <div className="text-[15px] text-gray-800 leading-relaxed pl-1">
-          {words.map(word => word.text).join(" ")}
-        </div>
+        <span className="text-[15px] text-gray-800 leading-relaxed pl-1">
+          {finalWords.map(word => word.text).join(" ")}
+        </span>
+        <span className="text-[15px] text-gray-400 leading-relaxed pl-1">
+          {partialWords.map(word => word.text).join(" ")}
+        </span>
       </div>
 
       {!isAtBottom && (

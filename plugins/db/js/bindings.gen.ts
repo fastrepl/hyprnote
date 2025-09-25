@@ -147,6 +147,21 @@ async upsertTag(tag: Tag) : Promise<Tag> {
 },
 async deleteTag(tagId: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:db|delete_tag", { tagId });
+},
+async createConversation(conversation: ChatConversation) : Promise<ChatConversation> {
+    return await TAURI_INVOKE("plugin:db|create_conversation", { conversation });
+},
+async listConversations(sessionId: string) : Promise<ChatConversation[]> {
+    return await TAURI_INVOKE("plugin:db|list_conversations", { sessionId });
+},
+async createMessageV2(message: ChatMessageV2) : Promise<ChatMessageV2> {
+    return await TAURI_INVOKE("plugin:db|create_message_v2", { message });
+},
+async listMessagesV2(conversationId: string) : Promise<ChatMessageV2[]> {
+    return await TAURI_INVOKE("plugin:db|list_messages_v2", { conversationId });
+},
+async updateMessageV2Parts(id: string, parts: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:db|update_message_v2_parts", { id, parts });
 }
 }
 
@@ -161,10 +176,13 @@ async deleteTag(tagId: string) : Promise<null> {
 /** user-defined types **/
 
 export type Calendar = { id: string; tracking_id: string; user_id: string; platform: Platform; name: string; selected: boolean; source: string | null }
+export type ChatConversation = { id: string; session_id: string; user_id: string; name: string | null; created_at: string; updated_at: string }
 export type ChatGroup = { id: string; user_id: string; name: string | null; created_at: string; session_id: string }
 export type ChatMessage = { id: string; group_id: string; created_at: string; role: ChatMessageRole; content: string; type: ChatMessageType; tool_details: string | null }
 export type ChatMessageRole = "User" | "Assistant"
 export type ChatMessageType = "text-delta" | "tool-start" | "tool-result" | "tool-error"
+export type ChatMessageV2 = { id: string; conversation_id: string; role: ChatMessageV2Role; parts: string; metadata: string | null; created_at: string; updated_at: string }
+export type ChatMessageV2Role = "system" | "user" | "assistant"
 export type Config = { id: string; user_id: string; general: ConfigGeneral; notification: ConfigNotification; ai: ConfigAI }
 export type ConfigAI = { api_base: string | null; api_key: string | null; ai_specificity: number | null; redemption_time_ms: number | null }
 export type ConfigGeneral = { autostart: boolean; display_language: string; spoken_languages?: string[]; jargons?: string[]; telemetry_consent: boolean; save_recordings: boolean | null; selected_template_id: string | null; summary_language?: string }

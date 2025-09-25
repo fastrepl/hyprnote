@@ -1,0 +1,12 @@
+{
+  "0.0.81": {
+    "aarch64": "https://desktop.hyprnote.com/download/asset/01K5VF69ZPVRCRT8FR96MSD74D"
+  },
+  "0.0.80": {
+    "aarch64": "https://desktop.hyprnote.com/download/asset/01K5RM45WD26TSF1S6CZRBGSAX"
+  },
+  "0.0.79": {
+    "x86_64": "https://desktop.hyprnote.com/download/asset/01K5FMEP20VFH8H2NPMV8CXTNF",
+    "aarch64": "https://desktop.hyprnote.com/download/asset/01K5FM311MAZ7520TX0XP4BAVR"
+  }
+}

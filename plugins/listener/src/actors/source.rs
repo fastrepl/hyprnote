@@ -214,7 +214,7 @@ async fn start_source_loop(
         {
             tokio::spawn(async move {
                 let mixed_stream = {
-                    let mut mixed_input = AudioInput::from_mixed().unwrap();
+                    let mut mixed_input = AudioInput::from_mic(mic_device).unwrap();
                     ResampledAsyncSource::new(mixed_input.stream(), SAMPLE_RATE)
                         .chunks(AEC_BLOCK_SIZE)
                 };

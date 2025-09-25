@@ -6,7 +6,7 @@
   <title>Diff Viewer</title>
   <script src="https://cdn.twind.style" crossorigin></script>
 </head>
-<body class="bg-gray-900 text-gray-100 h-screen">
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 h-screen overflow-hidden">
   <div id="app"></div>
 
   <script type="module">
@@ -20,6 +20,8 @@
       const [data, setData] = useState([]);
       const [currentIndex, setCurrentIndex] = useState(0);
       const [selectedFile, setSelectedFile] = useState('council_011320_2022003V');
+      const [stepSize, setStepSize] = useState(1);
+      const contentRef = { current: null };
 
       useEffect(() => {
         fetch(`./diff/${selectedFile}.json`)
@@ -36,77 +38,138 @@
 
       useEffect(() => {
         const handleKeydown = (e) => {
-          if (e.key === 'ArrowLeft' && currentIndex > 0) {
-            setCurrentIndex(currentIndex - 1);
-          } else if (e.key === 'ArrowRight' && currentIndex < data.length - 1) {
-            setCurrentIndex(currentIndex + 1);
+          if (e.key === 'ArrowLeft') {
+            setCurrentIndex(prev => Math.max(0, prev - stepSize));
+          } else if (e.key === 'ArrowRight') {
+            setCurrentIndex(prev => Math.min(data.length - 1, prev + stepSize));
           }
         };
         
         window.addEventListener('keydown', handleKeydown);
         return () => window.removeEventListener('keydown', handleKeydown);
-      }, [currentIndex, data.length]);
+      }, [currentIndex, data.length, stepSize]);
 
-      const currentItem = data[currentIndex] || { final_content: {}, partial_content: {} };
-      const hasPrev = currentIndex > 0;
-      const hasNext = currentIndex < data.length - 1;
+      useEffect(() => {
+        if (contentRef.current) {
+          contentRef.current.scrollTop = contentRef.current.scrollHeight;
+        }
+      }, [currentIndex]);
 
       const renderContent = () => {
         const parts = [];
         
-        Object.entries(currentItem.final_content).forEach(([key, value]) => {
-          parts.push(html`<span class="text-red-400">${value}</span>`);
-        });
-        
-        Object.entries(currentItem.partial_content).forEach(([key, value]) => {
-          parts.push(html`<span class="text-green-400">${value}</span>`);
-        });
-        
-        if (parts.length === 0) {
-          return html`<span class="text-gray-500">—</span>`;
+        for (let i = 0; i <= currentIndex && i < data.length; i++) {
+          Object.entries(data[i].final_content || {}).forEach(([key, value]) => {
+            parts.push(html`<span class="text-rose-400 font-medium">${value}</span>`);
+          });
         }
         
-        return html`<div class="space-x-1">${parts.map((part, i) => 
+        if (data[currentIndex]) {
+          Object.entries(data[currentIndex].partial_content || {}).forEach(([key, value]) => {
+            parts.push(html`<span class="text-emerald-400 font-medium">${value}</span>`);
+          });
+        }
+        
+        if (parts.length === 0) {
+          return html`<span class="text-gray-500 italic">No content to display</span>`;
+        }
+        
+        return html`<div class="leading-relaxed">${parts.map((part, i) => 
           html`<span key=${i}>${i > 0 ? ' ' : ''}${part}</span>`
         )}</div>`;
       };
 
       return html`
-        <div class="max-w-6xl mx-auto w-full h-full flex flex-col p-4">
-          <div class="flex items-center gap-4 mb-6">
-            <select 
-              value=${selectedFile}
-              onChange=${e => setSelectedFile(e.target.value)}
-              class="bg-gray-800 border border-gray-700 rounded px-4 py-2"
-            >
-              <option value="council_011320_2022003V">council_011320_2022003V</option>
-              <option value="f7952672-5d18-4f75-8aa0-74ab8b02dac3">f7952672-5d18-4f75-8aa0-74ab8b02dac3</option>
-            </select>
-            <div class="flex items-center gap-2">
-              <button 
-                onClick=${() => hasPrev && setCurrentIndex(currentIndex - 1)}
-                disabled=${!hasPrev}
-                class="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded ${!hasPrev ? 'opacity-50 cursor-not-allowed' : ''}"
-              >←</button>
-              <span class="text-sm text-gray-400">
-                ${data.length > 0 ? `${currentIndex + 1} / ${data.length}` : '0 / 0'}
-              </span>
-              <button 
-                onClick=${() => hasNext && setCurrentIndex(currentIndex + 1)}
-                disabled=${!hasNext}
-                class="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded ${!hasNext ? 'opacity-50 cursor-not-allowed' : ''}"
-              >→</button>
+        <div class="h-screen flex flex-col p-6">
+          <!-- Header Controls -->
+          <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-4 mb-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <!-- File Selector -->
+              <div class="flex items-center gap-3">
+                <label class="text-sm text-gray-400 font-medium">File:</label>
+                <select 
+                  value=${selectedFile}
+                  onChange=${e => setSelectedFile(e.target.value)}
+                  class="bg-gray-900/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-100 hover:bg-gray-900/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                >
+                  <option value="council_011320_2022003V">council_011320_2022003V</option>
+                  <option value="f7952672-5d18-4f75-8aa0-74ab8b02dac3">f7952672-5d18-4f75-8aa0-74ab8b02dac3</option>
+                </select>
+              </div>
+
+              <!-- Navigation Controls -->
+              <div class="flex items-center gap-3">
+                <button 
+                  onClick=${() => setCurrentIndex(Math.max(0, currentIndex - stepSize))}
+                  disabled=${currentIndex === 0}
+                  class="bg-gray-900/50 hover:bg-gray-900/70 px-4 py-2 rounded-lg border border-gray-600 transition-all ${currentIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:border-blue-500/50'}"
+                  title="Previous (← arrow key)"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <div class="bg-gray-900/50 px-4 py-2 rounded-lg border border-gray-600 min-w-[100px] text-center">
+                  <span class="text-sm font-semibold text-blue-400">
+                    ${data.length > 0 ? `${currentIndex + 1}` : '0'}
+                  </span>
+                  <span class="text-sm text-gray-400"> / ${data.length}</span>
+                </div>
+                
+                <button 
+                  onClick=${() => setCurrentIndex(Math.min(data.length - 1, currentIndex + stepSize))}
+                  disabled=${currentIndex >= data.length - 1}
+                  class="bg-gray-900/50 hover:bg-gray-900/70 px-4 py-2 rounded-lg border border-gray-600 transition-all ${currentIndex >= data.length - 1 ? 'opacity-40 cursor-not-allowed' : 'hover:border-blue-500/50'}"
+                  title="Next (→ arrow key)"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                <!-- Step Size Control -->
+                <div class="flex items-center gap-2 ml-2 px-3 py-1 bg-gray-900/50 rounded-lg border border-gray-600">
+                  <label class="text-xs text-gray-400">Step:</label>
+                  <select 
+                    value=${stepSize}
+                    onChange=${e => setStepSize(Number(e.target.value))}
+                    class="bg-transparent text-sm text-gray-100 focus:outline-none"
+                  >
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="flex items-center gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-rose-400 rounded-full"></div>
+                  <span class="text-gray-300">Final</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                  <span class="text-gray-300">Partial</span>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div class="flex-1 bg-gray-800 rounded p-6 overflow-auto">
-            <div class="flex gap-4 mb-4 text-xs font-semibold uppercase tracking-wider">
-              <span class="text-red-400">Final Content</span>
-              <span class="text-green-400">Partial Content</span>
+          <!-- Content Area -->
+          <div class="flex-1 bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8 overflow-hidden flex flex-col">
+            <div ref=${el => contentRef.current = el} class="flex-1 overflow-y-auto scroll-smooth">
+              <div class="font-mono text-lg text-gray-100 whitespace-pre-wrap break-words">
+                ${renderContent()}
+              </div>
             </div>
-            <div class="font-mono text-lg leading-relaxed">
-              ${renderContent()}
-            </div>
+          </div>
+
+          <!-- Keyboard Hint -->
+          <div class="mt-3 text-center text-xs text-gray-500">
+            Use arrow keys (← →) for navigation • Step size controls how many items to skip
           </div>
         </div>
       `;

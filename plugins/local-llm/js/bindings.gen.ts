@@ -63,6 +63,11 @@ async generateTags(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<strin
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+llmEvent: LLMEvent
+}>({
+llmEvent: "plugin:local-llm:llm-event"
+})
 
 /** user-defined constants **/
 
@@ -72,6 +77,7 @@ async generateTags(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<strin
 
 export type CustomModelInfo = { path: string; name: string }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type LLMEvent = { progress: number }
 export type ModelInfo = { key: SupportedModel; name: string; description: string; size_bytes: number }
 export type ModelSelection = { type: "Predefined"; content: { key: SupportedModel } } | { type: "Custom"; content: { path: string } }
 export type SupportedModel = "Llama3p2_3bQ4" | "Gemma3_4bQ4" | "HyprLLM"

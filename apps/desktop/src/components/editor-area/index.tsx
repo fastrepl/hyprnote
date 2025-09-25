@@ -11,6 +11,7 @@ import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
+import { events as localLlmEvents } from "@hypr/plugin-local-llm";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
@@ -33,6 +34,40 @@ import { LocalSearchBar } from "./local-search-bar";
 import { TranscriptViewer } from "./transcript-viewer";
 import { FloatingSearchBox } from "./floating-search-box";
 import { prepareContextText } from "./utils/summary-prepare";
+
+const TIPS_MODAL_SHOWN_KEY = "hypr-tips-modal-shown-v1";
+
+async function shouldShowTipsModal(
+  userId: string,
+  onboardingSessionId: string,
+  thankYouSessionId: string,
+): Promise<boolean> {
+  try {
+    const hasSeenTips = localStorage.getItem(TIPS_MODAL_SHOWN_KEY) === "true";
+    if (hasSeenTips) {
+      return false;
+    }
+
+    const allSessions = await dbCommands.listSessions({
+      type: "recentlyVisited",
+      user_id: userId,
+      limit: 255,
+    });
+
+    const enhancedSessionsCount = allSessions.filter(session =>
+      session.id !== onboardingSessionId
+      && session.id !== thankYouSessionId
+      && session.enhanced_memo_html
+      && session.enhanced_memo_html.trim() !== ""
+    ).length;
+
+    return enhancedSessionsCount === 1;
+  } catch (error) {
+    console.error("Failed to check if tips modal should be shown:", error);
+    return false;
+  }
+}
+import { showTipsModal } from "../tips-modal/service";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -95,7 +130,7 @@ export default function EditorArea({
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
   const activeTab = useSession(sessionId, (s) => s.activeTab);
-  const { userId, onboardingSessionId } = useHypr();
+  const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -172,6 +207,20 @@ export default function EditorArea({
     onSuccess: (content) => {
       if (hasTranscriptWords) {
         generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
+      }
+
+      if (sessionId !== onboardingSessionId) {
+        setTimeout(async () => {
+          try {
+            const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
+            if (shouldShow) {
+              localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
+              showTipsModal(userId);
+            }
+          } catch (error) {
+            console.error("Failed to show tips modal:", error);
+          }
+        }, 1200);
       }
     },
   });
@@ -422,6 +471,21 @@ export function useEnhanceMutation({
   const [actualIsLocalLlm, setActualIsLocalLlm] = useState(isLocalLlm);
   const [isCancelled, setIsCancelled] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    let unlisten: () => void;
+    localLlmEvents.llmEvent.listen(({ payload }) => {
+      if (payload.progress) {
+        setProgress(payload.progress);
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten();
+    };
+  }, []);
 
   // Extract H1 headers at component level (always available)
   const extractH1Headers = useCallback((htmlContent: string): string[] => {

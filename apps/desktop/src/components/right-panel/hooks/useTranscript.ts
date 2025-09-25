@@ -82,6 +82,8 @@ export function useTranscript(sessionId: string | null) {
 
   return {
     words,
+    partialWords,
+    finalWords,
     isLive,
     selectedLanguage,
     handleLanguageChange,

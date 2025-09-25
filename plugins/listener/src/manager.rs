@@ -147,7 +147,7 @@ impl TranscriptManager {
 
                 *channel_partial_words = channel_partial_words
                     .iter()
-                    .filter(|w| w.end > last_final_word_end)
+                    .filter(|w| w.start > last_final_word_end)
                     .cloned()
                     .collect::<Vec<_>>();
 
@@ -155,7 +155,7 @@ impl TranscriptManager {
                     final_words: vec![(channel_idx, words)].into_iter().collect(),
                     partial_words: self.partial_words_by_channel.clone(),
                 };
-            } else if data.confidence > 0.6 {
+            } else {
                 let channel_partial_words = self
                     .partial_words_by_channel
                     .entry(channel_idx)
@@ -163,6 +163,7 @@ impl TranscriptManager {
 
                 *channel_partial_words = {
                     let mut merged = Vec::new();
+
                     if let Some(first_start) = words.first().map(|w| w.start) {
                         merged.extend(
                             channel_partial_words
@@ -172,6 +173,15 @@ impl TranscriptManager {
                         );
                     }
                     merged.extend(words.clone());
+                    if let Some(last_end) = words.last().map(|w| w.end) {
+                        merged.extend(
+                            channel_partial_words
+                                .iter()
+                                .filter(|w| w.start >= last_end)
+                                .cloned(),
+                        );
+                    }
+
                     merged
                 };
 

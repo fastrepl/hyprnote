@@ -1,7 +1,6 @@
 mod device_monitor;
 mod errors;
 mod mic;
-mod mixed;
 mod norm;
 mod resampler;
 mod speaker;
@@ -10,7 +9,6 @@ mod utils;
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
-pub use mixed::*;
 pub use norm::*;
 pub use resampler::*;
 pub use speaker::*;
@@ -66,7 +64,6 @@ impl AudioOutput {
 pub enum AudioSource {
     RealtimeMic,
     RealtimeSpeaker,
-    RealtimeMixed,
     Recorded,
 }
 
@@ -74,7 +71,6 @@ pub struct AudioInput {
     source: AudioSource,
     mic: Option<MicInput>,
     speaker: Option<SpeakerInput>,
-    mixed: Option<MixedInput>,
     data: Option<Vec<u8>>,
 }
 
@@ -111,7 +107,6 @@ impl AudioInput {
             source: AudioSource::RealtimeMic,
             mic: Some(mic),
             speaker: None,
-            mixed: None,
             data: None,
         })
     }
@@ -121,31 +116,7 @@ impl AudioInput {
             source: AudioSource::RealtimeSpeaker,
             mic: None,
             speaker: Some(SpeakerInput::new().unwrap()),
-            mixed: None,
             data: None,
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    pub fn from_mixed() -> Result<Self, crate::Error> {
-        let mixed = MixedInput::new().unwrap();
-
-        Ok(Self {
-            source: AudioSource::RealtimeMixed,
-            mic: None,
-            speaker: None,
-            mixed: Some(mixed),
-            data: None,
-        })
-    }
-
-    pub fn from_recording(data: Vec<u8>) -> Self {
-        Self {
-            source: AudioSource::Recorded,
-            mic: None,
-            speaker: None,
-            mixed: None,
-            data: Some(data),
         }
     }
 
@@ -153,7 +124,6 @@ impl AudioInput {
         match &self.source {
             AudioSource::RealtimeMic => self.mic.as_ref().unwrap().device_name(),
             AudioSource::RealtimeSpeaker => "RealtimeSpeaker".to_string(),
-            AudioSource::RealtimeMixed => "Mixed Audio".to_string(),
             AudioSource::Recorded => "Recorded".to_string(),
         }
     }
@@ -166,9 +136,6 @@ impl AudioInput {
             AudioSource::RealtimeSpeaker => AudioStream::RealtimeSpeaker {
                 speaker: self.speaker.take().unwrap().stream().unwrap(),
             },
-            AudioSource::RealtimeMixed => AudioStream::RealtimeMixed {
-                mixed: self.mixed.take().unwrap().stream().unwrap(),
-            },
             AudioSource::Recorded => AudioStream::Recorded {
                 data: self.data.as_ref().unwrap().clone(),
                 position: 0,
@@ -180,7 +147,6 @@ impl AudioInput {
 pub enum AudioStream {
     RealtimeMic { mic: MicStream },
     RealtimeSpeaker { speaker: SpeakerStream },
-    RealtimeMixed { mixed: MixedStream },
     Recorded { data: Vec<u8>, position: usize },
 }
 
@@ -197,7 +163,6 @@ impl Stream for AudioStream {
         match &mut *self {
             AudioStream::RealtimeMic { mic } => mic.poll_next_unpin(cx),
             AudioStream::RealtimeSpeaker { speaker } => speaker.poll_next_unpin(cx),
-            AudioStream::RealtimeMixed { mixed } => mixed.poll_next_unpin(cx),
             AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
                     let bytes = [data[*position], data[*position + 1]];
@@ -223,7 +188,6 @@ impl kalosm_sound::AsyncSource for AudioStream {
         match self {
             AudioStream::RealtimeMic { mic } => mic.sample_rate(),
             AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
-            AudioStream::RealtimeMixed { mixed } => mixed.sample_rate(),
             AudioStream::Recorded { .. } => 16000,
         }
     }

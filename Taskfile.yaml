@@ -13,6 +13,15 @@ tasks:
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
 
+  diff:
+    vars:
+      DIFF_FROM: "desktop_v0.0.79"
+      DIFF_TO: "desktop_v0.0.80"
+      PATHS: "apps/desktop/src-tauri plugins crates"
+    cmds:
+      # - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} > out.diff
+      - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} | diff2html -i stdin
+
   jsonschema:
     cmds:
       - |

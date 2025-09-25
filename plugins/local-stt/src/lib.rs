@@ -15,7 +15,7 @@ pub use error::*;
 use events::*;
 pub use ext::*;
 pub use model::*;
-pub use server::GROUP;
+pub use server::*;
 pub use store::*;
 pub use types::*;
 

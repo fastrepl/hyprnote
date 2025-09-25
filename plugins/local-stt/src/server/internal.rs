@@ -4,7 +4,7 @@ use std::{
 };
 
 use axum::{error_handling::HandleError, Router};
-use ractor::{pg, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use reqwest::StatusCode;
 use tower_http::cors::{self, CorsLayer};
 
@@ -45,8 +45,6 @@ impl Actor for InternalSTTActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        pg::join(super::GROUP.into(), vec![myself.get_cell()]);
-
         let model_path = args.model_cache_dir.join(args.model_type.file_name());
 
         let whisper_service = HandleError::new(
@@ -94,10 +92,9 @@ impl Actor for InternalSTTActor {
 
     async fn post_stop(
         &self,
-        myself: ActorRef<Self::Msg>,
+        _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        pg::leave(super::GROUP.into(), vec![myself.get_cell()]);
         let _ = state.shutdown.send(());
         state.server_task.abort();
         Ok(())

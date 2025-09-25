@@ -3,7 +3,7 @@ use tauri_plugin_shell::process::{Command, CommandChild};
 
 use super::ServerHealth;
 use backon::{ConstantBuilder, Retryable};
-use ractor::{pg, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
 pub enum ExternalSTTMessage {
     GetHealth(RpcReplyPort<(String, ServerHealth)>),
@@ -45,8 +45,6 @@ impl Actor for ExternalSTTActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        pg::join(super::GROUP.into(), vec![myself.get_cell()]);
-
         let port = port_check::free_local_port().unwrap();
         let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}", port);
@@ -55,25 +53,15 @@ impl Actor for ExternalSTTActor {
         let task_handle = tokio::spawn(async move {
             loop {
                 match rx.recv().await {
-                    Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes)) => {
+                    Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes))
+                    | Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
                         if let Ok(text) = String::from_utf8(bytes) {
                             let text = text.trim();
                             if !text.is_empty()
                                 && !text.contains("[TranscriptionHandler]")
                                 && !text.contains("[WebSocket]")
                                 && !text.contains("Sent interim")
-                            {
-                                tracing::info!("{}", text);
-                            }
-                        }
-                    }
-                    Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
-                        if let Ok(text) = String::from_utf8(bytes) {
-                            let text = text.trim();
-                            if !text.is_empty()
-                                && !text.contains("[TranscriptionHandler]")
-                                && !text.contains("[WebSocket]")
-                                && !text.contains("Sent interim")
+                                && !text.contains("/v1/status")
                             {
                                 tracing::info!("{}", text);
                             }
@@ -145,11 +133,9 @@ impl Actor for ExternalSTTActor {
 
     async fn post_stop(
         &self,
-        myself: ActorRef<Self::Msg>,
+        _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        pg::leave(super::GROUP.into(), vec![myself.get_cell()]);
-
         if let Some(process) = state.process_handle.take() {
             if let Err(e) = process.kill() {
                 tracing::error!("failed_to_kill_process: {:?}", e);

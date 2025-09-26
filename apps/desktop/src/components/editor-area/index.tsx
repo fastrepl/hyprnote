@@ -214,8 +214,7 @@ export default function EditorArea({
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
             } else {
-
-              //comment out to turn off auto-open chat panel 
+              // comment out to turn off auto-open chat panel
               if (!isRightPanelExpanded) {
                 toggleRightPanel("chat");
               }
@@ -247,7 +246,7 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    [showRaw, showRaw ? rawContent : enhancedContent]  
+    [showRaw, showRaw ? rawContent : enhancedContent],
   );
 
   const safelyFocusEditor = useCallback(() => {

@@ -420,7 +420,7 @@ export function ChatInput(
           </Badge>
         </div>
       )}
-      
+
       {/* Custom styles to disable rich text features */}
       <style>
         {`

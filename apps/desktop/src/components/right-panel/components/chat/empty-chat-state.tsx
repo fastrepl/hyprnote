@@ -13,13 +13,15 @@ interface EmptyChatStateProps {
 
 export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: EmptyChatStateProps) => {
   const { userId } = useHypr();
-  const [quickActions, setQuickActions] = useState<Array<{
-    shownTitle: string;
-    actualPrompt: string;
-    eventName: string;
-  }>>([]);
+  const [quickActions, setQuickActions] = useState<
+    Array<{
+      shownTitle: string;
+      actualPrompt: string;
+      eventName: string;
+    }>
+  >([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState<'small' | 'medium' | 'large'>('large');
+  const [containerSize, setContainerSize] = useState<"small" | "medium" | "large">("large");
 
   useEffect(() => {
     getDynamicQuickActions(sessionId || null).then(setQuickActions);
@@ -30,18 +32,18 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       if (containerRef.current) {
         const width = containerRef.current.offsetWidth;
         if (width < 300) {
-          setContainerSize('small');
+          setContainerSize("small");
         } else if (width < 400) {
-          setContainerSize('medium');
+          setContainerSize("medium");
         } else {
-          setContainerSize('large');
+          setContainerSize("large");
         }
       }
     };
 
     updateSize();
     const resizeObserver = new ResizeObserver(updateSize);
-    
+
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
@@ -75,7 +77,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       heading: "text-sm",
       actionsGap: "gap-1.5",
       buttonPadding: "px-2 py-1.5",
-      buttonText: "text-xs"
+      buttonText: "text-xs",
     },
     medium: {
       container: "p-4",
@@ -85,7 +87,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       heading: "text-base",
       actionsGap: "gap-2",
       buttonPadding: "px-3 py-2",
-      buttonText: "text-xs"
+      buttonText: "text-xs",
     },
     large: {
       container: "p-6",
@@ -95,8 +97,8 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       heading: "text-xl",
       actionsGap: "gap-3",
       buttonPadding: "px-4 py-3",
-      buttonText: "text-sm"
-    }
+      buttonText: "text-sm",
+    },
   };
 
   const currentSize = sizeClasses[containerSize];
@@ -109,9 +111,9 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
     >
       {/* Icon at the top */}
       <div className={currentSize.iconWrapper}>
-        <img 
-          src="/assets/dynamic.gif" 
-          alt="" 
+        <img
+          src="/assets/dynamic.gif"
+          alt=""
           className={`${currentSize.icon} mx-auto`}
         />
       </div>
@@ -137,7 +139,8 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       </div>
 
       {/* Beta notice moved to bottom */}
-      {/* <div className="mt-8 p-3 rounded-lg bg-neutral-50 border border-neutral-200 max-w-[280px]">
+      {
+        /* <div className="mt-8 p-3 rounded-lg bg-neutral-50 border border-neutral-200 max-w-[280px]">
         <p className="text-xs text-neutral-600 text-left">
           <Trans>
             Chat feature is in beta. For best results, we recommend you to use{" "}
@@ -150,7 +153,8 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
             .
           </Trans>
         </p>
-      </div> */}
+      </div> */
+      }
     </div>
   );
 });

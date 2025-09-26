@@ -1,8 +1,8 @@
-import { BrainCircuit, Brain, Cpu, HardDrive, X } from "lucide-react";
+import { Brain, BrainCircuit, Cpu, HardDrive, X } from "lucide-react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody, ModalDescription, ModalTitle } from "@hypr/ui/components/ui/modal";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 interface ChatModelInfoModalProps {
   isOpen: boolean;
@@ -26,7 +26,9 @@ export function ChatModelInfoModal({ isOpen, onClose }: ChatModelInfoModalProps)
     handleClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <>
@@ -57,7 +59,7 @@ export function ChatModelInfoModal({ isOpen, onClose }: ChatModelInfoModalProps)
             </div>
 
             <ModalDescription className="text-neutral-600 text-sm mb-6">
-              <button 
+              <button
                 onClick={handleChooseModel}
                 className="underline hover:text-neutral-800 transition-colors cursor-pointer"
               >

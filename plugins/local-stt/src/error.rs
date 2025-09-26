@@ -20,6 +20,8 @@ pub enum Error {
     ModelNotDownloaded,
     #[error("Server already running")]
     ServerAlreadyRunning,
+    #[error("Server start failed")]
+    ServerStartFailed,
     #[error("AM binary not found")]
     AmBinaryNotFound,
     #[error("AM API key not set")]

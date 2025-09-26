@@ -167,7 +167,7 @@ async fn run_audio_stream_with_stop(
     let (response_stream, _) = client.from_realtime_audio(mic_stream).await?;
     futures_util::pin_mut!(response_stream);
 
-    while let Some(chunk) = response_stream.next().await {
+    while let Some(Ok(chunk)) = response_stream.next().await {
         if should_stop.load(std::sync::atomic::Ordering::Relaxed) {
             break;
         }

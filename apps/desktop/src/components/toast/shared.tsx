@@ -80,8 +80,7 @@ export function showSttModelDownloadToast(
             channel={sttChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
-              localSttCommands.setLocalModel(model);
-              localSttCommands.startServer(null);
+              localSttCommands.setLocalModel(model).then(() => localSttCommands.startServer(null));
               if (onComplete) {
                 onComplete();
               }
@@ -123,8 +122,7 @@ export function showLlmModelDownloadToast(
             channel={llmChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
-              localLlmCommands.setCurrentModel(modelToDownload);
-              localLlmCommands.startServer();
+              localLlmCommands.setCurrentModel(modelToDownload).then(() => localLlmCommands.startServer());
               if (onComplete) {
                 onComplete();
               }

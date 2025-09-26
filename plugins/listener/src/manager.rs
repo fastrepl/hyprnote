@@ -1,29 +1,34 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Default)]
+pub struct TranscriptManagerBuilder {
+    session_start_timestamp_ms: Option<u64>,
+}
+
+impl TranscriptManagerBuilder {
+    pub fn with_unix_timestamp(mut self, session_start_timestamp_ms: u64) -> Self {
+        self.session_start_timestamp_ms = Some(session_start_timestamp_ms);
+        self
+    }
+
+    pub fn build(self) -> TranscriptManager {
+        TranscriptManager {
+            id: uuid::Uuid::new_v4(),
+            partial_words_by_channel: HashMap::new(),
+            session_start_timestamp_ms: self.session_start_timestamp_ms.unwrap_or(0),
+        }
+    }
+}
+
 pub struct TranscriptManager {
     id: uuid::Uuid,
     partial_words_by_channel: HashMap<usize, Vec<owhisper_interface::Word>>,
     session_start_timestamp_ms: u64,
 }
 
-impl Default for TranscriptManager {
-    fn default() -> Self {
-        Self {
-            id: uuid::Uuid::new_v4(),
-            partial_words_by_channel: HashMap::new(),
-            session_start_timestamp_ms: 0,
-        }
-    }
-}
-
 impl TranscriptManager {
-    pub fn with_unix_timestamp(session_start_timestamp_ms: u64) -> Self {
-        Self {
-            id: uuid::Uuid::new_v4(),
-            partial_words_by_channel: HashMap::new(),
-            session_start_timestamp_ms,
-        }
+    pub fn builder() -> TranscriptManagerBuilder {
+        TranscriptManagerBuilder::default()
     }
 }
 
@@ -242,7 +247,7 @@ mod tests {
                 #[test]
                 #[allow(non_snake_case)]
                 fn $name() {
-                    let mut manager = TranscriptManager::default();
+                    let mut manager = TranscriptManager::builder().build();
                     let items = get_items(
                         &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                             .join("assets/raw")

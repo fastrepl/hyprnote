@@ -17,17 +17,19 @@ mcpServer.registerTool(
     inputSchema: searchAndContentsInputSchema.shape,
   },
   async (args) => {
-    const results = await exa.searchAndContents(args.query, {
+    const { results } = await exa.searchAndContents(args.query, {
       ...args,
       numResults: 10,
       type: "auto",
     });
 
+    const processed = results.map(({ title, text }) => ({ title, text }));
+
     return {
       content: [
         {
           type: "text",
-          text: JSON.stringify(results, null, 2),
+          text: JSON.stringify(processed, null, 2),
         },
       ],
     };

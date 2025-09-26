@@ -194,9 +194,10 @@ minijinja = "2.7.0"
 minijinja-contrib = "2.7.0"
 
 env_logger = "0.11.8"
-log = "0.4.27"
-tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+log = "0.4"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tracing-test = "0.2"
 
 apalis = "0.7.0"
 apalis-cron = "0.7.0"

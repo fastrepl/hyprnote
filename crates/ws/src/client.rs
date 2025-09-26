@@ -49,11 +49,17 @@ impl WebSocketClient {
     pub async fn from_audio<T: WebSocketIO>(
         &self,
         mut audio_stream: impl Stream<Item = T::Data> + Send + Unpin + 'static,
-    ) -> Result<(impl Stream<Item = T::Output>, WebSocketHandle), crate::Error> {
+    ) -> Result<
+        (
+            impl Stream<Item = Result<T::Output, crate::Error>>,
+            WebSocketHandle,
+        ),
+        crate::Error,
+    > {
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
-                    .with_max_times(20)
+                    .with_max_times(5)
                     .with_delay(std::time::Duration::from_millis(500)),
             )
             .when(|e| {
@@ -66,6 +72,7 @@ impl WebSocketClient {
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
         let (control_tx, mut control_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (error_tx, mut error_rx) = tokio::sync::mpsc::unbounded_channel::<crate::Error>();
         let handle = WebSocketHandle { control_tx };
 
         let _send_task = tokio::spawn(async move {
@@ -77,6 +84,7 @@ impl WebSocketClient {
 
                         if let Err(e) = ws_sender.send(msg).await {
                             tracing::error!("ws_send_failed: {:?}", e);
+                            let _ = error_tx.send(e.into());
                             break;
                         }
                     }
@@ -86,6 +94,7 @@ impl WebSocketClient {
                                 if let Some(msg) = maybe_msg {
                                     if let Err(e) = ws_sender.send(msg).await {
                                         tracing::error!("ws_finalize_failed: {:?}", e);
+                                        let _ = error_tx.send(e.into());
                                         break;
                                     }
                                 }
@@ -103,27 +112,37 @@ impl WebSocketClient {
         });
 
         let output_stream = async_stream::stream! {
-            while let Some(msg_result) = ws_receiver.next().await {
-                match msg_result {
-                    Ok(msg) => {
-                        match msg {
-                            Message::Text(_) | Message::Binary(_) => {
-                            if let Some(output) = T::from_message(msg) {
-                                yield output;
+            loop {
+                tokio::select! {
+                    Some(msg_result) = ws_receiver.next() => {
+                        match msg_result {
+                            Ok(msg) => {
+                                match msg {
+                                    Message::Text(_) | Message::Binary(_) => {
+                                        if let Some(output) = T::from_message(msg) {
+                                            yield Ok(output);
+                                        }
+                                    },
+                                    Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
+                                    Message::Close(_) => break,
+                                }
                             }
-                        },
-                        Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
-                            Message::Close(_) => break,
+                            Err(e) => {
+                                if let tokio_tungstenite::tungstenite::Error::Protocol(tokio_tungstenite::tungstenite::error::ProtocolError::ResetWithoutClosingHandshake) = &e {
+                                    tracing::debug!("ws_receiver_failed: {:?}", e);
+                                } else {
+                                    tracing::error!("ws_receiver_failed: {:?}", e);
+                                    yield Err(e.into());
+                                }
+                                break;
+                            }
                         }
                     }
-                    Err(e) => {
-                        if let tokio_tungstenite::tungstenite::Error::Protocol(tokio_tungstenite::tungstenite::error::ProtocolError::ResetWithoutClosingHandshake) = e {
-                            tracing::debug!("ws_receiver_failed: {:?}", e);
-                        } else {
-                            tracing::error!("ws_receiver_failed: {:?}", e);
-                        }
+                    Some(error) = error_rx.recv() => {
+                        yield Err(error);
                         break;
                     }
+                    else => break,
                 }
             }
         };

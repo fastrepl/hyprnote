@@ -10,7 +10,7 @@ use tauri_specta::Event;
 
 use crate::{manager::TranscriptManager, SessionEvent};
 
-const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(60 * 15);
+const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15);
 
 pub enum ListenerMsg {
     Audio(Bytes, Bytes),
@@ -154,7 +154,9 @@ async fn spawn_rx_task(
         };
         futures_util::pin_mut!(listen_stream);
 
-        let mut manager = TranscriptManager::with_unix_timestamp(session_start_ts_ms);
+        let mut manager = TranscriptManager::builder()
+            .with_unix_timestamp(session_start_ts_ms)
+            .build();
 
         loop {
             tokio::select! {
@@ -164,66 +166,73 @@ async fn spawn_rx_task(
                 }
                 result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
                     match result {
-                        Ok(Some(response)) => {
-                    let diff = manager.append(response.clone());
+                        Ok(Some(Ok(response))) => {
+                            let diff = manager.append(response.clone());
 
-                    let partial_words_by_channel: HashMap<usize, Vec<Word2>> = diff
-                        .partial_words
-                        .iter()
-                        .map(|(channel_idx, words)| {
-                            (
-                                *channel_idx,
-                                words
-                                    .iter()
-                                    .map(|w| Word2::from(w.clone()))
-                                    .collect::<Vec<_>>(),
+                            let partial_words_by_channel: HashMap<usize, Vec<Word2>> = diff
+                                .partial_words
+                                .iter()
+                                .map(|(channel_idx, words)| {
+                                    (
+                                        *channel_idx,
+                                        words
+                                            .iter()
+                                            .map(|w| Word2::from(w.clone()))
+                                            .collect::<Vec<_>>(),
+                                    )
+                                })
+                                .collect();
+
+                            SessionEvent::PartialWords {
+                                words: partial_words_by_channel,
+                            }
+                            .emit(&app)
+                            .unwrap();
+
+                            let final_words_by_channel: HashMap<usize, Vec<Word2>> = diff
+                                .final_words
+                                .iter()
+                                .map(|(channel_idx, words)| {
+                                    (
+                                        *channel_idx,
+                                        words
+                                            .iter()
+                                            .map(|w| Word2::from(w.clone()))
+                                            .collect::<Vec<_>>(),
+                                    )
+                                })
+                                .collect();
+
+                            update_session(
+                                &app,
+                                &session_id,
+                                final_words_by_channel
+                                    .clone()
+                                    .values()
+                                    .flatten()
+                                    .cloned()
+                                    .collect(),
                             )
-                        })
-                        .collect();
+                            .await
+                            .unwrap();
 
-                    SessionEvent::PartialWords {
-                        words: partial_words_by_channel,
-                    }
-                    .emit(&app)
-                    .unwrap();
-
-                    let final_words_by_channel: HashMap<usize, Vec<Word2>> = diff
-                        .final_words
-                        .iter()
-                        .map(|(channel_idx, words)| {
-                            (
-                                *channel_idx,
-                                words
-                                    .iter()
-                                    .map(|w| Word2::from(w.clone()))
-                                    .collect::<Vec<_>>(),
-                            )
-                        })
-                        .collect();
-
-                    update_session(
-                        &app,
-                        &session_id,
-                        final_words_by_channel
-                            .clone()
-                            .values()
-                            .flatten()
-                            .cloned()
-                            .collect(),
-                    )
-                    .await
-                    .unwrap();
-
-                    SessionEvent::FinalWords {
-                        words: final_words_by_channel,
-                    }
-                    .emit(&app)
-                    .unwrap();
-                }
+                            SessionEvent::FinalWords {
+                                words: final_words_by_channel,
+                            }
+                            .emit(&app)
+                            .unwrap();
+                        }
+                        // Something went wrong while sending or receiving a websocket message. Should restart.
+                        Ok(Some(Err(e))) => {
+                            tracing::info!("listen_stream_error: {:?}", e);
+                            break;
+                        }
+                        // Stream ended gracefully. Safe to stop the whole session.
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");
                             break;
                         }
+                        // We're not hearing back any transcript. Better to stop the whole session.
                         Err(_) => {
                             tracing::info!("listen_stream_timeout");
                             break;

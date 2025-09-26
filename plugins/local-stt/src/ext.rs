@@ -273,7 +273,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     },
                 )
                 .await
-                .unwrap();
+                .map_err(|_| crate::Error::ServerStartFailed)?;
 
                 let base_url = internal_health().await.map(|r| r.0).unwrap();
                 Ok(base_url)
@@ -339,7 +339,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     },
                 )
                 .await
-                .unwrap();
+                .map_err(|_| crate::Error::ServerStartFailed)?;
 
                 let base_url = external_health().await.map(|v| v.0).unwrap();
                 Ok(base_url)

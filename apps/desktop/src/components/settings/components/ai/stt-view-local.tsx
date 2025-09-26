@@ -261,7 +261,7 @@ function ProModelsSection({
   return (
     <section className="max-w-2xl">
       <SectionHeader
-        title="Pro Models (Beta)"
+        title="Pro Models"
         description="Resource and latency optimized. Only for pro users."
         status={status}
         docsUrl="https://docs.hyprnote.com/models"
@@ -306,8 +306,7 @@ function SectionHeader({
   docsUrl?: string;
 }) {
   const handleClick = () => {
-    localSttCommands.stopServer(null);
-    localSttCommands.startServer(null);
+    localSttCommands.stopServer(null).then(() => localSttCommands.startServer(null));
   };
 
   return (
@@ -376,10 +375,10 @@ function ModelEntry({
   const handleClick = async () => {
     if (isSelectable) {
       setSelectedSTTModel(model.key as SupportedSttModel);
-      localSttCommands.setLocalModel(model.key as SupportedSttModel);
+      await localSttCommands.setLocalModel(model.key as SupportedSttModel);
       setProviderToLocal();
-      localSttCommands.stopServer(null);
-      localSttCommands.startServer(null);
+      await localSttCommands.stopServer(null);
+      await localSttCommands.startServer(null);
 
       if (userId) {
         const isProModel = model.key.startsWith("am-");

@@ -29,9 +29,9 @@ pub struct ProcState {
     agc_m: hypr_agc::Agc,
     agc_s: hypr_agc::Agc,
     joiner: Joiner,
-    last_mic: Option<Arc<[f32]>>,
-    last_spk: Option<Arc<[f32]>>,
-    last_amp: Instant,
+    last_sent_mic: Option<Arc<[f32]>>,
+    last_sent_spk: Option<Arc<[f32]>>,
+    last_amp_emit: Instant,
 }
 
 pub struct ProcessorActor {}
@@ -57,9 +57,9 @@ impl Actor for ProcessorActor {
             joiner: Joiner::new(),
             agc_m: hypr_agc::Agc::default(),
             agc_s: hypr_agc::Agc::default(),
-            last_mic: None,
-            last_spk: None,
-            last_amp: Instant::now(),
+            last_sent_mic: None,
+            last_sent_spk: None,
+            last_amp_emit: Instant::now(),
         })
     }
 
@@ -73,14 +73,12 @@ impl Actor for ProcessorActor {
             ProcMsg::Mic(mut c) => {
                 st.agc_m.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
-                st.last_mic = Some(arc.clone());
                 st.joiner.push_mic(arc);
                 process_ready(st).await;
             }
             ProcMsg::Speaker(mut c) => {
                 st.agc_s.process(&mut c.data);
                 let arc = Arc::<[f32]>::from(c.data);
-                st.last_spk = Some(arc.clone());
                 st.joiner.push_spk(arc);
                 process_ready(st).await;
             }
@@ -90,9 +88,7 @@ impl Actor for ProcessorActor {
                 let empty_arc = Arc::<[f32]>::from(vec![0.0; c.data.len()]);
                 let arc = Arc::<[f32]>::from(c.data);
 
-                st.last_mic = Some(empty_arc.clone());
-                st.last_spk = Some(arc.clone());
-                st.joiner.push_mic(empty_arc.clone());
+                st.joiner.push_mic(empty_arc);
                 st.joiner.push_spk(arc);
                 process_ready(st).await;
             }
@@ -103,17 +99,17 @@ impl Actor for ProcessorActor {
 
 async fn process_ready(st: &mut ProcState) {
     while let Some((mic, spk)) = st.joiner.pop_pair() {
-        {
-            if let Some(cell) = registry::where_is(RecorderActor::name()) {
-                let mixed: Vec<f32> = mic
-                    .iter()
-                    .zip(spk.iter())
-                    .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
-                    .collect();
+        let mut audio_sent_successfully = false;
 
-                let actor: ActorRef<RecMsg> = cell.into();
-                actor.cast(RecMsg::Audio(mixed)).ok();
-            }
+        if let Some(cell) = registry::where_is(RecorderActor::name()) {
+            let mixed: Vec<f32> = mic
+                .iter()
+                .zip(spk.iter())
+                .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
+                .collect();
+
+            let actor: ActorRef<RecMsg> = cell.into();
+            actor.cast(RecMsg::Audio(mixed)).ok();
         }
 
         if let Some(cell) = registry::where_is(ListenerActor::name()) {
@@ -121,19 +117,29 @@ async fn process_ready(st: &mut ProcState) {
             let spk_bytes = hypr_audio_utils::f32_to_i16_bytes(spk.iter().copied());
 
             let actor: ActorRef<ListenerMsg> = cell.into();
-            actor
+            if actor
                 .cast(ListenerMsg::Audio(mic_bytes.into(), spk_bytes.into()))
-                .ok();
-        }
-    }
-
-    if st.last_amp.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
-        if let (Some(mic_data), Some(spk_data)) = (&st.last_mic, &st.last_spk) {
-            if let Err(e) = SessionEvent::from((mic_data.as_ref(), spk_data.as_ref())).emit(&st.app)
+                .is_ok()
             {
-                tracing::error!("{:?}", e);
+                audio_sent_successfully = true;
+                st.last_sent_mic = Some(mic.clone());
+                st.last_sent_spk = Some(spk.clone());
+            } else {
+                tracing::warn!(actor = ListenerActor::name(), "cast_failed");
             }
-            st.last_amp = Instant::now();
+        } else {
+            tracing::debug!(actor = ListenerActor::name(), "unavailable");
+        }
+
+        if audio_sent_successfully && st.last_amp_emit.elapsed() >= AUDIO_AMPLITUDE_THROTTLE {
+            if let (Some(mic_data), Some(spk_data)) = (&st.last_sent_mic, &st.last_sent_spk) {
+                if let Err(e) =
+                    SessionEvent::from((mic_data.as_ref(), spk_data.as_ref())).emit(&st.app)
+                {
+                    tracing::error!("{:?}", e);
+                }
+                st.last_amp_emit = Instant::now();
+            }
         }
     }
 }

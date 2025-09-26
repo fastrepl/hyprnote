@@ -10138,7 +10138,9 @@ dependencies = [
  "rodio",
  "serde_json",
  "tokio",
+ "tokio-stream",
  "tracing",
+ "tracing-subscriber",
  "url",
  "ws",
 ]

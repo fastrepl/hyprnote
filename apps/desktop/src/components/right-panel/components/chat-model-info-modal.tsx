@@ -1,4 +1,4 @@
-import { Shield, Zap, X } from "lucide-react";
+import { BrainCircuit, Brain, Cpu, HardDrive, X } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Modal, ModalBody, ModalDescription, ModalTitle } from "@hypr/ui/components/ui/modal";
@@ -66,50 +66,50 @@ export function ChatModelInfoModal({ isOpen, onClose }: ChatModelInfoModalProps)
               based on your priorities:
             </ModalDescription>
 
-            {/* Model categories */}
-            <div className="space-y-4 mb-6">
-              {/* Privacy First */}
-              <div className="border rounded-lg p-4">
-                <div className="mb-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Shield className="h-4 w-4 text-neutral-600" />
-                    <h3 className="font-medium text-sm text-neutral-800">If you want maximum privacy</h3>
+            {/* Model tiers diagram */}
+            <div className="space-y-3 mb-6">
+              {/* Ultimate */}
+              <div className="flex items-center gap-3">
+                <BrainCircuit className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-semibold text-base">Ultimate</span>
+                    <span className="text-xs text-neutral-900 font-medium">HyprCloud</span>
                   </div>
-                  <p className="text-xs text-neutral-600 mb-2">
-                    Use local models that run entirely on your device
-                  </p>
-                </div>
-                <div className="text-xs text-neutral-700">
-                  <strong>HyprLLM</strong> or models from your <strong>LM Studio</strong> (Qwen, LFM, Llama, etc.)
-                  <div className="text-neutral-500 mt-1">• No data sent to cloud • Basic responses</div>
+                  <div className="text-xs text-neutral-400 mt-0.5">Optimized, tool calling, MCP, web search, etc</div>
                 </div>
               </div>
 
-              {/* Power & Intelligence */}
-              <div className="border rounded-lg p-4">
-                <div className="mb-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="h-4 w-4 text-neutral-600" />
-                    <h3 className="font-medium text-sm text-neutral-800">If you want powerful & smartness</h3>
+              {/* Advanced */}
+              <div className="flex items-center gap-3">
+                <Brain className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-semibold text-base">Advanced</span>
+                    <span className="text-xs text-neutral-900 font-medium">GPT-4.1, Sonnet, GPT-4o, GPT-5</span>
                   </div>
-                  <p className="text-xs text-neutral-600 mb-2">
-                    Use cloud AI models with advanced capabilities
-                  </p>
+                  <div className="text-xs text-neutral-400 mt-0.5">Tool calling, MCP</div>
                 </div>
-                
-                <div className="space-y-3 text-xs">
-                  <div className="pl-3 border-l-2 border-neutral-300">
-                    <div className="font-medium text-neutral-800">HyprCloud</div>
-                    <div className="text-neutral-600">
-                      Maximum power with built-in tools: web search, URL reading, MCP integrations, and agentic workflows by Hyprnote team
-                    </div>
+              </div>
+
+              {/* Standard */}
+              <div className="flex items-center gap-3">
+                <Cpu className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-semibold text-base">Standard</span>
+                    <span className="text-xs text-neutral-900 font-medium">Other custom endpoint cloud models</span>
                   </div>
-                  
-                  <div className="pl-3 border-l-2 border-neutral-300">
-                    <div className="font-medium text-neutral-800">Custom Endpoints</div>
-                    <div className="text-neutral-600">
-                      GPT-4.1, Claude Sonnet 4, GPT-4o, GPT-5 with tool calling and MCP support
-                    </div>
+                </div>
+              </div>
+
+              {/* Baseline */}
+              <div className="flex items-center gap-3">
+                <HardDrive className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-semibold text-base">Basic</span>
+                    <span className="text-xs text-neutral-900 font-medium">Local models</span>
                   </div>
                 </div>
               </div>

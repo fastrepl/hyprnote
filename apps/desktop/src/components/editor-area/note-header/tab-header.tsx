@@ -78,24 +78,13 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
           <div className="flex px-8">
             <div className="flex border-b border-neutral-100 w-full">
               {/* Raw Note Tab */}
-              <button
-                onClick={() => handleTabClick("raw")}
-                className={cn(
-                  "relative px-4 py-2 pl-1 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
-                  activeTab === "raw"
-                    ? "text-neutral-900 border-neutral-900"
-                    : "text-neutral-600 border-transparent hover:text-neutral-800",
-                )}
-              >
-                Memos
-              </button>
 
               {/* Enhanced Note Tab - show when session ended OR transcript exists OR enhanced memo exists */}
               {shouldShowEnhancedTab && (
                 <button
                   onClick={() => handleTabClick("enhanced")}
                   className={cn(
-                    "relative px-4 py-2 text-xs pl-3 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+                    "relative px-2 py-2 text-xs pl-1 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
                     activeTab === "enhanced"
                       ? "text-neutral-900 border-neutral-900"
                       : "text-neutral-600 border-transparent hover:text-neutral-800",
@@ -104,6 +93,19 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
                   Summary
                 </button>
               )}
+
+              <button
+                onClick={() => handleTabClick("raw")}
+                className={cn(
+                  "relative py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
+                  shouldShowEnhancedTab ? "pl-3 px-4" : "pl-1 px-2",
+                  activeTab === "raw"
+                    ? "text-neutral-900 border-neutral-900"
+                    : "text-neutral-600 border-transparent hover:text-neutral-800",
+                )}
+              >
+                Memos
+              </button>
 
               {/* Transcript Tab - always show */}
               <button

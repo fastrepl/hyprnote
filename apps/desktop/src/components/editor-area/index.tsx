@@ -214,6 +214,8 @@ export default function EditorArea({
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
             } else {
+
+              //comment out to turn off auto-open chat panel 
               if (!isRightPanelExpanded) {
                 toggleRightPanel("chat");
               }

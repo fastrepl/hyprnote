@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
+import { ArrowUpIcon, BrainIcon, BuildingIcon, ChevronUpIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
@@ -506,9 +506,10 @@ export function ChatInput(
       {/* Bottom area stays fixed */}
       <div className="flex items-center justify-between pt-2 pb-2 px-3 flex-shrink-0">
         <button
-          className="text-xs text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
+          className="text-xs text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer flex items-center gap-1"
           onClick={() => setIsModelModalOpen(true)}
         >
+          <BrainIcon className="h-3 w-3" />
           {getCurrentModelName()}
         </button>
 

@@ -228,6 +228,7 @@ impl Stream for SpeakerStream {
         }
 
         if self._ctx.should_terminate.load(Ordering::Acquire) {
+            tracing::warn!("should_terminate");
             return match self.consumer.try_pop() {
                 Some(sample) => Poll::Ready(Some(sample)),
                 None => Poll::Ready(None),

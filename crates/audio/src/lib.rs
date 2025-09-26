@@ -44,13 +44,21 @@ impl AudioOutput {
     }
 
     pub fn silence() -> std::sync::mpsc::Sender<()> {
-        use rodio::{source::Zero, OutputStream, Sink};
+        use rodio::{
+            source::{Source, Zero},
+            OutputStream, Sink,
+        };
+
         let (tx, rx) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
             if let Ok((_, stream)) = OutputStream::try_default() {
+                let silence = Zero::<f32>::new(2, 48_000)
+                    .take_duration(std::time::Duration::from_secs(1))
+                    .repeat_infinite();
+
                 let sink = Sink::try_new(&stream).unwrap();
-                sink.append(Zero::<f32>::new(1, 16000));
+                sink.append(silence);
 
                 let _ = rx.recv();
                 sink.stop();

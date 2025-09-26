@@ -11,6 +11,7 @@ pub struct LlamaRequest {
     pub grammar: Option<String>,
     pub messages: Vec<LlamaMessage>,
     pub tools: Option<Vec<ChatCompletionTool>>,
+    pub max_tokens: Option<u32>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

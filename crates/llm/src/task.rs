@@ -21,8 +21,9 @@ pub async fn generate_title(
                 content: render(Template::CreateTitleUser, &ctx).unwrap(),
             },
         ],
+        max_tokens: Some(30),
         grammar: Some(Grammar::Title.build()),
-        tools: None,
+        ..Default::default()
     })?;
 
     let items = stream
@@ -56,8 +57,9 @@ pub async fn generate_tags(
                 content: render(Template::SuggestTagsUser, &ctx).unwrap(),
             },
         ],
+        max_tokens: Some(30),
         grammar: Some(Grammar::Tags.build()),
-        tools: None,
+        ..Default::default()
     })?;
 
     let items = stream
@@ -91,8 +93,8 @@ pub async fn postprocess_transcript(
                 content: render(Template::PostprocessTranscriptUser, &ctx).unwrap(),
             },
         ],
-        grammar: None,
-        tools: None,
+        max_tokens: Some(100),
+        ..Default::default()
     })?;
 
     let items = stream

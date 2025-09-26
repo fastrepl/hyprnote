@@ -153,7 +153,7 @@ impl Joiner {
 
     fn push_mic(&mut self, data: Arc<[f32]>) {
         self.mic.push_back(data);
-        if self.mic.len() > 10 {
+        if self.mic.len() > 30 {
             tracing::warn!("mic_queue_overflow");
             self.mic.pop_front();
         }
@@ -161,7 +161,7 @@ impl Joiner {
 
     fn push_spk(&mut self, data: Arc<[f32]>) {
         self.spk.push_back(data);
-        if self.spk.len() > 10 {
+        if self.spk.len() > 30 {
             tracing::warn!("spk_queue_overflow");
             self.spk.pop_front();
         }

@@ -74,7 +74,9 @@ axum = { workspace = true, features = ["ws"] }
 axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
+backon = { workspace = true }
 futures-util = { workspace = true }
+ractor = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }

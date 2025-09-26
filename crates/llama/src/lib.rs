@@ -123,6 +123,7 @@ impl Llama {
             LlamaBatch,
             i32,
             *mut std::ffi::c_void,
+            u32,
         ),
         crate::Error,
     > {
@@ -146,6 +147,7 @@ impl Llama {
         let mut tokens_list = model.str_to_token(&prompt, AddBos::Always).unwrap();
         tokens_list.truncate(DEFAULT_MAX_INPUT_TOKENS as usize);
         let input_tokens_len = tokens_list.len() as u32;
+        let max_output_tokens = request.max_tokens.unwrap_or(DEFAULT_MAX_OUTPUT_TOKENS);
 
         let progress_data = Box::new(ProgressData {
             total: input_tokens_len as usize,
@@ -206,7 +208,7 @@ impl Llama {
                 backend,
                 LlamaContextParams::default()
                     .with_n_ctx(std::num::NonZeroU32::new(
-                        input_tokens_len + DEFAULT_MAX_OUTPUT_TOKENS,
+                        input_tokens_len + max_output_tokens,
                     ))
                     .with_n_batch(input_tokens_len)
                     .with_embeddings(false)
@@ -240,7 +242,7 @@ impl Llama {
             }));
         }
 
-        Ok((ctx, batch, last_index, progress_data_ptr))
+        Ok((ctx, batch, last_index, progress_data_ptr, max_output_tokens))
     }
 
     fn process_generation<'a>(
@@ -252,13 +254,14 @@ impl Llama {
         response_sender: tokio::sync::mpsc::UnboundedSender<Response>,
         progress_data_ptr: *mut std::ffi::c_void,
         cancellation_token: CancellationToken,
+        max_output_tokens: u32,
     ) {
         let mut n_cur = batch.n_tokens();
         let mut decoder = encoding_rs::UTF_8.new_decoder();
         let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
         let mut parser = StreamingParser::new();
 
-        'generation: while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
+        'generation: while n_cur <= last_index + max_output_tokens as i32 {
             if cancellation_token.is_cancelled() || response_sender.is_closed() {
                 break;
             }
@@ -340,7 +343,13 @@ impl Llama {
                                 callback,
                                 cancellation_token.clone(),
                             ) {
-                                Ok((ctx, batch, last_index, progress_data_ptr)) => {
+                                Ok((
+                                    ctx,
+                                    batch,
+                                    last_index,
+                                    progress_data_ptr,
+                                    max_output_tokens,
+                                )) => {
                                     Self::process_generation(
                                         &model,
                                         ctx,
@@ -350,6 +359,7 @@ impl Llama {
                                         response_sender,
                                         progress_data_ptr,
                                         cancellation_token,
+                                        max_output_tokens,
                                     );
                                 }
                                 Err(e) => {
@@ -423,7 +433,6 @@ mod tests {
 
         while let Some(response) = stream.next().await {
             responses.push(response.clone());
-            println!("{:?}", response);
         }
 
         responses
@@ -456,7 +465,7 @@ mod tests {
                     content: hypr_data::english_3::WORDS_JSON.repeat(1),
                 },
             ],
-            tools: None,
+            ..Default::default()
         }
     }
 
@@ -466,7 +475,6 @@ mod tests {
     async fn test_tool() {
         let llama = get_model();
         let request = LlamaRequest {
-            grammar: None,
             messages: vec![LlamaMessage {
                 role: "user".into(),
                 content: "response, and say hi".into(),
@@ -501,6 +509,7 @@ mod tests {
                     },
                 },
             ]),
+            ..Default::default()
         };
 
         run(&llama, request).await;
@@ -512,7 +521,6 @@ mod tests {
     async fn test_simple() {
         let llama = get_model();
         let request = LlamaRequest {
-            grammar: None,
             messages: vec![
                 LlamaMessage {
                     role: "system".into(),
@@ -523,7 +531,8 @@ mod tests {
                     content: "hello".into(),
                 },
             ],
-            tools: None,
+            max_tokens: Some(5),
+            ..Default::default()
         };
 
         run(&llama, request).await;

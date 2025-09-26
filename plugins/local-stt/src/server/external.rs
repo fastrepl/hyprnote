@@ -1,125 +1,186 @@
+use std::path::PathBuf;
+use tauri_plugin_shell::process::{Command, CommandChild};
+
 use super::ServerHealth;
+use backon::{ConstantBuilder, Retryable};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
-pub struct ServerHandle {
-    pub base_url: String,
+pub enum ExternalSTTMessage {
+    GetHealth(RpcReplyPort<(String, ServerHealth)>),
+    ProcessTerminated(String),
+}
+
+pub struct ExternalSTTArgs {
+    pub cmd: Command,
+    pub api_key: String,
+    pub model: hypr_am::AmModel,
+    pub models_dir: PathBuf,
+}
+
+pub struct ExternalSTTState {
+    base_url: String,
     api_key: Option<String>,
-    shutdown: tokio::sync::watch::Sender<()>,
+    model: hypr_am::AmModel,
+    models_dir: PathBuf,
     client: hypr_am::Client,
+    process_handle: Option<CommandChild>,
+    task_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
-impl Drop for ServerHandle {
-    fn drop(&mut self) {
-        tracing::info!("stopping");
-        let _ = self.shutdown.send(());
+pub struct ExternalSTTActor;
+
+impl ExternalSTTActor {
+    pub fn name() -> ActorName {
+        "external_stt".into()
     }
 }
 
-impl ServerHandle {
-    pub async fn health(&self) -> ServerHealth {
-        let res = self.client.status().await;
-        if res.is_err() {
-            tracing::error!("{:?}", res);
-            return ServerHealth::Unreachable;
-        }
+impl Actor for ExternalSTTActor {
+    type Msg = ExternalSTTMessage;
+    type State = ExternalSTTState;
+    type Arguments = ExternalSTTArgs;
 
-        let res = res.unwrap();
-
-        if res.model_state == hypr_am::ModelState::Loading {
-            return ServerHealth::Loading;
-        }
-
-        if res.model_state == hypr_am::ModelState::Loaded {
-            return ServerHealth::Ready;
-        }
-
-        ServerHealth::Unreachable
-    }
-
-    pub async fn init(
+    async fn pre_start(
         &self,
-        model: hypr_am::AmModel,
-        models_dir: impl AsRef<std::path::Path>,
-    ) -> Result<hypr_am::InitResponse, crate::Error> {
-        let r = self
-            .client
-            .init(
-                hypr_am::InitRequest::new(self.api_key.clone().unwrap())
-                    .with_model(model, models_dir),
-            )
-            .await?;
+        myself: ActorRef<Self::Msg>,
+        args: Self::Arguments,
+    ) -> Result<Self::State, ActorProcessingErr> {
+        let port = port_check::free_local_port().unwrap();
+        let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
+        let base_url = format!("http://localhost:{}", port);
+        let client = hypr_am::Client::new(&base_url);
 
-        Ok(r)
-    }
-}
-
-pub async fn run_server(
-    cmd: tauri_plugin_shell::process::Command,
-    am_key: String,
-) -> Result<ServerHandle, crate::Error> {
-    let port = port_check::free_local_port().unwrap();
-    let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
-    let base_url = format!("http://localhost:{}", port);
-    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
-    let client = hypr_am::Client::new(&base_url);
-
-    tokio::spawn(async move {
-        let mut process_ended = false;
-
-        loop {
-            tokio::select! {
-                _ = shutdown_rx.changed() => {
-                    tracing::info!("shutdown_signal_received");
-                    break;
-                }
-                event = rx.recv() => {
-                    match event {
-                        Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes)) => {
-                            if let Ok(text) = String::from_utf8(bytes) {
-                                let text = text.trim();
-                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
-                                    tracing::info!("{}", text);
-                                }
+        let task_handle = tokio::spawn(async move {
+            loop {
+                match rx.recv().await {
+                    Some(tauri_plugin_shell::process::CommandEvent::Stdout(bytes))
+                    | Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
+                        if let Ok(text) = String::from_utf8(bytes) {
+                            let text = text.trim();
+                            if !text.is_empty()
+                                && !text.contains("[TranscriptionHandler]")
+                                && !text.contains("[WebSocket]")
+                                && !text.contains("Sent interim")
+                                && !text.contains("/v1/status")
+                            {
+                                tracing::info!("{}", text);
                             }
                         }
-                        Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
-                            if let Ok(text) = String::from_utf8(bytes) {
-                                let text = text.trim();
-                                if !text.is_empty() && !text.contains("[TranscriptionHandler]") && !text.contains("[WebSocket]") && !text.contains("Sent interim") {
-                                    tracing::info!("{}", text);
-                                }
-                            }
-                        }
-                        Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
-                            tracing::error!("terminated: {:?}", payload);
-                            process_ended = true;
-                            break;
-                        }
-                        Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
-                            tracing::error!("{}", error);
-                            break;
-                        }
-                        None => {
-                            tracing::warn!("closed");
-                            process_ended = true;
-                            break;
-                        }
-                        _ => {}
                     }
+                    Some(tauri_plugin_shell::process::CommandEvent::Terminated(payload)) => {
+                        let e = format!("{:?}", payload);
+                        tracing::error!("{}", e);
+                        let _ = myself.send_message(ExternalSTTMessage::ProcessTerminated(e));
+                        break;
+                    }
+                    Some(tauri_plugin_shell::process::CommandEvent::Error(error)) => {
+                        tracing::error!("{}", error);
+                        let _ = myself.send_message(ExternalSTTMessage::ProcessTerminated(error));
+                        break;
+                    }
+                    None => {
+                        tracing::warn!("closed");
+                        break;
+                    }
+                    _ => {}
                 }
             }
-        }
+        });
 
-        if !process_ended {
-            if let Err(e) = child.kill() {
-                tracing::error!("{:?}", e);
+        Ok(ExternalSTTState {
+            base_url,
+            api_key: Some(args.api_key),
+            model: args.model,
+            models_dir: args.models_dir,
+            client,
+            process_handle: Some(child),
+            task_handle: Some(task_handle),
+        })
+    }
+    async fn post_start(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        let api_key = state.api_key.clone().unwrap();
+        let model = state.model.clone();
+        let models_dir = state.models_dir.clone();
+
+        let res = (|| async {
+            state
+                .client
+                .init(
+                    hypr_am::InitRequest::new(api_key.clone())
+                        .with_model(model.clone(), &models_dir),
+                )
+                .await
+        })
+        .retry(
+            ConstantBuilder::default()
+                .with_max_times(20)
+                .with_delay(std::time::Duration::from_millis(500)),
+        )
+        .when(|e| {
+            tracing::error!("external_stt_init_failed: {:?}", e);
+            true
+        })
+        .sleep(tokio::time::sleep)
+        .await?;
+
+        tracing::info!(res = ?res);
+        Ok(())
+    }
+
+    async fn post_stop(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        if let Some(process) = state.process_handle.take() {
+            if let Err(e) = process.kill() {
+                tracing::error!("failed_to_kill_process: {:?}", e);
             }
         }
-    });
 
-    Ok(ServerHandle {
-        api_key: Some(am_key),
-        base_url,
-        shutdown: shutdown_tx,
-        client,
-    })
+        if let Some(task) = state.task_handle.take() {
+            task.abort();
+        }
+
+        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+
+        Ok(())
+    }
+
+    async fn handle(
+        &self,
+        myself: ActorRef<Self::Msg>,
+        message: Self::Msg,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        match message {
+            ExternalSTTMessage::ProcessTerminated(e) => {
+                myself.stop(Some(e));
+                Ok(())
+            }
+            ExternalSTTMessage::GetHealth(reply_port) => {
+                let status = match state.client.status().await {
+                    Ok(r) => match r.model_state {
+                        hypr_am::ModelState::Loading => ServerHealth::Loading,
+                        hypr_am::ModelState::Loaded => ServerHealth::Ready,
+                        _ => ServerHealth::Unreachable,
+                    },
+                    Err(e) => {
+                        tracing::error!("{:?}", e);
+                        ServerHealth::Unreachable
+                    }
+                };
+
+                if let Err(e) = reply_port.send((state.base_url.clone(), status)) {
+                    return Err(e.into());
+                }
+
+                Ok(())
+            }
+        }
+    }
 }

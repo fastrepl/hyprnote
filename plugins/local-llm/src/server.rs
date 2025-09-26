@@ -221,6 +221,7 @@ impl LocalProvider {
             messages,
             grammar,
             tools,
+            max_tokens: request.max_tokens,
         };
 
         let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();

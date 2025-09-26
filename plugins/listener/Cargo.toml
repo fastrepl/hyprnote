@@ -61,7 +61,7 @@ hound = { workspace = true }
 vorbis_rs = { workspace = true }
 
 futures-util = { workspace = true }
-ractor = "0.15"
+ractor = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 tokio-util = { workspace = true }

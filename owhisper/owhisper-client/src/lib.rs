@@ -93,17 +93,23 @@ impl ListenClientBuilder {
             }
 
             query_pairs
-                // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#handshake
+                // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#request.query
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
                 .append_pair("interim_results", "true")
+                .append_pair("mip_opt_out", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
+                .append_pair("diarize", "true")
                 .append_pair("multichannel", "true")
-                .append_pair("channels", &channels.to_string())
-                .append_pair(
-                    "redemption_time_ms",
-                    &params.redemption_time_ms.unwrap_or(400).to_string(),
-                );
+                .append_pair("punctuate", "true")
+                .append_pair("smart_format", "true")
+                .append_pair("vad_events", "false")
+                .append_pair("channels", &channels.to_string());
+
+            query_pairs.append_pair(
+                "redemption_time_ms",
+                &params.redemption_time_ms.unwrap_or(400).to_string(),
+            );
         }
 
         let host = url.host_str().unwrap();

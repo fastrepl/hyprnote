@@ -5,7 +5,7 @@ use bytes::Bytes;
 use futures_util::StreamExt;
 
 use owhisper_interface::{ControlMessage, MixedMessage, Word2};
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
 use crate::{manager::TranscriptManager, SessionEvent};
@@ -27,6 +27,7 @@ pub struct ListenerArgs {
 pub struct ListenerState {
     tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
     rx_task: tokio::task::JoinHandle<()>,
+    shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
 }
 
 pub struct ListenerActor;
@@ -47,8 +48,31 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let (tx, rx_task) = spawn_rx_task(args, myself).await.unwrap();
-        Ok(ListenerState { tx, rx_task })
+        {
+            use tauri_plugin_local_stt::LocalSttPluginExt;
+            let _ = args.app.start_server(None).await;
+        }
+
+        let (tx, rx_task, shutdown_tx) = spawn_rx_task(args, myself).await.unwrap();
+        let state = ListenerState {
+            tx,
+            rx_task,
+            shutdown_tx: Some(shutdown_tx),
+        };
+
+        Ok(state)
+    }
+
+    async fn post_stop(
+        &self,
+        _myself: ActorRef<Self::Msg>,
+        state: &mut Self::State,
+    ) -> Result<(), ActorProcessingErr> {
+        if let Some(shutdown_tx) = state.shutdown_tx.take() {
+            let _ = shutdown_tx.send(());
+        }
+        state.rx_task.abort();
+        Ok(())
     }
 
     async fn handle(
@@ -65,12 +89,21 @@ impl Actor for ListenerActor {
         Ok(())
     }
 
-    async fn post_stop(
+    async fn handle_supervisor_evt(
         &self,
-        _myself: ActorRef<Self::Msg>,
-        state: &mut Self::State,
+        myself: ActorRef<Self::Msg>,
+        message: SupervisionEvent,
+        _state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        state.rx_task.abort();
+        tracing::info!("supervisor_event: {:?}", message);
+
+        match message {
+            SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
+            SupervisionEvent::ActorTerminated(_, _, _) => {}
+            SupervisionEvent::ActorFailed(_cell, _) => {
+                myself.stop(None);
+            }
+        }
         Ok(())
     }
 }
@@ -82,10 +115,12 @@ async fn spawn_rx_task(
     (
         tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
         tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
     ),
     ActorProcessingErr,
 > {
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
     let app = args.app.clone();
     let session_id = args.session_id.clone();
@@ -109,7 +144,7 @@ async fn spawn_rx_task(
 
     let rx_task = tokio::spawn(async move {
         let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let (listen_stream, _handle) = match client.from_realtime_audio(outbound).await {
+        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
             Ok(res) => res,
             Err(e) => {
                 tracing::error!("listen_ws_connect_failed: {:?}", e);
@@ -122,8 +157,14 @@ async fn spawn_rx_task(
         let mut manager = TranscriptManager::with_unix_timestamp(session_start_ts_ms);
 
         loop {
-            match tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()).await {
-                Ok(Some(response)) => {
+            tokio::select! {
+                _ = &mut shutdown_rx => {
+                    handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+                    break;
+                }
+                result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
+                    match result {
+                        Ok(Some(response)) => {
                     let diff = manager.append(response.clone());
 
                     let partial_words_by_channel: HashMap<usize, Vec<Word2>> = diff
@@ -179,13 +220,15 @@ async fn spawn_rx_task(
                     .emit(&app)
                     .unwrap();
                 }
-                Ok(None) => {
-                    tracing::info!("listen_stream_ended");
-                    break;
-                }
-                Err(_) => {
-                    tracing::info!("listen_stream_timeout");
-                    break;
+                        Ok(None) => {
+                            tracing::info!("listen_stream_ended");
+                            break;
+                        }
+                        Err(_) => {
+                            tracing::info!("listen_stream_timeout");
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -193,7 +236,7 @@ async fn spawn_rx_task(
         myself.stop(None);
     });
 
-    Ok((tx, rx_task))
+    Ok((tx, rx_task, shutdown_tx))
 }
 
 async fn update_session<R: tauri::Runtime>(

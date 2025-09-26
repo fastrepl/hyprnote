@@ -15,6 +15,7 @@ pub use error::*;
 use events::*;
 pub use ext::*;
 pub use model::*;
+pub use server::*;
 pub use store::*;
 pub use types::*;
 
@@ -23,8 +24,6 @@ pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 #[derive(Default)]
 pub struct State {
     pub am_api_key: Option<String>,
-    pub internal_server: Option<server::internal::ServerHandle>,
-    pub external_server: Option<server::external::ServerHandle>,
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
 }
 

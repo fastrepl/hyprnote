@@ -314,6 +314,7 @@ export function ChatView() {
             <EmptyChatState
               onQuickAction={handleQuickAction}
               onFocusInput={handleFocusInput}
+              sessionId={sessionId}
             />
           )
           : (

@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use tauri_plugin_shell::process::{Command, CommandChild};
+use tauri_plugin_shell::process::CommandChild;
 
 use super::ServerHealth;
 use backon::{ConstantBuilder, Retryable};
@@ -11,17 +11,15 @@ pub enum ExternalSTTMessage {
 }
 
 pub struct ExternalSTTArgs {
-    pub cmd: Command,
+    pub app: tauri::AppHandle,
     pub api_key: String,
     pub model: hypr_am::AmModel,
     pub models_dir: PathBuf,
 }
 
 pub struct ExternalSTTState {
+    args: ExternalSTTArgs,
     base_url: String,
-    api_key: Option<String>,
-    model: hypr_am::AmModel,
-    models_dir: PathBuf,
     client: hypr_am::Client,
     process_handle: Option<CommandChild>,
     task_handle: Option<tokio::task::JoinHandle<()>>,
@@ -32,6 +30,41 @@ pub struct ExternalSTTActor;
 impl ExternalSTTActor {
     pub fn name() -> ActorName {
         "external_stt".into()
+    }
+
+    fn build_cmd<R: tauri::Runtime>(
+        app: &tauri::AppHandle<R>,
+    ) -> Result<tauri_plugin_shell::process::Command, crate::Error> {
+        use tauri_plugin_shell::ShellExt;
+
+        let cmd: tauri_plugin_shell::process::Command = {
+            #[cfg(debug_assertions)]
+            {
+                let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
+                    "../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin",
+                );
+                let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin");
+
+                if !passthrough_path.exists() || !stt_path.exists() {
+                    return Err(crate::Error::AmBinaryNotFound);
+                }
+
+                app.shell()
+                    .command(passthrough_path)
+                    .current_dir(dirs::home_dir().unwrap())
+                    .arg(stt_path)
+                    .args(["serve", "-v", "-d"])
+            }
+
+            #[cfg(not(debug_assertions))]
+            app.shell()
+                .sidecar("stt")?
+                .current_dir(dirs::home_dir().unwrap())
+                .args(["serve"])
+        };
+
+        Ok(cmd)
     }
 }
 
@@ -45,8 +78,10 @@ impl Actor for ExternalSTTActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        let cmd = Self::build_cmd(&args.app).unwrap();
+
         let port = port_check::free_local_port().unwrap();
-        let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
+        let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}", port);
         let client = hypr_am::Client::new(&base_url);
 
@@ -88,10 +123,8 @@ impl Actor for ExternalSTTActor {
         });
 
         Ok(ExternalSTTState {
+            args,
             base_url,
-            api_key: Some(args.api_key),
-            model: args.model,
-            models_dir: args.models_dir,
             client,
             process_handle: Some(child),
             task_handle: Some(task_handle),
@@ -102,9 +135,9 @@ impl Actor for ExternalSTTActor {
         _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        let api_key = state.api_key.clone().unwrap();
-        let model = state.model.clone();
-        let models_dir = state.models_dir.clone();
+        let api_key = state.args.api_key.clone();
+        let model = state.args.model.clone();
+        let models_dir = state.args.models_dir.clone();
 
         let res = (|| async {
             state

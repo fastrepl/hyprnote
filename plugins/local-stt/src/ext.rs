@@ -4,7 +4,6 @@ use ractor::{call_t, registry, Actor, ActorRef};
 use tokio_util::sync::CancellationToken;
 
 use tauri::{ipc::Channel, Manager, Runtime};
-use tauri_plugin_shell::ShellExt;
 use tauri_plugin_store2::StorePluginExt;
 
 use hypr_download_interface::DownloadProgress;
@@ -290,49 +289,23 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
-                let am_key = {
+                let (app, am_key) = {
                     let state = self.state::<crate::SharedState>();
+                    let guard = state.lock().await;
 
-                    let key = state.lock().await.am_api_key.clone();
-                    if key.clone().is_none() || key.clone().unwrap().is_empty() {
+                    let key = guard.am_api_key.clone();
+                    if key.as_ref().is_none() || key.as_ref().unwrap().is_empty() {
                         return Err(crate::Error::AmApiKeyNotSet);
                     }
 
-                    key.clone().unwrap()
-                };
-
-                let cmd: tauri_plugin_shell::process::Command = {
-                    #[cfg(debug_assertions)]
-                    {
-                        let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
-                        let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
-                            "../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin",
-                        );
-
-                        if !passthrough_path.exists() || !stt_path.exists() {
-                            return Err(crate::Error::AmBinaryNotFound);
-                        }
-
-                        self.shell()
-                            .command(passthrough_path)
-                            .current_dir(dirs::home_dir().unwrap())
-                            .arg(stt_path)
-                            .args(["serve", "-v", "-d"])
-                    }
-
-                    #[cfg(not(debug_assertions))]
-                    self.shell()
-                        .sidecar("stt")?
-                        .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve"])
+                    (guard.app.clone(), key.unwrap())
                 };
 
                 let (_server, _) = Actor::spawn(
                     Some(external::ExternalSTTActor::name()),
                     external::ExternalSTTActor,
                     external::ExternalSTTArgs {
-                        cmd,
+                        app,
                         api_key: am_key,
                         model: am_model,
                         models_dir: data_dir,

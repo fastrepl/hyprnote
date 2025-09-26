@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use tauri::{Manager, Wry};
+use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 
 mod commands;
@@ -19,10 +20,10 @@ pub use server::*;
 pub use store::*;
 pub use types::*;
 
-pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
+pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
 pub struct State {
+    pub app: tauri::AppHandle,
     pub am_api_key: Option<String>,
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
 }
@@ -58,7 +59,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -90,7 +91,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             }
 
-            let api_key = {
+            let am_api_key = {
                 #[cfg(not(debug_assertions))]
                 {
                     Some(env!("AM_API_KEY").to_string())
@@ -102,10 +103,13 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             };
 
-            app.manage(SharedState::new(tokio::sync::Mutex::new(State {
-                am_api_key: api_key,
-                ..Default::default()
-            })));
+            let state: SharedState = Mutex::new(State {
+                app: app.app_handle().clone(),
+                am_api_key,
+                download_task: HashMap::default(),
+            });
+
+            app.manage(state);
 
             Ok(())
         })
@@ -128,26 +132,5 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
-    }
-
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-        let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
-        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
-
-        builder
-            .plugin(init())
-            .plugin(tauri_plugin_store::Builder::default().build())
-            .build(ctx)
-            .unwrap()
-    }
-
-    #[tokio::test]
-    #[ignore]
-    // cargo test test_local_stt -p tauri-plugin-local-stt -- --ignored --nocapture
-    async fn test_local_stt() {
-        let app = create_app(tauri::test::mock_builder());
-        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-        let model = app.get_local_model();
-        println!("model: {:#?}", model);
     }
 }

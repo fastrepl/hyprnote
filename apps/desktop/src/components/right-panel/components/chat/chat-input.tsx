@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpIcon, BrainIcon, BuildingIcon, ChevronUpIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
+import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";

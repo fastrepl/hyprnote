@@ -1,16 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useHypr, useRightPanel } from "@/contexts";
 import type { SelectionData } from "@/contexts/right-panel";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { BadgeType } from "../../types/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
+import { ChatModelInfoModal } from "../chat-model-info-modal";
 
 interface ChatInputProps {
   inputValue: string;
@@ -45,6 +47,28 @@ export function ChatInput(
 ) {
   const { userId } = useHypr();
   const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
+  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+
+  // Get current LLM connection and model info
+  const llmConnectionQuery = useQuery({
+    queryKey: ["llm-connection"],
+    queryFn: () => connectorCommands.getLlmConnection(),
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
+  });
+
+  const customLlmModelQuery = useQuery({
+    queryKey: ["custom-llm-model"],
+    queryFn: () => connectorCommands.getCustomLlmModel(),
+    enabled: llmConnectionQuery.data?.type === "Custom",
+    refetchInterval: 5000,
+  });
+
+  const hyprCloudEnabledQuery = useQuery({
+    queryKey: ["hypr-cloud-enabled"],
+    queryFn: () => connectorCommands.getHyprcloudEnabled(),
+    refetchInterval: 5000,
+  });
 
   const lastBacklinkSearchTime = useRef<number>(0);
 
@@ -361,8 +385,42 @@ export function ChatInput(
 
   const entityTitle = getEntityTitle();
 
+  const getCurrentModelName = () => {
+    const connectionType = llmConnectionQuery.data?.type;
+    const isHyprCloudEnabled = hyprCloudEnabledQuery.data;
+
+    if (isHyprCloudEnabled) {
+      return "HyprCloud";
+    }
+
+    switch (connectionType) {
+      case "Custom":
+        return customLlmModelQuery.data || "Custom Model";
+      case "HyprLocal":
+        return "Local LLM";
+        return "HyprLLM";
+      default:
+        return "Model";
+    }
+  };
+
   return (
     <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
+      {/* Note badge at top */}
+      {entityId && (
+        <div className="px-3 pt-2 pb-2">
+          <Badge
+            className="bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-white"
+            onClick={onNoteBadgeClick}
+          >
+            <div className="shrink-0">
+              {getBadgeIcon()}
+            </div>
+            <span className="truncate max-w-[200px]">{entityTitle}</span>
+          </Badge>
+        </div>
+      )}
+      
       {/* Custom styles to disable rich text features */}
       <style>
         {`
@@ -446,20 +504,13 @@ export function ChatInput(
       </div>
 
       {/* Bottom area stays fixed */}
-      <div className="flex items-center justify-between pb-2 px-3 flex-shrink-0">
-        {entityId
-          ? (
-            <Badge
-              className="mr-2 bg-white text-black border border-border inline-flex items-center gap-1 hover:bg-white max-w-48"
-              onClick={onNoteBadgeClick}
-            >
-              <div className="shrink-0">
-                {getBadgeIcon()}
-              </div>
-              <span className="truncate">{entityTitle}</span>
-            </Badge>
-          )
-          : <div></div>}
+      <div className="flex items-center justify-between pt-2 pb-2 px-3 flex-shrink-0">
+        <button
+          className="text-xs text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
+          onClick={() => setIsModelModalOpen(true)}
+        >
+          {getCurrentModelName()}
+        </button>
 
         <Button
           size="icon"
@@ -477,6 +528,12 @@ export function ChatInput(
             : <ArrowUpIcon className="h-4 w-4" />}
         </Button>
       </div>
+
+      {/* Model info modal */}
+      <ChatModelInfoModal
+        isOpen={isModelModalOpen}
+        onClose={() => setIsModelModalOpen(false)}
+      />
     </div>
   );
 }

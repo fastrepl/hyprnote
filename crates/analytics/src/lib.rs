@@ -4,100 +4,22 @@ mod error;
 pub use error::*;
 
 #[derive(Clone)]
-pub struct AnalyticsClient {
-    client: reqwest::Client,
-    api_key: String,
-}
+pub struct AnalyticsClient {}
 
 impl AnalyticsClient {
-    pub fn new(api_key: impl Into<String>) -> Self {
-        let client = reqwest::Client::new();
-
-        Self {
-            client,
-            api_key: api_key.into(),
-        }
+    pub fn new(_api_key: impl Into<String>) -> Self {
+        Self {}
     }
 
-    pub async fn event(&self, payload: AnalyticsPayload) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
-        let mut e = posthog::Event::new(payload.event, payload.distinct_id);
-        e.set_timestamp(chrono::Utc::now().naive_utc());
-
-        for (key, value) in payload.props {
-            let _ = e.insert_prop(key, value);
-        }
-
-        let inner_event = posthog_core::event::InnerEvent::new(e, self.api_key.clone());
-
-        if !cfg!(debug_assertions) {
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .json(&inner_event)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            tracing::info!("event: {}", serde_json::to_string(&inner_event).unwrap());
-        }
-
+    pub async fn event(&self, _payload: AnalyticsPayload) -> Result<(), Error> {
         Ok(())
     }
 
-    pub async fn set_properties(&self, payload: PropertiesPayload) -> Result<(), Error> {
-        if !hypr_network::is_online().await {
-            return Ok(());
-        }
-
-        let mut e = posthog::Event::new("$set", &payload.distinct_id);
-        e.set_timestamp(chrono::Utc::now().naive_utc());
-
-        if !payload.set.is_empty() {
-            let _ = e.insert_prop("$set", serde_json::json!(payload.set));
-        }
-
-        if !payload.set_once.is_empty() {
-            let _ = e.insert_prop("$set_once", serde_json::json!(payload.set_once));
-        }
-
-        let inner_event = posthog_core::event::InnerEvent::new(e, self.api_key.clone());
-
-        if !cfg!(debug_assertions) {
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .json(&inner_event)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            tracing::info!(
-                "set_properties: {}",
-                serde_json::to_string(&inner_event).unwrap()
-            );
-        }
-
+    pub async fn set_properties(&self, _payload: PropertiesPayload) -> Result<(), Error> {
         Ok(())
     }
 
-    pub async fn event2(&self, user_id: impl Into<String>) -> Result<(), Error> {
-        let payload = serde_json::json!({ "user_id": user_id.into() });
-        if !cfg!(debug_assertions) {
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .query(&payload)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            tracing::info!("event2: {}", serde_json::to_string(&payload).unwrap());
-        }
-
+    pub async fn event2(&self, _user_id: impl Into<String>) -> Result<(), Error> {
         Ok(())
     }
 }

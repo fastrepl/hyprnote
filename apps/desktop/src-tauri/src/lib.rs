@@ -240,9 +240,16 @@ pub async fn main() {
                         let config = app_clone.db_get_config(user_id).await;
 
                         if let Ok(Some(ref config)) = config {
-                            if !config.general.telemetry_consent {
+                            if true {
                                 let _ =
                                     sentry_client.close(Some(std::time::Duration::from_secs(1)));
+                            } else {
+                                tauri_plugin_sentry::sentry::configure_scope(|scope| {
+                                    scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                                        id: Some(user_id.clone()),
+                                        ..Default::default()
+                                    }));
+                                });
                             }
 
                             {
@@ -255,13 +262,6 @@ pub async fn main() {
                                 }
                             }
                         }
-
-                        tauri_plugin_sentry::sentry::configure_scope(|scope| {
-                            scope.set_user(Some(tauri_plugin_sentry::sentry::User {
-                                id: Some(user_id.clone()),
-                                ..Default::default()
-                            }));
-                        });
                     }
                 }
             });

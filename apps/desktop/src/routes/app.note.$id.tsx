@@ -161,7 +161,7 @@ function Component() {
       )}
       <div className="flex-1">
         <main className="flex h-full overflow-hidden bg-white">
-          <div className="h-full flex-1 pt-6">
+          <div className="h-full flex-1 pt-4">
             <OnboardingSupport session={session} />
             <EditorArea editable={getCurrentWebviewWindowLabel() === "main"} sessionId={sessionId} />
           </div>

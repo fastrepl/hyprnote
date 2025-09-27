@@ -46,7 +46,7 @@ export function ProGateModal({ isOpen, onClose, type }: ProGateModalProps) {
           path: params.to,
           search: params.search,
         });
-      }, 500);
+      }, 800);
     });
   };
 

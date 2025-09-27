@@ -118,6 +118,7 @@ export function SearchBar() {
           "hover:bg-white",
           isFocused && "bg-white",
           "transition-colors duration-200",
+          "cursor-pointer",
         ])}
         onClick={() => setShowCommandPalette(true)}
       >
@@ -141,7 +142,8 @@ export function SearchBar() {
             }, 150);
           }}
           placeholder={t`Search...`}
-          className="flex-1 bg-transparent outline-none text-xs"
+          className="flex-1 bg-transparent outline-none text-xs pointer-events-none"
+          disabled
         />
         {/* Tag selector */}
         {

@@ -178,7 +178,7 @@ export function EnhancedNoteSubHeader({
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               disabled={false}
-              className="text-xs h-[28px] px-3 hover:bg-neutral-100 relative w-[180px]"
+              className="text-xs h-[28px] px-3 hover:bg-neutral-100 relative w-[180px] shadow-sm"
             >
               {/* Main content - centered in available space */}
               <div className="absolute inset-0 flex items-center justify-center pr-6">

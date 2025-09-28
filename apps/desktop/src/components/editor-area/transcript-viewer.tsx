@@ -25,7 +25,7 @@ interface TranscriptViewerProps {
 }
 
 export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptViewerProps) {
-  const { words, isLive } = useTranscript(sessionId);
+  const { words, partialWords, finalWords, isLive } = useTranscript(sessionId);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<TranscriptEditorRef | null>(null);
@@ -75,13 +75,23 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
   }, []);
 
   useEffect(() => {
-    if (words && words.length > 0) {
+    if (words && words.length > 0 && !isLive) {
       editorRef.current?.setWords(words);
       if (isAtBottom && editorRef.current?.isNearBottom()) {
         editorRef.current?.scrollToBottom();
       }
     }
-  }, [words, isAtBottom]);
+  }, [words, isAtBottom, isLive]);
+
+  // Auto-scroll for live transcript
+  useEffect(() => {
+    if (isLive && isAtBottom && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [finalWords, partialWords, isAtBottom, isLive]);
 
   const handleUpdate = (words: Word2[]) => {
     dbCommands.getSession({ id: sessionId }).then((session) => {
@@ -109,8 +119,18 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pt-4 pb-6"
           onScroll={handleScroll}
         >
-          <div className="px-8 text-[15px] text-gray-800 leading-relaxed break-all">
-            {words.map(word => word.text).join(" ")}
+          <div className="px-8 text-[15px] leading-relaxed break-all space-y-2">
+            {/* Final words - confirmed text */}
+            <span className="text-gray-800">
+              {finalWords.map(word => word.text).join(" ")}
+            </span>
+            {/* Partial words - still being processed */}
+            {partialWords.length > 0 && (
+              <span className="text-gray-400">
+                {" "}
+                {partialWords.map(word => word.text).join(" ")}
+              </span>
+            )}
           </div>
         </div>
 

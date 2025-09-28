@@ -68,3 +68,8 @@ tasks:
             | jq -r '.packages[].name' \
             | grep '^tauri-plugin-' \
             | xargs -n1 cargo test export_types --package
+
+  stt:
+    cmds:
+      - chmod +x ./apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin
+      - chmod +x ./apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin

@@ -31,16 +31,15 @@ pub struct ListenerArgs {
     pub session_id: String,
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
-    pub session_start_ts_ms: u64,
     pub partial_words_by_channel: WordsByChannel,
 }
 
 pub struct ListenerState {
     pub args: ListenerArgs,
+    pub manager: TranscriptManager,
     tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
-    manager: TranscriptManager,
 }
 
 pub struct ListenerActor;
@@ -67,8 +66,13 @@ impl Actor for ListenerActor {
             tracing::info!("{:?}", r);
         }
 
+        let current_timestamp_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
         let manager = TranscriptManager::builder()
-            .with_unix_timestamp(args.session_start_ts_ms)
+            .with_manager_offset(current_timestamp_ms)
             .with_existing_partial_words(args.partial_words_by_channel.clone())
             .build();
 

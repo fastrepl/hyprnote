@@ -33,7 +33,6 @@ pub struct SessionArgs {
 pub struct SessionState {
     app: tauri::AppHandle,
     session_id: String,
-    session_start_ts_ms: u64,
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
     token: CancellationToken,
@@ -85,15 +84,9 @@ impl Actor for SessionActor {
             let _ = args.app.set_start_disabled(true);
         }
 
-        let session_start_ts_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
-
         let state = SessionState {
             app: args.app,
             session_id,
-            session_start_ts_ms,
             languages,
             onboarding,
             token: cancellation_token,
@@ -202,8 +195,15 @@ impl Actor for SessionActor {
                     let last_state: Option<ListenerState> =
                         maybe_state.and_then(|mut s| s.take().ok());
 
-                    Self::start_listener(myself.get_cell(), state, last_state.map(|s| s.args))
-                        .await?;
+                    Self::start_listener(
+                        myself.get_cell(),
+                        state,
+                        last_state.map(|s| ListenerArgs {
+                            partial_words_by_channel: s.manager.partial_words_by_channel,
+                            ..s.args
+                        }),
+                    )
+                    .await?;
                 } else {
                     let _ = myself.stop_and_wait(None, None).await;
                 }
@@ -372,7 +372,6 @@ impl SessionActor {
                 session_id: session_state.session_id.to_string(),
                 languages: session_state.languages.clone(),
                 onboarding: session_state.onboarding,
-                session_start_ts_ms: session_state.session_start_ts_ms,
                 partial_words_by_channel: Default::default(),
             }),
             supervisor,

@@ -13,7 +13,6 @@ use utils::*;
 pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
     MicStopped,
-    MeetingAppStarted(String),
 }
 
 pub type DetectCallback = std::sync::Arc<dyn Fn(DetectEvent) + Send + Sync + 'static>;

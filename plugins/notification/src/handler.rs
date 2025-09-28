@@ -144,7 +144,6 @@ impl NotificationHandler {
                     app_handle.stop_session().await;
                 });
             }
-            _ => {}
         }
     }
 

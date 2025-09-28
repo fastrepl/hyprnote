@@ -1,7 +1,7 @@
 use cidre::{blocks, ns, ns::workspace::notification as wsn, objc::Obj};
 use tokio::time::{sleep, Duration};
 
-use crate::{BackgroundTask, DetectEvent};
+use crate::BackgroundTask;
 
 // `defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleIdentifier`
 const MEETING_APP_LIST: [&str; 3] = [
@@ -23,7 +23,7 @@ impl Default for Detector {
 }
 
 impl crate::Observer for Detector {
-    fn start(&mut self, f: crate::DetectCallback) {
+    fn start(&mut self, _f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
             let notification_running = running.clone();
             let block = move |n: &ns::Notification| {
@@ -38,7 +38,7 @@ impl crate::Observer for Detector {
                         let bundle_id = app.bundle_id().unwrap().to_string();
                         let detected = MEETING_APP_LIST.contains(&bundle_id.as_str());
                         if detected {
-                            f(DetectEvent::MeetingAppStarted(bundle_id));
+                            // f(DetectEvent::MeetingAppStarted(bundle_id));
                         }
                     }
                 }

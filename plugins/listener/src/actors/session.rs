@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use tauri::Manager;
 use tauri_specta::Event;
 
@@ -16,8 +14,6 @@ use crate::{
     },
     SessionEvent,
 };
-
-const MAX_RESTART_ATTEMPTS: u32 = 3;
 
 #[derive(Debug)]
 pub enum SessionMsg {
@@ -41,7 +37,6 @@ pub struct SessionState {
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
     token: CancellationToken,
-    restart_attempts: HashMap<String, u32>,
     record_enabled: bool,
 }
 
@@ -102,7 +97,6 @@ impl Actor for SessionActor {
             languages,
             onboarding,
             token: cancellation_token,
-            restart_attempts: HashMap::new(),
             record_enabled,
         };
 
@@ -197,10 +191,6 @@ impl Actor for SessionActor {
         match event {
             SupervisionEvent::ActorStarted(actor) => {
                 tracing::info!("{:?}_actor_started", actor.get_name());
-
-                if let Some(name) = actor.get_name() {
-                    state.restart_attempts.remove(&name.to_string());
-                }
             }
 
             SupervisionEvent::ActorFailed(actor, _)
@@ -210,25 +200,10 @@ impl Actor for SessionActor {
                     .map(|n| n.to_string())
                     .unwrap_or_else(|| "unknown".to_string());
 
-                let attempts = {
-                    let v = state
-                        .restart_attempts
-                        .entry(actor_name.clone())
-                        .or_insert(0);
-                    *v += 1;
-                    *v
-                };
-
-                if attempts >= MAX_RESTART_ATTEMPTS {
-                    myself.stop(Some("max_restart_attempts_reached".to_string()));
+                if actor_name == ListenerActor::name() {
+                    Self::start_listener(myself.get_cell(), state).await?;
                 } else {
-                    tracing::info!(
-                        attempts = attempts,
-                        cause = actor_name,
-                        "restarting_all_actors"
-                    );
-
-                    Self::restart_all_actors(myself.get_cell(), state).await?;
+                    let _ = myself.stop_and_wait(None, None).await;
                 }
             }
 
@@ -293,16 +268,6 @@ impl SessionActor {
         Self::stop_source().await;
         Self::stop_listener().await;
         Self::stop_recorder().await;
-    }
-
-    async fn restart_all_actors(
-        supervisor: ActorCell,
-        state: &SessionState,
-    ) -> Result<(), ActorProcessingErr> {
-        Self::stop_all_actors().await;
-        tokio::time::sleep(tokio::time::Duration::from_millis(250)).await;
-        Self::start_all_actors(supervisor, state).await?;
-        Ok(())
     }
 
     async fn start_source(

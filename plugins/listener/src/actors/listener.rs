@@ -10,7 +10,8 @@ use tauri_specta::Event;
 
 use crate::{manager::TranscriptManager, SessionEvent};
 
-const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15);
+// Not too short to support non-realtime pipelines like whisper.cpp
+const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 pub enum ListenerMsg {
     Audio(Bytes, Bytes),
@@ -50,7 +51,8 @@ impl Actor for ListenerActor {
     ) -> Result<Self::State, ActorProcessingErr> {
         {
             use tauri_plugin_local_stt::LocalSttPluginExt;
-            let _ = args.app.start_server(None).await;
+            let r = args.app.start_server(None).await;
+            tracing::info!("{:?}", r);
         }
 
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args, myself).await.unwrap();

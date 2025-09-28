@@ -10,5 +10,7 @@
   <string>This app requires contacts access to function properly.</string>
   <key>NSCalendarsFullAccessUsageDescription</key>
   <string>This app requires access to your calendar to read events.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>This app requires access to your local network to function properly.</string>
 </dict>
 </plist>

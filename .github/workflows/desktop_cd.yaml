@@ -83,14 +83,18 @@ jobs:
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
       - if: ${{ github.event.inputs.experimental_airgapped == 'true' }}
         run: |
-          aws s3 cp s3://hyprnote-cache2/v0/resources/stt apps/desktop/src-tauri/resources/stt \
+          aws s3 cp s3://hyprnote-cache2/v0/resources/stt/nvidia_parakeet-v3_494MB.tar apps/desktop/src-tauri/resources/stt/nvidia_parakeet-v3_494MB.tar \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto \
-            --recursive
-          aws s3 cp s3://hyprnote-cache2/v0/resources/llm apps/desktop/src-tauri/resources/llm \
+            --region auto
+
+          cd apps/desktop/src-tauri/resources/stt/
+          tar -xf nvidia_parakeet-v3_494MB.tar
+          rm nvidia_parakeet-v3_494MB.tar
+          cd - > /dev/null
+
+          aws s3 cp s3://hyprnote-cache2/v0/resources/llm/hypr-llm.gguf apps/desktop/src-tauri/resources/llm/hypr-llm.gguf \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto \
-            --recursive
+            --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
@@ -149,15 +153,10 @@ jobs:
           framework: tauri
           working-directory: ./apps/desktop
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'macos' }}
-        run: |
-          cd apps/desktop/src-tauri/target/${{ matrix.target }}/release
-          tar -czf hyprnote-staging-${{ matrix.target }}.tar.gz bundle/
-        shell: bash
-      - if: ${{ env.RELEASE_CHANNEL == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-${{ matrix.target }}
-          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/hyprnote-staging-${{ matrix.target }}.tar.gz
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'windows' }}
         uses: actions/upload-artifact@v4

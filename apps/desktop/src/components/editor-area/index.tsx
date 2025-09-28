@@ -216,7 +216,7 @@ export default function EditorArea({
             } else {
               // comment out to turn off auto-open chat panel
               if (!isRightPanelExpanded) {
-                toggleRightPanel("chat");
+                //toggleRightPanel("chat");
               }
             }
           } catch (error) {
@@ -362,8 +362,8 @@ export default function EditorArea({
         <div
           className={cn([
             activeTab === "transcript"
-              ? "h-full overflow-hidden pt-0"
-              : `h-full overflow-y-auto ${tabHeaderRef.current?.isVisible ? "pt-6" : "pt-3"}`,
+              ? "h-full overflow-hidden pt-2"
+              : `h-full overflow-y-auto ${tabHeaderRef.current?.isVisible ? "pt-10" : "pt-3"}`,
             enhancedContent && activeTab !== "transcript" && "pb-10",
           ])}
           onClick={(e) => {

@@ -96,6 +96,12 @@ impl ListenClientBuilder {
                 }
             }
 
+            let start_time_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+                .to_string();
+
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#request.query
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
@@ -110,7 +116,8 @@ impl ListenClientBuilder {
                 .append_pair("punctuate", "true")
                 .append_pair("smart_format", "true")
                 .append_pair("vad_events", "false")
-                .append_pair("numerals", "true");
+                .append_pair("numerals", "true")
+                .append_pair("extra", &format!("start_time:{}", start_time_ms));
 
             query_pairs.append_pair(
                 "redemption_time_ms",

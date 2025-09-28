@@ -1,16 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Bell,
-  Calendar,
-  CreditCard,
-  HelpCircle,
-  LayoutTemplate,
-  MessageSquare,
-  NetworkIcon,
-  Settings,
-  Sparkles,
-  Volume2,
-} from "lucide-react";
+import { Bell, Calendar, HelpCircle, LayoutTemplate, MessageSquare, Settings, Sparkles, Volume2 } from "lucide-react";
 
 export type Tab =
   | "general"
@@ -34,7 +23,5 @@ export const TABS: { name: Tab; icon: LucideIcon }[] = [
   { name: "sound", icon: Volume2 },
   { name: "templates", icon: LayoutTemplate },
   { name: "integrations", icon: MessageSquare },
-  { name: "mcp", icon: NetworkIcon },
-  { name: "billing", icon: CreditCard },
   { name: "help-support", icon: HelpCircle },
 ];

@@ -1,20 +1,13 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { useHypr } from "@/contexts";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { showSttModelDownloadToast } from "../../toast/shared";
 import { SharedSTTProps, STTModel } from "../components/ai/shared";
 import { STTViewLocal } from "../components/ai/stt-view-local";
-import { STTViewRemote } from "../components/ai/stt-view-remote";
 
 export default function SttAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
-  const { userId } = useHypr();
   const providerQuery = useQuery({
     queryKey: ["stt-provider"],
     queryFn: () => localSttCommands.getProvider(),
@@ -37,27 +30,7 @@ export default function SttAI() {
 
   const provider = providerQuery.data ?? "Local";
 
-  useEffect(() => {
-    if (provider === "Custom") {
-      setActiveTab("custom");
-    } else {
-      setActiveTab("default");
-    }
-  }, [provider]);
-
   const setProviderToLocal = () => setProviderMutation.mutate("Local");
-  const setProviderToCustom = async () => {
-    setProviderMutation.mutate("Custom");
-
-    if (userId) {
-      await analyticsCommands.setProperties({
-        distinct_id: userId,
-        set: {
-          stt: "custom",
-        },
-      });
-    }
-  };
 
   const [isWerModalOpen, setIsWerModalOpen] = useState(false);
   const [selectedSTTModel, setSelectedSTTModel] = useState("QuantizedTiny");
@@ -105,30 +78,7 @@ export default function SttAI() {
     setProviderToLocal,
   };
 
-  return (
-    <div className="space-y-8">
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "default" | "custom")}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-2 mb-6">
-          <TabsTrigger value="default">
-            <Trans>Default</Trans>
-          </TabsTrigger>
-          <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="default">
-          <STTViewLocal {...sttProps} />
-        </TabsContent>
-        <TabsContent value="custom">
-          <STTViewRemote provider={provider} setProviderToCustom={setProviderToCustom} />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+  return <STTViewLocal {...sttProps} />;
 }
 
 const initialSttModels: STTModel[] = [

@@ -1,34 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { open } from "@tauri-apps/plugin-shell";
-import { InfoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useHypr } from "@/contexts";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands, type Connection } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands, SupportedModel } from "@hypr/plugin-local-llm";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@hypr/ui/components/ui/form";
-import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/ui/lib/utils";
 import { showLlmModelDownloadToast } from "../../toast/shared";
 
-import { LLMCustomView } from "../components/ai/llm-custom-view";
 import { LLMLocalView } from "../components/ai/llm-local-view";
 import {
   ConfigureEndpointConfig,
@@ -37,7 +18,6 @@ import {
   LLMModel,
   OpenAIFormValues,
   OpenRouterFormValues,
-  SharedCustomEndpointProps,
   SharedLLMProps,
 } from "../components/ai/shared";
 
@@ -88,32 +68,8 @@ const aiConfigSchema = z.object({
 });
 type AIConfigValues = z.infer<typeof aiConfigSchema>;
 
-const specificityLevels = {
-  1: {
-    title: "Conservative",
-    description:
-      "Minimal AI autonomy. Closely follows your original content and structure while making only essential improvements to clarity and organization.",
-  },
-  2: {
-    title: "Balanced",
-    description:
-      "Moderate AI autonomy. Makes independent decisions about structure and phrasing while respecting your core message and intended tone.",
-  },
-  3: {
-    title: "Autonomous",
-    description:
-      "High AI autonomy. Takes initiative in restructuring and expanding content, making independent decisions about organization and presentation.",
-  },
-  4: {
-    title: "Full Autonomy",
-    description:
-      "Maximum AI autonomy. Independently transforms and enhances content with complete freedom in structure, language, and presentation while preserving key information.",
-  },
-} as const;
-
 export default function LlmAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
 
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
   const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
@@ -135,8 +91,6 @@ export default function LlmAI() {
   }, []);
 
   const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | null>(null);
-
-  const { userId } = useHypr();
 
   const handleLlmModelDownload = async (modelKey: string) => {
     setDownloadingModels((prev) => new Set([...prev, modelKey]));
@@ -190,11 +144,6 @@ export default function LlmAI() {
   const customLLMConnection = useQuery({
     queryKey: ["custom-llm-connection"],
     queryFn: () => connectorCommands.getCustomLlmConnection(),
-  });
-
-  const getCustomLLMModel = useQuery({
-    queryKey: ["custom-llm-model"],
-    queryFn: () => connectorCommands.getCustomLlmModel(),
   });
 
   const modelDownloadStatus = useQuery({
@@ -591,31 +540,6 @@ export default function LlmAI() {
     }
   }, [config.data, aiConfigForm]);
 
-  const aiConfigMutation = useMutation({
-    mutationFn: async (values: AIConfigValues) => {
-      if (!config.data) {
-        return;
-      }
-
-      await dbCommands.setConfig({
-        ...config.data,
-        ai: {
-          ...config.data.ai,
-          ai_specificity: values.aiSpecificity ?? 3,
-        },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["config", "ai"] });
-    },
-    onError: console.error,
-  });
-
-  const isLocalEndpoint = (): boolean => {
-    const apiBase = customForm.watch("api_base");
-    return Boolean(apiBase && (apiBase.includes("localhost") || apiBase.includes("127.0.0.1")));
-  };
-
   const localLlmProps: SharedLLMProps = {
     customLLMEnabled,
     selectedLLMModel,
@@ -630,165 +554,5 @@ export default function LlmAI() {
     setHyprCloudEnabledMutation,
   };
 
-  const customEndpointProps: SharedCustomEndpointProps = {
-    ...localLlmProps,
-    configureCustomEndpoint,
-    openAccordion,
-    setOpenAccordion,
-    customLLMConnection,
-    getCustomLLMModel,
-    openaiForm,
-    geminiForm,
-    openrouterForm,
-    customForm,
-    isLocalEndpoint,
-  };
-
-  useEffect(() => {
-    // Set initial tab based on LLM configuration
-    if (customLLMEnabled.data !== undefined && hyprCloudEnabled.data !== undefined) {
-      // If custom is enabled but HyprCloud is not, show custom tab
-      if (customLLMEnabled.data && !hyprCloudEnabled.data) {
-        setActiveTab("custom");
-      } else {
-        setActiveTab("default");
-      }
-    }
-  }, [customLLMEnabled.data, hyprCloudEnabled.data]);
-
-  return (
-    <div className="space-y-8">
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "default" | "custom")}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-2 mb-6">
-          <TabsTrigger value="default">
-            <Trans>Default</Trans>
-          </TabsTrigger>
-          <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {activeTab === "default" && <LLMLocalView {...localLlmProps} />}
-      {activeTab === "custom" && (
-        <div className="space-y-8">
-          <LLMCustomView {...customEndpointProps} />
-
-          <div
-            className={cn(
-              "max-w-2xl space-y-4",
-              (!customLLMEnabled.data || hyprCloudEnabled.data) && "opacity-60",
-            )}
-          >
-            <div
-              className={cn(
-                "border rounded-lg p-4",
-                (!customLLMEnabled.data || hyprCloudEnabled.data) && "bg-gray-50 border-gray-200",
-              )}
-            >
-              <Form {...aiConfigForm}>
-                <div className="space-y-4">
-                  <FormField
-                    control={aiConfigForm.control}
-                    name="aiSpecificity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-2">
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>Autonomy Selector</Trans>
-                          </FormLabel>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => open("https://docs.hyprnote.com/features/ai-autonomy")}
-                                className="h-8 w-8"
-                              >
-                                <InfoIcon className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <Trans>Learn more about AI autonomy</Trans>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        <FormDescription className="text-xs">
-                          {(!customLLMEnabled.data || hyprCloudEnabled.data)
-                            ? <Trans>Only works with Custom Endpoints. Please configure one of the above first.</Trans>
-                            : <Trans>Control how autonomous the AI enhancement should be.</Trans>}
-                        </FormDescription>
-                        <FormControl>
-                          <div className="space-y-3">
-                            <div className="w-full">
-                              <div className="flex justify-between rounded-md p-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-sm">
-                                {[1, 2, 3, 4].map((level) => (
-                                  <button
-                                    key={level}
-                                    type="button"
-                                    onClick={async () => {
-                                      field.onChange(level);
-                                      aiConfigMutation.mutate({
-                                        aiSpecificity: level,
-                                      });
-
-                                      // legacy: send analytics event
-                                      analyticsCommands.event({
-                                        event: "autonomy_selected",
-                                        distinct_id: userId,
-                                        level: level,
-                                      });
-
-                                      // set user properties
-                                      if (userId) {
-                                        const autonomyValue = specificityLevels[level as keyof typeof specificityLevels]
-                                          ?.title.toLowerCase();
-                                        await analyticsCommands.setProperties({
-                                          distinct_id: userId,
-                                          set: {
-                                            "llm-autonomy": autonomyValue,
-                                          },
-                                        });
-                                      }
-                                    }}
-                                    disabled={!customLLMEnabled.data || hyprCloudEnabled.data}
-                                    className={cn(
-                                      "py-1.5 px-2 flex-1 text-center text-sm font-medium rounded transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
-                                      field.value === level
-                                        ? "bg-white text-black shadow-sm"
-                                        : "text-white hover:bg-white/20",
-                                      (!customLLMEnabled.data || hyprCloudEnabled.data)
-                                        && "opacity-50 cursor-not-allowed",
-                                    )}
-                                  >
-                                    {specificityLevels[level as keyof typeof specificityLevels]?.title}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="p-3 rounded-md bg-neutral-50 border border-neutral-200">
-                              <div className="text-xs text-muted-foreground">
-                                {specificityLevels[field.value as keyof typeof specificityLevels]?.description
-                                  || specificityLevels[3].description}
-                              </div>
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </Form>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <LLMLocalView {...localLlmProps} />;
 }

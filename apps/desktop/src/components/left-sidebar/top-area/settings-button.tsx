@@ -1,15 +1,13 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import type { LinkProps } from "@tanstack/react-router";
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { check } from "@tauri-apps/plugin-updater";
-import { CastleIcon, CogIcon, ShieldIcon } from "lucide-react";
+import { CogIcon } from "lucide-react";
 import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
 import { createUpdateToast } from "@/components/toast/ota";
 import { useHypr } from "@/contexts";
-import { useLicense } from "@/hooks/use-license";
 import { openURL } from "@/utils/shell";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -20,14 +18,10 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { toast } from "@hypr/ui/components/ui/toast";
-import { cn } from "@hypr/ui/lib/utils";
 
 export function SettingsButton() {
   const [open, setOpen] = useState(false);
   const { userId } = useHypr();
-
-  const { getLicense } = useLicense();
-  const isPro = !!getLicense.data?.valid;
 
   const versionQuery = useQuery({
     queryKey: ["appVersion"],
@@ -49,21 +43,6 @@ export function SettingsButton() {
         { type: "finder" },
         `/app/finder?view=contact&personId=${userId}`,
       );
-    });
-  };
-
-  const handleClickPlans = () => {
-    setOpen(false);
-
-    windowsCommands.windowShow({ type: "settings" }).then(() => {
-      const params = { to: "/app/settings", search: { tab: "billing" } } as const satisfies LinkProps;
-
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "settings" }, {
-          path: params.to,
-          search: params.search,
-        });
-      }, 500);
     });
   };
 
@@ -124,7 +103,7 @@ export function SettingsButton() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="w-52 p-0">
-        <DropdownHeader handleClick={handleClickPlans} isPro={isPro} />
+        {/* <DropdownHeader handleClick={handleClickPlans} isPro={isPro} /> */}
 
         <div className="p-1">
           <DropdownMenuItem
@@ -161,39 +140,5 @@ export function SettingsButton() {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-function DropdownHeader({
-  isPro,
-  handleClick,
-}: {
-  isPro: boolean;
-  handleClick: () => void;
-}) {
-  return (
-    <div
-      onClick={handleClick}
-      className={cn([
-        "px-3 py-2 bg-gradient-to-r rounded-t-md relative overflow-hidden cursor-pointer",
-        isPro
-          ? "from-blue-700 to-blue-800 hover:from-blue-600 hover:to-blue-700"
-          : "from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800",
-      ])}
-    >
-      <div className="absolute inset-0 opacity-70">
-      </div>
-      <div className="flex items-center gap-3 text-white relative z-10">
-        {isPro ? <CastleIcon className="size-8 animate-pulse" /> : <ShieldIcon className="size-8 animate-pulse" />}
-        <div>
-          <div className="font-medium">
-            {isPro ? "Pro Plan" : "Free Plan"}
-          </div>
-          <div className="text-xs text-white/80 mt-0.5">
-            {isPro ? "Full features" : "Basic features"}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

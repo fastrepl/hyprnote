@@ -8,12 +8,11 @@ import { type Tab, TABS } from "@/components/settings/components/types";
 import {
   AILLM,
   AISTT,
-  Billing,
   Calendar,
   General,
   HelpSupport,
   Integrations,
-  MCP,
+  // MCP,
   Notifications,
   Sound,
   TemplatesView,
@@ -169,11 +168,6 @@ function Component() {
               <div className="flex-shrink-0 p-2 border-t border-neutral-200">
                 <div className="space-y-1">
                   <TabButton
-                    tab="billing"
-                    isActive={search.tab === "billing"}
-                    onClick={() => handleClickTab("billing")}
-                  />
-                  <TabButton
                     tab="help-support"
                     isActive={search.tab === "help-support"}
                     onClick={() => handleClickTab("help-support")}
@@ -206,8 +200,6 @@ function Component() {
               {search.tab === "ai-llm" && <AILLM />}
               {search.tab === "templates" && <TemplatesView />}
               {search.tab === "integrations" && <Integrations />}
-              {search.tab === "mcp" && <MCP />}
-              {search.tab === "billing" && <Billing />}
               {search.tab === "help-support" && <HelpSupport />}
             </div>
           </div>

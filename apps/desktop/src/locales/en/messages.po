@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:445
+#: src/components/settings/views/general.tsx:415
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 
@@ -275,7 +275,7 @@ msgstr "Add members"
 msgid "Add more quotes"
 msgstr "Add more quotes"
 
-#: src/components/settings/views/general.tsx:428
+#: src/components/settings/views/general.tsx:398
 msgid "Add specific terms or jargon for improved transcription accuracy"
 msgstr "Add specific terms or jargon for improved transcription accuracy"
 
@@ -337,8 +337,8 @@ msgid "Audio Permissions"
 msgstr "Audio Permissions"
 
 #: src/components/settings/views/ai-llm.tsx:702
-msgid "Autonomy Selector"
-msgstr "Autonomy Selector"
+#~ msgid "Autonomy Selector"
+#~ msgstr "Autonomy Selector"
 
 #: src/components/welcome-modal/index.tsx:351
 msgid "Back"
@@ -353,8 +353,8 @@ msgstr "Base Folder"
 msgid "Base URL"
 msgstr "Base URL"
 
-#: src/routes/app.settings.tsx:61
-#: src/routes/app.settings.tsx:134
+#: src/routes/app.settings.tsx:60
+#: src/routes/app.settings.tsx:133
 msgid "Billing & License"
 msgstr "Billing & License"
 
@@ -363,8 +363,8 @@ msgstr "Billing & License"
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
-#: src/routes/app.settings.tsx:51
-#: src/routes/app.settings.tsx:124
+#: src/routes/app.settings.tsx:50
+#: src/routes/app.settings.tsx:123
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -392,7 +392,7 @@ msgstr "Chat feature is in beta. For best results, we recommend you to use <0>cu
 msgid "Chat with this meeting"
 msgstr "Chat with this meeting"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:147
+#: src/components/left-sidebar/top-area/settings-button.tsx:126
 msgid "Check Updates"
 msgstr "Check Updates"
 
@@ -462,8 +462,8 @@ msgid "Continue"
 msgstr "Continue"
 
 #: src/components/settings/views/ai-llm.tsx:723
-msgid "Control how autonomous the AI enhancement should be."
-msgstr "Control how autonomous the AI enhancement should be."
+#~ msgid "Control how autonomous the AI enhancement should be."
+#~ msgstr "Control how autonomous the AI enhancement should be."
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:563
 #: src/routes/app.human.$id.tsx:535
@@ -484,21 +484,21 @@ msgstr "Create your first template to get started"
 
 #: src/components/settings/views/ai-llm.tsx:671
 #: src/components/settings/views/ai-stt.tsx:120
-msgid "Custom"
-msgstr "Custom"
+#~ msgid "Custom"
+#~ msgstr "Custom"
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:102
 msgid "Custom Speech-to-Text endpoint"
 msgstr "Custom Speech-to-Text endpoint"
 
-#: src/components/settings/views/general.tsx:425
+#: src/components/settings/views/general.tsx:395
 msgid "Custom Vocabulary"
 msgstr "Custom Vocabulary"
 
 #: src/components/settings/views/ai-llm.tsx:668
 #: src/components/settings/views/ai-stt.tsx:117
-msgid "Default"
-msgstr "Default"
+#~ msgid "Default"
+#~ msgstr "Default"
 
 #: src/components/left-sidebar/notes-list.tsx:336
 #: src/components/settings/views/team.tsx:165
@@ -608,8 +608,8 @@ msgstr "Finish Onboarding"
 msgid "Full name"
 msgstr "Full name"
 
-#: src/routes/app.settings.tsx:45
-#: src/routes/app.settings.tsx:118
+#: src/routes/app.settings.tsx:44
+#: src/routes/app.settings.tsx:117
 msgid "General"
 msgstr "General"
 
@@ -643,8 +643,8 @@ msgid "Grant both permissions to continue"
 msgstr "Grant both permissions to continue"
 
 #: src/components/settings/views/help-support.tsx:33
-#: src/routes/app.settings.tsx:65
-#: src/routes/app.settings.tsx:138
+#: src/routes/app.settings.tsx:64
+#: src/routes/app.settings.tsx:137
 msgid "Help & Support"
 msgstr "Help & Support"
 
@@ -668,13 +668,13 @@ msgid "Important Q&As"
 msgstr "Important Q&As"
 
 #: src/components/settings/views/integrations.tsx:124
-#: src/routes/app.settings.tsx:59
-#: src/routes/app.settings.tsx:132
+#: src/routes/app.settings.tsx:58
+#: src/routes/app.settings.tsx:131
 msgid "Integrations"
 msgstr "Integrations"
 
-#: src/routes/app.settings.tsx:47
-#: src/routes/app.settings.tsx:120
+#: src/routes/app.settings.tsx:46
+#: src/routes/app.settings.tsx:119
 msgid "Intelligence"
 msgstr "Intelligence"
 
@@ -698,7 +698,7 @@ msgstr "Job title"
 msgid "Join meeting"
 msgstr "Join meeting"
 
-#: src/components/settings/views/general.tsx:279
+#: src/components/settings/views/general.tsx:249
 msgid "Language for AI-generated summaries"
 msgstr "Language for AI-generated summaries"
 
@@ -707,8 +707,8 @@ msgid "Learn how to use Hyprnote"
 msgstr "Learn how to use Hyprnote"
 
 #: src/components/settings/views/ai-llm.tsx:716
-msgid "Learn more about AI autonomy"
-msgstr "Learn more about AI autonomy"
+#~ msgid "Learn more about AI autonomy"
+#~ msgstr "Learn more about AI autonomy"
 
 #: src/components/settings/views/templates.tsx:306
 msgid "Learn more about templates"
@@ -746,8 +746,8 @@ msgstr "Logs"
 msgid "Make it public"
 msgstr "Make it public"
 
-#: src/routes/app.settings.tsx:63
-#: src/routes/app.settings.tsx:136
+#: src/routes/app.settings.tsx:62
+#: src/routes/app.settings.tsx:135
 msgid "MCP"
 msgstr "MCP"
 
@@ -784,7 +784,7 @@ msgstr "Model Name"
 msgid "More integrations coming soon..."
 msgstr "More integrations coming soon..."
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:141
+#: src/components/left-sidebar/top-area/settings-button.tsx:120
 msgid "My Profile"
 msgstr "My Profile"
 
@@ -849,8 +849,8 @@ msgstr "No upcoming events with this contact"
 msgid "None (disabled)"
 msgstr "None (disabled)"
 
-#: src/routes/app.settings.tsx:53
-#: src/routes/app.settings.tsx:126
+#: src/routes/app.settings.tsx:52
+#: src/routes/app.settings.tsx:125
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -867,8 +867,8 @@ msgid "Only starts at the background for notification purposes."
 msgstr "Only starts at the background for notification purposes."
 
 #: src/components/settings/views/ai-llm.tsx:722
-msgid "Only works with Custom Endpoints. Please configure one of the above first."
-msgstr "Only works with Custom Endpoints. Please configure one of the above first."
+#~ msgid "Only works with Custom Endpoints. Please configure one of the above first."
+#~ msgstr "Only works with Custom Endpoints. Please configure one of the above first."
 
 #: src/components/left-sidebar/top-area/finder-button.tsx:26
 msgid "Open finder view"
@@ -1021,7 +1021,7 @@ msgstr "Select Calendars"
 msgid "Select how you want to process your meeting notes"
 msgstr "Select how you want to process your meeting notes"
 
-#: src/components/settings/views/general.tsx:348
+#: src/components/settings/views/general.tsx:318
 msgid "Select languages you speak for better transcription"
 msgstr "Select languages you speak for better transcription"
 
@@ -1045,13 +1045,13 @@ msgstr "Send invite"
 msgid "Set up Your AI Provider"
 msgstr "Set up Your AI Provider"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:134
+#: src/components/left-sidebar/top-area/settings-button.tsx:113
 msgid "Settings"
 msgstr "Settings"
 
 #: src/components/settings/views/general.tsx:246
-msgid "Share usage data"
-msgstr "Share usage data"
+#~ msgid "Share usage data"
+#~ msgstr "Share usage data"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:73
 msgid "Shorten summary"
@@ -1069,12 +1069,12 @@ msgstr "Show notifications when you join a meeting."
 msgid "Some downloads failed, but you can continue"
 msgstr "Some downloads failed, but you can continue"
 
-#: src/routes/app.settings.tsx:57
-#: src/routes/app.settings.tsx:130
+#: src/routes/app.settings.tsx:56
+#: src/routes/app.settings.tsx:129
 msgid "Sound"
 msgstr "Sound"
 
-#: src/components/settings/views/general.tsx:345
+#: src/components/settings/views/general.tsx:315
 msgid "Spoken languages"
 msgstr "Spoken languages"
 
@@ -1094,7 +1094,7 @@ msgstr "Stop"
 msgid "Suggest new features and improvements"
 msgstr "Suggest new features and improvements"
 
-#: src/components/settings/views/general.tsx:276
+#: src/components/settings/views/general.tsx:246
 msgid "Summary language"
 msgstr "Summary language"
 
@@ -1111,7 +1111,7 @@ msgstr "System Instruction"
 msgid "Tags"
 msgstr "Tags"
 
-#: src/components/left-sidebar/top-area/settings-button.tsx:153
+#: src/components/left-sidebar/top-area/settings-button.tsx:132
 msgid "Talk to Founders"
 msgstr "Talk to Founders"
 
@@ -1123,8 +1123,8 @@ msgstr "Team management features are currently under development and will be ava
 msgid "Teamspace"
 msgstr "Teamspace"
 
-#: src/routes/app.settings.tsx:55
-#: src/routes/app.settings.tsx:128
+#: src/routes/app.settings.tsx:54
+#: src/routes/app.settings.tsx:127
 msgid "Templates"
 msgstr "Templates"
 
@@ -1168,8 +1168,8 @@ msgstr "Toggle left sidebar"
 msgid "Toggle transcript panel"
 msgstr "Toggle transcript panel"
 
-#: src/routes/app.settings.tsx:49
-#: src/routes/app.settings.tsx:122
+#: src/routes/app.settings.tsx:48
+#: src/routes/app.settings.tsx:121
 msgid "Transcription"
 msgstr "Transcription"
 

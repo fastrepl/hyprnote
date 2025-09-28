@@ -98,7 +98,7 @@ tauri-plugin-http = "2.5"
 tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.5"
-tauri-plugin-sentry = { version = "0.4.1" }
+tauri-plugin-sentry = { version = "0.5" }
 tauri-plugin-shell = "2.3"
 tauri-plugin-store = "2.4"
 
@@ -185,8 +185,7 @@ async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 graph-rs-sdk = "2.0.3"
 
-sentry = "0.38.1"
-sentry-rust-minidump = "0.11.0"
+sentry = "0.42"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

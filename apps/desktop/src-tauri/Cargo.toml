@@ -66,12 +66,13 @@ tauri-plugin-keygen = { workspace = true }
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
 tauri-plugin-process = "2.3"
-tauri-plugin-sentry = { workspace = true, features = ["tracing"] }
+tauri-plugin-sentry = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = "2.9"
 
+sentry = { workspace = true }
 tracing = { workspace = true }
 
 specta = { workspace = true }

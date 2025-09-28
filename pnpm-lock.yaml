@@ -299,8 +299,8 @@ importers:
         specifier: github:bagindo/tauri-plugin-keygen#v2
         version: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de
       tauri-plugin-sentry-api:
-        specifier: ^0.4.1
-        version: 0.4.1
+        specifier: ^0.5
+        version: 0.5.0
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -8846,8 +8846,8 @@ packages:
     resolution: {tarball: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de}
     version: 2.0.0
 
-  tauri-plugin-sentry-api@0.4.1:
-    resolution: {integrity: sha512-KgfL7JhN51TOA3e0UYDu6UkdwgH+wC1/RC3qIHJOZIAsvyTfde4uifUFB11GfgXfHgY33xUkIGgqWKkaK5lg6Q==}
+  tauri-plugin-sentry-api@0.5.0:
+    resolution: {integrity: sha512-IUOMOQZafbQJbPS9eisdABt9tdJksec9ajOQRlM31DfOcdzayaUis7FK48AD5ayeNCOwJDZPs1nvlZSD8jFYiQ==}
 
   terser@5.44.0:
     resolution: {integrity: sha512-nIVck8DK+GM/0Frwd+nIhZ84pR/BX7rmXMfYwyg+Sri5oGVE99/E3KvXqpC2xHFxyqXyGHTKBSioxxplrO4I4w==}
@@ -19389,7 +19389,7 @@ snapshots:
       '@tauri-apps/api': 2.0.2
       tslib: 2.8.1
 
-  tauri-plugin-sentry-api@0.4.1:
+  tauri-plugin-sentry-api@0.5.0:
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.8
       tslib: 2.8.1

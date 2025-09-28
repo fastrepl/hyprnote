@@ -1,6 +1,11 @@
 # https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
+    inputs:
+      experimental_airgapped:
+        type: boolean
+        default: false
+        description: experimental_airgapped
   release:
     types:
       - published
@@ -76,6 +81,19 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - if: ${{ github.event.inputs.experimental_airgapped == 'true' }}
+        run: |
+          aws s3 cp s3://hyprnote-cache2/v0/resources/stt apps/desktop/src-tauri/resources/stt \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto \
+            --recursive
+          aws s3 cp s3://hyprnote-cache2/v0/resources/llm apps/desktop/src-tauri/resources/llm \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto \
+            --recursive
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
           aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \

@@ -67,7 +67,7 @@
     },
     "resources": {
       "dlls/*": "./",
-      "resources/llm.gguf": "llm.gguf"
+      "resources/": ""
     }
   },
   "plugins": {

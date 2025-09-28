@@ -58,12 +58,15 @@ impl AmModel {
         &self,
         base_dir: impl AsRef<std::path::Path>,
     ) -> Result<bool, crate::Error> {
+        let tar_path = base_dir.as_ref().join(format!("{}.tar", self.model_dir()));
         let model_path = base_dir.as_ref().join(self.model_dir());
-        if !model_path.exists() {
-            return Ok(false);
+
+        // Due to CoreML compilation issue, we can only embed tar file for now
+        if !model_path.exists() && tar_path.exists() {
+            let _ = self.tar_verify_and_unpack(&tar_path, &model_path);
         }
 
-        if !model_path.is_dir() {
+        if !model_path.exists() || !model_path.is_dir() {
             return Ok(false);
         }
 

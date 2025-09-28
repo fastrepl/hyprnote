@@ -5,7 +5,6 @@ import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import { useHypr } from "@/contexts";
-import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as localSttCommands, ServerHealth, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -229,8 +228,6 @@ function ProModelsSection({
   setProviderToLocal,
   userId,
 }: Omit<ModelSectionProps, "modelsToShow">) {
-  const { getLicense } = useLicense();
-
   const handleShowFileLocation = async () => {
     const path = await localSttCommands.modelsDir();
     openPath(path);
@@ -262,7 +259,7 @@ function ProModelsSection({
     <section className="max-w-2xl">
       <SectionHeader
         title="Pro Models"
-        description="Resource and latency optimized. Only for pro users."
+        description="Resource and latency optimized."
         status={status}
         docsUrl="https://docs.hyprnote.com/models"
       />
@@ -272,7 +269,7 @@ function ProModelsSection({
         {proModels.data?.map((model) => (
           <ModelEntry
             key={model.key}
-            disabled={!getLicense.data?.valid}
+            disabled={false}
             model={model}
             selectedSTTModel={selectedSTTModel}
             setSelectedSTTModel={setSelectedSTTModel}

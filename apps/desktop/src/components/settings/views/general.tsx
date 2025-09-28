@@ -238,36 +238,6 @@ export default function General() {
 
           <FormField
             control={form.control}
-            name="telemetryConsent"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel>
-                    <Trans>Share usage data</Trans>
-                  </FormLabel>
-                  <FormDescription className="flex flex-col">
-                    <span>
-                      Help us improve Hyprnote by sharing anonymous usage data.
-                    </span>
-                    <span>
-                      Restart Hyprnote for the change to take effect.
-                    </span>
-                  </FormDescription>
-                </div>
-
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    color="gray"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="summaryLanguage"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">

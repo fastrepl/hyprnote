@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
+pub type WordsByChannel = HashMap<usize, Vec<owhisper_interface::Word>>;
+
 #[derive(Default)]
 pub struct TranscriptManagerBuilder {
     session_start_timestamp_ms: Option<u64>,
+    partial_words_by_channel: Option<WordsByChannel>,
 }
 
 impl TranscriptManagerBuilder {
@@ -11,10 +14,15 @@ impl TranscriptManagerBuilder {
         self
     }
 
+    pub fn with_existing_partial_words(mut self, m: impl Into<WordsByChannel>) -> Self {
+        self.partial_words_by_channel = Some(m.into());
+        self
+    }
+
     pub fn build(self) -> TranscriptManager {
         TranscriptManager {
             id: uuid::Uuid::new_v4(),
-            partial_words_by_channel: HashMap::new(),
+            partial_words_by_channel: self.partial_words_by_channel.unwrap_or_default(),
             session_start_timestamp_ms: self.session_start_timestamp_ms.unwrap_or(0),
         }
     }
@@ -22,7 +30,7 @@ impl TranscriptManagerBuilder {
 
 pub struct TranscriptManager {
     id: uuid::Uuid,
-    partial_words_by_channel: HashMap<usize, Vec<owhisper_interface::Word>>,
+    partial_words_by_channel: WordsByChannel,
     session_start_timestamp_ms: u64,
 }
 

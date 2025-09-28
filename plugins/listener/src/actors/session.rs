@@ -9,8 +9,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     actors::{
-        ListenerActor, ListenerArgs, ListenerMsg, ProcArgs, ProcMsg, ProcessorActor, RecArgs,
-        RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
+        ListenerActor, ListenerArgs, ListenerMsg, ListenerState, ProcArgs, ProcMsg, ProcessorActor,
+        RecArgs, RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
     },
     SessionEvent,
 };
@@ -192,21 +192,22 @@ impl Actor for SessionActor {
             SupervisionEvent::ActorStarted(actor) => {
                 tracing::info!("{:?}_actor_started", actor.get_name());
             }
-
-            SupervisionEvent::ActorFailed(actor, _)
-            | SupervisionEvent::ActorTerminated(actor, _, _) => {
+            SupervisionEvent::ActorTerminated(actor, maybe_state, _) => {
                 let actor_name = actor
                     .get_name()
                     .map(|n| n.to_string())
                     .unwrap_or_else(|| "unknown".to_string());
 
                 if actor_name == ListenerActor::name() {
+                    let _last_state: Option<ListenerState> =
+                        maybe_state.and_then(|mut s| s.take().ok());
+
                     Self::start_listener(myself.get_cell(), state).await?;
                 } else {
                     let _ = myself.stop_and_wait(None, None).await;
                 }
             }
-
+            SupervisionEvent::ActorFailed(_, _) => {}
             _ => {}
         }
 
@@ -370,6 +371,7 @@ impl SessionActor {
                 languages: state.languages.clone(),
                 onboarding: state.onboarding,
                 session_start_ts_ms: state.session_start_ts_ms,
+                partial_words_by_channel: Default::default(),
             },
             supervisor,
         )

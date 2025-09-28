@@ -8,7 +8,10 @@ use owhisper_interface::{ControlMessage, MixedMessage, Word2};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
-use crate::{manager::TranscriptManager, SessionEvent};
+use crate::{
+    manager::{TranscriptManager, WordsByChannel},
+    SessionEvent,
+};
 
 // Not too short to support non-realtime pipelines like whisper.cpp
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
@@ -23,12 +26,14 @@ pub struct ListenerArgs {
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
     pub session_start_ts_ms: u64,
+    pub partial_words_by_channel: WordsByChannel,
 }
 
 pub struct ListenerState {
     tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+    manager: TranscriptManager,
 }
 
 pub struct ListenerActor;
@@ -55,11 +60,17 @@ impl Actor for ListenerActor {
             tracing::info!("{:?}", r);
         }
 
+        let manager = TranscriptManager::builder()
+            .with_unix_timestamp(args.session_start_ts_ms)
+            .with_existing_partial_words(args.partial_words_by_channel.clone())
+            .build();
+
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args, myself).await.unwrap();
         let state = ListenerState {
             tx,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
+            manager,
         };
 
         Ok(state)

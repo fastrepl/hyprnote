@@ -48,7 +48,12 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     fn models_dir(&self) -> PathBuf {
-        self.path().app_data_dir().unwrap().join("ttt")
+        let a = self
+            .path()
+            .resolve("ttt", tauri::path::BaseDirectory::Resource)
+            .unwrap();
+        tracing::info!("models_dir: {:?}", a);
+        a
     }
 
     #[tracing::instrument(skip_all)]

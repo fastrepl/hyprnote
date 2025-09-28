@@ -72,7 +72,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     fn models_dir(&self) -> PathBuf {
-        self.path().app_data_dir().unwrap().join("stt")
+        let a = self
+            .path()
+            .resolve("stt", tauri::path::BaseDirectory::Resource)
+            .unwrap();
+        tracing::info!("models_dir: {:?}", a);
+        a
     }
 
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {

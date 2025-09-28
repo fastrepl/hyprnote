@@ -90,12 +90,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
-                let model_path = if cfg!(debug_assertions) {
-                    app.path()
-                        .resolve("resources/llm.gguf", BaseDirectory::Resource)?
-                } else {
-                    app.path().resolve("llm.gguf", BaseDirectory::Resource)?
-                };
+                let model_path = app.path().resolve("llm.gguf", BaseDirectory::Resource)?;
 
                 let state = State {
                     api_base: None,

@@ -90,7 +90,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             }
 
             {
-                let model_path = app.path().resolve("llm.gguf", BaseDirectory::Resource)?;
+                let model_path = app
+                    .path()
+                    .resolve("hypr-llm.gguf", BaseDirectory::Resource)?;
 
                 let state = State {
                     api_base: None,

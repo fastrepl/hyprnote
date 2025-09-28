@@ -1,29 +1,38 @@
 use std::collections::HashMap;
 
+pub type WordsByChannel = HashMap<usize, Vec<owhisper_interface::Word>>;
+
 #[derive(Default)]
 pub struct TranscriptManagerBuilder {
-    session_start_timestamp_ms: Option<u64>,
+    manager_offset: Option<u64>,
+    partial_words_by_channel: Option<WordsByChannel>,
 }
 
 impl TranscriptManagerBuilder {
-    pub fn with_unix_timestamp(mut self, session_start_timestamp_ms: u64) -> Self {
-        self.session_start_timestamp_ms = Some(session_start_timestamp_ms);
+    // unix timestamp in ms
+    pub fn with_manager_offset(mut self, manager_offset: u64) -> Self {
+        self.manager_offset = Some(manager_offset);
+        self
+    }
+
+    pub fn with_existing_partial_words(mut self, m: impl Into<WordsByChannel>) -> Self {
+        self.partial_words_by_channel = Some(m.into());
         self
     }
 
     pub fn build(self) -> TranscriptManager {
         TranscriptManager {
             id: uuid::Uuid::new_v4(),
-            partial_words_by_channel: HashMap::new(),
-            session_start_timestamp_ms: self.session_start_timestamp_ms.unwrap_or(0),
+            partial_words_by_channel: self.partial_words_by_channel.unwrap_or_default(),
+            manager_offset: self.manager_offset.unwrap_or(0),
         }
     }
 }
 
 pub struct TranscriptManager {
-    id: uuid::Uuid,
-    partial_words_by_channel: HashMap<usize, Vec<owhisper_interface::Word>>,
-    session_start_timestamp_ms: u64,
+    pub id: uuid::Uuid,
+    pub partial_words_by_channel: WordsByChannel,
+    pub manager_offset: u64,
 }
 
 impl TranscriptManager {
@@ -110,8 +119,8 @@ impl TranscriptManager {
                             w.speaker = Some(speaker);
                         }
 
-                        let start_ms = self.session_start_timestamp_ms as f64 + (w.start * 1000.0);
-                        let end_ms = self.session_start_timestamp_ms as f64 + (w.end * 1000.0);
+                        let start_ms = self.manager_offset as f64 + (w.start * 1000.0);
+                        let end_ms = self.manager_offset as f64 + (w.end * 1000.0);
 
                         w.start = start_ms / 1000.0;
                         w.end = end_ms / 1000.0;

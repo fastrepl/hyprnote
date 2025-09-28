@@ -9,8 +9,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     actors::{
-        ListenerActor, ListenerArgs, ListenerMsg, ProcArgs, ProcMsg, ProcessorActor, RecArgs,
-        RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
+        ListenerActor, ListenerArgs, ListenerMsg, ListenerState, ProcArgs, ProcMsg, ProcessorActor,
+        RecArgs, RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
     },
     SessionEvent,
 };
@@ -33,7 +33,6 @@ pub struct SessionArgs {
 pub struct SessionState {
     app: tauri::AppHandle,
     session_id: String,
-    session_start_ts_ms: u64,
     languages: Vec<hypr_language::Language>,
     onboarding: bool,
     token: CancellationToken,
@@ -85,15 +84,9 @@ impl Actor for SessionActor {
             let _ = args.app.set_start_disabled(true);
         }
 
-        let session_start_ts_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
-
         let state = SessionState {
             app: args.app,
             session_id,
-            session_start_ts_ms,
             languages,
             onboarding,
             token: cancellation_token,
@@ -192,21 +185,30 @@ impl Actor for SessionActor {
             SupervisionEvent::ActorStarted(actor) => {
                 tracing::info!("{:?}_actor_started", actor.get_name());
             }
-
-            SupervisionEvent::ActorFailed(actor, _)
-            | SupervisionEvent::ActorTerminated(actor, _, _) => {
+            SupervisionEvent::ActorTerminated(actor, maybe_state, _) => {
                 let actor_name = actor
                     .get_name()
                     .map(|n| n.to_string())
                     .unwrap_or_else(|| "unknown".to_string());
 
                 if actor_name == ListenerActor::name() {
-                    Self::start_listener(myself.get_cell(), state).await?;
+                    let last_state: Option<ListenerState> =
+                        maybe_state.and_then(|mut s| s.take().ok());
+
+                    Self::start_listener(
+                        myself.get_cell(),
+                        state,
+                        last_state.map(|s| ListenerArgs {
+                            partial_words_by_channel: s.manager.partial_words_by_channel,
+                            ..s.args
+                        }),
+                    )
+                    .await?;
                 } else {
                     let _ = myself.stop_and_wait(None, None).await;
                 }
             }
-
+            SupervisionEvent::ActorFailed(_, _) => {}
             _ => {}
         }
 
@@ -254,7 +256,7 @@ impl SessionActor {
     ) -> Result<(), ActorProcessingErr> {
         Self::start_processor(supervisor.clone(), state).await?;
         Self::start_source(supervisor.clone(), state).await?;
-        Self::start_listener(supervisor.clone(), state).await?;
+        Self::start_listener(supervisor.clone(), state, None).await?;
 
         if state.record_enabled {
             Self::start_recorder(supervisor, state).await?;
@@ -359,18 +361,19 @@ impl SessionActor {
 
     async fn start_listener(
         supervisor: ActorCell,
-        state: &SessionState,
+        session_state: &SessionState,
+        listener_args: Option<ListenerArgs>,
     ) -> Result<ActorRef<ListenerMsg>, ActorProcessingErr> {
         let (listen_ref, _) = Actor::spawn_linked(
             Some(ListenerActor::name()),
             ListenerActor,
-            ListenerArgs {
-                app: state.app.clone(),
-                session_id: state.session_id.to_string(),
-                languages: state.languages.clone(),
-                onboarding: state.onboarding,
-                session_start_ts_ms: state.session_start_ts_ms,
-            },
+            listener_args.unwrap_or(ListenerArgs {
+                app: session_state.app.clone(),
+                session_id: session_state.session_id.to_string(),
+                languages: session_state.languages.clone(),
+                onboarding: session_state.onboarding,
+                partial_words_by_channel: Default::default(),
+            }),
             supervisor,
         )
         .await?;

@@ -109,8 +109,8 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
         className={`flex flex-row items-center gap-2 rounded-md ${isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"}`}
         style={{ outline: "none" }}
       >
-        <CalendarIcon size={14} className="flex-shrink-0" />
-        {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
+        <CalendarIcon size={14} className="flex-shrink-0 text-neutral-500" />
+        {!isVeryNarrow && <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>}
       </div>
     );
   }
@@ -145,9 +145,11 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                     )}
                   >
                     {event.data.meetingLink
-                      ? <VideoIcon size={14} className="flex-shrink-0" />
-                      : <SpeechIcon size={14} className="flex-shrink-0" />}
-                    {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
+                      ? <VideoIcon size={14} className="flex-shrink-0 text-neutral-500" />
+                      : <SpeechIcon size={14} className="flex-shrink-0 text-neutral-500" />}
+                    {!isVeryNarrow && (
+                      <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>
+                    )}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -248,8 +250,10 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                 isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
               }`}
             >
-              <CalendarIcon size={14} className="flex-shrink-0" />
-              {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(sessionCreatedAt)}</p>}
+              <CalendarIcon size={14} className="flex-shrink-0 text-neutral-500" />
+              {!isVeryNarrow && (
+                <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(sessionCreatedAt)}</p>
+              )}
             </div>
           </PopoverTrigger>
 

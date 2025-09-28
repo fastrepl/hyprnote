@@ -133,3 +133,16 @@ body {
     transform: translateY(-10px);
   }
 }
+
+/* Search result highlighting styles */
+.search-result {
+  background-color: #ffeb3b;
+  border-radius: 2px;
+  padding: 1px 0;
+}
+
+.search-result-current {
+  background-color: #31e054 !important;
+  border-radius: 2px;
+  padding: 1px 0;
+}

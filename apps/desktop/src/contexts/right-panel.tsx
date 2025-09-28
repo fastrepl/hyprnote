@@ -36,7 +36,7 @@ export function RightPanelProvider({
   children: React.ReactNode;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [currentView, setCurrentView] = useState<RightPanelView>("transcript");
+  const [currentView, setCurrentView] = useState<RightPanelView>("chat");
   const [pendingSelection, setPendingSelection] = useState<SelectionData | null>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);

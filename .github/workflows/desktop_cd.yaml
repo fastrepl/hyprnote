@@ -92,7 +92,7 @@ jobs:
           rm nvidia_parakeet-v3_494MB.tar
           cd - > /dev/null
 
-          aws s3 cp s3://hyprnote-cache2/v0/resources/llm/hypr-llm.gguf apps/desktop/src-tauri/resources/llm/hypr-llm.gguf \
+          aws s3 cp s3://hyprnote-cache2/v0/resources/ttt/hypr-llm.gguf apps/desktop/src-tauri/resources/ttt/hypr-llm.gguf \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:

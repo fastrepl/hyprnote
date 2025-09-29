@@ -20,7 +20,8 @@
     const FILE_OPTIONS = [
       "council_011320_2022003V",
       "f7952672-5d18-4f75-8aa0-74ab8b02dac3",
-      "14b0f420-81e0-4104-b16a-585f1b1b0b56"
+      "14b0f420-81e0-4104-b16a-585f1b1b0b56",
+      "7a6ad933-4bad-48d1-96c2-c4346052b3cd"
     ];
     
     const html = htm.bind(React.createElement);
@@ -38,7 +39,7 @@
 
     const App = () => {
       const [currentIndex, setCurrentIndex] = useState(0);
-      const [selectedFile, setSelectedFile] = useState(FILE_OPTIONS[0]);
+      const [selectedFile, setSelectedFile] = useState(FILE_OPTIONS[3]);
       const [stepSize, setStepSize] = useState(1);
       const contentRef = useRef(null);
       const tooltipRef = useRef(document.getElementById('tooltip'));
@@ -95,71 +96,125 @@
       const hideTooltip = () => {
         tooltipRef.current.style.display = 'none';
       };
-
-      const collectWords = () => {
-        const allWords = [];
-        
-        for (let i = 0; i < currentIndex && i < data.length; i++) {
-          Object.entries(data[i].final_words || {}).forEach(([key, words]) => {
-            words.forEach(word => {
-              allWords.push({
-                ...word,
-                type: 'final',
-                frameIndex: i,
-                channelKey: key
-              });
-            });
-          });
-        }
-        
-        if (data[currentIndex]) {
-          Object.entries(data[currentIndex].final_words || {}).forEach(([key, words]) => {
-            words.forEach(word => {
-              allWords.push({
-                ...word,
-                type: 'final',
-                frameIndex: currentIndex,
-                channelKey: key
-              });
-            });
-          });
-          
-          Object.entries(data[currentIndex].partial_words || {}).forEach(([key, words]) => {
-            words.forEach(word => {
-              allWords.push({
-                ...word,
-                type: 'partial',
-                frameIndex: currentIndex,
-                channelKey: key
-              });
-            });
-          });
-        }
-        
-        return allWords;
-      };
-
-      const createSpeakerSegments = (words) => {
-        if (words.length === 0) return [];
-        
-        words.sort((a, b) => a.start - b.start);
-        
+      
+      const buildSpeakerSegments = () => {
         const segments = [];
-        let currentSegment = null;
+        const activeSegments = new Map(); // speaker -> segment
         
-        words.forEach(word => {
-          const speaker = word.speaker ?? 'unknown';
+        // Process all frames up to and including current
+        for (let frameIdx = 0; frameIdx <= currentIndex && frameIdx < data.length; frameIdx++) {
+          const frame = data[frameIdx];
+          const isCurrent = frameIdx === currentIndex;
           
-          if (!currentSegment || currentSegment.speaker !== speaker) {
-            currentSegment = {
-              speaker: speaker,
-              words: [word]
-            };
-            segments.push(currentSegment);
-          } else {
-            currentSegment.words.push(word);
+          // Process final words from all frames up to current, and partial words only from current
+          const wordsToProcess = [];
+          
+          // Add final words
+          if (frame.final_words) {
+            Object.entries(frame.final_words).forEach(([channelKey, words]) => {
+              words.forEach(word => {
+                wordsToProcess.push({
+                  ...word,
+                  type: 'final',
+                  frameIndex: frameIdx,
+                  channelKey
+                });
+              });
+            });
           }
-        });
+          
+          // Add partial words only from current frame
+          if (isCurrent && frame.partial_words) {
+            Object.entries(frame.partial_words).forEach(([channelKey, words]) => {
+              words.forEach(word => {
+                wordsToProcess.push({
+                  ...word,
+                  type: 'partial',
+                  frameIndex: frameIdx,
+                  channelKey
+                });
+              });
+            });
+          }
+          
+          // Sort words by start time
+          wordsToProcess.sort((a, b) => a.start - b.start);
+          
+          // Process each word
+          wordsToProcess.forEach(word => {
+            const speaker = word.speaker ?? 'unknown';
+            
+            // Check if this word overlaps with any existing active segment for this speaker
+            let targetSegment = activeSegments.get(speaker);
+            let shouldMergeWithExisting = false;
+            
+            if (targetSegment) {
+              // Check if there's a time gap (more than 1 second) between last word and this word
+              const lastWord = targetSegment.words[targetSegment.words.length - 1];
+              const timeGap = word.start - lastWord.end;
+              
+              if (timeGap > 1.0) {
+                // Too much gap, create a new segment
+                targetSegment = null;
+              }
+            }
+            
+            // If we need a new segment
+            if (!targetSegment) {
+              // Check if this word's start time overlaps with any other active segment
+              
+              for (const [otherSpeaker, otherSegment] of activeSegments) {
+                if (otherSpeaker !== speaker && otherSegment.words.length > 0) {
+                  const otherLastWord = otherSegment.words[otherSegment.words.length - 1];
+                  
+                  // If this word starts before the other segment's last word ends
+                  if (word.start < otherLastWord.end) {
+                    // Check if we have an earlier segment from this speaker that could be extended
+                    for (let i = segments.length - 1; i >= 0; i--) {
+                      if (segments[i].speaker === speaker) {
+                        const segLastWord = segments[i].words[segments[i].words.length - 1];
+                        // If the gap is small enough, merge with the existing segment
+                        if (word.start - segLastWord.end < 0.5) {
+                          segments[i].words.push(word);
+                          shouldMergeWithExisting = true;
+                          // Update the active segment reference
+                          activeSegments.set(speaker, segments[i]);
+                          break;
+                        }
+                      }
+                    }
+                    break;
+                  }
+                }
+              }
+              
+              if (!shouldMergeWithExisting) {
+                // Create new segment
+                targetSegment = {
+                  speaker: speaker,
+                  words: []
+                };
+                segments.push(targetSegment);
+                activeSegments.set(speaker, targetSegment);
+                
+                // Deactivate other speakers if this word comes after their last word
+                for (const [otherSpeaker, otherSegment] of activeSegments) {
+                  if (otherSpeaker !== speaker && otherSegment.words.length > 0) {
+                    const otherLastWord = otherSegment.words[otherSegment.words.length - 1];
+                    if (word.start >= otherLastWord.end) {
+                      activeSegments.delete(otherSpeaker);
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Add word to the target segment
+            if (targetSegment && !shouldMergeWithExisting) {
+              targetSegment.words.push(word);
+            }
+          });
+        }
         
         return segments;
       };
@@ -189,8 +244,7 @@
           return html`<span class="text-red-400 italic">Error: ${error.message}</span>`;
         }
         
-        const words = collectWords();
-        const segments = createSpeakerSegments(words);
+        const segments = buildSpeakerSegments();
         
         if (segments.length === 0) {
           return html`<span class="text-gray-500 italic">No content to display</span>`;

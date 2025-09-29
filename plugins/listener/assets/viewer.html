@@ -11,9 +11,11 @@
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 h-screen overflow-hidden">
   <div id="app"></div>
+  <div id="tooltip" style="display: none; position: absolute; background: #1f2937; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: monospace; z-index: 9999; border: 1px solid #374151; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
 
   <script type="module">
     import htm from 'https://esm.sh/htm';
+    import { computePosition, flip, shift, offset } from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.7.3/+esm';
     
     const FILE_OPTIONS = [
       "council_011320_2022003V",
@@ -39,6 +41,7 @@
       const [selectedFile, setSelectedFile] = useState(FILE_OPTIONS[0]);
       const [stepSize, setStepSize] = useState(1);
       const contentRef = useRef(null);
+      const tooltipRef = useRef(document.getElementById('tooltip'));
 
       const { data = [], isLoading, isError, error } = useQuery({
         queryKey: ['diffData', selectedFile],
@@ -72,6 +75,26 @@
           contentRef.current.scrollTop = contentRef.current.scrollHeight;
         }
       }, [currentIndex]);
+
+      const showTooltip = async (e, word) => {
+        const tooltip = tooltipRef.current;
+        const target = e.currentTarget;
+        
+        tooltip.innerHTML = `<div>${word.start.toFixed(3)}s ~ ${word.end.toFixed(3)}s</div>`;
+        
+        tooltip.style.display = 'block';
+        
+        const { x, y } = await computePosition(target, tooltip, {
+          placement: 'top',
+          middleware: [offset(6), flip(), shift({ padding: 5 })]
+        });
+        
+        Object.assign(tooltip.style, {left: `${x}px`, top: `${y}px`});
+      };
+
+      const hideTooltip = () => {
+        tooltipRef.current.style.display = 'none';
+      };
 
       const collectWords = () => {
         const allWords = [];
@@ -184,7 +207,12 @@
                 </div>
                 <div class="flex-1 leading-relaxed">
                   ${segment.words.map((word, wordIndex) => html`
-                    <span key=${wordIndex} class="${word.type === 'final' ? 'text-rose-400' : 'text-emerald-400'} font-medium">
+                    <span 
+                      key=${wordIndex} 
+                      class="${word.type === 'final' ? 'text-rose-400' : 'text-emerald-400'} font-medium cursor-help hover:underline"
+                      onMouseEnter=${(e) => showTooltip(e, word)}
+                      onMouseLeave=${hideTooltip}
+                    >
                       ${wordIndex > 0 ? ' ' : ''}${word.word}
                     </span>
                   `)}
@@ -283,7 +311,7 @@
           </div>
 
           <div class="mt-3 text-center text-xs text-gray-500">
-            ${isLoading ? 'Loading data...' : 'Use arrow keys (← →) for navigation • Step size controls how many items to skip'}
+            ${isLoading ? 'Loading data...' : 'Use arrow keys (← →) for navigation • Step size controls how many items to skip • Hover over words for timestamps'}
           </div>
         </div>
       `;

@@ -289,5 +289,9 @@ mod tests {
         );
 
         test_transcript!(test_council_011320_2022003V, "council_011320_2022003V");
+        test_transcript!(
+            test_14b0f420_81e0_4104_b16a_585f1b1b0b56,
+            "14b0f420-81e0-4104-b16a-585f1b1b0b56"
+        );
     }
 }

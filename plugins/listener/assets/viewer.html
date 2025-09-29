@@ -73,6 +73,90 @@
         }
       }, [currentIndex]);
 
+      const collectWords = () => {
+        const allWords = [];
+        
+        for (let i = 0; i < currentIndex && i < data.length; i++) {
+          Object.entries(data[i].final_words || {}).forEach(([key, words]) => {
+            words.forEach(word => {
+              allWords.push({
+                ...word,
+                type: 'final',
+                frameIndex: i,
+                channelKey: key
+              });
+            });
+          });
+        }
+        
+        if (data[currentIndex]) {
+          Object.entries(data[currentIndex].final_words || {}).forEach(([key, words]) => {
+            words.forEach(word => {
+              allWords.push({
+                ...word,
+                type: 'final',
+                frameIndex: currentIndex,
+                channelKey: key
+              });
+            });
+          });
+          
+          Object.entries(data[currentIndex].partial_words || {}).forEach(([key, words]) => {
+            words.forEach(word => {
+              allWords.push({
+                ...word,
+                type: 'partial',
+                frameIndex: currentIndex,
+                channelKey: key
+              });
+            });
+          });
+        }
+        
+        return allWords;
+      };
+
+      const createSpeakerSegments = (words) => {
+        if (words.length === 0) return [];
+        
+        words.sort((a, b) => a.start - b.start);
+        
+        const segments = [];
+        let currentSegment = null;
+        
+        words.forEach(word => {
+          const speaker = word.speaker ?? 'unknown';
+          
+          if (!currentSegment || currentSegment.speaker !== speaker) {
+            currentSegment = {
+              speaker: speaker,
+              words: [word]
+            };
+            segments.push(currentSegment);
+          } else {
+            currentSegment.words.push(word);
+          }
+        });
+        
+        return segments;
+      };
+
+      const getSpeakerColor = (speaker) => {
+        const colors = [
+          'text-blue-400',
+          'text-green-400',
+          'text-yellow-400',
+          'text-purple-400',
+          'text-pink-400',
+          'text-indigo-400',
+          'text-orange-400',
+          'text-teal-400'
+        ];
+        
+        if (speaker === 'unknown') return 'text-gray-400';
+        return colors[speaker % colors.length];
+      };
+
       const renderContent = () => {
         if (isLoading) {
           return html`<span class="text-gray-500 italic">Loading...</span>`;
@@ -82,31 +166,33 @@
           return html`<span class="text-red-400 italic">Error: ${error.message}</span>`;
         }
         
-        const parts = [];
+        const words = collectWords();
+        const segments = createSpeakerSegments(words);
         
-        for (let i = 0; i <= currentIndex && i < data.length; i++) {
-          Object.entries(data[i].final_words || {}).forEach(([key, words]) => {
-            words.forEach(wordObj => {
-              parts.push(html`<span class="text-rose-400 font-medium">${wordObj.word}</span>`);
-            });
-          });
-        }
-        
-        if (data[currentIndex]) {
-          Object.entries(data[currentIndex].partial_words || {}).forEach(([key, words]) => {
-            words.forEach(wordObj => {
-              parts.push(html`<span class="text-emerald-400 font-medium">${wordObj.word}</span>`);
-            });
-          });
-        }
-        
-        if (parts.length === 0) {
+        if (segments.length === 0) {
           return html`<span class="text-gray-500 italic">No content to display</span>`;
         }
         
-        return html`<div class="leading-relaxed">${parts.map((part, i) => 
-          html`<span key=${i}>${i > 0 ? ' ' : ''}${part}</span>`
-        )}</div>`;
+        return html`
+          <div class="space-y-3">
+            ${segments.map((segment, segIndex) => html`
+              <div key=${segIndex} class="flex gap-3">
+                <div class="flex-shrink-0 w-12 text-right">
+                  <span class="${getSpeakerColor(segment.speaker)} font-bold">
+                    ${segment.speaker === 'unknown' ? '?' : segment.speaker}:
+                  </span>
+                </div>
+                <div class="flex-1 leading-relaxed">
+                  ${segment.words.map((word, wordIndex) => html`
+                    <span key=${wordIndex} class="${word.type === 'final' ? 'text-rose-400' : 'text-emerald-400'} font-medium">
+                      ${wordIndex > 0 ? ' ' : ''}${word.word}
+                    </span>
+                  `)}
+                </div>
+              </div>
+            `)}
+          </div>
+        `;
       };
 
       return html`
@@ -190,7 +276,7 @@
           
           <div class="flex-1 bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8 overflow-hidden flex flex-col">
             <div ref=${contentRef} class="flex-1 overflow-y-auto scroll-smooth">
-              <div class="font-mono text-lg text-gray-100 whitespace-pre-wrap break-words">
+              <div class="font-mono text-lg text-gray-100">
                 ${renderContent()}
               </div>
             </div>

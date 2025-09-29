@@ -34,7 +34,8 @@
     "**/*.swift",
     "**/migrations/**",
     "**/charts/**",
-    "**/schema.json"
+    "**/schema.json",
+    "plugins/listener/assets/**/*.json"
   ],
   "exec": {
     "cwd": "${configDir}",

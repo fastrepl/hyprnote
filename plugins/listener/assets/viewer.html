@@ -85,14 +85,18 @@
         const parts = [];
         
         for (let i = 0; i <= currentIndex && i < data.length; i++) {
-          Object.entries(data[i].final_content || {}).forEach(([key, value]) => {
-            parts.push(html`<span class="text-rose-400 font-medium">${value}</span>`);
+          Object.entries(data[i].final_words || {}).forEach(([key, words]) => {
+            words.forEach(wordObj => {
+              parts.push(html`<span class="text-rose-400 font-medium">${wordObj.word}</span>`);
+            });
           });
         }
         
         if (data[currentIndex]) {
-          Object.entries(data[currentIndex].partial_content || {}).forEach(([key, value]) => {
-            parts.push(html`<span class="text-emerald-400 font-medium">${value}</span>`);
+          Object.entries(data[currentIndex].partial_words || {}).forEach(([key, words]) => {
+            words.forEach(wordObj => {
+              parts.push(html`<span class="text-emerald-400 font-medium">${wordObj.word}</span>`);
+            });
           });
         }
         

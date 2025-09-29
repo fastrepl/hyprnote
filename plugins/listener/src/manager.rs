@@ -41,7 +41,7 @@ impl TranscriptManager {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct Diff {
     pub partial_words: HashMap<usize, Vec<owhisper_interface::Word>>,
     pub final_words: HashMap<usize, Vec<owhisper_interface::Word>>,
@@ -241,12 +241,6 @@ mod tests {
             .collect()
     }
 
-    #[derive(Debug, serde::Serialize)]
-    struct TestDiff {
-        final_content: HashMap<usize, String>,
-        partial_content: HashMap<usize, String>,
-    }
-
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -266,10 +260,7 @@ mod tests {
                     let mut diffs = vec![];
                     for item in items {
                         let diff = manager.append(item);
-                        diffs.push(TestDiff {
-                            final_content: diff.final_content(),
-                            partial_content: diff.partial_content(),
-                        });
+                        diffs.push(diff);
                     }
 
                     std::fs::write(

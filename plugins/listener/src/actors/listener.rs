@@ -1,8 +1,9 @@
+use bytes::Bytes;
 use std::collections::HashMap;
 use std::time::Duration;
 
-use bytes::Bytes;
 use futures_util::StreamExt;
+use tokio::time::error::Elapsed;
 
 use owhisper_interface::{ControlMessage, MixedMessage, Word2};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
@@ -21,7 +22,7 @@ pub enum ListenerMsg {
     StreamResponse(owhisper_interface::StreamResponse),
     StreamError(String),
     StreamEnded,
-    StreamTimeout,
+    StreamTimeout(Elapsed),
     StreamStartFailed(String),
 }
 
@@ -182,8 +183,8 @@ impl Actor for ListenerActor {
                 myself.stop(None);
             }
 
-            ListenerMsg::StreamTimeout => {
-                tracing::info!("listen_stream_timeout");
+            ListenerMsg::StreamTimeout(elapsed) => {
+                tracing::info!("listen_stream_timeout: {}", elapsed);
                 myself.stop(None);
             }
         }
@@ -274,8 +275,8 @@ async fn spawn_rx_task(
                             break;
                         }
                         // We're not hearing back any transcript. Better to stop the whole session.
-                        Err(_) => {
-                            let _ = myself.send_message(ListenerMsg::StreamTimeout);
+                        Err(elapsed) => {
+                            let _ = myself.send_message(ListenerMsg::StreamTimeout(elapsed));
                             break;
                         }
                     }

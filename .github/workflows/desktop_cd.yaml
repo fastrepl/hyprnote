@@ -4,6 +4,7 @@ on:
     inputs:
       experimental_airgapped:
         type: boolean
+        required: false
         default: false
         description: experimental_airgapped
   release:
@@ -81,7 +82,7 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - if: ${{ github.event.inputs.experimental_airgapped == 'true' }}
+      - if: ${{ github.event.inputs.experimental_airgapped }}
         run: |
           aws s3 cp s3://hyprnote-cache2/v0/resources/stt/nvidia_parakeet-v3_494MB.tar apps/desktop/src-tauri/resources/stt/nvidia_parakeet-v3_494MB.tar \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \

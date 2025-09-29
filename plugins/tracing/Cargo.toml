@@ -17,7 +17,8 @@ specta-typescript = { workspace = true }
 tauri = { workspace = true, features = ["tray-icon", "image-png"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
-tauri-plugin-sentry = { workspace = true, features = ["tracing"] }
+sentry = { workspace = true, features = ["tracing"] }
+tauri-plugin-sentry = { workspace = true }
 
 dirs = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

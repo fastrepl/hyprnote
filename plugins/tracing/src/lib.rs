@@ -43,7 +43,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             ) {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
-                    .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
+                    .with(sentry::integrations::tracing::layer())
                     .with(fmt::layer())
                     .with(fmt::layer().with_ansi(false).with_writer(file_writer))
                     .init();
@@ -51,7 +51,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             } else {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
-                    .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
+                    .with(sentry::integrations::tracing::layer())
                     .with(fmt::layer())
                     .init();
             }

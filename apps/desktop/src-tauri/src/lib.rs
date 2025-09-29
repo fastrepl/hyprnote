@@ -13,7 +13,7 @@ use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
-    let sentry_client = tauri_plugin_sentry::sentry::init((
+    let sentry_client = sentry::init((
         {
             #[cfg(not(debug_assertions))]
             {
@@ -25,8 +25,8 @@ pub async fn main() {
                 option_env!("SENTRY_DSN").unwrap_or_default()
             }
         },
-        tauri_plugin_sentry::sentry::ClientOptions {
-            release: tauri_plugin_sentry::sentry::release_name!(),
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
             traces_sample_rate: 1.0,
             auto_session_tracking: true,
             ..Default::default()
@@ -256,8 +256,8 @@ pub async fn main() {
                             }
                         }
 
-                        tauri_plugin_sentry::sentry::configure_scope(|scope| {
-                            scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                        sentry::configure_scope(|scope| {
+                            scope.set_user(Some(sentry::User {
                                 id: Some(user_id.clone()),
                                 ..Default::default()
                             }));

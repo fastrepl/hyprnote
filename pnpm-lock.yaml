@@ -29,7 +29,7 @@ importers:
         version: 0.13.8(typescript@5.9.2)(zod@4.1.5)
       better-auth:
         specifier: ^1.3.8
-        version: 1.3.8(react-dom@18.3.1(react@19.1.1))(react@19.1.1)
+        version: 1.3.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       hono:
         specifier: ^4.9.6
         version: 4.9.6
@@ -410,6 +410,43 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@22.18.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.10.4(@types/node@22.18.1)(typescript@5.9.2))(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)
+
+  apps/desktop2:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2
+        version: 2.8.0
+      '@tauri-apps/plugin-opener':
+        specifier: ^2
+        version: 2.5.0
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      tinybase:
+        specifier: ^6.6.1
+        version: 6.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(ws@8.18.3)
+    devDependencies:
+      '@tauri-apps/cli':
+        specifier: ^2
+        version: 2.8.4
+      '@types/react':
+        specifier: ^18.3.1
+        version: 18.3.24
+      '@types/react-dom':
+        specifier: ^18.3.1
+        version: 18.3.7(@types/react@18.3.24)
+      '@vitejs/plugin-react':
+        specifier: ^4.6.0
+        version: 4.7.0(vite@7.1.7(@types/node@22.18.1)(jiti@2.5.1)(lightningcss@1.30.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1))
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^7.0.4
+        version: 7.1.7(@types/node@22.18.1)(jiti@2.5.1)(lightningcss@1.30.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1)
 
   apps/pro:
     dependencies:
@@ -8028,6 +8065,11 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
+  react-dom@19.1.1:
+    resolution: {integrity: sha512-Dlq/5LAZgF0Gaz6yiqZCf6VCcZs1ghAJyrsu84Q/GT0gV+mCxbfmKNoGRKBYMJ8IEdGPqu49YWXD02GCknEDkw==}
+    peerDependencies:
+      react: ^19.1.1
+
   react-draggable@4.4.6:
     resolution: {integrity: sha512-LtY5Xw1zTPqHkVmtM3X8MUOxNDOUhv/khTgBgrUvwaS064bwVvxT+q5El0uUFNx5IEPKXuRejr7UqLwBIg5pdw==}
     peerDependencies:
@@ -8475,6 +8517,9 @@ packages:
   scheduler@0.25.0-rc-603e6108-20241029:
     resolution: {integrity: sha512-pFwF6H1XrSdYYNLfOcGlM28/j8CGLu8IvdrxqhjWULe2bPcKiKW4CV+OWqR/9fT52mywx65l7ysNkjLKBda7eA==}
 
+  scheduler@0.26.0:
+    resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
+
   screenfull@5.2.0:
     resolution: {integrity: sha512-9BakfsO2aUQN2K9Fdbj87RJIEZ82Q9IGim7FqM5OsebfoFC6ZHXgDq/KvniuLTPdeM8wY2o6Dj3WQ7KeQCj3cA==}
     engines: {node: '>=0.10.0'}
@@ -8890,6 +8935,74 @@ packages:
   tiny-warning@1.0.3:
     resolution: {integrity: sha512-lBN9zLN/oAf68o3zNXYrdCt1kP8WsiGW8Oo2ka41b2IM5JL/S1CTyX1rW0mb/zSuJun0ZUrDxx4sqvYS2FWzPA==}
 
+  tinybase@6.6.1:
+    resolution: {integrity: sha512-QVadsZpJIg5/NS7Ugfu+M5jghFVG/O91YW/bl5poNnGLRGqU6cbHySv9OL8C8qcsC83f5ad3pZJoB9cW4p7p1Q==}
+    peerDependencies:
+      '@automerge/automerge-repo': ^1.2.1
+      '@cloudflare/workers-types': ^4.20250923.0
+      '@electric-sql/pglite': ^0.2.17
+      '@libsql/client': ^0.15.15
+      '@powersync/common': ^1.38.1
+      '@sqlite.org/sqlite-wasm': ^3.50.4-build1
+      '@vlcn.io/crsqlite-wasm': ^0.16.0
+      bun: ^1.2.22
+      electric-sql: ^0.12.1
+      expo: ^54.0.10
+      expo-sqlite: ^16.0.8
+      partykit: ^0.0.115
+      partysocket: ^1.1.5
+      postgres: ^3.4.7
+      react: ^19.0.0
+      react-dom: ^19.0.0
+      react-native-mmkv: 3.3.0
+      react-native-sqlite-storage: ^6.0.1
+      sqlite3: ^5.1.7
+      ws: ^8.18.3
+      yjs: ^13.6.27
+    peerDependenciesMeta:
+      '@automerge/automerge-repo':
+        optional: true
+      '@cloudflare/workers-types':
+        optional: true
+      '@electric-sql/pglite':
+        optional: true
+      '@libsql/client':
+        optional: true
+      '@powersync/common':
+        optional: true
+      '@sqlite.org/sqlite-wasm':
+        optional: true
+      '@vlcn.io/crsqlite-wasm':
+        optional: true
+      bun:
+        optional: true
+      electric-sql:
+        optional: true
+      expo:
+        optional: true
+      expo-sqlite:
+        optional: true
+      partykit:
+        optional: true
+      partysocket:
+        optional: true
+      postgres:
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      react-native-mmkv:
+        optional: true
+      react-native-sqlite-storage:
+        optional: true
+      sqlite3:
+        optional: true
+      ws:
+        optional: true
+      yjs:
+        optional: true
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -9125,6 +9238,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   typescript@5.9.2:
     resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
     engines: {node: '>=14.17'}
@@ -9353,6 +9471,46 @@ packages:
       sugarss:
         optional: true
       terser:
+        optional: true
+
+  vite@7.1.7:
+    resolution: {integrity: sha512-VbA8ScMvAISJNJVbRDTJdCwqQoAareR/wutevKanhR2/1EkoXVZVkkORaYm/tNVCjP/UDTKtcw3bAkwOUdedmA==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^20.19.0 || >=22.12.0
+      jiti: '>=1.21.0'
+      less: ^4.0.0
+      lightningcss: ^1.21.0
+      sass: ^1.70.0
+      sass-embedded: ^1.70.0
+      stylus: '>=0.54.8'
+      sugarss: ^5.0.0
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
         optional: true
 
   vitest@3.2.4:
@@ -13059,6 +13217,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@vitejs/plugin-react@4.7.0(vite@7.1.7(@types/node@22.18.1)(jiti@2.5.1)(lightningcss@1.30.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1))':
+    dependencies:
+      '@babel/core': 7.28.4
+      '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.28.4)
+      '@babel/plugin-transform-react-jsx-source': 7.27.1(@babel/core@7.28.4)
+      '@rolldown/pluginutils': 1.0.0-beta.27
+      '@types/babel__core': 7.20.5
+      react-refresh: 0.17.0
+      vite: 7.1.7(@types/node@22.18.1)(jiti@2.5.1)(lightningcss@1.30.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1)
+    transitivePeerDependencies:
+      - supports-color
+
   '@vitest/expect@3.2.4':
     dependencies:
       '@types/chai': 5.2.2
@@ -13681,7 +13851,7 @@ snapshots:
       react-router-dom: 7.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rxjs: 7.8.2
 
-  better-auth@1.3.8(react-dom@18.3.1(react@19.1.1))(react@19.1.1):
+  better-auth@1.3.8(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       '@better-auth/utils': 0.2.6
       '@better-fetch/fetch': 1.1.18
@@ -13697,7 +13867,7 @@ snapshots:
       zod: 4.1.5
     optionalDependencies:
       react: 19.1.1
-      react-dom: 18.3.1(react@19.1.1)
+      react-dom: 19.1.1(react@19.1.1)
 
   better-call@1.0.16:
     dependencies:
@@ -18266,11 +18436,10 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
-  react-dom@18.3.1(react@19.1.1):
+  react-dom@19.1.1(react@19.1.1):
     dependencies:
-      loose-envify: 1.4.0
       react: 19.1.1
-      scheduler: 0.23.2
+      scheduler: 0.26.0
     optional: true
 
   react-draggable@4.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
@@ -18889,6 +19058,9 @@ snapshots:
 
   scheduler@0.25.0-rc-603e6108-20241029: {}
 
+  scheduler@0.26.0:
+    optional: true
+
   screenfull@5.2.0: {}
 
   scroll-into-view-if-needed@3.1.0:
@@ -19433,6 +19605,12 @@ snapshots:
 
   tiny-warning@1.0.3: {}
 
+  tinybase@6.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(ws@8.18.3):
+    optionalDependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      ws: 8.18.3
+
   tinybench@2.9.0: {}
 
   tinyexec@0.3.2: {}
@@ -19688,6 +19866,8 @@ snapshots:
       - supports-color
 
   typescript@5.6.3: {}
+
+  typescript@5.8.3: {}
 
   typescript@5.9.2: {}
 
@@ -19946,6 +20126,24 @@ snapshots:
       lightningcss: 1.30.1
       sugarss: 5.0.1(postcss@8.5.6)
       terser: 5.44.0
+
+  vite@7.1.7(@types/node@22.18.1)(jiti@2.5.1)(lightningcss@1.30.1)(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0)(tsx@4.20.5)(yaml@2.8.1):
+    dependencies:
+      esbuild: 0.25.9
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.50.0
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 22.18.1
+      fsevents: 2.3.3
+      jiti: 2.5.1
+      lightningcss: 1.30.1
+      sugarss: 5.0.1(postcss@8.5.6)
+      terser: 5.44.0
+      tsx: 4.20.5
+      yaml: 2.8.1
 
   vitest@3.2.4(@types/debug@4.1.12)(@types/node@22.18.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.10.4(@types/node@22.18.1)(typescript@5.9.2))(sugarss@5.0.1(postcss@8.5.6))(terser@5.44.0):
     dependencies:

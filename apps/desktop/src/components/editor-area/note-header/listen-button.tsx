@@ -57,6 +57,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const isEnhancePending = useEnhancePendingState(sessionId);
 
   const amplitude = useOngoingSession((s) => s.amplitude);
+  const muted = useOngoingSession((s) => ({ mic: s.micMuted, speaker: s.speakerMuted }));
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
@@ -151,16 +152,51 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     }
   };
 
+  const toggleMicMuted = useMutation({
+    mutationFn: async () => {
+      const result = await listenerCommands.setMicMuted(!muted.mic);
+
+      // only send analytics when muting (not unmuting)
+      if (!muted.mic && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_mic",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
+  });
+
+  const toggleSpeakerMuted = useMutation({
+    mutationFn: async () => {
+      const result = await listenerCommands.setSpeakerMuted(!muted.speaker);
+
+      // only send analytics when muting (not unmuting)
+      if (!muted.speaker && userId) {
+        analyticsCommands.event({
+          event: "recording_mute_system",
+          distinct_id: userId,
+        });
+      }
+
+      return result;
+    },
+  });
+
   return (
     <ListenButtonInner
       state={state}
-      amplitude={amplitude}
       sessionId={sessionId}
       disabled={disabled}
       isOnboarding={isOnboarding}
       isCompact={isCompact}
       handleStartSession={handleStartSession}
       handleStopSession={handleStopSession}
+      muted={muted}
+      amplitude={amplitude}
+      setMicMuted={toggleMicMuted.mutate}
+      setSpeakerMuted={toggleSpeakerMuted.mutate}
     />
   );
 }
@@ -174,7 +210,10 @@ function ListenButtonInner(
     isCompact = false,
     handleStartSession,
     handleStopSession,
+    muted,
     amplitude,
+    setMicMuted,
+    setSpeakerMuted,
   }: {
     state: ListenButtonState;
     sessionId: string;
@@ -183,7 +222,10 @@ function ListenButtonInner(
     isCompact?: boolean;
     handleStartSession: () => void;
     handleStopSession: () => void;
+    muted: { mic: boolean; speaker: boolean };
     amplitude: { mic: number; speaker: number };
+    setMicMuted: () => void;
+    setSpeakerMuted: () => void;
   },
 ) {
   switch (state) {
@@ -205,7 +247,16 @@ function ListenButtonInner(
         : <WhenInactiveAndMeetingEnded disabled={disabled} onClick={handleStartSession} isCompact={isCompact} />;
 
     case "running_active_this_session":
-      return <WhenActive sessionId={sessionId} handleStopSession={handleStopSession} amplitude={amplitude} />;
+      return (
+        <WhenActive
+          muted={muted}
+          setMicMuted={setMicMuted}
+          setSpeakerMuted={setSpeakerMuted}
+          disabled={isOnboarding}
+          handleStopSession={handleStopSession}
+          amplitude={amplitude}
+        />
+      );
 
     case "running_active_other_session":
       return null;
@@ -307,10 +358,13 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive(
-  { sessionId, handleStopSession, amplitude }: {
-    sessionId: string;
+  { disabled, handleStopSession, amplitude, muted, setMicMuted, setSpeakerMuted }: {
+    disabled: boolean;
     handleStopSession: () => void;
     amplitude: { mic: number; speaker: number };
+    muted: { mic: boolean; speaker: boolean };
+    setMicMuted: () => void;
+    setSpeakerMuted: () => void;
   },
 ) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -335,7 +389,12 @@ function WhenActive(
       </PopoverTrigger>
       <PopoverContent className="w-64" align="end">
         <RecordingControls
-          sessionId={sessionId}
+          disabled={disabled}
+          micMuted={muted.mic}
+          speakerMuted={muted.speaker}
+          setMicMuted={setMicMuted}
+          setSpeakerMuted={setSpeakerMuted}
+          amplitude={amplitude}
           onStop={handleStopSessionWrapper}
         />
       </PopoverContent>
@@ -344,64 +403,36 @@ function WhenActive(
 }
 
 function RecordingControls({
-  sessionId,
+  disabled,
+  micMuted,
+  speakerMuted,
+  setMicMuted,
+  setSpeakerMuted,
+  amplitude,
   onStop,
 }: {
-  sessionId: string;
+  disabled: boolean;
+  micMuted: boolean;
+  speakerMuted: boolean;
+  setMicMuted: () => void;
+  setSpeakerMuted: () => void;
+  amplitude: { mic: number; speaker: number };
   onStop: () => void;
 }) {
-  const { onboardingSessionId, userId } = useHypr();
-  const ongoingSessionState = useOngoingSession((s) => ({
-    micMuted: s.micMuted,
-    speakerMuted: s.speakerMuted,
-    amplitude: s.amplitude,
-  }));
-
-  const toggleMicMuted = useMutation({
-    mutationFn: async () => {
-      const result = await listenerCommands.setMicMuted(!ongoingSessionState.micMuted);
-
-      // only send analytics when muting (not unmuting)
-      if (!ongoingSessionState.micMuted && userId) {
-        analyticsCommands.event({
-          event: "recording_mute_mic",
-          distinct_id: userId,
-        });
-      }
-
-      return result;
-    },
-  });
-
-  const toggleSpeakerMuted = useMutation({
-    mutationFn: async () => {
-      const result = await listenerCommands.setSpeakerMuted(!ongoingSessionState.speakerMuted);
-
-      // only send analytics when muting (not unmuting)
-      if (!ongoingSessionState.speakerMuted && userId) {
-        analyticsCommands.event({
-          event: "recording_mute_system",
-          distinct_id: userId,
-        });
-      }
-
-      return result;
-    },
-  });
-
   return (
     <>
       <div className="flex gap-2 w-full justify-between mb-3">
         <MicrophoneSelector
-          isMuted={ongoingSessionState.micMuted}
-          amplitude={ongoingSessionState.amplitude.mic}
-          disabled={sessionId === onboardingSessionId}
-          onToggleMuted={() => toggleMicMuted.mutate()}
+          disabled={disabled}
+          isMuted={micMuted}
+          amplitude={amplitude.mic}
+          onToggleMuted={setMicMuted}
         />
         <SpeakerButton
-          isMuted={ongoingSessionState.speakerMuted}
-          amplitude={ongoingSessionState.amplitude.speaker}
-          onClick={() => toggleSpeakerMuted.mutate()}
+          disabled={disabled}
+          isMuted={speakerMuted}
+          amplitude={amplitude.speaker}
+          onClick={setSpeakerMuted}
         />
       </div>
 

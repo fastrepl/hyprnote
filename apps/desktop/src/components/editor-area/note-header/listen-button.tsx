@@ -185,7 +185,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   return (
     <ListenButtonInner
       state={state}
-      sessionId={sessionId}
       disabled={disabled}
       isOnboarding={isOnboarding}
       isCompact={isCompact}
@@ -202,7 +201,6 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 function ListenButtonInner(
   {
     state,
-    sessionId,
     isOnboarding,
     disabled,
     isCompact = false,
@@ -214,7 +212,6 @@ function ListenButtonInner(
     setSpeakerMuted,
   }: {
     state: ListenButtonState;
-    sessionId: string;
     isOnboarding: boolean;
     disabled: boolean;
     isCompact?: boolean;

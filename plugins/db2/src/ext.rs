@@ -64,9 +64,33 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
             match db.conn()?.query(&sql, args).await {
                 Ok(mut rows) => {
                     while let Some(row) = rows.next().await.unwrap() {
-                        let item: serde_json::Value =
-                            hypr_db_core::libsql::de::from_row(&row).unwrap();
-                        items.push(item);
+                        let mut map = serde_json::Map::new();
+
+                        for idx in 0..row.column_count() {
+                            if let Some(column_name) = row.column_name(idx) {
+                                let value = match row.get_value(idx) {
+                                    Ok(hypr_db_core::libsql::Value::Null) => {
+                                        serde_json::Value::Null
+                                    }
+                                    Ok(hypr_db_core::libsql::Value::Integer(i)) => {
+                                        serde_json::json!(i)
+                                    }
+                                    Ok(hypr_db_core::libsql::Value::Real(f)) => {
+                                        serde_json::json!(f)
+                                    }
+                                    Ok(hypr_db_core::libsql::Value::Text(s)) => {
+                                        serde_json::json!(s)
+                                    }
+                                    Ok(hypr_db_core::libsql::Value::Blob(b)) => {
+                                        serde_json::json!(b)
+                                    }
+                                    Err(_) => serde_json::Value::Null,
+                                };
+                                map.insert(column_name.to_string(), value);
+                            }
+                        }
+
+                        items.push(serde_json::Value::Object(map));
                     }
                 }
                 Err(e) => {

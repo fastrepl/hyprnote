@@ -4,7 +4,7 @@ import { useRow } from "tinybase/ui-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
-import { mainStore } from "../tinybase";
+import { mainCloudSync, mainStore } from "../tinybase";
 
 export const Route = createFileRoute("/app/")({
   component: Component,
@@ -27,6 +27,7 @@ function Component() {
       <p>{JSON.stringify(row)}</p>
 
       <button onClick={handleCLick}>Open</button>
+      <button onClick={mainCloudSync.sync}>sync</button>
     </main>
   );
 }

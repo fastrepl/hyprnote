@@ -56,6 +56,7 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const { onboardingSessionId, userId } = useHypr();
   const isEnhancePending = useEnhancePendingState(sessionId);
 
+  const amplitude = useOngoingSession((s) => s.amplitude);
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const ongoingSessionId = useOngoingSession((s) => s.sessionId);
   const ongoingSessionStore = useOngoingSession((s) => ({
@@ -134,14 +135,32 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     }
   };
 
+  const handleStopSession = () => {
+    ongoingSessionStore.stop();
+
+    if (sessionWords.length === 0) {
+      sonnerToast.dismiss("recording-consent-reminder");
+    }
+
+    if (userId) {
+      analyticsCommands.event({
+        event: "recording_stop_session",
+        distinct_id: userId,
+        properties: { session_id: sessionId },
+      });
+    }
+  };
+
   return (
     <ListenButtonInner
       state={state}
+      amplitude={amplitude}
       sessionId={sessionId}
       disabled={disabled}
       isOnboarding={isOnboarding}
       isCompact={isCompact}
       handleStartSession={handleStartSession}
+      handleStopSession={handleStopSession}
     />
   );
 }
@@ -154,6 +173,8 @@ function ListenButtonInner(
     disabled,
     isCompact = false,
     handleStartSession,
+    handleStopSession,
+    amplitude,
   }: {
     state: ListenButtonState;
     sessionId: string;
@@ -161,6 +182,8 @@ function ListenButtonInner(
     disabled: boolean;
     isCompact?: boolean;
     handleStartSession: () => void;
+    handleStopSession: () => void;
+    amplitude: { mic: number; speaker: number };
   },
 ) {
   switch (state) {
@@ -182,7 +205,7 @@ function ListenButtonInner(
         : <WhenInactiveAndMeetingEnded disabled={disabled} onClick={handleStartSession} isCompact={isCompact} />;
 
     case "running_active_this_session":
-      return <WhenActive sessionId={sessionId} />;
+      return <WhenActive sessionId={sessionId} handleStopSession={handleStopSession} amplitude={amplitude} />;
 
     case "running_active_other_session":
       return null;
@@ -283,35 +306,18 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
   );
 }
 
-function WhenActive({ sessionId }: { sessionId: string }) {
-  const { userId } = useHypr();
-  const { ongoingSessionId, amplitude } = useOngoingSession((s) => ({
-    ongoingSessionId: s.sessionId,
-    amplitude: s.amplitude,
-  }));
-
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    stop: s.stop,
-    setAutoEnhanceTemplate: s.setAutoEnhanceTemplate,
-  }));
-  const sessionWords = useSession(ongoingSessionId!, (s) => s.session.words);
+function WhenActive(
+  { sessionId, handleStopSession, amplitude }: {
+    sessionId: string;
+    handleStopSession: () => void;
+    amplitude: { mic: number; speaker: number };
+  },
+) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const handleStopSession = () => {
-    ongoingSessionStore.stop();
+  const handleStopSessionWrapper = () => {
     setIsPopoverOpen(false);
-
-    if (sessionWords.length === 0) {
-      sonnerToast.dismiss("recording-consent-reminder");
-    }
-
-    if (userId) {
-      analyticsCommands.event({
-        event: "recording_stop_session",
-        distinct_id: userId,
-        properties: { session_id: sessionId },
-      });
-    }
+    handleStopSession();
   };
 
   return (
@@ -330,7 +336,7 @@ function WhenActive({ sessionId }: { sessionId: string }) {
       <PopoverContent className="w-64" align="end">
         <RecordingControls
           sessionId={sessionId}
-          onStop={handleStopSession}
+          onStop={handleStopSessionWrapper}
         />
       </PopoverContent>
     </Popover>

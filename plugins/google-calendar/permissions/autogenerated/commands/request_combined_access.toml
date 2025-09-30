@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-request-combined-access"
+description = "Enables the request_combined_access command without any pre-configured scope."
+commands.allow = ["request_combined_access"]
+
+[[permission]]
+identifier = "deny-request-combined-access"
+description = "Denies the request_combined_access command without any pre-configured scope."
+commands.deny = ["request_combined_access"]

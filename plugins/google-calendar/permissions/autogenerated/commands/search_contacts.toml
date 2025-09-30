@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-search-contacts"
+description = "Enables the search_contacts command without any pre-configured scope."
+commands.allow = ["search_contacts"]
+
+[[permission]]
+identifier = "deny-search-contacts"
+description = "Denies the search_contacts command without any pre-configured scope."
+commands.deny = ["search_contacts"]

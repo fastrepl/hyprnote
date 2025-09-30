@@ -55,6 +55,8 @@ export default function LeftSidebar() {
         end: addDays(now, 28).toISOString(),
       });
 
+      console.log("Raw events:", rawEvents);
+
       const ongoingOrUpcomingEvents = rawEvents
         .filter((event) => new Date(event.end_date) > now)
         .slice(0, 3) // take only the 3 closest events

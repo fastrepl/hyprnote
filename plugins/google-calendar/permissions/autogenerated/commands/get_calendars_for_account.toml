@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-calendars-for-account"
+description = "Enables the get_calendars_for_account command without any pre-configured scope."
+commands.allow = ["get_calendars_for_account"]
+
+[[permission]]
+identifier = "deny-get-calendars-for-account"
+description = "Denies the get_calendars_for_account command without any pre-configured scope."
+commands.deny = ["get_calendars_for_account"]

@@ -34,16 +34,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn setup_db_for_local(&self) -> Result<(), String> {
         let (db, db_just_created) = {
-            if cfg!(debug_assertions) {
-                (
-                    hypr_db_core::DatabaseBuilder::default()
-                        .memory()
-                        .build()
-                        .await
-                        .unwrap(),
-                    true,
-                )
-            } else {
+            // if cfg!(debug_assertions) {
+            //     (
+            //         hypr_db_core::DatabaseBuilder::default()
+            //             .memory()
+            //             .build()
+            //             .await
+            //             .unwrap(),
+            //         true,
+            //     )
+            // } else {
                 let local_db_path = self.db_local_path().unwrap();
                 let is_existing = std::path::Path::new(&local_db_path).exists();
 
@@ -55,7 +55,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
                         .unwrap(),
                     !is_existing,
                 )
-            }
+            // }
         };
 
         let (user_id, user_id_just_created) = {

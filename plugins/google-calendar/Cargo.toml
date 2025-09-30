@@ -1,0 +1,44 @@
+[package]
+name = "tauri-plugin-google-calendar"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/js", "/node_modules"]
+links = "tauri-plugin-google-calendar"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+tauri-plugin-db = { workspace = true }
+tauri-plugin-shell = { workspace = true }
+tauri-plugin-auth = { workspace = true }
+tauri-plugin-oauth = "2.0"
+tauri-plugin-store = { workspace = true }
+hypr-db-user = { workspace = true }
+
+tauri = { workspace = true, features = ["test"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+
+chrono = { workspace = true, features = ["serde", "std"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+apalis = { workspace = true }
+apalis-cron = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+urlencoding = "2.1"
+
+# Google API dependencies
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+url = "2.5"
+base64 = "0.21"

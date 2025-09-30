@@ -7,6 +7,7 @@ import { AppWindowMacIcon, ArrowUpRight, CalendarDaysIcon, RefreshCwIcon } from 
 
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
+import { commands as googleCalendarCommands } from "@hypr/plugin-google-calendar";
 import { type Event, type Session } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import {
@@ -36,14 +37,25 @@ export default function EventsList({
   const syncEventsMutation = useMutation({
     mutationFn: async () => {
       const startTime = Date.now();
-      const result = await appleCalendarCommands.syncEvents();
+
+      try {
+      const result = await Promise.all([
+        googleCalendarCommands.syncEvents(null),
+        appleCalendarCommands.syncEvents(),
+      ]);
+      console.log(await googleCalendarCommands.syncEvents(null));
       const elapsedTime = Date.now() - startTime;
 
       if (elapsedTime < 500) {
         await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
       }
 
-      return result;
+        console.log("result", result);
+        return result;
+      } catch (error) {
+        console.error("error", error);
+      }
+
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

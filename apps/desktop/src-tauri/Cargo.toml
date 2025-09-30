@@ -32,6 +32,7 @@ hypr-whisper-local-model = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
+tauri-plugin-google-calendar = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }

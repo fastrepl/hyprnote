@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-sync-events"
+description = "Enables the sync_events command without any pre-configured scope."
+commands.allow = ["sync_events"]
+
+[[permission]]
+identifier = "deny-sync-events"
+description = "Denies the sync_events command without any pre-configured scope."
+commands.deny = ["sync_events"]

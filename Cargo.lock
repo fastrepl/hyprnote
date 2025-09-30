@@ -3964,6 +3964,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-flags",
  "tauri-plugin-fs",
+ "tauri-plugin-google-calendar",
  "tauri-plugin-http",
  "tauri-plugin-keygen",
  "tauri-plugin-listener",
@@ -14692,6 +14693,36 @@ dependencies = [
  "thiserror 2.0.16",
  "toml 0.9.5",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-google-calendar"
+version = "0.1.0"
+dependencies = [
+ "apalis",
+ "apalis-cron",
+ "base64 0.21.7",
+ "chrono",
+ "db-user",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-auth",
+ "tauri-plugin-db",
+ "tauri-plugin-oauth",
+ "tauri-plugin-shell",
+ "tauri-plugin-store",
+ "tauri-specta",
+ "thiserror 2.0.16",
+ "tokio",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
 ]
 
 [[package]]

@@ -108,6 +108,7 @@ tauri-plugin-updater = "2.9"
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
+tauri-plugin-google-calendar = { path = "plugins/google-calendar" }
 tauri-plugin-connector = { path = "plugins/connector" }
 tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-db2 = { path = "plugins/db2" }

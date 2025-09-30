@@ -7,6 +7,8 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { useSession } from "@hypr/utils/contexts";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
+import { TabHeader } from "./tab-header";
+import { TabSubHeader } from "./tab-sub-header";
 import TitleInput from "./title-input";
 import TitleShimmer from "./title-shimmer";
 
@@ -22,7 +24,13 @@ export function NoteHeader(
 ) {
   const updateTitle = useSession(sessionId, (s) => s.updateTitle);
   const sessionTitle = useSession(sessionId, (s) => s.session.title);
+  const session = useSession(sessionId, (s) => s.session);
   const isTitleGenerating = useTitleGenerationPendingState(sessionId);
+
+  const isNewNote = !sessionTitle?.trim()
+    && (!session.raw_memo_html || session.raw_memo_html === "<p></p>")
+    && (!session.enhanced_memo_html || session.enhanced_memo_html === "<p></p>")
+    && session.words.length === 0;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerWidth = useContainerWidth(containerRef);
@@ -48,7 +56,7 @@ export function NoteHeader(
   return (
     <div
       ref={containerRef}
-      className={`flex items-center w-full pl-8 pr-6 pb-4 gap-4 min-w-0 ${
+      className={`flex items-center w-full pl-8 pr-6 pb-2 gap-4 min-w-0 ${
         isVeryNarrow ? "pl-4 pr-3" : isNarrow ? "pl-6 pr-4" : "pl-8 pr-6"
       }`}
     >
@@ -60,8 +68,10 @@ export function NoteHeader(
             onChange={handleTitleChange}
             onNavigateToEditor={onNavigateToEditor}
             isGenerating={isTitleGenerating}
+            autoFocus={isNewNote && editable}
           />
         </TitleShimmer>
+
         <Chips
           sessionId={sessionId}
           hashtags={hashtags}
@@ -75,3 +85,7 @@ export function NoteHeader(
     </div>
   );
 }
+
+// Export the TabHeader and TabSubHeader components for use outside this directory
+export { TabHeader, TabSubHeader };
+export type { TabHeaderRef } from "./tab-header";

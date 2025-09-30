@@ -4,7 +4,6 @@
 import { EventChip } from "./event-chip";
 import { ParticipantsChip } from "./participants-chip";
 import { PastNotesChip } from "./past-notes-chip";
-import { ShareChip } from "./share-chip";
 import { TagChip } from "./tag-chip";
 
 // Temporarily commented out StartChatButton
@@ -48,7 +47,7 @@ export default function NoteHeaderChips({
       <EventChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <ParticipantsChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
       <TagChip sessionId={sessionId} hashtags={hashtags} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />
-      <ShareChip isVeryNarrow={isVeryNarrow} />
+      {/*<ShareChip isVeryNarrow={isVeryNarrow} />*/}
       {/* Temporarily commented out chat button */}
       {/* <StartChatButton isVeryNarrow={isVeryNarrow} /> */}
       <PastNotesChip sessionId={sessionId} isVeryNarrow={isVeryNarrow} isNarrow={isNarrow} />

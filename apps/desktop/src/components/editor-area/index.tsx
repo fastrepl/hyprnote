@@ -1,11 +1,11 @@
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
-import { motion } from "motion/react";
-import { AnimatePresence } from "motion/react";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
+// import { useRightPanel } from "@/contexts/right-panel";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
@@ -19,6 +19,7 @@ import { commands as templateCommands, type Grammar } from "@hypr/plugin-templat
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
+import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
@@ -26,9 +27,11 @@ import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
-import { FloatingButton } from "./floating-button";
-import { NoteHeader } from "./note-header";
+import { LocalSearchBar } from "./local-search-bar";
+import { NoteHeader, TabHeader, type TabHeaderRef } from "./note-header";
+import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
+import { TranscriptViewer } from "./transcript-viewer";
 import { prepareContextText } from "./utils/summary-prepare";
 
 const TIPS_MODAL_SHOWN_KEY = "hypr-tips-modal-shown-v1";
@@ -125,7 +128,9 @@ export default function EditorArea({
   sessionId: string;
 }) {
   const showRaw = useSession(sessionId, (s) => s.showRaw);
+  const activeTab = useSession(sessionId, (s) => s.activeTab);
   const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
+  // const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -138,11 +143,17 @@ export default function EditorArea({
     s.updateEnhancedNote,
   ]);
 
-  const sessionStore = useSession(sessionId, (s) => ({
-    session: s.session,
-  }));
-
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const transcriptRef = useRef<TranscriptEditorRef | { editor: TiptapEditor | null } | null>(null);
+  const tabHeaderRef = useRef<TabHeaderRef>(null);
+  const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
+  const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
+  const [isTabHeaderVisible, setIsTabHeaderVisible] = useState(false);
+
+  // Update transcriptRef to point to the TranscriptEditorRef
+  useEffect(() => {
+    transcriptRef.current = transcriptEditorRef;
+  }, [transcriptEditorRef]);
 
   // Assign editor to global ref for access by other components (like chat tools)
   useEffect(() => {
@@ -156,16 +167,24 @@ export default function EditorArea({
       }
     };
   }, [editorRef.current?.editor]);
+
+  // Floating search keyboard listener for all tabs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        setIsFloatingSearchVisible(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const editorKey = useMemo(
     () => `session-${sessionId}-${showRaw ? "raw" : "enhanced"}`,
     [sessionId, showRaw],
   );
-
-  const templatesQuery = useQuery({
-    queryKey: ["templates"],
-    queryFn: () => TemplateService.getAllTemplates(),
-    refetchOnWindowFocus: true,
-  });
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
   const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > (import.meta.env.DEV ? 5 : 100));
@@ -178,7 +197,7 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
   const queryClient = useQueryClient();
-  const { enhance, progress, isCancelled } = useEnhanceMutation({
+  const { enhance, progress } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
     rawContent,
@@ -195,6 +214,12 @@ export default function EditorArea({
             if (shouldShow) {
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
+            } else {
+              // comment out to turn off auto-open chat panel
+
+              // if (!isRightPanelExpanded) {
+              // toggleRightPanel("chat");
+              // }
             }
           } catch (error) {
             console.error("Failed to show tips modal:", error);
@@ -223,17 +248,8 @@ export default function EditorArea({
 
   const noteContent = useMemo(
     () => (showRaw ? rawContent : enhancedContent),
-    [showRaw, enhancedContent, rawContent],
+    [showRaw, showRaw ? rawContent : enhancedContent],
   );
-
-  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
-    const targetTemplateId = templateId === "auto" ? null : templateId;
-    enhance.mutate({ templateId: targetTemplateId });
-  }, [enhance]);
-
-  const handleClickEnhance = useCallback(() => {
-    enhance.mutate({});
-  }, [enhance]);
 
   const safelyFocusEditor = useCallback(() => {
     if (editorRef.current?.editor && editorRef.current.editor.isEditable) {
@@ -285,6 +301,33 @@ export default function EditorArea({
 
   return (
     <div className="relative flex h-full flex-col w-full">
+      {/* Local search bar (slide-down) */}
+      <LocalSearchBar
+        key={activeTab}
+        editorRef={activeTab === "transcript" ? transcriptRef : editorRef}
+        onClose={() => setIsFloatingSearchVisible(false)}
+        isVisible={isFloatingSearchVisible}
+      />
+      {/* Date placeholder - closer when search bar is visible */}
+      <div
+        className={cn([
+          "flex justify-center pb-4 px-8",
+          isFloatingSearchVisible ? "pt-1" : "pt-1", // ← Less top padding when search bar is visible
+        ])}
+      >
+        {
+          /*
+        <MetadataModal sessionId={sessionId} hashtags={hashtags}>
+          <div className="cursor-pointer px-2 py-1">
+            <span className="text-xs text-neutral-300 font-medium transition-colors">
+              Today, December 19, 2024
+            </span>
+          </div>
+        </MetadataModal>
+        */
+        }
+      </div>
+
       <NoteHeader
         sessionId={sessionId}
         editable={editable}
@@ -292,36 +335,84 @@ export default function EditorArea({
         hashtags={hashtags}
       />
 
-      <div
-        className={cn([
-          "h-full overflow-y-auto",
-          enhancedContent && "pb-10",
-        ])}
-        onClick={(e) => {
-          const target = e.target as HTMLElement;
-          if (!target.closest("a[href]")) {
-            e.stopPropagation();
-            safelyFocusEditor();
-          }
-        }}
-      >
-        {editable
-          ? (
-            <Editor
-              key={editorKey}
-              ref={editorRef}
-              handleChange={handleChangeNote}
-              initialContent={noteContent}
-              editable={enhance.status !== "pending"}
-              setContentFromOutside={!showRaw && enhance.status === "pending"}
-              mentionConfig={{
-                trigger: "@",
-                handleSearch: handleMentionSearch,
-              }}
+      <TabHeader
+        ref={tabHeaderRef}
+        sessionId={sessionId}
+        onEnhance={enhance.mutate}
+        isEnhancing={enhance.status === "pending"}
+        progress={progress}
+        showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+        onVisibilityChange={setIsTabHeaderVisible}
+      />
+
+      {/* Editor region wrapper: keeps overlay fixed while inner content scrolls */}
+      <div className="relative flex-1 min-h-0">
+        {activeTab === "enhanced" && (
+          <div
+            className="absolute right-0 top-0 z-20"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <EnhancedNoteSubHeader
+              sessionId={sessionId}
+              onEnhance={enhance.mutate}
+              isEnhancing={enhance.status === "pending"}
+              progress={progress}
+              showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
             />
-          )
-          : <Renderer ref={editorRef} initialContent={noteContent} />}
+          </div>
+        )}
+        <div
+          className={cn([
+            activeTab === "transcript"
+              ? "h-full overflow-hidden pt-2"
+              : `h-full overflow-y-auto ${isTabHeaderVisible ? "pt-10" : "pt-3"}`,
+            enhancedContent && activeTab !== "transcript" && "pb-10",
+          ])}
+          onClick={(e) => {
+            if (activeTab === "transcript") {
+              return; // Don't focus editor on transcript tab
+            }
+
+            const target = e.target as HTMLElement;
+            if (!target.closest("a[href]")) {
+              e.stopPropagation();
+              safelyFocusEditor();
+            }
+          }}
+        >
+          {activeTab === "transcript"
+            ? <TranscriptViewer sessionId={sessionId} onEditorRefChange={setTranscriptEditorRef} />
+            : editable
+            ? (
+              <Editor
+                key={editorKey}
+                ref={editorRef}
+                handleChange={handleChangeNote}
+                initialContent={noteContent}
+                editable={enhance.status !== "pending"}
+                setContentFromOutside={!showRaw && enhance.status === "pending"}
+                mentionConfig={{
+                  trigger: "@",
+                  handleSearch: handleMentionSearch,
+                }}
+              />
+            )
+            : <Renderer ref={editorRef} initialContent={noteContent} />}
+        </div>
       </div>
+
+      {
+        /**
+         * FloatingSearchBox temporarily disabled in favor of LocalSearchBar
+         * <FloatingSearchBox
+         *   key={activeTab}
+         *   editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
+         *   onClose={() => setIsFloatingSearchVisible(false)}
+         *   isVisible={isFloatingSearchVisible}
+         * />
+         */
+      }
 
       {/* Add the text selection popover - but not for onboarding sessions */}
       {sessionId !== onboardingSessionId && (
@@ -343,7 +434,8 @@ export default function EditorArea({
         />
       )}
 
-      <AnimatePresence>
+      {
+        /*<AnimatePresence>
         <motion.div
           className="absolute bottom-4 w-full flex justify-center items-center pointer-events-none z-10"
           initial={{ y: 50, opacity: 0 }}
@@ -351,6 +443,7 @@ export default function EditorArea({
           exit={{ y: 50, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
+
           <div className="pointer-events-auto">
             <FloatingButton
               key={`floating-button-${sessionId}`}
@@ -365,7 +458,8 @@ export default function EditorArea({
             />
           </div>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>*/
+      }
     </div>
   );
 }

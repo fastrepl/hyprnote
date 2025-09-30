@@ -182,9 +182,9 @@ const TranscriptEditor = forwardRef<TranscriptEditorRef, TranscriptEditorProps>(
       <div role="textbox" className="h-full flex-1 flex flex-col overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto px-3"
+          className="flex-1 min-h-0 overflow-y-auto pb-8 pt-4"
         >
-          <EditorContent editor={editor} className="min-h-full" />
+          <EditorContent editor={editor} className="min-h-full px-8 pb-4" />
         </div>
       </div>
     );

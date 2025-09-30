@@ -155,32 +155,30 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const toggleMicMuted = useMutation({
     mutationFn: async () => {
       const result = await listenerCommands.setMicMuted(!muted.mic);
-
-      // only send analytics when muting (not unmuting)
+      return result;
+    },
+    onMutate: () => {
       if (!muted.mic && userId) {
         analyticsCommands.event({
           event: "recording_mute_mic",
           distinct_id: userId,
         });
       }
-
-      return result;
     },
   });
 
   const toggleSpeakerMuted = useMutation({
     mutationFn: async () => {
       const result = await listenerCommands.setSpeakerMuted(!muted.speaker);
-
-      // only send analytics when muting (not unmuting)
+      return result;
+    },
+    onMutate: () => {
       if (!muted.speaker && userId) {
         analyticsCommands.event({
           event: "recording_mute_system",
           distinct_id: userId,
         });
       }
-
-      return result;
     },
   });
 

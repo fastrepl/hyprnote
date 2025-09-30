@@ -326,6 +326,8 @@ where
                 Ok(chunk) => Some(hypr_whisper_local::SimpleAudioChunk {
                     samples: chunk.samples,
                     meta: Some(serde_json::json!({ "source": source_name })),
+                    start_timestamp_ms: Some(chunk.start_timestamp_ms),
+                    end_timestamp_ms: Some(chunk.end_timestamp_ms),
                 }),
             })
         })

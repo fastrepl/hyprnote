@@ -211,6 +211,7 @@ export default function EditorArea({
         setTimeout(async () => {
           try {
             const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
+            
             if (shouldShow) {
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
@@ -221,6 +222,8 @@ export default function EditorArea({
               // toggleRightPanel("chat");
               // }
             }
+            
+           showTipsModal(userId);
           } catch (error) {
             console.error("Failed to show tips modal:", error);
           }

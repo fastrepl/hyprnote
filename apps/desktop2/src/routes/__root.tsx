@@ -3,12 +3,22 @@ import { lazy, Suspense } from "react";
 
 const RootLayout = () => (
   <>
-    <div className="p-2 flex gap-2">
-      <Link to="/app">
+    <div className="p-2 flex gap-4 bg-gray-100 border-b">
+      <Link 
+        to="/app" 
+        className="px-3 py-1 rounded hover:bg-gray-200"
+        activeProps={{ className: "bg-blue-500 text-white hover:bg-blue-600" }}
+      >
         Home
       </Link>
+      <Link 
+        to="/app/settings"
+        className="px-3 py-1 rounded hover:bg-gray-200"
+        activeProps={{ className: "bg-blue-500 text-white hover:bg-blue-600" }}
+      >
+        Settings
+      </Link>
     </div>
-    <hr />
     <Outlet />
     <Suspense>
       <TanStackRouterDevtools position={"bottom-left"} initialIsOpen={false} />

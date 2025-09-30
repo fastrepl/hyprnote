@@ -35,6 +35,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 sentry = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+tracing = { workspace = true }
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

@@ -4023,6 +4023,7 @@ dependencies = [
  "tauri-plugin-windows",
  "tauri-specta",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

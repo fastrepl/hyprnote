@@ -10,6 +10,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@hypr/db": "workspace:*",
+    "@hypr/plugin-db2": "workspace:*",
     "@electric-sql/client": "^1.0.10",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",

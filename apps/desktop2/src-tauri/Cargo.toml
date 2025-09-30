@@ -21,6 +21,7 @@ tauri-build = { workspace = true, features = [] }
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }
 
 tauri-plugin-analytics = { workspace = true }
+tauri-plugin-db2 = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }

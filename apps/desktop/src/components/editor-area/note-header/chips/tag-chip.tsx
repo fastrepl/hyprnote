@@ -62,7 +62,7 @@ export function TagChip({ sessionId, hashtags = [], isVeryNarrow = false, isNarr
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
           )}
           {!isVeryNarrow && (
-            <span className={`truncate ${totalTags === 0 ? "text-neutral-500" : "text-neutral-500"}`}>
+            <span className="truncate text-neutral-500">
               {getTagText()}
             </span>
           )}

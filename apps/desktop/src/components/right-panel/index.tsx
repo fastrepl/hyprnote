@@ -17,7 +17,6 @@ export default function RightPanel() {
       maxSize={50}
       className="h-full border-l bg-neutral-50 overflow-hidden"
     >
-      {/*{(currentView === "transcript") ? <TranscriptView /> : <ChatView />}*/}
       <ChatView />
     </ResizablePanel>
   );

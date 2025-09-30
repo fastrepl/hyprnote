@@ -398,7 +398,6 @@ export function ChatInput(
         return customLlmModelQuery.data || "Custom Model";
       case "HyprLocal":
         return "Local LLM";
-        return "HyprLLM";
       default:
         return "Model";
     }

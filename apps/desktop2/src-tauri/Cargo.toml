@@ -18,8 +18,24 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
-tauri = { workspace = true, features = [] }
-tauri-plugin-opener = { workspace = true }
+tauri = { workspace = true, features = ["specta", "macos-private-api"] }
 
+tauri-plugin-analytics = { workspace = true }
+tauri-plugin-opener = { workspace = true }
+tauri-plugin-sentry = { workspace = true }
+tauri-plugin-single-instance = { workspace = true }
+tauri-plugin-store = { workspace = true }
+tauri-plugin-windows = { workspace = true }
+
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+sentry = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[features]
+devtools = ["tauri/devtools"]

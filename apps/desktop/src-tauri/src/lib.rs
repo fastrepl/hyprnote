@@ -50,11 +50,6 @@ pub async fn main() {
         builder = builder.plugin(tauri_nspanel::init());
     }
 
-    let ctrl_n_shortcut = {
-        use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut};
-        Shortcut::new(Some(Modifiers::META | Modifiers::ALT), Code::KeyH)
-    };
-
     builder = builder
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_sse::init())
@@ -90,33 +85,6 @@ pub async fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(
-            tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(move |app, shortcut, event| {
-                    use tauri_plugin_global_shortcut::ShortcutState;
-                    use tauri_plugin_windows::{HyprWindow, Navigate};
-
-                    if shortcut == &ctrl_n_shortcut {
-                        match event.state() {
-                            ShortcutState::Pressed => {
-                                if let Ok(_) = HyprWindow::Main.show(&app) {
-                                    std::thread::sleep(std::time::Duration::from_millis(100));
-
-                                    let _ = HyprWindow::Main.emit_navigate(
-                                        &app,
-                                        Navigate {
-                                            path: "/app/new?record=true".to_string(),
-                                            search: None,
-                                        },
-                                    );
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                })
-                .build(),
-        )
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
@@ -173,11 +141,6 @@ pub async fn main() {
             let app = app.handle().clone();
 
             specta_builder.mount_events(&app);
-
-            // {
-            //     use tauri_plugin_global_shortcut::GlobalShortcutExt;
-            //     app.global_shortcut().register(ctrl_n_shortcut)?;
-            // }
 
             {
                 use tauri_plugin_deep_link::DeepLinkExt;

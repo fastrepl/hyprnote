@@ -49,6 +49,13 @@ const showConsentNotification = () => {
   });
 };
 
+type ListenButtonState =
+  | "loading"
+  | "inactive_meeting_not_ended"
+  | "inactive_meeting_ended"
+  | "running_active_this_session"
+  | "running_active_other_session";
+
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
   const { onboardingSessionId, userId } = useHypr();
   const isEnhancePending = useEnhancePendingState(sessionId);
@@ -86,6 +93,21 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 
   const disabled = !modelDownloaded || (meetingEnded && isEnhancePending);
 
+  const state: ListenButtonState = (() => {
+    if (ongoingSessionStore.loading) {
+      return "loading";
+    }
+
+    if (ongoingSessionStatus === "inactive") {
+      return meetingEnded ? "inactive_meeting_ended" : "inactive_meeting_not_ended";
+    }
+
+    // ongoingSessionStatus === "running_active"
+    return sessionId === ongoingSessionId
+      ? "running_active_this_session"
+      : "running_active_other_session";
+  })();
+
   // TODO: 1. this show toast again when re-entering the session
   // TODO:  2. this is not ideal place to do this
   // don't show consent notification if the session already has transcript
@@ -118,70 +140,56 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 
   return (
     <ListenButtonInner
+      state={state}
       sessionId={sessionId}
       disabled={disabled}
-      meetingEnded={meetingEnded}
       isOnboarding={isOnboarding}
-      modelDownloaded={!!modelDownloaded.data}
       isCompact={isCompact}
       handleStartSession={handleStartSession}
-      isLoading={ongoingSessionStore.loading}
-      ongoingSessionId={ongoingSessionId}
-      ongoingSessionStatus={ongoingSessionStatus}
     />
   );
 }
 
 function ListenButtonInner(
   {
+    state,
     sessionId,
     isOnboarding,
     disabled,
-    meetingEnded,
     isCompact = false,
     handleStartSession,
-    isLoading,
-    ongoingSessionId,
-    ongoingSessionStatus,
   }: {
-    disabled: boolean;
+    state: ListenButtonState;
     sessionId: string;
     isOnboarding: boolean;
-    modelDownloaded: boolean;
-    meetingEnded: boolean;
+    disabled: boolean;
     isCompact?: boolean;
     handleStartSession: () => void;
-    isLoading: boolean;
-    ongoingSessionId: string | null;
-    ongoingSessionStatus: "inactive" | "running_active";
   },
 ) {
-  if (isLoading) {
-    return (
-      <div className="w-9 h-9 flex items-center justify-center">
-        <Spinner color="black" />
-      </div>
-    );
-  }
+  switch (state) {
+    case "loading":
+      return (
+        <div className="w-9 h-9 flex items-center justify-center">
+          <Spinner color="black" />
+        </div>
+      );
 
-  if (ongoingSessionStatus === "inactive") {
-    if (!meetingEnded) {
+    case "inactive_meeting_not_ended":
       return isOnboarding
         ? <WhenInactiveAndMeetingNotEndedOnboarding disabled={disabled} onClick={handleStartSession} />
         : <WhenInactiveAndMeetingNotEnded disabled={disabled} onClick={handleStartSession} />;
-    } else {
+
+    case "inactive_meeting_ended":
       return isOnboarding
         ? <WhenInactiveAndMeetingEndedOnboarding disabled={disabled} onClick={handleStartSession} />
         : <WhenInactiveAndMeetingEnded disabled={disabled} onClick={handleStartSession} isCompact={isCompact} />;
-    }
-  }
 
-  if (ongoingSessionStatus === "running_active") {
-    if (sessionId !== ongoingSessionId) {
+    case "running_active_this_session":
+      return <WhenActive sessionId={sessionId} />;
+
+    case "running_active_other_session":
       return null;
-    }
-
-    return <WhenActive sessionId={sessionId} />;
   }
 }
 

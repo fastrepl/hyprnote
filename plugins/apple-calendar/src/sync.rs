@@ -80,7 +80,6 @@ async fn _sync_calendars(
             .cloned()
             .collect::<Vec<hypr_db_user::Calendar>>();
 
-        tracing::info!("calendars_to_delete_len: {}", items.len());
         items
     };
 
@@ -108,7 +107,6 @@ async fn _sync_calendars(
             })
             .collect::<Vec<hypr_db_user::Calendar>>();
 
-        tracing::info!("calendars_to_upsert_len: {}", items.len());
         items
     };
 
@@ -206,7 +204,6 @@ async fn _sync_events(
                 ) {
                     //temporary prevention
                     if rescheduled_event.is_recurring {
-                        //tracing::info!("Skipping recurring event: {}", rescheduled_event.id);
                         continue;
                     }
 
@@ -392,10 +389,6 @@ async fn list_system_events_for_calendars(
 ) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
     let now = Utc::now();
 
-    for (i, id) in calendar_tracking_ids.iter().enumerate() {
-        tracing::info!("  Calendar {}: tracking_id={}", i + 1, id);
-    }
-
     tauri::async_runtime::spawn_blocking(move || {
         let handle = hypr_calendar_apple::Handle::new();
 
@@ -411,7 +404,6 @@ async fn list_system_events_for_calendars(
             // Add small delay between API calls to avoid overwhelming EventKit
             if i > 0 {
                 std::thread::sleep(std::time::Duration::from_millis(50));
-                tracing::info!("  Applied 50ms delay after calendar {}", i);
             }
 
             let events = match tokio::runtime::Handle::try_current() {
@@ -426,17 +418,6 @@ async fn list_system_events_for_calendars(
                     rt.block_on(handle.list_events(filter)).unwrap_or_default()
                 }
             };
-
-            for event in &events {
-                tracing::info!(
-                    "System event: '{}' | participants: {:?} | is_recurring: {} | start_date: {} | tracking_id: {}",
-                    event.name,
-                    event.participants,
-                    event.is_recurring,
-                    event.start_date,
-                    event.id,
-                );
-            }
 
             results.insert(calendar_tracking_id.clone(), events);
         }

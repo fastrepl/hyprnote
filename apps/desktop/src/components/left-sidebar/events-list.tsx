@@ -43,14 +43,12 @@ export default function EventsList({
         googleCalendarCommands.syncEvents(null),
         appleCalendarCommands.syncEvents(),
       ]);
-      console.log(await googleCalendarCommands.syncEvents(null));
       const elapsedTime = Date.now() - startTime;
 
       if (elapsedTime < 500) {
         await new Promise(resolve => setTimeout(resolve, 500 - elapsedTime));
       }
 
-        console.log("result", result);
         return result;
       } catch (error) {
         console.error("error", error);

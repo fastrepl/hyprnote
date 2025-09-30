@@ -126,7 +126,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn sync_calendars_with_db(&self, db: hypr_db_user::UserDatabase, user_id: String) -> Result<()> {
-        tracing::info!("Starting Google Calendar sync for user: {}", user_id);
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
         
         // Get all connected accounts
@@ -138,18 +137,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         };
 
         if accounts.is_empty() {
-            tracing::info!("No Google accounts connected for user: {}", user_id);
             return Ok(());
         }
 
-        tracing::info!("Found {} Google accounts to sync", accounts.len());
-
         // Sync calendars for each account with calendar access
         for account in accounts.iter().filter(|acc| acc.calendar_access) {
-            tracing::debug!("Syncing calendars for account: {}", account.email);
-            
             match sync_account_calendars(self, &db, &user_id, account).await {
-                Ok(_) => tracing::debug!("Successfully synced calendars for: {}", account.email),
+                Ok(_) => {},
                 Err(e) => {
                     tracing::error!("Failed to sync calendars for {}: {}", account.email, e);
                     // Mark calendars as needing reconnection
@@ -159,8 +153,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
                 }
             }
         }
-
-        tracing::info!("Completed Google Calendar sync for user: {}", user_id);
         Ok(())
     }
 
@@ -179,8 +171,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
     }
 
     async fn sync_events_with_db(&self, db: hypr_db_user::UserDatabase, user_id: String, calendar_id: Option<String>) -> Result<()> {
-        tracing::info!("Starting Google Calendar event sync for user: {}", user_id);
-
         // Get all Google calendars for this user with status "syncing"
         let calendars = db.list_calendars(&user_id).await
             .unwrap_or_default()
@@ -193,11 +183,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
             .collect::<Vec<_>>();
 
         if calendars.is_empty() {
-            tracing::info!("No Google calendars with 'syncing' status found for user: {}", user_id);
             return Ok(());
         }
-
-        tracing::info!("Found {} Google calendars to sync events for", calendars.len());
 
         // Get accounts from google.json for token access
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
@@ -212,8 +199,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
 
         // Sync events for each selected calendar
         for calendar in calendars {
-            tracing::debug!("Syncing events for calendar: {} ({})", calendar.name, calendar.tracking_id);
-            
             // Find the account for this calendar
             let account = accounts.iter().find(|acc| 
                 calendar.account_id.as_deref() == Some(&acc.google_id)
@@ -242,19 +227,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
 
             match calendar_api.get_events(&token, &calendar.tracking_id, Some(time_min), Some(time_max)).await {
                 Ok(google_events) => {
-                    tracing::debug!("Retrieved {} events from Google for calendar: {}", google_events.len(), calendar.name);
-                    
                     // Convert and upsert Google events to database
                     for google_event in google_events {
                         let db_event = convert_google_event_to_db_event(&google_event, &calendar, &user_id);
                         
-                        match db.upsert_event(db_event).await {
-                            Ok(_) => {
-                                tracing::trace!("Upserted event: {}", google_event.id);
-                            }
-                            Err(e) => {
-                                tracing::error!("Failed to upsert event {} for calendar {}: {}", google_event.id, calendar.name, e);
-                            }
+                        if let Err(e) = db.upsert_event(db_event).await {
+                            tracing::error!("Failed to upsert event {} for calendar {}: {}", google_event.id, calendar.name, e);
                         }
                     }
                 }
@@ -263,8 +241,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
                 }
             }
         }
-
-        tracing::info!("Completed Google Calendar event sync for user: {}", user_id);
         Ok(())
     }
 
@@ -676,7 +652,6 @@ async fn refresh_token_for_account<R: tauri::Runtime, T: tauri::Manager<R>>(
     }
     
     store.save().map_err(|e| Error::Store(e))?;
-    tracing::debug!("Successfully refreshed token for: {}", email);
     
     Ok(())
 }
@@ -782,7 +757,6 @@ async fn handle_oauth_callback_internal<R: tauri::Runtime>(
     store.set(GOOGLE_ACCOUNTS_LIST_KEY, serde_json::to_value(&accounts)?);
     store.save()?;
     
-    tracing::info!("Successfully stored Google account: {}", user_info.email);
     Ok(())
 }
 

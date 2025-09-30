@@ -54,6 +54,13 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const isOnboarding = sessionId === onboardingSessionId;
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
 
+  const isEnhancePending = useEnhancePendingState(sessionId);
+  const nonEmptySession = useSession(
+    sessionId,
+    (s) => !!(s.session.words.length > 0 || s.session.enhanced_memo_html),
+  );
+  const meetingEnded = isEnhancePending || nonEmptySession;
+
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
     refetchInterval: 1500,
@@ -68,9 +75,13 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     },
   });
 
+  const disabled = !modelDownloaded || (meetingEnded && isEnhancePending);
+
   return (
     <ListenButtonInner
       sessionId={sessionId}
+      disabled={disabled}
+      meetingEnded={meetingEnded}
       isOnboarding={isOnboarding}
       userId={userId}
       modelDownloaded={!!modelDownloaded.data}
@@ -80,11 +91,13 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 }
 
 function ListenButtonInner(
-  { sessionId, isOnboarding, userId, modelDownloaded, isCompact = false }: {
+  { sessionId, isOnboarding, userId, disabled, meetingEnded, isCompact = false }: {
+    disabled: boolean;
     sessionId: string;
     isOnboarding: boolean;
     userId: string;
     modelDownloaded: boolean;
+    meetingEnded: boolean;
     isCompact?: boolean;
   },
 ) {
@@ -107,13 +120,6 @@ function ListenButtonInner(
       showConsentNotification();
     }
   }, [ongoingSessionStatus, sessionId, ongoingSessionId, isOnboarding, sessionWords.length]);
-
-  const isEnhancePending = useEnhancePendingState(sessionId);
-  const nonEmptySession = useSession(
-    sessionId,
-    (s) => !!(s.session.words.length > 0 || s.session.enhanced_memo_html),
-  );
-  const meetingEnded = isEnhancePending || nonEmptySession;
 
   const handleStartSession = () => {
     if (ongoingSessionStatus === "inactive") {
@@ -142,21 +148,14 @@ function ListenButtonInner(
   }
 
   if (ongoingSessionStatus === "inactive") {
-    const buttonProps = {
-      disabled: isOnboarding
-        ? !modelDownloaded || (meetingEnded && isEnhancePending)
-        : !modelDownloaded || (meetingEnded && isEnhancePending),
-      onClick: handleStartSession,
-    };
-
     if (!meetingEnded) {
       return isOnboarding
-        ? <WhenInactiveAndMeetingNotEndedOnboarding {...buttonProps} />
-        : <WhenInactiveAndMeetingNotEnded {...buttonProps} />;
+        ? <WhenInactiveAndMeetingNotEndedOnboarding disabled={disabled} onClick={handleStartSession} />
+        : <WhenInactiveAndMeetingNotEnded disabled={disabled} onClick={handleStartSession} />;
     } else {
       return isOnboarding
-        ? <WhenInactiveAndMeetingEndedOnboarding {...buttonProps} />
-        : <WhenInactiveAndMeetingEnded {...buttonProps} isCompact={isCompact} />;
+        ? <WhenInactiveAndMeetingEndedOnboarding disabled={disabled} onClick={handleStartSession} />
+        : <WhenInactiveAndMeetingEnded disabled={disabled} onClick={handleStartSession} isCompact={isCompact} />;
     }
   }
 

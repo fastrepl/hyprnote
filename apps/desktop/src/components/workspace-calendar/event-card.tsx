@@ -85,7 +85,7 @@ export function EventCard({
         <div
           className="font-semibold text-lg text-neutral-800 flex items-center gap-2 mb-2 cursor-pointer hover:text-orange-600 transition-all decoration-dotted underline hover:decoration-solid"
           onClick={() =>
-            event.google_event_url && openURL(event.google_event_url as string).catch(error =>
+            event.event_external_url && openURL(event.event_external_url as string).catch(error =>
               console.error("Failed to open event URL:", error)
             )}
         >

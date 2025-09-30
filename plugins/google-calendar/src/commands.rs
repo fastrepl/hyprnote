@@ -145,3 +145,20 @@ pub fn stop_worker<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), St
     app.stop_worker();
     Ok(())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_calendars_needing_reconnection<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<Calendar>, String> {
+    app.get_calendars_needing_reconnection().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn attempt_reconnect_account<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    email: String,
+) -> Result<bool, String> {
+    app.attempt_reconnect_account(email).await.map_err(|e| e.to_string())
+}

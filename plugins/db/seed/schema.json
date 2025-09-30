@@ -159,6 +159,30 @@
             "string",
             "null"
           ]
+        },
+        "connection_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "account_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_sync_error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_sync_at": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
@@ -212,7 +236,7 @@
           "type": "string",
           "format": "date-time"
         },
-        "google_event_url": {
+        "event_external_url": {
           "type": [
             "string",
             "null"

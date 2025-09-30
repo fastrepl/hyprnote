@@ -119,19 +119,6 @@ Denies the contacts_access_status command without any pre-configured scope.
 <tr>
 <td>
 
-`google-calendar:deny-debug-credentials`
-
-</td>
-<td>
-
-Denies the debug_credentials command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `google-calendar:allow-get-auth-status`
 
 </td>

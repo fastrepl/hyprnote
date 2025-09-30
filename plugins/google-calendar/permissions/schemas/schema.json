@@ -331,12 +331,6 @@
           "markdownDescription": "Denies the contacts_access_status command without any pre-configured scope."
         },
         {
-          "description": "Denies the debug_credentials command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-debug-credentials",
-          "markdownDescription": "Denies the debug_credentials command without any pre-configured scope."
-        },
-        {
           "description": "Enables the get_auth_status command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-auth-status",
@@ -589,10 +583,10 @@
           "markdownDescription": "Denies the sync_events command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the Google Calendar plugin\n#### This default permission set includes:\n\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-get-auth-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-request-combined-access`\n- `allow-handle-oauth-callback`\n- `allow-sync-calendars`\n- `allow-get-calendars`\n- `allow-sync-events`\n- `allow-sync-contacts`\n- `allow-get-contacts`\n- `allow-search-contacts`\n- `allow-revoke-access`\n- `allow-refresh-tokens`\n- `allow-debug-credentials`\n- `allow-get-connected-accounts`\n- `allow-add-google-account`\n- `allow-remove-google-account`\n- `allow-get-calendars-for-account`\n- `allow-get-contacts-for-account`\n- `allow-get-calendar-selections`\n- `allow-set-calendar-selected`\n- `allow-start-worker`\n- `allow-stop-worker`",
+          "description": "Default permissions for the Google Calendar plugin\n#### This default permission set includes:\n\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-get-auth-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-request-combined-access`\n- `allow-handle-oauth-callback`\n- `allow-sync-calendars`\n- `allow-get-calendars`\n- `allow-sync-events`\n- `allow-sync-contacts`\n- `allow-get-contacts`\n- `allow-search-contacts`\n- `allow-revoke-access`\n- `allow-refresh-tokens`\n- `allow-get-connected-accounts`\n- `allow-add-google-account`\n- `allow-remove-google-account`\n- `allow-get-calendars-for-account`\n- `allow-get-contacts-for-account`\n- `allow-get-calendar-selections`\n- `allow-set-calendar-selected`\n- `allow-start-worker`\n- `allow-stop-worker`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the Google Calendar plugin\n#### This default permission set includes:\n\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-get-auth-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-request-combined-access`\n- `allow-handle-oauth-callback`\n- `allow-sync-calendars`\n- `allow-get-calendars`\n- `allow-sync-events`\n- `allow-sync-contacts`\n- `allow-get-contacts`\n- `allow-search-contacts`\n- `allow-revoke-access`\n- `allow-refresh-tokens`\n- `allow-debug-credentials`\n- `allow-get-connected-accounts`\n- `allow-add-google-account`\n- `allow-remove-google-account`\n- `allow-get-calendars-for-account`\n- `allow-get-contacts-for-account`\n- `allow-get-calendar-selections`\n- `allow-set-calendar-selected`\n- `allow-start-worker`\n- `allow-stop-worker`"
+          "markdownDescription": "Default permissions for the Google Calendar plugin\n#### This default permission set includes:\n\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-get-auth-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-request-combined-access`\n- `allow-handle-oauth-callback`\n- `allow-sync-calendars`\n- `allow-get-calendars`\n- `allow-sync-events`\n- `allow-sync-contacts`\n- `allow-get-contacts`\n- `allow-search-contacts`\n- `allow-revoke-access`\n- `allow-refresh-tokens`\n- `allow-get-connected-accounts`\n- `allow-add-google-account`\n- `allow-remove-google-account`\n- `allow-get-calendars-for-account`\n- `allow-get-contacts-for-account`\n- `allow-get-calendar-selections`\n- `allow-set-calendar-selected`\n- `allow-start-worker`\n- `allow-stop-worker`"
         }
       ]
     }

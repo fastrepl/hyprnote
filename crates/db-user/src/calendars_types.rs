@@ -9,6 +9,10 @@ user_common_derives! {
         pub name: String,
         pub selected: bool,
         pub source: Option<String>,
+        pub connection_status: Option<String>,
+        pub account_id: Option<String>,
+        pub last_sync_error: Option<String>,
+        pub last_sync_at: Option<String>,
     }
 }
 

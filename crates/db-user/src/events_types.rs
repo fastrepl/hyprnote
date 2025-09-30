@@ -12,7 +12,7 @@ user_common_derives! {
         pub note: String,
         pub start_date: DateTime<Utc>,
         pub end_date: DateTime<Utc>,
-        pub google_event_url: Option<String>,
+        pub event_external_url: Option<String>,
         pub participants: Option<String>,
         pub is_recurring: bool,
     }

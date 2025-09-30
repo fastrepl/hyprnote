@@ -15,7 +15,13 @@ pub struct Calendar {
     pub background_color: Option<String>,
     pub foreground_color: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_email: Option<String>, // Track which account this calendar belongs to
+    pub account_id: Option<String>, // Track which account this calendar belongs to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub connection_status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_sync_error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_sync_at: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

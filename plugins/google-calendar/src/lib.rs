@@ -47,6 +47,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_calendar_selected::<tauri::Wry>,
             commands::start_worker::<tauri::Wry>,
             commands::stop_worker::<tauri::Wry>,
+            commands::get_calendars_needing_reconnection::<tauri::Wry>,
+            commands::attempt_reconnect_account::<tauri::Wry>,
         ])
         .typ::<GoogleAccount>()
         .typ::<MultiAccountStatus>()

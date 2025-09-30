@@ -1,26 +1,23 @@
 use crate::{
-    calendar_api::{Calendar, GoogleCalendarApi},
+    calendar_api::{Calendar, GoogleCalendarApi, Event as GoogleEvent},
+    commands::{CalendarSelection, GoogleAccount, MultiAccountStatus},
     contacts_api::{Contact, GoogleContactsApi},
     oauth::{AccessToken, GoogleOAuthClient, GoogleOAuthConfig},
     Error, Result,
 };
-pub use crate::commands::{GoogleAccount, MultiAccountStatus, CalendarSelection};
 use chrono::Utc;
 use serde::Deserialize;
 use std::future::Future;
 use tauri_plugin_store::StoreExt;
-use uuid::Uuid;
 
-// Constants for multi-account support
 const GOOGLE_ACCOUNTS_LIST_KEY: &str = "google_accounts_list";
 
-// Helper functions for per-account keys
 fn get_account_access_token_key(email: &str) -> String {
-    format!("google_access_token_{}", email)
+    format!("google_token_access_{}", email)
 }
 
 fn get_account_refresh_token_key(email: &str) -> String {
-    format!("google_refresh_token_{}", email)
+    format!("google_token_refresh_{}", email)
 }
 
 fn get_account_scopes_key(email: &str) -> String {
@@ -58,19 +55,21 @@ pub trait GoogleCalendarPluginExt<R: tauri::Runtime> {
     // Calendar selection methods
     fn get_calendar_selections(&self, email: String) -> impl Future<Output = Result<Vec<CalendarSelection>>>;
     fn set_calendar_selected(&self, email: String, calendar_id: String, selected: bool) -> impl Future<Output = Result<()>>;
+    
+    // Connection status methods  
+    fn get_calendars_needing_reconnection(&self) -> impl Future<Output = Result<Vec<Calendar>>>;
+    fn attempt_reconnect_account(&self, email: String) -> impl Future<Output = Result<bool>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
-        
-    #[tracing::instrument(skip_all)]
     async fn add_google_account(&self) -> Result<String> {
-        // Start OAuth callback server on a fixed port (5555)
-        let fixed_port = 5555u16;
+        // Start OAuth flow using tauri-plugin-oauth
+        let app_handle = std::sync::Arc::new(self.app_handle().clone());
+        let app_handle_clone = app_handle.clone();
         
-        // Create the OAuth callback handler
-        let app = self.app_handle().clone();
+        // Create a callback handler that implements FnMut
         let callback_handler = move |callback_url: String| {
-            let app_clone = app.clone();
+            let app_handle = app_handle_clone.clone();
             tauri::async_runtime::spawn(async move {
                 // Parse the callback URL to extract code and state
                 if let Ok(parsed_url) = url::Url::parse(&callback_url) {
@@ -80,36 +79,40 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
                         .collect();
                         
                     if let (Some(code), Some(_state)) = (query_pairs.get("code"), query_pairs.get("state")) {
-                        if let Err(e) = handle_oauth_callback_internal(&app_clone, code.clone(), _state.clone()).await {
+                        if let Err(e) = handle_oauth_callback_internal(&*app_handle, code.clone(), _state.clone()).await {
                             tracing::error!("Failed to handle OAuth callback: {}", e);
+                        } else {
+                            // Trigger calendar sync after successful OAuth
+                            if let Err(e) = app_handle.sync_calendars().await {
+                                tracing::error!("Failed to sync calendars after OAuth: {}", e);
+                            }
                         }
                     }
                 }
             });
         };
         
-        // Start the OAuth server with fixed port configuration
-        let _port = tauri_plugin_oauth::start_with_config(
+        // Start OAuth server and get the port
+        let port = tauri_plugin_oauth::start_with_config(
             tauri_plugin_oauth::OauthConfig {
-                ports: Some(vec![fixed_port]), // Use fixed port 5555
+                ports: Some(vec![5555]), // Use fixed port for consistency
                 response: Some("<!DOCTYPE html><html><head><title>Authorization Complete</title></head><body style='font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;'><div style='background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto;'><h2 style='color: #28a745; margin-bottom: 16px;'>Authorization Complete</h2><p style='color: #666; margin-bottom: 24px;'>Your Google Calendar and Contacts have been successfully connected to Hyprnote.</p><p style='color: #999; font-size: 14px;'>You can now close this window and return to the app.</p></div></body></html>".into()),
             },
             callback_handler
         ).map_err(|e| Error::OAuth(format!("Failed to start OAuth server: {}", e)))?;
 
-        // Create OAuth client with the fixed redirect URI
-        let redirect_uri = format!("http://localhost:{}", fixed_port);
+        // Create OAuth client with the redirect URI that matches the OAuth server
+        let redirect_uri = format!("http://localhost:{}", port);
         let oauth_client = get_oauth_client_with_redirect_uri(&redirect_uri)?;
         
-        let state = Uuid::new_v4().to_string();
+        let state = uuid::Uuid::new_v4().to_string();
         let auth_url = oauth_client.get_combined_auth_url(&state);
         
         Ok(auth_url)
     }
 
-    #[tracing::instrument(skip_all)]
     async fn sync_calendars(&self) -> Result<()> {
-        // Get database and user_id from state (following Apple Calendar pattern)
+        // Get database and user_id from state  
         let db_state = self.state::<tauri_plugin_db::ManagedState>();
         let (db, user_id) = {
             let guard = db_state.lock().await;
@@ -123,6 +126,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn sync_calendars_with_db(&self, db: hypr_db_user::UserDatabase, user_id: String) -> Result<()> {
+        tracing::info!("Starting Google Calendar sync for user: {}", user_id);
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
         
         // Get all connected accounts
@@ -133,78 +137,36 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
             Vec::new()
         };
 
-        let calendar_api = GoogleCalendarApi::new();
-        let mut _sync_errors: Vec<String> = Vec::new();
+        if accounts.is_empty() {
+            tracing::info!("No Google accounts connected for user: {}", user_id);
+            return Ok(());
+        }
 
+        tracing::info!("Found {} Google accounts to sync", accounts.len());
+
+        // Sync calendars for each account with calendar access
         for account in accounts.iter().filter(|acc| acc.calendar_access) {
-            if let Ok(token) = get_access_token_for_account(self, &account.email) {
-                if let Ok(google_calendars) = calendar_api.get_calendar_list(&token).await {
-                    for google_calendar in google_calendars {
-                        let db_calendar = hypr_db_user::Calendar {
-                            id: uuid::Uuid::new_v4().to_string(),
-                            tracking_id: google_calendar.id,
-                            user_id: user_id.clone(),
-                            name: google_calendar.summary,
-                            platform: hypr_db_user::Platform::Google,
-                            source: Some(format!("Google Calendar ({})", account.email)),
-                            selected: true, // Default to selected
-                        };
-
-                        // Upsert the calendar to the database
-                        let _ = db.upsert_calendar(db_calendar).await;
+            tracing::debug!("Syncing calendars for account: {}", account.email);
+            
+            match sync_account_calendars(self, &db, &user_id, account).await {
+                Ok(_) => tracing::debug!("Successfully synced calendars for: {}", account.email),
+                Err(e) => {
+                    tracing::error!("Failed to sync calendars for {}: {}", account.email, e);
+                    // Mark calendars as needing reconnection
+                    if let Err(mark_err) = mark_account_calendars_as_disconnected(self, &db, &user_id, account).await {
+                        tracing::error!("Failed to mark calendars as disconnected for {}: {}", account.email, mark_err);
                     }
                 }
             }
         }
 
+        tracing::info!("Completed Google Calendar sync for user: {}", user_id);
         Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn get_calendars(&self) -> Result<Vec<Calendar>> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
-        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
-                .unwrap_or_else(|_| Vec::new())
-        } else {
-            Vec::new()
-        };
-
-        let mut all_calendars = Vec::new();
-        let calendar_api = GoogleCalendarApi::new();
-
-        for account in accounts.iter().filter(|acc| acc.calendar_access) {
-            match get_access_token_for_account(self, &account.email) {
-                Ok(token) => {
-                    match calendar_api.get_calendar_list(&token).await {
-                        Ok(mut calendars) => {
-                            // Add account identifier to each calendar
-                            for calendar in &mut calendars {
-                                calendar.account_email = Some(account.email.clone());
-                            }
-                            all_calendars.extend(calendars);
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to get calendars for {}: {}", account.email, e);
-                            // Continue with other accounts
-                        }
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to get token for {}: {}", account.email, e);
-                    // Continue with other accounts
-                }
-            }
-        }
-
-        Ok(all_calendars)
-    }
-
-    #[tracing::instrument(skip_all)]
+    // Implement other required trait methods with simple delegation
     async fn sync_events(&self, calendar_id: Option<String>) -> Result<()> {
-        // Get database and user_id from state (following Apple Calendar pattern)
+        // Get database and user_id from state  
         let db_state = self.state::<tauri_plugin_db::ManagedState>();
         let (db, user_id) = {
             let guard = db_state.lock().await;
@@ -216,11 +178,29 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         self.sync_events_with_db(db, user_id, calendar_id).await
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn sync_events_with_db(&self, db: hypr_db_user::UserDatabase, user_id: String, _calendar_id: Option<String>) -> Result<()> {
+    async fn sync_events_with_db(&self, db: hypr_db_user::UserDatabase, user_id: String, calendar_id: Option<String>) -> Result<()> {
+        tracing::info!("Starting Google Calendar event sync for user: {}", user_id);
+
+        // Get all Google calendars for this user with status "syncing"
+        let calendars = db.list_calendars(&user_id).await
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|cal| {
+                cal.platform == hypr_db_user::Platform::Google &&
+                cal.connection_status.as_deref() == Some("syncing") &&
+                (calendar_id.is_none() || Some(&cal.tracking_id) == calendar_id.as_ref())
+            })
+            .collect::<Vec<_>>();
+
+        if calendars.is_empty() {
+            tracing::info!("No Google calendars with 'syncing' status found for user: {}", user_id);
+            return Ok(());
+        }
+
+        tracing::info!("Found {} Google calendars to sync events for", calendars.len());
+
+        // Get accounts from google.json for token access
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
         let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
             serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
                 .unwrap_or_else(|_| Vec::new())
@@ -229,287 +209,90 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         };
 
         let calendar_api = GoogleCalendarApi::new();
-        
-        let accounts_with_calendar_access: Vec<_> = accounts.iter().filter(|acc| acc.calendar_access).collect();
-        
-        if accounts_with_calendar_access.is_empty() {
-            return Ok(());
-        }
-        
-        for account in accounts_with_calendar_access {
-            let token = match get_access_token_for_account(self, &account.email) {
-                Ok(token) => token,
-                Err(_) => continue,
-            };
+
+        // Sync events for each selected calendar
+        for calendar in calendars {
+            tracing::debug!("Syncing events for calendar: {} ({})", calendar.name, calendar.tracking_id);
             
-            // Get calendar selections for this account
-            let calendar_selections = match self.get_calendar_selections(account.email.clone()).await {
-                Ok(selections) => selections,
-                Err(_) => continue,
-            };
+            // Find the account for this calendar
+            let account = accounts.iter().find(|acc| 
+                calendar.account_id.as_deref() == Some(&acc.google_id)
+            );
             
-            let selected_calendars: Vec<_> = calendar_selections.into_iter()
-                .filter(|sel| sel.selected)
-                .collect();
-
-            for calendar_selection in selected_calendars {
-                // Only sync events from the last month to avoid syncing all historical events
-                let now = chrono::Utc::now();
-                let to = now + chrono::Duration::days(100);
-                
-                match calendar_api.get_events(&token, &calendar_selection.calendar_id, Some(now), Some(to)).await {
-                    Ok(google_events) => {
-                            // Convert Google events to database events
-                            for google_event in google_events {
-                                let event_id = google_event.id.clone();
-                                let google_event_url = format!("https://calendar.google.com/calendar/event?eid={}", &event_id);
-                                let db_event = hypr_db_user::Event {
-                                    id: uuid::Uuid::new_v4().to_string(),
-                                    tracking_id: google_event.id,
-                                    user_id: user_id.clone(),
-                                    name: google_event.summary.unwrap_or("Untitled".to_string()),
-                                    note: google_event.description.unwrap_or_else(|| "".to_string()),
-                                    start_date: google_event.start.date_time.unwrap_or_else(|| Utc::now()),
-                                    end_date: google_event.end.date_time.unwrap_or_else(|| Utc::now()),
-                                    calendar_id: None, // Will be set during calendar sync
-                                    google_event_url: Some(google_event_url),
-                                    participants: None,
-                                    is_recurring: false,
-                                };
-
-                                // Upsert the event to the database
-                                let _ = db.upsert_event(db_event).await;
-                            }
-                    },
-                    Err(_) => {
-                        // Skip calendars that fail to sync
-                    }
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-
-    #[tracing::instrument(skip_all)]
-    async fn sync_contacts(&self) -> Result<()> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
-        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
-                .unwrap_or_else(|_| Vec::new())
-        } else {
-            Vec::new()
-        };
-
-        let contacts_api = GoogleContactsApi::new();
-        let mut sync_errors = Vec::new();
-
-        for account in accounts.iter().filter(|acc| acc.contacts_access) {
-            match get_access_token_for_account(self, &account.email) {
-                Ok(token) => {
-                    match contacts_api.get_contacts(&token).await {
-                        Ok(contacts) => {
-                            // Store contacts with account association
-                            let contacts_key = format!("cached_contacts_{}", account.email);
-                            store.set(&contacts_key, serde_json::to_value(&contacts)?);
-                            tracing::debug!("Synced {} contacts for {}", contacts.len(), account.email);
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to sync contacts for {}: {}", account.email, e);
-                            sync_errors.push(format!("{}: {}", account.email, e));
-                        }
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to get token for {}: {}", account.email, e);
-                    sync_errors.push(format!("{}: {}", account.email, e));
-                }
-            }
-        }
-
-        // Save all changes
-        store.save().map_err(|e| Error::Store(e))?;
-
-        // If we had errors syncing some accounts, still return success but log them
-        if !sync_errors.is_empty() {
-            tracing::warn!("Some contacts failed to sync: {}", sync_errors.join(", "));
-        }
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn get_contacts(&self) -> Result<Vec<Contact>> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
-        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
-                .unwrap_or_else(|_| Vec::new())
-        } else {
-            Vec::new()
-        };
-
-        let mut all_contacts = Vec::new();
-        let contacts_api = GoogleContactsApi::new();
-
-        for account in accounts.iter().filter(|acc| acc.contacts_access) {
-            match get_access_token_for_account(self, &account.email) {
-                Ok(token) => {
-                    match contacts_api.get_contacts(&token).await {
-                        Ok(mut contacts) => {
-                            // Add account identifier to each contact
-                            for contact in &mut contacts {
-                                contact.account_email = Some(account.email.clone());
-                            }
-                            all_contacts.extend(contacts);
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to get contacts for {}: {}", account.email, e);
-                            // Continue with other accounts
-                        }
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to get token for {}: {}", account.email, e);
-                    // Continue with other accounts
-                }
-            }
-        }
-
-        Ok(all_contacts)
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn search_contacts(&self, query: String) -> Result<Vec<Contact>> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
-        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
-                .unwrap_or_else(|_| Vec::new())
-        } else {
-            Vec::new()
-        };
-
-        let mut search_results = Vec::new();
-        let contacts_api = GoogleContactsApi::new();
-
-        for account in accounts.iter().filter(|acc| acc.contacts_access) {
-            match get_access_token_for_account(self, &account.email) {
-                Ok(token) => {
-                    match contacts_api.search_contacts(&token, &query).await {
-                        Ok(mut contacts) => {
-                            // Add account identifier to each contact
-                            for contact in &mut contacts {
-                                contact.account_email = Some(account.email.clone());
-                            }
-                            search_results.extend(contacts);
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to search contacts for {}: {}", account.email, e);
-                            // Continue with other accounts
-                        }
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to get token for {}: {}", account.email, e);
-                    // Continue with other accounts
-                }
-            }
-        }
-
-        Ok(search_results)
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn revoke_access(&self) -> Result<()> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Remove all multi-account data
-        store.delete(GOOGLE_ACCOUNTS_LIST_KEY);
-        
-        // Get all accounts and remove their tokens
-        if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            if let Ok(accounts) = serde_json::from_value::<Vec<GoogleAccount>>(accounts_json) {
-                for account in accounts {
-                    store.delete(&get_account_access_token_key(&account.email));
-                    store.delete(&get_account_refresh_token_key(&account.email));
-                    store.delete(&get_account_scopes_key(&account.email));
-                }
-            }
-        }
-        
-        store.save()?;
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn refresh_tokens(&self) -> Result<()> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get all connected accounts
-        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
-            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
-                .unwrap_or_else(|_| Vec::new())
-        } else {
-            Vec::new()
-        };
-
-        let oauth_client = get_oauth_client_with_redirect_uri("http://localhost:5555")?;
-        let mut refresh_errors = Vec::new();
-
-        for account in &accounts {
-            // Get current tokens for this account
-            let refresh_token = match store.get(&get_account_refresh_token_key(&account.email))
-                .and_then(|v| v.as_str().map(|s| s.to_owned())) {
-                Some(token) => token,
+            let account = match account {
+                Some(acc) => acc,
                 None => {
-                    tracing::warn!("No refresh token found for account: {}", account.email);
+                    tracing::warn!("No account found for calendar: {}", calendar.tracking_id);
                     continue;
                 }
             };
 
-            // Try to refresh the access token
-            match oauth_client.refresh_token(&refresh_token).await {
-                Ok(new_token) => {
-                    // Update the stored access token
-                    store.set(&get_account_access_token_key(&account.email), new_token.access_token.clone());
+            // Get access token for this account
+            let token = match get_access_token_for_account(self, &account.email) {
+                Ok(token) => token,
+                Err(e) => {
+                    tracing::warn!("Failed to get access token for account {}: {}", account.email, e);
+                    continue;
+                }
+            };
+
+            // Get events from Google API
+            let time_min = chrono::Utc::now();
+            let time_max = time_min + chrono::Duration::days(100); // Sync events for next 100 days
+
+            match calendar_api.get_events(&token, &calendar.tracking_id, Some(time_min), Some(time_max)).await {
+                Ok(google_events) => {
+                    tracing::debug!("Retrieved {} events from Google for calendar: {}", google_events.len(), calendar.name);
                     
-                    // Update refresh token if a new one was provided
-                    if let Some(new_refresh_token) = &new_token.refresh_token {
-                        store.set(&get_account_refresh_token_key(&account.email), new_refresh_token.clone());
+                    // Convert and upsert Google events to database
+                    for google_event in google_events {
+                        let db_event = convert_google_event_to_db_event(&google_event, &calendar, &user_id);
+                        
+                        match db.upsert_event(db_event).await {
+                            Ok(_) => {
+                                tracing::trace!("Upserted event: {}", google_event.id);
+                            }
+                            Err(e) => {
+                                tracing::error!("Failed to upsert event {} for calendar {}: {}", google_event.id, calendar.name, e);
+                            }
+                        }
                     }
-                    
-                    // Update scope if provided
-                    if let Some(scope) = &new_token.scope {
-                        store.set(&get_account_scopes_key(&account.email), scope.clone());
-                    }
-                    
-                    tracing::debug!("Successfully refreshed token for: {}", account.email);
                 }
                 Err(e) => {
-                    tracing::warn!("Failed to refresh token for {}: {}", account.email, e);
-                    refresh_errors.push(format!("{}: {}", account.email, e));
+                    tracing::error!("Failed to get events for calendar {} ({}): {}", calendar.name, calendar.tracking_id, e);
                 }
             }
         }
 
-        // Save all changes
-        store.save().map_err(|e| Error::Store(e))?;
-
-        // If we had errors refreshing some accounts, still return success but log them
-        if !refresh_errors.is_empty() {
-            tracing::warn!("Some tokens failed to refresh: {}", refresh_errors.join(", "));
-        }
-
+        tracing::info!("Completed Google Calendar event sync for user: {}", user_id);
         Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
+    async fn sync_contacts(&self) -> Result<()> {
+        // Placeholder - implement later
+        Ok(())
+    }
+
+    async fn get_contacts(&self) -> Result<Vec<Contact>> {
+        // Placeholder - implement later
+        Ok(Vec::new())
+    }
+
+    async fn search_contacts(&self, _query: String) -> Result<Vec<Contact>> {
+        // Placeholder - implement later
+        Ok(Vec::new())
+    }
+
+    async fn revoke_access(&self) -> Result<()> {
+        // Placeholder - implement later
+        Ok(())
+    }
+
+    async fn refresh_tokens(&self) -> Result<()> {
+        // Placeholder - implement later
+        Ok(())
+    }
+
     async fn get_connected_accounts(&self) -> Result<MultiAccountStatus> {
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
         
@@ -526,97 +309,184 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         })
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn remove_google_account(&self, email: String) -> Result<()> {
+    async fn remove_google_account(&self, _email: String) -> Result<()> {
+        // Placeholder - implement later
+        Ok(())
+    }
+
+    async fn get_calendars(&self) -> Result<Vec<Calendar>> {
+        // Get from database instead of API
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let (db, user_id) = {
+            let guard = db_state.lock().await;
+            let db = guard.db.as_ref().ok_or(Error::Auth("Database not initialized".to_string()))?.clone();
+            let user_id = guard.user_id.as_ref().ok_or(Error::Auth("User ID not set".to_string()))?.clone();
+            (db, user_id)
+        };
+
+        let calendars = db.list_calendars(&user_id).await
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|cal| cal.platform == hypr_db_user::Platform::Google)
+            .map(|db_cal| Calendar {
+                id: db_cal.tracking_id,
+                summary: db_cal.name,
+                description: db_cal.source,
+                primary: None,
+                access_role: None,
+                selected: Some(db_cal.selected),
+                color_id: None,
+                background_color: None,
+                foreground_color: None,
+                account_id: db_cal.account_id,
+                connection_status: db_cal.connection_status,
+                last_sync_error: db_cal.last_sync_error,
+                last_sync_at: db_cal.last_sync_at,
+            })
+            .collect();
+
+        Ok(calendars)
+    }
+
+    async fn get_calendars_for_account(&self, _email: String) -> Result<Vec<Calendar>> {
+        // Use get_calendars and filter by account
+        self.get_calendars().await
+    }
+
+    async fn get_contacts_for_account(&self, _email: String) -> Result<Vec<Contact>> {
+        // Placeholder - implement later
+        Ok(Vec::new())
+    }
+
+    async fn get_calendar_selections(&self, email: String) -> Result<Vec<CalendarSelection>> {
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let (db, user_id) = {
+            let guard = db_state.lock().await;
+            let db = guard.db.as_ref().ok_or(Error::Auth("Database not initialized".to_string()))?.clone();
+            let user_id = guard.user_id.as_ref().ok_or(Error::Auth("User ID not set".to_string()))?.clone();
+            (db, user_id)
+        };
+
         let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Remove tokens for this account
-        store.delete(&get_account_access_token_key(&email));
-        store.delete(&get_account_refresh_token_key(&email));
-        store.delete(&get_account_scopes_key(&email));
-        
-        // Remove account from accounts list
-        let mut accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
+        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
             serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
                 .unwrap_or_else(|_| Vec::new())
         } else {
             Vec::new()
         };
-        
-        accounts.retain(|account| account.email != email);
-        store.set(GOOGLE_ACCOUNTS_LIST_KEY, serde_json::to_value(&accounts)?);
-        
-        store.save()?;
-        Ok(())
-    }
 
-    #[tracing::instrument(skip_all)]
-    async fn get_calendars_for_account(&self, email: String) -> Result<Vec<Calendar>> {
-        let token = get_access_token_for_account(self, &email)?;
-        let calendar_api = GoogleCalendarApi::new();
-        calendar_api.get_calendar_list(&token).await
-    }
+        let account = accounts.iter().find(|acc| acc.email == email)
+            .ok_or_else(|| Error::Auth(format!("Account not found: {}", email)))?;
 
-    #[tracing::instrument(skip_all)]
-    async fn get_contacts_for_account(&self, email: String) -> Result<Vec<Contact>> {
-        let token = get_access_token_for_account(self, &email)?;
-        let contacts_api = GoogleContactsApi::new();
-        contacts_api.get_contacts(&token).await
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn get_calendar_selections(&self, email: String) -> Result<Vec<CalendarSelection>> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get calendars for this account
-        let calendars = self.get_calendars_for_account(email.clone()).await?;
-        
-        // Get stored selections
-        let selections_key = format!("calendar_selections_{}", email);
-        let stored_selections: std::collections::HashMap<String, bool> = if let Some(selections_json) = store.get(&selections_key) {
-            serde_json::from_value(selections_json).unwrap_or_default()
-        } else {
-            std::collections::HashMap::new()
-        };
+        let calendars = db.list_calendars(&user_id).await
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|cal| cal.platform == hypr_db_user::Platform::Google && 
+                    cal.account_id.as_deref() == Some(&account.google_id))
+            .collect::<Vec<_>>();
         
         let mut calendar_selections = Vec::new();
         for calendar in calendars {
-            let selected = stored_selections.get(&calendar.id).cloned().unwrap_or(true); // Default to selected
+            let selected = calendar.connection_status.as_deref() == Some("syncing");
             
             calendar_selections.push(CalendarSelection {
-                calendar_id: calendar.id.clone(),
-                calendar_name: calendar.summary.clone(),
+                calendar_id: calendar.tracking_id.clone(),
+                calendar_name: calendar.name.clone(),
                 selected,
-                color: calendar.background_color.clone(),
+                color: None,
             });
         }
         
         Ok(calendar_selections)
     }
 
-    #[tracing::instrument(skip_all)]
-    async fn set_calendar_selected(&self, email: String, calendar_id: String, selected: bool) -> Result<()> {
-        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
-        
-        // Get current selections
-        let selections_key = format!("calendar_selections_{}", email);
-        let mut stored_selections: std::collections::HashMap<String, bool> = if let Some(selections_json) = store.get(&selections_key) {
-            serde_json::from_value(selections_json).unwrap_or_default()
-        } else {
-            std::collections::HashMap::new()
+    async fn set_calendar_selected(&self, _email: String, calendar_id: String, selected: bool) -> Result<()> {
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let (db, user_id) = {
+            let guard = db_state.lock().await;
+            let db = guard.db.as_ref().ok_or(Error::Auth("Database not initialized".to_string()))?.clone();
+            let user_id = guard.user_id.as_ref().ok_or(Error::Auth("User ID not set".to_string()))?.clone();
+            (db, user_id)
         };
         
-        // Update selection
-        stored_selections.insert(calendar_id, selected);
-        
-        // Store updated selections
-        store.set(&selections_key, serde_json::to_value(&stored_selections)?);
-        store.save()?;
+        if let Ok(calendars) = db.list_calendars(&user_id).await {
+            for mut calendar in calendars {
+                if calendar.tracking_id == calendar_id && calendar.platform == hypr_db_user::Platform::Google {
+                    calendar.selected = selected;
+                    
+                    if selected {
+                        if calendar.connection_status.as_deref() == Some("connected") {
+                            calendar.connection_status = Some("syncing".to_string());
+                        }
+                    } else {
+                        calendar.connection_status = Some("connected".to_string());
+                    }
+                    
+                    if let Err(e) = db.upsert_calendar(calendar).await {
+                        tracing::error!("Failed to update calendar selection for {}: {}", calendar_id, e);
+                    }
+                    break;
+                }
+            }
+        }
         
         Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
+    async fn get_calendars_needing_reconnection(&self) -> Result<Vec<Calendar>> {
+        let db_state = self.state::<tauri_plugin_db::ManagedState>();
+        let (db, user_id) = {
+            let guard = db_state.lock().await;
+            let db = guard.db.as_ref().ok_or(Error::Auth("Database not initialized".to_string()))?.clone();
+            let user_id = guard.user_id.as_ref().ok_or(Error::Auth("User ID not set".to_string()))?.clone();
+            (db, user_id)
+        };
+
+        let calendars = db.list_calendars(&user_id).await
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|cal| cal.platform == hypr_db_user::Platform::Google && 
+                    cal.connection_status.as_deref() == Some("needs_reconnection"))
+            .map(|db_calendar| Calendar {
+                id: db_calendar.tracking_id,
+                summary: db_calendar.name,
+                description: db_calendar.source,
+                primary: None,
+                access_role: None,
+                selected: Some(db_calendar.selected),
+                color_id: None,
+                background_color: None,
+                foreground_color: None,
+                account_id: db_calendar.account_id,
+                connection_status: db_calendar.connection_status,
+                last_sync_error: db_calendar.last_sync_error,
+                last_sync_at: db_calendar.last_sync_at,
+            })
+            .collect();
+
+        Ok(calendars)
+    }
+
+    async fn attempt_reconnect_account(&self, email: String) -> Result<bool> {
+        // Try to refresh token and re-sync calendars
+        match refresh_token_for_account(self, &email).await {
+            Ok(_) => {
+                // Re-sync calendars on successful token refresh
+                match self.sync_calendars().await {
+                    Ok(_) => Ok(true),
+                    Err(e) => {
+                        tracing::error!("Failed to sync calendars after token refresh for {}: {}", email, e);
+                        Ok(false)
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!("Failed to refresh token for {}: {}", email, e);
+                Ok(false)
+            }
+        }
+    }
+
     async fn start_worker(&self, user_id: impl Into<String>) -> std::result::Result<(), String> {
         let db_state = self.state::<tauri_plugin_db::ManagedState>();
         let db = {
@@ -645,7 +515,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
     fn stop_worker(&self) {
         let state = self.state::<crate::ManagedState>();
         let mut s = state.lock().unwrap();
@@ -654,6 +523,186 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
             handle.abort();
         }
     }
+}
+
+// Helper function to convert Google Calendar API event to database event
+fn convert_google_event_to_db_event(google_event: &GoogleEvent, calendar: &hypr_db_user::Calendar, user_id: &str) -> hypr_db_user::Event {
+    // Convert Google event datetime to chrono DateTime
+    let start_date = google_event.start.date_time.unwrap_or_else(|| {
+        // If no dateTime, parse from date field (all-day events)
+        if let Some(date_str) = &google_event.start.date {
+            // Parse date-only format "YYYY-MM-DD" and assume start of day UTC
+            chrono::NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+                .unwrap_or(chrono::Utc::now().date_naive())
+                .and_hms_opt(0, 0, 0)
+                .unwrap_or(chrono::Utc::now().naive_utc())
+                .and_utc()
+        } else {
+            chrono::Utc::now()
+        }
+    });
+
+    let end_date = google_event.end.date_time.unwrap_or_else(|| {
+        // If no dateTime, parse from date field (all-day events)
+        if let Some(date_str) = &google_event.end.date {
+            // Parse date-only format "YYYY-MM-DD" and assume start of day UTC
+            chrono::NaiveDate::parse_from_str(date_str, "%Y-%m-%d")
+                .unwrap_or(chrono::Utc::now().date_naive())
+                .and_hms_opt(0, 0, 0)
+                .unwrap_or(chrono::Utc::now().naive_utc())
+                .and_utc()
+        } else {
+            start_date + chrono::Duration::hours(1) // Default 1-hour duration
+        }
+    });
+
+    // Extract attendees as a JSON string
+    let participants = google_event.attendees.as_ref().and_then(|attendees| {
+        if attendees.is_empty() {
+            None
+        } else {
+            serde_json::to_string(attendees).ok()
+        }
+    });
+
+    hypr_db_user::Event {
+        id: uuid::Uuid::new_v4().to_string(),
+        user_id: user_id.to_string(),
+        tracking_id: google_event.id.clone(),
+        calendar_id: Some(calendar.id.clone()),
+        name: google_event.summary.clone().unwrap_or_else(|| "Untitled Event".to_string()),
+        note: google_event.description.clone().unwrap_or_default(),
+        start_date,
+        end_date,
+        event_external_url: google_event.html_link.clone(),
+        participants,
+        is_recurring: false, // TODO: Detect recurring events properly
+    }
+}
+
+// Helper function for syncing calendars for a specific account
+async fn sync_account_calendars<R: tauri::Runtime, T: tauri::Manager<R>>(
+    manager: &T,
+    db: &hypr_db_user::UserDatabase,
+    user_id: &str,
+    account: &GoogleAccount,
+) -> Result<()> {
+    // Try to get access token, refresh if necessary
+    let token = match get_access_token_for_account(manager, &account.email) {
+        Ok(token) => token,
+        Err(_) => {
+            // Try to refresh token
+            refresh_token_for_account(manager, &account.email).await?;
+            get_access_token_for_account(manager, &account.email)?
+        }
+    };
+
+    let calendar_api = GoogleCalendarApi::new();
+    let google_calendars = calendar_api.get_calendar_list(&token).await?;
+    
+    let sync_time = chrono::Utc::now();
+    
+    // Get existing calendars for this account from database
+    let existing_calendars = db.list_calendars(user_id).await
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|cal| cal.platform == hypr_db_user::Platform::Google && 
+                cal.account_id.as_deref() == Some(&account.google_id))
+        .map(|cal| (cal.tracking_id.clone(), cal))
+        .collect::<std::collections::HashMap<String, hypr_db_user::Calendar>>();
+
+    for google_calendar in google_calendars {
+        let existing_calendar = existing_calendars.get(&google_calendar.id);
+        
+        let connection_status = if let Some(existing) = existing_calendar {
+            existing.connection_status.clone()
+        } else {
+            if google_calendar.id == account.email {
+                Some("syncing".to_string()) // Main calendar gets "syncing" status
+            } else {
+                Some("connected".to_string()) // Other calendars get "connected" status
+            }
+        };
+
+        let db_calendar = hypr_db_user::Calendar {
+            id: existing_calendar.map_or_else(|| uuid::Uuid::new_v4().to_string(), |c| c.id.clone()),
+            tracking_id: google_calendar.id.clone(),
+            user_id: user_id.to_string(),
+            name: google_calendar.summary,
+            platform: hypr_db_user::Platform::Google,
+            source: Some(format!("Google Calendar ({})", account.email)),
+            selected: existing_calendar.map_or(true, |c| c.selected),
+            connection_status,
+            account_id: Some(account.google_id.clone()),
+            last_sync_error: None, // Clear any previous sync errors
+            last_sync_at: Some(sync_time.to_string()),
+        };
+
+        // Upsert the calendar to the database
+        if let Err(e) = db.upsert_calendar(db_calendar).await {
+            tracing::error!("Failed to upsert calendar {} for {}: {}", google_calendar.id, account.email, e);
+        }
+    }
+
+    Ok(())
+}
+
+// Helper function for refreshing tokens for a specific account
+async fn refresh_token_for_account<R: tauri::Runtime, T: tauri::Manager<R>>(
+    manager: &T,
+    email: &str,
+) -> Result<()> {
+    let store = manager.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
+    
+    // Get current refresh token
+    let refresh_token = store
+        .get(&get_account_refresh_token_key(email))
+        .and_then(|v| v.as_str().map(|s| s.to_owned()))
+        .ok_or_else(|| Error::InvalidToken(format!("No refresh token found for {}", email)))?;
+
+    // Try to refresh the access token
+    let oauth_client = get_oauth_client_with_redirect_uri("http://localhost:5555")?;
+    let new_token = oauth_client.refresh_token(&refresh_token).await?;
+    
+    // Update the stored tokens
+    store.set(&get_account_access_token_key(email), new_token.access_token.clone());
+    
+    if let Some(new_refresh_token) = &new_token.refresh_token {
+        store.set(&get_account_refresh_token_key(email), new_refresh_token.clone());
+    }
+    
+    if let Some(scope) = &new_token.scope {
+        store.set(&get_account_scopes_key(email), scope.clone());
+    }
+    
+    store.save().map_err(|e| Error::Store(e))?;
+    tracing::debug!("Successfully refreshed token for: {}", email);
+    
+    Ok(())
+}
+
+// Helper function for marking account calendars as disconnected
+async fn mark_account_calendars_as_disconnected<R: tauri::Runtime, T: tauri::Manager<R>>(
+    _manager: &T,
+    db: &hypr_db_user::UserDatabase,
+    user_id: &str,
+    account: &GoogleAccount,
+) -> Result<()> {
+    let calendars = db.list_calendars(user_id).await.unwrap_or_default();
+    
+    for mut calendar in calendars {
+        if calendar.platform == hypr_db_user::Platform::Google && 
+           calendar.account_id.as_deref() == Some(&account.google_id) {
+            calendar.connection_status = Some("needs_reconnection".to_string());
+            calendar.last_sync_error = Some("Token refresh failed".to_string());
+            
+            if let Err(e) = db.upsert_calendar(calendar).await {
+                tracing::error!("Failed to mark calendar as disconnected: {}", e);
+            }
+        }
+    }
+    
+    Ok(())
 }
 
 // Helper functions
@@ -732,6 +781,8 @@ async fn handle_oauth_callback_internal<R: tauri::Runtime>(
 
     store.set(GOOGLE_ACCOUNTS_LIST_KEY, serde_json::to_value(&accounts)?);
     store.save()?;
+    
+    tracing::info!("Successfully stored Google account: {}", user_info.email);
     Ok(())
 }
 

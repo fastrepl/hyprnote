@@ -87,7 +87,11 @@ impl UserDatabase {
                     name,
                     platform,
                     selected,
-                    source
+                    source,
+                    connection_status,
+                    account_id,
+                    last_sync_error,
+                    last_sync_at
                 ) VALUES (
                     :id,
                     :tracking_id,
@@ -95,11 +99,19 @@ impl UserDatabase {
                     :name,
                     :platform,
                     :selected,
-                    :source
+                    :source,
+                    :connection_status,
+                    :account_id,
+                    :last_sync_error,
+                    :last_sync_at
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
                     name = :name,
                     platform = :platform,
-                    source = :source
+                    source = :source,
+                    connection_status = :connection_status,
+                    account_id = :account_id,
+                    last_sync_error = :last_sync_error,
+                    last_sync_at = :last_sync_at
                 RETURNING *",
                 libsql::named_params! {
                     ":id": calendar.id,
@@ -109,6 +121,10 @@ impl UserDatabase {
                     ":platform": calendar.platform.to_string(),
                     ":selected": calendar.selected,
                     ":source": calendar.source,
+                    ":connection_status": calendar.connection_status,
+                    ":account_id": calendar.account_id,
+                    ":last_sync_error": calendar.last_sync_error,
+                    ":last_sync_at": calendar.last_sync_at,
                 },
             )
             .await?;
@@ -137,6 +153,50 @@ impl UserDatabase {
         let row = rows.next().await?.unwrap();
         let calendar: Calendar = libsql::de::from_row(&row)?;
         Ok(calendar)
+    }
+
+    pub async fn update_calendar_sync_status(
+        &self,
+        tracking_id: impl AsRef<str>,
+        connection_status: impl AsRef<str>,
+        sync_error: Option<String>,
+        sync_time: impl AsRef<str>,
+    ) -> Result<(), crate::Error> {
+        let conn = self.conn()?;
+
+        conn.execute(
+            "UPDATE calendars SET connection_status = ?, last_sync_error = ?, last_sync_at = ? WHERE tracking_id = ?",
+            vec![
+                connection_status.as_ref(),
+                sync_error.as_deref().unwrap_or_default(),
+                sync_time.as_ref(),
+                tracking_id.as_ref(),
+            ],
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_calendars_needing_reconnection(
+        &self,
+        user_id: impl AsRef<str>,
+    ) -> Result<Vec<Calendar>, crate::Error> {
+        let conn = self.conn()?;
+
+        let mut rows = conn
+            .query(
+                "SELECT * FROM calendars WHERE user_id = ? AND connection_status = 'needs_reconnection'",
+                vec![user_id.as_ref()],
+            )
+            .await?;
+
+        let mut calendars = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let calendar: Calendar = libsql::de::from_row(&row)?;
+            calendars.push(calendar);
+        }
+        Ok(calendars)
     }
 }
 

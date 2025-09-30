@@ -100,6 +100,10 @@ async fn _sync_calendars(
                     platform: sys_c.platform.clone().into(),
                     selected: existing.map_or(false, |c| c.selected),
                     source: sys_c.source.clone(),
+                    connection_status: Some("connected".to_string()),
+                    account_id: Some("local".to_string()), // Apple Calendar is local to the device
+                    last_sync_error: None, // Clear any previous errors
+                    last_sync_at: Some(chrono::Utc::now().to_rfc3339()),
                 }
             })
             .collect::<Vec<hypr_db_user::Calendar>>();
@@ -170,7 +174,7 @@ async fn _sync_events(
                         note: matching_event.note.clone(),
                         start_date: matching_event.start_date,
                         end_date: matching_event.end_date,
-                        google_event_url: db_event.google_event_url.clone(),
+                        event_external_url: db_event.event_external_url.clone(),
                         participants: Some(
                             serde_json::to_string(&matching_event.participants)
                                 .unwrap_or_else(|_| "[]".to_string()),
@@ -215,7 +219,7 @@ async fn _sync_events(
                         note: rescheduled_event.note.clone(),
                         start_date: rescheduled_event.start_date,
                         end_date: rescheduled_event.end_date,
-                        google_event_url: db_event.google_event_url.clone(),
+                        event_external_url: db_event.event_external_url.clone(),
                         participants: Some(
                             serde_json::to_string(&rescheduled_event.participants)
                                 .unwrap_or_else(|_| "[]".to_string()),
@@ -297,7 +301,7 @@ async fn _sync_events(
                                 note: system_event.note.clone(),
                                 start_date: system_event.start_date,
                                 end_date: system_event.end_date,
-                                google_event_url: None,
+                                event_external_url: None,
                                 participants: Some(
                                     serde_json::to_string(&system_event.participants)
                                         .unwrap_or_else(|_| "[]".to_string()),
@@ -321,7 +325,7 @@ async fn _sync_events(
                     note: system_event.note.clone(),
                     start_date: system_event.start_date,
                     end_date: system_event.end_date,
-                    google_event_url: None,
+                    event_external_url: None,
                     participants: Some(
                         serde_json::to_string(&system_event.participants)
                             .unwrap_or_else(|_| "[]".to_string()),

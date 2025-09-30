@@ -44,7 +44,7 @@ pub struct Event {
     pub participants: Vec<Participant>,
     pub start_date: DateTime<Utc>,
     pub end_date: DateTime<Utc>,
-    pub google_event_url: Option<String>,
+    pub event_external_url: Option<String>,
     #[serde(default)]
     pub is_recurring: bool,
 }
@@ -85,7 +85,7 @@ impl Event {
                 Ok(Opener::AppleScript(script))
             }
             Platform::Google => {
-                let url = self.google_event_url.as_ref().unwrap().clone();
+                let url = self.event_external_url.as_ref().unwrap().clone();
                 Ok(Opener::Url(url))
             }
             Platform::Outlook => {

@@ -26,18 +26,34 @@ const EVENTS_SYNC_WORKER_NAME: &str = "google_calendar_events_sync";
 
 #[tracing::instrument(skip(ctx), name = CALENDARS_SYNC_WORKER_NAME)]
 pub async fn perform_calendars_sync(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
-    ctx.app_handle.sync_calendars_with_db(ctx.db.clone(), ctx.user_id.clone())
-        .await
-        .map_err(|e| Error::Failed(Arc::new(Box::new(e) as Box<dyn std::error::Error + Send + Sync>)))?;
-    Ok(())
+    tracing::info!("Google Calendar worker: Starting calendar sync for user {}", ctx.user_id);
+    let result = ctx.app_handle.sync_calendars_with_db(ctx.db.clone(), ctx.user_id.clone()).await;
+    match result {
+        Ok(_) => {
+            tracing::info!("Google Calendar worker: Calendar sync completed successfully");
+            Ok(())
+        }
+        Err(e) => {
+            tracing::error!("Google Calendar worker: Calendar sync failed: {}", e);
+            Err(Error::Failed(Arc::new(Box::new(e) as Box<dyn std::error::Error + Send + Sync>)))
+        }
+    }
 }
 
 #[tracing::instrument(skip(ctx), name = EVENTS_SYNC_WORKER_NAME)]
 pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<(), Error> {
-    ctx.app_handle.sync_events_with_db(ctx.db.clone(), ctx.user_id.clone(), None)
-        .await
-        .map_err(|e| Error::Failed(Arc::new(Box::new(e) as Box<dyn std::error::Error + Send + Sync>)))?;
-    Ok(())
+    tracing::info!("Google Calendar worker: Starting event sync for user {}", ctx.user_id);
+    let result = ctx.app_handle.sync_events_with_db(ctx.db.clone(), ctx.user_id.clone(), None).await;
+    match result {
+        Ok(_) => {
+            tracing::info!("Google Calendar worker: Event sync completed successfully");
+            Ok(())
+        }
+        Err(e) => {
+            tracing::error!("Google Calendar worker: Event sync failed: {}", e);
+            Err(Error::Failed(Arc::new(Box::new(e) as Box<dyn std::error::Error + Send + Sync>)))
+        }
+    }
 }
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {

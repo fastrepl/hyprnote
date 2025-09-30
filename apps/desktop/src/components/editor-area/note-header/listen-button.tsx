@@ -181,6 +181,36 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     },
   });
 
+  const allDevicesQuery = useQuery({
+    queryKey: ["microphone", "devices"],
+    queryFn: () => listenerCommands.listMicrophoneDevices(),
+  });
+
+  const currentDeviceQuery = useQuery({
+    queryKey: ["microphone", "current-device"],
+    queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
+  });
+
+  const handleSelectDevice = (device: string) => {
+    listenerCommands.setMicrophoneDevice(device).then(() => {
+      currentDeviceQuery.refetch();
+
+      if (userId) {
+        analyticsCommands.event({
+          event: "recording_select_mic_trigger",
+          distinct_id: userId,
+        });
+      }
+    });
+  };
+
+  const handleOpenMicSelectorPopover = () => {
+    analyticsCommands.event({
+      event: "recording_select_mic_option",
+      distinct_id: userId,
+    });
+  };
+
   return (
     <ListenButtonInner
       state={state}
@@ -193,6 +223,10 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
       amplitude={amplitude}
       setMicMuted={toggleMicMuted.mutate}
       setSpeakerMuted={toggleSpeakerMuted.mutate}
+      currentDevice={currentDeviceQuery.data ?? undefined}
+      availableDevices={allDevicesQuery.data}
+      handleSelectDevice={handleSelectDevice}
+      handleOpenMicSelectorPopover={handleOpenMicSelectorPopover}
     />
   );
 }
@@ -209,6 +243,10 @@ function ListenButtonInner(
     amplitude,
     setMicMuted,
     setSpeakerMuted,
+    currentDevice,
+    availableDevices,
+    handleSelectDevice,
+    handleOpenMicSelectorPopover,
   }: {
     state: ListenButtonState;
     isOnboarding: boolean;
@@ -220,6 +258,10 @@ function ListenButtonInner(
     amplitude: { mic: number; speaker: number };
     setMicMuted: () => void;
     setSpeakerMuted: () => void;
+    currentDevice?: string;
+    availableDevices?: string[];
+    handleSelectDevice: (device: string) => void;
+    handleOpenMicSelectorPopover?: () => void;
   },
 ) {
   switch (state) {
@@ -249,6 +291,10 @@ function ListenButtonInner(
           disabled={isOnboarding}
           handleStopSession={handleStopSession}
           amplitude={amplitude}
+          currentDevice={currentDevice}
+          availableDevices={availableDevices}
+          handleSelectDevice={handleSelectDevice}
+          handleOpenMicSelectorPopover={handleOpenMicSelectorPopover}
         />
       );
 
@@ -348,13 +394,28 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 }
 
 function WhenActive(
-  { disabled, handleStopSession, amplitude, muted, setMicMuted, setSpeakerMuted }: {
+  {
+    disabled,
+    handleStopSession,
+    amplitude,
+    muted,
+    setMicMuted,
+    setSpeakerMuted,
+    currentDevice,
+    availableDevices,
+    handleSelectDevice,
+    handleOpenMicSelectorPopover,
+  }: {
     disabled: boolean;
     handleStopSession: () => void;
     amplitude: { mic: number; speaker: number };
     muted: { mic: boolean; speaker: boolean };
     setMicMuted: () => void;
     setSpeakerMuted: () => void;
+    currentDevice?: string;
+    availableDevices?: string[];
+    handleSelectDevice: (device: string) => void;
+    handleOpenMicSelectorPopover?: () => void;
   },
 ) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -386,6 +447,10 @@ function WhenActive(
           setSpeakerMuted={setSpeakerMuted}
           amplitude={amplitude}
           onStop={handleStopSessionWrapper}
+          currentDevice={currentDevice}
+          availableDevices={availableDevices}
+          handleSelectDevice={handleSelectDevice}
+          handleOpenMicSelectorPopover={handleOpenMicSelectorPopover}
         />
       </PopoverContent>
     </Popover>
@@ -400,6 +465,10 @@ function RecordingControls({
   setSpeakerMuted,
   amplitude,
   onStop,
+  currentDevice,
+  availableDevices,
+  handleSelectDevice,
+  handleOpenMicSelectorPopover,
 }: {
   disabled: boolean;
   micMuted: boolean;
@@ -408,6 +477,10 @@ function RecordingControls({
   setSpeakerMuted: () => void;
   amplitude: { mic: number; speaker: number };
   onStop: () => void;
+  currentDevice?: string;
+  availableDevices?: string[];
+  handleSelectDevice: (device: string) => void;
+  handleOpenMicSelectorPopover?: () => void;
 }) {
   return (
     <>
@@ -417,6 +490,10 @@ function RecordingControls({
           isMuted={micMuted}
           amplitude={amplitude.mic}
           onToggleMuted={setMicMuted}
+          currentDevice={currentDevice}
+          availableDevices={availableDevices}
+          handleSelectDevice={handleSelectDevice}
+          handleOpenPopover={handleOpenMicSelectorPopover}
         />
         <SpeakerButton
           disabled={disabled}
@@ -452,43 +529,34 @@ function MicrophoneSelector({
   amplitude,
   onToggleMuted,
   disabled,
+  currentDevice,
+  availableDevices,
+  handleSelectDevice,
+  handleOpenPopover,
 }: {
   isMuted?: boolean;
   amplitude: number;
   onToggleMuted: () => void;
   disabled?: boolean;
+  currentDevice?: string;
+  availableDevices?: string[];
+  handleSelectDevice: (device: string) => void;
+  handleOpenPopover?: () => void;
 }) {
-  const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
-
-  const allDevicesQuery = useQuery({
-    queryKey: ["microphone", "devices"],
-    queryFn: () => listenerCommands.listMicrophoneDevices(),
-  });
-
-  const currentDeviceQuery = useQuery({
-    queryKey: ["microphone", "current-device"],
-    queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
-  });
-
-  const handleSelectDevice = (device: string) => {
-    listenerCommands.setMicrophoneDevice(device).then(() => {
-      currentDeviceQuery.refetch();
-
-      if (userId) {
-        analyticsCommands.event({
-          event: "recording_select_mic_trigger",
-          distinct_id: userId,
-        });
-      }
-    });
-  };
 
   const Icon = isMuted ? MicOffIcon : MicIcon;
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open && handleOpenPopover) {
+      handleOpenPopover();
+    }
+  };
+
   return (
     <div className="flex-1 min-w-0">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <div className="flex -space-x-px">
           <Button
             variant="outline"
@@ -516,14 +584,6 @@ function MicrophoneSelector({
               variant="outline"
               className="rounded-l-none px-1.5 flex-shrink-0 h-10 transition-all hover:border-neutral-300 hover:bg-neutral-50"
               disabled={disabled}
-              onClick={() => {
-                if (userId) {
-                  analyticsCommands.event({
-                    event: "recording_select_mic_option",
-                    distinct_id: userId,
-                  });
-                }
-              }}
             >
               <ChevronDownIcon className="w-4 h-4 text-neutral-600" />
             </Button>
@@ -536,14 +596,14 @@ function MicrophoneSelector({
               <span className="text-sm font-medium">Microphone</span>
             </div>
 
-            {allDevicesQuery.isLoading
+            {!availableDevices
               ? (
                 <div className="p-4 text-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-neutral-600 mx-auto"></div>
                   <p className="text-sm text-neutral-500 mt-2">Loading devices...</p>
                 </div>
               )
-              : allDevicesQuery.data?.length === 0
+              : availableDevices?.length === 0
               ? (
                 <div className="p-4 text-center">
                   <p className="text-sm text-neutral-500">No microphones found</p>
@@ -551,8 +611,8 @@ function MicrophoneSelector({
               )
               : (
                 <div className="space-y-1">
-                  {allDevicesQuery.data?.map((device) => {
-                    const isSelected = device === currentDeviceQuery.data;
+                  {availableDevices?.map((device) => {
+                    const isSelected = device === currentDevice;
                     return (
                       <Button
                         key={device}

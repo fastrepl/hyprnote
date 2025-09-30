@@ -50,6 +50,10 @@ const showConsentNotification = () => {
 };
 
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
+  return <ListenButtonInner sessionId={sessionId} isCompact={isCompact} />;
+}
+
+function ListenButtonInner({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
   const { onboardingSessionId, userId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
 

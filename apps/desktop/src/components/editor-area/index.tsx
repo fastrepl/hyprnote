@@ -5,7 +5,7 @@ import { diffWords } from "diff";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-//import { useRightPanel } from "@/contexts/right-panel";
+// import { useRightPanel } from "@/contexts/right-panel";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
@@ -130,7 +130,7 @@ export default function EditorArea({
   const showRaw = useSession(sessionId, (s) => s.showRaw);
   const activeTab = useSession(sessionId, (s) => s.activeTab);
   const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
-  //const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  // const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -216,10 +216,10 @@ export default function EditorArea({
               showTipsModal(userId);
             } else {
               // comment out to turn off auto-open chat panel
-              
-              //if (!isRightPanelExpanded) {
-                // toggleRightPanel("chat");
-              //}
+
+              // if (!isRightPanelExpanded) {
+              // toggleRightPanel("chat");
+              // }
             }
           } catch (error) {
             console.error("Failed to show tips modal:", error);

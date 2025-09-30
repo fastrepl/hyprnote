@@ -116,7 +116,7 @@ export function TranscriptViewer({ sessionId, onEditorRefChange }: TranscriptVie
       <div className="relative h-full flex flex-col">
         <div
           ref={scrollContainerRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pt-4 pb-6"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pt-8 pb-6"
           onScroll={handleScroll}
         >
           <div className="px-8 text-[15px] leading-relaxed break-all space-y-2">

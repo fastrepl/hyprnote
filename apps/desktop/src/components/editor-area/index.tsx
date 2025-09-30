@@ -148,6 +148,7 @@ export default function EditorArea({
   const tabHeaderRef = useRef<TabHeaderRef>(null);
   const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
   const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
+  const [isTabHeaderVisible, setIsTabHeaderVisible] = useState(false);
 
   // Update transcriptRef to point to the TranscriptEditorRef
   useEffect(() => {
@@ -340,6 +341,7 @@ export default function EditorArea({
         isEnhancing={enhance.status === "pending"}
         progress={progress}
         showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+        onVisibilityChange={setIsTabHeaderVisible}
       />
 
       {/* Editor region wrapper: keeps overlay fixed while inner content scrolls */}
@@ -363,7 +365,7 @@ export default function EditorArea({
           className={cn([
             activeTab === "transcript"
               ? "h-full overflow-hidden pt-2"
-              : `h-full overflow-y-auto ${tabHeaderRef.current?.isVisible ? "pt-10" : "pt-3"}`,
+              : `h-full overflow-y-auto ${isTabHeaderVisible ? "pt-10" : "pt-3"}`,
             enhancedContent && activeTab !== "transcript" && "pb-10",
           ])}
           onClick={(e) => {

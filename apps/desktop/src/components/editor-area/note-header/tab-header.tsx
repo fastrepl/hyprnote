@@ -9,6 +9,7 @@ interface TabHeaderProps {
   isEnhancing?: boolean;
   progress?: number;
   showProgress?: boolean;
+  onVisibilityChange?: (isVisible: boolean) => void;
 }
 
 export interface TabHeaderRef {
@@ -16,7 +17,7 @@ export interface TabHeaderRef {
 }
 
 export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
-  ({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false }, ref) => {
+  ({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false, onVisibilityChange }, ref) => {
     const [activeTab, setActiveTab] = useSession(sessionId, (s) => [
       s.activeTab,
       s.setActiveTab,
@@ -65,6 +66,13 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
     useImperativeHandle(ref, () => ({
       isVisible: isMeetingSession ?? false,
     }), [isMeetingSession]);
+
+    // Notify parent when visibility changes
+    useEffect(() => {
+      if (onVisibilityChange) {
+        onVisibilityChange(isMeetingSession ?? false);
+      }
+    }, [isMeetingSession, onVisibilityChange]);
 
     // Don't render tabs at all for blank notes (no meeting session)
     if (!isMeetingSession) {

@@ -51,14 +51,23 @@ const showConsentNotification = () => {
 
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
   const { onboardingSessionId, userId } = useHypr();
-  const isOnboarding = sessionId === onboardingSessionId;
-  const ongoingSessionStatus = useOngoingSession((s) => s.status);
-
   const isEnhancePending = useEnhancePendingState(sessionId);
+
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    start: s.start,
+    stop: s.stop,
+    loading: s.loading,
+  }));
+
+  const sessionWords = useSession(sessionId, (s) => s.session.words);
   const nonEmptySession = useSession(
     sessionId,
     (s) => !!(s.session.words.length > 0 || s.session.enhanced_memo_html),
   );
+
+  const isOnboarding = sessionId === onboardingSessionId;
   const meetingEnded = isEnhancePending || nonEmptySession;
 
   const modelDownloaded = useQuery({
@@ -77,40 +86,8 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
 
   const disabled = !modelDownloaded || (meetingEnded && isEnhancePending);
 
-  return (
-    <ListenButtonInner
-      sessionId={sessionId}
-      disabled={disabled}
-      meetingEnded={meetingEnded}
-      isOnboarding={isOnboarding}
-      userId={userId}
-      modelDownloaded={!!modelDownloaded.data}
-      isCompact={isCompact}
-    />
-  );
-}
-
-function ListenButtonInner(
-  { sessionId, isOnboarding, userId, disabled, meetingEnded, isCompact = false }: {
-    disabled: boolean;
-    sessionId: string;
-    isOnboarding: boolean;
-    userId: string;
-    modelDownloaded: boolean;
-    meetingEnded: boolean;
-    isCompact?: boolean;
-  },
-) {
-  const ongoingSessionStatus = useOngoingSession((s) => s.status);
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    start: s.start,
-    stop: s.stop,
-    loading: s.loading,
-  }));
-
-  const sessionWords = useSession(sessionId, (s) => s.session.words);
-
+  // TODO: 1. this show toast again when re-entering the session
+  // TODO:  2. this is not ideal place to do this
   // don't show consent notification if the session already has transcript
   useEffect(() => {
     if (
@@ -139,7 +116,47 @@ function ListenButtonInner(
     }
   };
 
-  if (ongoingSessionStore.loading) {
+  return (
+    <ListenButtonInner
+      sessionId={sessionId}
+      disabled={disabled}
+      meetingEnded={meetingEnded}
+      isOnboarding={isOnboarding}
+      modelDownloaded={!!modelDownloaded.data}
+      isCompact={isCompact}
+      handleStartSession={handleStartSession}
+      isLoading={ongoingSessionStore.loading}
+      ongoingSessionId={ongoingSessionId}
+      ongoingSessionStatus={ongoingSessionStatus}
+    />
+  );
+}
+
+function ListenButtonInner(
+  {
+    sessionId,
+    isOnboarding,
+    disabled,
+    meetingEnded,
+    isCompact = false,
+    handleStartSession,
+    isLoading,
+    ongoingSessionId,
+    ongoingSessionStatus,
+  }: {
+    disabled: boolean;
+    sessionId: string;
+    isOnboarding: boolean;
+    modelDownloaded: boolean;
+    meetingEnded: boolean;
+    isCompact?: boolean;
+    handleStartSession: () => void;
+    isLoading: boolean;
+    ongoingSessionId: string | null;
+    ongoingSessionStatus: "inactive" | "running_active";
+  },
+) {
+  if (isLoading) {
     return (
       <div className="w-9 h-9 flex items-center justify-center">
         <Spinner color="black" />

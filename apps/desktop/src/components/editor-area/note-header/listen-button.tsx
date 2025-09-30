@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CheckIcon,
@@ -273,9 +272,7 @@ function WhenInactiveAndMeetingNotEnded({ disabled, onClick }: { disabled: boole
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="end">
-        <p>
-          <Trans>Start recording</Trans>
-        </p>
+        Start recording
       </TooltipContent>
     </Tooltip>
   );
@@ -303,9 +300,7 @@ function WhenInactiveAndMeetingEnded(
           : "opacity-10 cursor-progress",
       )}
     >
-      <Trans>
-        {disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}
-      </Trans>
+      {disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}
     </button>
   );
 }
@@ -327,7 +322,7 @@ function WhenInactiveAndMeetingNotEndedOnboarding({ disabled, onClick }: { disab
       }}
     >
       <PlayIcon size={14} />
-      <Trans>{disabled ? "Wait..." : "Play video"}</Trans>
+      {disabled ? "Wait..." : "Play video"}
     </ShinyButton>
   );
 }
@@ -347,7 +342,7 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
       )}
     >
       <PlayIcon size={14} />
-      <Trans>{disabled ? "Wait..." : "Play again"}</Trans>
+      {disabled ? "Wait..." : "Play again"}
     </button>
   );
 }
@@ -447,7 +442,7 @@ function StopButton({ onStop }: { onStop: (templateId: string | null) => void })
         color="white"
         className="w-4 h-4"
       />
-      <Trans>Stop</Trans>
+      Stop
     </Button>
   );
 }

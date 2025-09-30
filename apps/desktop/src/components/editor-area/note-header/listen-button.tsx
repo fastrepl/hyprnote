@@ -19,12 +19,12 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import ShinyButton from "@hypr/ui/components/ui/shiny-button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import ShinyButton from "./shiny-button";
 
 const showConsentNotification = () => {
   toast({

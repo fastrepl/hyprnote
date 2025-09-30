@@ -50,20 +50,9 @@ const showConsentNotification = () => {
 };
 
 export default function ListenButton({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
-  return <ListenButtonInner sessionId={sessionId} isCompact={isCompact} />;
-}
-
-function ListenButtonInner({ sessionId, isCompact = false }: { sessionId: string; isCompact?: boolean }) {
   const { onboardingSessionId, userId } = useHypr();
   const isOnboarding = sessionId === onboardingSessionId;
-
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
-  const ongoingSessionStore = useOngoingSession((s) => ({
-    start: s.start,
-    stop: s.stop,
-    loading: s.loading,
-  }));
 
   const modelDownloaded = useQuery({
     queryKey: ["check-stt-model-downloaded"],
@@ -78,6 +67,34 @@ function ListenButtonInner({ sessionId, isCompact = false }: { sessionId: string
       return isDownloaded && isServerAvailable;
     },
   });
+
+  return (
+    <ListenButtonInner
+      sessionId={sessionId}
+      isOnboarding={isOnboarding}
+      userId={userId}
+      modelDownloaded={!!modelDownloaded.data}
+      isCompact={isCompact}
+    />
+  );
+}
+
+function ListenButtonInner(
+  { sessionId, isOnboarding, userId, modelDownloaded, isCompact = false }: {
+    sessionId: string;
+    isOnboarding: boolean;
+    userId: string;
+    modelDownloaded: boolean;
+    isCompact?: boolean;
+  },
+) {
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+  const ongoingSessionStore = useOngoingSession((s) => ({
+    start: s.start,
+    stop: s.stop,
+    loading: s.loading,
+  }));
 
   const sessionWords = useSession(sessionId, (s) => s.session.words);
 
@@ -127,8 +144,8 @@ function ListenButtonInner({ sessionId, isCompact = false }: { sessionId: string
   if (ongoingSessionStatus === "inactive") {
     const buttonProps = {
       disabled: isOnboarding
-        ? !modelDownloaded.data || (meetingEnded && isEnhancePending)
-        : !modelDownloaded.data || (meetingEnded && isEnhancePending),
+        ? !modelDownloaded || (meetingEnded && isEnhancePending)
+        : !modelDownloaded || (meetingEnded && isEnhancePending),
       onClick: handleStartSession,
     };
 

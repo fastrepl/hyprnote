@@ -15,13 +15,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import SoundIndicator from "@/components/sound-indicator";
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -244,7 +244,11 @@ function WhenInactiveAndMeetingEndedOnboarding({ disabled, onClick }: { disabled
 
 function WhenActive({ sessionId }: { sessionId: string }) {
   const { userId } = useHypr();
-  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+  const { ongoingSessionId, amplitude } = useOngoingSession((s) => ({
+    ongoingSessionId: s.sessionId,
+    amplitude: s.amplitude,
+  }));
+
   const ongoingSessionStore = useOngoingSession((s) => ({
     stop: s.stop,
     setAutoEnhanceTemplate: s.setAutoEnhanceTemplate,
@@ -279,7 +283,7 @@ function WhenActive({ sessionId }: { sessionId: string }) {
             "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
           ])}
         >
-          <SoundIndicator color="#ef4444" size="long" />
+          <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64" align="end">
@@ -300,17 +304,18 @@ function RecordingControls({
   onStop: () => void;
 }) {
   const { onboardingSessionId, userId } = useHypr();
-  const ongoingSessionMuted = useOngoingSession((s) => ({
+  const ongoingSessionState = useOngoingSession((s) => ({
     micMuted: s.micMuted,
     speakerMuted: s.speakerMuted,
+    amplitude: s.amplitude,
   }));
 
   const toggleMicMuted = useMutation({
     mutationFn: async () => {
-      const result = await listenerCommands.setMicMuted(!ongoingSessionMuted.micMuted);
+      const result = await listenerCommands.setMicMuted(!ongoingSessionState.micMuted);
 
       // only send analytics when muting (not unmuting)
-      if (!ongoingSessionMuted.micMuted && userId) {
+      if (!ongoingSessionState.micMuted && userId) {
         analyticsCommands.event({
           event: "recording_mute_mic",
           distinct_id: userId,
@@ -323,10 +328,10 @@ function RecordingControls({
 
   const toggleSpeakerMuted = useMutation({
     mutationFn: async () => {
-      const result = await listenerCommands.setSpeakerMuted(!ongoingSessionMuted.speakerMuted);
+      const result = await listenerCommands.setSpeakerMuted(!ongoingSessionState.speakerMuted);
 
       // only send analytics when muting (not unmuting)
-      if (!ongoingSessionMuted.speakerMuted && userId) {
+      if (!ongoingSessionState.speakerMuted && userId) {
         analyticsCommands.event({
           event: "recording_mute_system",
           distinct_id: userId,
@@ -341,12 +346,14 @@ function RecordingControls({
     <>
       <div className="flex gap-2 w-full justify-between mb-3">
         <MicrophoneSelector
-          isMuted={ongoingSessionMuted.micMuted}
+          isMuted={ongoingSessionState.micMuted}
+          amplitude={ongoingSessionState.amplitude.mic}
           disabled={sessionId === onboardingSessionId}
           onToggleMuted={() => toggleMicMuted.mutate()}
         />
         <SpeakerButton
-          isMuted={ongoingSessionMuted.speakerMuted}
+          isMuted={ongoingSessionState.speakerMuted}
+          amplitude={ongoingSessionState.amplitude.speaker}
           onClick={() => toggleSpeakerMuted.mutate()}
         />
       </div>
@@ -413,10 +420,12 @@ function StopButton({ onStop }: { onStop: (templateId: string | null) => void })
 
 function MicrophoneSelector({
   isMuted,
+  amplitude,
   onToggleMuted,
   disabled,
 }: {
   isMuted?: boolean;
+  amplitude: number;
   onToggleMuted: () => void;
   disabled?: boolean;
 }) {
@@ -468,7 +477,7 @@ function MicrophoneSelector({
             />
             {!disabled && (
               <div className="flex-1 flex items-center justify-center">
-                <SoundIndicator input="mic" size="long" />
+                <SoundIndicator value={amplitude} />
               </div>
             )}
           </Button>
@@ -547,10 +556,12 @@ function SpeakerButton({
   isMuted,
   onClick,
   disabled,
+  amplitude,
 }: {
   isMuted?: boolean;
   onClick: () => void;
   disabled?: boolean;
+  amplitude: number;
 }) {
   const Icon = isMuted ? VolumeOffIcon : Volume2Icon;
 
@@ -572,7 +583,7 @@ function SpeakerButton({
         />
         {!disabled && (
           <div className="flex-1 flex items-center justify-center">
-            <SoundIndicator input="speaker" size="long" />
+            <SoundIndicator value={amplitude} />
           </div>
         )}
       </Button>

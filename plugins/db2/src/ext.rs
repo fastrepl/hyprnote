@@ -2,7 +2,7 @@ use std::future::Future;
 
 pub trait Database2PluginExt<R: tauri::Runtime> {
     fn init_local(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn init_cloud(&self) -> impl Future<Output = Result<(), crate::Error>>;
+    fn init_cloud(&self, connection_str: &str) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn execute_local(
         &self,
@@ -32,11 +32,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
         Ok(())
     }
 
-    async fn init_cloud(&self) -> Result<(), crate::Error> {
+    async fn init_cloud(&self, connection_str: &str) -> Result<(), crate::Error> {
         let (client, connection) =
-            tokio_postgres::connect("host=localhost user=postgres", tokio_postgres::NoTls)
-                .await
-                .unwrap();
+            tokio_postgres::connect(connection_str, tokio_postgres::NoTls).await?;
 
         tokio::spawn(async move {
             if let Err(e) = connection.await {

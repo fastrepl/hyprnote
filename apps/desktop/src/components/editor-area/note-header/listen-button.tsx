@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -12,13 +11,10 @@ import {
   VolumeOffIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { useHypr } from "@/contexts";
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
@@ -408,46 +404,7 @@ function RecordingControls({
   );
 }
 
-const stopButtonSchema = z.object({
-  saveAudio: z.boolean(),
-  selectedTemplate: z.string(),
-});
-
-type StopButtonFormData = z.infer<typeof stopButtonSchema>;
-
 function StopButton({ onStop }: { onStop: (templateId: string | null) => void }) {
-  const defaultTemplateQuery = useQuery({
-    queryKey: ["config"],
-    queryFn: () => dbCommands.getConfig().then((config) => config.general.selected_template_id),
-    refetchOnWindowFocus: true,
-  });
-
-  const saveRecordingsQuery = useQuery({
-    queryKey: ["config", "save_recordings"],
-    queryFn: () => dbCommands.getConfig().then((config) => config.general.save_recordings),
-    refetchOnWindowFocus: true,
-  });
-
-  const form = useForm<StopButtonFormData>({
-    resolver: zodResolver(stopButtonSchema),
-    defaultValues: {
-      saveAudio: false, // Default fallback
-      selectedTemplate: "auto",
-    },
-  });
-
-  useEffect(() => {
-    if (defaultTemplateQuery.data) {
-      form.setValue("selectedTemplate", defaultTemplateQuery.data);
-    }
-  }, [defaultTemplateQuery.data, form]);
-
-  useEffect(() => {
-    if (saveRecordingsQuery.data !== undefined) {
-      form.setValue("saveAudio", saveRecordingsQuery.data ?? false);
-    }
-  }, [saveRecordingsQuery.data, form]);
-
   return (
     <Button
       variant="destructive"

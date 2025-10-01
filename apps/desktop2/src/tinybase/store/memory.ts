@@ -1,14 +1,23 @@
-import * as UI from "tinybase/ui-react/with-schemas";
+import * as _UI from "tinybase/ui-react/with-schemas";
 
-import { createMergeableStore, createQueries, createRelationships, type NoValuesSchema } from "tinybase/with-schemas";
+import {
+  createMergeableStore,
+  createQueries,
+  createRelationships,
+  type NoTablesSchema,
+  type ValuesSchema,
+} from "tinybase/with-schemas";
 
 import { createLocalSynchronizer } from "../localSynchronizer";
 
 export const STORE_ID = "memory";
 
-const SCHEMA = {} as const;
+const VALUES_SCHEMA = {
+  amplitude_mic: { type: "number" },
+  amplitude_speaker: { type: "number" },
+} as const satisfies ValuesSchema;
 
-type Schemas = [typeof SCHEMA, NoValuesSchema];
+type Schemas = [NoTablesSchema, typeof VALUES_SCHEMA];
 
 const {
   useCreateMergeableStore,
@@ -16,12 +25,12 @@ const {
   useCreateRelationships,
   useCreateQueries,
   useProvideStore,
-} = UI as UI.WithSchemas<Schemas>;
+} = _UI as _UI.WithSchemas<Schemas>;
 
-export const TypedUI = UI as UI.WithSchemas<Schemas>;
+export const UI = _UI as _UI.WithSchemas<Schemas>;
 
 export const StoreComponent = () => {
-  const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(SCHEMA));
+  const store = useCreateMergeableStore(() => createMergeableStore().setValuesSchema(VALUES_SCHEMA));
 
   useCreateSynchronizer(
     store,

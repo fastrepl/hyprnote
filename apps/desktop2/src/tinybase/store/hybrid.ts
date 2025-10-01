@@ -6,6 +6,7 @@ import {
   createRelationships,
   type MergeableStore,
   type NoValuesSchema,
+  type TablesSchema,
 } from "tinybase/with-schemas";
 
 import { TABLE_SESSIONS, TABLE_USERS } from "@hypr/db";
@@ -15,7 +16,7 @@ import { createLocalSynchronizer } from "../localSynchronizer";
 
 export const STORE_ID = "hybrid";
 
-const SCHEMA = {
+const TABLE_SCHEMA = {
   sessions: {
     title: { type: "string" },
     userId: { type: "string" },
@@ -26,9 +27,9 @@ const SCHEMA = {
     email: { type: "string" },
     createdAt: { type: "string" },
   },
-} as const;
+} as const satisfies TablesSchema;
 
-type Schemas = [typeof SCHEMA, NoValuesSchema];
+type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
 
 const {
   useCreateMergeableStore,
@@ -44,7 +45,7 @@ export const UI = _UI as _UI.WithSchemas<Schemas>;
 const CLOUD_ENABLED = false;
 
 export const StoreComponent = () => {
-  const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(SCHEMA));
+  const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(TABLE_SCHEMA));
 
   useCreatePersister(
     store,

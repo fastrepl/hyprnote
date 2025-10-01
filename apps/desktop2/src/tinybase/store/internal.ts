@@ -1,18 +1,63 @@
-import { createMergeableStoreWithSync } from "../shared";
+import * as UI from "tinybase/ui-react/with-schemas";
 
-export const initInternal = () => {
-  const store = createMergeableStoreWithSync();
+import {
+  createMergeableStore,
+  createQueries,
+  createRelationships,
+  type MergeableStore,
+  type NoValuesSchema,
+} from "tinybase/with-schemas";
 
-  return {
+import { createLocalPersister } from "../localPersister";
+import { createLocalSynchronizer } from "../localSynchronizer";
+
+export const STORE_ID = "internal";
+
+const SCHEMA = {} as const;
+
+type Schemas = [typeof SCHEMA, NoValuesSchema];
+
+const {
+  useCreateMergeableStore,
+  useCreatePersister,
+  useCreateSynchronizer,
+  useCreateRelationships,
+  useCreateQueries,
+  useProvideStore,
+} = UI as UI.WithSchemas<Schemas>;
+
+export const TypedUI = UI as UI.WithSchemas<Schemas>;
+
+export const StoreComponent = () => {
+  const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(SCHEMA));
+
+  useCreatePersister(
     store,
-  };
-};
+    (store) => createLocalPersister<Schemas>(store as MergeableStore<Schemas>),
+    [],
+    (persister) => persister.startAutoPersisting(),
+  );
 
-// .setTablesSchema({
-//     // https://electric-sql.com/openapi
-//     electricsql: {
-//       table: { type: "string" },
-//       offset: { type: "string" },
-//       handle: { type: "string" },
-//     },
-//   });
+  useCreateSynchronizer(
+    store,
+    async (store) => createLocalSynchronizer(store),
+    [],
+    (sync) => sync.startSync(),
+  );
+
+  useCreateRelationships(
+    store,
+    (store) => createRelationships(store),
+    [],
+  );
+
+  useCreateQueries(
+    store,
+    (store) => createQueries(store),
+    [],
+  );
+
+  useProvideStore(STORE_ID, store);
+
+  return null;
+};

@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import { Provider as TinyBaseProvider } from "tinybase/ui-react";
 
 import { routeTree } from "./routeTree.gen";
-import { initMain } from "./tinybase";
+import { initMain, initTemp } from "./tinybase";
 
 const router = createRouter({ routeTree });
 
@@ -15,6 +15,7 @@ declare module "@tanstack/react-router" {
 }
 
 const main = initMain();
+const temp = initTemp();
 
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
@@ -22,7 +23,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TinyBaseProvider
-        storesById={{ main: main.store }}
+        storesById={{ main: main.store, temp: temp.store }}
         relationshipsById={{ main: main.relationships }}
         queriesById={{ main: main.queries }}
       >

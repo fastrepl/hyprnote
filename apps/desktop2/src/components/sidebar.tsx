@@ -7,12 +7,13 @@ export function Sidebar() {
     true,
     0,
     10,
-    "recentSessions",
+    "main",
   );
 
   return (
     <div className="sidebar">
       <h2>Recent Sessions</h2>
+      <p>{JSON.stringify(sessionIds)}</p>
       <ul>
         {sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
       </ul>
@@ -25,18 +26,16 @@ function SessionItem({ sessionId }: { sessionId: string }) {
     "recentSessions",
     sessionId,
     "title",
-    "recentSessions",
+    "main",
   );
 
-  // Use relationship to get the remote user row ID
   const userRowId = useRemoteRowId(
     "sessionUser",
     sessionId,
-    "sessionUser",
+    "main",
   );
 
-  // Get the user's name from the users table
-  const userName = useCell("users", userRowId as string, "name", "users");
+  const userName = useCell("users", userRowId as string, "name", "main");
 
   return (
     <li>

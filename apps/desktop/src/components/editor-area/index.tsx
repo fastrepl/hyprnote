@@ -13,7 +13,6 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { events as localLlmEvents } from "@hypr/plugin-local-llm";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -22,7 +21,7 @@ import { extractHashtags } from "@hypr/tiptap/shared";
 import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -75,8 +74,25 @@ async function generateTitleDirect(
   sessions: Record<string, any>,
   queryClient: QueryClient,
 ) {
-  const title = await localLlmCommands.generateTitle({
-    enhanced_note: enhancedContent,
+  const provider = await modelProvider();
+  const [systemMessage, userMessage] = await Promise.all([
+    templateCommands.render("create_title.system", {}),
+    templateCommands.render("create_title.user", { enhanced_note: enhancedContent }),
+  ]);
+
+  const model = provider.languageModel("defaultModel");
+  const abortSignal = AbortSignal.timeout(60_000);
+
+  const { text: title } = await generateText({
+    abortSignal,
+    model,
+    messages: [
+      { role: "system", content: systemMessage },
+      { role: "user", content: userMessage },
+    ],
+    providerOptions: {
+      [localProviderName]: { metadata: { grammar: "title" } },
+    },
   });
 
   const session = await dbCommands.getSession({ id: targetSessionId });

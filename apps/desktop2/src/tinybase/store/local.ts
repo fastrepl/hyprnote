@@ -1,4 +1,4 @@
-import * as UI from "tinybase/ui-react/with-schemas";
+import * as _UI from "tinybase/ui-react/with-schemas";
 
 import {
   createMergeableStore,
@@ -10,11 +10,11 @@ import {
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 
-export const STORE_ID = "internal";
+export const STORE_ID = "local";
 
 const SCHEMA = {
-  electric_client: {
-    offset: { type: "string" },
+  electric_meta: {
+    offset: { type: "number" },
     handle: { type: "string" },
     table: { type: "string" },
   },
@@ -27,9 +27,10 @@ const {
   useCreatePersister,
   useCreateSynchronizer,
   useProvideStore,
-} = UI as UI.WithSchemas<Schemas>;
+} = _UI as _UI.WithSchemas<Schemas>;
 
-export const TypedUI = UI as UI.WithSchemas<Schemas>;
+export const UI = _UI as _UI.WithSchemas<Schemas>;
+export type Store = MergeableStore<Schemas>;
 
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(SCHEMA));

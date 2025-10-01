@@ -1,83 +1,87 @@
-import { type ChangeMessage, type Message, type Offset, ShapeStream } from "@electric-sql/client";
-import { type PersistedStore } from "tinybase/persisters";
+import { type Message, type Offset, ShapeStream } from "@electric-sql/client";
+import { useCallback } from "react";
+import { createQueries } from "tinybase/with-schemas";
 
-import { StoreOrMergeableStore } from "./shared";
+import * as local from "./store/local";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
-const TABLES = ["users"] as const;
+export const useCloudSync = (store: local.Store) => {
+  const tables = ["users", "sessions"];
 
-export const createCloudSynchronizer = (
-  store: PersistedStore<typeof StoreOrMergeableStore>,
-) => {
-  const streams = new Map<string, ShapeStream>();
-  const cleanupFns = new Map<string, () => void>();
+  const queryName = "find_electric_meta_by_table";
+  const queries = local.UI.useCreateQueries(
+    store,
+    (store) =>
+      createQueries(store).setQueryDefinition(
+        queryName,
+        "electric_meta",
+        ({ select, where }) => {
+          select("offset");
+          select("handle");
+          select("table");
+          where((getCell) => tables.includes(getCell("table") as string));
+        },
+      ),
+    [],
+  );
 
-  const getStoredOffset = (table: string): Offset | undefined => {
-    const offsetValue = store.getValue(`_electric_offset_${table}`);
-    if (!offsetValue || typeof offsetValue !== "string") {
-      return undefined;
-    }
-    try {
-      return BigInt(offsetValue) as unknown as Offset;
-    } catch {
-      return undefined;
-    }
-  };
+  const metaTable = local.UI.useResultTable(queryName, queries);
 
-  const getStoredHandle = (table: string): string | undefined => {
-    const handleValue = store.getValue(`_electric_handle_${table}`);
-    return typeof handleValue === "string" ? handleValue : undefined;
-  };
+  const sync = useCallback(async () => {
+    const steams = tables.map((table) => {
+      const metaRow = Object.values(metaTable ?? {}).find((row) => row.table === table);
 
-  const setStoredOffset = (table: string, offset: Offset) => {
-    store.setValue(`_electric_offset_${table}`, String(offset));
-  };
-
-  const setStoredHandle = (table: string, handle: string) => {
-    store.setValue(`_electric_handle_${table}`, handle);
-  };
-
-  const syncTable = (table: string) => {
-    const storedOffset = getStoredOffset(table);
-    const storedHandle = getStoredHandle(table);
-
-    const stream = new ShapeStream({
-      url: ELECTRIC_URL,
-      params: {
-        table,
-        // where: "user_id=1",
-      },
-      offset: storedOffset,
-      // handle: storedHandle,
-      subscribe: false,
-      fetchClient: fetch,
-      onError: console.error,
-    });
-    streams.set(table, stream);
-
-    const unsubscribe = stream.subscribe(
-      (messages: Message[]) => {
-        for (const msg of messages) {
-          if ("control" in msg.headers) {
-          } else {
-            console.log("data message:", msg);
-          }
+      const resumable: {
+        offset?: Offset;
+        handle?: string;
+      } = (metaRow?.offset && metaRow?.handle)
+        ? {
+          offset: metaRow.offset as Offset,
+          handle: metaRow.handle as string,
         }
-      },
-      console.error,
+        : {
+          offset: "-1",
+          handle: undefined,
+        };
+
+      return new ShapeStream({
+        ...resumable,
+        url: ELECTRIC_URL,
+        params: {
+          table,
+          // where: "user_id=1",
+        },
+        subscribe: false,
+        fetchClient: fetch,
+        onError: console.error,
+      });
+    });
+
+    const results = await Promise.all(
+      steams.map((stream) => {
+        return new Promise<Message[]>((resolve) => {
+          const messages: Message[] = [];
+
+          const unsubscribe = stream.subscribe((batch) => {
+            messages.push(...batch);
+
+            if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
+              unsubscribe();
+              resolve(messages);
+            }
+          }, (error) => {
+            console.error(error);
+
+            unsubscribe();
+            resolve(messages);
+          });
+        });
+      }),
     );
 
-    cleanupFns.set(table, unsubscribe);
-  };
+    return results;
+  }, [metaTable]);
 
-  const sync = async () => {
-    for (const table of TABLES) {
-      syncTable(table);
-    }
-  };
-
-  return {
-    sync,
-  };
+  return { sync };
 };

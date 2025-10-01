@@ -4,7 +4,7 @@ import { createMergeableStore, createQueries, createRelationships, type NoValues
 
 import { createLocalSynchronizer } from "../localSynchronizer";
 
-export const STORE_ID = "temp";
+export const STORE_ID = "memory";
 
 const SCHEMA = {} as const;
 

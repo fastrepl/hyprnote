@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import * as main from "../tinybase/store/main";
+import * as main from "../tinybase/store/hybrid";
 
 export const Route = createFileRoute("/app/settings")({
   component: Component,

@@ -13,7 +13,7 @@ import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 
-export const STORE_ID = "main";
+export const STORE_ID = "hybrid";
 
 const SCHEMA = {
   sessions: {

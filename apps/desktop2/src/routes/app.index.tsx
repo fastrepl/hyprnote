@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import * as main from "../tinybase/store/main";
+import * as main from "../tinybase/store/hybrid";
 
 export const Route = createFileRoute("/app/")({
   component: Component,

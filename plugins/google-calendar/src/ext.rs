@@ -285,8 +285,90 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> GoogleCalendarPluginExt<R> for T {
         })
     }
 
-    async fn remove_google_account(&self, _email: String) -> Result<()> {
-        // Placeholder - implement later
+    async fn remove_google_account(&self, email: String) -> Result<()> {
+        let store = self.store("google.json").map_err(|e| Error::Auth(format!("Store error: {}", e)))?;
+        
+        // Get the account to find its google_id before removing
+        let accounts = if let Some(accounts_json) = store.get(GOOGLE_ACCOUNTS_LIST_KEY) {
+            serde_json::from_value::<Vec<GoogleAccount>>(accounts_json)
+                .unwrap_or_else(|_| Vec::new())
+        } else {
+            Vec::new()
+        };
+
+        let account_to_remove = accounts.iter().find(|acc| acc.email == email);
+        let google_id = account_to_remove.map(|acc| acc.google_id.clone());
+        
+        // Remove from google.json
+        // 1. Remove account tokens
+        store.delete(&get_account_access_token_key(&email));
+        store.delete(&get_account_refresh_token_key(&email));
+        store.delete(&get_account_scopes_key(&email));
+        
+        // 2. Remove account from accounts list
+        let updated_accounts: Vec<GoogleAccount> = accounts
+            .into_iter()
+            .filter(|account| account.email != email)
+            .collect();
+        
+        store.set(GOOGLE_ACCOUNTS_LIST_KEY, serde_json::to_value(&updated_accounts)?);
+        store.save()?;
+        
+        // Remove from database
+        if let Some(account_google_id) = google_id {
+            let db_state = self.state::<tauri_plugin_db::ManagedState>();
+            let (db, user_id) = {
+                let guard = db_state.lock().await;
+                let db = guard.db.as_ref().ok_or(Error::Auth("Database not initialized".to_string()))?.clone();
+                let user_id = guard.user_id.as_ref().ok_or(Error::Auth("User ID not set".to_string()))?.clone();
+                (db, user_id)
+            };
+            
+            // Get all calendars for this account
+            let calendars = db.list_calendars(&user_id).await.unwrap_or_default();
+            let calendars_to_remove: Vec<_> = calendars
+                .into_iter()
+                .filter(|cal| cal.platform == hypr_db_user::Platform::Google && 
+                        cal.account_id.as_deref() == Some(&account_google_id))
+                .collect();
+            
+            // Delete calendars and their events
+            for calendar in calendars_to_remove {
+                // Get all events for the user and filter by calendar_id
+                match db.list_events(Some(hypr_db_user::ListEventFilter {
+                    common: hypr_db_user::ListEventFilterCommon {
+                        user_id: user_id.clone(),
+                        limit: None,
+                    },
+                    specific: hypr_db_user::ListEventFilterSpecific::Simple {},
+                })).await {
+                    Ok(all_events) => {
+                        // Filter events for this specific calendar
+                        let events_for_calendar: Vec<_> = all_events
+                            .into_iter()
+                            .filter(|event| event.calendar_id.as_ref() == Some(&calendar.id))
+                            .collect();
+                        
+                        // Delete each event for this calendar
+                        for event in events_for_calendar {
+                            if let Err(e) = db.delete_event(&event.id).await {
+                                tracing::error!("Failed to delete event {} for removed account {}: {}", event.id, email, e);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to list events for calendar {} during account removal: {}", calendar.id, e);
+                    }
+                }
+                
+                // Delete the calendar itself
+                if let Err(e) = db.delete_calendar(&calendar.id).await {
+                    tracing::error!("Failed to delete calendar {} for removed account {}: {}", calendar.id, email, e);
+                }
+            }
+        }
+        
+        tracing::info!("Successfully removed Google account: {}", email);
         Ok(())
     }
 

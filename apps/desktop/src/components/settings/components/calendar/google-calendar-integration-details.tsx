@@ -214,7 +214,7 @@ export function GoogleCalendarIntegrationDetails() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/icons/google-calendar.png"
+              src="/icons/gcal.svg"
               alt="Google Calendar & Contacts"
               className="size-6"
             />

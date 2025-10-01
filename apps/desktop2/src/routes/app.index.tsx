@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Component() {
-  const row = main.TypedUI.useRow("users", "1", main.STORE_ID);
+  const row = main.UI.useRow("users", "1", main.STORE_ID);
 
   const handleCLick = () => {
     windowsCommands.windowShow({ type: "settings" });

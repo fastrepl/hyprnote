@@ -1,4 +1,4 @@
-import * as UI from "tinybase/ui-react/with-schemas";
+import * as _UI from "tinybase/ui-react/with-schemas";
 
 import {
   createMergeableStore,
@@ -9,6 +9,7 @@ import {
 } from "tinybase/with-schemas";
 
 import { TABLE_NAME_MAPPING } from "@hypr/db";
+import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 
@@ -36,9 +37,11 @@ const {
   useCreateRelationships,
   useCreateQueries,
   useProvideStore,
-} = UI as UI.WithSchemas<Schemas>;
+} = _UI as _UI.WithSchemas<Schemas>;
 
-export const TypedUI = UI as UI.WithSchemas<Schemas>;
+export const UI = _UI as _UI.WithSchemas<Schemas>;
+
+const CLOUD_ENABLED = false;
 
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(SCHEMA));
@@ -50,6 +53,17 @@ export const StoreComponent = () => {
     (persister) => persister.startAutoPersisting(),
   );
 
+  useCreatePersister(
+    store,
+    (store) =>
+      createCloudPersister(store as MergeableStore<Schemas>, { load: TABLE_NAME_MAPPING, save: TABLE_NAME_MAPPING }),
+    [CLOUD_ENABLED],
+    async (persister) => {
+      if (CLOUD_ENABLED) {
+        await persister.startAutoPersisting();
+      }
+    },
+  );
   useCreateSynchronizer(
     store,
     async (store) => createLocalSynchronizer(store),

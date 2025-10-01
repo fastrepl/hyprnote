@@ -1,12 +1,15 @@
-import { createCustomPostgreSqlPersister, PersistedStore } from "tinybase/persisters";
-import { DpcTabular } from "tinybase/persisters/with-schemas";
-import { type OptionalTablesSchema } from "tinybase/with-schemas";
+import {
+  createCustomPostgreSqlPersister,
+  type DpcTabular,
+  type PersistedStore,
+} from "tinybase/persisters/with-schemas";
+import { type NoValuesSchema, type OptionalTablesSchema } from "tinybase/with-schemas";
 
 import { commands as db2Commands } from "@hypr/plugin-db2";
 import { MergeableStoreOnly } from "./shared";
 
 export function createCloudPersister<Schema extends OptionalTablesSchema>(
-  store: PersistedStore<typeof MergeableStoreOnly>,
+  store: PersistedStore<[Schema, NoValuesSchema], typeof MergeableStoreOnly>,
   tables: DpcTabular<Schema>["tables"],
 ) {
   return createCustomPostgreSqlPersister(

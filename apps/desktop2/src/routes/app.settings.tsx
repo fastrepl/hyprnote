@@ -7,8 +7,8 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 function Component() {
-  const row = main.TypedUI.useRow("users", "1", main.STORE_ID);
-  const store = main.TypedUI.useStore(main.STORE_ID);
+  const row = main.UI.useRow("users", "1", main.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const handleModify = () => {
     store?.setRow("users", "1", { name: "John2", email: "", createdAt: "" });

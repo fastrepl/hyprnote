@@ -12,11 +12,14 @@ export function createCloudPersister<Schema extends OptionalTablesSchema>(
   store: PersistedStore<[Schema, NoValuesSchema], typeof MergeableStoreOnly>,
   tables: DpcTabular<Schema>["tables"],
 ) {
+  // We only use this persister for save, not load.
+  const noopListener = async (_channel: string, _listener: any) => async () => {};
+
   return createCustomPostgreSqlPersister(
     store,
     { mode: "tabular", tables },
     async (sql: string, args: any[] = []): Promise<any[]> => (await db2Commands.executeCloud(sql, args)),
-    async (_channel: string, _listener: any) => async () => {},
+    noopListener,
     (unsubscribeFunction: any): any => unsubscribeFunction(),
     console.log,
     console.error,

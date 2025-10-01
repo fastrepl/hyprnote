@@ -17,11 +17,13 @@ export const STORE_ID = "hybrid";
 
 const SCHEMA = {
   sessions: {
+    id: { type: "string" },
     title: { type: "string" },
     userId: { type: "string" },
     createdAt: { type: "string" },
   },
   users: {
+    id: { type: "string" },
     name: { type: "string" },
     email: { type: "string" },
     createdAt: { type: "string" },
@@ -67,10 +69,8 @@ export const StoreComponent = () => {
         },
       }),
     [CLOUD_ENABLED],
-    async (persister) => {
-      if (CLOUD_ENABLED) {
-        await persister.startAutoPersisting();
-      }
+    async (_persister) => {
+      // We intentionally do not call `startAutoPersisting` here. It should be managed manually with cloud synchronizer.
     },
   );
   useCreateSynchronizer(

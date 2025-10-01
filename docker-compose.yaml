@@ -31,3 +31,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  drizzle-studio:
+    image: ghcr.io/drizzle-team/gateway:latest
+    ports:
+      - "4983:4983"
+    environment:
+      PORT: 4983
+      STORE_PATH: /app
+      MASTERPASS: dev
+    volumes:
+      - ./.drizzle:/app
+    depends_on:
+      postgres:
+        condition: service_healthy

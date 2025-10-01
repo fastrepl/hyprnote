@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppNewRouteImport } from './routes/app.new'
+import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -34,17 +35,24 @@ const AppNewRoute = AppNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNoteIdRoute = AppNoteIdRouteImport.update({
+  id: '/note/$id',
+  path: '/note/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/new': typeof AppNewRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 export interface FileRoutesByTo {
   '/app/new': typeof AppNewRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -52,13 +60,20 @@ export interface FileRoutesById {
   '/app/new': typeof AppNewRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/note/$id': typeof AppNoteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/app' | '/app/new' | '/app/settings' | '/app/'
+  fullPaths: '/app' | '/app/new' | '/app/settings' | '/app/' | '/app/note/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app/new' | '/app/settings' | '/app'
-  id: '__root__' | '/app' | '/app/new' | '/app/settings' | '/app/'
+  to: '/app/new' | '/app/settings' | '/app' | '/app/note/$id'
+  id:
+    | '__root__'
+    | '/app'
+    | '/app/new'
+    | '/app/settings'
+    | '/app/'
+    | '/app/note/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/note/$id': {
+      id: '/app/note/$id'
+      path: '/note/$id'
+      fullPath: '/app/note/$id'
+      preLoaderRoute: typeof AppNoteIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -102,12 +124,14 @@ interface AppRouteChildren {
   AppNewRoute: typeof AppNewRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppNoteIdRoute: typeof AppNoteIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppNewRoute: AppNewRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppNoteIdRoute: AppNoteIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

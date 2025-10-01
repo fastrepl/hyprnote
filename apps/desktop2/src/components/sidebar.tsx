@@ -1,13 +1,14 @@
-import { useCell, useRemoteRowId, useResultCell, useResultSortedRowIds } from "tinybase/ui-react";
+import { useCell, useRemoteRowId, useSortedRowIds } from "tinybase/ui-react";
+import * as hybrid from "../tinybase/store/hybrid";
 
 export function Sidebar() {
-  const sessionIds = useResultSortedRowIds(
-    "recentSessions",
+  const sessionIds = useSortedRowIds(
+    "sessions",
     "createdAt",
     true,
     0,
     10,
-    "main",
+    hybrid.STORE_ID,
   );
 
   return (
@@ -22,20 +23,20 @@ export function Sidebar() {
 }
 
 function SessionItem({ sessionId }: { sessionId: string }) {
-  const title = useResultCell(
-    "recentSessions",
+  const title = useCell(
+    "sessions",
     sessionId,
     "title",
-    "main",
+    hybrid.STORE_ID,
   );
 
   const userRowId = useRemoteRowId(
     "sessionUser",
     sessionId,
-    "main",
+    hybrid.STORE_ID,
   );
 
-  const userName = useCell("users", userRowId as string, "name", "main");
+  const userName = useCell("users", userRowId as string, "name", hybrid.STORE_ID);
 
   return (
     <li>

@@ -1,7 +1,6 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createMergeableStore,
-  createQueries,
   createRelationships,
   type MergeableStore,
   type NoValuesSchema,
@@ -49,11 +48,12 @@ const {
   useCreatePersister,
   useCreateSynchronizer,
   useCreateRelationships,
-  useCreateQueries,
   useProvideStore,
+  useProvideRelationships,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
+export type Store = MergeableStore<Schemas>;
 
 const CLOUD_ENABLED = false;
 
@@ -62,7 +62,7 @@ export const StoreComponent = () => {
 
   useCreatePersister(
     store,
-    (store) => createLocalPersister<Schemas>(store as MergeableStore<Schemas>),
+    (store) => createLocalPersister<Schemas>(store as Store),
     [],
     (persister) => persister.startAutoPersisting(),
   );
@@ -75,7 +75,7 @@ export const StoreComponent = () => {
         // condition: "$tableName.user_id = TODO" as const,
       };
 
-      return createCloudPersister(store as MergeableStore<Schemas>, {
+      return createCloudPersister(store as Store, {
         load: {
           users: {
             tableId: TABLE_USERS,
@@ -110,7 +110,7 @@ export const StoreComponent = () => {
     (sync) => sync.startSync(),
   );
 
-  useCreateRelationships(
+  const relationships = useCreateRelationships(
     store,
     (store) =>
       createRelationships(store).setRelationshipDefinition(
@@ -120,24 +120,10 @@ export const StoreComponent = () => {
         "userId",
       ),
     [],
-  );
-
-  useCreateQueries(
-    store,
-    (store) =>
-      createQueries(store).setQueryDefinition(
-        "recentSessions",
-        TABLE_SESSIONS,
-        ({ select }) => {
-          select("title");
-          select("userId");
-          select("createdAt");
-        },
-      ),
-    [],
-  );
+  )!;
 
   useProvideStore(STORE_ID, store);
+  useProvideRelationships(STORE_ID, relationships);
 
   return null;
 };

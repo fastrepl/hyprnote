@@ -13,14 +13,31 @@ function Component() {
     "sessions",
     sessionId,
     (input: string, _store) => ({ ...row, title: input }),
-    [sessionId],
+    [row],
+    hybrid.STORE_ID,
+  );
+
+  const handleEditRawMd = hybrid.UI.useSetRowCallback(
+    "sessions",
+    sessionId,
+    (input: string, _store) => ({ ...row, raw_md: input }),
+    [row],
     hybrid.STORE_ID,
   );
 
   return (
-    <div>
-      <input type="text" value={row.title} onChange={(e) => handleEditTitle(e.target.value)} />
-      <pre>{JSON.stringify(row, null, 2)}</pre>
+    <div className="flex flex-col gap-4 px-32 py-16">
+      <input
+        className="border border-gray-300 rounded p-2"
+        type="text"
+        value={row.title}
+        onChange={(e) => handleEditTitle(e.target.value)}
+      />
+      <textarea
+        className="border border-gray-300 rounded p-2"
+        value={row.raw_md}
+        onChange={(e) => handleEditRawMd(e.target.value)}
+      />
     </div>
   );
 }

@@ -1,4 +1,6 @@
-import { useCell, useRemoteRowId, useSortedRowIds } from "tinybase/ui-react";
+import { Link } from "@tanstack/react-router";
+import { useCell, useSortedRowIds } from "tinybase/ui-react";
+
 import * as hybrid from "../tinybase/store/hybrid";
 
 export function Sidebar() {
@@ -13,10 +15,10 @@ export function Sidebar() {
 
   return (
     <div className="sidebar">
-      <h2>Recent Sessions</h2>
-      <p>{JSON.stringify(sessionIds)}</p>
       <ul>
-        {sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+        <li>
+          {sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+        </li>
       </ul>
     </div>
   );
@@ -30,20 +32,11 @@ function SessionItem({ sessionId }: { sessionId: string }) {
     hybrid.STORE_ID,
   );
 
-  const userRowId = useRemoteRowId(
-    "sessionUser",
-    sessionId,
-    hybrid.STORE_ID,
-  );
-
-  const userName = useCell("users", userRowId as string, "name", hybrid.STORE_ID);
-
   return (
-    <li>
-      <div>
+    <Link to="/app/note/$id" params={{ id: sessionId }}>
+      <div className="p-4 border border-gray-200">
         <strong>{title}</strong>
-        <span>by {userName || "Unknown"}</span>
       </div>
-    </li>
+    </Link>
   );
 }

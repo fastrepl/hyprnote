@@ -23,9 +23,11 @@ export const userSchema = z.object({
 });
 
 export const sessionSchema = z.object({
-  title: z.string(),
   userId: z.string(),
   createdAt: z.string(),
+  title: z.string(),
+  raw_md: z.string(),
+  enhanced_md: z.string(),
 });
 
 const TABLE_SCHEMA = {
@@ -33,6 +35,8 @@ const TABLE_SCHEMA = {
     title: { type: "string" },
     userId: { type: "string" },
     createdAt: { type: "string" },
+    raw_md: { type: "string" },
+    enhanced_md: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof sessionSchema>,
   users: {
     name: { type: "string" },

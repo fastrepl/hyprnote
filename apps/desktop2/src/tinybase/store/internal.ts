@@ -2,10 +2,9 @@ import * as UI from "tinybase/ui-react/with-schemas";
 
 import {
   createMergeableStore,
-  createQueries,
-  createRelationships,
   type MergeableStore,
   type NoValuesSchema,
+  type TablesSchema,
 } from "tinybase/with-schemas";
 
 import { createLocalPersister } from "../localPersister";
@@ -13,7 +12,13 @@ import { createLocalSynchronizer } from "../localSynchronizer";
 
 export const STORE_ID = "internal";
 
-const SCHEMA = {} as const;
+const SCHEMA = {
+  electric_client: {
+    offset: { type: "string" },
+    handle: { type: "string" },
+    table: { type: "string" },
+  },
+} as const satisfies TablesSchema;
 
 type Schemas = [typeof SCHEMA, NoValuesSchema];
 
@@ -21,8 +26,6 @@ const {
   useCreateMergeableStore,
   useCreatePersister,
   useCreateSynchronizer,
-  useCreateRelationships,
-  useCreateQueries,
   useProvideStore,
 } = UI as UI.WithSchemas<Schemas>;
 
@@ -43,18 +46,6 @@ export const StoreComponent = () => {
     async (store) => createLocalSynchronizer(store),
     [],
     (sync) => sync.startSync(),
-  );
-
-  useCreateRelationships(
-    store,
-    (store) => createRelationships(store),
-    [],
-  );
-
-  useCreateQueries(
-    store,
-    (store) => createQueries(store),
-    [],
   );
 
   useProvideStore(STORE_ID, store);

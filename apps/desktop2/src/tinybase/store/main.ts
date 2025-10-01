@@ -8,7 +8,7 @@ import {
   type NoValuesSchema,
 } from "tinybase/with-schemas";
 
-import { TABLE_NAME_MAPPING } from "@hypr/db";
+import { TABLE_SESSIONS, TABLE_USERS } from "@hypr/db";
 import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
@@ -56,7 +56,16 @@ export const StoreComponent = () => {
   useCreatePersister(
     store,
     (store) =>
-      createCloudPersister(store as MergeableStore<Schemas>, { load: TABLE_NAME_MAPPING, save: TABLE_NAME_MAPPING }),
+      createCloudPersister(store as MergeableStore<Schemas>, {
+        load: {
+          users: TABLE_USERS,
+          sessions: TABLE_SESSIONS,
+        },
+        save: {
+          users: TABLE_USERS,
+          sessions: TABLE_SESSIONS,
+        },
+      }),
     [CLOUD_ENABLED],
     async (persister) => {
       if (CLOUD_ENABLED) {
@@ -76,8 +85,8 @@ export const StoreComponent = () => {
     (store) =>
       createRelationships(store).setRelationshipDefinition(
         "sessionUser",
-        TABLE_NAME_MAPPING.sessions,
-        TABLE_NAME_MAPPING.users,
+        TABLE_SESSIONS,
+        TABLE_USERS,
         "userId",
       ),
     [],
@@ -88,7 +97,7 @@ export const StoreComponent = () => {
     (store) =>
       createQueries(store).setQueryDefinition(
         "recentSessions",
-        TABLE_NAME_MAPPING.sessions,
+        TABLE_SESSIONS,
         ({ select }) => {
           select("title");
           select("userId");

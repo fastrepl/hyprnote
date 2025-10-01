@@ -24,8 +24,8 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
   const [containerSize, setContainerSize] = useState<"small" | "medium" | "large">("large");
 
   useEffect(() => {
-    getDynamicQuickActions(sessionId || null).then(setQuickActions);
-  }, [sessionId]);
+    getDynamicQuickActions(sessionId || null, userId).then(setQuickActions);
+  }, [sessionId, userId]);
 
   useEffect(() => {
     const updateSize = () => {

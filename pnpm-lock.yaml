@@ -526,6 +526,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44
         version: 0.44.5(@opentelemetry/api@1.9.0)(kysely@0.28.5)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.44.5(@opentelemetry/api@1.9.0)(kysely@0.28.5))(zod@4.1.11)
     devDependencies:
       drizzle-kit:
         specifier: ^0.31
@@ -5496,6 +5499,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.8.3:
+    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.0 || ^4.0.0
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -15209,6 +15218,11 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       kysely: 0.28.5
+
+  drizzle-zod@0.8.3(drizzle-orm@0.44.5(@opentelemetry/api@1.9.0)(kysely@0.28.5))(zod@4.1.11):
+    dependencies:
+      drizzle-orm: 0.44.5(@opentelemetry/api@1.9.0)(kysely@0.28.5)
+      zod: 4.1.11
 
   dunder-proto@1.0.1:
     dependencies:

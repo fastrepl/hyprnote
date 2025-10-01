@@ -1,22 +1,29 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const notes = pgTable("notes", {
+const TABLE_USERS = "users";
+export const users = pgTable(TABLE_USERS, {
   id: uuid("id").primaryKey().defaultRandom(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const tags = pgTable("tags", {
+const TABLE_SESSIONS = "sessions";
+export const sessions = pgTable(TABLE_SESSIONS, {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const noteTags = pgTable("note_tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  noteId: uuid("note_id").notNull(),
-  tagId: uuid("tag_id").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const TABLES = {
+  TABLE_USERS: users,
+  TABLE_SESSIONS: sessions,
+};
+
+export const TABLE_NAMES = {
+  users: TABLE_USERS,
+  sessions: TABLE_SESSIONS,
+} as const;

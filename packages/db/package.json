@@ -14,7 +14,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44"
+    "drizzle-orm": "^0.44",
+    "drizzle-zod": "^0.8.3"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31",

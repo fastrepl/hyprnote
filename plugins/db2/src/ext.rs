@@ -61,40 +61,49 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
         let mut items = Vec::new();
 
         if let Some(db) = &guard.local_db {
-            match db.conn()?.query(&sql, args).await {
-                Ok(mut rows) => {
-                    while let Some(row) = rows.next().await.unwrap() {
-                        let mut map = serde_json::Map::new();
+            let conn = db.conn()?;
 
-                        for idx in 0..row.column_count() {
-                            if let Some(column_name) = row.column_name(idx) {
-                                let value = match row.get_value(idx) {
-                                    Ok(hypr_db_core::libsql::Value::Null) => {
-                                        serde_json::Value::Null
-                                    }
-                                    Ok(hypr_db_core::libsql::Value::Integer(i)) => {
-                                        serde_json::json!(i)
-                                    }
-                                    Ok(hypr_db_core::libsql::Value::Real(f)) => {
-                                        serde_json::json!(f)
-                                    }
-                                    Ok(hypr_db_core::libsql::Value::Text(s)) => {
-                                        serde_json::json!(s)
-                                    }
-                                    Ok(hypr_db_core::libsql::Value::Blob(b)) => {
-                                        serde_json::json!(b)
-                                    }
-                                    Err(_) => serde_json::Value::Null,
-                                };
-                                map.insert(column_name.to_string(), value);
+            match conn.query(&sql, args).await {
+                Ok(mut rows) => loop {
+                    match rows.next().await {
+                        Ok(Some(row)) => {
+                            let mut map = serde_json::Map::new();
+
+                            for idx in 0..row.column_count() {
+                                if let Some(column_name) = row.column_name(idx) {
+                                    let value = match row.get_value(idx) {
+                                        Ok(hypr_db_core::libsql::Value::Null) => {
+                                            serde_json::Value::Null
+                                        }
+                                        Ok(hypr_db_core::libsql::Value::Integer(i)) => {
+                                            serde_json::json!(i)
+                                        }
+                                        Ok(hypr_db_core::libsql::Value::Real(f)) => {
+                                            serde_json::json!(f)
+                                        }
+                                        Ok(hypr_db_core::libsql::Value::Text(s)) => {
+                                            serde_json::json!(s)
+                                        }
+                                        Ok(hypr_db_core::libsql::Value::Blob(b)) => {
+                                            serde_json::json!(b)
+                                        }
+                                        Err(_) => serde_json::Value::Null,
+                                    };
+                                    map.insert(column_name.to_string(), value);
+                                }
                             }
-                        }
 
-                        items.push(serde_json::Value::Object(map));
+                            items.push(serde_json::Value::Object(map));
+                        }
+                        Ok(None) => break,
+                        Err(e) => {
+                            tracing::error!("{:?}", e);
+                            break;
+                        }
                     }
-                }
+                },
                 Err(e) => {
-                    tracing::error!("Failed to execute local query: {}", e);
+                    tracing::error!("{:?}", e);
                 }
             }
         }

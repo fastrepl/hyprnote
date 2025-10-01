@@ -1,6 +1,7 @@
-import { createMergeableStore } from "tinybase";
+import { createMergeableStore, createRelationships } from "tinybase";
 import { type DpcTabular } from "tinybase/persisters";
 
+import { TABLE_NAMES } from "@hypr/db";
 import { createCloudPersister } from "./cloudPersister";
 import { createCloudSynchronizer } from "./cloudSynchronizer";
 import { createLocalPersister } from "./localPersister";
@@ -10,12 +11,23 @@ export const mainStore = createMergeableStore();
 
 export const mainTables = {
   load: {
-    users: { tableId: "users" },
+    [TABLE_NAMES.users]: { tableId: TABLE_NAMES.users },
+    [TABLE_NAMES.sessions]: { tableId: TABLE_NAMES.sessions },
   },
   save: {
-    users: { tableName: "users" },
+    [TABLE_NAMES.users]: { tableName: TABLE_NAMES.users },
+    [TABLE_NAMES.sessions]: { tableName: TABLE_NAMES.sessions },
   },
 } satisfies DpcTabular["tables"];
+
+export const mainRelationships = createRelationships(
+  mainStore,
+).setRelationshipDefinition(
+  "sessionUser",
+  TABLE_NAMES.sessions,
+  TABLE_NAMES.users,
+  "userId",
+);
 
 export const mainCloudSync = createCloudSynchronizer(mainStore);
 const mainBroadcastSync = createLocalSynchronizer(mainStore);

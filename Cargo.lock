@@ -4016,6 +4016,8 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-analytics",
  "tauri-plugin-db2",
+ "tauri-plugin-listener",
+ "tauri-plugin-local-stt",
  "tauri-plugin-opener",
  "tauri-plugin-sentry",
  "tauri-plugin-single-instance",

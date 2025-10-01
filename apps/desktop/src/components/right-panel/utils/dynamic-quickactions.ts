@@ -30,7 +30,7 @@ const DEFAULT_ACTIONS: QuickAction[] = [
   },
 ];
 
-export async function getDynamicQuickActions(sessionId: string | null): Promise<QuickAction[]> {
+export async function getDynamicQuickActions(sessionId: string | null, userId?: string): Promise<QuickAction[]> {
   try {
     if (!sessionId) {
       return DEFAULT_ACTIONS;
@@ -43,7 +43,11 @@ export async function getDynamicQuickActions(sessionId: string | null): Promise<
 
     const isPreMeeting = !session.enhanced_memo_html;
 
-    const participants = await dbCommands.sessionListParticipants(sessionId);
+    // Get participants and filter out the current user if userId is provided
+    const allParticipants = await dbCommands.sessionListParticipants(sessionId);
+    const participants = userId
+      ? allParticipants.filter(p => p.id !== userId)
+      : allParticipants;
     const hasParticipants = participants.length > 0;
 
     const llmConnection = await connectorCommands.getLlmConnection();

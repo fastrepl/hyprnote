@@ -1,19 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRow } from "tinybase/ui-react";
+import { useRow, useStore } from "tinybase/ui-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-
-import { mainCloudSync, mainStore } from "../tinybase";
 
 export const Route = createFileRoute("/app/")({
   component: Component,
 });
 
 function Component() {
-  const row = useRow("users", "1", mainStore);
+  const row = useRow("users", "1", "main");
+  const store = useStore("main");
 
   const handleSeed = () => {
-    mainStore.setTables({
+    store?.setTables({
       users: {
         "1": { name: "Alice Johnson", email: "alice@example.com" },
         "2": { name: "Bob Smith", email: "bob@example.com" },
@@ -107,7 +106,6 @@ function Component() {
 
       <button onClick={handleCLick}>Open</button>
       <button onClick={handleSeed}>Seed</button>
-      <button onClick={mainCloudSync.sync}>sync</button>
     </main>
   );
 }

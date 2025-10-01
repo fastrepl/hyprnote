@@ -30,6 +30,7 @@ import { AnnotationBox } from "./annotation-box";
 import { LocalSearchBar } from "./local-search-bar";
 import { NoteHeader, TabHeader, type TabHeaderRef } from "./note-header";
 import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
+import { TranscriptSubHeader } from "./note-header/sub-headers/transcript-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
 import { TranscriptViewer } from "./transcript-viewer";
 import { prepareContextText } from "./utils/summary-prepare";
@@ -211,6 +212,7 @@ export default function EditorArea({
         setTimeout(async () => {
           try {
             const shouldShow = await shouldShowTipsModal(userId, onboardingSessionId, thankYouSessionId);
+
             if (shouldShow) {
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
@@ -359,6 +361,17 @@ export default function EditorArea({
               isEnhancing={enhance.status === "pending"}
               progress={progress}
               showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
+            />
+          </div>
+        )}
+        {activeTab === "transcript" && (
+          <div
+            className="absolute right-0 top-0 z-20"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <TranscriptSubHeader
+              sessionId={sessionId}
             />
           </div>
         )}

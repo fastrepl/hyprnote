@@ -12,9 +12,9 @@ const tips: TipSlide[] = [
     description: "We prepared some pro tips for you! Interested?",
   },
   {
-    title: "Edit Transcript",
+    title: "Tabs & Edit Transcript",
     description:
-      "If you are not satisfied with the transcript quality, you can freely edit it and replace identified speakers to improve accuracy.",
+      "Switch between tabs to view summary, memos, and transcript. You can edit the transcript and update speaker names to improve accuracy.",
   },
   {
     title: "Transcript Settings",
@@ -135,7 +135,7 @@ export function TipsModal({ isOpen, onClose, userId }: TipsModalProps) {
                 : currentSlide === 1
                 ? (
                   <img
-                    src="/assets/transcript-edit.gif"
+                    src="/assets/tab-switching.gif"
                     alt="Transcript editing demonstration"
                     className="w-full max-w-lg h-64 object-cover rounded-md"
                     style={{ objectPosition: "center top" }}

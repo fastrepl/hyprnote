@@ -3,15 +3,20 @@ import { AudioLinesIcon } from "lucide-react";
 import { useCallback } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
+import { useOngoingSession } from "@hypr/utils/contexts";
 
 interface TranscriptSubHeaderProps {
   sessionId: string;
-  editorRef?: React.RefObject<TranscriptEditorRef | null>;
 }
 
-export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeaderProps) {
+export function TranscriptSubHeader({ sessionId }: TranscriptSubHeaderProps) {
+  const ongoingSessionStatus = useOngoingSession((s) => s.status);
+  const ongoingSessionId = useOngoingSession((s) => s.sessionId);
+
+  // Check if this session is currently recording
+  const isCurrentlyRecording = ongoingSessionStatus === "running_active" && ongoingSessionId === sessionId;
+
   // Check if audio file exists for this session
   const audioExist = useQuery({
     refetchInterval: 2500,
@@ -24,61 +29,22 @@ export function TranscriptSubHeader({ sessionId, editorRef }: TranscriptSubHeade
     miscCommands.audioOpen(sessionId);
   }, [sessionId]);
 
-  // Removed handleSearch function as it's no longer needed
-
   return (
-    <div className="px-8 py-3">
-      {/* Full-width rounded box containing chips and buttons */}
-      <div className="flex items-start justify-between p-3 bg-neutral-50 border border-neutral-200 rounded-lg w-full">
-        {
-          /*
-        <div className="flex flex-col gap-2">
-          <EventChip sessionId={sessionId} />
-          <ParticipantsChip sessionId={sessionId} />
-        </div>
-        */
-        }
-
-        {/* Right side - Action buttons */}
-        <div className="flex items-center gap-2">
-          {/* Audio file button - only show if audio exists */}
-          {audioExist.data && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenAudio}
-              className="text-xs h-8 px-3 hover:bg-neutral-100"
-            >
-              <AudioLinesIcon size={14} className="mr-1.5" />
-              Audio
-            </Button>
-          )}
-
-          {/* Copy button */}
-          {
-            /*
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopyAll}
-          disabled={!editorRef?.current}
-          className="text-xs h-8 px-3 hover:bg-neutral-100"
-        >
-          {copied ? (
-            <>
-              <CheckIcon size={14} className="mr-1.5 text-neutral-800" />
-              Copied
-            </>
-          ) : (
-            <>
-              <CopyIcon size={14} className="mr-1.5" />
-              Copy
-            </>
-          )}
-        </Button>
-        */
-          }
-        </div>
+    <div className="flex items-center justify-end px-8 pt-2 pb-0.5">
+      {/* Action buttons */}
+      <div className="flex items-center gap-2">
+        {/* Audio file button - only show if audio exists and not currently recording */}
+        {audioExist.data && !isCurrentlyRecording && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenAudio}
+            className="text-xs h-[28px] px-3 hover:bg-neutral-100 shadow-sm flex items-center"
+          >
+            <AudioLinesIcon size={14} className="mr-1.5" />
+            Audio File
+          </Button>
+        )}
       </div>
     </div>
   );

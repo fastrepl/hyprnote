@@ -130,9 +130,7 @@ function WhenInactiveAndMeetingEnded(
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        `${
-          isCompact ? "w-16" : "w-16"
-        } h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium`,
+        "w-16 h-9 rounded-full transition-all outline-none p-0 flex items-center justify-center text-xs font-medium",
         "bg-neutral-200 border-2 border-neutral-400 text-neutral-600",
         "shadow-[0_0_0_2px_rgba(255,255,255,0.8)_inset]",
         !disabled
@@ -140,7 +138,7 @@ function WhenInactiveAndMeetingEnded(
           : "opacity-10 cursor-progress",
       )}
     >
-      {disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")}
+      {disabled ? "Wait..." : isHovered ? "Resume" : "Ended"}
     </button>
   );
 }

@@ -1,14 +1,14 @@
 import { type ChangeMessage, type Message, type Offset, ShapeStream } from "@electric-sql/client";
 import { type PersistedStore } from "tinybase/persisters";
 
-import { MergeableStoreOnly } from "./const";
+import { StoreOrMergeableStore } from "./shared";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
 const TABLES = ["users"] as const;
 
 export const createCloudSynchronizer = (
-  store: PersistedStore<typeof MergeableStoreOnly>,
+  store: PersistedStore<typeof StoreOrMergeableStore>,
 ) => {
   const streams = new Map<string, ShapeStream>();
   const cleanupFns = new Map<string, () => void>();
@@ -58,11 +58,8 @@ export const createCloudSynchronizer = (
 
     const unsubscribe = stream.subscribe(
       (messages: Message[]) => {
-        console.log("Received messages:", messages);
-
         for (const msg of messages) {
           if ("control" in msg.headers) {
-            console.log("control message:", msg);
           } else {
             console.log("data message:", msg);
           }

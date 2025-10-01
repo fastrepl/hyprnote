@@ -1,13 +1,17 @@
-import { commands as db2Commands } from "@hypr/plugin-db2";
 import { createCustomPostgreSqlPersister, PersistedStore } from "tinybase/persisters";
+import { DpcTabular } from "tinybase/persisters/with-schemas";
+import { type OptionalTablesSchema } from "tinybase/with-schemas";
 
-import { mainTables } from ".";
-import { MergeableStoreOnly } from "./const";
+import { commands as db2Commands } from "@hypr/plugin-db2";
+import { MergeableStoreOnly } from "./shared";
 
-export const createCloudPersister = (store: PersistedStore<typeof MergeableStoreOnly>) =>
-  createCustomPostgreSqlPersister(
+export function createCloudPersister<Schema extends OptionalTablesSchema>(
+  store: PersistedStore<typeof MergeableStoreOnly>,
+  tables: DpcTabular<Schema>["tables"],
+) {
+  return createCustomPostgreSqlPersister(
     store,
-    { mode: "tabular", tables: mainTables },
+    { mode: "tabular", tables },
     async (sql: string, args: any[] = []): Promise<any[]> => (await db2Commands.executeCloud(sql, args)),
     async (_channel: string, _listener: any) => async () => {},
     (unsubscribeFunction: any): any => unsubscribeFunction(),
@@ -17,3 +21,4 @@ export const createCloudPersister = (store: PersistedStore<typeof MergeableStore
     MergeableStoreOnly,
     null,
   );
+}

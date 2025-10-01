@@ -1,17 +1,23 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
+import { Provider } from "tinybase/ui-react";
 
-const RootLayout = () => (
-  <>
-    <Outlet />
-    <Suspense>
-      <TanStackRouterDevtools position="bottom-right" initialIsOpen={false} />
-      <TinybaseInspector />
-    </Suspense>
-  </>
-);
+import { StoreComponent as StoreComponentMain } from "../tinybase/store/main";
 
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRoute({ component: Component });
+
+function Component() {
+  return (
+    <Provider>
+      <StoreComponentMain />
+      <Outlet />
+      <Suspense>
+        <TanStackRouterDevtools position="bottom-right" initialIsOpen={false} />
+        <TinybaseInspector />
+      </Suspense>
+    </Provider>
+  );
+}
 
 const TanStackRouterDevtools = process.env.NODE_ENV === "production"
   ? () => null

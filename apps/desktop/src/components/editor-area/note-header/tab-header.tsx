@@ -126,7 +126,12 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
                 )}
               >
                 Transcript
-                {isCurrentlyRecording && <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
+                {isCurrentlyRecording && (
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-red-500/30"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-500 animate-ping"></div>
+                  </div>
+                )}
               </button>
             </div>
           </div>

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/app/new")({
 
     hybridStore!.setRow("sessions", sessionId, {
       title: "new",
-      userId: "1",
+      humanId: "1",
       createdAt: new Date().toISOString(),
     });
 

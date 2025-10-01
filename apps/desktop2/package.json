@@ -19,6 +19,7 @@
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@tanstack/react-router": "^1.131.35",
+    "@tanstack/react-virtual": "^3.13.12",
     "@tanstack/zod-adapter": "^1.131.35",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",

@@ -8,7 +8,7 @@ import {
 } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { TABLE_SESSIONS, TABLE_USERS } from "@hypr/db";
+import { TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from "@hypr/db";
 import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
@@ -16,14 +16,19 @@ import { InferTinyBaseSchema } from "../shared";
 
 export const STORE_ID = "hybrid";
 
-export const userSchema = z.object({
+export const humanSchema = z.object({
   name: z.string(),
   email: z.string(),
   createdAt: z.string(),
 });
 
+export const organizationSchema = z.object({
+  name: z.string(),
+  createdAt: z.string(),
+});
+
 export const sessionSchema = z.object({
-  userId: z.string(),
+  humanId: z.string(),
   createdAt: z.string(),
   title: z.string(),
   raw_md: z.string(),
@@ -33,16 +38,20 @@ export const sessionSchema = z.object({
 const TABLE_SCHEMA = {
   sessions: {
     title: { type: "string" },
-    userId: { type: "string" },
+    humanId: { type: "string" },
     createdAt: { type: "string" },
     raw_md: { type: "string" },
     enhanced_md: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof sessionSchema>,
-  users: {
+  humans: {
     name: { type: "string" },
     email: { type: "string" },
     createdAt: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof userSchema>,
+  } satisfies InferTinyBaseSchema<typeof humanSchema>,
+  organizations: {
+    name: { type: "string" },
+    createdAt: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof organizationSchema>,
 } as const satisfies TablesSchema;
 
 type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
@@ -81,8 +90,12 @@ export const StoreComponent = () => {
 
       return createCloudPersister(store as Store, {
         load: {
-          users: {
-            tableId: TABLE_USERS,
+          humans: {
+            tableId: TABLE_HUMANS,
+            ...shared,
+          },
+          organizations: {
+            tableId: TABLE_ORGANIZATIONS,
             ...shared,
           },
           sessions: {
@@ -91,8 +104,12 @@ export const StoreComponent = () => {
           },
         },
         save: {
-          users: {
-            tableName: TABLE_USERS,
+          humans: {
+            tableName: TABLE_HUMANS,
+            ...shared,
+          },
+          organizations: {
+            tableName: TABLE_ORGANIZATIONS,
             ...shared,
           },
           sessions: {
@@ -118,10 +135,10 @@ export const StoreComponent = () => {
     store,
     (store) =>
       createRelationships(store).setRelationshipDefinition(
-        "sessionUser",
+        "sessionHuman",
         TABLE_SESSIONS,
-        TABLE_USERS,
-        "userId",
+        TABLE_HUMANS,
+        "humanId",
       ),
     [],
   )!;

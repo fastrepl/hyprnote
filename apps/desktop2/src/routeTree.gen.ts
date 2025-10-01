@@ -13,7 +13,9 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppNoteRouteImport } from './routes/app.note'
 import { Route as AppNewRouteImport } from './routes/app.new'
+import { Route as AppOrganizationIdRouteImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
+import { Route as AppHumanIdRouteImport } from './routes/app.human.$id'
 
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
@@ -35,10 +37,20 @@ const AppNewRoute = AppNewRouteImport.update({
   path: '/app/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppOrganizationIdRoute = AppOrganizationIdRouteImport.update({
+  id: '/app/organization/$id',
+  path: '/app/organization/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppNoteIdRoute = AppNoteIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppNoteRoute,
+} as any)
+const AppHumanIdRoute = AppHumanIdRouteImport.update({
+  id: '/app/human/$id',
+  path: '/app/human/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -46,14 +58,18 @@ export interface FileRoutesByFullPath {
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesByTo {
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,7 +77,9 @@ export interface FileRoutesById {
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -70,16 +88,27 @@ export interface FileRouteTypes {
     | '/app/note'
     | '/app/settings'
     | '/app'
+    | '/app/human/$id'
     | '/app/note/$id'
+    | '/app/organization/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app/new' | '/app/note' | '/app/settings' | '/app' | '/app/note/$id'
+  to:
+    | '/app/new'
+    | '/app/note'
+    | '/app/settings'
+    | '/app'
+    | '/app/human/$id'
+    | '/app/note/$id'
+    | '/app/organization/$id'
   id:
     | '__root__'
     | '/app/new'
     | '/app/note'
     | '/app/settings'
     | '/app/'
+    | '/app/human/$id'
     | '/app/note/$id'
+    | '/app/organization/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -87,6 +116,8 @@ export interface RootRouteChildren {
   AppNoteRoute: typeof AppNoteRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppHumanIdRoute: typeof AppHumanIdRoute
+  AppOrganizationIdRoute: typeof AppOrganizationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -119,12 +150,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/organization/$id': {
+      id: '/app/organization/$id'
+      path: '/app/organization/$id'
+      fullPath: '/app/organization/$id'
+      preLoaderRoute: typeof AppOrganizationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/note/$id': {
       id: '/app/note/$id'
       path: '/$id'
       fullPath: '/app/note/$id'
       preLoaderRoute: typeof AppNoteIdRouteImport
       parentRoute: typeof AppNoteRoute
+    }
+    '/app/human/$id': {
+      id: '/app/human/$id'
+      path: '/app/human/$id'
+      fullPath: '/app/human/$id'
+      preLoaderRoute: typeof AppHumanIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -145,6 +190,8 @@ const rootRouteChildren: RootRouteChildren = {
   AppNoteRoute: AppNoteRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppHumanIdRoute: AppHumanIdRoute,
+  AppOrganizationIdRoute: AppOrganizationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

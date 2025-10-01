@@ -21,11 +21,13 @@ export const humanSchema = z.object({
   email: z.string(),
   createdAt: z.string(),
 });
+export type Human = z.infer<typeof humanSchema>;
 
 export const organizationSchema = z.object({
   name: z.string(),
   createdAt: z.string(),
 });
+export type Organization = z.infer<typeof organizationSchema>;
 
 export const sessionSchema = z.object({
   humanId: z.string(),
@@ -34,6 +36,7 @@ export const sessionSchema = z.object({
   raw_md: z.string(),
   enhanced_md: z.string(),
 });
+export type Session = z.infer<typeof sessionSchema>;
 
 const TABLE_SCHEMA = {
   sessions: {

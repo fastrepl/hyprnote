@@ -1,5 +1,5 @@
 import { cn } from "@hypr/ui/lib/utils";
-import { type AnimationProps, motion, type MotionProps } from "motion/react";
+import { motion, type MotionProps } from "motion/react";
 
 interface ShinyButtonProps extends Omit<React.HTMLAttributes<HTMLElement>, keyof MotionProps>, MotionProps {
   children: React.ReactNode;
@@ -14,11 +14,11 @@ const animationProps = {
   whileTap: { scale: 0.95 },
   transition: {
     repeat: Infinity,
-    repeatType: "loop",
+    repeatType: "loop" as const,
     repeatDelay: 1,
     duration: 1.5,
   },
-} as AnimationProps;
+};
 
 export default function ShinyButton({ children, className, onClick, disabled, ...props }: ShinyButtonProps) {
   return (

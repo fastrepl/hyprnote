@@ -17,13 +17,11 @@ export const STORE_ID = "hybrid";
 
 const SCHEMA = {
   sessions: {
-    id: { type: "string" },
     title: { type: "string" },
     userId: { type: "string" },
     createdAt: { type: "string" },
   },
   users: {
-    id: { type: "string" },
     name: { type: "string" },
     email: { type: "string" },
     createdAt: { type: "string" },

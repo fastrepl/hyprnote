@@ -6,8 +6,13 @@ import * as local from "./store/local";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
+const TABLES = ["users", "sessions"];
+
 export const useCloudSync = (store: local.Store) => {
-  const tables = ["users", "sessions"];
+  const user_id = store.getValue("user_id");
+  if (!user_id) {
+    throw new Error("'user_id' is not set");
+  }
 
   const queryName = "find_electric_meta_by_table";
   const queries = local.UI.useCreateQueries(
@@ -20,7 +25,7 @@ export const useCloudSync = (store: local.Store) => {
           select("offset");
           select("handle");
           select("table");
-          where((getCell) => tables.includes(getCell("table") as string));
+          where((getCell) => TABLES.includes(getCell("table") as string));
         },
       ),
     [],
@@ -29,7 +34,7 @@ export const useCloudSync = (store: local.Store) => {
   const metaTable = local.UI.useResultTable(queryName, queries);
 
   const sync = useCallback(async () => {
-    const steams = tables.map((table) => {
+    const steams = TABLES.map((table) => {
       const metaRow = Object.values(metaTable ?? {}).find((row) => row.table === table);
 
       const resumable: {
@@ -50,7 +55,8 @@ export const useCloudSync = (store: local.Store) => {
         url: ELECTRIC_URL,
         params: {
           table,
-          // where: "user_id=1",
+          where: "user_id = $1",
+          params: [user_id],
         },
         subscribe: false,
         fetchClient: fetch,
@@ -58,7 +64,7 @@ export const useCloudSync = (store: local.Store) => {
       });
     });
 
-    const results = await Promise.all(
+    const resultsArray = await Promise.all(
       steams.map((stream) => {
         return new Promise<Message[]>((resolve) => {
           const messages: Message[] = [];
@@ -79,6 +85,11 @@ export const useCloudSync = (store: local.Store) => {
         });
       }),
     );
+
+    const results = TABLES.reduce((acc, table, index) => {
+      acc[table] = resultsArray[index];
+      return acc;
+    }, {} as Record<string, Message[]>);
 
     return results;
   }, [metaTable]);

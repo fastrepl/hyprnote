@@ -177,11 +177,16 @@ const MemoizedSpeakerSelector = memo(({
   const { userId } = useHypr();
   const [isOpen, setIsOpen] = useState(false);
   const [speakerRange, setSpeakerRange] = useState<SpeakerChangeRange>("current");
-  const inactive = useOngoingSession(s => s.status === "inactive");
   const [human, setHuman] = useState<Human | null>(null);
 
   const noteMatch = useMatch({ from: "/app/note/$id", shouldThrow: false });
   const sessionId = noteMatch?.params.id;
+
+  // Check if THIS SPECIFIC session is inactive, not global status
+  const ongoingSessionId = useOngoingSession(s => s.sessionId);
+  const ongoingStatus = useOngoingSession(s => s.status);
+  const isThisSessionActive = ongoingStatus === "running_active" && ongoingSessionId === sessionId;
+  const inactive = !isThisSessionActive;
 
   const { data: participants = [] } = useQuery({
     enabled: !!sessionId,

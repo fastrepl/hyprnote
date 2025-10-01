@@ -144,7 +144,10 @@ const shadcn = {
 
 const config = {
   darkMode: ["class"],
-  content: [path.resolve(__dirname, "src/components/**/*.tsx")],
+  content: [
+    path.resolve(__dirname, "src/components/ui/*.tsx"),
+    path.resolve(__dirname, "src/components/block/*.tsx"),
+  ],
   theme: {
     extend: {
       animation: {

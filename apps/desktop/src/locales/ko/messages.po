@@ -216,12 +216,7 @@ msgstr ""
 msgid "(Optional)"
 msgstr ""
 
-#. placeholder {0}: disabled ? "Wait..." : "Play again"
-#. placeholder {0}: disabled ? "Wait..." : "Play video"
-#. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:196
-#: src/components/editor-area/note-header/listen-button.tsx:220
-#: src/components/editor-area/note-header/listen-button.tsx:240
+#. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #: src/components/settings/views/templates.tsx:253
 msgid "{0}"
 msgstr ""
@@ -1082,12 +1077,12 @@ msgid "Start automatically at login"
 msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:167
-msgid "Start recording"
-msgstr ""
+#~ msgid "Start recording"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:409
-msgid "Stop"
-msgstr ""
+#~ msgid "Stop"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:68
 msgid "Suggest new features and improvements"

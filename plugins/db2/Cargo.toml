@@ -1,0 +1,30 @@
+[package]
+name = "tauri-plugin-db2"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/js", "/node_modules"]
+links = "tauri-plugin-db2"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true, features = ["test"] }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+hypr-db-core = { workspace = true }
+
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio-postgres = "0.7.14"
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true, features = ["serde_json"] }
+strum = { workspace = true, features = ["derive"] }
+
+thiserror = { workspace = true }

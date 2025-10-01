@@ -10,14 +10,23 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@electric-sql/client": "^1.0.10",
+    "@hypr/db": "workspace:*",
+    "@hypr/plugin-db2": "workspace:*",
+    "@tanstack/react-router": "^1.131.35",
+    "@tanstack/zod-adapter": "^1.131.35",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tinybase": "^6.6.1"
+    "tinybase": "^6.6.1",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@tanstack/react-router-devtools": "^1.131.35",
+    "@tanstack/router-plugin": "^1.131.35",
     "@tauri-apps/cli": "^2",
+    "@types/node": "^24.6.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.6.0",

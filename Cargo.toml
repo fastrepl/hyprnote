@@ -101,13 +101,16 @@ tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.5"
 tauri-plugin-sentry = { version = "0.5" }
 tauri-plugin-shell = "2.3"
+tauri-plugin-single-instance = "2"
 tauri-plugin-store = "2.4"
+tauri-plugin-updater = "2.9"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-connector = { path = "plugins/connector" }
 tauri-plugin-db = { path = "plugins/db" }
+tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-flags = { path = "plugins/flags" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }

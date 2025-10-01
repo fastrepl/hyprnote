@@ -1,0 +1,23 @@
+{
+  "name": "@hypr/db",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31",
+    "typescript": "~5.8.3"
+  }
+}

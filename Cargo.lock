@@ -3964,7 +3964,6 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-flags",
  "tauri-plugin-fs",
- "tauri-plugin-global-shortcut",
  "tauri-plugin-http",
  "tauri-plugin-keygen",
  "tauri-plugin-listener",
@@ -4008,11 +4007,22 @@ dependencies = [
 name = "desktop2"
 version = "0.1.0"
 dependencies = [
+ "sentry",
  "serde",
  "serde_json",
+ "specta",
+ "specta-typescript",
  "tauri",
  "tauri-build",
+ "tauri-plugin-analytics",
+ "tauri-plugin-db2",
  "tauri-plugin-opener",
+ "tauri-plugin-sentry",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-store",
+ "tauri-plugin-windows",
+ "tauri-specta",
+ "tokio",
 ]
 
 [[package]]
@@ -6374,24 +6384,6 @@ name = "glob"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
-
-[[package]]
-name = "global-hotkey"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9247516746aa8e53411a0db9b62b0e24efbcf6a76e0ba73e5a91b512ddabed7"
-dependencies = [
- "crossbeam-channel",
- "keyboard-types",
- "objc2 0.6.2",
- "objc2-app-kit 0.3.1",
- "once_cell",
- "serde",
- "thiserror 2.0.16",
- "windows-sys 0.59.0",
- "x11rb",
- "xkeysym",
-]
 
 [[package]]
 name = "globset"
@@ -10748,6 +10740,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "phf"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
+dependencies = [
+ "phf_shared 0.13.1",
+ "serde",
+]
+
+[[package]]
 name = "phf_codegen"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10850,6 +10852,15 @@ checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
 dependencies = [
  "siphasher 1.0.1",
  "uncased",
+]
+
+[[package]]
+name = "phf_shared"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
+dependencies = [
+ "siphasher 1.0.1",
 ]
 
 [[package]]
@@ -11055,6 +11066,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8a2f0d8d040d7848a709caf78912debcc3f33ee4b3cac47d73d1e1069e83507"
 dependencies = [
  "portable-atomic",
+]
+
+[[package]]
+name = "postgres-protocol"
+version = "0.6.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbef655056b916eb868048276cfd5d6a7dea4f81560dfd047f97c8c6fe3fcfd4"
+dependencies = [
+ "base64 0.22.1",
+ "byteorder",
+ "bytes",
+ "fallible-iterator 0.2.0",
+ "hmac",
+ "md-5",
+ "memchr",
+ "rand 0.9.2",
+ "sha2",
+ "stringprep",
+]
+
+[[package]]
+name = "postgres-types"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77a120daaabfcb0e324d5bf6e411e9222994cb3795c79943a0ef28ed27ea76e4"
+dependencies = [
+ "bytes",
+ "fallible-iterator 0.2.0",
+ "postgres-protocol",
 ]
 
 [[package]]
@@ -13811,6 +13851,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "stringprep"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b4df3d392d81bd458a8a621b8bffbd2302a12ffe288a9d931670948749463b1"
+dependencies = [
+ "unicode-bidi",
+ "unicode-normalization",
+ "unicode-properties",
+]
+
+[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14548,6 +14599,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-db2"
+version = "0.1.0"
+dependencies = [
+ "db-core",
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.16",
+ "tokio",
+ "tokio-postgres",
+]
+
+[[package]]
 name = "tauri-plugin-deep-link"
 version = "2.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14623,21 +14692,6 @@ dependencies = [
  "thiserror 2.0.16",
  "toml 0.9.5",
  "url",
-]
-
-[[package]]
-name = "tauri-plugin-global-shortcut"
-version = "2.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6df9f0f7bf2fe768b85fee4951c2505a35b72c44df1f6403e74e110bc13c5f58"
-dependencies = [
- "global-hotkey",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.16",
 ]
 
 [[package]]
@@ -15813,6 +15867,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-postgres"
+version = "0.7.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a156efe7fff213168257853e1dfde202eed5f487522cbbbf7d219941d753d853"
+dependencies = [
+ "async-trait",
+ "byteorder",
+ "bytes",
+ "fallible-iterator 0.2.0",
+ "futures-channel",
+ "futures-util",
+ "log",
+ "parking_lot 0.12.4",
+ "percent-encoding",
+ "phf 0.13.1",
+ "pin-project-lite",
+ "postgres-protocol",
+ "postgres-types",
+ "rand 0.9.2",
+ "socket2 0.6.0",
+ "tokio",
+ "tokio-util",
+ "whoami",
+]
+
+[[package]]
 name = "tokio-rustls"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16757,6 +16837,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b844d17643ee918803943289730bec8aac480150456169e647ed0b576ba539"
 
 [[package]]
+name = "unicode-bidi"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c1cb5db39152898a79168971543b1cb5020dff7fe43c8dc468b0885f5e29df5"
+
+[[package]]
 name = "unicode-bom"
 version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16791,6 +16877,12 @@ checksum = "43f613e4fa046e69818dd287fdc4bc78175ff20331479dab6e1b0f98d57062de"
 dependencies = [
  "smallvec 1.15.1",
 ]
+
+[[package]]
+name = "unicode-properties"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e70f2a8b45122e719eb623c01822704c4e0907e7e426a05927e1a1cfff5b75d0"
 
 [[package]]
 name = "unicode-segmentation"
@@ -18508,12 +18600,6 @@ dependencies = [
  "libc",
  "rustix 1.0.8",
 ]
-
-[[package]]
-name = "xkeysym"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9cc00251562a284751c9973bace760d86c0276c471b4be569fe6b068ee97a56"
 
 [[package]]
 name = "xmlparser"

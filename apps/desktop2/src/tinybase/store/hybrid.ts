@@ -7,25 +7,39 @@ import {
   type NoValuesSchema,
   type TablesSchema,
 } from "tinybase/with-schemas";
+import { z } from "zod";
 
 import { TABLE_SESSIONS, TABLE_USERS } from "@hypr/db";
 import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
+import { InferTinyBaseSchema } from "../shared";
 
 export const STORE_ID = "hybrid";
+
+export const userSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  createdAt: z.string(),
+});
+
+export const sessionSchema = z.object({
+  title: z.string(),
+  userId: z.string(),
+  createdAt: z.string(),
+});
 
 const TABLE_SCHEMA = {
   sessions: {
     title: { type: "string" },
     userId: { type: "string" },
     createdAt: { type: "string" },
-  },
+  } satisfies InferTinyBaseSchema<typeof sessionSchema>,
   users: {
     name: { type: "string" },
     email: { type: "string" },
     createdAt: { type: "string" },
-  },
+  } satisfies InferTinyBaseSchema<typeof userSchema>,
 } as const satisfies TablesSchema;
 
 type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];

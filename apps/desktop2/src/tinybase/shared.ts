@@ -1,21 +1,18 @@
-import { createMergeableStore } from "tinybase/with-schemas";
-import { createLocalSynchronizer } from "./localSynchronizer";
-
 export const MergeableStoreOnly = 2;
 export const StoreOrMergeableStore = 3;
 
 export const BROADCAST_CHANNEL_NAME = "hypr-window-sync";
 
-export const createMergeableStoreWithSync = () => {
-  const store = createMergeableStore();
+// https://github.com/tinyplex/tinybase/issues/136#issuecomment-3015194772
+type InferCellSchema<T> = T extends string | undefined ? { type: "string"; default?: string }
+  : T extends number | undefined ? { type: "number"; default?: number }
+  : T extends boolean | undefined ? { type: "boolean"; default?: boolean }
+  : T extends string ? { type: "string"; default?: string }
+  : T extends number ? { type: "number"; default?: number }
+  : T extends boolean ? { type: "boolean"; default?: boolean }
+  : never;
 
-  const localSync = createLocalSynchronizer(store as any);
-
-  localSync.startSync().then(() => {
-    console.log("local_sync_started");
-  }).catch((e) => {
-    console.error("local_sync_failed", e);
-  });
-
-  return store;
-};
+export type InferTinyBaseSchema<T> = T extends { _output: infer Output } ? {
+    [K in keyof Omit<Output, "id">]: InferCellSchema<Output[K]>;
+  }
+  : never;

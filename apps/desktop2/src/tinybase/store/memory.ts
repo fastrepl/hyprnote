@@ -1,5 +1,4 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
-
 import {
   createMergeableStore,
   createQueries,
@@ -13,6 +12,7 @@ import { createLocalSynchronizer } from "../localSynchronizer";
 export const STORE_ID = "memory";
 
 const VALUES_SCHEMA = {
+  state: { type: "string" },
   amplitude_mic: { type: "number" },
   amplitude_speaker: { type: "number" },
 } as const satisfies ValuesSchema;

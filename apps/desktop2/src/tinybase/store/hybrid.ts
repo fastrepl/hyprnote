@@ -1,5 +1,4 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
-
 import {
   createMergeableStore,
   createQueries,
@@ -56,17 +55,35 @@ export const StoreComponent = () => {
 
   useCreatePersister(
     store,
-    (store) =>
-      createCloudPersister(store as MergeableStore<Schemas>, {
+    (store) => {
+      const shared = {
+        rowIdColumnName: "id",
+        // condition: "$tableName.user_id = TODO" as const,
+      };
+
+      return createCloudPersister(store as MergeableStore<Schemas>, {
         load: {
-          users: TABLE_USERS,
-          sessions: TABLE_SESSIONS,
+          users: {
+            tableId: TABLE_USERS,
+            ...shared,
+          },
+          sessions: {
+            tableId: TABLE_SESSIONS,
+            ...shared,
+          },
         },
         save: {
-          users: TABLE_USERS,
-          sessions: TABLE_SESSIONS,
+          users: {
+            tableName: TABLE_USERS,
+            ...shared,
+          },
+          sessions: {
+            tableName: TABLE_SESSIONS,
+            ...shared,
+          },
         },
-      }),
+      });
+    },
     [CLOUD_ENABLED],
     async (_persister) => {
       // We intentionally do not call `startAutoPersisting` here. It should be managed manually with cloud synchronizer.

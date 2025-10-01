@@ -1,5 +1,4 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
-
 import { createMergeableStore, type MergeableStore, type TablesSchema, type ValuesSchema } from "tinybase/with-schemas";
 
 import { createLocalPersister } from "../localPersister";

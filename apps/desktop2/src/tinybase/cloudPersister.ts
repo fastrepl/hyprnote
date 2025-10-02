@@ -1,4 +1,4 @@
-import { type Message, type Offset, ShapeStream } from "@electric-sql/client";
+import { type ChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
 import * as persisted from "./store/persisted";
@@ -101,11 +101,11 @@ const useCloudLoader = (store: persisted.Store) => {
 
     const resultsArray = await Promise.all(
       steams.map((stream) => {
-        return new Promise<Message[]>((resolve) => {
-          const messages: Message[] = [];
+        return new Promise<ChangeMessage[]>((resolve) => {
+          const messages: ChangeMessage[] = [];
 
           const unsubscribe = stream.subscribe((batch) => {
-            messages.push(...batch);
+            messages.push(...batch.filter((msg) => msg.headers?.control) as ChangeMessage[]);
 
             if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
               unsubscribe();
@@ -124,7 +124,21 @@ const useCloudLoader = (store: persisted.Store) => {
     const results = persisted.TABLES_TO_SYNC.reduce((acc, table, index) => {
       acc[table] = resultsArray[index];
       return acc;
-    }, {} as Record<string, Message[]>);
+    }, {} as Record<typeof persisted.TABLES_TO_SYNC[number], ChangeMessage[]>);
+
+    for (
+      const [table, messages] of Object.entries(results) as [typeof persisted.TABLES_TO_SYNC[number], ChangeMessage[]][]
+    ) {
+      for (const message of messages) {
+        if (message.headers?.operation === "insert") {
+          store.setRow(table, message.key, message.value);
+        } else if (message.headers?.operation === "update") {
+          store.setRow(table, message.key, message.value);
+        } else if (message.headers?.operation === "delete") {
+          store.delRow(table, message.key);
+        }
+      }
+    }
 
     return results;
   }, [metaTable]);

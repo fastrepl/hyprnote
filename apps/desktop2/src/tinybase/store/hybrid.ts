@@ -183,10 +183,18 @@ export const StoreComponent = () => {
         "eventsByDate",
         "events",
         (getCell) => {
-          const iso = getCell("startsAt")!;
-          const d = new Date(iso);
-          const dateKey = d.toISOString().slice(0, 10);
-          return dateKey;
+          const d = new Date(getCell("startsAt")!);
+          return d.toISOString().slice(0, 10);
+        },
+        "startsAt",
+        (a, b) => a.localeCompare(b),
+        (a, b) => String(a).localeCompare(String(b)),
+      ).setIndexDefinition(
+        "eventsByMonth",
+        "events",
+        (getCell) => {
+          const d = new Date(getCell("startsAt")!);
+          return d.toISOString().slice(0, 7);
         },
         "startsAt",
         (a, b) => a.localeCompare(b),

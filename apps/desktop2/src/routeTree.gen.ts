@@ -13,6 +13,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppNoteRouteImport } from './routes/app.note'
 import { Route as AppNewRouteImport } from './routes/app.new'
+import { Route as AppFinderRouteImport } from './routes/app.finder'
 import { Route as AppOrganizationIdRouteImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
 import { Route as AppHumanIdRouteImport } from './routes/app.human.$id'
@@ -37,6 +38,11 @@ const AppNewRoute = AppNewRouteImport.update({
   path: '/app/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppFinderRoute = AppFinderRouteImport.update({
+  id: '/app/finder',
+  path: '/app/finder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppOrganizationIdRoute = AppOrganizationIdRouteImport.update({
   id: '/app/organization/$id',
   path: '/app/organization/$id',
@@ -54,6 +60,7 @@ const AppHumanIdRoute = AppHumanIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesByTo {
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/app/finder': typeof AppFinderRoute
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
@@ -84,6 +93,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/app/finder'
     | '/app/new'
     | '/app/note'
     | '/app/settings'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
     | '/app/organization/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/app/finder'
     | '/app/new'
     | '/app/note'
     | '/app/settings'
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/app/organization/$id'
   id:
     | '__root__'
+    | '/app/finder'
     | '/app/new'
     | '/app/note'
     | '/app/settings'
@@ -112,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AppFinderRoute: typeof AppFinderRoute
   AppNewRoute: typeof AppNewRoute
   AppNoteRoute: typeof AppNoteRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
@@ -150,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/finder': {
+      id: '/app/finder'
+      path: '/app/finder'
+      fullPath: '/app/finder'
+      preLoaderRoute: typeof AppFinderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/organization/$id': {
       id: '/app/organization/$id'
       path: '/app/organization/$id'
@@ -186,6 +206,7 @@ const AppNoteRouteWithChildren =
   AppNoteRoute._addFileChildren(AppNoteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  AppFinderRoute: AppFinderRoute,
   AppNewRoute: AppNewRoute,
   AppNoteRoute: AppNoteRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,

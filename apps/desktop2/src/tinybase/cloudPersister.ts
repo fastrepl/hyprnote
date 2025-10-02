@@ -105,7 +105,7 @@ const useCloudLoader = (store: persisted.Store) => {
           const messages: ChangeMessage[] = [];
 
           const unsubscribe = stream.subscribe((batch) => {
-            messages.push(...batch.filter((msg) => msg.headers?.control) as ChangeMessage[]);
+            messages.push(...batch.filter((msg) => !msg.headers?.control) as ChangeMessage[]);
 
             if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
               unsubscribe();
@@ -130,12 +130,14 @@ const useCloudLoader = (store: persisted.Store) => {
       const [table, messages] of Object.entries(results) as [typeof persisted.TABLES_TO_SYNC[number], ChangeMessage[]][]
     ) {
       for (const message of messages) {
+        const rowId = String(message.value.id);
+
         if (message.headers?.operation === "insert") {
-          store.setRow(table, message.key, message.value);
+          store.setRow(table, rowId, message.value);
         } else if (message.headers?.operation === "update") {
-          store.setRow(table, message.key, message.value);
+          store.setRow(table, rowId, message.value);
         } else if (message.headers?.operation === "delete") {
-          store.delRow(table, message.key);
+          store.delRow(table, rowId);
         }
       }
     }

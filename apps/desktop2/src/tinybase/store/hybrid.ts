@@ -14,14 +14,14 @@ import { TABLE_EVENTS, TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from 
 import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
-import { InferTinyBaseSchema } from "../shared";
+import { InferTinyBaseSchema, jsonObject } from "../shared";
 
 export const STORE_ID = "hybrid";
 
 export const humanSchema = z.object({
   name: z.string(),
   email: z.string(),
-  createdAt: z.string(),
+  createdAt: z.iso.datetime(),
   orgId: z.string(),
 });
 export type Human = z.infer<typeof humanSchema>;
@@ -29,23 +29,32 @@ export type Human = z.infer<typeof humanSchema>;
 export const eventSchema = z.object({
   humanId: z.string(),
   title: z.string(),
-  startsAt: z.string(),
-  endsAt: z.string(),
+  startsAt: z.iso.datetime(),
+  endsAt: z.iso.datetime(),
 });
 export type Event = z.infer<typeof eventSchema>;
 
 export const organizationSchema = z.object({
   name: z.string(),
-  createdAt: z.string(),
+  createdAt: z.iso.datetime(),
 });
 export type Organization = z.infer<typeof organizationSchema>;
 
+const transcriptSchema = z.object({
+  words: z.array(z.object({
+    text: z.string(),
+    start: z.iso.datetime(),
+    end: z.iso.datetime(),
+  })),
+});
+
 export const sessionSchema = z.object({
   humanId: z.string(),
-  createdAt: z.string(),
+  createdAt: z.iso.datetime(),
   title: z.string(),
   raw_md: z.string(),
   enhanced_md: z.string(),
+  transcript: jsonObject(transcriptSchema),
 });
 export type Session = z.infer<typeof sessionSchema>;
 
@@ -56,6 +65,7 @@ const TABLE_SCHEMA = {
     createdAt: { type: "string" },
     raw_md: { type: "string" },
     enhanced_md: { type: "string" },
+    transcript: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof sessionSchema>,
   humans: {
     name: { type: "string" },

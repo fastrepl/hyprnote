@@ -1,7 +1,21 @@
+import { z } from "zod";
+
 export const MergeableStoreOnly = 2;
 export const StoreOrMergeableStore = 3;
 
 export const BROADCAST_CHANNEL_NAME = "hypr-window-sync";
+
+export const jsonObject = <T extends z.ZodTypeAny>(schema: T) => {
+  return z.string().transform((str, ctx) => {
+    try {
+      const parsed = JSON.parse(str);
+      return schema.parse(parsed);
+    } catch (e) {
+      ctx.addIssue({ code: "invalid_value", values: [str] });
+      return z.NEVER;
+    }
+  });
+};
 
 // https://github.com/tinyplex/tinybase/issues/136#issuecomment-3015194772
 type InferCellSchema<T> = T extends string | undefined ? { type: "string"; default?: string }
@@ -10,6 +24,7 @@ type InferCellSchema<T> = T extends string | undefined ? { type: "string"; defau
   : T extends string ? { type: "string"; default?: string }
   : T extends number ? { type: "number"; default?: number }
   : T extends boolean ? { type: "boolean"; default?: boolean }
+  : T extends object ? { type: "string" } // Handle transformed objects as strings
   : never;
 
 export type InferTinyBaseSchema<T> = T extends { _output: infer Output } ? {

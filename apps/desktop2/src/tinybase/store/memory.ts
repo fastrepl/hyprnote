@@ -3,6 +3,7 @@ import {
   createMergeableStore,
   createQueries,
   createRelationships,
+  type MergeableStore,
   type NoTablesSchema,
   type ValuesSchema,
 } from "tinybase/with-schemas";
@@ -17,8 +18,6 @@ const VALUES_SCHEMA = {
   amplitude_speaker: { type: "number" },
 } as const satisfies ValuesSchema;
 
-type Schemas = [NoTablesSchema, typeof VALUES_SCHEMA];
-
 const {
   useCreateMergeableStore,
   useCreateSynchronizer,
@@ -28,6 +27,8 @@ const {
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
+export type Store = MergeableStore<Schemas>;
+export type Schemas = [NoTablesSchema, typeof VALUES_SCHEMA];
 
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() => createMergeableStore().setValuesSchema(VALUES_SCHEMA));

@@ -17,6 +17,7 @@ import { Route as AppFinderRouteImport } from './routes/app.finder'
 import { Route as AppOrganizationIdRouteImport } from './routes/app.organization.$id'
 import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
 import { Route as AppHumanIdRouteImport } from './routes/app.human.$id'
+import { Route as AppFinderCalendarRouteImport } from './routes/app.finder.calendar'
 
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
@@ -58,34 +59,42 @@ const AppHumanIdRoute = AppHumanIdRouteImport.update({
   path: '/app/human/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppFinderCalendarRoute = AppFinderCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AppFinderRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/app/finder': typeof AppFinderRoute
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesByTo {
-  '/app/finder': typeof AppFinderRoute
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/app/finder': typeof AppFinderRoute
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
   '/app/note': typeof AppNoteRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
   '/app/human/$id': typeof AppHumanIdRoute
   '/app/note/$id': typeof AppNoteIdRoute
   '/app/organization/$id': typeof AppOrganizationIdRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/app/note'
     | '/app/settings'
     | '/app'
+    | '/app/finder/calendar'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/app/note'
     | '/app/settings'
     | '/app'
+    | '/app/finder/calendar'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
@@ -118,13 +129,14 @@ export interface FileRouteTypes {
     | '/app/note'
     | '/app/settings'
     | '/app/'
+    | '/app/finder/calendar'
     | '/app/human/$id'
     | '/app/note/$id'
     | '/app/organization/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AppFinderRoute: typeof AppFinderRoute
+  AppFinderRoute: typeof AppFinderRouteWithChildren
   AppNewRoute: typeof AppNewRoute
   AppNoteRoute: typeof AppNoteRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
@@ -191,8 +203,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHumanIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/finder/calendar': {
+      id: '/app/finder/calendar'
+      path: '/calendar'
+      fullPath: '/app/finder/calendar'
+      preLoaderRoute: typeof AppFinderCalendarRouteImport
+      parentRoute: typeof AppFinderRoute
+    }
   }
 }
+
+interface AppFinderRouteChildren {
+  AppFinderCalendarRoute: typeof AppFinderCalendarRoute
+}
+
+const AppFinderRouteChildren: AppFinderRouteChildren = {
+  AppFinderCalendarRoute: AppFinderCalendarRoute,
+}
+
+const AppFinderRouteWithChildren = AppFinderRoute._addFileChildren(
+  AppFinderRouteChildren,
+)
 
 interface AppNoteRouteChildren {
   AppNoteIdRoute: typeof AppNoteIdRoute
@@ -206,7 +237,7 @@ const AppNoteRouteWithChildren =
   AppNoteRoute._addFileChildren(AppNoteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  AppFinderRoute: AppFinderRoute,
+  AppFinderRoute: AppFinderRouteWithChildren,
   AppNewRoute: AppNewRoute,
   AppNoteRoute: AppNoteRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,

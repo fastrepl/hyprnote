@@ -178,9 +178,9 @@ export const StoreComponent = () => {
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
-      .setIndexDefinition("humansByOrg", "humans", "orgId", "name")
+      .setIndexDefinition(INDEXES.humansByOrg, "humans", "orgId", "name")
       .setIndexDefinition(
-        "eventsByDate",
+        INDEXES.eventsByDate,
         "events",
         (getCell) => {
           const d = new Date(getCell("startsAt")!);
@@ -190,7 +190,7 @@ export const StoreComponent = () => {
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
       ).setIndexDefinition(
-        "eventsByMonth",
+        INDEXES.eventsByMonth,
         "events",
         (getCell) => {
           const d = new Date(getCell("startsAt")!);
@@ -203,12 +203,12 @@ export const StoreComponent = () => {
 
   const metrics = useCreateMetrics(store, (store) =>
     createMetrics(store).setMetricDefinition(
-      "totalHumans",
+      METRICS.totalHumans,
       "humans",
       "sum",
       () => 1,
     ).setMetricDefinition(
-      "totalOrganizations",
+      METRICS.totalOrganizations,
       "organizations",
       "sum",
       () => 1,
@@ -220,4 +220,15 @@ export const StoreComponent = () => {
   useProvideMetrics(STORE_ID, metrics!);
 
   return null;
+};
+
+export const METRICS = {
+  totalHumans: "totalHumans",
+  totalOrganizations: "totalOrganizations",
+};
+
+export const INDEXES = {
+  humansByOrg: "humansByOrg",
+  eventsByDate: "eventsByDate",
+  eventsByMonth: "eventsByMonth",
 };

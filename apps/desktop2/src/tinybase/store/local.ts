@@ -40,7 +40,7 @@ export const StoreComponent = () => {
 
   useCreatePersister(
     store,
-    (store) => createLocalPersister<Schemas>(store as MergeableStore<Schemas>),
+    (store) => createLocalPersister<Schemas>(store as MergeableStore<Schemas>, { storeTableName: STORE_ID }),
     [],
     (persister) => persister.startAutoPersisting(),
   );

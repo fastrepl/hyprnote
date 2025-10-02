@@ -109,7 +109,7 @@ export const StoreComponent = () => {
 
   const localPersister = useCreatePersister(
     store,
-    (store) => createLocalPersister<Schemas>(store as Store),
+    (store) => createLocalPersister<Schemas>(store as Store, { storeTableName: STORE_ID }),
     [],
     (persister) => persister.startAutoPersisting(),
   );

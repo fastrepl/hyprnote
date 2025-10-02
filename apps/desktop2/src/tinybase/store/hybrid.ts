@@ -49,6 +49,7 @@ const transcriptSchema = z.object({
 });
 
 export const sessionSchema = z.object({
+  eventId: z.string().optional(),
   humanId: z.string(),
   createdAt: z.iso.datetime(),
   title: z.string(),
@@ -60,9 +61,10 @@ export type Session = z.infer<typeof sessionSchema>;
 
 const TABLE_SCHEMA = {
   sessions: {
-    title: { type: "string" },
+    eventId: { type: "string" },
     humanId: { type: "string" },
     createdAt: { type: "string" },
+    title: { type: "string" },
     raw_md: { type: "string" },
     enhanced_md: { type: "string" },
     transcript: { type: "string" },

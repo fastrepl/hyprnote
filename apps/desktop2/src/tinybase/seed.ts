@@ -69,7 +69,30 @@ const generateEnhancedMarkdown = () => {
   return `# ${mainHeading}\n\n${sections.join("")}`;
 };
 
-const createSession = (humanId: string) => {
+const generateTranscript = () => {
+  const wordCount = faker.number.int({ min: 50, max: 200 });
+  const words: Array<{ text: string; start: string; end: string }> = [];
+
+  const baseTime = faker.date.recent({ days: 30 });
+  let currentTime = baseTime.getTime();
+
+  for (let i = 0; i < wordCount; i++) {
+    const word = faker.lorem.word();
+    const durationMs = faker.number.int({ min: 200, max: 800 });
+
+    words.push({
+      text: word,
+      start: new Date(currentTime).toISOString(),
+      end: new Date(currentTime + durationMs).toISOString(),
+    });
+
+    currentTime += durationMs + faker.number.int({ min: 50, max: 300 });
+  }
+
+  return JSON.stringify({ words });
+};
+
+const createSession = (humanId: string, eventId?: string, hasTranscript?: boolean) => {
   const title = generateTitle();
   const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
   const enhanced_md = generateEnhancedMarkdown();
@@ -82,6 +105,8 @@ const createSession = (humanId: string) => {
       enhanced_md,
       createdAt: faker.date.recent({ days: 30 }).toISOString(),
       humanId,
+      ...(eventId && { eventId }),
+      ...(hasTranscript && { transcript: generateTranscript() }),
     },
   };
 };
@@ -181,27 +206,46 @@ const generateMockData = (config: MockConfig) => {
     });
   });
 
-  humanIds.forEach((humanId) => {
-    const sessionCount = faker.number.int({
-      min: config.sessionsPerHuman.min,
-      max: config.sessionsPerHuman.max,
-    });
-
-    Array.from({ length: sessionCount }, () => {
-      const session = createSession(humanId);
-      sessions[session.id] = session.data;
-    });
-  });
-
+  const eventsByHuman: Record<string, Array<{ id: string; data: any }>> = {};
   humanIds.forEach((humanId) => {
     const eventCount = faker.number.int({
       min: config.eventsPerHuman.min,
       max: config.eventsPerHuman.max,
     });
 
+    eventsByHuman[humanId] = [];
     Array.from({ length: eventCount }, () => {
       const event = createEvent(humanId);
       events[event.id] = event.data;
+      eventsByHuman[humanId].push(event);
+    });
+  });
+
+  const now = new Date();
+
+  humanIds.forEach((humanId) => {
+    const sessionCount = faker.number.int({
+      min: config.sessionsPerHuman.min,
+      max: config.sessionsPerHuman.max,
+    });
+
+    const humanEvents = eventsByHuman[humanId] || [];
+    const endedEvents = humanEvents.filter(
+      (e) => new Date(e.data.endsAt) < now,
+    );
+
+    Array.from({ length: sessionCount }, () => {
+      const shouldLinkToEvent = endedEvents.length > 0 && faker.datatype.boolean({ probability: 0.5 });
+
+      if (shouldLinkToEvent) {
+        const linkedEvent = faker.helpers.arrayElement(endedEvents);
+        const session = createSession(humanId, linkedEvent.id, true);
+        sessions[session.id] = session.data;
+      } else {
+        const hasTranscript = faker.datatype.boolean({ probability: 0.3 });
+        const session = createSession(humanId, undefined, hasTranscript);
+        sessions[session.id] = session.data;
+      }
     });
   });
 

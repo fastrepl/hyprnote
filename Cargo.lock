@@ -4725,6 +4725,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "file-rotate"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e8e2fa049328a1f3295991407a88585805d126dfaadf74b9fe8c194c730aafc"
+dependencies = [
+ "chrono",
+ "flate2",
+]
+
+[[package]]
 name = "filetime"
 version = "0.2.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15226,6 +15236,7 @@ name = "tauri-plugin-tracing"
 version = "0.1.0"
 dependencies = [
  "dirs 6.0.0",
+ "file-rotate",
  "sentry",
  "serde",
  "serde_json",

@@ -6,9 +6,11 @@ pub use errors::*;
 pub use ext::*;
 
 use std::path::PathBuf;
+use std::{fs, io};
 use tauri::Manager;
 
-use tracing_appender::{non_blocking::WorkerGuard, rolling};
+use file_rotate::{compression::Compression, suffix::AppendCount, ContentLimit, FileRotate};
+use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
@@ -61,6 +63,28 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .build()
 }
 
+fn cleanup_old_daily_logs(logs_dir: &PathBuf) -> io::Result<()> {
+    if !logs_dir.exists() {
+        return Ok(());
+    }
+
+    for entry in fs::read_dir(logs_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
+            if filename.starts_with("log.") && filename.len() > 4 {
+                let suffix = &filename[4..];
+                if suffix.chars().all(|c| c.is_ascii_digit() || c == '-') {
+                    let _ = fs::remove_file(path);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn make_file_writer_if_enabled(
     enabled: bool,
     logs_dir: &PathBuf,
@@ -69,7 +93,17 @@ fn make_file_writer_if_enabled(
         return None;
     }
 
-    let file_appender = rolling::daily(logs_dir, "log");
+    let _ = cleanup_old_daily_logs(logs_dir);
+
+    let log_path = logs_dir.join("log");
+    let file_appender = FileRotate::new(
+        log_path,
+        AppendCount::new(5),
+        ContentLimit::Bytes(10 * 1024 * 1024),
+        Compression::None,
+        None,
+    );
+
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
     Some((non_blocking, guard))
 }

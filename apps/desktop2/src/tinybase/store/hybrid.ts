@@ -75,8 +75,6 @@ const TABLE_SCHEMA = {
   } satisfies InferTinyBaseSchema<typeof eventSchema>,
 } as const satisfies TablesSchema;
 
-type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
-
 const {
   useCreateMergeableStore,
   useCreatePersister,
@@ -92,6 +90,7 @@ const {
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
+export type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
 
 const CLOUD_ENABLED = false;
 

@@ -498,7 +498,7 @@ export function ChatInput(
           }}
         />
         {isGenerating && !inputValue.trim() && (
-          <div className="placeholder-overlay">Type @(person/note name) to add context...</div>
+          <div className="placeholder-overlay">Ask anything, @ to add contexts...</div>
         )}
       </div>
 

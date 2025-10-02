@@ -349,10 +349,9 @@ function MicrophoneSelector({
   return (
     <div className="flex-1 min-w-0">
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
-        <div className="flex -space-x-px">
-          <Button
-            variant="outline"
-            className="rounded-r-none flex-1 min-w-0 h-10 flex items-center justify-center gap-2 transition-all hover:border-neutral-300"
+        <div className="flex h-10 rounded-lg border border-input overflow-hidden bg-background">
+          <button
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 transition-all hover:bg-accent focus-visible:outline-none focus-visible:bg-accent disabled:opacity-50 disabled:pointer-events-none"
             disabled={disabled}
             onClick={onToggleMuted}
           >
@@ -369,16 +368,17 @@ function MicrophoneSelector({
                 <SoundIndicator value={amplitude} />
               </div>
             )}
-          </Button>
+          </button>
+
+          <div className="w-px bg-border" />
 
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="rounded-l-none px-1.5 flex-shrink-0 h-10 transition-all hover:border-neutral-300 hover:bg-neutral-50"
+            <button
+              className="px-1.5 flex-shrink-0 flex items-center justify-center transition-all hover:bg-accent focus-visible:outline-none focus-visible:bg-accent disabled:opacity-50 disabled:pointer-events-none"
               disabled={disabled}
             >
               <ChevronDownIcon className="w-4 h-4 text-neutral-600" />
-            </Button>
+            </button>
           </PopoverTrigger>
         </div>
 

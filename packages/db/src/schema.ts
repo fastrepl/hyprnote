@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-// TODO: this is kind of isolated. need drizzle-zod bridge. we might want to just remove zod schemas from hybrid.ts
+// TODO: this is kind of isolated. need drizzle-zod bridge. we might want to just remove zod schemas from persisted.ts
 
 export const TABLE_HUMANS = "humans";
 export const humans = pgTable(TABLE_HUMANS, {

@@ -1,5 +1,5 @@
-import { type Store as HybridStore } from "../tinybase/store/hybrid";
+import { type Store as PersistedStore } from "../tinybase/store/persisted";
 
 export type Context = {
-  hybridStore: HybridStore;
+  PersistedStore: PersistedStore;
 };

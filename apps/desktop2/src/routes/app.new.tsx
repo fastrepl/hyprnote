@@ -2,10 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { id } from "../utils";
 
 export const Route = createFileRoute("/app/new")({
-  beforeLoad: async ({ context: { hybridStore } }) => {
+  beforeLoad: async ({ context: { PersistedStore } }) => {
     const sessionId = id();
 
-    hybridStore!.setRow("sessions", sessionId, {
+    PersistedStore!.setRow("sessions", sessionId, {
       title: "new",
       humanId: "1",
       createdAt: new Date().toISOString(),

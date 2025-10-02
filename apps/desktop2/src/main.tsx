@@ -7,15 +7,14 @@ import ReactDOM from "react-dom/client";
 
 import { Provider, useStores } from "tinybase/ui-react";
 import { V1 } from "./tinybase/seed";
+import { StoreComponent as StoreComponentMemory } from "./tinybase/store/memory";
 import {
   METRICS,
-  type Store as HybridStore,
-  STORE_ID as STORE_ID_HYBRID,
-  StoreComponent as StoreComponentHybrid,
+  type Store as PersistedStore,
+  STORE_ID as STORE_ID_PERSISTED,
+  StoreComponent as StoreComponentPersisted,
   UI,
-} from "./tinybase/store/hybrid";
-import { StoreComponent as StoreComponentLocal } from "./tinybase/store/local";
-import { StoreComponent as StoreComponentMemory } from "./tinybase/store/memory";
+} from "./tinybase/store/persisted";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -29,25 +28,25 @@ declare module "@tanstack/react-router" {
 
 function App() {
   const stores = useStores();
-  const hybridStore = stores[STORE_ID_HYBRID] as unknown as HybridStore;
-  const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_HYBRID);
+  const PersistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
+  const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED);
 
-  if (!hybridStore) {
+  if (!PersistedStore) {
     return null;
   }
 
   if (import.meta.env.DEV) {
     // @ts-ignore
     window.__dev = {
-      seed: () => hybridStore.setTables(V1),
+      seed: () => PersistedStore.setTables(V1),
     };
 
     if (!humansCount) {
-      hybridStore.setTables(V1);
+      PersistedStore.setTables(V1);
     }
   }
 
-  return <RouterProvider router={router} context={{ hybridStore }} />;
+  return <RouterProvider router={router} context={{ PersistedStore }} />;
 }
 
 const rootElement = document.getElementById("root")!;
@@ -57,8 +56,7 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <Provider>
         <App />
-        <StoreComponentHybrid />
-        <StoreComponentLocal />
+        <StoreComponentPersisted />
         <StoreComponentMemory />
       </Provider>
     </StrictMode>,

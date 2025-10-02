@@ -58,43 +58,45 @@ export const sessionSchema = z.object({
 });
 export type Session = z.infer<typeof sessionSchema>;
 
-const TABLE_SCHEMA = {
-  sessions: {
-    eventId: { type: "string" },
-    humanId: { type: "string" },
-    createdAt: { type: "string" },
-    title: { type: "string" },
-    raw_md: { type: "string" },
-    enhanced_md: { type: "string" },
-    transcript: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof sessionSchema>,
-  humans: {
-    name: { type: "string" },
-    email: { type: "string" },
-    createdAt: { type: "string" },
-    orgId: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof humanSchema>,
-  organizations: {
-    name: { type: "string" },
-    createdAt: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof organizationSchema>,
-  events: {
-    humanId: { type: "string" },
-    title: { type: "string" },
-    startsAt: { type: "string" },
-    endsAt: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof eventSchema>,
-  _electric: {
-    offset: { type: "string" },
-    handle: { type: "string" },
-    table: { type: "string" },
-  },
-} as const satisfies TablesSchema;
-
-const VALUES_SCHEMA = {
-  _user_id: { type: "string" },
-  _device_id: { type: "string" },
-} as const satisfies ValuesSchema;
+// Any field prefixed with _ should stay local.
+const SCHEMA = {
+  value: {
+    _user_id: { type: "string" },
+    _device_id: { type: "string" },
+  } as const satisfies ValuesSchema,
+  table: {
+    _electric: {
+      offset: { type: "string" },
+      handle: { type: "string" },
+      table: { type: "string" },
+    },
+    sessions: {
+      eventId: { type: "string" },
+      humanId: { type: "string" },
+      createdAt: { type: "string" },
+      title: { type: "string" },
+      raw_md: { type: "string" },
+      enhanced_md: { type: "string" },
+      transcript: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof sessionSchema>,
+    humans: {
+      name: { type: "string" },
+      email: { type: "string" },
+      createdAt: { type: "string" },
+      orgId: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof humanSchema>,
+    organizations: {
+      name: { type: "string" },
+      createdAt: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof organizationSchema>,
+    events: {
+      humanId: { type: "string" },
+      title: { type: "string" },
+      startsAt: { type: "string" },
+      endsAt: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof eventSchema>,
+  } as const satisfies TablesSchema,
+};
 
 const {
   useCreateMergeableStore,
@@ -112,13 +114,13 @@ const {
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
-export type Schemas = [typeof TABLE_SCHEMA, typeof VALUES_SCHEMA];
+export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
-      .setTablesSchema(TABLE_SCHEMA)
-      .setValuesSchema(VALUES_SCHEMA)
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value)
   );
 
   const localPersister = useCreatePersister(

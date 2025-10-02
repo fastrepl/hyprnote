@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
-import * as hybrid from "../tinybase/store/hybrid";
+import * as persisted from "../tinybase/store/persisted";
 
 const schema = z.object({
   date: z.string().optional(),
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/app/finder/calendar")({
 
 function Component() {
   const data = Route.useLoaderData();
-  const events = hybrid.UI.useSliceIds(hybrid.INDEXES.eventsByMonth, hybrid.STORE_ID);
+  const events = persisted.UI.useSliceIds(persisted.INDEXES.eventsByMonth, persisted.STORE_ID);
 
   return (
     <div className="flex flex-col h-full">

@@ -3,7 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import { useCell, useSortedRowIds } from "tinybase/ui-react";
 
-import * as hybrid from "../tinybase/store/hybrid";
+import * as persisted from "../tinybase/store/persisted";
 
 export function Sidebar() {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -14,7 +14,7 @@ export function Sidebar() {
     true,
     undefined,
     undefined,
-    hybrid.STORE_ID,
+    persisted.STORE_ID,
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -71,7 +71,7 @@ function SessionItem({ sessionId }: { sessionId: string }) {
     "sessions",
     sessionId,
     "title",
-    hybrid.STORE_ID,
+    persisted.STORE_ID,
   );
 
   return (

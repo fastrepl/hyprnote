@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useValidatedRow } from "../hooks/useValidatedRow";
-import * as hybrid from "../tinybase/store/hybrid";
+import * as persisted from "../tinybase/store/persisted";
 
 export const Route = createFileRoute("/app/human/$id")({
   component: Component,
@@ -8,17 +8,17 @@ export const Route = createFileRoute("/app/human/$id")({
 
 function Component() {
   const { id } = Route.useParams();
-  const human = hybrid.UI.useRow("humans", id, hybrid.STORE_ID);
+  const human = persisted.UI.useRow("humans", id, persisted.STORE_ID);
 
-  const handleUpdate = hybrid.UI.useSetRowCallback(
+  const handleUpdate = persisted.UI.useSetRowCallback(
     "humans",
     id,
-    (row: hybrid.Human, _store) => row,
+    (row: persisted.Human, _store) => row,
     [],
-    hybrid.STORE_ID,
+    persisted.STORE_ID,
   );
 
-  const { setField, errors } = useValidatedRow(hybrid.humanSchema, human, handleUpdate);
+  const { setField, errors } = useValidatedRow(persisted.humanSchema, human, handleUpdate);
 
   return (
     <div className="space-y-4 p-4">

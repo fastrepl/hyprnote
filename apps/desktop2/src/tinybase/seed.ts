@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import { id } from "../utils";
-import type { Schemas } from "./store/hybrid";
+import type { Schemas } from "./store/persisted";
 
 interface MockConfig {
   organizations: number;

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import * as hybrid from "../tinybase/store/hybrid";
+import * as persisted from "../tinybase/store/persisted";
 
 export const Route = createFileRoute("/app/note/$id")({
   component: Component,
@@ -7,22 +7,22 @@ export const Route = createFileRoute("/app/note/$id")({
 
 function Component() {
   const { id: sessionId } = Route.useParams();
-  const row = hybrid.UI.useRow("sessions", sessionId, hybrid.STORE_ID);
+  const row = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
 
-  const handleEditTitle = hybrid.UI.useSetRowCallback(
+  const handleEditTitle = persisted.UI.useSetRowCallback(
     "sessions",
     sessionId,
     (input: string, _store) => ({ ...row, title: input }),
     [row],
-    hybrid.STORE_ID,
+    persisted.STORE_ID,
   );
 
-  const handleEditRawMd = hybrid.UI.useSetRowCallback(
+  const handleEditRawMd = persisted.UI.useSetRowCallback(
     "sessions",
     sessionId,
     (input: string, _store) => ({ ...row, raw_md: input }),
     [row],
-    hybrid.STORE_ID,
+    persisted.STORE_ID,
   );
 
   return (

@@ -2,7 +2,19 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import { id } from "../utils";
-import type { Calendar, Event, Human, MappingEventParticipant, Organization, Schemas, Session } from "./store/persisted";
+import type {
+  Calendar,
+  Event,
+  Human,
+  MappingEventParticipant,
+  MappingTagSession,
+  Organization,
+  Schemas,
+  Session,
+  Tag,
+  Template,
+  TemplateSection,
+} from "./store/persisted";
 
 interface MockConfig {
   organizations: number;
@@ -146,6 +158,53 @@ const createMappingEventParticipant = (event_id: string, human_id: string) => ({
   } satisfies MappingEventParticipant,
 });
 
+const createTag = () => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    name: faker.helpers.arrayElement([
+      "Work",
+      "Personal",
+      "Meeting",
+      "Project",
+      "Research",
+      "Important",
+      "Follow-up",
+      "Review",
+    ]),
+    created_at: faker.date.past({ years: 1 }).toISOString(),
+  } satisfies Tag,
+});
+
+const createMappingTagSession = (tag_id: string, session_id: string) => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    tag_id,
+    session_id,
+    created_at: faker.date.recent({ days: 30 }).toISOString(),
+  } satisfies MappingTagSession,
+});
+
+const createTemplate = () => {
+  const sectionCount = faker.number.int({ min: 2, max: 5 });
+  const sections: TemplateSection[] = Array.from({ length: sectionCount }, () => ({
+    title: faker.lorem.words({ min: 2, max: 4 }),
+    description: faker.lorem.sentence(),
+  }));
+
+  return {
+    id: id(),
+    data: {
+      user_id: USER_ID,
+      title: faker.lorem.words({ min: 2, max: 5 }),
+      description: faker.lorem.sentence(),
+      sections,
+      created_at: faker.date.past({ years: 1 }).toISOString(),
+    } satisfies Template,
+  };
+};
+
 const createEvent = (calendar_id: string) => {
   const timePattern = faker.helpers.weightedArrayElement([
     { weight: 10, value: "past-recent" },
@@ -224,6 +283,9 @@ const generateMockData = (config: MockConfig) => {
   const sessions: Record<string, any> = {};
   const events: Record<string, any> = {};
   const mapping_event_participant: Record<string, any> = {};
+  const tags: Record<string, any> = {};
+  const mapping_tag_session: Record<string, any> = {};
+  const templates: Record<string, any> = {};
 
   const orgIds = Array.from({ length: config.organizations }, () => {
     const org = createOrganization();
@@ -273,6 +335,20 @@ const generateMockData = (config: MockConfig) => {
 
   const now = new Date();
 
+  // Create tags
+  const tagIds = Array.from({ length: 8 }, () => {
+    const tag = createTag();
+    tags[tag.id] = tag.data;
+    return tag.id;
+  });
+
+  // Create templates
+  Array.from({ length: 5 }, () => {
+    const template = createTemplate();
+    templates[template.id] = template.data;
+  });
+
+  const sessionIds: string[] = [];
   humanIds.forEach((humanId) => {
     const sessionCount = faker.number.int({
       min: config.sessionsPerHuman.min,
@@ -287,15 +363,26 @@ const generateMockData = (config: MockConfig) => {
     Array.from({ length: sessionCount }, () => {
       const shouldLinkToEvent = endedEvents.length > 0 && faker.datatype.boolean({ probability: 0.5 });
 
-      if (shouldLinkToEvent) {
-        const linkedEvent = faker.helpers.arrayElement(endedEvents);
-        const session = createSession(linkedEvent.id);
-        sessions[session.id] = session.data;
-      } else {
-        const session = createSession();
-        sessions[session.id] = session.data;
-      }
+      const session = shouldLinkToEvent
+        ? createSession(faker.helpers.arrayElement(endedEvents).id)
+        : createSession();
+
+      sessions[session.id] = session.data;
+      sessionIds.push(session.id);
     });
+  });
+
+  // Create tag-session mappings
+  sessionIds.forEach((sessionId) => {
+    const shouldTag = faker.datatype.boolean({ probability: 0.6 });
+    if (shouldTag) {
+      const tagCount = faker.number.int({ min: 1, max: 3 });
+      const selectedTags = faker.helpers.arrayElements(tagIds, tagCount);
+      selectedTags.forEach((tagId) => {
+        const mapping = createMappingTagSession(tagId, sessionId);
+        mapping_tag_session[mapping.id] = mapping.data;
+      });
+    }
   });
 
   return {
@@ -305,6 +392,9 @@ const generateMockData = (config: MockConfig) => {
     sessions,
     events,
     mapping_event_participant,
+    tags,
+    mapping_tag_session,
+    templates,
   };
 };
 

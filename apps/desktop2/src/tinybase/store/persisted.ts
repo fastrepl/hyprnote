@@ -15,10 +15,13 @@ import {
   eventSchema as baseEventSchema,
   humanSchema as baseHumanSchema,
   mappingEventParticipantSchema as baseMappingEventParticipantSchema,
+  mappingTagSessionSchema as baseMappingTagSessionSchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
   TABLE_HUMANS,
   TABLE_SESSIONS,
+  tagSchema as baseTagSchema,
+  templateSchema as baseTemplateSchema,
   transcriptSchema,
 } from "@hypr/db";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
@@ -48,12 +51,34 @@ export const mappingEventParticipantSchema = baseMappingEventParticipantSchema.o
   created_at: z.string(),
 });
 
+export const tagSchema = baseTagSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
+
+export const mappingTagSessionSchema = baseMappingTagSessionSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
+
+export const templateSectionSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+});
+
+export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  sections: jsonObject(z.array(templateSectionSchema)),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type MappingEventParticipant = z.infer<typeof mappingEventParticipantSchema>;
+export type Tag = z.infer<typeof tagSchema>;
+export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
+export type Template = z.infer<typeof templateSchema>;
+export type TemplateSection = z.infer<typeof templateSectionSchema>;
 
 const SCHEMA = {
   value: {
@@ -111,6 +136,24 @@ const SCHEMA = {
       event_id: { type: "string" },
       human_id: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof mappingEventParticipantSchema>,
+    tags: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      name: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof tagSchema>,
+    mapping_tag_session: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      tag_id: { type: "string" },
+      session_id: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
+    templates: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      title: { type: "string" },
+      description: { type: "string" },
+      sections: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof templateSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -183,6 +226,18 @@ export const StoreComponent = () => {
           "events",
           "calendars",
           "calendar_id",
+        )
+        .setRelationshipDefinition(
+          "tagSessionToTag",
+          "mapping_tag_session",
+          "tags",
+          "tag_id",
+        )
+        .setRelationshipDefinition(
+          "tagSessionToSession",
+          "mapping_tag_session",
+          "sessions",
+          "session_id",
         ),
     [],
   )!;
@@ -211,7 +266,10 @@ export const StoreComponent = () => {
         "started_at",
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
-      ));
+      )
+      .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
+      .setIndexDefinition(INDEXES.tagSessionsBySession, "mapping_tag_session", "session_id")
+      .setIndexDefinition(INDEXES.tagSessionsByTag, "mapping_tag_session", "tag_id"));
 
   const metrics = useCreateMetrics(store, (store) =>
     createMetrics(store).setMetricDefinition(
@@ -245,4 +303,7 @@ export const INDEXES = {
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   eventsByMonth: "eventsByMonth",
+  tagsByName: "tagsByName",
+  tagSessionsBySession: "tagSessionsBySession",
+  tagSessionsByTag: "tagSessionsByTag",
 };

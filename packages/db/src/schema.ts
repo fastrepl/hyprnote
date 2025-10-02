@@ -55,12 +55,36 @@ export const mappingEventParticipant = pgTable(TABLE_MAPPING_EVENT_PARTICIPANT, 
   human_id: uuid("human_id").notNull().references(() => humans.id, { onDelete: "cascade" }),
 });
 
+export const TABLE_TAGS = "tags";
+export const tags = pgTable(TABLE_TAGS, {
+  ...SHARED,
+  name: text("name").notNull(),
+});
+
+export const TABLE_MAPPING_TAG_SESSION = "mapping_tag_session";
+export const mappingTagSession = pgTable(TABLE_MAPPING_TAG_SESSION, {
+  ...SHARED,
+  tag_id: uuid("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+  session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+});
+
+export const TABLE_TEMPLATES = "templates";
+export const templates = pgTable(TABLE_TEMPLATES, {
+  ...SHARED,
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  sections: json("sections").notNull(),
+});
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const eventSchema = createSelectSchema(events);
 export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);
 export const mappingEventParticipantSchema = createSelectSchema(mappingEventParticipant);
+export const tagSchema = createSelectSchema(tags);
+export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
+export const templateSchema = createSelectSchema(templates);
 
 export const transcriptSchema = z.object({
   words: z.array(z.object({

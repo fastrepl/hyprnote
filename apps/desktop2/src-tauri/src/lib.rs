@@ -63,16 +63,25 @@ pub async fn main() {
             let app = app.handle().clone();
 
             let app_clone = app.clone();
+
+            let postgres_url = {
+                #[cfg(debug_assertions)]
+                {
+                    "postgresql://postgres:password@localhost:54321/electric"
+                }
+                #[cfg(not(debug_assertions))]
+                {
+                    env!("POSTGRES_URL").to_string()
+                }
+            };
+
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
                 if let Err(e) = app_clone.init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
-                if let Err(e) = app_clone
-                    .init_cloud("postgresql://yujonglee@localhost:5432/hyprnote_dev")
-                    .await
-                {
+                if let Err(e) = app_clone.init_cloud(postgres_url).await {
                     tracing::error!("failed_to_init_cloud: {}", e);
                 }
             });

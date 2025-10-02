@@ -11,8 +11,8 @@ import {
 import { z } from "zod";
 
 import { TABLE_EVENTS, TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from "@hypr/db";
-import { createCloudPersister } from "../cloudPersister";
-import { createLocalPersister } from "../localPersister";
+import { CLOUD_PERSISTER_ID, createCloudPersister } from "../cloudPersister";
+import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 import { InferTinyBaseSchema, jsonObject } from "../shared";
 
@@ -98,6 +98,7 @@ const {
   useProvideMetrics,
   useCreateIndexes,
   useCreateMetrics,
+  useProvidePersister,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -109,18 +110,18 @@ const CLOUD_ENABLED = false;
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(TABLE_SCHEMA));
 
-  useCreatePersister(
+  const localPersister = useCreatePersister(
     store,
     (store) => createLocalPersister<Schemas>(store as Store),
     [],
     (persister) => persister.startAutoPersisting(),
   );
 
-  useCreatePersister(
+  const cloudPersister = useCreatePersister(
     store,
     (store) => {
       const shared = {
-        rowIdColumnName: "id",
+        // rowIdColumnName: "id",
         // condition: "$tableName.user_id = TODO" as const,
       };
 
@@ -229,6 +230,8 @@ export const StoreComponent = () => {
   useProvideRelationships(STORE_ID, relationships);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
+  useProvidePersister(CLOUD_PERSISTER_ID, cloudPersister);
+  useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
 
   return null;
 };

@@ -4,6 +4,8 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 import { commands as db2Commands } from "@hypr/plugin-db2";
 import { MergeableStoreOnly } from "./shared";
 
+export const LOCAL_PERSISTER_ID = "local-persister";
+
 export function createLocalPersister<Schemas extends OptionalSchemas>(store: MergeableStore<Schemas>) {
   return createCustomSqlitePersister(
     store,
@@ -11,8 +13,8 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(store: Mer
     async (sql: string, args: any[] = []): Promise<any> => (await db2Commands.executeLocal(sql, args)),
     () => {},
     (unsubscribeFunction: any): any => unsubscribeFunction(),
-    console.log,
-    console.error,
+    console.log.bind(console, "[LocalPersister]"),
+    console.error.bind(console, "[LocalPersister]"),
     () => {},
     MergeableStoreOnly,
     null,

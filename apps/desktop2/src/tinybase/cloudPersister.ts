@@ -8,6 +8,8 @@ import { type NoValuesSchema, type OptionalTablesSchema } from "tinybase/with-sc
 import { commands as db2Commands } from "@hypr/plugin-db2";
 import { MergeableStoreOnly } from "./shared";
 
+export const CLOUD_PERSISTER_ID = "cloud-persister";
+
 export function createCloudPersister<Schema extends OptionalTablesSchema>(
   store: PersistedStore<[Schema, NoValuesSchema], typeof MergeableStoreOnly>,
   tables: DpcTabular<Schema>["tables"],
@@ -21,8 +23,8 @@ export function createCloudPersister<Schema extends OptionalTablesSchema>(
     async (sql: string, args: any[] = []): Promise<any[]> => (await db2Commands.executeCloud(sql, args)),
     noopListener,
     (unsubscribeFunction: any): any => unsubscribeFunction(),
-    console.log,
-    console.error,
+    console.log.bind(console, "[CloudPersister]"),
+    console.error.bind(console, "[CloudPersister]"),
     () => {},
     MergeableStoreOnly,
     null,

@@ -1,19 +1,19 @@
 import { type Message, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
-import * as local from "./store/local";
+import * as hybrid from "./store/hybrid";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
 const TABLES = ["users", "sessions"];
 
-export const useCloudPersister = (store: local.Store) => {
-  const user_id = store.getValue("user_id");
+export const useCloudPersister = (store: hybrid.Store) => {
+  const user_id = store.getValue("_user_id");
   if (!user_id) {
     throw new Error("'user_id' is not set");
   }
 
-  const metaTable = store.getTable("electric_meta")!;
+  const metaTable = store.getTable("_electric")!;
 
   const save = useCallback(async () => {}, []);
 

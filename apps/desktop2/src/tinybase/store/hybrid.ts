@@ -5,8 +5,8 @@ import {
   createMetrics,
   createRelationships,
   type MergeableStore,
-  type NoValuesSchema,
   type TablesSchema,
+  ValuesSchema,
 } from "tinybase/with-schemas";
 import { z } from "zod";
 
@@ -84,7 +84,17 @@ const TABLE_SCHEMA = {
     startsAt: { type: "string" },
     endsAt: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof eventSchema>,
+  _electric: {
+    offset: { type: "string" },
+    handle: { type: "string" },
+    table: { type: "string" },
+  },
 } as const satisfies TablesSchema;
+
+const VALUES_SCHEMA = {
+  _user_id: { type: "string" },
+  _device_id: { type: "string" },
+} as const satisfies ValuesSchema;
 
 const {
   useCreateMergeableStore,
@@ -102,10 +112,14 @@ const {
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
-export type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
+export type Schemas = [typeof TABLE_SCHEMA, typeof VALUES_SCHEMA];
 
 export const StoreComponent = () => {
-  const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(TABLE_SCHEMA));
+  const store = useCreateMergeableStore(() =>
+    createMergeableStore()
+      .setTablesSchema(TABLE_SCHEMA)
+      .setValuesSchema(VALUES_SCHEMA)
+  );
 
   const localPersister = useCreatePersister(
     store,

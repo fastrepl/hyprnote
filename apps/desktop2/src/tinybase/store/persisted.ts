@@ -23,7 +23,7 @@ import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 import { InferTinyBaseSchema, jsonObject } from "../shared";
 
-export const STORE_ID = "hybrid";
+export const STORE_ID = "persisted";
 
 export const humanSchema = baseHumanSchema.omit({ id: true }).extend({ created_at: z.string() });
 export type Human = z.infer<typeof humanSchema>;
@@ -44,7 +44,6 @@ export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
 });
 export type Session = z.infer<typeof sessionSchema>;
 
-// Any field prefixed with _ should stay local.
 const SCHEMA = {
   value: {
     _user_id: { type: "string" },
@@ -55,6 +54,11 @@ const SCHEMA = {
       offset: { type: "string" },
       handle: { type: "string" },
       table: { type: "string" },
+    },
+    _changes: {
+      row_id: { type: "string" },
+      table: { type: "string" },
+      dont_send: { type: "boolean" },
     },
     sessions: {
       user_id: { type: "string" },
@@ -87,7 +91,9 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
-export const TABLES_TO_SYNC = Object.keys(SCHEMA.table).filter((key) => !key.startsWith("_"));
+export const TABLES_TO_SYNC = Object.keys(SCHEMA.table).filter((
+  key,
+) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "_electric" | "_changes">)[];
 
 const {
   useCreateMergeableStore,

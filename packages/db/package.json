@@ -11,6 +11,7 @@
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@types/node": "^24.6.2",
     "drizzle-kit": "^0.31",
     "typescript": "~5.8.3"
   }

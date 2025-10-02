@@ -4,6 +4,7 @@
     "module": "ESNext",
     "lib": ["ES2023"],
     "moduleResolution": "bundler",
+    "types": ["node"],
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -12,6 +13,6 @@
     "declarationMap": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

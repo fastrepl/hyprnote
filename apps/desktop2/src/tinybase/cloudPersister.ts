@@ -26,7 +26,36 @@ const useCloudSaver = (store: persisted.Store) => {
     throw new Error("'_user_id' is not set");
   }
 
-  const save = useCallback(async () => {}, []);
+  const save = useCallback(async () => {
+    const changesTable = store.getTable("_changes")!;
+    const tables = store.getTables();
+
+    const changesLookup = new Map(
+      Object.values(changesTable).map((change) => [
+        `${change.table}:${change.row_id}`,
+        change,
+      ]),
+    );
+
+    const changes = persisted.TABLES_TO_SYNC.flatMap((tableName) => {
+      const table = tables[tableName];
+      if (!table) {
+        return [];
+      }
+
+      return Object.entries(table)
+        .map(([rowId, rowData]) => {
+          const changeRow = changesLookup.get(`${tableName}:${rowId}`);
+          return changeRow?.dont_send
+            ? null
+            : { table: tableName, row_id: rowId, data: rowData };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+    });
+
+    // TODO
+    console.log(changes);
+  }, [store]);
 
   return save;
 };

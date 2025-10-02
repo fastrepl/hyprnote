@@ -1,32 +1,82 @@
-import {
-  createCustomPostgreSqlPersister,
-  type DpcTabular,
-  type PersistedStore,
-} from "tinybase/persisters/with-schemas";
-import { type NoValuesSchema, type OptionalTablesSchema } from "tinybase/with-schemas";
+import { type Message, type Offset, ShapeStream } from "@electric-sql/client";
+import { useCallback } from "react";
 
-import { commands as db2Commands } from "@hypr/plugin-db2";
-import { MergeableStoreOnly } from "./shared";
+import * as local from "./store/local";
 
-export const CLOUD_PERSISTER_ID = "cloud-persister";
+const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
-export function createCloudPersister<Schema extends OptionalTablesSchema>(
-  store: PersistedStore<[Schema, NoValuesSchema], typeof MergeableStoreOnly>,
-  tables: DpcTabular<Schema>["tables"],
-) {
-  // We only use this persister for save, not load.
-  const noopListener = async (_channel: string, _listener: any) => async () => {};
+const TABLES = ["users", "sessions"];
 
-  return createCustomPostgreSqlPersister(
-    store,
-    { mode: "tabular", tables },
-    async (sql: string, args: any[] = []): Promise<any[]> => (await db2Commands.executeCloud(sql, args)),
-    noopListener,
-    (unsubscribeFunction: any): any => unsubscribeFunction(),
-    console.log.bind(console, "[CloudPersister]"),
-    console.error.bind(console, "[CloudPersister]"),
-    () => {},
-    MergeableStoreOnly,
-    null,
-  );
-}
+export const useCloudPersister = (store: local.Store) => {
+  const user_id = store.getValue("user_id");
+  if (!user_id) {
+    throw new Error("'user_id' is not set");
+  }
+
+  const metaTable = store.getTable("electric_meta")!;
+
+  const save = useCallback(async () => {}, []);
+
+  const load = useCallback(async () => {
+    const steams = TABLES.map((table) => {
+      const metaRow = Object.values(metaTable).find((row) => row.table === table);
+
+      const resumable: {
+        offset?: Offset;
+        handle?: string;
+      } = (metaRow?.offset && metaRow?.handle)
+        ? {
+          offset: metaRow.offset as Offset,
+          handle: metaRow.handle as string,
+        }
+        : {
+          offset: "-1",
+          handle: undefined,
+        };
+
+      return new ShapeStream({
+        ...resumable,
+        url: ELECTRIC_URL,
+        params: {
+          table,
+          where: "user_id = $1",
+          params: [user_id],
+        },
+        subscribe: false,
+        fetchClient: fetch,
+        onError: console.error,
+      });
+    });
+
+    const resultsArray = await Promise.all(
+      steams.map((stream) => {
+        return new Promise<Message[]>((resolve) => {
+          const messages: Message[] = [];
+
+          const unsubscribe = stream.subscribe((batch) => {
+            messages.push(...batch);
+
+            if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
+              unsubscribe();
+              resolve(messages);
+            }
+          }, (error) => {
+            console.error(error);
+
+            unsubscribe();
+            resolve(messages);
+          });
+        });
+      }),
+    );
+
+    const results = TABLES.reduce((acc, table, index) => {
+      acc[table] = resultsArray[index];
+      return acc;
+    }, {} as Record<string, Message[]>);
+
+    return results;
+  }, [metaTable]);
+
+  return { save, load };
+};

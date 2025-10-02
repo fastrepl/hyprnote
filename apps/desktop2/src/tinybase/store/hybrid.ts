@@ -10,8 +10,7 @@ import {
 } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { TABLE_EVENTS, TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from "@hypr/db";
-import { CLOUD_PERSISTER_ID, createCloudPersister } from "../cloudPersister";
+import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 import { InferTinyBaseSchema, jsonObject } from "../shared";
@@ -105,8 +104,6 @@ export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
 
-const CLOUD_ENABLED = false;
-
 export const StoreComponent = () => {
   const store = useCreateMergeableStore(() => createMergeableStore().setTablesSchema(TABLE_SCHEMA));
 
@@ -117,58 +114,6 @@ export const StoreComponent = () => {
     (persister) => persister.startAutoPersisting(),
   );
 
-  const cloudPersister = useCreatePersister(
-    store,
-    (store) => {
-      const shared = {
-        // rowIdColumnName: "id",
-        // condition: "$tableName.user_id = TODO" as const,
-      };
-
-      return createCloudPersister(store as Store, {
-        load: {
-          humans: {
-            tableId: TABLE_HUMANS,
-            ...shared,
-          },
-          organizations: {
-            tableId: TABLE_ORGANIZATIONS,
-            ...shared,
-          },
-          sessions: {
-            tableId: TABLE_SESSIONS,
-            ...shared,
-          },
-          events: {
-            tableId: TABLE_EVENTS,
-            ...shared,
-          },
-        },
-        save: {
-          humans: {
-            tableName: TABLE_HUMANS,
-            ...shared,
-          },
-          organizations: {
-            tableName: TABLE_ORGANIZATIONS,
-            ...shared,
-          },
-          sessions: {
-            tableName: TABLE_SESSIONS,
-            ...shared,
-          },
-          events: {
-            tableName: TABLE_EVENTS,
-            ...shared,
-          },
-        },
-      });
-    },
-    [CLOUD_ENABLED],
-    async (_persister) => {
-      // We intentionally do not call `startAutoPersisting` here. It should be managed manually with cloud synchronizer.
-    },
-  );
   useCreateSynchronizer(
     store,
     async (store) => createLocalSynchronizer(store),
@@ -230,7 +175,6 @@ export const StoreComponent = () => {
   useProvideRelationships(STORE_ID, relationships);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(CLOUD_PERSISTER_ID, cloudPersister);
   useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
 
   return null;

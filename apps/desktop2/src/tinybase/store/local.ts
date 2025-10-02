@@ -8,7 +8,7 @@ export const STORE_ID = "local";
 
 const TABLE_SCHEMA = {
   electric_meta: {
-    offset: { type: "number" },
+    offset: { type: "string" },
     handle: { type: "string" },
     table: { type: "string" },
   },

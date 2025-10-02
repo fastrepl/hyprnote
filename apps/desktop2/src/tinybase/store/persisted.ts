@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 
 import {
+  calendarSchema as baseCalendarSchema,
   eventSchema as baseEventSchema,
   humanSchema as baseHumanSchema,
   mappingEventParticipantSchema as baseMappingEventParticipantSchema,
@@ -34,6 +35,8 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   ended_at: z.string(),
 });
 
+export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({ created_at: z.string() });
+
 export const organizationSchema = baseOrganizationSchema.omit({ id: true }).extend({ created_at: z.string() });
 
 export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
@@ -47,6 +50,7 @@ export const mappingEventParticipantSchema = baseMappingEventParticipantSchema.o
 
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
+export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type MappingEventParticipant = z.infer<typeof mappingEventParticipantSchema>;
@@ -88,9 +92,15 @@ const SCHEMA = {
       created_at: { type: "string" },
       name: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof organizationSchema>,
+    calendars: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      name: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof calendarSchema>,
     events: {
       user_id: { type: "string" },
       created_at: { type: "string" },
+      calendar_id: { type: "string" },
       title: { type: "string" },
       started_at: { type: "string" },
       ended_at: { type: "string" },
@@ -167,6 +177,12 @@ export const StoreComponent = () => {
           "mapping_event_participant",
           "events",
           "event_id",
+        )
+        .setRelationshipDefinition(
+          "eventToCalendar",
+          "events",
+          "calendars",
+          "calendar_id",
         ),
     [],
   )!;
@@ -174,6 +190,7 @@ export const StoreComponent = () => {
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
+      .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
         INDEXES.eventsByDate,
         "events",
@@ -225,6 +242,7 @@ export const METRICS = {
 
 export const INDEXES = {
   humansByOrg: "humansByOrg",
+  eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   eventsByMonth: "eventsByMonth",
 };

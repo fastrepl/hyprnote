@@ -2,13 +2,14 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import { id } from "../utils";
-import type { Event, Human, MappingEventParticipant, Organization, Schemas, Session } from "./store/persisted";
+import type { Calendar, Event, Human, MappingEventParticipant, Organization, Schemas, Session } from "./store/persisted";
 
 interface MockConfig {
   organizations: number;
   humansPerOrg: { min: number; max: number };
   sessionsPerHuman: { min: number; max: number };
   eventsPerHuman: { min: number; max: number };
+  calendarsPerUser: number;
 }
 
 const USER_ID = id();
@@ -36,6 +37,24 @@ const createHuman = (org_id: string) => {
       created_at: faker.date.past({ years: 1 }).toISOString(),
       org_id,
     } satisfies Human,
+  };
+};
+
+const createCalendar = () => {
+  const template = faker.helpers.arrayElement([
+    `${faker.commerce.product()} Meeting`,
+    `${faker.commerce.product()} Sync`,
+    `${faker.commerce.product()} Planning`,
+    `${faker.commerce.product()} Review`,
+  ]);
+
+  return {
+    id: id(),
+    data: {
+      user_id: USER_ID,
+      name: template,
+      created_at: faker.date.past({ years: 1 }).toISOString(),
+    } satisfies Calendar,
   };
 };
 
@@ -127,7 +146,7 @@ const createMappingEventParticipant = (event_id: string, human_id: string) => ({
   } satisfies MappingEventParticipant,
 });
 
-const createEvent = () => {
+const createEvent = (calendar_id: string) => {
   const timePattern = faker.helpers.weightedArrayElement([
     { weight: 10, value: "past-recent" },
     { weight: 5, value: "past-older" },
@@ -189,6 +208,7 @@ const createEvent = () => {
     id: id(),
     data: {
       user_id: USER_ID,
+      calendar_id,
       title: generateTitle(),
       started_at: startsAt.toISOString(),
       ended_at: endsAt.toISOString(),
@@ -200,6 +220,7 @@ const createEvent = () => {
 const generateMockData = (config: MockConfig) => {
   const organizations: Record<string, any> = {};
   const humans: Record<string, any> = {};
+  const calendars: Record<string, any> = {};
   const sessions: Record<string, any> = {};
   const events: Record<string, any> = {};
   const mapping_event_participant: Record<string, any> = {};
@@ -208,6 +229,12 @@ const generateMockData = (config: MockConfig) => {
     const org = createOrganization();
     organizations[org.id] = org.data;
     return org.id;
+  });
+
+  const calendarIds = Array.from({ length: config.calendarsPerUser }, () => {
+    const calendar = createCalendar();
+    calendars[calendar.id] = calendar.data;
+    return calendar.id;
   });
 
   const humanIds: string[] = [];
@@ -233,7 +260,8 @@ const generateMockData = (config: MockConfig) => {
 
     eventsByHuman[humanId] = [];
     Array.from({ length: eventCount }, () => {
-      const event = createEvent();
+      const calendar_id = faker.helpers.arrayElement(calendarIds);
+      const event = createEvent(calendar_id);
       events[event.id] = event.data;
       eventsByHuman[humanId].push(event);
 
@@ -273,6 +301,7 @@ const generateMockData = (config: MockConfig) => {
   return {
     organizations,
     humans,
+    calendars,
     sessions,
     events,
     mapping_event_participant,
@@ -286,4 +315,5 @@ export const V1 = generateMockData({
   humansPerOrg: { min: 3, max: 8 },
   sessionsPerHuman: { min: 2, max: 6 },
   eventsPerHuman: { min: 1, max: 5 },
+  calendarsPerUser: 3,
 }) satisfies Tables<Schemas[0]>;

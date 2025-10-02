@@ -35,28 +35,51 @@ const createHuman = (orgId: string) => {
   };
 };
 
-const createSession = (humanId: string) => {
-  const sentenceCount = faker.number.int({ min: 3, max: 8 });
-  const title = faker.lorem.sentence(sentenceCount);
+const generateTitle = () => {
+  const lengthConfig = faker.helpers.weightedArrayElement([
+    { weight: 40, value: { min: 2, max: 4 } },
+    { weight: 35, value: { min: 4, max: 6 } },
+    { weight: 15, value: { min: 6, max: 9 } },
+    { weight: 8, value: { min: 9, max: 12 } },
+    { weight: 2, value: { min: 12, max: 15 } },
+  ]);
 
-  const paragraphCount = faker.number.int({ min: 2, max: 5 });
-  const sectionCount = faker.number.int({ min: 2, max: 4 });
+  const wordCount = faker.number.int(lengthConfig);
+  return faker.lorem.sentence(wordCount);
+};
 
-  const sections = Array.from({ length: sectionCount }, () => {
+const generateEnhancedMarkdown = () => {
+  const sections: string[] = [];
+  const sectionCount = faker.number.int({ min: 3, max: 8 });
+
+  for (let i = 0; i < sectionCount; i++) {
     const heading = faker.lorem.sentence({ min: 2, max: 5 });
-    const content = faker.lorem.paragraphs(paragraphCount, "\n\n");
-    return `## ${heading}\n\n${content}`;
-  });
+    sections.push(`## ${heading}\n`);
 
-  const mainHeading = faker.lorem.words({ min: 2, max: 5 });
-  const raw_md = `# ${mainHeading}\n\n${sections.join("\n\n")}`;
+    const bulletCount = faker.number.int({ min: 2, max: 5 });
+    const bullets = faker.helpers.multiple(
+      () => `- ${faker.lorem.sentence()}`,
+      { count: bulletCount },
+    );
+    sections.push(bullets.join("\n"));
+    sections.push("\n\n");
+  }
+
+  const mainHeading = faker.lorem.words({ min: 2, max: 4 });
+  return `# ${mainHeading}\n\n${sections.join("")}`;
+};
+
+const createSession = (humanId: string) => {
+  const title = generateTitle();
+  const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
+  const enhanced_md = generateEnhancedMarkdown();
 
   return {
     id: id(),
     data: {
       title,
       raw_md,
-      enhanced_md: "",
+      enhanced_md,
       createdAt: faker.date.recent({ days: 30 }).toISOString(),
       humanId,
     },
@@ -64,18 +87,67 @@ const createSession = (humanId: string) => {
 };
 
 const createEvent = (humanId: string) => {
-  const daysInFuture = faker.number.int({ min: 1, max: 30 });
-  const startsAt = faker.date.soon({ days: daysInFuture });
+  const timePattern = faker.helpers.weightedArrayElement([
+    { weight: 10, value: "past-recent" },
+    { weight: 5, value: "past-older" },
+    { weight: 15, value: "imminent" },
+    { weight: 25, value: "today-tomorrow" },
+    { weight: 20, value: "this-week" },
+    { weight: 15, value: "next-few-weeks" },
+    { weight: 10, value: "distant" },
+  ]);
 
-  const durationHours = faker.number.float({ min: 0.5, max: 4, fractionDigits: 1 });
+  let startsAt: Date;
+  const now = faker.defaultRefDate();
+
+  switch (timePattern) {
+    case "past-recent":
+      const daysAgo = faker.number.int({ min: 1, max: 7 });
+      startsAt = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      break;
+
+    case "past-older":
+      const weeksAgo = faker.number.int({ min: 1, max: 4 });
+      startsAt = new Date(now.getTime() - weeksAgo * 7 * 24 * 60 * 60 * 1000);
+      break;
+
+    case "imminent":
+      const minutes = faker.helpers.arrayElement([5, 10, 15, 30, 45, 60, 90, 120]);
+      startsAt = new Date(now.getTime() + minutes * 60 * 1000);
+      break;
+
+    case "today-tomorrow":
+      const hoursAhead = faker.number.float({ min: 0.5, max: 36, fractionDigits: 1 });
+      startsAt = new Date(now.getTime() + hoursAhead * 60 * 60 * 1000);
+      break;
+
+    case "this-week":
+      const daysAhead = faker.number.int({ min: 2, max: 7 });
+      startsAt = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+      break;
+
+    case "next-few-weeks":
+      const weeksAhead = faker.number.int({ min: 1, max: 3 });
+      const extraDays = faker.number.int({ min: 0, max: 6 });
+      startsAt = new Date(now.getTime() + (weeksAhead * 7 + extraDays) * 24 * 60 * 60 * 1000);
+      break;
+
+    case "distant":
+      const monthsAhead = faker.number.float({ min: 1, max: 3, fractionDigits: 1 });
+      startsAt = new Date(now.getTime() + monthsAhead * 30 * 24 * 60 * 60 * 1000);
+      break;
+
+    default:
+      startsAt = faker.date.soon({ days: 7 });
+  }
+
+  const durationHours = faker.number.float({ min: 0.25, max: 4, fractionDigits: 2 });
   const endsAt = new Date(startsAt.getTime() + durationHours * 60 * 60 * 1000);
-
-  const titleWords = faker.number.int({ min: 2, max: 6 });
 
   return {
     id: id(),
     data: {
-      title: faker.lorem.sentence(titleWords),
+      title: generateTitle(),
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
       humanId,
@@ -142,7 +214,6 @@ const generateMockData = (config: MockConfig) => {
 };
 
 faker.seed(123);
-faker.setDefaultRefDate("2025-01-01T00:00:00.000Z");
 
 export const V1 = generateMockData({
   organizations: 5,

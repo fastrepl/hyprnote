@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Tables } from "tinybase/with-schemas";
 
 import { id } from "../utils";
-import type { Schemas } from "./store/persisted";
+import type { Event, Human, MappingEventParticipant, Organization, Schemas, Session } from "./store/persisted";
 
 interface MockConfig {
   organizations: number;
@@ -11,15 +11,18 @@ interface MockConfig {
   eventsPerHuman: { min: number; max: number };
 }
 
+const USER_ID = id();
+
 const createOrganization = () => ({
   id: id(),
   data: {
+    user_id: USER_ID,
     name: faker.company.name(),
-    createdAt: faker.date.past({ years: 2 }).toISOString(),
-  },
+    created_at: faker.date.past({ years: 2 }).toISOString(),
+  } satisfies Organization,
 });
 
-const createHuman = (orgId: string) => {
+const createHuman = (org_id: string) => {
   const sex = faker.person.sexType();
   const firstName = faker.person.firstName(sex);
   const lastName = faker.person.lastName();
@@ -27,11 +30,12 @@ const createHuman = (orgId: string) => {
   return {
     id: id(),
     data: {
+      user_id: USER_ID,
       name: `${firstName} ${lastName}`,
       email: faker.internet.email({ firstName, lastName }),
-      createdAt: faker.date.past({ years: 1 }).toISOString(),
-      orgId,
-    },
+      created_at: faker.date.past({ years: 1 }).toISOString(),
+      org_id,
+    } satisfies Human,
   };
 };
 
@@ -71,7 +75,8 @@ const generateEnhancedMarkdown = () => {
 
 const generateTranscript = () => {
   const wordCount = faker.number.int({ min: 50, max: 200 });
-  const words: Array<{ text: string; start: string; end: string }> = [];
+  const words: Array<{ speaker: string; text: string; start: string; end: string }> = [];
+  const speakers = ["Speaker 1", "Speaker 2"];
 
   const baseTime = faker.date.recent({ days: 30 });
   let currentTime = baseTime.getTime();
@@ -81,6 +86,7 @@ const generateTranscript = () => {
     const durationMs = faker.number.int({ min: 200, max: 800 });
 
     words.push({
+      speaker: faker.helpers.arrayElement(speakers),
       text: word,
       start: new Date(currentTime).toISOString(),
       end: new Date(currentTime + durationMs).toISOString(),
@@ -89,10 +95,10 @@ const generateTranscript = () => {
     currentTime += durationMs + faker.number.int({ min: 50, max: 300 });
   }
 
-  return JSON.stringify({ words });
+  return { words };
 };
 
-const createSession = (humanId: string, eventId?: string, hasTranscript?: boolean) => {
+const createSession = (eventId?: string) => {
   const title = generateTitle();
   const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
   const enhanced_md = generateEnhancedMarkdown();
@@ -100,18 +106,28 @@ const createSession = (humanId: string, eventId?: string, hasTranscript?: boolea
   return {
     id: id(),
     data: {
+      user_id: USER_ID,
       title,
       raw_md,
       enhanced_md,
-      createdAt: faker.date.recent({ days: 30 }).toISOString(),
-      humanId,
-      ...(eventId && { eventId }),
-      ...(hasTranscript && { transcript: generateTranscript() }),
-    },
+      created_at: faker.date.recent({ days: 30 }).toISOString(),
+      event_id: eventId || null,
+      transcript: generateTranscript(),
+    } satisfies Session,
   };
 };
 
-const createEvent = (humanId: string) => {
+const createMappingEventParticipant = (event_id: string, human_id: string) => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    event_id,
+    human_id,
+    created_at: faker.date.recent({ days: 30 }).toISOString(),
+  } satisfies MappingEventParticipant,
+});
+
+const createEvent = () => {
   const timePattern = faker.helpers.weightedArrayElement([
     { weight: 10, value: "past-recent" },
     { weight: 5, value: "past-older" },
@@ -172,11 +188,12 @@ const createEvent = (humanId: string) => {
   return {
     id: id(),
     data: {
+      user_id: USER_ID,
       title: generateTitle(),
-      startsAt: startsAt.toISOString(),
-      endsAt: endsAt.toISOString(),
-      humanId,
-    },
+      started_at: startsAt.toISOString(),
+      ended_at: endsAt.toISOString(),
+      created_at: faker.date.recent({ days: 30 }).toISOString(),
+    } satisfies Event,
   };
 };
 
@@ -185,6 +202,7 @@ const generateMockData = (config: MockConfig) => {
   const humans: Record<string, any> = {};
   const sessions: Record<string, any> = {};
   const events: Record<string, any> = {};
+  const mapping_event_participant: Record<string, any> = {};
 
   const orgIds = Array.from({ length: config.organizations }, () => {
     const org = createOrganization();
@@ -215,9 +233,13 @@ const generateMockData = (config: MockConfig) => {
 
     eventsByHuman[humanId] = [];
     Array.from({ length: eventCount }, () => {
-      const event = createEvent(humanId);
+      const event = createEvent();
       events[event.id] = event.data;
       eventsByHuman[humanId].push(event);
+
+      // Create mapping entry
+      const mapping = createMappingEventParticipant(event.id, humanId);
+      mapping_event_participant[mapping.id] = mapping.data;
     });
   });
 
@@ -239,11 +261,10 @@ const generateMockData = (config: MockConfig) => {
 
       if (shouldLinkToEvent) {
         const linkedEvent = faker.helpers.arrayElement(endedEvents);
-        const session = createSession(humanId, linkedEvent.id, true);
+        const session = createSession(linkedEvent.id);
         sessions[session.id] = session.data;
       } else {
-        const hasTranscript = faker.datatype.boolean({ probability: 0.3 });
-        const session = createSession(humanId, undefined, hasTranscript);
+        const session = createSession();
         sessions[session.id] = session.data;
       }
     });
@@ -254,6 +275,7 @@ const generateMockData = (config: MockConfig) => {
     humans,
     sessions,
     events,
+    mapping_event_participant,
   };
 };
 

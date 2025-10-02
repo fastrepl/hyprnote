@@ -13,6 +13,7 @@ import { z } from "zod";
 import {
   eventSchema as baseEventSchema,
   humanSchema as baseHumanSchema,
+  mappingEventParticipantSchema as baseMappingEventParticipantSchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
   TABLE_HUMANS,
@@ -40,10 +41,15 @@ export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
+export const mappingEventParticipantSchema = baseMappingEventParticipantSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Session = z.infer<typeof sessionSchema>;
+export type MappingEventParticipant = z.infer<typeof mappingEventParticipantSchema>;
 
 const SCHEMA = {
   value: {
@@ -63,8 +69,8 @@ const SCHEMA = {
     },
     sessions: {
       user_id: { type: "string" },
-      event_id: { type: "string" },
       created_at: { type: "string" },
+      event_id: { type: "string" },
       title: { type: "string" },
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
@@ -72,15 +78,15 @@ const SCHEMA = {
     } satisfies InferTinyBaseSchema<typeof sessionSchema>,
     humans: {
       user_id: { type: "string" },
+      created_at: { type: "string" },
       name: { type: "string" },
       email: { type: "string" },
-      created_at: { type: "string" },
       org_id: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof humanSchema>,
     organizations: {
       user_id: { type: "string" },
-      name: { type: "string" },
       created_at: { type: "string" },
+      name: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof organizationSchema>,
     events: {
       user_id: { type: "string" },
@@ -89,6 +95,12 @@ const SCHEMA = {
       started_at: { type: "string" },
       ended_at: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof eventSchema>,
+    mapping_event_participant: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      event_id: { type: "string" },
+      human_id: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof mappingEventParticipantSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -122,7 +134,7 @@ export const StoreComponent = () => {
 
   const localPersister = useCreatePersister(
     store,
-    (store) => createLocalPersister<Schemas>(store as Store, { storeTableName: STORE_ID }),
+    (store) => createLocalPersister<Schemas>(store as Store, { storeTableName: STORE_ID, storeIdColumnName: "id" }),
     [],
     (persister) => persister.startAutoPersisting(),
   );
@@ -137,12 +149,25 @@ export const StoreComponent = () => {
   const relationships = useCreateRelationships(
     store,
     (store) =>
-      createRelationships(store).setRelationshipDefinition(
-        "sessionHuman",
-        TABLE_SESSIONS,
-        TABLE_HUMANS,
-        "user_id",
-      ),
+      createRelationships(store)
+        .setRelationshipDefinition(
+          "sessionHuman",
+          TABLE_SESSIONS,
+          TABLE_HUMANS,
+          "user_id",
+        )
+        .setRelationshipDefinition(
+          "eventParticipantToHuman",
+          "mapping_event_participant",
+          "humans",
+          "human_id",
+        )
+        .setRelationshipDefinition(
+          "eventParticipantToEvent",
+          "mapping_event_participant",
+          "events",
+          "event_id",
+        ),
     [],
   )!;
 

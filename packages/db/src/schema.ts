@@ -41,10 +41,18 @@ export const events = pgTable(TABLE_EVENTS, {
   ended_at: timestamp("ended_at").notNull(),
 });
 
+export const TABLE_MAPPING_EVENT_PARTICIPANT = "mapping_event_participant";
+export const mappingEventParticipant = pgTable(TABLE_MAPPING_EVENT_PARTICIPANT, {
+  ...SHARED,
+  event_id: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  human_id: uuid("human_id").notNull().references(() => humans.id, { onDelete: "cascade" }),
+});
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const eventSchema = createSelectSchema(events);
 export const sessionSchema = createSelectSchema(sessions);
+export const mappingEventParticipantSchema = createSelectSchema(mappingEventParticipant);
 
 export const transcriptSchema = z.object({
   words: z.array(z.object({

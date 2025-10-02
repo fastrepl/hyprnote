@@ -26,22 +26,23 @@ import { InferTinyBaseSchema, jsonObject } from "../shared";
 export const STORE_ID = "persisted";
 
 export const humanSchema = baseHumanSchema.omit({ id: true }).extend({ created_at: z.string() });
-export type Human = z.infer<typeof humanSchema>;
 
 export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   created_at: z.string(),
   started_at: z.string(),
   ended_at: z.string(),
 });
-export type Event = z.infer<typeof eventSchema>;
 
 export const organizationSchema = baseOrganizationSchema.omit({ id: true }).extend({ created_at: z.string() });
-export type Organization = z.infer<typeof organizationSchema>;
 
 export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   transcript: jsonObject(transcriptSchema),
   created_at: z.string(),
 });
+
+export type Human = z.infer<typeof humanSchema>;
+export type Event = z.infer<typeof eventSchema>;
+export type Organization = z.infer<typeof organizationSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 
 const SCHEMA = {
@@ -58,7 +59,7 @@ const SCHEMA = {
     _changes: {
       row_id: { type: "string" },
       table: { type: "string" },
-      dont_send: { type: "boolean" },
+      operation: { type: "string" }, // "insert" | "update"
     },
     sessions: {
       user_id: { type: "string" },
@@ -91,9 +92,8 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
-export const TABLES_TO_SYNC = Object.keys(SCHEMA.table).filter((
-  key,
-) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "_electric" | "_changes">)[];
+export const TABLES_TO_SYNC = Object.keys(SCHEMA.table)
+  .filter((key) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "_electric" | "_changes">)[];
 
 const {
   useCreateMergeableStore,

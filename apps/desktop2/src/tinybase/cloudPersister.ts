@@ -1,9 +1,20 @@
-import { type ChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
+import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
 import * as persisted from "./store/persisted";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
+
+type OutgoingChangeMessage<T extends Record<string, unknown>> = {
+  table: string;
+  row_id: string;
+  operation: "delete";
+} | {
+  table: string;
+  row_id: string;
+  data: T;
+  operation: "insert" | "update";
+};
 
 export const useCloudPersister = (store: persisted.Store) => {
   const save = useCloudSaver(store);
@@ -46,9 +57,21 @@ const useCloudSaver = (store: persisted.Store) => {
       return Object.entries(table)
         .map(([rowId, rowData]) => {
           const changeRow = changesLookup.get(`${tableName}:${rowId}`);
-          return changeRow?.dont_send
-            ? null
-            : { table: tableName, row_id: rowId, data: rowData };
+          if (changeRow?.operation === "delete") {
+            return {
+              table: tableName,
+              row_id: rowId,
+              operation: "delete",
+            } satisfies OutgoingChangeMessage<typeof rowData>;
+          }
+
+          const operation = changeRow ? "update" : "insert";
+          return {
+            table: tableName,
+            row_id: rowId,
+            data: rowData,
+            operation,
+          } satisfies OutgoingChangeMessage<typeof rowData>;
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
     });
@@ -101,11 +124,11 @@ const useCloudLoader = (store: persisted.Store) => {
 
     const resultsArray = await Promise.all(
       steams.map((stream) => {
-        return new Promise<ChangeMessage[]>((resolve) => {
-          const messages: ChangeMessage[] = [];
+        return new Promise<IncomingChangeMessage[]>((resolve) => {
+          const messages: IncomingChangeMessage[] = [];
 
           const unsubscribe = stream.subscribe((batch) => {
-            messages.push(...batch.filter((msg) => !msg.headers?.control) as ChangeMessage[]);
+            messages.push(...batch.filter((msg) => !msg.headers?.control) as IncomingChangeMessage[]);
 
             if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
               unsubscribe();
@@ -124,10 +147,13 @@ const useCloudLoader = (store: persisted.Store) => {
     const results = persisted.TABLES_TO_SYNC.reduce((acc, table, index) => {
       acc[table] = resultsArray[index];
       return acc;
-    }, {} as Record<typeof persisted.TABLES_TO_SYNC[number], ChangeMessage[]>);
+    }, {} as Record<typeof persisted.TABLES_TO_SYNC[number], IncomingChangeMessage[]>);
 
     for (
-      const [table, messages] of Object.entries(results) as [typeof persisted.TABLES_TO_SYNC[number], ChangeMessage[]][]
+      const [table, messages] of Object.entries(results) as [
+        typeof persisted.TABLES_TO_SYNC[number],
+        IncomingChangeMessage[],
+      ][]
     ) {
       for (const message of messages) {
         const rowId = String(message.value.id);

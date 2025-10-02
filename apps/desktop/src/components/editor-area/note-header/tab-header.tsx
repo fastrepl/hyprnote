@@ -36,7 +36,7 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
     const canEnhanceTranscript = hasTranscript && isSessionInactive;
 
     // Keep the "meeting session" concept for overall tab visibility
-    const isMeetingSession = hasTranscript || isCurrentlyRecording || isEnhancing;
+    const isMeetingSession = hasTranscript || isCurrentlyRecording || isEnhancing || hasEnhancedMemo;
 
     // BUT use floating button logic for Enhanced tab visibility
     const isEnhancePending = useEnhancePendingState(sessionId);

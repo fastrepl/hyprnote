@@ -28,25 +28,25 @@ declare module "@tanstack/react-router" {
 
 function App() {
   const stores = useStores();
-  const PersistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
+  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
   const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED);
 
-  if (!PersistedStore) {
+  if (!persistedStore) {
     return null;
   }
 
   if (import.meta.env.DEV) {
     // @ts-ignore
     window.__dev = {
-      seed: () => PersistedStore.setTables(V1),
+      seed: () => persistedStore.setTables(V1),
     };
 
     if (!humansCount) {
-      PersistedStore.setTables(V1);
+      persistedStore.setTables(V1);
     }
   }
 
-  return <RouterProvider router={router} context={{ PersistedStore }} />;
+  return <RouterProvider router={router} context={{ persistedStore }} />;
 }
 
 const rootElement = document.getElementById("root")!;

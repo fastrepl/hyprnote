@@ -10,51 +10,37 @@ import {
 } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
+import {
+  eventSchema as baseEventSchema,
+  humanSchema as baseHumanSchema,
+  organizationSchema as baseOrganizationSchema,
+  sessionSchema as baseSessionSchema,
+  TABLE_HUMANS,
+  TABLE_SESSIONS,
+  transcriptSchema,
+} from "@hypr/db";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 import { InferTinyBaseSchema, jsonObject } from "../shared";
 
 export const STORE_ID = "hybrid";
 
-export const humanSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  createdAt: z.iso.datetime(),
-  orgId: z.string(),
-});
+export const humanSchema = baseHumanSchema.omit({ id: true }).extend({ created_at: z.string() });
 export type Human = z.infer<typeof humanSchema>;
 
-export const eventSchema = z.object({
-  humanId: z.string(),
-  title: z.string(),
-  startsAt: z.iso.datetime(),
-  endsAt: z.iso.datetime(),
+export const eventSchema = baseEventSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  started_at: z.string(),
+  ended_at: z.string(),
 });
 export type Event = z.infer<typeof eventSchema>;
 
-export const organizationSchema = z.object({
-  name: z.string(),
-  createdAt: z.iso.datetime(),
-});
+export const organizationSchema = baseOrganizationSchema.omit({ id: true }).extend({ created_at: z.string() });
 export type Organization = z.infer<typeof organizationSchema>;
 
-const transcriptSchema = z.object({
-  words: z.array(z.object({
-    text: z.string(),
-    start: z.iso.datetime(),
-    end: z.iso.datetime(),
-  })),
-});
-
-export const sessionSchema = z.object({
-  eventId: z.string().optional(),
-  humanId: z.string(),
-  createdAt: z.iso.datetime(),
-  title: z.string(),
-  raw_md: z.string(),
-  enhanced_md: z.string(),
+export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   transcript: jsonObject(transcriptSchema),
+  created_at: z.string(),
 });
 export type Session = z.infer<typeof sessionSchema>;
 
@@ -71,29 +57,32 @@ const SCHEMA = {
       table: { type: "string" },
     },
     sessions: {
-      eventId: { type: "string" },
-      humanId: { type: "string" },
-      createdAt: { type: "string" },
+      user_id: { type: "string" },
+      event_id: { type: "string" },
+      created_at: { type: "string" },
       title: { type: "string" },
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
       transcript: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof sessionSchema>,
     humans: {
+      user_id: { type: "string" },
       name: { type: "string" },
       email: { type: "string" },
-      createdAt: { type: "string" },
-      orgId: { type: "string" },
+      created_at: { type: "string" },
+      org_id: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof humanSchema>,
     organizations: {
+      user_id: { type: "string" },
       name: { type: "string" },
-      createdAt: { type: "string" },
+      created_at: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof organizationSchema>,
     events: {
-      humanId: { type: "string" },
+      user_id: { type: "string" },
+      created_at: { type: "string" },
       title: { type: "string" },
-      startsAt: { type: "string" },
-      endsAt: { type: "string" },
+      started_at: { type: "string" },
+      ended_at: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof eventSchema>,
   } as const satisfies TablesSchema,
 };
@@ -146,32 +135,32 @@ export const StoreComponent = () => {
         "sessionHuman",
         TABLE_SESSIONS,
         TABLE_HUMANS,
-        "humanId",
+        "user_id",
       ),
     [],
   )!;
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
-      .setIndexDefinition(INDEXES.humansByOrg, "humans", "orgId", "name")
+      .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
       .setIndexDefinition(
         INDEXES.eventsByDate,
         "events",
         (getCell) => {
-          const d = new Date(getCell("startsAt")!);
+          const d = new Date(getCell("started_at")!);
           return d.toISOString().slice(0, 10);
         },
-        "startsAt",
+        "started_at",
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
       ).setIndexDefinition(
         INDEXES.eventsByMonth,
         "events",
         (getCell) => {
-          const d = new Date(getCell("startsAt")!);
+          const d = new Date(getCell("started_at")!);
           return d.toISOString().slice(0, 7);
         },
-        "startsAt",
+        "started_at",
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
       ));

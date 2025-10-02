@@ -351,7 +351,7 @@ function MicrophoneSelector({
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <div className="flex h-10 rounded-lg border border-input overflow-hidden bg-background">
           <button
-            className="flex-1 min-w-0 flex items-center justify-center gap-2 transition-all hover:bg-accent focus-visible:outline-none focus-visible:bg-accent disabled:opacity-50 disabled:pointer-events-none"
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 transition-all hover:bg-accent focus-visible:outline-none focus-visible:bg-accent disabled:opacity-50 disabled:pointer-events-none px-2"
             disabled={disabled}
             onClick={onToggleMuted}
           >
@@ -451,7 +451,7 @@ function SpeakerButton({
       <Button
         variant="outline"
         onClick={onClick}
-        className="w-full h-10 flex items-center justify-center gap-2 transition-all hover:border-neutral-300"
+        className="w-full h-10 flex items-center justify-center gap-2 transition-all hover:border-neutral-300 px-2"
         disabled={disabled}
       >
         <Icon

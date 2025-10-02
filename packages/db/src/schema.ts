@@ -25,3 +25,13 @@ export const sessions = pgTable(TABLE_SESSIONS, {
   body: text("body").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const TABLE_EVENTS = "events";
+export const events = pgTable(TABLE_EVENTS, {
+  id: uuid("id").primaryKey().defaultRandom(),
+  humanId: uuid("human_id").notNull().references(() => humans.id),
+  title: text("title").notNull(),
+  startsAt: timestamp("starts_at").notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

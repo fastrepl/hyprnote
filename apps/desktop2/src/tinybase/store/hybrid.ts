@@ -1,6 +1,8 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
+  createIndexes,
   createMergeableStore,
+  createMetrics,
   createRelationships,
   type MergeableStore,
   type NoValuesSchema,
@@ -8,7 +10,7 @@ import {
 } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from "@hypr/db";
+import { TABLE_EVENTS, TABLE_HUMANS, TABLE_ORGANIZATIONS, TABLE_SESSIONS } from "@hypr/db";
 import { createCloudPersister } from "../cloudPersister";
 import { createLocalPersister } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
@@ -20,8 +22,17 @@ export const humanSchema = z.object({
   name: z.string(),
   email: z.string(),
   createdAt: z.string(),
+  orgId: z.string(),
 });
 export type Human = z.infer<typeof humanSchema>;
+
+export const eventSchema = z.object({
+  humanId: z.string(),
+  title: z.string(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+});
+export type Event = z.infer<typeof eventSchema>;
 
 export const organizationSchema = z.object({
   name: z.string(),
@@ -50,11 +61,18 @@ const TABLE_SCHEMA = {
     name: { type: "string" },
     email: { type: "string" },
     createdAt: { type: "string" },
+    orgId: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {
     name: { type: "string" },
     createdAt: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof organizationSchema>,
+  events: {
+    humanId: { type: "string" },
+    title: { type: "string" },
+    startsAt: { type: "string" },
+    endsAt: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof eventSchema>,
 } as const satisfies TablesSchema;
 
 type Schemas = [typeof TABLE_SCHEMA, NoValuesSchema];
@@ -65,7 +83,11 @@ const {
   useCreateSynchronizer,
   useCreateRelationships,
   useProvideStore,
+  useProvideIndexes,
   useProvideRelationships,
+  useProvideMetrics,
+  useCreateIndexes,
+  useCreateMetrics,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -105,6 +127,10 @@ export const StoreComponent = () => {
             tableId: TABLE_SESSIONS,
             ...shared,
           },
+          events: {
+            tableId: TABLE_EVENTS,
+            ...shared,
+          },
         },
         save: {
           humans: {
@@ -117,6 +143,10 @@ export const StoreComponent = () => {
           },
           sessions: {
             tableName: TABLE_SESSIONS,
+            ...shared,
+          },
+          events: {
+            tableName: TABLE_EVENTS,
             ...shared,
           },
         },
@@ -146,8 +176,40 @@ export const StoreComponent = () => {
     [],
   )!;
 
+  const indexes = useCreateIndexes(store, (store) =>
+    createIndexes(store)
+      .setIndexDefinition("humansByOrg", "humans", "orgId", "name")
+      .setIndexDefinition(
+        "eventsByDate",
+        "events",
+        (getCell) => {
+          const iso = getCell("startsAt")!;
+          const d = new Date(iso);
+          const dateKey = d.toISOString().slice(0, 10);
+          return dateKey;
+        },
+        "startsAt",
+        (a, b) => a.localeCompare(b),
+        (a, b) => String(a).localeCompare(String(b)),
+      ));
+
+  const metrics = useCreateMetrics(store, (store) =>
+    createMetrics(store).setMetricDefinition(
+      "totalHumans",
+      "humans",
+      "sum",
+      () => 1,
+    ).setMetricDefinition(
+      "totalOrganizations",
+      "organizations",
+      "sum",
+      () => 1,
+    ));
+
   useProvideStore(STORE_ID, store);
   useProvideRelationships(STORE_ID, relationships);
+  useProvideIndexes(STORE_ID, indexes!);
+  useProvideMetrics(STORE_ID, metrics!);
 
   return null;
 };

@@ -98,6 +98,8 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
+export const TABLES_TO_SYNC = Object.keys(SCHEMA.table).filter((key) => !key.startsWith("_"));
+
 const {
   useCreateMergeableStore,
   useCreatePersister,

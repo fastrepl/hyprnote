@@ -5,8 +5,6 @@ import * as persisted from "./store/persisted";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
-const TABLES = ["users", "sessions"];
-
 export const useCloudPersister = (store: persisted.Store) => {
   const user_id = store.getValue("_user_id");
   if (!user_id) {
@@ -18,7 +16,7 @@ export const useCloudPersister = (store: persisted.Store) => {
   const save = useCallback(async () => {}, []);
 
   const load = useCallback(async () => {
-    const steams = TABLES.map((table) => {
+    const steams = persisted.TABLES_TO_SYNC.map((table) => {
       const metaRow = Object.values(metaTable).find((row) => row.table === table);
 
       const resumable: {
@@ -70,7 +68,7 @@ export const useCloudPersister = (store: persisted.Store) => {
       }),
     );
 
-    const results = TABLES.reduce((acc, table, index) => {
+    const results = persisted.TABLES_TO_SYNC.reduce((acc, table, index) => {
       acc[table] = resultsArray[index];
       return acc;
     }, {} as Record<string, Message[]>);
@@ -78,5 +76,7 @@ export const useCloudPersister = (store: persisted.Store) => {
     return results;
   }, [metaTable]);
 
-  return { save, load };
+  const sync = useCallback(() => save().then(() => load()), [save, load]);
+
+  return { sync };
 };

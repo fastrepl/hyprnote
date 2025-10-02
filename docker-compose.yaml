@@ -35,9 +35,9 @@ services:
   drizzle-studio:
     image: ghcr.io/drizzle-team/gateway:latest
     ports:
-      - "4983:4983"
+      - "5555:5555"
     environment:
-      PORT: 4983
+      PORT: 5555
       STORE_PATH: /app
       MASTERPASS: dev
     volumes:

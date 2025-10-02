@@ -1,8 +1,6 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createMergeableStore,
-  createQueries,
-  createRelationships,
   type MergeableStore,
   type NoTablesSchema,
   type ValuesSchema,
@@ -21,8 +19,6 @@ const VALUES_SCHEMA = {
 const {
   useCreateMergeableStore,
   useCreateSynchronizer,
-  useCreateRelationships,
-  useCreateQueries,
   useProvideStore,
 } = _UI as _UI.WithSchemas<Schemas>;
 
@@ -38,18 +34,6 @@ export const StoreComponent = () => {
     async (store) => createLocalSynchronizer(store),
     [],
     (sync) => sync.startSync(),
-  );
-
-  useCreateRelationships(
-    store,
-    (store) => createRelationships(store),
-    [],
-  );
-
-  useCreateQueries(
-    store,
-    (store) => createQueries(store),
-    [],
   );
 
   useProvideStore(STORE_ID, store);

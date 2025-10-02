@@ -6,14 +6,38 @@ import * as persisted from "./store/persisted";
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
 export const useCloudPersister = (store: persisted.Store) => {
+  const save = useCloudSaver(store);
+  const load = useCloudLoader(store);
+
+  const sync = useCallback(
+    () =>
+      save()
+        .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+        .then(() => load()),
+    [save, load],
+  );
+
+  return sync;
+};
+
+const useCloudSaver = (store: persisted.Store) => {
   const user_id = store.getValue("_user_id");
   if (!user_id) {
-    throw new Error("'user_id' is not set");
+    throw new Error("'_user_id' is not set");
+  }
+
+  const save = useCallback(async () => {}, []);
+
+  return save;
+};
+
+const useCloudLoader = (store: persisted.Store) => {
+  const user_id = store.getValue("_user_id");
+  if (!user_id) {
+    throw new Error("'_user_id' is not set");
   }
 
   const metaTable = store.getTable("_electric")!;
-
-  const save = useCallback(async () => {}, []);
 
   const load = useCallback(async () => {
     const steams = persisted.TABLES_TO_SYNC.map((table) => {
@@ -76,7 +100,5 @@ export const useCloudPersister = (store: persisted.Store) => {
     return results;
   }, [metaTable]);
 
-  const sync = useCallback(() => save().then(() => load()), [save, load]);
-
-  return { sync };
+  return load;
 };

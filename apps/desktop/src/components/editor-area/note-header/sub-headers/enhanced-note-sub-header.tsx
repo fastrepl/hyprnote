@@ -39,13 +39,27 @@ export function EnhancedNoteSubHeader({
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: () =>
-      TemplateService.getAllTemplates().then((templates) =>
-        templates.map((template) => {
+      TemplateService.getAllTemplates().then((templates) => {
+        const sortedTemplates = templates.sort((a, b) => {
+          const aIsBuiltin = a.tags?.includes("builtin") || false;
+          const bIsBuiltin = b.tags?.includes("builtin") || false;
+
+          if (aIsBuiltin === bIsBuiltin) {
+            return 0;
+          }
+          return aIsBuiltin ? 1 : -1; // custom templates come first
+        });
+
+        return sortedTemplates.map((template) => {
           const title = template.title || "Untitled";
           const truncatedTitle = title.length > 30 ? title.substring(0, 30) + "..." : title;
-          return { id: template.id, title: truncatedTitle, fullTitle: template.title || "" };
-        })
-      ),
+          return {
+            id: template.id,
+            title: truncatedTitle,
+            fullTitle: template.title || "",
+          };
+        });
+      }),
     refetchOnWindowFocus: true,
   });
 
@@ -56,6 +70,13 @@ export function EnhancedNoteSubHeader({
       return type === "HyprLocal" ? connection.api_base : null;
     },
   });
+
+  const handleTemplateDropdownChange = (open: boolean) => {
+    setIsTemplateDropdownOpen(open);
+    if (open) {
+      templatesQuery.refetch();
+    }
+  };
 
   const handleRegenerateOrCancel = () => {
     if (isEnhancing) {
@@ -79,11 +100,11 @@ export function EnhancedNoteSubHeader({
       const actualTemplateId = templateId === "auto" ? null : templateId;
       onEnhance({ triggerType: "template", templateId: actualTemplateId });
     }
-    setIsTemplateDropdownOpen(false);
+    handleTemplateDropdownChange(false);
   };
 
   const handleAddTemplate = async () => {
-    setIsTemplateDropdownOpen(false);
+    handleTemplateDropdownChange(false);
     try {
       await windowsCommands.windowShow({ type: "settings" });
       await windowsCommands.windowNavigate({ type: "settings" }, "/app/settings?tab=templates");
@@ -144,37 +165,13 @@ export function EnhancedNoteSubHeader({
     <div className="flex items-center justify-end px-8 pt-2 pb-0.5">
       {/* Regenerate button */}
       <div className="flex items-center gap-2">
-        {
-          /* Share button
-        <Popover open={isShareDropdownOpen} onOpenChange={handleShareOpenChange}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-6 px-3 hover:bg-neutral-100"
-            >
-              <Share2 size={14} className="mr-1.5" />
-              Share
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-80 p-3 focus:outline-none focus:ring-0 focus:ring-offset-0"
-            align="end"
-            sideOffset={4}
-          >
-            <SharePopoverContent />
-          </PopoverContent>
-        </Popover>
-        */
-        }
-
         {/* Regenerate button with template dropdown */}
-        <Popover open={isTemplateDropdownOpen} onOpenChange={setIsTemplateDropdownOpen}>
+        <Popover open={isTemplateDropdownOpen} onOpenChange={handleTemplateDropdownChange}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              onClick={isEnhancing ? handleRegenerateOrCancel : () => setIsTemplateDropdownOpen(true)}
+              onClick={isEnhancing ? handleRegenerateOrCancel : () => handleTemplateDropdownChange(true)}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               disabled={false}
@@ -269,7 +266,7 @@ export function EnhancedNoteSubHeader({
                 <span className="truncate">No Template (Default)</span>
               </div>
 
-              {/* Custom templates */}
+              {/* Templates */}
               {templatesQuery.data && templatesQuery.data.length > 0 && (
                 <>
                   <div className="my-1 border-t border-neutral-200"></div>

@@ -148,6 +148,8 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
   const currentDeviceQuery = useQuery({
     queryKey: ["microphone", "current-device"],
     queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
+    retry: 5,
+    retryDelay: 500,
   });
 
   const handleSelectDevice = (device: string) => {

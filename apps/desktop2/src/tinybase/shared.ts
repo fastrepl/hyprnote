@@ -6,12 +6,12 @@ export const StoreOrMergeableStore = 3;
 export const BROADCAST_CHANNEL_NAME = "hypr-window-sync";
 
 export const jsonObject = <T extends z.ZodTypeAny>(schema: T) => {
-  return z.string().transform((str, ctx) => {
+  return z.union([z.string(), z.any()]).transform((input, ctx) => {
     try {
-      const parsed = JSON.parse(str);
+      const parsed = typeof input === "string" ? JSON.parse(input) : input;
       return schema.parse(parsed);
     } catch (e) {
-      ctx.addIssue({ code: "invalid_value", values: [str] });
+      ctx.addIssue({ code: "custom", message: String(e) });
       return z.NEVER;
     }
   });

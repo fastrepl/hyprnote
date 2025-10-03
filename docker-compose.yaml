@@ -1,49 +1,47 @@
 services:
-  caddy:
-    image: caddy:2-alpine
-    container_name: admin-caddy
+  postgres:
+    image: docker.io/postgres:16-alpine
+    environment:
+      POSTGRES_DB: electric
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "80:80"
-      - "443:443"
+      - "54321:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+      - /tmp
+    command:
+      - -c
+      - listen_addresses=*
+      - -c
+      - wal_level=logical
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  electric:
+    image: docker.io/electricsql/electric:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/electric?sslmode=disable
+      ELECTRIC_INSECURE: true
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  drizzle-studio:
+    image: ghcr.io/drizzle-team/gateway:latest
+    ports:
+      - "5555:5555"
+    environment:
+      PORT: 5555
+      STORE_PATH: /app
+      MASTERPASS: dev
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    restart: unless-stopped
-    networks:
-      - admin-network
-
-  owhisper:
-    build:
-      context: ./
-      dockerfile: ./owhisper/owhisper-server/Dockerfile
-    container_name: admin-owhisper
-    ports:
-      - "8081:8081"
-    environment:
-      - OWHISPER_PORT=8081
-    restart: unless-stopped
-    networks:
-      - admin-network
-
-  server:
-    build:
-      context: ./
-      dockerfile: ./admin/server/Dockerfile
-    container_name: admin-server
-    ports:
-      - "8082:8082"
-    environment:
-      - NODE_ENV=production
-      - PORT=8082
-    restart: unless-stopped
-    networks:
-      - admin-network
-
-networks:
-  admin-network:
-    driver: bridge
-
-volumes:
-  caddy_data:
-  caddy_config:
+      - ./.drizzle:/app
+    depends_on:
+      postgres:
+        condition: service_healthy

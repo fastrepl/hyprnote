@@ -10,11 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppNoteRouteImport } from './routes/app.note'
 import { Route as AppNewRouteImport } from './routes/app.new'
+import { Route as AppFinderRouteImport } from './routes/app.finder'
+import { Route as AppOrganizationIdRouteImport } from './routes/app.organization.$id'
+import { Route as AppNoteIdRouteImport } from './routes/app.note.$id'
+import { Route as AppHumanIdRouteImport } from './routes/app.human.$id'
+import { Route as AppFinderCalendarRouteImport } from './routes/app.finder.calendar'
 
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/app/settings',
+  path: '/app/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppNoteRoute = AppNoteRouteImport.update({
+  id: '/app/note',
+  path: '/app/note',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppNewRoute = AppNewRouteImport.update({
@@ -22,31 +39,110 @@ const AppNewRoute = AppNewRouteImport.update({
   path: '/app/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppFinderRoute = AppFinderRouteImport.update({
+  id: '/app/finder',
+  path: '/app/finder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppOrganizationIdRoute = AppOrganizationIdRouteImport.update({
+  id: '/app/organization/$id',
+  path: '/app/organization/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppNoteIdRoute = AppNoteIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppNoteRoute,
+} as any)
+const AppHumanIdRoute = AppHumanIdRouteImport.update({
+  id: '/app/human/$id',
+  path: '/app/human/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppFinderCalendarRoute = AppFinderCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AppFinderRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
+  '/app/note': typeof AppNoteRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
+  '/app/human/$id': typeof AppHumanIdRoute
+  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesByTo {
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
+  '/app/note': typeof AppNoteRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
+  '/app/human/$id': typeof AppHumanIdRoute
+  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/app/finder': typeof AppFinderRouteWithChildren
   '/app/new': typeof AppNewRoute
+  '/app/note': typeof AppNoteRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
+  '/app/finder/calendar': typeof AppFinderCalendarRoute
+  '/app/human/$id': typeof AppHumanIdRoute
+  '/app/note/$id': typeof AppNoteIdRoute
+  '/app/organization/$id': typeof AppOrganizationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/app/new' | '/app'
+  fullPaths:
+    | '/app/finder'
+    | '/app/new'
+    | '/app/note'
+    | '/app/settings'
+    | '/app'
+    | '/app/finder/calendar'
+    | '/app/human/$id'
+    | '/app/note/$id'
+    | '/app/organization/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app/new' | '/app'
-  id: '__root__' | '/app/new' | '/app/'
+  to:
+    | '/app/finder'
+    | '/app/new'
+    | '/app/note'
+    | '/app/settings'
+    | '/app'
+    | '/app/finder/calendar'
+    | '/app/human/$id'
+    | '/app/note/$id'
+    | '/app/organization/$id'
+  id:
+    | '__root__'
+    | '/app/finder'
+    | '/app/new'
+    | '/app/note'
+    | '/app/settings'
+    | '/app/'
+    | '/app/finder/calendar'
+    | '/app/human/$id'
+    | '/app/note/$id'
+    | '/app/organization/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AppFinderRoute: typeof AppFinderRouteWithChildren
   AppNewRoute: typeof AppNewRoute
+  AppNoteRoute: typeof AppNoteRouteWithChildren
+  AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppHumanIdRoute: typeof AppHumanIdRoute
+  AppOrganizationIdRoute: typeof AppOrganizationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +154,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/app/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/note': {
+      id: '/app/note'
+      path: '/app/note'
+      fullPath: '/app/note'
+      preLoaderRoute: typeof AppNoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/new': {
       id: '/app/new'
       path: '/app/new'
@@ -65,12 +175,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/finder': {
+      id: '/app/finder'
+      path: '/app/finder'
+      fullPath: '/app/finder'
+      preLoaderRoute: typeof AppFinderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/organization/$id': {
+      id: '/app/organization/$id'
+      path: '/app/organization/$id'
+      fullPath: '/app/organization/$id'
+      preLoaderRoute: typeof AppOrganizationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/note/$id': {
+      id: '/app/note/$id'
+      path: '/$id'
+      fullPath: '/app/note/$id'
+      preLoaderRoute: typeof AppNoteIdRouteImport
+      parentRoute: typeof AppNoteRoute
+    }
+    '/app/human/$id': {
+      id: '/app/human/$id'
+      path: '/app/human/$id'
+      fullPath: '/app/human/$id'
+      preLoaderRoute: typeof AppHumanIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/finder/calendar': {
+      id: '/app/finder/calendar'
+      path: '/calendar'
+      fullPath: '/app/finder/calendar'
+      preLoaderRoute: typeof AppFinderCalendarRouteImport
+      parentRoute: typeof AppFinderRoute
+    }
   }
 }
 
+interface AppFinderRouteChildren {
+  AppFinderCalendarRoute: typeof AppFinderCalendarRoute
+}
+
+const AppFinderRouteChildren: AppFinderRouteChildren = {
+  AppFinderCalendarRoute: AppFinderCalendarRoute,
+}
+
+const AppFinderRouteWithChildren = AppFinderRoute._addFileChildren(
+  AppFinderRouteChildren,
+)
+
+interface AppNoteRouteChildren {
+  AppNoteIdRoute: typeof AppNoteIdRoute
+}
+
+const AppNoteRouteChildren: AppNoteRouteChildren = {
+  AppNoteIdRoute: AppNoteIdRoute,
+}
+
+const AppNoteRouteWithChildren =
+  AppNoteRoute._addFileChildren(AppNoteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
+  AppFinderRoute: AppFinderRouteWithChildren,
   AppNewRoute: AppNewRoute,
+  AppNoteRoute: AppNoteRouteWithChildren,
+  AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppHumanIdRoute: AppHumanIdRoute,
+  AppOrganizationIdRoute: AppOrganizationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

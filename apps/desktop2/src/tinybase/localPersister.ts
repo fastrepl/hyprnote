@@ -1,18 +1,25 @@
-import { createCustomSqlitePersister } from "tinybase/persisters";
+import { createCustomSqlitePersister, DpcJson } from "tinybase/persisters/with-schemas";
+import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands as db2Commands } from "@hypr/plugin-db2";
-import { mainStore } from ".";
+import { MergeableStoreOnly } from "./shared";
 
-export const localPersister = createCustomSqlitePersister(
-  mainStore,
-  { mode: "json" },
-  async (sql: string, args: any[] = []): Promise<any> => (await db2Commands.executeLocal(sql, args)),
-  () => {},
-  (unsubscribeFunction: any): any => unsubscribeFunction(),
-  console.log,
-  console.error,
-  () => {},
-  2, // MergeableStoreOnly
-  db2Commands,
-  "getClient",
-);
+export const LOCAL_PERSISTER_ID = "local-persister";
+
+export function createLocalPersister<Schemas extends OptionalSchemas>(
+  store: MergeableStore<Schemas>,
+  config: Omit<DpcJson, "mode">,
+) {
+  return createCustomSqlitePersister(
+    store,
+    { mode: "json", ...config },
+    async (sql: string, args: any[] = []): Promise<any> => (await db2Commands.executeLocal(sql, args)),
+    () => {},
+    (unsubscribeFunction: any): any => unsubscribeFunction(),
+    false ? console.log.bind(console, "[LocalPersister]") : () => {},
+    false ? console.error.bind(console, "[LocalPersister]") : () => {},
+    () => {},
+    MergeableStoreOnly,
+    null,
+  );
+}

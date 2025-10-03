@@ -22,6 +22,8 @@ tauri = { workspace = true, features = ["specta", "macos-private-api"] }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-db2 = { workspace = true }
+tauri-plugin-listener = { workspace = true }
+tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
@@ -35,6 +37,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 sentry = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+tracing = { workspace = true }
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

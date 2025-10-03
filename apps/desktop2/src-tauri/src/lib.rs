@@ -40,6 +40,8 @@ pub async fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_db2::init())
+        .plugin(tauri_plugin_listener::init())
+        .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_windows::init());
 
@@ -59,6 +61,30 @@ pub async fn main() {
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
             let app = app.handle().clone();
+
+            let app_clone = app.clone();
+
+            let postgres_url = {
+                #[cfg(debug_assertions)]
+                {
+                    "postgresql://postgres:password@localhost:54321/electric"
+                }
+                #[cfg(not(debug_assertions))]
+                {
+                    env!("POSTGRES_URL").to_string()
+                }
+            };
+
+            tokio::spawn(async move {
+                use tauri_plugin_db2::Database2PluginExt;
+
+                if let Err(e) = app_clone.init_local().await {
+                    tracing::error!("failed_to_init_local: {}", e);
+                }
+                if let Err(e) = app_clone.init_cloud(postgres_url).await {
+                    tracing::error!("failed_to_init_cloud: {}", e);
+                }
+            });
 
             specta_builder.mount_events(&app);
             Ok(())

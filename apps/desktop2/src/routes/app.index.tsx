@@ -1,24 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useRow } from "tinybase/ui-react";
-
-import { mainStore } from "../tinybase";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/app/")({
   component: Component,
 });
 
 function Component() {
-  const row = useRow("users", "1", mainStore);
-
-  useEffect(() => {
-    mainStore.setTables({ users: { "1": { name: "John" } } });
-  }, []);
-
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-      <p>{JSON.stringify(row)}</p>
-    </main>
+    <div className="flex flex-col gap-6 min-h-screen w-full items-center justify-center">
+      <h1 className="text-2xl font-bold">Nothing here</h1>
+      <Link to="/app/new" className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md">
+        New note
+      </Link>
+    </div>
   );
 }

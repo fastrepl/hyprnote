@@ -1,0 +1,22 @@
+{
+  "id": "4f19233e-87d1-4523-aa45-ba9506810177",
+  "name": "dev",
+  "slots": [
+    [
+      "593b0317-c4ea-46a7-a9ba-a41688d84085",
+      {
+        "id": "593b0317-c4ea-46a7-a9ba-a41688d84085",
+        "name": "dev",
+        "dialect": "postgresql",
+        "credentials": {
+          "host": "postgres",
+          "port": "5432",
+          "user": "postgres",
+          "password": "password",
+          "database": "electric",
+          "ssl": false
+        }
+      }
+    ]
+  ]
+}

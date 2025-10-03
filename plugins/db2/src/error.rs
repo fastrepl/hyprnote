@@ -4,6 +4,8 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     PostgresError(#[from] tokio_postgres::Error),
+    #[error(transparent)]
+    HyprDbError(#[from] hypr_db_core::Error),
 }
 
 impl Serialize for Error {

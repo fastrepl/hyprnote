@@ -35,7 +35,12 @@ function Component() {
     persisted.STORE_ID,
   );
 
-  const _ = useValidatedRow(persisted.configSchema, config, handleUpdate);
+  const r = useValidatedRow(persisted.configSchema, config, handleUpdate);
 
-  return <pre>{JSON.stringify(config, null, 2)}</pre>;
+  return (
+    <div>
+      <pre>{JSON.stringify(config, null, 2)}</pre>
+      <pre>{JSON.stringify(r, null, 2)}</pre>
+    </div>
+  );
 }

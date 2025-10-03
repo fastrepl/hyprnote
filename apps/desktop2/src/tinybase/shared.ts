@@ -24,7 +24,7 @@ type InferCellSchema<T> = T extends string | undefined ? { type: "string"; defau
   : T extends string ? { type: "string"; default?: string }
   : T extends number ? { type: "number"; default?: number }
   : T extends boolean ? { type: "boolean"; default?: boolean }
-  : T extends object ? { type: "string" } // Handle transformed objects as strings
+  : T extends object ? { type: "string" }
   : never;
 
 export type InferTinyBaseSchema<T> = T extends { _output: infer Output } ? {

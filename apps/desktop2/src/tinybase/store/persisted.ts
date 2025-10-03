@@ -88,7 +88,6 @@ export const configSchema = baseConfigSchema.omit({ id: true }).extend({
 export const chatGroupSchema = baseChatGroupSchema.omit({ id: true }).extend({ created_at: z.string() });
 export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
   created_at: z.string(),
-  chat_group_id: z.string(),
 });
 
 export type Human = z.infer<typeof humanSchema>;
@@ -200,6 +199,7 @@ const SCHEMA = {
     chat_groups: {
       user_id: { type: "string" },
       created_at: { type: "string" },
+      title: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
     chat_messages: {
       user_id: { type: "string" },
@@ -207,6 +207,8 @@ const SCHEMA = {
       chat_group_id: { type: "string" },
       role: { type: "string" },
       content: { type: "string" },
+      metadata: { type: "string" },
+      parts: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
   } as const satisfies TablesSchema,
 };

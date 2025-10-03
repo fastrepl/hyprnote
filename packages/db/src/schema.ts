@@ -98,14 +98,19 @@ export const configs = pgTable(TABLE_CONFIGS, {
 export const TABLE_CHAT_GROUPS = "chat_groups";
 export const chatGroups = pgTable(TABLE_CHAT_GROUPS, {
   ...SHARED,
+  title: text("title").notNull(),
 });
 
 export const TABLE_CHAT_MESSAGES = "chat_messages";
 export const chatMessages = pgTable(TABLE_CHAT_MESSAGES, {
   ...SHARED,
   chat_group_id: uuid("chat_group_id").notNull().references(() => chatGroups.id, { onDelete: "cascade" }),
+  // https://ai-sdk.dev/docs/reference/ai-sdk-ui/use-chat#messages
   role: text("role").notNull(),
   content: text("content").notNull(),
+  metadata: json("metadata"),
+  // https://ai-sdk.dev/docs/reference/ai-sdk-core/ui-message#uimessagepart-types
+  parts: json("parts"),
 });
 
 export const transcriptSchema = z.object({

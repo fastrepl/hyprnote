@@ -212,6 +212,7 @@ const createChatGroup = () => ({
   data: {
     user_id: USER_ID,
     created_at: faker.date.recent({ days: 30 }).toISOString(),
+    title: faker.lorem.words({ min: 2, max: 5 }),
   } satisfies ChatGroup,
 });
 
@@ -223,6 +224,8 @@ const createChatMessage = (chat_group_id: string, role: "user" | "assistant") =>
     role,
     content: faker.lorem.sentences({ min: 1, max: 3 }),
     created_at: faker.date.recent({ days: 30 }).toISOString(),
+    metadata: {},
+    parts: [],
   } satisfies ChatMessage,
 });
 

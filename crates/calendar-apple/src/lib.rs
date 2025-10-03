@@ -252,7 +252,7 @@ impl CalendarSource for Handle {
                     participants: participant_list,
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
-                    google_event_url: None,
+                    event_external_url: None,
                     is_recurring,
                 })
             })

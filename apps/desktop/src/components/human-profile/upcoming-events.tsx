@@ -58,9 +58,9 @@ export function UpcomingEvents({ human }: { human: Human }) {
                       </p>
                       {event.note && <p className="mt-2 text-sm text-zinc-600">{event.note}</p>}
                     </div>
-                    {event.google_event_url && (
+                    {event.event_external_url && (
                       <a
-                        href={event.google_event_url}
+                        href={event.event_external_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-zinc-400 hover:text-zinc-600 transition-colors ml-2"

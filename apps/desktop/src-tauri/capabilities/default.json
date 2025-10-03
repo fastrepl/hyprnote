@@ -37,6 +37,7 @@
     "sfx:default",
     "windows:default",
     "auth:default",
+    "google-calendar:default",
     "tray:default",
     "store:default",
     "store2:default",

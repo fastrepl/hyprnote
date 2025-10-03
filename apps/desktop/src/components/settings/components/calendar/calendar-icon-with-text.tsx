@@ -1,4 +1,4 @@
-import { RiAppleFill as AppleIcon } from "@remixicon/react";
+import { RiAppleFill as AppleIcon, RiGoogleFill as GoogleIcon } from "@remixicon/react";
 
 import { type CalendarIntegration } from "@/types";
 
@@ -8,7 +8,7 @@ export function CalendarIconWithText({ type }: { type: CalendarIntegration }) {
       {type === "apple-calendar"
         ? <AppleIcon size={16} />
         : type === "google-calendar"
-        ? <GoogleIcon />
+        ? <GoogleIcon size={16} />
         : <OutlookIcon />}
       <span className="text-sm">
         {type === "apple-calendar"
@@ -21,10 +21,6 @@ export function CalendarIconWithText({ type }: { type: CalendarIntegration }) {
       </span>
     </div>
   );
-}
-
-export function GoogleIcon() {
-  return <img className="h-4 w-4" src="/icons/gcal.svg" />;
 }
 
 export function OutlookIcon() {

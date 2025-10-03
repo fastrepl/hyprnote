@@ -103,7 +103,7 @@ impl CalendarSource for Handle {
                     participants,
                     start_date: start,
                     end_date: end,
-                    google_event_url: Some(event.html_link.clone()),
+                    event_external_url: Some(event.html_link.clone()),
                     is_recurring: false,
                 }
             })

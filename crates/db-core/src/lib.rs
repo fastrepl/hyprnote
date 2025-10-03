@@ -182,7 +182,19 @@ pub async fn migrate(
         let tx = conn.transaction().await?;
 
         for migration in migrations.iter().skip(current_version as usize) {
-            tx.execute(migration.as_ref(), ()).await?;
+            // Split multiple SQL statements and execute each one separately
+            let migration_content = migration.as_ref().trim();
+            if migration_content.is_empty() {
+                continue;
+            }
+            
+            // Split by semicolon and execute each statement
+            for statement in migration_content.split(';') {
+                let statement = statement.trim();
+                if !statement.is_empty() {
+                    tx.execute(statement, ()).await?;
+                }
+            }
         }
 
         tracking.set(&tx, latest_version).await?;

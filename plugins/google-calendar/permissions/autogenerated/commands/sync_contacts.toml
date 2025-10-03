@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-sync-contacts"
+description = "Enables the sync_contacts command without any pre-configured scope."
+commands.allow = ["sync_contacts"]
+
+[[permission]]
+identifier = "deny-sync-contacts"
+description = "Denies the sync_contacts command without any pre-configured scope."
+commands.deny = ["sync_contacts"]

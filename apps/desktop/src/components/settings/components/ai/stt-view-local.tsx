@@ -12,7 +12,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { SharedSTTProps, STTModel } from "./shared";
 
-const DEFAULT_MODEL_KEYS = ["QuantizedSmall"];
+const DEFAULT_MODEL_KEYS = ["QuantizedSmall", "QuantizedBase"];
 const OTHER_MODEL_KEYS = [
   "QuantizedTiny",
   "QuantizedTinyEn",
@@ -56,6 +56,8 @@ export function STTViewLocal({
   provider,
   setProviderToLocal,
 }: STTViewProps) {
+
+  console.log("sttModels", sttModels);
   const { userId } = useHypr();
   const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
 
@@ -125,6 +127,9 @@ export function STTViewLocal({
       DEFAULT_MODEL_KEYS.includes(model.key)
       || (OTHER_MODEL_KEYS.includes(model.key) && model.downloaded)
     ), [sttModels]);
+
+
+  console.log("modelsToShow", modelsToShow);
 
   // ----------------------------------------
   // Render

@@ -80,7 +80,6 @@ async fn _sync_calendars(
             .cloned()
             .collect::<Vec<hypr_db_user::Calendar>>();
 
-        tracing::info!("calendars_to_delete_len: {}", items.len());
         items
     };
 
@@ -100,11 +99,14 @@ async fn _sync_calendars(
                     platform: sys_c.platform.clone().into(),
                     selected: existing.map_or(false, |c| c.selected),
                     source: sys_c.source.clone(),
+                    connection_status: Some("connected".to_string()),
+                    account_id: Some("local".to_string()), // Apple Calendar is local to the device
+                    last_sync_error: None, // Clear any previous errors
+                    last_sync_at: Some(chrono::Utc::now().to_rfc3339()),
                 }
             })
             .collect::<Vec<hypr_db_user::Calendar>>();
 
-        tracing::info!("calendars_to_upsert_len: {}", items.len());
         items
     };
 
@@ -170,7 +172,7 @@ async fn _sync_events(
                         note: matching_event.note.clone(),
                         start_date: matching_event.start_date,
                         end_date: matching_event.end_date,
-                        google_event_url: db_event.google_event_url.clone(),
+                        event_external_url: db_event.event_external_url.clone(),
                         participants: Some(
                             serde_json::to_string(&matching_event.participants)
                                 .unwrap_or_else(|_| "[]".to_string()),
@@ -202,7 +204,6 @@ async fn _sync_events(
                 ) {
                     //temporary prevention
                     if rescheduled_event.is_recurring {
-                        //tracing::info!("Skipping recurring event: {}", rescheduled_event.id);
                         continue;
                     }
 
@@ -215,7 +216,7 @@ async fn _sync_events(
                         note: rescheduled_event.note.clone(),
                         start_date: rescheduled_event.start_date,
                         end_date: rescheduled_event.end_date,
-                        google_event_url: db_event.google_event_url.clone(),
+                        event_external_url: db_event.event_external_url.clone(),
                         participants: Some(
                             serde_json::to_string(&rescheduled_event.participants)
                                 .unwrap_or_else(|_| "[]".to_string()),
@@ -297,7 +298,7 @@ async fn _sync_events(
                                 note: system_event.note.clone(),
                                 start_date: system_event.start_date,
                                 end_date: system_event.end_date,
-                                google_event_url: None,
+                                event_external_url: None,
                                 participants: Some(
                                     serde_json::to_string(&system_event.participants)
                                         .unwrap_or_else(|_| "[]".to_string()),
@@ -321,7 +322,7 @@ async fn _sync_events(
                     note: system_event.note.clone(),
                     start_date: system_event.start_date,
                     end_date: system_event.end_date,
-                    google_event_url: None,
+                    event_external_url: None,
                     participants: Some(
                         serde_json::to_string(&system_event.participants)
                             .unwrap_or_else(|_| "[]".to_string()),
@@ -388,10 +389,6 @@ async fn list_system_events_for_calendars(
 ) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
     let now = Utc::now();
 
-    for (i, id) in calendar_tracking_ids.iter().enumerate() {
-        tracing::info!("  Calendar {}: tracking_id={}", i + 1, id);
-    }
-
     tauri::async_runtime::spawn_blocking(move || {
         let handle = hypr_calendar_apple::Handle::new();
 
@@ -407,7 +404,6 @@ async fn list_system_events_for_calendars(
             // Add small delay between API calls to avoid overwhelming EventKit
             if i > 0 {
                 std::thread::sleep(std::time::Duration::from_millis(50));
-                tracing::info!("  Applied 50ms delay after calendar {}", i);
             }
 
             let events = match tokio::runtime::Handle::try_current() {
@@ -422,17 +418,6 @@ async fn list_system_events_for_calendars(
                     rt.block_on(handle.list_events(filter)).unwrap_or_default()
                 }
             };
-
-            for event in &events {
-                tracing::info!(
-                    "System event: '{}' | participants: {:?} | is_recurring: {} | start_date: {} | tracking_id: {}",
-                    event.name,
-                    event.participants,
-                    event.is_recurring,
-                    event.start_date,
-                    event.id,
-                );
-            }
 
             results.insert(calendar_tracking_id.clone(), events);
         }

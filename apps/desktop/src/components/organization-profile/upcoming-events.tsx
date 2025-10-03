@@ -65,9 +65,9 @@ export function UpcomingEvents({
                       </p>
                       {event.note && <p className="mt-2 text-sm">{event.note}</p>}
                     </div>
-                    {event.google_event_url && (
+                    {event.event_external_url && (
                       <a
-                        href={event.google_event_url}
+                        href={event.event_external_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800"

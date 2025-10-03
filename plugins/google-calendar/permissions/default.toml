@@ -1,0 +1,29 @@
+[default]
+description = "Default permissions for the Google Calendar plugin"
+permissions = [
+    "allow-calendar-access-status",
+    "allow-contacts-access-status",
+    "allow-get-auth-status",
+    "allow-request-calendar-access",
+    "allow-request-contacts-access",
+    "allow-request-combined-access",
+    "allow-handle-oauth-callback",
+    "allow-sync-calendars",
+    "allow-get-calendars",
+    "allow-sync-events",
+    "allow-sync-contacts",
+    "allow-get-contacts",
+    "allow-search-contacts",
+    "allow-revoke-access",
+    "allow-refresh-tokens",
+    # Multi-account permissions
+    "allow-get-connected-accounts",
+    "allow-add-google-account",
+    "allow-remove-google-account",
+    "allow-get-calendars-for-account",
+    "allow-get-contacts-for-account",
+    "allow-get-calendar-selections",
+    "allow-set-calendar-selected",
+    "allow-start-worker",
+    "allow-stop-worker",
+]

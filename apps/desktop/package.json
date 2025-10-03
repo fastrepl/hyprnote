@@ -21,6 +21,7 @@
     "@hypr/plugin-analytics": "workspace:^",
     "@hypr/plugin-apple-calendar": "workspace:^",
     "@hypr/plugin-auth": "workspace:^",
+    "@hypr/plugin-google-calendar": "workspace:^",
     "@hypr/plugin-connector": "workspace:^",
     "@hypr/plugin-db": "workspace:^",
     "@hypr/plugin-flags": "workspace:^",

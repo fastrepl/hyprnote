@@ -1,10 +1,11 @@
 import { type CalendarIntegration } from "@/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { AppleCalendarIntegrationDetails, CalendarIconWithText } from "../components/calendar";
+import { GoogleCalendarIntegrationDetails } from "../components/calendar/google-calendar-integration-details";
 
 const supportedIntegrations: CalendarIntegration[] = [
   "apple-calendar",
-  // "google-calendar",
+  "google-calendar",
   // "outlook-calendar",
 ];
 
@@ -30,7 +31,8 @@ function Integration({ type }: { type: CalendarIntegration }) {
           <CalendarIconWithText type={type} />
         </AccordionTrigger>
         <AccordionContent className="px-2">
-          <AppleCalendarIntegrationDetails />
+          { type === "apple-calendar" && <AppleCalendarIntegrationDetails /> }
+          { type === "google-calendar" && <GoogleCalendarIntegrationDetails /> }
         </AccordionContent>
       </AccordionItem>
     </Accordion>

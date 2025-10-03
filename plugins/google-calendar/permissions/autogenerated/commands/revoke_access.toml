@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-revoke-access"
+description = "Enables the revoke_access command without any pre-configured scope."
+commands.allow = ["revoke_access"]
+
+[[permission]]
+identifier = "deny-revoke-access"
+description = "Denies the revoke_access command without any pre-configured scope."
+commands.deny = ["revoke_access"]

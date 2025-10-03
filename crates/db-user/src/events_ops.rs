@@ -39,7 +39,7 @@ impl UserDatabase {
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url,
+                    event_external_url = :event_external_url,
                     participants = :participants,
                     is_recurring = :is_recurring
                 WHERE id = :id
@@ -52,7 +52,7 @@ impl UserDatabase {
                     ":note": event.note,
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
-                    ":google_event_url": event.google_event_url,
+                    ":event_external_url": event.event_external_url,
                     ":participants": event.participants,
                     ":is_recurring": event.is_recurring,
                 },
@@ -85,7 +85,7 @@ impl UserDatabase {
                     note,
                     start_date,
                     end_date,
-                    google_event_url,
+                    event_external_url,
                     participants,
                     is_recurring
                 ) VALUES (
@@ -97,7 +97,7 @@ impl UserDatabase {
                     :note,
                     :start_date,
                     :end_date,
-                    :google_event_url,
+                    :event_external_url,
                     :participants,
                     :is_recurring
                 ) ON CONFLICT(tracking_id) DO UPDATE SET
@@ -105,7 +105,7 @@ impl UserDatabase {
                     note = :note,
                     start_date = :start_date,
                     end_date = :end_date,
-                    google_event_url = :google_event_url,
+                    event_external_url = :event_external_url,
                     participants = :participants,
                     is_recurring = :is_recurring
                 RETURNING *",
@@ -118,7 +118,7 @@ impl UserDatabase {
                     ":note": event.note,
                     ":start_date": event.start_date.to_rfc3339(),
                     ":end_date": event.end_date.to_rfc3339(),
-                    ":google_event_url": event.google_event_url,
+                    ":event_external_url": event.event_external_url,
                     ":participants": event.participants,
                     ":is_recurring": event.is_recurring,
                 },
@@ -245,14 +245,14 @@ mod tests {
             note: "test".to_string(),
             start_date: chrono::Utc::now(),
             end_date: chrono::Utc::now(),
-            google_event_url: None,
+            event_external_url: None,
             participants: None,
             is_recurring: false,
         };
 
         let event = db.upsert_event(event).await.unwrap();
         assert_eq!(event.tracking_id, "event_test");
-        assert_eq!(event.google_event_url, None);
+        assert_eq!(event.event_external_url, None);
 
         let events = db.list_events(None).await.unwrap();
         assert_eq!(events.len(), 1);

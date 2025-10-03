@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@tauri-apps/api": ["./node_modules/@tauri-apps/api"]
+    }
+  },
+  "include": ["js/**/*"]
+}

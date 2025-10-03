@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-handle-oauth-callback"
+description = "Enables the handle_oauth_callback command without any pre-configured scope."
+commands.allow = ["handle_oauth_callback"]
+
+[[permission]]
+identifier = "deny-handle-oauth-callback"
+description = "Denies the handle_oauth_callback command without any pre-configured scope."
+commands.deny = ["handle_oauth_callback"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-add-google-account"
+description = "Enables the add_google_account command without any pre-configured scope."
+commands.allow = ["add_google_account"]
+
+[[permission]]
+identifier = "deny-add-google-account"
+description = "Denies the add_google_account command without any pre-configured scope."
+commands.deny = ["add_google_account"]

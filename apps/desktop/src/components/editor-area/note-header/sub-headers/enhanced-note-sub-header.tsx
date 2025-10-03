@@ -43,18 +43,20 @@ export function EnhancedNoteSubHeader({
         const sortedTemplates = templates.sort((a, b) => {
           const aIsBuiltin = a.tags?.includes("builtin") || false;
           const bIsBuiltin = b.tags?.includes("builtin") || false;
-          
-          if (aIsBuiltin === bIsBuiltin) return 0;
+
+          if (aIsBuiltin === bIsBuiltin) {
+            return 0;
+          }
           return aIsBuiltin ? 1 : -1; // custom templates come first
         });
-        
+
         return sortedTemplates.map((template) => {
           const title = template.title || "Untitled";
           const truncatedTitle = title.length > 30 ? title.substring(0, 30) + "..." : title;
-          return { 
-            id: template.id, 
-            title: truncatedTitle, 
-            fullTitle: template.title || ""
+          return {
+            id: template.id,
+            title: truncatedTitle,
+            fullTitle: template.title || "",
           };
         });
       }),

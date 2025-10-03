@@ -1,6 +1,7 @@
 import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
+import * as internal from "./store/internal";
 import * as persisted from "./store/persisted";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
@@ -16,9 +17,9 @@ type OutgoingChangeMessage<T extends Record<string, unknown>> = {
   operation: "insert" | "update";
 };
 
-export const useCloudPersister = (store: persisted.Store) => {
-  const save = useCloudSaver(store);
-  const load = useCloudLoader(store);
+export const useCloudPersister = () => {
+  const save = useCloudSaver();
+  const load = useCloudLoader();
 
   const sync = useCallback(
     () =>
@@ -31,14 +32,17 @@ export const useCloudPersister = (store: persisted.Store) => {
   return sync;
 };
 
-const useCloudSaver = (store: persisted.Store) => {
+const useCloudSaver = () => {
+  const store = persisted.UI.useStore(persisted.STORE_ID)!;
+  const store2 = internal.UI.useStore(internal.STORE_ID)!;
+
   const user_id = store.getValue("_user_id");
   if (!user_id) {
     throw new Error("'_user_id' is not set");
   }
 
   const save = useCallback(async () => {
-    const changesTable = store.getTable("_changes")!;
+    const changesTable = store2.getTable("_changes")!;
     const tables = store.getTables();
 
     const changesLookup = new Map(
@@ -57,7 +61,7 @@ const useCloudSaver = (store: persisted.Store) => {
       return Object.entries(table)
         .map(([rowId, rowData]) => {
           const changeRow = changesLookup.get(`${tableName}:${rowId}`);
-          if (changeRow?.operation === "delete") {
+          if (changeRow?.deleted) {
             return {
               table: tableName,
               row_id: rowId,
@@ -83,7 +87,9 @@ const useCloudSaver = (store: persisted.Store) => {
   return save;
 };
 
-const useCloudLoader = (store: persisted.Store) => {
+const useCloudLoader = () => {
+  const store = persisted.UI.useStore(persisted.STORE_ID)!;
+
   const user_id = store.getValue("_user_id");
   if (!user_id) {
     throw new Error("'_user_id' is not set");

@@ -31,6 +31,7 @@ import {
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
 import { InferTinyBaseSchema, jsonObject } from "../shared";
+import * as internal from "./internal";
 
 export const STORE_ID = "persisted";
 
@@ -114,11 +115,6 @@ const SCHEMA = {
       offset: { type: "string" },
       handle: { type: "string" },
       table: { type: "string" },
-    },
-    _changes: {
-      row_id: { type: "string" },
-      table: { type: "string" },
-      operation: { type: "string" }, // "insert" | "update"
     },
     sessions: {
       user_id: { type: "string" },
@@ -230,6 +226,7 @@ const {
   useCreateMetrics,
   useProvidePersister,
   useProvideQueries,
+  useDidFinishTransactionListener,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -237,6 +234,34 @@ export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 export const StoreComponent = () => {
+  const store2 = internal.UI.useCreateMergeableStore(() =>
+    createMergeableStore()
+      .setTablesSchema(internal.SCHEMA.table)
+      .setValuesSchema(internal.SCHEMA.value)
+  );
+
+  useDidFinishTransactionListener(
+    () => {
+      const [changedTables, _changedValues] = store.getTransactionChanges();
+
+      store2.transaction(() => {
+        Object.entries(changedTables).forEach(([tableId, rows]) => {
+          Object.entries(rows).forEach(([rowId, cells]) => {
+            const changeId = `${tableId}_${rowId}`;
+            store2.setRow("_changes", changeId, {
+              row_id: rowId,
+              table: tableId,
+              deleted: !cells,
+              updated: !!cells,
+            });
+          });
+        });
+      });
+    },
+    [],
+    STORE_ID,
+  );
+
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -245,7 +270,12 @@ export const StoreComponent = () => {
 
   const localPersister = useCreatePersister(
     store,
-    (store) => createLocalPersister<Schemas>(store as Store, { storeTableName: STORE_ID, storeIdColumnName: "id" }),
+    (store) =>
+      createLocalPersister<Schemas>(store as Store, {
+        storeTableName: STORE_ID,
+        storeIdColumnName: "id",
+        autoLoadIntervalSeconds: 9999,
+      }),
     [],
     (persister) => persister.startAutoPersisting(),
   );
@@ -377,6 +407,8 @@ export const StoreComponent = () => {
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
+
+  internal.UI.useProvideStore(internal.STORE_ID, store2);
 
   return null;
 };

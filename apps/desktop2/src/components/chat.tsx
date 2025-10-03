@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import * as memory from "../tinybase/store/memory";
 import * as persisted from "../tinybase/store/persisted";
 import { id } from "../utils";
@@ -24,6 +26,24 @@ export function Chat() {
     [],
     persisted.STORE_ID,
   );
+
+  const handleSubmitMessage = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const message = formData.get("message");
+    if (message) {
+      handleAddMessage({
+        user_id: "TODO",
+        chat_group_id: currentChatGroupId,
+        role: "user",
+        content: "TODO",
+        metadata: "TODO",
+        parts: JSON.stringify([]),
+        created_at: new Date().toISOString(),
+      });
+    }
+  }, [handleAddMessage, currentChatGroupId]);
 
   const messageIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.chatMessagesByGroup,
@@ -59,24 +79,7 @@ export function Chat() {
         {messageIds?.map((messageId) => <ChatMessage key={messageId} messageId={messageId} />)}
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formData = new FormData(e.currentTarget);
-          const message = formData.get("message");
-          if (message) {
-            handleAddMessage({
-              user_id: "TODO",
-              chat_group_id: currentChatGroupId,
-              role: "user",
-              content: "TODO",
-              metadata: "TODO",
-              parts: JSON.stringify([]),
-              created_at: new Date().toISOString(),
-            });
-          }
-        }}
-      >
+      <form onSubmit={handleSubmitMessage}>
         <input
           name="message"
           type="text"

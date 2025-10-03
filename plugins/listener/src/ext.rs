@@ -54,12 +54,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         if let Some(cell) = registry::where_is(SessionActor::name()) {
             let actor: ActorRef<SessionMsg> = cell.into();
 
-            match call_t!(actor, SessionMsg::GetMicDeviceName, 100) {
+            match call_t!(actor, SessionMsg::GetMicDeviceName, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Ok(None)
+            Err(crate::Error::ActorNotFound(SessionActor::name()))
         }
     }
 

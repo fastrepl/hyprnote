@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createMergeableStore,
@@ -6,6 +7,7 @@ import {
   type ValuesSchema,
 } from "tinybase/with-schemas";
 
+import { id } from "../../utils";
 import { createLocalSynchronizer } from "../localSynchronizer";
 
 export const STORE_ID = "memory";
@@ -40,4 +42,23 @@ export const StoreComponent = () => {
   useProvideStore(STORE_ID, store);
 
   return null;
+};
+
+export const useCurrentChatGroupId = (): string => {
+  const currentValue = UI.useValue("current_chat_group_id", STORE_ID);
+  const setValue = UI.useSetValueCallback(
+    "current_chat_group_id",
+    (id: string) => id,
+    [],
+    STORE_ID,
+  );
+
+  useEffect(() => {
+    if (!currentValue) {
+      const newId = id();
+      setValue(newId);
+    }
+  }, [currentValue, setValue]);
+
+  return currentValue || "";
 };

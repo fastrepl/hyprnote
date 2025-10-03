@@ -1,8 +1,9 @@
 import * as memory from "../tinybase/store/memory";
 import * as persisted from "../tinybase/store/persisted";
+import { id } from "../utils";
 
 export function Chat() {
-  const currentChatGroupId = memory.UI.useValue("current_chat_group_id", memory.STORE_ID);
+  const currentChatGroupId = memory.useCurrentChatGroupId();
   const chatGroupIds = persisted.UI.useSortedRowIds("chat_groups", "created_at", false, 0, 5, persisted.STORE_ID);
 
   const setCurrentChatGroupId = memory.UI.useSetValueCallback(
@@ -12,26 +13,36 @@ export function Chat() {
     memory.STORE_ID,
   );
 
-  const messageIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.chatMessagesByGroup,
-    String(currentChatGroupId ?? ""),
+  const handleAddMessage = persisted.UI.useSetRowCallback(
+    "chat_messages",
+    id(),
+    (row: persisted.ChatMessage) => ({
+      ...row,
+      metadata: JSON.stringify(row.metadata),
+      parts: JSON.stringify(row.parts),
+    } satisfies persisted.ChatMessage),
+    [],
     persisted.STORE_ID,
   );
 
-  if (!currentChatGroupId) {
+  const messageIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.chatMessagesByGroup,
+    currentChatGroupId,
+    persisted.STORE_ID,
+  );
+
+  if (!currentChatGroupId || !messageIds?.length) {
     return (
       <div className="border border-gray-300 rounded p-2">
         <div className="text-gray-500">Select or create a chat group</div>
 
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-col gap-2">
           {chatGroupIds?.map((chatGroupId) => (
-            <button
+            <ChatGroup
               key={chatGroupId}
-              className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
-              onClick={() => setCurrentChatGroupId(chatGroupId)}
-            >
-              {chatGroupId}
-            </button>
+              id={chatGroupId}
+              handleClick={() => setCurrentChatGroupId(chatGroupId)}
+            />
           ))}
         </div>
       </div>
@@ -47,6 +58,42 @@ export function Chat() {
       <div className="space-y-2">
         {messageIds?.map((messageId) => <ChatMessage key={messageId} messageId={messageId} />)}
       </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const message = formData.get("message");
+          if (message) {
+            handleAddMessage({
+              user_id: "TODO",
+              chat_group_id: currentChatGroupId,
+              role: "user",
+              content: "TODO",
+              metadata: "TODO",
+              parts: JSON.stringify([]),
+              created_at: new Date().toISOString(),
+            });
+          }
+        }}
+      >
+        <input
+          name="message"
+          type="text"
+          className="border border-gray-300 rounded p-2"
+        />
+        <button className="border border-gray-300 rounded p-2">Send</button>
+      </form>
+    </div>
+  );
+}
+
+function ChatGroup({ id, handleClick }: { id: string; handleClick: () => void }) {
+  const chatGroup = persisted.UI.useRow("chat_groups", id, persisted.STORE_ID);
+
+  return (
+    <div className="p-2 rounded bg-gray-50" onClick={handleClick}>
+      <div className="text-xs text-gray-500 mb-1">{chatGroup?.title}</div>
     </div>
   );
 }

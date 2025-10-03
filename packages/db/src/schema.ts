@@ -1,4 +1,4 @@
-import { json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -76,6 +76,25 @@ export const templates = pgTable(TABLE_TEMPLATES, {
   sections: json("sections").notNull(),
 });
 
+export const TABLE_CONFIGS = "configs";
+export const configs = pgTable(TABLE_CONFIGS, {
+  ...SHARED,
+  autostart: boolean("autostart").notNull().default(false),
+  display_language: text("display_language").notNull().default("en"),
+  spoken_languages: json("spoken_languages").notNull().default([]),
+  jargons: json("jargons").notNull().default([]),
+  telemetry_consent: boolean("telemetry_consent").notNull().default(true),
+  save_recordings: boolean("save_recordings").default(false),
+  selected_template_id: uuid("selected_template_id"),
+  summary_language: text("summary_language").notNull().default("en"),
+  notification_before: boolean("notification_before").notNull().default(true),
+  notification_auto: boolean("notification_auto").notNull().default(true),
+  notification_ignored_platforms: json("notification_ignored_platforms"),
+  ai_api_base: text("ai_api_base"),
+  ai_api_key: text("ai_api_key"),
+  ai_specificity: text("ai_specificity").default("3"),
+});
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const eventSchema = createSelectSchema(events);
@@ -85,6 +104,7 @@ export const mappingEventParticipantSchema = createSelectSchema(mappingEventPart
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
 export const templateSchema = createSelectSchema(templates);
+export const configSchema = createSelectSchema(configs);
 
 export const transcriptSchema = z.object({
   words: z.array(z.object({

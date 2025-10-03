@@ -3,6 +3,7 @@ import {
   createIndexes,
   createMergeableStore,
   createMetrics,
+  createQueries,
   createRelationships,
   type MergeableStore,
   type TablesSchema,
@@ -12,6 +13,7 @@ import { z } from "zod";
 
 import {
   calendarSchema as baseCalendarSchema,
+  configSchema as baseConfigSchema,
   eventSchema as baseEventSchema,
   humanSchema as baseHumanSchema,
   mappingEventParticipantSchema as baseMappingEventParticipantSchema,
@@ -69,6 +71,18 @@ export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
   sections: jsonObject(z.array(templateSectionSchema)),
 });
 
+export const configSchema = baseConfigSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  spoken_languages: jsonObject(z.array(z.string())),
+  jargons: jsonObject(z.array(z.string())),
+  notification_ignored_platforms: jsonObject(z.array(z.string()).optional()),
+  save_recordings: z.preprocess(val => val ?? undefined, z.boolean().optional()),
+  selected_template_id: z.preprocess(val => val ?? undefined, z.string().optional()),
+  ai_api_base: z.preprocess(val => val ?? undefined, z.string().optional()),
+  ai_api_key: z.preprocess(val => val ?? undefined, z.string().optional()),
+  ai_specificity: z.preprocess(val => val ?? undefined, z.string().optional()),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
@@ -79,6 +93,7 @@ export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
+export type Config = z.infer<typeof configSchema>;
 
 const SCHEMA = {
   value: {
@@ -154,6 +169,24 @@ const SCHEMA = {
       description: { type: "string" },
       sections: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof templateSchema>,
+    configs: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      autostart: { type: "boolean" },
+      display_language: { type: "string" },
+      spoken_languages: { type: "string" },
+      jargons: { type: "string" },
+      telemetry_consent: { type: "boolean" },
+      save_recordings: { type: "boolean" },
+      selected_template_id: { type: "string" },
+      summary_language: { type: "string" },
+      notification_before: { type: "boolean" },
+      notification_auto: { type: "boolean" },
+      notification_ignored_platforms: { type: "string" },
+      ai_api_base: { type: "string" },
+      ai_api_key: { type: "string" },
+      ai_specificity: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof configSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -165,6 +198,7 @@ const {
   useCreatePersister,
   useCreateSynchronizer,
   useCreateRelationships,
+  useCreateQueries,
   useProvideStore,
   useProvideIndexes,
   useProvideRelationships,
@@ -172,6 +206,7 @@ const {
   useCreateIndexes,
   useCreateMetrics,
   useProvidePersister,
+  useProvideQueries,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -242,6 +277,28 @@ export const StoreComponent = () => {
     [],
   )!;
 
+  const queries = useCreateQueries(store, (store) =>
+    createQueries(store)
+      .setQueryDefinition(QUERIES.configForUser, "configs", ({ select, where }) => {
+        select("user_id");
+        select("created_at");
+        select("autostart");
+        select("display_language");
+        select("spoken_languages");
+        select("jargons");
+        select("telemetry_consent");
+        select("save_recordings");
+        select("selected_template_id");
+        select("summary_language");
+        select("notification_before");
+        select("notification_auto");
+        select("notification_ignored_platforms");
+        select("ai_api_base");
+        select("ai_api_key");
+        select("ai_specificity");
+        where((getCell) => getCell("user_id") === store.getValue("_user_id"));
+      }), [])!;
+
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
@@ -286,11 +343,16 @@ export const StoreComponent = () => {
 
   useProvideStore(STORE_ID, store);
   useProvideRelationships(STORE_ID, relationships);
+  useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
 
   return null;
+};
+
+export const QUERIES = {
+  configForUser: "configForUser",
 };
 
 export const METRICS = {

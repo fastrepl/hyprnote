@@ -14,6 +14,7 @@ const VALUES_SCHEMA = {
   state: { type: "string" },
   amplitude_mic: { type: "number" },
   amplitude_speaker: { type: "number" },
+  current_chat_group_id: { type: "string" },
 } as const satisfies ValuesSchema;
 
 const {

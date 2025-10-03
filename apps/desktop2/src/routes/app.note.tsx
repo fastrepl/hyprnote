@@ -21,21 +21,24 @@ function Component() {
   return (
     <div className="flex flex-row">
       <Sidebar />
-      <Outlet />
 
-      <div className="flex flex-col gap-2">
-        <button
-          className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
-          onClick={handleClickSettings}
-        >
-          Setting
-        </button>
-        <button
-          className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
-          onClick={handleClickNewNote}
-        >
-          New note
-        </button>
+      <div className="flex flex-col">
+        <div className="flex flex-row gap-2">
+          <button
+            className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
+            onClick={handleClickSettings}
+          >
+            Setting
+          </button>
+          <button
+            className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
+            onClick={handleClickNewNote}
+          >
+            New note
+          </button>
+        </div>
+
+        <Outlet />
       </div>
     </div>
   );

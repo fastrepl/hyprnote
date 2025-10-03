@@ -4,6 +4,8 @@ import type { Tables } from "tinybase/with-schemas";
 import { id } from "../utils";
 import type {
   Calendar,
+  ChatGroup,
+  ChatMessage,
   Event,
   Human,
   MappingEventParticipant,
@@ -205,6 +207,25 @@ const createTemplate = () => {
   };
 };
 
+const createChatGroup = () => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    created_at: faker.date.recent({ days: 30 }).toISOString(),
+  } satisfies ChatGroup,
+});
+
+const createChatMessage = (chat_group_id: string, role: "user" | "assistant") => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    chat_group_id,
+    role,
+    content: faker.lorem.sentences({ min: 1, max: 3 }),
+    created_at: faker.date.recent({ days: 30 }).toISOString(),
+  } satisfies ChatMessage,
+});
+
 const createEvent = (calendar_id: string) => {
   const timePattern = faker.helpers.weightedArrayElement([
     { weight: 10, value: "past-recent" },
@@ -286,6 +307,8 @@ const generateMockData = (config: MockConfig) => {
   const tags: Record<string, any> = {};
   const mapping_tag_session: Record<string, any> = {};
   const templates: Record<string, any> = {};
+  const chat_groups: Record<string, any> = {};
+  const chat_messages: Record<string, any> = {};
 
   const orgIds = Array.from({ length: config.organizations }, () => {
     const org = createOrganization();
@@ -327,7 +350,6 @@ const generateMockData = (config: MockConfig) => {
       events[event.id] = event.data;
       eventsByHuman[humanId].push(event);
 
-      // Create mapping entry
       const mapping = createMappingEventParticipant(event.id, humanId);
       mapping_event_participant[mapping.id] = mapping.data;
     });
@@ -335,14 +357,12 @@ const generateMockData = (config: MockConfig) => {
 
   const now = new Date();
 
-  // Create tags
   const tagIds = Array.from({ length: 8 }, () => {
     const tag = createTag();
     tags[tag.id] = tag.data;
     return tag.id;
   });
 
-  // Create templates
   Array.from({ length: 5 }, () => {
     const template = createTemplate();
     templates[template.id] = template.data;
@@ -372,7 +392,6 @@ const generateMockData = (config: MockConfig) => {
     });
   });
 
-  // Create tag-session mappings
   sessionIds.forEach((sessionId) => {
     const shouldTag = faker.datatype.boolean({ probability: 0.6 });
     if (shouldTag) {
@@ -385,6 +404,21 @@ const generateMockData = (config: MockConfig) => {
     }
   });
 
+  const chatGroupIds = Array.from({ length: 5 }, () => {
+    const group = createChatGroup();
+    chat_groups[group.id] = group.data;
+    return group.id;
+  });
+
+  chatGroupIds.forEach((groupId) => {
+    const messageCount = faker.number.int({ min: 3, max: 10 });
+    Array.from({ length: messageCount }, (_, i) => {
+      const role = i % 2 === 0 ? "user" : "assistant";
+      const message = createChatMessage(groupId, role);
+      chat_messages[message.id] = message.data;
+    });
+  });
+
   return {
     organizations,
     humans,
@@ -395,6 +429,8 @@ const generateMockData = (config: MockConfig) => {
     tags,
     mapping_tag_session,
     templates,
+    chat_groups,
+    chat_messages,
   };
 };
 

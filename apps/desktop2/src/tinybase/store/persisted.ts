@@ -13,6 +13,8 @@ import { z } from "zod";
 
 import {
   calendarSchema as baseCalendarSchema,
+  chatGroupSchema as baseChatGroupSchema,
+  chatMessageSchema as baseChatMessageSchema,
   configSchema as baseConfigSchema,
   eventSchema as baseEventSchema,
   humanSchema as baseHumanSchema,
@@ -83,6 +85,12 @@ export const configSchema = baseConfigSchema.omit({ id: true }).extend({
   ai_specificity: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
+export const chatGroupSchema = baseChatGroupSchema.omit({ id: true }).extend({ created_at: z.string() });
+export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  chat_group_id: z.string(),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
@@ -94,6 +102,8 @@ export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type Config = z.infer<typeof configSchema>;
+export type ChatGroup = z.infer<typeof chatGroupSchema>;
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 const SCHEMA = {
   value: {
@@ -187,6 +197,17 @@ const SCHEMA = {
       ai_api_key: { type: "string" },
       ai_specificity: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof configSchema>,
+    chat_groups: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
+    chat_messages: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      chat_group_id: { type: "string" },
+      role: { type: "string" },
+      content: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -273,6 +294,12 @@ export const StoreComponent = () => {
           "mapping_tag_session",
           "sessions",
           "session_id",
+        )
+        .setRelationshipDefinition(
+          "chatMessageToGroup",
+          "chat_messages",
+          "chat_groups",
+          "chat_group_id",
         ),
     [],
   )!;
@@ -326,7 +353,8 @@ export const StoreComponent = () => {
       )
       .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
       .setIndexDefinition(INDEXES.tagSessionsBySession, "mapping_tag_session", "session_id")
-      .setIndexDefinition(INDEXES.tagSessionsByTag, "mapping_tag_session", "tag_id"));
+      .setIndexDefinition(INDEXES.tagSessionsByTag, "mapping_tag_session", "tag_id")
+      .setIndexDefinition(INDEXES.chatMessagesByGroup, "chat_messages", "chat_group_id", "created_at"));
 
   const metrics = useCreateMetrics(store, (store) =>
     createMetrics(store).setMetricDefinition(
@@ -368,4 +396,5 @@ export const INDEXES = {
   tagsByName: "tagsByName",
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",
+  chatMessagesByGroup: "chatMessagesByGroup",
 };

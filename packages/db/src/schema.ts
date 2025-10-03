@@ -95,6 +95,28 @@ export const configs = pgTable(TABLE_CONFIGS, {
   ai_specificity: text("ai_specificity").default("3"),
 });
 
+export const TABLE_CHAT_GROUPS = "chat_groups";
+export const chatGroups = pgTable(TABLE_CHAT_GROUPS, {
+  ...SHARED,
+});
+
+export const TABLE_CHAT_MESSAGES = "chat_messages";
+export const chatMessages = pgTable(TABLE_CHAT_MESSAGES, {
+  ...SHARED,
+  chat_group_id: uuid("chat_group_id").notNull().references(() => chatGroups.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+});
+
+export const transcriptSchema = z.object({
+  words: z.array(z.object({
+    speaker: z.string(),
+    text: z.string(),
+    start: z.iso.datetime(),
+    end: z.iso.datetime(),
+  })),
+});
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const eventSchema = createSelectSchema(events);
@@ -105,12 +127,5 @@ export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
 export const templateSchema = createSelectSchema(templates);
 export const configSchema = createSelectSchema(configs);
-
-export const transcriptSchema = z.object({
-  words: z.array(z.object({
-    speaker: z.string(),
-    text: z.string(),
-    start: z.iso.datetime(),
-    end: z.iso.datetime(),
-  })),
-});
+export const chatGroupSchema = createSelectSchema(chatGroups);
+export const chatMessageSchema = createSelectSchema(chatMessages);

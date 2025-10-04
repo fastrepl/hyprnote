@@ -5,6 +5,7 @@ import { useRightPanel } from "@/contexts";
 import type { SelectionData } from "@/contexts/right-panel";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { type SelectionData, useRightPanel } from "@hypr/utils/contexts";
 import { BadgeType } from "../../types/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";

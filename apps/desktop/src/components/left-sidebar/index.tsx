@@ -3,10 +3,10 @@ import { useMatch } from "@tanstack/react-router";
 import { addDays, subHours } from "date-fns";
 import { AnimatePresence, LayoutGroup } from "motion/react";
 
-import { useHypr, useHyprSearch, useLeftSidebar } from "@/contexts";
+import { useHypr, useHyprSearch } from "@/contexts";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { useOngoingSession, useSessions } from "@hypr/utils/contexts";
+import { useLeftSidebar, useOngoingSession, useSessions } from "@hypr/utils/contexts";
 import EventsList from "./events-list";
 import NotesList from "./notes-list";
 import OngoingSession from "./ongoing-session";

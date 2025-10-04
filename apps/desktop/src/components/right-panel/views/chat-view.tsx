@@ -2,11 +2,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { showProGateModal } from "@/components/pro-gate-modal/service";
-import { useHypr, useRightPanel } from "@/contexts";
+import { useHypr } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { useSessions } from "@hypr/utils/contexts";
+import { useRightPanel, useSessions } from "@hypr/utils/contexts";
 import {
   ChatHistoryView,
   ChatInput,

@@ -84,6 +84,12 @@ pub async fn main() {
                 }
             };
 
+            {
+                use tauri_plugin_tray::TrayPluginExt;
+                app.create_tray_menu().unwrap();
+                app.create_app_menu().unwrap();
+            }
+
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
@@ -100,6 +106,11 @@ pub async fn main() {
         })
         .build(tauri::generate_context!())
         .unwrap();
+
+    if true {
+        let app_handle = app.handle().clone();
+        HyprWindow::Main.show(&app_handle).unwrap();
+    }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]

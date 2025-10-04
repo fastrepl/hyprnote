@@ -1,6 +1,6 @@
-import { useRightPanel } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizablePanel } from "@hypr/ui/components/ui/resizable";
+import { useRightPanel } from "@hypr/utils/contexts";
 import { ChatView } from "./views";
 
 export default function RightPanel() {

@@ -9,6 +9,9 @@
 export const commands = {
 async logsDir() : Promise<string> {
     return await TAURI_INVOKE("plugin:tracing|logs_dir");
+},
+async doLog(level: Level, data: JsonValue[]) : Promise<null> {
+    return await TAURI_INVOKE("plugin:tracing|do_log", { level, data });
 }
 }
 
@@ -22,7 +25,8 @@ async logsDir() : Promise<string> {
 
 /** user-defined types **/
 
-
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type Level = "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR"
 
 /** tauri-specta globals **/
 

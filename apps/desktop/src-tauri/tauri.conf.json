@@ -11,6 +11,7 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "withGlobalTauri": true,
     "macOSPrivateApi": true,
     "security": {
       "csp": null

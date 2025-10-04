@@ -22,16 +22,17 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .plugin_name(PLUGIN_NAME)
         .events(tauri_specta::collect_events![])
         .commands(tauri_specta::collect_commands![
-            commands::logs_dir::<tauri::Wry>
+            commands::logs_dir::<tauri::Wry>,
+            commands::do_log::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
-
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .js_init_script(JS_INIT_SCRIPT)
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 

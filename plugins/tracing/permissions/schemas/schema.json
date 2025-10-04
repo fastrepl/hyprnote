@@ -295,16 +295,16 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the hi command without any pre-configured scope.",
+          "description": "Enables the do_log command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-hi",
-          "markdownDescription": "Enables the hi command without any pre-configured scope."
+          "const": "allow-do-log",
+          "markdownDescription": "Enables the do_log command without any pre-configured scope."
         },
         {
-          "description": "Denies the hi command without any pre-configured scope.",
+          "description": "Denies the do_log command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-hi",
-          "markdownDescription": "Denies the hi command without any pre-configured scope."
+          "const": "deny-do-log",
+          "markdownDescription": "Denies the do_log command without any pre-configured scope."
         },
         {
           "description": "Enables the logs_dir command without any pre-configured scope.",
@@ -319,22 +319,10 @@
           "markdownDescription": "Denies the logs_dir command without any pre-configured scope."
         },
         {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-logs-dir`\n- `allow-do-log`"
         }
       ]
     }

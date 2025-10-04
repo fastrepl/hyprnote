@@ -4022,6 +4022,7 @@ dependencies = [
  "tauri-plugin-sentry",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
+ "tauri-plugin-tracing",
  "tauri-plugin-windows",
  "tauri-specta",
  "tokio",

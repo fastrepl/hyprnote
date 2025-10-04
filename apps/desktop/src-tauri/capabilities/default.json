@@ -4,7 +4,6 @@
   "description": "Capability for Hyprnote",
   "windows": ["*"],
   "platforms": ["macOS", "windows", "linux"],
-  "withGlobalTauri": true,
   "permissions": [
     "core:default",
     "core:window:default",

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar, Clock, ExternalLink } from "lucide-react";
@@ -78,7 +77,7 @@ export function UpcomingEvents({ human }: { human: Human }) {
         : (
           <EmptyState
             icon={<Calendar className="h-14 w-14" />}
-            title={<Trans>No upcoming events with this contact</Trans>}
+            title={<p>No upcoming events with this contact</p>}
           />
         )}
     </div>

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect } from "react";
@@ -99,30 +98,28 @@ export function STTViewRemote({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
-                    <Trans>Custom Speech-to-Text endpoint</Trans>
+                    Custom Speech-to-Text endpoint
                   </span>
                   <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                     Preview
                   </span>
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>
-                    Connect to{" "}
-                    <span
-                      className="text-blue-500 hover:underline"
-                      onClick={() => openUrl("https://deepgram.com")}
-                    >
-                      Deepgram
-                    </span>{" "}
-                    directly, or use{" "}
-                    <span
-                      className="text-blue-500 hover:underline"
-                      onClick={() => openUrl("https://docs.hyprnote.com/owhisper/what-is-this")}
-                    >
-                      OWhisper
-                    </span>{" "}
-                    for other provider support.
-                  </Trans>
+                  Connect to{" "}
+                  <span
+                    className="text-blue-500 hover:underline"
+                    onClick={() => openUrl("https://deepgram.com")}
+                  >
+                    Deepgram
+                  </span>{" "}
+                  directly, or use{" "}
+                  <span
+                    className="text-blue-500 hover:underline"
+                    onClick={() => openUrl("https://docs.hyprnote.com/owhisper/what-is-this")}
+                  >
+                    OWhisper
+                  </span>{" "}
+                  for other provider support.
                 </p>
               </div>
             </div>
@@ -135,7 +132,7 @@ export function STTViewRemote({
                   {/* Base URL Section */}
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
-                      <Trans>Base URL</Trans>
+                      Base URL
                     </h3>
                     <FormField
                       control={form.control}
@@ -143,7 +140,7 @@ export function STTViewRemote({
                       render={({ field }) => (
                         <FormItem>
                           <FormDescription className="text-xs">
-                            <Trans>Enter the base URL for your custom STT endpoint</Trans>
+                            Enter the base URL for your custom STT endpoint
                           </FormDescription>
                           <FormControl>
                             <Input
@@ -163,7 +160,7 @@ export function STTViewRemote({
                   {/* API Key Section */}
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
-                      <Trans>API Key</Trans>
+                      API Key
                     </h3>
                     <FormField
                       control={form.control}
@@ -171,7 +168,7 @@ export function STTViewRemote({
                       render={({ field }) => (
                         <FormItem>
                           <FormDescription className="text-xs">
-                            <Trans>Your authentication key for accessing the STT service</Trans>
+                            Your authentication key for accessing the STT service
                           </FormDescription>
                           <FormControl>
                             <Input
@@ -191,7 +188,7 @@ export function STTViewRemote({
                   {/* Model Section */}
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
-                      <Trans>Model</Trans>
+                      Model
                     </h3>
                     <FormField
                       control={form.control}
@@ -199,7 +196,7 @@ export function STTViewRemote({
                       render={({ field }) => (
                         <FormItem>
                           <FormDescription className="text-xs">
-                            <Trans>Enter the model name required by your STT endpoint</Trans>
+                            Enter the model name required by your STT endpoint
                           </FormDescription>
                           <FormControl>
                             <Input

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { FolderSearch } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -23,7 +22,7 @@ export function FinderButton() {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <Trans>Open finder view</Trans>
+        Open finder view
       </TooltipContent>
     </Tooltip>
   );

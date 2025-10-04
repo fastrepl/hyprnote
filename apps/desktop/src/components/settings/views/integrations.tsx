@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
+
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -121,10 +121,10 @@ export default function IntegrationsComponent() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium">
-          <Trans>Integrations</Trans>
+          Integrations
         </h3>
         <p className="text-sm text-muted-foreground">
-          <Trans>Connect with external tools and services to enhance your workflow</Trans>
+          Connect with external tools and services to enhance your workflow
         </p>
       </div>
 
@@ -133,10 +133,10 @@ export default function IntegrationsComponent() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h4 className="text-base font-medium">
-                <Trans>Obsidian</Trans>
+                Obsidian
               </h4>
               <p className="text-sm text-muted-foreground">
-                <Trans>Connect your Obsidian vault to export notes</Trans>
+                Connect your Obsidian vault to export notes
               </p>
             </div>
           </div>
@@ -150,12 +150,10 @@ export default function IntegrationsComponent() {
                   <FormItem className="flex flex-row items-center justify-between">
                     <div className="space-y-0.5">
                       <FormLabel className="text-sm font-medium">
-                        <Trans>Enable Integration</Trans>
+                        Enable Integration
                       </FormLabel>
                       <FormDescription>
-                        <Trans>
-                          Turn on Obsidian integration to export notes to Obsidian vault.
-                        </Trans>
+                        Turn on Obsidian integration to export notes to Obsidian vault.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -176,7 +174,7 @@ export default function IntegrationsComponent() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <Trans>Base URL</Trans>
+                          Base URL
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -185,9 +183,7 @@ export default function IntegrationsComponent() {
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>
-                            The base URL of your Obsidian server. This is typically http://127.0.0.1:27123.
-                          </Trans>
+                          The base URL of your Obsidian server. This is typically http://127.0.0.1:27123.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -200,7 +196,7 @@ export default function IntegrationsComponent() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <Trans>API Key</Trans>
+                          API Key
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -210,9 +206,7 @@ export default function IntegrationsComponent() {
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>
-                            Your API key for Obsidian local-rest-api plugin.
-                          </Trans>
+                          Your API key for Obsidian local-rest-api plugin.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -225,7 +219,7 @@ export default function IntegrationsComponent() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <Trans>Vault Name</Trans>
+                          Vault Name
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -234,9 +228,7 @@ export default function IntegrationsComponent() {
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>
-                            The name of your Obsidian vault.
-                          </Trans>
+                          The name of your Obsidian vault.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -249,7 +241,7 @@ export default function IntegrationsComponent() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          <Trans>Base Folder</Trans>
+                          Base Folder
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -258,9 +250,7 @@ export default function IntegrationsComponent() {
                           />
                         </FormControl>
                         <FormDescription>
-                          <Trans>
-                            Optional base folder path within your Obsidian vault.
-                          </Trans>
+                          Optional base folder path within your Obsidian vault.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -275,10 +265,10 @@ export default function IntegrationsComponent() {
         <div className="rounded-lg border border-dashed p-6 text-center">
           <div className="text-muted-foreground">
             <p className="text-sm">
-              <Trans>More integrations coming soon...</Trans>
+              More integrations coming soon...
             </p>
             <p className="text-xs mt-1">
-              <Trans>We're working on adding more tools and services to connect with your workflow</Trans>
+              We're working on adding more tools and services to connect with your workflow
             </p>
           </div>
         </div>

@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
 
 interface TitleInputProps {
@@ -18,7 +17,6 @@ export default function TitleInput({
   isGenerating = false,
   autoFocus = false,
 }: TitleInputProps) {
-  const { t } = useLingui();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -30,9 +28,9 @@ export default function TitleInput({
 
   const getPlaceholder = () => {
     if (isGenerating) {
-      return t`Generating title...`;
+      return "Generating title...";
     }
-    return t`Untitled`;
+    return "Untitled";
   };
 
   useEffect(() => {

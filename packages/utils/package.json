@@ -19,7 +19,6 @@
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-sse": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
-    "@lingui/core": "^5.5.0",
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-http": "^2.5.2",
     "ai": "^5.0.60",

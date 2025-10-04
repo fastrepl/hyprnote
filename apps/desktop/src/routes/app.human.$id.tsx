@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
+
 import { RiCornerDownLeftLine, RiLinkedinBoxFill, RiMailLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, notFound, useNavigate, useRouter } from "@tanstack/react-router";
@@ -532,7 +532,7 @@ function OrganizationControl({
                     <span className="text-xs">+</span>
                   </span>
                   <span className="flex items-center gap-1 font-medium text-gray-600">
-                    <Trans>Create</Trans>
+                    Create
                     <span className="text-gray-900 truncate max-w-[140px]">
                       &quot;{searchTerm.trim()}&quot;
                     </span>

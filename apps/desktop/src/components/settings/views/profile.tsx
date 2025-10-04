@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans, useLingui } from "@lingui/react/macro";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,6 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function ProfileComponent() {
-  const { t } = useLingui();
   const { userId } = useHypr();
   const queryClient = useQueryClient();
 
@@ -116,11 +115,11 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="w-60">
                 <FormLabel>
-                  <Trans>Full name</Trans>
+                  Full name
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t`Your Name`}
+                    placeholder={"Your Name"}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -136,11 +135,11 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="w-60">
                 <FormLabel>
-                  <Trans>Job title</Trans>
+                  Job title
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t`CEO`}
+                    placeholder={"CEO"}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -157,15 +156,15 @@ export default function ProfileComponent() {
               <FormItem className="w-60">
                 <div>
                   <FormLabel>
-                    <Trans>Company name</Trans>
+                    Company name
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is the name of the company you work for.</Trans>
+                    This is the name of the company you work for.
                   </FormDescription>
                 </div>
                 <FormControl>
                   <Input
-                    placeholder={t`Apple`}
+                    placeholder={"Apple"}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -182,15 +181,15 @@ export default function ProfileComponent() {
               <FormItem className="max-w-lg">
                 <div>
                   <FormLabel>
-                    <Trans>Company description</Trans>
+                    Company description
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is a short description of your company.</Trans>
+                    This is a short description of your company.
                   </FormDescription>
                 </div>
                 <FormControl>
                   <Textarea
-                    placeholder={t`We think different.`}
+                    placeholder={"We think different."}
                     {...field}
                     className="focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
@@ -207,12 +206,10 @@ export default function ProfileComponent() {
               <FormItem className="max-w-sm">
                 <div>
                   <FormLabel>
-                    <Trans>LinkedIn username</Trans>
+                    LinkedIn username
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Your LinkedIn username (the part after linkedin.com/in/)
-                    </Trans>
+                    Your LinkedIn username (the part after linkedin.com/in/)
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -222,7 +219,7 @@ export default function ProfileComponent() {
                     </span>
                     <Input
                       className="rounded-l-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                      placeholder={t`username`}
+                      placeholder={"username"}
                       {...field}
                     />
                   </div>

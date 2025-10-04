@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { Book, Bug, ExternalLinkIcon, MessageSquare } from "lucide-react";
 
@@ -30,7 +29,7 @@ export default function HelpSupport() {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-4">
-          <Trans>Help & Support</Trans>
+          Help & Support
         </h2>
 
         <div className="space-y-3">
@@ -43,10 +42,10 @@ export default function HelpSupport() {
               <Book className="h-5 w-5 text-gray-600" />
               <div className="text-left">
                 <div className="font-medium">
-                  <Trans>Documentation</Trans>
+                  Documentation
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Learn how to use Hyprnote</Trans>
+                  Learn how to use Hyprnote
                 </div>
               </div>
             </div>
@@ -62,10 +61,10 @@ export default function HelpSupport() {
               <MessageSquare className="h-5 w-5 text-gray-600" />
               <div className="text-left">
                 <div className="font-medium">
-                  <Trans>Feature Requests</Trans>
+                  Feature Requests
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Suggest new features and improvements</Trans>
+                  Suggest new features and improvements
                 </div>
               </div>
             </div>
@@ -81,10 +80,10 @@ export default function HelpSupport() {
               <Bug className="h-5 w-5 text-gray-600" />
               <div className="text-left">
                 <div className="font-medium">
-                  <Trans>Report a Bug</Trans>
+                  Report a Bug
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Help us improve by reporting issues</Trans>
+                  Help us improve by reporting issues
                 </div>
               </div>
             </div>
@@ -100,10 +99,10 @@ export default function HelpSupport() {
               <Bug className="h-5 w-5 text-gray-600" />
               <div className="text-left">
                 <div className="font-medium">
-                  <Trans>Logs</Trans>
+                  Logs
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Got an error? Send your logs file to us at founders@hyprnote.com</Trans>
+                  Got an error? Send your logs file to us at founders@hyprnote.com
                 </div>
               </div>
             </div>

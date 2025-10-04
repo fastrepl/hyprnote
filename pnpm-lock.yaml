@@ -866,9 +866,6 @@ importers:
       '@hypr/plugin-windows':
         specifier: workspace:^
         version: link:../../plugins/windows
-      '@lingui/core':
-        specifier: ^5.5.0
-        version: 5.5.0(@lingui/babel-plugin-lingui-macro@5.5.0(babel-plugin-macros@3.1.0)(typescript@5.9.3))(babel-plugin-macros@3.1.0)
       '@tauri-apps/api':
         specifier: ^2.8.0
         version: 2.8.0

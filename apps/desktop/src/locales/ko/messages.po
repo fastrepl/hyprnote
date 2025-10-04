@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:445
+#: src/components/settings/views/general.tsx:441
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -209,101 +209,98 @@ msgid "{weeks} weeks later"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:628
-msgid "(Optional for localhost)"
-msgstr ""
+#~ msgid "(Optional for localhost)"
+#~ msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:521
-msgid "(Optional)"
-msgstr ""
+#~ msgid "(Optional)"
+#~ msgstr ""
 
-#. placeholder {0}: isViewingTemplate ? "Back" : "Save and close"
 #: src/components/settings/views/templates.tsx:253
-msgid "{0}"
-msgstr ""
+#~ msgid "{0}"
+#~ msgstr ""
 
-#. placeholder {0}: calendarsQuery.data?.selectedCount ?? 0
 #: src/components/settings/components/calendar/calendar-selector.tsx:86
-msgid "{0} calendars selected"
-msgstr ""
+#~ msgid "{0} calendars selected"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:64
 #: src/components/welcome-modal/audio-permissions-view.tsx:82
-msgid "{buttonText}"
-msgstr ""
+#~ msgid "{buttonText}"
+#~ msgstr ""
 
 #: src/components/settings/views/lab.tsx:77
-msgid "{description}"
-msgstr ""
+#~ msgid "{description}"
+#~ msgstr ""
 
 #: src/components/settings/views/lab.tsx:74
-msgid "{title}"
-msgstr ""
+#~ msgid "{title}"
+#~ msgstr ""
 
 #: src/components/human-profile/past-notes.tsx:94
-msgid "<0>Create Note</0>"
-msgstr ""
+#~ msgid "<0>Create Note</0>"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:113
-msgid "Access granted"
-msgstr ""
+#~ msgid "Access granted"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:44
 #: src/components/welcome-modal/audio-permissions-view.tsx:58
 #: src/components/welcome-modal/calendar-permissions-view.tsx:50
-msgid "Access Granted"
-msgstr ""
+#~ msgid "Access Granted"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:494
-msgid "Access multiple AI models through OpenRouter with your API key"
-msgstr ""
+#~ msgid "Access multiple AI models through OpenRouter with your API key"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:171
-msgid "Add languages you use during meetings to improve transcription accuracy"
-msgstr ""
+#~ msgid "Add languages you use during meetings to improve transcription accuracy"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:94
-msgid "Add members"
-msgstr ""
+#~ msgid "Add members"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:103
 #~ msgid "Add more quotes"
 #~ msgstr ""
 
 #: src/components/settings/views/general.tsx:428
-msgid "Add specific terms or jargon for improved transcription accuracy"
-msgstr ""
+#~ msgid "Add specific terms or jargon for improved transcription accuracy"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:142
 #: src/components/settings/views/team.tsx:229
-msgid "Admin"
-msgstr ""
+#~ msgid "Admin"
+#~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:159
-msgid "After you grant system audio access, app will restart to apply the changes"
-msgstr ""
+#~ msgid "After you grant system audio access, app will restart to apply the changes"
+#~ msgstr ""
 
 #: src/components/welcome-modal/download-progress-view.tsx:221
-msgid "All models ready!"
-msgstr ""
+#~ msgid "All models ready!"
+#~ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:31
-msgid "All Participants"
-msgstr ""
+#~ msgid "All Participants"
+#~ msgstr ""
 
-#. placeholder {0}: members.length - 5
 #: src/components/organization-profile/members-list.tsx:102
-msgid "and {0} more members"
-msgstr ""
+#~ msgid "and {0} more members"
+#~ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:18
-msgid "Anyone with the link can view this page"
-msgstr ""
+#~ msgid "Anyone with the link can view this page"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:603
 #: src/components/welcome-modal/custom-endpoint-view.tsx:498
-msgid "API Base URL"
-msgstr ""
+#~ msgid "API Base URL"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:314
 #: src/components/settings/components/ai/llm-custom-view.tsx:409
@@ -315,42 +312,42 @@ msgstr ""
 #: src/components/welcome-modal/custom-endpoint-view.tsx:361
 #: src/components/welcome-modal/custom-endpoint-view.tsx:438
 #: src/components/welcome-modal/custom-endpoint-view.tsx:518
-msgid "API Key"
-msgstr ""
+#~ msgid "API Key"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
 msgstr ""
 
-#: src/components/left-sidebar/notes-list.tsx:269
+#: src/components/left-sidebar/notes-list.tsx:268
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
 msgid "Are you sure you want to delete this note?"
 msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:124
-msgid "Ask Hyprnote to..."
-msgstr ""
+#~ msgid "Ask Hyprnote to..."
+#~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:155
-msgid "Audio Permissions"
-msgstr ""
+#~ msgid "Audio Permissions"
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:702
-msgid "Autonomy Selector"
-msgstr ""
+#~ msgid "Autonomy Selector"
+#~ msgstr ""
 
 #: src/components/welcome-modal/index.tsx:351
-msgid "Back"
-msgstr ""
+#~ msgid "Back"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:252
-msgid "Base Folder"
-msgstr ""
+#~ msgid "Base Folder"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:138
 #: src/components/settings/views/integrations.tsx:179
-msgid "Base URL"
-msgstr ""
+#~ msgid "Base URL"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:61
 #: src/routes/app.settings.tsx:134
@@ -359,8 +356,8 @@ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:68
 #: src/components/settings/views/templates.tsx:356
-msgid "Built-in Templates"
-msgstr ""
+#~ msgid "Built-in Templates"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:51
 #: src/routes/app.settings.tsx:124
@@ -368,16 +365,16 @@ msgid "Calendar"
 msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:124
-msgid "Calendar & Contacts"
-msgstr ""
+#~ msgid "Calendar & Contacts"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:67
-msgid "Calendar Access"
-msgstr ""
+#~ msgid "Calendar Access"
+#~ msgstr ""
 
 #: src/components/individualization-modal/industry-view.tsx:128
-msgid "Cancel"
-msgstr ""
+#~ msgid "Cancel"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:143
 msgid "CEO"
@@ -392,64 +389,64 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:147
-msgid "Check Updates"
-msgstr ""
+#~ msgid "Check Updates"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:93
-msgid "Choose the languages you speak for better transcription accuracy"
-msgstr ""
+#~ msgid "Choose the languages you speak for better transcription accuracy"
+#~ msgstr ""
 
 #: src/components/welcome-modal/llm-selection-view.tsx:40
-msgid "Choose Your LLM"
-msgstr ""
+#~ msgid "Choose Your LLM"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:69
-msgid "Coming Soon"
-msgstr ""
+#~ msgid "Coming Soon"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:185
-msgid "Company description"
-msgstr ""
+#~ msgid "Company description"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:160
-msgid "Company name"
-msgstr ""
+#~ msgid "Company name"
+#~ msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:600
-msgid "Complete the configuration to continue"
-msgstr ""
+#~ msgid "Complete the configuration to continue"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:109
-msgid "Connect to <0>Deepgram</0> directly, or use <1>OWhisper</1> for other provider support."
-msgstr ""
+#~ msgid "Connect to <0>Deepgram</0> directly, or use <1>OWhisper</1> for other provider support."
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:583
-msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)"
-msgstr ""
+#~ msgid "Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:127
-msgid "Connect with external tools and services to enhance your workflow"
-msgstr ""
+#~ msgid "Connect with external tools and services to enhance your workflow"
+#~ msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:128
-msgid "Connect your calendar and contacts for a better experience"
-msgstr ""
+#~ msgid "Connect your calendar and contacts for a better experience"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
-msgid "Connect your calendar and track events"
-msgstr ""
+#~ msgid "Connect your calendar and track events"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:139
-msgid "Connect your Obsidian vault to export notes"
-msgstr ""
+#~ msgid "Connect your Obsidian vault to export notes"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
-msgid "Contacts Access"
-msgstr ""
+#~ msgid "Contacts Access"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:278
-msgid "Context"
-msgstr ""
+#~ msgid "Context"
+#~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 #: src/components/welcome-modal/calendar-permissions-view.tsx:153
@@ -457,53 +454,53 @@ msgstr ""
 #: src/components/welcome-modal/download-progress-view.tsx:255
 #: src/components/welcome-modal/llm-selection-view.tsx:94
 #: src/components/welcome-modal/model-selection-view.tsx:94
-msgid "Continue"
-msgstr ""
+#~ msgid "Continue"
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:723
-msgid "Control how autonomous the AI enhancement should be."
-msgstr ""
+#~ msgid "Control how autonomous the AI enhancement should be."
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:563
 #: src/routes/app.human.$id.tsx:535
-msgid "Create"
-msgstr ""
+#~ msgid "Create"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/new-note-button.tsx:46
-msgid "Create new note"
-msgstr ""
+#~ msgid "Create new note"
+#~ msgstr ""
 
 #: src/components/workspace-calendar/event-card.tsx:129
-msgid "Create Note"
-msgstr ""
+#~ msgid "Create Note"
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:346
-msgid "Create your first template to get started"
-msgstr ""
+#~ msgid "Create your first template to get started"
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:671
 #: src/components/settings/views/ai-stt.tsx:120
-msgid "Custom"
-msgstr ""
+#~ msgid "Custom"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:102
-msgid "Custom Speech-to-Text endpoint"
-msgstr ""
+#~ msgid "Custom Speech-to-Text endpoint"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:425
-msgid "Custom Vocabulary"
-msgstr ""
+#~ msgid "Custom Vocabulary"
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:668
 #: src/components/settings/views/ai-stt.tsx:117
-msgid "Default"
-msgstr ""
+#~ msgid "Default"
+#~ msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:336
 #: src/components/settings/views/team.tsx:165
 #: src/components/settings/views/template.tsx:249
-msgid "Delete"
-msgstr ""
+#~ msgid "Delete"
+#~ msgstr ""
 
 #: src/components/settings/components/template-sections.tsx:154
 msgid "Describe the content and purpose of this section"
@@ -519,88 +516,88 @@ msgid ""
 msgstr ""
 
 #: src/components/settings/views/notifications.tsx:252
-msgid "Detect meetings automatically"
-msgstr ""
+#~ msgid "Detect meetings automatically"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:46
-msgid "Documentation"
-msgstr ""
+#~ msgid "Documentation"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:395
-msgid "Don't show notifications when Do Not Disturb is enabled on your system."
-msgstr ""
+#~ msgid "Don't show notifications when Do Not Disturb is enabled on your system."
+#~ msgstr ""
 
 #: src/components/welcome-modal/download-progress-view.tsx:201
-msgid "Downloading AI Models"
-msgstr ""
+#~ msgid "Downloading AI Models"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:94
 #~ msgid "Draft follow up"
 #~ msgstr ""
 
 #: src/components/settings/views/template.tsx:239
-msgid "Duplicate"
-msgstr ""
+#~ msgid "Duplicate"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:201
-msgid "Email addresses"
-msgstr ""
+#~ msgid "Email addresses"
+#~ msgstr ""
 
 #: src/components/share-and-permission/invite-list.tsx:23
 msgid "Email separated by commas"
 msgstr ""
 
 #: src/components/settings/views/template.tsx:206
-msgid "Emoji"
-msgstr ""
+#~ msgid "Emoji"
+#~ msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:65
-msgid "Enable"
-msgstr ""
+#~ msgid "Enable"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:153
-msgid "Enable Integration"
-msgstr ""
+#~ msgid "Enable Integration"
+#~ msgstr ""
 
 #: src/components/settings/components/template-sections.tsx:144
 msgid "Enter a section title"
 msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:606
-msgid "Enter the base URL for your custom LLM endpoint"
-msgstr ""
+#~ msgid "Enter the base URL for your custom LLM endpoint"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:146
-msgid "Enter the base URL for your custom STT endpoint"
-msgstr ""
+#~ msgid "Enter the base URL for your custom STT endpoint"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:202
-msgid "Enter the model name required by your STT endpoint"
-msgstr ""
+#~ msgid "Enter the model name required by your STT endpoint"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:275
-msgid "Exclude apps from detection"
-msgstr ""
+#~ msgid "Exclude apps from detection"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:88
 #~ msgid "Extract action items"
 #~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:65
-msgid "Feature Requests"
-msgstr ""
+#~ msgid "Feature Requests"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:385
 msgid "Find person"
 msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
-msgid "Finish Onboarding"
-msgstr ""
+#~ msgid "Finish Onboarding"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:119
-msgid "Full name"
-msgstr ""
+#~ msgid "Full name"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:45
 #: src/routes/app.settings.tsx:118
@@ -612,56 +609,54 @@ msgid "Generating title..."
 msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:36
-msgid "Get Started"
-msgstr ""
+#~ msgid "Get Started"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:380
-msgid "Global Settings"
-msgstr ""
+#~ msgid "Global Settings"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:385
-msgid "Google Gemini"
-msgstr ""
+#~ msgid "Google Gemini"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:106
-msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
-msgstr ""
+#~ msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
-msgid "Grant Access"
-msgstr ""
+#~ msgid "Grant Access"
+#~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:194
-msgid "Grant both permissions to continue"
-msgstr ""
+#~ msgid "Grant both permissions to continue"
+#~ msgstr ""
 
-#: src/components/settings/views/help-support.tsx:33
 #: src/routes/app.settings.tsx:65
 #: src/routes/app.settings.tsx:138
 msgid "Help & Support"
 msgstr ""
 
 #: src/components/settings/views/help-support.tsx:87
-msgid "Help us improve by reporting issues"
-msgstr ""
+#~ msgid "Help us improve by reporting issues"
+#~ msgstr ""
 
 #: src/components/individualization-modal/how-heard-view.tsx:33
 #: src/components/individualization-modal/industry-view.tsx:63
 #: src/components/individualization-modal/org-size-view.tsx:24
 #: src/components/individualization-modal/role-view.tsx:24
-msgid "Help us tailor your Hyprnote experience"
-msgstr ""
+#~ msgid "Help us tailor your Hyprnote experience"
+#~ msgstr ""
 
 #: src/components/individualization-modal/how-heard-view.tsx:38
-msgid "How did you hear about Hyprnote?"
-msgstr ""
+#~ msgid "How did you hear about Hyprnote?"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:82
 #~ msgid "Important Q&As"
 #~ msgstr ""
 
-#: src/components/settings/views/integrations.tsx:124
 #: src/routes/app.settings.tsx:59
 #: src/routes/app.settings.tsx:132
 msgid "Integrations"
@@ -673,72 +668,72 @@ msgid "Intelligence"
 msgstr ""
 
 #: src/components/share-and-permission/invite-list.tsx:30
-msgid "Invite"
-msgstr ""
+#~ msgid "Invite"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:189
-msgid "Invite members"
-msgstr ""
+#~ msgid "Invite members"
+#~ msgstr ""
 
 #: src/components/welcome-modal/download-progress-view.tsx:259
-msgid "It's ok to move on, downloads will continue in the background"
-msgstr ""
+#~ msgid "It's ok to move on, downloads will continue in the background"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:139
-msgid "Job title"
-msgstr ""
+#~ msgid "Job title"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:201
-msgid "Join meeting"
-msgstr ""
+#~ msgid "Join meeting"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:279
-msgid "Language for AI-generated summaries"
-msgstr ""
+#~ msgid "Language for AI-generated summaries"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:49
-msgid "Learn how to use Hyprnote"
-msgstr ""
+#~ msgid "Learn how to use Hyprnote"
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:716
-msgid "Learn more about AI autonomy"
-msgstr ""
+#~ msgid "Learn more about AI autonomy"
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:306
-msgid "Learn more about templates"
-msgstr ""
+#~ msgid "Learn more about templates"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:210
-msgid "LinkedIn username"
-msgstr ""
+#~ msgid "LinkedIn username"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:662
-msgid "Loading available models..."
-msgstr ""
+#~ msgid "Loading available models..."
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:470
-msgid "Loading events..."
-msgstr ""
+#~ msgid "Loading events..."
+#~ msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:550
-msgid "Loading models..."
-msgstr ""
+#~ msgid "Loading models..."
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:277
-msgid "Loading templates..."
-msgstr ""
+#~ msgid "Loading templates..."
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
-msgid "Loading..."
-msgstr ""
+#~ msgid "Loading..."
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:103
-msgid "Logs"
-msgstr ""
+#~ msgid "Logs"
+#~ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:24
-msgid "Make it public"
-msgstr ""
+#~ msgid "Make it public"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:63
 #: src/routes/app.settings.tsx:136
@@ -747,12 +742,12 @@ msgstr ""
 
 #: src/components/settings/views/team.tsx:145
 #: src/components/settings/views/team.tsx:232
-msgid "Member"
-msgstr ""
+#~ msgid "Member"
+#~ msgstr ""
 
 #: src/components/organization-profile/members-list.tsx:27
-msgid "Members"
-msgstr ""
+#~ msgid "Members"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:127
 #: src/components/welcome-modal/audio-permissions-view.tsx:165
@@ -766,82 +761,82 @@ msgstr ""
 #: src/components/welcome-modal/custom-endpoint-view.tsx:315
 #: src/components/welcome-modal/custom-endpoint-view.tsx:382
 #: src/components/welcome-modal/custom-endpoint-view.tsx:459
-msgid "Model"
-msgstr ""
+#~ msgid "Model"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:650
 #: src/components/welcome-modal/custom-endpoint-view.tsx:544
-msgid "Model Name"
-msgstr ""
+#~ msgid "Model Name"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:278
-msgid "More integrations coming soon..."
-msgstr ""
+#~ msgid "More integrations coming soon..."
+#~ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:141
-msgid "My Profile"
-msgstr ""
+#~ msgid "My Profile"
+#~ msgstr ""
 
 #: src/components/settings/components/template-list.tsx:56
-msgid "My Templates"
-msgstr ""
+#~ msgid "My Templates"
+#~ msgstr ""
 
 #: src/routes/app.index.tsx:13
-msgid "New note"
-msgstr ""
+#~ msgid "New note"
+#~ msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:181
 #: src/components/left-sidebar/notes-list.tsx:313
-msgid "New window"
-msgstr ""
+#~ msgid "New window"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:101
-msgid "No calendars found"
-msgstr ""
+#~ msgid "No calendars found"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:142
-msgid "No language found."
-msgstr ""
+#~ msgid "No language found."
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:175
-msgid "No members found"
-msgstr ""
+#~ msgid "No members found"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:478
-msgid "No past events found."
-msgstr ""
+#~ msgid "No past events found."
+#~ msgstr ""
 
 #: src/components/human-profile/past-notes.tsx:92
-msgid "No past notes with this contact"
-msgstr ""
+#~ msgid "No past notes with this contact"
+#~ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:70
-msgid "No recent notes with this organization"
-msgstr ""
+#~ msgid "No recent notes with this organization"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:358
-msgid "No tags selected"
-msgstr ""
+#~ msgid "No tags selected"
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:343
-msgid "No templates yet"
-msgstr ""
+#~ msgid "No templates yet"
+#~ msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:94
-msgid "No upcoming events"
-msgstr ""
+#~ msgid "No upcoming events"
+#~ msgstr ""
 
 #: src/components/organization-profile/upcoming-events.tsx:86
-msgid "No upcoming events for this organization"
-msgstr ""
+#~ msgid "No upcoming events for this organization"
+#~ msgstr ""
 
 #: src/components/human-profile/upcoming-events.tsx:81
-msgid "No upcoming events with this contact"
-msgstr ""
+#~ msgid "No upcoming events with this contact"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:312
-msgid "None (disabled)"
-msgstr ""
+#~ msgid "None (disabled)"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:53
 #: src/routes/app.settings.tsx:126
@@ -849,84 +844,84 @@ msgid "Notifications"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:136
-msgid "Obsidian"
-msgstr ""
+#~ msgid "Obsidian"
+#~ msgstr ""
 
 #: src/components/settings/components/template-list.tsx:91
-msgid "Official Templates"
-msgstr ""
+#~ msgid "Official Templates"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:199
-msgid "Only starts at the background for notification purposes."
-msgstr ""
+#~ msgid "Only starts at the background for notification purposes."
+#~ msgstr ""
 
 #: src/components/settings/views/ai-llm.tsx:722
-msgid "Only works with Custom Endpoints. Please configure one of the above first."
-msgstr ""
+#~ msgid "Only works with Custom Endpoints. Please configure one of the above first."
+#~ msgstr ""
 
 #: src/components/left-sidebar/top-area/finder-button.tsx:26
-msgid "Open finder view"
-msgstr ""
+#~ msgid "Open finder view"
+#~ msgstr ""
 
 #: src/components/left-sidebar/search-list.tsx:298
 #: src/components/left-sidebar/search-list.tsx:368
 #: src/components/toolbar/buttons/new-window-button.tsx:35
-msgid "Open in new window"
-msgstr ""
+#~ msgid "Open in new window"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:290
-msgid "OpenAI"
-msgstr ""
+#~ msgid "OpenAI"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:490
-msgid "OpenRouter"
-msgstr ""
+#~ msgid "OpenRouter"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:261
-msgid "Optional base folder path within your Obsidian vault."
-msgstr ""
+#~ msgid "Optional base folder path within your Obsidian vault."
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
-msgid "Optional for participant suggestions"
-msgstr ""
+#~ msgid "Optional for participant suggestions"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:580
-msgid "Others"
-msgstr ""
+#~ msgid "Others"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:139
 #: src/components/settings/views/team.tsx:226
-msgid "Owner"
-msgstr ""
+#~ msgid "Owner"
+#~ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:35
-msgid "people"
-msgstr ""
+#~ msgid "people"
+#~ msgstr ""
 
 #: src/components/share-and-permission/publish.tsx:15
-msgid "Publish your note"
-msgstr ""
+#~ msgid "Publish your note"
+#~ msgstr ""
 
 #: src/components/welcome-modal/download-progress-view.tsx:66
-msgid "Ready"
-msgstr ""
+#~ msgid "Ready"
+#~ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:42
-msgid "Recent Notes"
-msgstr ""
+#~ msgid "Recent Notes"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:284
-msgid "Refer to past notes with:"
-msgstr ""
+#~ msgid "Refer to past notes with:"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:84
-msgid "Report a Bug"
-msgstr ""
+#~ msgid "Report a Bug"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:61
 #: src/components/welcome-modal/audio-permissions-view.tsx:79
-msgid "Requesting..."
-msgstr ""
+#~ msgid "Requesting..."
+#~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:166
 #: src/components/welcome-modal/audio-permissions-view.tsx:176
@@ -942,31 +937,31 @@ msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
 #: src/components/settings/views/notifications.tsx:392
-msgid "Respect Do Not Disturb"
-msgstr ""
+#~ msgid "Respect Do Not Disturb"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:104
 #: src/components/settings/views/team.tsx:213
-msgid "Role"
-msgstr ""
+#~ msgid "Role"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:225
-msgid "Save audio recording locally alongside the transcript."
-msgstr ""
+#~ msgid "Save audio recording locally alongside the transcript."
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:599
-msgid "Save Date"
-msgstr ""
+#~ msgid "Save Date"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:222
-msgid "Save recordings"
-msgstr ""
+#~ msgid "Save recordings"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:599
-msgid "Saving..."
-msgstr ""
+#~ msgid "Saving..."
+#~ msgstr ""
 
-#: src/components/settings/views/team.tsx:204
+#: src/components/settings/views/team.tsx:200
 msgid "Search names or emails"
 msgstr ""
 
@@ -980,88 +975,88 @@ msgid "Search..."
 msgstr ""
 
 #: src/components/settings/views/template.tsx:416
-msgid "Sections"
-msgstr ""
+#~ msgid "Sections"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:653
-msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
-msgstr ""
+#~ msgid "Select a model from the dropdown (if available) or manually enter the model name required by your endpoint."
+#~ msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:271
-msgid "Select a provider above to configure"
-msgstr ""
+#~ msgid "Select a provider above to configure"
+#~ msgstr ""
 
 #: src/components/settings/views/templates.tsx:311
-msgid "Select a template to enhance your meeting notes"
-msgstr ""
+#~ msgid "Select a template to enhance your meeting notes"
+#~ msgstr ""
 
 #: src/components/welcome-modal/model-selection-view.tsx:40
-msgid "Select a transcribing model (STT)"
-msgstr ""
+#~ msgid "Select a transcribing model (STT)"
+#~ msgstr ""
 
 #: src/components/welcome-modal/llm-selection-view.tsx:99
-msgid "Select an option to continue"
-msgstr ""
+#~ msgid "Select an option to continue"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:124
-msgid "Select at least one language"
-msgstr ""
+#~ msgid "Select at least one language"
+#~ msgstr ""
 
 #: src/components/settings/components/calendar/calendar-selector.tsx:69
-msgid "Select Calendars"
-msgstr ""
+#~ msgid "Select Calendars"
+#~ msgstr ""
 
 #: src/components/welcome-modal/llm-selection-view.tsx:44
-msgid "Select how you want to process your meeting notes"
-msgstr ""
+#~ msgid "Select how you want to process your meeting notes"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:348
-msgid "Select languages you speak for better transcription"
-msgstr ""
+#~ msgid "Select languages you speak for better transcription"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:325
-msgid "Select tags"
-msgstr ""
+#~ msgid "Select tags"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:308
 msgid "Select what to use as context..."
 msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:89
-msgid "Select Your Languages"
-msgstr ""
+#~ msgid "Select Your Languages"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:240
-msgid "Send invite"
-msgstr ""
+#~ msgid "Send invite"
+#~ msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:214
-msgid "Set up Your AI Provider"
-msgstr ""
+#~ msgid "Set up Your AI Provider"
+#~ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:134
-msgid "Settings"
-msgstr ""
+#~ msgid "Settings"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:246
-msgid "Share usage data"
-msgstr ""
+#~ msgid "Share usage data"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:73
 #~ msgid "Shorten summary"
 #~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:228
-msgid "Show notifications when you have meetings starting soon in your calendar."
-msgstr ""
+#~ msgid "Show notifications when you have meetings starting soon in your calendar."
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:258
-msgid "Show notifications when you join a meeting."
-msgstr ""
+#~ msgid "Show notifications when you join a meeting."
+#~ msgstr ""
 
 #: src/components/welcome-modal/download-progress-view.tsx:227
-msgid "Some downloads failed, but you can continue"
-msgstr ""
+#~ msgid "Some downloads failed, but you can continue"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:57
 #: src/routes/app.settings.tsx:130
@@ -1069,12 +1064,12 @@ msgid "Sound"
 msgstr ""
 
 #: src/components/settings/views/general.tsx:345
-msgid "Spoken languages"
-msgstr ""
+#~ msgid "Spoken languages"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:196
-msgid "Start automatically at login"
-msgstr ""
+#~ msgid "Start automatically at login"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/listen-button.tsx:167
 #~ msgid "Start recording"
@@ -1085,12 +1080,12 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:68
-msgid "Suggest new features and improvements"
-msgstr ""
+#~ msgid "Suggest new features and improvements"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:276
-msgid "Summary language"
-msgstr ""
+#~ msgid "Summary language"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:137
 #: src/components/welcome-modal/audio-permissions-view.tsx:175
@@ -1098,24 +1093,24 @@ msgid "System Audio Access"
 msgstr ""
 
 #: src/components/settings/views/template.tsx:259
-msgid "System Instruction"
-msgstr ""
+#~ msgid "System Instruction"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:315
-msgid "Tags"
-msgstr ""
+#~ msgid "Tags"
+#~ msgstr ""
 
 #: src/components/left-sidebar/top-area/settings-button.tsx:153
-msgid "Talk to Founders"
-msgstr ""
+#~ msgid "Talk to Founders"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:72
-msgid "Team management features are currently under development and will be available in a future update."
-msgstr ""
+#~ msgid "Team management features are currently under development and will be available in a future update."
+#~ msgstr ""
 
 #: src/components/share-and-permission/participants-selector.tsx:34
-msgid "Teamspace"
-msgstr ""
+#~ msgid "Teamspace"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:55
 #: src/routes/app.settings.tsx:128
@@ -1123,44 +1118,44 @@ msgid "Templates"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:188
-msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
-msgstr ""
+#~ msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:237
-msgid "The name of your Obsidian vault."
-msgstr ""
+#~ msgid "The name of your Obsidian vault."
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:278
-msgid "These apps will not trigger meeting detection"
-msgstr ""
+#~ msgid "These apps will not trigger meeting detection"
+#~ msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:157
-msgid "These permissions are optional but recommended"
-msgstr ""
+#~ msgid "These permissions are optional but recommended"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:188
-msgid "This is a short description of your company."
-msgstr ""
+#~ msgid "This is a short description of your company."
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:163
-msgid "This is the name of the company you work for."
-msgstr ""
+#~ msgid "This is the name of the company you work for."
+#~ msgstr ""
 
 #: src/components/finder/views/calendar-view.tsx:64
-msgid "Today"
-msgstr ""
+#~ msgid "Today"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/chat-panel-button.tsx:49
-msgid "Toggle chat panel"
-msgstr ""
+#~ msgid "Toggle chat panel"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/left-sidebar-button.tsx:33
-msgid "Toggle left sidebar"
-msgstr ""
+#~ msgid "Toggle left sidebar"
+#~ msgstr ""
 
 #: src/components/toolbar/buttons/transcript-panel-button.tsx:36
-msgid "Toggle transcript panel"
-msgstr ""
+#~ msgid "Toggle transcript panel"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:49
 #: src/routes/app.settings.tsx:122
@@ -1168,14 +1163,14 @@ msgid "Transcription"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:156
-msgid "Turn on Obsidian integration to export notes to Obsidian vault."
-msgstr ""
+#~ msgid "Turn on Obsidian integration to export notes to Obsidian vault."
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:192
-msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
-msgstr ""
+#~ msgid "Type or paste in emails below, separated by commas. Your workspace will be billed by members."
+#~ msgstr ""
 
-#: src/components/settings/views/team.tsx:83
+#: src/components/settings/views/team.tsx:81
 msgid "Type to search..."
 msgstr ""
 
@@ -1188,85 +1183,85 @@ msgid "Untitled Template"
 msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:61
-msgid "Upcoming"
-msgstr ""
+#~ msgid "Upcoming"
+#~ msgstr ""
 
 #: src/components/organization-profile/upcoming-events.tsx:51
-msgid "Upcoming Events"
-msgstr ""
+#~ msgid "Upcoming Events"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:222
-msgid "Upcoming meeting notifications"
-msgstr ""
+#~ msgid "Upcoming meeting notifications"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:389
-msgid "Use Google's Gemini models with your API key"
-msgstr ""
+#~ msgid "Use Google's Gemini models with your API key"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:294
-msgid "Use OpenAI's GPT models with your API key"
-msgstr ""
+#~ msgid "Use OpenAI's GPT models with your API key"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:101
-msgid "User"
-msgstr ""
+#~ msgid "User"
+#~ msgstr ""
 
-#: src/components/settings/views/profile.tsx:225
+#: src/components/settings/views/profile.tsx:223
 msgid "username"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:228
-msgid "Vault Name"
-msgstr ""
+#~ msgid "Vault Name"
+#~ msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:324
-msgid "View calendar"
-msgstr ""
+#~ msgid "View calendar"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/event-chip.tsx:211
 #: src/components/left-sidebar/events-list.tsx:193
-msgid "View in calendar"
-msgstr ""
+#~ msgid "View in calendar"
+#~ msgstr ""
 
 #: src/components/organization-profile/recent-notes.tsx:59
-msgid "View Note"
-msgstr ""
+#~ msgid "View Note"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:193
 msgid "We think different."
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:281
-msgid "We're working on adding more tools and services to connect with your workflow"
-msgstr ""
+#~ msgid "We're working on adding more tools and services to connect with your workflow"
+#~ msgstr ""
 
 #: src/components/individualization-modal/industry-view.tsx:68
-msgid "What industry are you in?"
-msgstr ""
+#~ msgid "What industry are you in?"
+#~ msgstr ""
 
 #: src/components/individualization-modal/org-size-view.tsx:29
-msgid "What's your organization size?"
-msgstr ""
+#~ msgid "What's your organization size?"
+#~ msgstr ""
 
 #: src/components/individualization-modal/role-view.tsx:29
-msgid "What's your role?"
-msgstr ""
+#~ msgid "What's your role?"
+#~ msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:28
 msgid "Where Conversations Stay Yours"
 msgstr ""
 
 #: src/components/settings/views/integrations.tsx:213
-msgid "Your API key for Obsidian local-rest-api plugin."
-msgstr ""
+#~ msgid "Your API key for Obsidian local-rest-api plugin."
+#~ msgstr ""
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:174
-msgid "Your authentication key for accessing the STT service"
-msgstr ""
+#~ msgid "Your authentication key for accessing the STT service"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:213
-msgid "Your LinkedIn username (the part after linkedin.com/in/)"
-msgstr ""
+#~ msgid "Your LinkedIn username (the part after linkedin.com/in/)"
+#~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:123
 msgid "Your Name"
@@ -1274,5 +1269,5 @@ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:45
 #: src/components/settings/views/templates.tsx:292
-msgid "Your Templates"
-msgstr ""
+#~ msgid "Your Templates"
+#~ msgstr ""

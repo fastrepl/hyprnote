@@ -1,5 +1,5 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { Trans } from "@lingui/react/macro";
+
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -121,7 +121,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       {/* Main heading */}
       <div className={`${currentSize.headingWrapper} flex items-center gap-2`}>
         <h3 className={`${currentSize.heading} font-medium`}>
-          <Trans>Ask Hyprnote to...</Trans>
+          Ask Hyprnote to...
         </h3>
       </div>
 
@@ -142,8 +142,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
       {
         /* <div className="mt-8 p-3 rounded-lg bg-neutral-50 border border-neutral-200 max-w-[280px]">
         <p className="text-xs text-neutral-600 text-left">
-          <Trans>
-            Chat feature is in beta. For best results, we recommend you to use{" "}
+          Chat feature is in beta. For best results, we recommend you to use{" "}
             <span
               onClick={handleCustomEndpointsClick}
               className="text-blue-600 hover:text-blue-800 cursor-pointer underline"
@@ -151,7 +150,6 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
               custom endpoints
             </span>
             .
-          </Trans>
         </p>
       </div> */
       }

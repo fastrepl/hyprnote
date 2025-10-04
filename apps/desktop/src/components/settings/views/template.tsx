@@ -7,7 +7,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { Trans, useLingui } from "@lingui/react/macro";
+
 import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -73,8 +73,6 @@ export default function TemplateEditor({
   onDuplicate,
   isCreator = true,
 }: TemplateEditorProps) {
-  const { t } = useLingui();
-
   // Load all tags from database
   const { data: allTags = [] } = useQuery({
     queryKey: ["all-tags"],
@@ -203,7 +201,7 @@ export default function TemplateEditor({
               <PopoverContent className="w-72 p-3" align="start">
                 <div className="space-y-2">
                   <h4 className="font-medium text-xs">
-                    <Trans>Emoji</Trans>
+                    Emoji
                   </h4>
                   <div className="grid grid-cols-8 gap-1">
                     {EMOJI_OPTIONS.map((emoji) => (
@@ -227,7 +225,7 @@ export default function TemplateEditor({
               value={titleText}
               onChange={handleChangeTitle}
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
-              placeholder={t`Untitled Template`}
+              placeholder={"Untitled Template"}
             />
           </div>
 
@@ -236,7 +234,7 @@ export default function TemplateEditor({
               {isBuiltinTemplate
                 ? (
                   <Button variant="outline" size="sm" onClick={handleDuplicate}>
-                    <Trans>Duplicate</Trans>
+                    Duplicate
                   </Button>
                 )
                 : (
@@ -246,7 +244,7 @@ export default function TemplateEditor({
                     onClick={handleDelete}
                     className="text-destructive hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                   >
-                    <Trans>Delete</Trans>
+                    Delete
                   </Button>
                 )}
             </div>
@@ -256,13 +254,13 @@ export default function TemplateEditor({
 
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">
-          <Trans>System Instruction</Trans>
+          System Instruction
         </h2>
         <Textarea
           disabled={isReadOnly}
           value={descriptionText}
           onChange={handleChangeDescription}
-          placeholder={t`Describe the summary you want to generate...
+          placeholder={`Describe the summary you want to generate...
             
 • what kind of meeting is this?
 • any format requirements?
@@ -275,13 +273,13 @@ export default function TemplateEditor({
       {!isBuiltinTemplate && (
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">
-            <Trans>Context</Trans>
+            Context
           </h2>
 
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-neutral-600">
-                <Trans>Refer to past notes with:</Trans>
+                Refer to past notes with:
               </label>
               <Select
                 disabled={isReadOnly}
@@ -305,14 +303,14 @@ export default function TemplateEditor({
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t`Select what to use as context...`} />
+                  <SelectValue placeholder={"Select what to use as context..."} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">
-                    <Trans>None (disabled)</Trans>
+                    None (disabled)
                   </SelectItem>
                   <SelectItem value="tags">
-                    <Trans>Tags</Trans>
+                    Tags
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -322,7 +320,7 @@ export default function TemplateEditor({
             {contextType === "tags" && (
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-neutral-600">
-                  <Trans>Select tags</Trans>
+                  Select tags
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
@@ -355,7 +353,7 @@ export default function TemplateEditor({
                     ))}
                     {selectedTags.length === 0 && (
                       <span className="text-sm text-muted-foreground py-1">
-                        <Trans>No tags selected</Trans>
+                        No tags selected
                       </span>
                     )}
                   </div>
@@ -413,7 +411,7 @@ export default function TemplateEditor({
 
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">
-          <Trans>Sections</Trans>
+          Sections
         </h2>
         <SectionsList
           disabled={isReadOnly}

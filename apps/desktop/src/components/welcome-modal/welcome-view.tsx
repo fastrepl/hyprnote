@@ -1,6 +1,6 @@
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { useLingui } from "@lingui/react/macro";
+
 import React from "react";
 
 interface WelcomeViewProps {
@@ -9,8 +9,6 @@ interface WelcomeViewProps {
 }
 
 export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarted }) => {
-  const { t } = useLingui();
-
   return (
     <div className="flex flex-col items-center">
       <img
@@ -25,7 +23,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
         once
         className="mb-20 text-center text-2xl font-medium text-neutral-600"
       >
-        {t`Where Conversations Stay Yours`}
+        {"Where Conversations Stay Yours"}
       </TextAnimate>
 
       <PushableButton

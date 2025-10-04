@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
 import { useState } from "react";
@@ -70,8 +69,6 @@ function PermissionItem({
 }
 
 export default function Sound() {
-  const { t } = useLingui();
-
   const [micPermissionRequested, setMicPermissionRequested] = useState(false);
 
   const micPermissionStatus = useQuery({
@@ -124,8 +121,8 @@ export default function Sound() {
       <div className="space-y-2">
         <PermissionItem
           icon={<MicIcon className="h-4 w-4" />}
-          title={t`Microphone Access`}
-          description={t`Required to transcribe your voice during meetings`}
+          title={"Microphone Access"}
+          description={"Required to transcribe your voice during meetings"}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
           onRequest={handleMicPermissionAction}
@@ -134,8 +131,8 @@ export default function Sound() {
 
         <PermissionItem
           icon={<Volume2Icon className="h-4 w-4" />}
-          title={t`System Audio Access`}
-          description={t`Required to transcribe other people's voice during meetings`}
+          title={"System Audio Access"}
+          description={"Required to transcribe other people's voice during meetings"}
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}

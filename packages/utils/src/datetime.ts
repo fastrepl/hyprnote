@@ -186,10 +186,6 @@ export function formatTimeAgo(date: Date | string): string {
   }
 }
 
-/**
- * Formats an upcoming date relative to now in a human-readable format with i18n support
- * Examples: "in progress", "in 5 seconds", "in 10 minutes", "in 2 hours", "2 days later", etc.
- */
 export function formatUpcomingTime(date: Date | string): string {
   const futureDate = typeof date === "string" ? new Date(date) : date;
   const now = new Date();

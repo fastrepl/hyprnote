@@ -7,7 +7,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { useLingui } from "@lingui/react/macro";
+
 import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -73,8 +73,6 @@ export default function TemplateEditor({
   onDuplicate,
   isCreator = true,
 }: TemplateEditorProps) {
-  const { t } = useLingui();
-
   // Load all tags from database
   const { data: allTags = [] } = useQuery({
     queryKey: ["all-tags"],
@@ -227,7 +225,7 @@ export default function TemplateEditor({
               value={titleText}
               onChange={handleChangeTitle}
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
-              placeholder={t`Untitled Template`}
+              placeholder={"Untitled Template"}
             />
           </div>
 
@@ -262,7 +260,7 @@ export default function TemplateEditor({
           disabled={isReadOnly}
           value={descriptionText}
           onChange={handleChangeDescription}
-          placeholder={t`Describe the summary you want to generate...
+          placeholder={`Describe the summary you want to generate...
             
 • what kind of meeting is this?
 • any format requirements?
@@ -305,7 +303,7 @@ export default function TemplateEditor({
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t`Select what to use as context...`} />
+                  <SelectValue placeholder={"Select what to use as context..."} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">

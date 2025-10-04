@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
@@ -185,7 +184,6 @@ function NoteItem({
   activeSessionId: string;
   currentSessionId: string;
 }) {
-  const { t } = useLingui();
   const navigate = useNavigate();
 
   const currentSession = useSession(currentSessionId, (s) => ({
@@ -265,7 +263,7 @@ function NoteItem({
   // }, [isActive]);
 
   const handleClickDelete = () => {
-    confirm(t`Are you sure you want to delete this note?`).then((yes) => {
+    confirm("Are you sure you want to delete this note?").then((yes) => {
       if (yes) {
         deleteSession.mutate();
       }

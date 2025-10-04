@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { useLingui } from "@lingui/react/macro";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as autostart from "@tauri-apps/plugin-autostart";
 import { Plus, X } from "lucide-react";
@@ -87,7 +87,6 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function General() {
-  const { t } = useLingui();
   const queryClient = useQueryClient();
 
   const config = useQuery({
@@ -438,9 +437,7 @@ export default function General() {
                         e.currentTarget.blur();
                       }
                     }}
-                    placeholder={t({
-                      id: "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)",
-                    })}
+                    placeholder={"Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"}
                     className="focus-visible:ring-1 focus-visible:ring-ring resize-none"
                   />
                 </FormControl>

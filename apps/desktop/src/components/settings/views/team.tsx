@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { MoreVertical, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -39,7 +38,6 @@ const members: Member[] = [
 ];
 
 export default function TeamComponent() {
-  const { t } = useLingui();
   const [searchQuery, setSearchQuery] = useState("");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmails, setInviteEmails] = useState("");
@@ -78,7 +76,7 @@ export default function TeamComponent() {
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t`Type to search...`}
+              placeholder={"Type to search..."}
               className="max-w-60 pl-8 focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -197,7 +195,7 @@ export default function TeamComponent() {
                   Email addresses
                 </label>
                 <Input
-                  placeholder={t`Search names or emails`}
+                  placeholder={"Search names or emails"}
                   value={inviteEmails}
                   onChange={(e) => setInviteEmails(e.target.value)}
                   className="focus-visible:ring-0 focus-visible:ring-offset-0"

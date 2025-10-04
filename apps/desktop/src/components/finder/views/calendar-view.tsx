@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { addMonths, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
@@ -6,6 +5,7 @@ import { useState } from "react";
 import WorkspaceCalendar from "@/components/workspace-calendar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
+import { format } from "@hypr/utils";
 
 interface CalendarViewProps {
   date: Date;
@@ -15,7 +15,6 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ date, sessions, events, onNavigate }: CalendarViewProps) {
-  const { i18n } = useLingui();
   const [currentDate, setCurrentDate] = useState(date);
 
   // Embedded directly to handle navigation
@@ -44,7 +43,7 @@ export function CalendarView({ date, sessions, events, onNavigate }: CalendarVie
       <header className="flex w-full flex-col">
         <div data-tauri-drag-region className="relative h-11 w-full flex items-center justify-center">
           <h1 className="text-xl font-bold" data-tauri-drag-region>
-            {i18n.date(currentDate, { month: "long", year: "numeric" })}
+            {format(currentDate, "MMMM yyyy")}
           </h1>
 
           <div className="absolute right-2 flex h-fit rounded-md overflow-clip border border-neutral-200">

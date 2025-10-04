@@ -1,6 +1,6 @@
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import React from "react";
 
 interface WelcomeViewProps {
@@ -33,7 +33,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
         onClick={onGetStarted}
         className="w-full max-w-sm"
       >
-        <Trans>Get Started</Trans>
+        Get Started
       </PushableButton>
     </div>
   );

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar, ExternalLink } from "lucide-react";
@@ -48,7 +47,7 @@ export function UpcomingEvents({
     <div className="mt-8">
       <h2 className="mb-4 flex items-center justify-center gap-2 font-semibold">
         <Calendar className="size-5" />
-        <Trans>Upcoming Events</Trans>
+        Upcoming Events
       </h2>
       {upcomingEvents.length > 0
         ? (
@@ -83,7 +82,7 @@ export function UpcomingEvents({
         )
         : (
           <p className="text-muted-foreground text-center">
-            <Trans>No upcoming events for this organization</Trans>
+            No upcoming events for this organization
           </p>
         )}
     </div>

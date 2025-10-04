@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CloudLightningIcon } from "lucide-react";
 
@@ -71,10 +70,10 @@ function FeatureFlag({
           </div>
           <div>
             <div className="text-sm font-medium">
-              <Trans>{title}</Trans>
+              {title}
             </div>
             <div className="text-xs text-muted-foreground">
-              <Trans>{description}</Trans>
+              {description}
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { Link, type LinkProps, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -89,12 +88,8 @@ export function PastNotes({ human }: { human: Human }) {
         : (
           <EmptyState
             icon={<FileText className="h-14 w-14" />}
-            title={<Trans>No past notes with this contact</Trans>}
-            actionLabel={
-              <Trans>
-                <span onClick={handleCreateNote}>Create Note</span>
-              </Trans>
-            }
+            title={<p>No past notes with this contact</p>}
+            actionLabel={<span onClick={handleCreateNote}>Create Note</span>}
           />
         )}
     </div>

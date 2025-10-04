@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
 import { useState } from "react";
@@ -41,7 +41,7 @@ function PermissionItem({
         <div>
           <div className="text-sm font-medium">{title}</div>
           <div className="text-xs text-muted-foreground">
-            {done ? <Trans>Access Granted</Trans> : description}
+            {done ? <p>Access Granted</p> : <p>{description}</p>}
           </div>
         </div>
       </div>
@@ -58,10 +58,10 @@ function PermissionItem({
               ? (
                 <>
                   <Spinner className="mr-2" />
-                  <Trans>Requesting...</Trans>
+                  Requesting...
                 </>
               )
-              : <Trans>{buttonText}</Trans>}
+              : <p>{buttonText}</p>}
           </Button>
         )}
       </div>

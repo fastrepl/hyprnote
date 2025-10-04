@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { MessageCircleMore } from "lucide-react";
 import { memo, useEffect } from "react";
 
@@ -44,7 +43,7 @@ function ChatPanelButtonBase() {
       </TooltipTrigger>
       <TooltipContent>
         <p>
-          <Trans>Toggle chat panel</Trans> <Shortcut macDisplay="⌘J" windowsDisplay="Ctrl+J" />
+          Toggle chat panel <Shortcut macDisplay="⌘J" windowsDisplay="Ctrl+J" />
         </p>
       </TooltipContent>
     </Tooltip>

@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
+
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -219,15 +219,13 @@ export default function NotificationsComponent() {
                 <div className="flex flex-row items-center justify-between">
                   <div>
                     <FormLabel className="flex items-center gap-2">
-                      <Trans>Upcoming meeting notifications</Trans>
+                      Upcoming meeting notifications
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                         Preview
                       </span>
                     </FormLabel>
                     <FormDescription>
-                      <Trans>
-                        Show notifications when you have meetings starting soon in your calendar.
-                      </Trans>
+                      Show notifications when you have meetings starting soon in your calendar.
                     </FormDescription>
                   </div>
 
@@ -249,15 +247,13 @@ export default function NotificationsComponent() {
                 <div className="flex flex-row items-center justify-between">
                   <div>
                     <FormLabel className="flex items-center gap-2">
-                      <Trans>Detect meetings automatically</Trans>
+                      Detect meetings automatically
                       <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                         Preview
                       </span>
                     </FormLabel>
                     <FormDescription>
-                      <Trans>
-                        Show notifications when you join a meeting.
-                      </Trans>
+                      Show notifications when you join a meeting.
                     </FormDescription>
                   </div>
 
@@ -272,10 +268,10 @@ export default function NotificationsComponent() {
                 <FormItem className={`ml-6 mt-4 border-l-2 border-muted pl-6 pt-2 ${!field.value ? "opacity-50" : ""}`}>
                   <div className="space-y-1 mb-3">
                     <FormLabel className="text-sm">
-                      <Trans>Exclude apps from detection</Trans>
+                      Exclude apps from detection
                     </FormLabel>
                     <FormDescription className="text-xs">
-                      <Trans>These apps will not trigger meeting detection</Trans>
+                      These apps will not trigger meeting detection
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -377,7 +373,7 @@ export default function NotificationsComponent() {
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-background px-4 text-muted-foreground font-medium">
-                    <Trans>Global Settings</Trans>
+                    Global Settings
                   </span>
                 </div>
               </div>
@@ -389,12 +385,10 @@ export default function NotificationsComponent() {
                     <div className="flex flex-row items-center justify-between">
                       <div>
                         <FormLabel>
-                          <Trans>Respect Do Not Disturb</Trans>
+                          Respect Do Not Disturb
                         </FormLabel>
                         <FormDescription>
-                          <Trans>
-                            Don't show notifications when Do Not Disturb is enabled on your system.
-                          </Trans>
+                          Don't show notifications when Do Not Disturb is enabled on your system.
                         </FormDescription>
                       </div>
 

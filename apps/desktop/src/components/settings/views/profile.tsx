@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -116,7 +116,7 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="w-60">
                 <FormLabel>
-                  <Trans>Full name</Trans>
+                  Full name
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -136,7 +136,7 @@ export default function ProfileComponent() {
             render={({ field }) => (
               <FormItem className="w-60">
                 <FormLabel>
-                  <Trans>Job title</Trans>
+                  Job title
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -157,10 +157,10 @@ export default function ProfileComponent() {
               <FormItem className="w-60">
                 <div>
                   <FormLabel>
-                    <Trans>Company name</Trans>
+                    Company name
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is the name of the company you work for.</Trans>
+                    This is the name of the company you work for.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -182,10 +182,10 @@ export default function ProfileComponent() {
               <FormItem className="max-w-lg">
                 <div>
                   <FormLabel>
-                    <Trans>Company description</Trans>
+                    Company description
                   </FormLabel>
                   <FormDescription>
-                    <Trans>This is a short description of your company.</Trans>
+                    This is a short description of your company.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -207,12 +207,10 @@ export default function ProfileComponent() {
               <FormItem className="max-w-sm">
                 <div>
                   <FormLabel>
-                    <Trans>LinkedIn username</Trans>
+                    LinkedIn username
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Your LinkedIn username (the part after linkedin.com/in/)
-                    </Trans>
+                    Your LinkedIn username (the part after linkedin.com/in/)
                   </FormDescription>
                 </div>
                 <FormControl>

@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { MoreVertical, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -66,12 +66,10 @@ export default function TeamComponent() {
     <div className="relative h-full">
       <div className="absolute inset-0 backdrop-blur-sm bg-white/50 z-10 flex flex-col items-center justify-center">
         <div className="text-4xl font-bold text-neutral-900 mb-4">
-          <Trans>Coming Soon</Trans>
+          Coming Soon
         </div>
         <p className="text-neutral-700 max-w-md text-center">
-          <Trans>
-            Team management features are currently under development and will be available in a future update.
-          </Trans>
+          Team management features are currently under development and will be available in a future update.
         </p>
       </div>
 
@@ -91,17 +89,17 @@ export default function TeamComponent() {
             onClick={() => setShowInviteModal(true)}
           >
             <Plus className="h-4 w-4" />
-            <Trans>Add members</Trans>
+            Add members
           </Button>
         </div>
 
         <div className="overflow-clip rounded-lg border bg-card">
           <div className="grid grid-cols-2 gap-4 border-b bg-neutral-50 px-6 py-3 text-sm font-bold text-neutral-700">
             <div>
-              <Trans>User</Trans>
+              User
             </div>
             <div>
-              <Trans>Role</Trans>
+              Role
             </div>
           </div>
 
@@ -136,13 +134,13 @@ export default function TeamComponent() {
                         value="workspace_owner"
                         className="cursor-pointer"
                       >
-                        <Trans>Owner</Trans>
+                        Owner
                       </SelectItem>
                       <SelectItem value="admin" className="cursor-pointer">
-                        <Trans>Admin</Trans>
+                        Admin
                       </SelectItem>
                       <SelectItem value="member" className="cursor-pointer">
-                        <Trans>Member</Trans>
+                        Member
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -162,7 +160,7 @@ export default function TeamComponent() {
                         onClick={() => handleDelete(member)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        <Trans>Delete</Trans>
+                        Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -172,7 +170,7 @@ export default function TeamComponent() {
 
             {filteredMembers.length === 0 && (
               <div className="px-6 py-4 text-sm text-muted-foreground">
-                <Trans>No members found</Trans>
+                No members found
               </div>
             )}
           </div>
@@ -186,19 +184,17 @@ export default function TeamComponent() {
           <ModalBody>
             <ModalHeader>
               <ModalTitle>
-                <Trans>Invite members</Trans>
+                Invite members
               </ModalTitle>
               <ModalDescription>
-                <Trans>
-                  Type or paste in emails below, separated by commas. Your workspace will be billed by members.
-                </Trans>
+                Type or paste in emails below, separated by commas. Your workspace will be billed by members.
               </ModalDescription>
             </ModalHeader>
 
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  <Trans>Email addresses</Trans>
+                  Email addresses
                 </label>
                 <Input
                   placeholder={t`Search names or emails`}
@@ -210,7 +206,7 @@ export default function TeamComponent() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  <Trans>Role</Trans>
+                  Role
                 </label>
                 <Select
                   value={inviteRole}
@@ -223,13 +219,13 @@ export default function TeamComponent() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="workspace_owner">
-                      <Trans>Owner</Trans>
+                      Owner
                     </SelectItem>
                     <SelectItem value="admin">
-                      <Trans>Admin</Trans>
+                      Admin
                     </SelectItem>
                     <SelectItem value="member">
-                      <Trans>Member</Trans>
+                      Member
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -237,7 +233,7 @@ export default function TeamComponent() {
 
               <div className="flex justify-end">
                 <Button onClick={() => setShowInviteModal(false)}>
-                  <Trans>Send invite</Trans>
+                  Send invite
                 </Button>
               </div>
             </div>

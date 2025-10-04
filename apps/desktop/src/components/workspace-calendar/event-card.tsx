@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import type { LinkProps } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Calendar, FileText, Pen } from "lucide-react";
@@ -126,7 +125,7 @@ export function EventCard({
             >
               <Pen className="size-3 text-neutral-600 flex-shrink-0" />
               <div className="text-xs font-medium text-neutral-800 truncate">
-                <Trans>Create Note</Trans>
+                Create Note
               </div>
             </div>
           )}

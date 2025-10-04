@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -560,7 +560,7 @@ function ParticipantCandidates({
             <span className="text-xs">+</span>
           </span>
           <span className="flex items-center gap-1 font-medium text-neutral-600">
-            <Trans>Create</Trans>
+            Create
             <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query.trim()}&quot;</span>
           </span>
         </button>

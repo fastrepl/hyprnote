@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { addMonths, subMonths } from "date-fns";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
@@ -61,7 +61,7 @@ export function CalendarView({ date, sessions, events, onNavigate }: CalendarVie
               className="text-sm px-1 py-0.5 rounded-none border-none"
               onClick={handleToday}
             >
-              <Trans>Today</Trans>
+              Today
             </Button>
 
             <Button

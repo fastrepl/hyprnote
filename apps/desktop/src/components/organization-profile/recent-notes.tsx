@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -39,7 +38,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
     <div className="mt-8">
       <h2 className="mb-4 flex items-center justify-center gap-2 font-semibold">
         <FileText className="size-5" />
-        <Trans>Recent Notes</Trans>
+        Recent Notes
       </h2>
       {sessions.length > 0
         ? (
@@ -56,7 +55,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
                     </div>
                     <Button variant="ghost" size="sm" className="ml-2">
                       <Link to="/app/note/$id" params={{ id: session.id }}>
-                        <Trans>View Note</Trans>
+                        View Note
                       </Link>
                     </Button>
                   </div>
@@ -67,7 +66,7 @@ export function RecentNotes({ organizationId, members }: RecentNotesProps) {
         )
         : (
           <p className="text-muted-foreground text-center">
-            <Trans>No recent notes with this organization</Trans>
+            No recent notes with this organization
           </p>
         )}
     </div>

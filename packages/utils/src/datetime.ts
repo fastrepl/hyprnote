@@ -1,5 +1,4 @@
 import * as FNS_TZ from "@date-fns/tz";
-import { i18n } from "@lingui/core";
 import * as FNS from "date-fns";
 
 export const format = (
@@ -19,29 +18,21 @@ export function formatRemainingTime(date: Date): string {
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
   if (days > 0) {
-    return i18n._("{days} day{plural} later", {
-      days,
-      plural: days > 1 ? "s" : "",
-    });
+    return `${days} day${days > 1 ? "s" : ""} later`;
   } else if (hours > 0) {
-    return i18n._("{hours} hour{plural} later", {
-      hours,
-      plural: hours > 1 ? "s" : "",
-    });
+    return `${hours} hour${hours > 1 ? "s" : ""} later`;
   } else if (minutes > 1) {
-    return i18n._("{minutes} minutes later", {
-      minutes,
-    });
+    return `${minutes} minutes later`;
   } else if (minutes > 0) {
-    return i18n._("Starting soon");
+    return "Starting soon";
   } else {
-    return i18n._("In progress");
+    return "In progress";
   }
 }
 
 export const formatRelative = (date: string | null | undefined, t?: string) => {
   if (!date) {
-    return i18n._("Unknown date");
+    return "Unknown date";
   }
 
   try {
@@ -50,7 +41,7 @@ export const formatRelative = (date: string | null | undefined, t?: string) => {
 
     // Check for invalid date
     if (isNaN(d.getTime())) {
-      return i18n._("Invalid date");
+      return "Invalid date";
     }
 
     const now = new Date();
@@ -60,34 +51,34 @@ export const formatRelative = (date: string | null | undefined, t?: string) => {
     const diffInDays = FNS.differenceInCalendarDays(startOfToday, startOfDay, { in: tz });
 
     if (diffInDays === 0) {
-      return i18n._("Today");
+      return "Today";
     } else if (diffInDays === 1) {
-      return i18n._("Yesterday");
+      return "Yesterday";
     } else if (diffInDays > 0 && diffInDays < 7) {
-      return i18n._("{days} days ago", { days: diffInDays });
+      return `${diffInDays} days ago`;
     } else if (diffInDays < 0 && diffInDays > -7) {
-      return i18n._("{days} days later", { days: Math.abs(diffInDays) });
+      return `${Math.abs(diffInDays)} days later`;
     } else {
       const currentYear = now.getFullYear();
       const dateYear = d.getFullYear();
 
       if (dateYear === currentYear) {
         const formattedDate = FNS.format(d, "MMM d", { in: tz });
-        return i18n._("{date}", { date: formattedDate });
+        return formattedDate;
       } else {
         const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
-        return i18n._("{date}", { date: formattedDate });
+        return formattedDate;
       }
     }
   } catch (error) {
     console.error("Error formatting relative date:", error);
-    return i18n._("Date error");
+    return "Date error";
   }
 };
 
 export const formatRelativeWithDay = (date: string | null | undefined, t?: string, now = new Date()) => {
   if (!date) {
-    return i18n._("Unknown date");
+    return "Unknown date";
   }
 
   try {
@@ -95,7 +86,7 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
     const d = new Date(date);
 
     if (isNaN(d.getTime())) {
-      return i18n._("Invalid date");
+      return "Invalid date";
     }
 
     const startOfDay = FNS.startOfDay(d);
@@ -106,28 +97,28 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
     const dayOfWeek = daysOfWeek[d.getDay()];
 
     if (diffInDays === 0) {
-      return i18n._("Today ({dayOfWeek})", { dayOfWeek });
+      return `Today (${dayOfWeek})`;
     } else if (diffInDays === 1) {
-      return i18n._("Yesterday ({dayOfWeek})", { dayOfWeek });
+      return `Yesterday (${dayOfWeek})`;
     } else if (diffInDays > 0 && diffInDays < 7) {
-      return i18n._("{days} days ago ({dayOfWeek})", { days: diffInDays, dayOfWeek });
+      return `${diffInDays} days ago (${dayOfWeek})`;
     } else if (diffInDays < 0 && diffInDays > -7) {
-      return i18n._("{days} days later ({dayOfWeek})", { days: Math.abs(diffInDays), dayOfWeek });
+      return `${Math.abs(diffInDays)} days later (${dayOfWeek})`;
     } else {
       const currentYear = now.getFullYear();
       const dateYear = d.getFullYear();
 
       if (dateYear === currentYear) {
         const formattedDate = FNS.format(d, "MMM d", { in: tz });
-        return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+        return `${formattedDate} (${dayOfWeek})`;
       } else {
         const formattedDate = FNS.format(d, "MMM d, yyyy", { in: tz });
-        return i18n._("{date} ({dayOfWeek})", { date: formattedDate, dayOfWeek });
+        return `${formattedDate} (${dayOfWeek})`;
       }
     }
   } catch (error) {
     console.error("Error formatting relative date with day:", error);
-    return i18n._("Date error");
+    return "Date error";
   }
 };
 
@@ -165,33 +156,33 @@ export function formatTimeAgo(date: Date | string): string {
   const years = Math.floor(days / 365);
 
   if (seconds < 5) {
-    return i18n._("Just now");
+    return "Just now";
   } else if (seconds < 60) {
-    return i18n._("{seconds} seconds ago", { seconds });
+    return `${seconds} seconds ago`;
   } else if (minutes === 1) {
-    return i18n._("1 minute ago");
+    return "1 minute ago";
   } else if (minutes < 60) {
-    return i18n._("{minutes} minutes ago", { minutes });
+    return `${minutes} minutes ago`;
   } else if (hours === 1) {
-    return i18n._("1 hour ago");
+    return "1 hour ago";
   } else if (hours < 24) {
-    return i18n._("{hours} hours ago", { hours });
+    return `${hours} hours ago`;
   } else if (days === 1) {
-    return i18n._("Yesterday");
+    return "Yesterday";
   } else if (days < 7) {
-    return i18n._("{days} days ago", { days });
+    return `${days} days ago`;
   } else if (weeks === 1) {
-    return i18n._("1 week ago");
+    return "1 week ago";
   } else if (weeks < 4) {
-    return i18n._("{weeks} weeks ago", { weeks });
+    return `${weeks} weeks ago`;
   } else if (months === 1) {
-    return i18n._("1 month ago");
+    return "1 month ago";
   } else if (months < 12) {
-    return i18n._("{months} months ago", { months });
+    return `${months} months ago`;
   } else if (years === 1) {
-    return i18n._("1 year ago");
+    return "1 year ago";
   } else {
-    return i18n._("{years} years ago", { years });
+    return `${years} years ago`;
   }
 }
 
@@ -204,7 +195,7 @@ export function formatUpcomingTime(date: Date | string): string {
   const now = new Date();
 
   if (futureDate <= now) {
-    return i18n._("In progress");
+    return "In progress";
   }
 
   // Use calendar day difference calculation to be consistent with formatRelativeWithDay
@@ -220,23 +211,23 @@ export function formatUpcomingTime(date: Date | string): string {
     const hours = Math.floor(minutes / 60);
 
     if (seconds < 60) {
-      return i18n._("Starting soon");
+      return "Starting soon";
     } else if (minutes === 1) {
-      return i18n._("In 1 minute");
+      return "In 1 minute";
     } else if (minutes < 60) {
-      return i18n._("In {minutes} minutes", { minutes });
+      return `In ${minutes} minutes`;
     } else if (hours === 1) {
-      return i18n._("In 1 hour");
+      return "In 1 hour";
     } else {
-      return i18n._("In {hours} hours", { hours });
+      return `In ${hours} hours`;
     }
   } else if (diffInDays === 1) {
-    return i18n._("1 day later");
+    return "1 day later";
   } else if (diffInDays < 7) {
-    return i18n._("{days} days later", { days: diffInDays });
+    return `${diffInDays} days later`;
   } else {
     const weeks = Math.floor(diffInDays / 7);
-    return i18n._("{weeks} weeks later", { weeks });
+    return `${weeks} weeks later`;
   }
 }
 

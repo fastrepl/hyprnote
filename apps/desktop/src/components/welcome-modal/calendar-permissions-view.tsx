@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 import { CalendarIcon, CheckCircle2Icon, UserIcon } from "lucide-react";
@@ -47,7 +46,7 @@ function PermissionItem({
               ? (
                 <span className="text-blue-600 flex items-center gap-1">
                   <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                  <Trans>Access Granted</Trans>
+                  Access Granted
                 </span>
               )
               : <span className="block truncate pr-2">{description}</span>}
@@ -62,7 +61,7 @@ function PermissionItem({
             onClick={onRequest}
             className="min-w-20"
           >
-            <Trans>Enable</Trans>
+            Enable
           </Button>
         )}
         {done && (
@@ -121,11 +120,11 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
   return (
     <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
-        <Trans>Calendar & Contacts</Trans>
+        Calendar & Contacts
       </h2>
 
       <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>Connect your calendar and contacts for a better experience</Trans>
+        Connect your calendar and contacts for a better experience
       </p>
 
       <div className="w-full max-w-[30rem] space-y-3 mb-8">
@@ -150,11 +149,11 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
         onClick={onContinue}
         className="w-full max-w-sm"
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
 
       <p className="text-xs text-muted-foreground text-center mt-4">
-        <Trans>These permissions are optional but recommended</Trans>
+        These permissions are optional but recommended
       </p>
     </div>
   );

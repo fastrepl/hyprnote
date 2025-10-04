@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CheckCircle2Icon, MicIcon, Volume2Icon } from "lucide-react";
 
@@ -55,7 +55,7 @@ function PermissionItem({
               ? (
                 <span className="text-blue-600 flex items-center gap-1">
                   <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                  <Trans>Access Granted</Trans>
+                  Access Granted
                 </span>
               )
               : <span className="block truncate pr-2">{description}</span>}
@@ -76,10 +76,10 @@ function PermissionItem({
                 ? (
                   <>
                     <Spinner className="mr-2" />
-                    <Trans>Requesting...</Trans>
+                    Requesting...
                   </>
                 )
-                : <Trans>{buttonText}</Trans>}
+                : <p>{buttonText}</p>}
             </Button>
           </>
         )}
@@ -152,11 +152,11 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
   return (
     <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
-        <Trans>Audio Permissions</Trans>
+        Audio Permissions
       </h2>
 
       <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>After you grant system audio access, app will restart to apply the changes</Trans>
+        After you grant system audio access, app will restart to apply the changes
       </p>
 
       <div className="w-full max-w-[30rem] space-y-3 mb-8">
@@ -186,12 +186,12 @@ export function AudioPermissionsView({ onContinue }: AudioPermissionsViewProps) 
         disabled={!allPermissionsGranted}
         className="w-full max-w-sm"
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
 
       {!allPermissionsGranted && (
         <p className="text-xs text-muted-foreground text-center mt-4">
-          <Trans>Grant both permissions to continue</Trans>
+          Grant both permissions to continue
         </p>
       )}
     </div>

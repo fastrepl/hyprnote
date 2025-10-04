@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as autostart from "@tauri-apps/plugin-autostart";
 import { Plus, X } from "lucide-react";
@@ -193,12 +193,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    <Trans>Start automatically at login</Trans>
+                    Start automatically at login
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Only starts at the background for notification purposes.
-                    </Trans>
+                    Only starts at the background for notification purposes.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -219,10 +217,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    <Trans>Save recordings</Trans>
+                    Save recordings
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Save audio recording locally alongside the transcript.</Trans>
+                    Save audio recording locally alongside the transcript.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -243,7 +241,7 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    <Trans>Share usage data</Trans>
+                    Share usage data
                   </FormLabel>
                   <FormDescription className="flex flex-col">
                     <span>
@@ -273,10 +271,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Summary language</Trans>
+                    Summary language
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Language for AI-generated summaries</Trans>
+                    Language for AI-generated summaries
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -311,10 +309,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Display language</Trans>
+                    Display language
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Primary language for the interface</Trans>
+                    Primary language for the interface
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -342,10 +340,10 @@ export default function General() {
               <FormItem>
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Spoken languages</Trans>
+                    Spoken languages
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Select languages you speak for better transcription</Trans>
+                    Select languages you speak for better transcription
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -422,12 +420,10 @@ export default function General() {
               <FormItem>
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Custom Vocabulary</Trans>
+                    Custom Vocabulary
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Add specific terms or jargon for improved transcription accuracy
-                    </Trans>
+                    Add specific terms or jargon for improved transcription accuracy
                   </FormDescription>
                 </div>
                 <FormControl>

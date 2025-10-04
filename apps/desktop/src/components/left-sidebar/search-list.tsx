@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch, useNavigate } from "@tanstack/react-router";
 import { BuildingIcon, CalendarIcon, FileTextIcon, UserIcon } from "lucide-react";
@@ -295,7 +294,7 @@ function HumanMatch({ match: { item }, isSelected, query }: {
           onClick={handleOpenWindow}
         >
           <AppWindowMacIcon size={16} className="mr-2" />
-          <Trans>Open in new window</Trans>
+          Open in new window
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -365,7 +364,7 @@ function OrganizationMatch({ match: { item: organization }, isSelected, query }:
           onClick={handleOpenWindow}
         >
           <AppWindowMacIcon size={16} className="mr-2" />
-          <Trans>Open in new window</Trans>
+          Open in new window
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

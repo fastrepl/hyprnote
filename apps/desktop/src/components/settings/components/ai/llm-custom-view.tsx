@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
@@ -287,11 +286,11 @@ export function LLMCustomView({
                     </path>
                   </svg>
                   <span className="font-medium">
-                    <Trans>OpenAI</Trans>
+                    OpenAI
                   </span>
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Use OpenAI's GPT models with your API key</Trans>
+                  Use OpenAI's GPT models with your API key
                 </p>
               </div>
               <div className="text-neutral-400">
@@ -311,7 +310,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
+                            API Key
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -331,7 +330,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Model</Trans>
+                            Model
                           </FormLabel>
                           <FormControl>
                             <Select
@@ -382,11 +381,11 @@ export function LLMCustomView({
                     </path>
                   </svg>
                   <span className="font-medium">
-                    <Trans>Google Gemini</Trans>
+                    Google Gemini
                   </span>
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Use Google's Gemini models with your API key</Trans>
+                  Use Google's Gemini models with your API key
                 </p>
               </div>
               <div className="text-neutral-400">
@@ -406,7 +405,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
+                            API Key
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -426,7 +425,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Model</Trans>
+                            Model
                           </FormLabel>
                           <FormControl>
                             <Select
@@ -487,11 +486,11 @@ export function LLMCustomView({
                     </path>
                   </svg>
                   <span className="font-medium">
-                    <Trans>OpenRouter</Trans>
+                    OpenRouter
                   </span>
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Access multiple AI models through OpenRouter with your API key</Trans>
+                  Access multiple AI models through OpenRouter with your API key
                 </p>
               </div>
               <div className="text-neutral-400">
@@ -511,7 +510,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
+                            API Key
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -531,7 +530,7 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Model</Trans>
+                            Model
                           </FormLabel>
                           <FormControl>
                             <Select
@@ -577,10 +576,10 @@ export function LLMCustomView({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="font-medium">
-                  <Trans>Others</Trans>
+                  Others
                 </span>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)</Trans>
+                  Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)
                 </p>
               </div>
               <div className="text-neutral-400">
@@ -600,10 +599,10 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>API Base URL</Trans>
+                            API Base URL
                           </FormLabel>
                           <FormDescription className="text-xs">
-                            <Trans>Enter the base URL for your custom LLM endpoint</Trans>
+                            Enter the base URL for your custom LLM endpoint
                           </FormDescription>
                           <FormControl>
                             <Input
@@ -622,10 +621,10 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
+                            API Key
                             {customForm.watch("api_base") && isLocalEndpoint() && (
                               <span className="text-xs font-normal text-neutral-500 ml-2">
-                                <Trans>(Optional for localhost)</Trans>
+                                (Optional for localhost)
                               </span>
                             )}
                           </FormLabel>
@@ -647,19 +646,17 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Model Name</Trans>
+                            Model Name
                           </FormLabel>
                           <FormDescription className="text-xs">
-                            <Trans>
-                              Select a model from the dropdown (if available) or manually enter the model name required
-                              by your endpoint.
-                            </Trans>
+                            Select a model from the dropdown (if available) or manually enter the model name required by
+                            your endpoint.
                           </FormDescription>
                           <FormControl>
                             {othersModels.isLoading && !field.value
                               ? (
                                 <div className="py-1 text-sm text-neutral-500">
-                                  <Trans>Loading available models...</Trans>
+                                  Loading available models...
                                 </div>
                               )
                               : othersModels.data && othersModels.data.length > 0

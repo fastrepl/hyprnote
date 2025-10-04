@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useLingui } from "@lingui/react/macro";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useMatch, useNavigate } from "@tanstack/react-router";
@@ -310,7 +309,7 @@ function NoteItem({
         >
           <div className="flex items-center gap-2">
             <AppWindowMacIcon size={16} />
-            <Trans>New window</Trans>
+            New window
           </div>
           <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>
@@ -321,7 +320,7 @@ function NoteItem({
         >
           <div className="flex items-center gap-2">
             <CalendarDaysIcon size={16} />
-            <Trans>View calendar</Trans>
+            View calendar
           </div>
           <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>
@@ -333,7 +332,7 @@ function NoteItem({
           onClick={handleClickDelete}
         >
           <TrashIcon size={16} className="mr-2" />
-          <Trans>Delete</Trans>
+          Delete
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

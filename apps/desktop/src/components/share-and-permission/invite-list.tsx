@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { InvitedUser } from "./invited-user";
 
 export interface InviteListProps {
@@ -27,7 +27,7 @@ export const InviteList = ({
           autoFocus={false}
         />
         <Button variant="outline">
-          <Trans>Invite</Trans>
+          Invite
         </Button>
       </div>
       <div className="space-y-3">

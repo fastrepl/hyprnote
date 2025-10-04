@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 import { useCallback } from "react";
@@ -64,12 +63,12 @@ export function AppleCalendarIntegrationDetails() {
             />
             <div>
               <div className="text-sm font-medium">
-                <Trans>Calendar Access</Trans>
+                Calendar Access
               </div>
               <div className="text-xs text-muted-foreground">
                 {calendarAccess.data
-                  ? <Trans>Access granted</Trans>
-                  : <Trans>Connect your calendar and track events</Trans>}
+                  ? <p>Access granted</p>
+                  : <p>Connect your calendar and track events</p>}
               </div>
             </div>
           </div>
@@ -80,7 +79,7 @@ export function AppleCalendarIntegrationDetails() {
               onClick={handleRequestCalendarAccess}
               className="min-w-12 text-center"
             >
-              <Trans>Grant Access</Trans>
+              Grant Access
             </Button>
           )}
         </div>
@@ -106,12 +105,12 @@ export function AppleCalendarIntegrationDetails() {
           />
           <div>
             <div className="text-sm font-medium">
-              <Trans>Contacts Access</Trans>
+              Contacts Access
             </div>
             <div className="text-xs text-muted-foreground">
               {contactsAccess.data
-                ? <Trans>Access granted</Trans>
-                : <Trans>Optional for participant suggestions</Trans>}
+                ? <p>Access granted</p>
+                : <p>Optional for participant suggestions</p>}
             </div>
           </div>
         </div>
@@ -122,7 +121,7 @@ export function AppleCalendarIntegrationDetails() {
             onClick={handleRequestContactsAccess}
             className="min-w-12 text-center"
           >
-            <Trans>Grant Access</Trans>
+            Grant Access
           </Button>
         )}
       </div>

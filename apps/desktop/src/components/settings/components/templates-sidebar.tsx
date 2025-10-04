@@ -1,4 +1,4 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { FileTextIcon, SearchIcon } from "lucide-react";
 
 import { type Template } from "@hypr/plugin-db";
@@ -42,7 +42,7 @@ export function TemplatesSidebar({
           {customTemplates.length > 0 && (
             <div>
               <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
-                <Trans>Your Templates</Trans>
+                Your Templates
               </h3>
               <div className="space-y-1">
                 {customTemplates.map((template) => (
@@ -65,7 +65,7 @@ export function TemplatesSidebar({
           {builtinTemplates.length > 0 && (
             <div>
               <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
-                <Trans>Built-in Templates</Trans>
+                Built-in Templates
               </h3>
               <div className="space-y-1">
                 {builtinTemplates.map((template) => (

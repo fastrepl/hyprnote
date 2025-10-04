@@ -1,11 +1,6 @@
-import { i18n } from "@lingui/core";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { differenceInBusinessDays, formatRelativeWithDay } from "./datetime";
-
-beforeAll(() => {
-  i18n.activate("en");
-});
 
 describe("differenceInBusinessDays", () => {
   it("works", () => {

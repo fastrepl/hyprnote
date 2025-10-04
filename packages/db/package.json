@@ -15,13 +15,13 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44",
+    "drizzle-orm": "^0.44.6",
     "drizzle-zod": "^0.8.3",
     "zod": "^4.1.11"
   },
   "devDependencies": {
     "@types/node": "^24.6.2",
-    "drizzle-kit": "^0.31",
+    "drizzle-kit": "^0.31.5",
     "typescript": "~5.8.3"
   }
 }

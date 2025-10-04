@@ -3,8 +3,8 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import { useRightPanel } from "@/contexts/right-panel";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { useRightPanel } from "@hypr/utils/contexts";
 
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;

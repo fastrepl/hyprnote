@@ -77,7 +77,6 @@ export function NoteHeader(
           hashtags={hashtags}
           isVeryNarrow={isVeryNarrow}
           isNarrow={isNarrow}
-          isCompact={isCompact}
         />
       </div>
 

@@ -2,22 +2,20 @@ import { Trans } from "@lingui/react/macro";
 import { MessageCircleMore } from "lucide-react";
 import { memo, useEffect } from "react";
 
-import { useRightPanel } from "@/contexts";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
+import { useRightPanel } from "@hypr/utils/contexts";
 import Shortcut from "../../shortcut";
 
 function ChatPanelButtonBase() {
-  const { isExpanded, currentView, togglePanel } = useRightPanel();
-
-  const isActive = isExpanded && currentView === "chat";
+  const { isExpanded, togglePanel } = useRightPanel();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "j" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        togglePanel("chat");
+        togglePanel();
       }
     };
 
@@ -29,7 +27,7 @@ function ChatPanelButtonBase() {
   }, [togglePanel]);
 
   const handleClick = () => {
-    togglePanel("chat");
+    togglePanel();
   };
 
   return (
@@ -39,7 +37,7 @@ function ChatPanelButtonBase() {
           variant="ghost"
           size="icon"
           onClick={handleClick}
-          className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isActive && "bg-neutral-200")}
+          className={cn("hover:bg-neutral-200 text-xs size-7 p-0", isExpanded && "bg-neutral-200")}
         >
           <MessageCircleMore className="w-4 h-4" />
         </Button>

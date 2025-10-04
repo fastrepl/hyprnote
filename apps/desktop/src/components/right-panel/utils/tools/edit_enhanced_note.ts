@@ -1,5 +1,5 @@
-import type { SelectionData } from "@/contexts/right-panel";
 import { tool } from "@hypr/utils/ai";
+import type { SelectionData } from "@hypr/utils/contexts";
 import { z } from "zod";
 import { globalEditorRef } from "../../../../shared/editor-ref";
 

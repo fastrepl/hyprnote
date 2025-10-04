@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-logs-dir`
+- `allow-do-log`
 
 ## Permission Table
 
@@ -18,12 +19,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`tracing:allow-hi`
+`tracing:allow-do-log`
 
 </td>
 <td>
 
-Enables the hi command without any pre-configured scope.
+Enables the do_log command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +32,12 @@ Enables the hi command without any pre-configured scope.
 <tr>
 <td>
 
-`tracing:deny-hi`
+`tracing:deny-do-log`
 
 </td>
 <td>
 
-Denies the hi command without any pre-configured scope.
+Denies the do_log command without any pre-configured scope.
 
 </td>
 </tr>
@@ -63,32 +64,6 @@ Enables the logs_dir command without any pre-configured scope.
 <td>
 
 Denies the logs_dir command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`tracing:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`tracing:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
 
 </td>
 </tr>

@@ -5,8 +5,10 @@
   "windows": ["*"],
   "permissions": [
     "core:default",
+    "core:window:default",
     "opener:default",
     "db2:default",
-    "windows:default"
+    "windows:default",
+    "tracing:default"
   ]
 }

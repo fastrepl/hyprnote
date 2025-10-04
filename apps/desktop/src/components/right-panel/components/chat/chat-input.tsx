@@ -1,8 +1,6 @@
 import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
-import { useRightPanel } from "@/contexts";
-import type { SelectionData } from "@/contexts/right-panel";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { type SelectionData, useRightPanel } from "@hypr/utils/contexts";

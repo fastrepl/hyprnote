@@ -1,4 +1,5 @@
-import { useHypr, useRightPanel } from "@/contexts";
+import { useHypr } from "@/contexts";
+import { useRightPanel } from "@hypr/utils/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";

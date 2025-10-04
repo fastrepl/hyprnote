@@ -889,13 +889,16 @@ importers:
         version: 4.0.0
       react:
         specifier: ^18.3.1
-        version: 18.3.1
+        version: 19.1.1
+      react-hotkeys-hook:
+        specifier: ^4.6.2
+        version: 4.6.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       tauri-plugin-keygen-api:
         specifier: github:bagindo/tauri-plugin-keygen#v2
         version: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de
       zustand:
         specifier: ^5.0.8
-        version: 5.0.8(@types/react@18.3.24)(immer@10.1.3)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
+        version: 5.0.8(@types/react@18.3.24)(immer@10.1.3)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1))
     devDependencies:
       '@types/react':
         specifier: ^18.3.24
@@ -19107,7 +19110,6 @@ snapshots:
     dependencies:
       react: 19.1.1
       scheduler: 0.26.0
-    optional: true
 
   react-draggable@4.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -19156,6 +19158,11 @@ snapshots:
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  react-hotkeys-hook@4.6.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+    dependencies:
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
 
   react-hotkeys-hook@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -19725,8 +19732,7 @@ snapshots:
 
   scheduler@0.25.0-rc-603e6108-20241029: {}
 
-  scheduler@0.26.0:
-    optional: true
+  scheduler@0.26.0: {}
 
   screenfull@5.2.0: {}
 
@@ -21382,5 +21388,12 @@ snapshots:
       immer: 10.1.3
       react: 18.3.1
       use-sync-external-store: 1.5.0(react@18.3.1)
+
+  zustand@5.0.8(@types/react@18.3.24)(immer@10.1.3)(react@19.1.1)(use-sync-external-store@1.5.0(react@19.1.1)):
+    optionalDependencies:
+      '@types/react': 18.3.24
+      immer: 10.1.3
+      react: 19.1.1
+      use-sync-external-store: 1.5.0(react@19.1.1)
 
   zwitch@2.0.4: {}

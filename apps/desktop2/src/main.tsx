@@ -21,9 +21,12 @@ import {
   UI,
 } from "./tinybase/store/persisted";
 
+import { createOngoingSessionStore2 } from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
 
-const router = createRouter({ routeTree, context: {} });
+const ongoingSessionStore = createOngoingSessionStore2();
+
+const router = createRouter({ routeTree, context: undefined });
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -55,7 +58,17 @@ function App() {
     }
   }
 
-  return <RouterProvider router={router} context={{ persistedStore, memoryStore, internalStore }} />;
+  return (
+    <RouterProvider
+      router={router}
+      context={{
+        persistedStore,
+        memoryStore,
+        internalStore,
+        ongoingSessionStore,
+      }}
+    />
+  );
 }
 
 const rootElement = document.getElementById("root")!;

@@ -38,11 +38,19 @@ pub async fn main() {
 
     builder = builder
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_local_stt::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_tracing::init())
+        .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_windows::init());
 

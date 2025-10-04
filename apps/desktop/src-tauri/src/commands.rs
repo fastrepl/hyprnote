@@ -8,12 +8,6 @@ pub async fn sentry_dsn<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<S
 
 #[tauri::command]
 #[specta::specta]
-pub async fn setup_db_for_cloud<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.setup_db_for_cloud().await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub fn is_onboarding_needed<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<bool, String> {
     let store = app.desktop_store()?;
     store

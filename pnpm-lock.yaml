@@ -434,6 +434,9 @@ importers:
       '@hypr/utils':
         specifier: workspace:^
         version: link:../../packages/utils
+      '@sentry/react':
+        specifier: ^8.55.0
+        version: 8.55.0(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.131.35
         version: 1.131.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

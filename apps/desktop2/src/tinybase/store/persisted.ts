@@ -17,6 +17,7 @@ import {
   chatMessageSchema as baseChatMessageSchema,
   configSchema as baseConfigSchema,
   eventSchema as baseEventSchema,
+  folderSchema as baseFolderSchema,
   humanSchema as baseHumanSchema,
   mappingEventParticipantSchema as baseMappingEventParticipantSchema,
   mappingTagSessionSchema as baseMappingTagSessionSchema,
@@ -47,9 +48,16 @@ export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({ cre
 
 export const organizationSchema = baseOrganizationSchema.omit({ id: true }).extend({ created_at: z.string() });
 
+export const folderSchema = baseFolderSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  parent_folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
+});
+
 export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   transcript: jsonObject(transcriptSchema),
   created_at: z.string(),
+  event_id: z.preprocess(val => val ?? undefined, z.string().optional()),
+  folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
 export const mappingEventParticipantSchema = baseMappingEventParticipantSchema.omit({ id: true }).extend({
@@ -95,6 +103,7 @@ export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
+export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type MappingEventParticipant = z.infer<typeof mappingEventParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
@@ -108,9 +117,16 @@ export type ChatMessage = z.infer<typeof chatMessageSchema>;
 const SCHEMA = {
   value: {} as const satisfies ValuesSchema,
   table: {
+    folders: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      name: { type: "string" },
+      parent_folder_id: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof folderSchema>,
     sessions: {
       user_id: { type: "string" },
       created_at: { type: "string" },
+      folder_id: { type: "string" },
       event_id: { type: "string" },
       title: { type: "string" },
       raw_md: { type: "string" },
@@ -286,6 +302,18 @@ export const StoreComponent = () => {
           "user_id",
         )
         .setRelationshipDefinition(
+          "sessionToFolder",
+          "sessions",
+          "folders",
+          "folder_id",
+        )
+        .setRelationshipDefinition(
+          "folderToParentFolder",
+          "folders",
+          "folders",
+          "parent_folder_id",
+        )
+        .setRelationshipDefinition(
           "eventParticipantToHuman",
           "mapping_event_participant",
           "humans",
@@ -349,6 +377,8 @@ export const StoreComponent = () => {
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
+      .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
+      .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
         INDEXES.eventsByDate,
@@ -410,6 +440,8 @@ export const METRICS = {
 
 export const INDEXES = {
   humansByOrg: "humansByOrg",
+  foldersByParent: "foldersByParent",
+  sessionsByFolder: "sessionsByFolder",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   eventsByMonth: "eventsByMonth",

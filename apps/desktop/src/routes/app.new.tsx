@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/new")({
   beforeLoad: async ({
     context: { queryClient, ongoingSessionStore, sessionsStore, userId },
     search: { record, calendarEventId },
-  }) => {
+  }): Promise<void> => {
     try {
       const sessionId = crypto.randomUUID();
 
@@ -81,13 +81,13 @@ export const Route = createFileRoute("/app/new")({
         predicate: (query) => query.queryKey.some((key) => (typeof key === "string") && key.includes("session")),
       });
 
-      return redirect({
+      throw redirect({
         to: "/app/note/$id",
         params: { id: sessionId },
       });
     } catch (error) {
       console.error(error);
-      return redirect({ to: "/app" });
+      throw redirect({ to: "/app" });
     }
   },
 });

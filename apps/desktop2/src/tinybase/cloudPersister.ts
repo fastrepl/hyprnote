@@ -36,13 +36,13 @@ const useCloudSaver = () => {
   const store = persisted.UI.useStore(persisted.STORE_ID)!;
   const store2 = internal.UI.useStore(internal.STORE_ID)!;
 
-  const user_id = store.getValue("_user_id");
+  const user_id = store2.getValue("user_id");
   if (!user_id) {
-    throw new Error("'_user_id' is not set");
+    throw new Error("'user_id' is not set");
   }
 
   const save = useCallback(async () => {
-    const changesTable = store2.getTable("_changes")!;
+    const changesTable = store2.getTable("changes")!;
     const tables = store.getTables();
 
     const changesLookup = new Map(
@@ -89,13 +89,14 @@ const useCloudSaver = () => {
 
 const useCloudLoader = () => {
   const store = persisted.UI.useStore(persisted.STORE_ID)!;
+  const store2 = internal.UI.useStore(internal.STORE_ID)!;
 
-  const user_id = store.getValue("_user_id");
+  const user_id = store2.getValue("user_id");
   if (!user_id) {
-    throw new Error("'_user_id' is not set");
+    throw new Error("'user_id' is not set");
   }
 
-  const metaTable = store.getTable("_electric")!;
+  const metaTable = store2.getTable("electric")!;
 
   const load = useCallback(async () => {
     const steams = persisted.TABLES_TO_SYNC.map((table) => {

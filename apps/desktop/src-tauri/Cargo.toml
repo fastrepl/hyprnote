@@ -55,16 +55,16 @@ tauri-plugin-webhook = { workspace = true }
 tauri-plugin-windows = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }
-tauri-plugin-autostart = "2.5"
+tauri-plugin-autostart = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
 tauri-plugin-http = { workspace = true, features = ["tracing", "unsafe-headers"] }
 tauri-plugin-keygen = { workspace = true }
-tauri-plugin-os = "2.3"
-tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
-tauri-plugin-process = "2.3"
+tauri-plugin-os = { workspace = true }
+tauri-plugin-prevent-default = { workspace = true, features = ["platform-windows"] }
+tauri-plugin-process = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { workspace = true, features = ["deep-link"] }

@@ -9,6 +9,11 @@
     "opener:default",
     "db2:default",
     "windows:default",
-    "tracing:default"
+    "tracing:default",
+    "tray:default",
+    "auth:default",
+    "analytics:default",
+    "updater:default",
+    "deep-link:default"
   ]
 }

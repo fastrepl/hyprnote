@@ -2,9 +2,9 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { id } from "../utils";
 
 export const Route = createFileRoute("/app/new")({
-  beforeLoad: async ({ context: { persistedStore } }) => {
+  beforeLoad: async ({ context: { persistedStore, internalStore } }) => {
     const sessionId = id();
-    const user_id = persistedStore!.getValue("_user_id")!;
+    const user_id = internalStore!.getValue("user_id")!;
 
     persistedStore!.setRow("sessions", sessionId, {
       title: "new",

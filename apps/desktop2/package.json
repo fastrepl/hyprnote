@@ -19,6 +19,7 @@
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
+    "@sentry/react": "^8.55.0",
     "@tanstack/react-router": "^1.131.35",
     "@tanstack/react-virtual": "^3.13.12",
     "@tanstack/zod-adapter": "^1.131.35",

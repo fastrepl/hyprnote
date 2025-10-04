@@ -4,9 +4,10 @@ import "./styles/globals.css";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-
 import { Provider, useStores } from "tinybase/ui-react";
+
 import { V1 } from "./tinybase/seed";
+import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./tinybase/store/internal";
 import {
   type Store as MemoryStore,
   STORE_ID as STORE_ID_MEMORY,
@@ -32,11 +33,14 @@ declare module "@tanstack/react-router" {
 
 function App() {
   const stores = useStores();
+
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
   const memoryStore = stores[STORE_ID_MEMORY] as unknown as MemoryStore;
+  const internalStore = stores[STORE_ID_INTERNAL] as unknown as InternalStore;
+
   const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED);
 
-  if (!persistedStore || !memoryStore) {
+  if (!persistedStore || !memoryStore || !internalStore) {
     return null;
   }
 
@@ -51,7 +55,7 @@ function App() {
     }
   }
 
-  return <RouterProvider router={router} context={{ persistedStore, memoryStore }} />;
+  return <RouterProvider router={router} context={{ persistedStore, memoryStore, internalStore }} />;
 }
 
 const rootElement = document.getElementById("root")!;

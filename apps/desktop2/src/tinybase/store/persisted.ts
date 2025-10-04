@@ -106,16 +106,8 @@ export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 const SCHEMA = {
-  value: {
-    _user_id: { type: "string" },
-    _device_id: { type: "string" },
-  } as const satisfies ValuesSchema,
+  value: {} as const satisfies ValuesSchema,
   table: {
-    _electric: {
-      offset: { type: "string" },
-      handle: { type: "string" },
-      table: { type: "string" },
-    },
     sessions: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -210,7 +202,7 @@ const SCHEMA = {
 };
 
 export const TABLES_TO_SYNC = Object.keys(SCHEMA.table)
-  .filter((key) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "_electric" | "_changes">)[];
+  .filter((key) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "electric" | "changes">)[];
 
 const {
   useCreateMergeableStore,
@@ -234,11 +226,7 @@ export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 export const StoreComponent = () => {
-  const store2 = internal.UI.useCreateMergeableStore(() =>
-    createMergeableStore()
-      .setTablesSchema(internal.SCHEMA.table)
-      .setValuesSchema(internal.SCHEMA.value)
-  );
+  const store2 = internal.useStore();
 
   useDidFinishTransactionListener(
     () => {
@@ -248,7 +236,7 @@ export const StoreComponent = () => {
         Object.entries(changedTables).forEach(([tableId, rows]) => {
           Object.entries(rows).forEach(([rowId, cells]) => {
             const changeId = `${tableId}_${rowId}`;
-            store2.setRow("_changes", changeId, {
+            store2.setRow("changes", changeId, {
               row_id: rowId,
               table: tableId,
               deleted: !cells,
@@ -355,8 +343,8 @@ export const StoreComponent = () => {
         select("ai_api_base");
         select("ai_api_key");
         select("ai_specificity");
-        where((getCell) => getCell("user_id") === store.getValue("_user_id"));
-      }), [])!;
+        where((getCell) => getCell("user_id") === store2.getValue("user_id"));
+      }), [store2])!;
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
@@ -407,8 +395,6 @@ export const StoreComponent = () => {
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
-
-  internal.UI.useProvideStore(internal.STORE_ID, store2);
 
   return null;
 };

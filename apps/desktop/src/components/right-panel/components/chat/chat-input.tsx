@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useHypr, useRightPanel } from "@/contexts";
-import type { SelectionData } from "@/contexts/right-panel";
+import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
+import { type SelectionData, useRightPanel } from "@hypr/utils/contexts";
 import { BadgeType } from "../../types/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";

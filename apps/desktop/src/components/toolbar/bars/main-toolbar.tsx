@@ -4,9 +4,9 @@ import { DeleteNoteButton } from "@/components/toolbar/buttons/delete-note-butto
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
 // import { ShareButton } from "@/components/toolbar/buttons/share-button";
-import { useLeftSidebar } from "@/contexts";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
+import { useLeftSidebar } from "@hypr/utils/contexts";
 import { SearchBar } from "../../search-bar";
 import { ChatPanelButton } from "../buttons/chat-panel-button";
 import { LeftSidebarButton } from "../buttons/left-sidebar-button";
@@ -59,7 +59,6 @@ export function MainToolbar() {
             {(organizationMatch || humanMatch) && <NewWindowButton />}
             {isNote && <ShareButton />}
             <ChatPanelButton />
-            {/*<TranscriptPanelButton />*/}
           </>
         )}
       </div>

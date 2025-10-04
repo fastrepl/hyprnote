@@ -5,7 +5,6 @@ import { diffWords } from "diff";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
-// import { useRightPanel } from "@/contexts/right-panel";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";

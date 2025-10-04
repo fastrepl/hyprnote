@@ -12,22 +12,19 @@ import RightPanel from "@/components/right-panel";
 import Notifications from "@/components/toast";
 import Toolbar from "@/components/toolbar";
 import { WelcomeModal } from "@/components/welcome-modal";
-import {
-  EditModeProvider,
-  LeftSidebarProvider,
-  NewNoteProvider,
-  RightPanelProvider,
-  SearchProvider,
-  SettingsProvider,
-  useHypr,
-  useLeftSidebar,
-  useRightPanel,
-} from "@/contexts";
+import { EditModeProvider, NewNoteProvider, SearchProvider, SettingsProvider, useHypr } from "@/contexts";
 import { commands } from "@/types";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-import { OngoingSessionProvider, SessionsProvider } from "@hypr/utils/contexts";
+import {
+  LeftSidebarProvider,
+  OngoingSessionProvider,
+  RightPanelProvider,
+  SessionsProvider,
+  useLeftSidebar,
+  useRightPanel,
+} from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app")({
   component: Component,

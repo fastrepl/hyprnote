@@ -1,9 +1,9 @@
-import type { SelectionData } from "@/contexts/right-panel";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import type { UIMessage } from "@hypr/utils/ai";
 import { convertToModelMessages } from "@hypr/utils/ai";
+import type { SelectionData } from "@hypr/utils/contexts";
 
 export const formatDate = (date: Date) => {
   const now = new Date();

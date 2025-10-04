@@ -1,7 +1,5 @@
+import { OngoingSessionProvider2 } from "@hypr/utils/contexts";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
-import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { LeftSidebarProvider, OngoingSessionProvider2, RightPanelProvider } from "@hypr/utils/contexts";
 
 export const Route = createFileRoute("/app")({
   component: Component,
@@ -13,20 +11,9 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const { ongoingSessionStore } = Route.useLoaderData();
 
-  const windowLabel = getCurrentWebviewWindowLabel();
-  const isMain = windowLabel === "main";
-
   return (
     <OngoingSessionProvider2 store={ongoingSessionStore}>
-      <LeftSidebarProvider>
-        {isMain
-          ? (
-            <RightPanelProvider>
-              <Outlet />
-            </RightPanelProvider>
-          )
-          : <Outlet />}
-      </LeftSidebarProvider>
+      <Outlet />
     </OngoingSessionProvider2>
   );
 }

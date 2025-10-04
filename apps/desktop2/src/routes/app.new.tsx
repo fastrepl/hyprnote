@@ -13,8 +13,8 @@ export const Route = createFileRoute("/app/new")({
     });
 
     return redirect({
-      to: "/app/note/$id",
-      params: { id: sessionId },
+      to: "/app/main",
+      search: { id: sessionId },
     });
   },
 });

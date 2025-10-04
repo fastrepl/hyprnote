@@ -14,7 +14,7 @@ type OutgoingChangeMessage<T extends Record<string, unknown>> = {
   table: string;
   row_id: string;
   data: T;
-  operation: "insert" | "update";
+  operation: "update";
 };
 
 export const useCloudPersister = () => {
@@ -45,13 +45,6 @@ const useCloudSaver = () => {
     const changesTable = store2.getTable("changes")!;
     const tables = store.getTables();
 
-    const changesLookup = new Map(
-      Object.values(changesTable).map((change) => [
-        `${change.table}:${change.row_id}`,
-        change,
-      ]),
-    );
-
     const changes = persisted.TABLES_TO_SYNC.flatMap((tableName) => {
       const table = tables[tableName];
       if (!table) {
@@ -60,22 +53,22 @@ const useCloudSaver = () => {
 
       return Object.entries(table)
         .map(([rowId, rowData]) => {
-          const changeRow = changesLookup.get(`${tableName}:${rowId}`);
+          const changeRow = changesTable[rowId];
+
           if (changeRow?.deleted) {
             return {
               table: tableName,
               row_id: rowId,
               operation: "delete",
             } satisfies OutgoingChangeMessage<typeof rowData>;
+          } else {
+            return {
+              table: tableName,
+              row_id: rowId,
+              data: rowData,
+              operation: "update",
+            } satisfies OutgoingChangeMessage<typeof rowData>;
           }
-
-          const operation = changeRow ? "update" : "insert";
-          return {
-            table: tableName,
-            row_id: rowId,
-            data: rowData,
-            operation,
-          } satisfies OutgoingChangeMessage<typeof rowData>;
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
     });

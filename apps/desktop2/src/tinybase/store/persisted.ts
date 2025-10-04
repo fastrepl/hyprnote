@@ -217,8 +217,7 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
-export const TABLES_TO_SYNC = Object.keys(SCHEMA.table)
-  .filter((key) => !key.startsWith("_")) as (keyof Omit<typeof SCHEMA.table, "electric" | "changes">)[];
+export const TABLES_TO_SYNC = Object.keys(SCHEMA.table) as (keyof typeof SCHEMA.table)[];
 
 const {
   useCreateMergeableStore,
@@ -251,8 +250,9 @@ export const StoreComponent = () => {
       store2.transaction(() => {
         Object.entries(changedTables).forEach(([tableId, rows]) => {
           Object.entries(rows).forEach(([rowId, cells]) => {
-            const changeId = `${tableId}_${rowId}`;
-            store2.setRow("changes", changeId, {
+            const id = internal.rowIdOfChange(tableId, rowId);
+
+            store2.setRow("changes", id, {
               row_id: rowId,
               table: tableId,
               deleted: !cells,

@@ -48,17 +48,35 @@ function FolderColumn({
 }
 
 function SessionColumn({ selectedFolderId }: { selectedFolderId: string | null }) {
-  const sessionIds = useSliceRowIds(
+  const directSessionIds = useSliceRowIds(
     persisted.INDEXES.sessionsByFolder,
+    selectedFolderId ?? "",
+    persisted.STORE_ID,
+  );
+
+  const subFolderIds = useSliceRowIds(
+    persisted.INDEXES.foldersByParent,
     selectedFolderId ?? "",
     persisted.STORE_ID,
   );
 
   return (
     <div className="w-[250px] h-full overflow-auto p-2">
-      {sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+      {directSessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+
+      {subFolderIds?.map((subFolderId) => <SubFolderSessions key={subFolderId} folderId={subFolderId} />)}
     </div>
   );
+}
+
+function SubFolderSessions({ folderId }: { folderId: string }) {
+  const sessionIds = useSliceRowIds(
+    persisted.INDEXES.sessionsByFolder,
+    folderId,
+    persisted.STORE_ID,
+  );
+
+  return <>{sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}</>;
 }
 
 function RootFolder({
@@ -133,7 +151,7 @@ function SessionItem({ sessionId }: { sessionId: string }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
 
   return (
-    <Link to="/app/note/$id" params={{ id: sessionId }}>
+    <Link to="/app/main" search={{ id: sessionId }}>
       <div className="px-2 py-1 hover:bg-blue-50 border-b border-gray-100">
         <div className="text-sm font-medium truncate">{title}</div>
       </div>

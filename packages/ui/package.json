@@ -16,6 +16,8 @@
     "build": "tailwindcss -i ./src/styles/globals.css -o ./dist/globals.css --minify"
   },
   "dependencies": {
+    "@hypr/tiptap": "workspace:^",
+    "@hypr/utils": "workspace:^",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.10",

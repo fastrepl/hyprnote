@@ -22,6 +22,10 @@ import { useChatQueries2 } from "../hooks/useChatQueries2";
 import { focusInput, formatDate } from "../utils/chat-utils";
 
 export function ChatView() {
+  return ChatViewInner();
+}
+
+function ChatViewInner() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef, pendingSelection } = useRightPanel();
   const { userId } = useHypr();

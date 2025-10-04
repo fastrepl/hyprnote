@@ -1,17 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
 import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-import { useHypr, useRightPanel } from "@/contexts";
+import { useRightPanel } from "@/contexts";
 import type { SelectionData } from "@/contexts/right-panel";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
-import { commands as dbCommands } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { BadgeType } from "../../types/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
+import { useChatInput } from "../../hooks/useChatInput";
 import { ChatModelInfoModal } from "../chat-model-info-modal";
 
 interface ChatInputProps {
@@ -45,107 +42,25 @@ export function ChatInput(
     onStop,
   }: ChatInputProps,
 ) {
-  const { userId } = useHypr();
-  const { chatInputRef, pendingSelection, clearPendingSelection } = useRightPanel();
-  const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+  const { chatInputRef } = useRightPanel();
+  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const processedSelectionRef = useRef<string | null>(null);
 
-  // Get current LLM connection and model info
-  const llmConnectionQuery = useQuery({
-    queryKey: ["llm-connection"],
-    queryFn: () => connectorCommands.getLlmConnection(),
-    refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+  // Use the extracted hook
+  const {
+    isModelModalOpen,
+    setIsModelModalOpen,
+    entityTitle,
+    currentModelName,
+    pendingSelection,
+    handleMentionSearch,
+    processSelection,
+    handleSubmit: hookSubmit,
+  } = useChatInput({
+    entityId,
+    entityType,
+    onSubmit,
   });
-
-  const customLlmModelQuery = useQuery({
-    queryKey: ["custom-llm-model"],
-    queryFn: () => connectorCommands.getCustomLlmModel(),
-    enabled: llmConnectionQuery.data?.type === "Custom",
-    refetchInterval: 5000,
-  });
-
-  const hyprCloudEnabledQuery = useQuery({
-    queryKey: ["hypr-cloud-enabled"],
-    queryFn: () => connectorCommands.getHyprcloudEnabled(),
-    refetchInterval: 5000,
-  });
-
-  const lastBacklinkSearchTime = useRef<number>(0);
-
-  const { data: noteData } = useQuery({
-    queryKey: ["session", entityId],
-    queryFn: async () => entityId ? dbCommands.getSession({ id: entityId }) : null,
-    enabled: !!entityId && entityType === "note",
-  });
-
-  const { data: humanData } = useQuery({
-    queryKey: ["human", entityId],
-    queryFn: async () => entityId ? dbCommands.getHuman(entityId) : null,
-    enabled: !!entityId && entityType === "human",
-  });
-
-  const { data: organizationData } = useQuery({
-    queryKey: ["org", entityId],
-    queryFn: async () => entityId ? dbCommands.getOrganization(entityId) : null,
-    enabled: !!entityId && entityType === "organization",
-  });
-
-  const getEntityTitle = () => {
-    if (!entityId) {
-      return "";
-    }
-
-    switch (entityType) {
-      case "note":
-        return noteData?.title || "Untitled";
-      case "human":
-        return humanData?.full_name || "";
-      case "organization":
-        return organizationData?.name || "";
-      default:
-        return "";
-    }
-  };
-
-  const handleMentionSearch = useCallback(async (query: string) => {
-    const now = Date.now();
-    const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
-
-    if (timeSinceLastEvent >= 5000) {
-      analyticsCommands.event({
-        event: "searched_backlink",
-        distinct_id: userId,
-      });
-      lastBacklinkSearchTime.current = now;
-    }
-
-    const sessions = await dbCommands.listSessions({
-      type: "search",
-      query,
-      user_id: userId,
-      limit: 3,
-    });
-
-    const noteResults = sessions.map((s) => ({
-      id: s.id,
-      type: "note" as const,
-      label: s.title || "Untitled Note",
-    }));
-
-    const humans = await dbCommands.listHumans({
-      search: [3, query],
-    });
-
-    const peopleResults = humans
-      .filter(h => h.full_name && h.full_name.toLowerCase().includes(query.toLowerCase()))
-      .map((h) => ({
-        id: h.id,
-        type: "human" as const,
-        label: h.full_name || "Unknown Person",
-      }));
-
-    return [...noteResults, ...peopleResults].slice(0, 5);
-  }, [userId]);
 
   const extractPlainText = useCallback((html: string) => {
     const div = document.createElement("div");
@@ -164,9 +79,7 @@ export function ChatInput(
     onChange(syntheticEvent);
   }, [onChange, extractPlainText]);
 
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const processedSelectionRef = useRef<string | null>(null);
-
+  // Editor-specific extraction logic (kept here as it needs editor instance)
   const extractMentionedContent = useCallback(() => {
     if (!editorRef.current?.editor) {
       return [];
@@ -214,33 +127,25 @@ export function ChatInput(
 
   const handleSubmit = useCallback(() => {
     const mentionedContent = extractMentionedContent();
-
-    // Extract HTML content before clearing the editor
     let htmlContent = "";
     if (editorRef.current?.editor) {
       htmlContent = editorRef.current.editor.getHTML();
     }
 
-    // Pass the pending selection data and HTML content to the submit handler
-    onSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
+    // Use the hook's submit handler
+    hookSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
 
-    // Clear the selection after submission
-    clearPendingSelection();
-
-    // Reset processed selection so new selections can be processed
+    // Reset editor
     processedSelectionRef.current = null;
-
     if (editorRef.current?.editor) {
       editorRef.current.editor.commands.setContent("<p></p>");
-
       const syntheticEvent = {
         target: { value: "" },
         currentTarget: { value: "" },
       } as React.ChangeEvent<HTMLTextAreaElement>;
-
       onChange(syntheticEvent);
     }
-  }, [onSubmit, onChange, extractMentionedContent, pendingSelection, clearPendingSelection]);
+  }, [hookSubmit, onChange, extractMentionedContent, pendingSelection]);
 
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {
@@ -251,56 +156,21 @@ export function ChatInput(
   // Handle pending selection from text selection popover
   useEffect(() => {
     if (pendingSelection && editorRef.current?.editor) {
-      // Create a unique ID for this selection to avoid processing it multiple times
-      const selectionId = `${pendingSelection.startOffset}-${pendingSelection.endOffset}-${pendingSelection.timestamp}`;
-
-      // Only process if we haven't already processed this exact selection
-      if (processedSelectionRef.current !== selectionId) {
-        // Create compact reference with text preview instead of just positions
-        const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
-
-        const selectedHtml = pendingSelection.text || "";
-
-        // Strip HTML tags to get plain text
-        const stripHtml = (html: string): string => {
-          const temp = document.createElement("div");
-          temp.innerHTML = html;
-          return temp.textContent || temp.innerText || "";
-        };
-
-        const selectedText = stripHtml(selectedHtml).trim();
-
-        const textPreview = selectedText.length > 0
-          ? (selectedText.length > 6
-            ? `'${selectedText.slice(0, 6)}...'` // Use single quotes instead!
-            : `'${selectedText}'`)
-          : "NO_TEXT";
-
-        const selectionRef = textPreview !== "NO_TEXT"
-          ? `[${noteName} - ${textPreview}(${pendingSelection.startOffset}:${pendingSelection.endOffset})]`
-          : `[${noteName} - ${pendingSelection.startOffset}:${pendingSelection.endOffset}]`;
-
-        // Escape quotes for HTML attribute
-        const escapedSelectionRef = selectionRef.replace(/"/g, "&quot;");
-
-        const referenceText =
-          `<a class="mention selection-ref" data-mention="true" data-id="selection-${pendingSelection.startOffset}-${pendingSelection.endOffset}" data-type="selection" data-label="${escapedSelectionRef}" contenteditable="false">${selectionRef}</a> `;
-
-        editorRef.current.editor.commands.setContent(referenceText);
+      const processed = processSelection(pendingSelection);
+      if (processed && processedSelectionRef.current !== processed.id) {
+        editorRef.current.editor.commands.setContent(processed.html);
         editorRef.current.editor.commands.focus("end");
 
-        // Clear the input value to match editor content
         const syntheticEvent = {
-          target: { value: selectionRef },
-          currentTarget: { value: selectionRef },
+          target: { value: processed.text },
+          currentTarget: { value: processed.text },
         } as React.ChangeEvent<HTMLTextAreaElement>;
         onChange(syntheticEvent);
 
-        // Mark this selection as processed
-        processedSelectionRef.current = selectionId;
+        processedSelectionRef.current = processed.id;
       }
     }
-  }, [pendingSelection, onChange, noteData?.title, humanData?.full_name, organizationData?.name]);
+  }, [pendingSelection, onChange, processSelection]);
 
   useEffect(() => {
     const editor = editorRef.current?.editor;
@@ -380,26 +250,6 @@ export function ChatInput(
       case "note":
       default:
         return <FileTextIcon className="size-3 shrink-0" />;
-    }
-  };
-
-  const entityTitle = getEntityTitle();
-
-  const getCurrentModelName = () => {
-    const connectionType = llmConnectionQuery.data?.type;
-    const isHyprCloudEnabled = hyprCloudEnabledQuery.data;
-
-    if (isHyprCloudEnabled) {
-      return "HyprCloud";
-    }
-
-    switch (connectionType) {
-      case "Custom":
-        return customLlmModelQuery.data || "Custom Model";
-      case "HyprLocal":
-        return "Local LLM";
-      default:
-        return "Model";
     }
   };
 
@@ -509,7 +359,7 @@ export function ChatInput(
           onClick={() => setIsModelModalOpen(true)}
         >
           <BrainIcon className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate max-w-[120px]">{getCurrentModelName()}</span>
+          <span className="truncate max-w-[120px]">{currentModelName}</span>
         </button>
 
         <Button

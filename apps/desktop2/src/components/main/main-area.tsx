@@ -2,6 +2,8 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
+import NoteEditor from "@hypr/tiptap/editor";
+import TitleInput from "@hypr/ui/components/block/title-input";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
 import { Tab } from "../../types";
@@ -134,16 +136,20 @@ function TabContent({ tab }: { tab: Tab }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <input
-        className="border border-gray-300 rounded p-2"
-        type="text"
-        value={row.title}
+      <TitleInput
+        value={row.title ?? ""}
+        editable={true}
         onChange={(e) => handleEditTitle(e.target.value)}
       />
-      <textarea
-        className="border border-gray-300 rounded p-2"
-        value={row.raw_md}
-        onChange={(e) => handleEditRawMd(e.target.value)}
+      <NoteEditor
+        initialContent={row.raw_md ?? ""}
+        handleChange={(e) => handleEditRawMd(e)}
+        mentionConfig={{
+          trigger: "@",
+          handleSearch: async () => {
+            return [];
+          },
+        }}
       />
     </div>
   );

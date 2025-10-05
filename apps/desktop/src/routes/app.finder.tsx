@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { endOfMonth, startOfMonth } from "date-fns";
 import { z } from "zod";
 
@@ -9,7 +8,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { cn } from "@hypr/ui/lib/utils";
 
-const schema = z.object({
+const validateSearch = z.object({
   view: z.enum(["folder", "calendar", "table", "contact", "tags"]).default("calendar"),
   date: z.string().optional(),
   sessionId: z.string().optional(),
@@ -18,8 +17,8 @@ const schema = z.object({
 });
 
 export const Route = createFileRoute("/app/finder")({
+  validateSearch,
   component: FinderView,
-  validateSearch: zodValidator(schema),
   loaderDeps: ({ search }) => ({ search }),
   loader: async ({ context: { queryClient, userId }, deps: { search } }) => {
     const currentDate = search.date ? new Date(search.date) : new Date();

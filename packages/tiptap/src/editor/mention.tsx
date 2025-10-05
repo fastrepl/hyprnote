@@ -126,7 +126,7 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
   return {
     char: config.trigger,
     pluginKey: new PluginKey(`mention-${config.trigger}`),
-    items: async ({ query, editor }) => {
+    items: async ({ query }) => {
       if (!query || query.length < 1) {
         loading = false;
         return [];
@@ -152,7 +152,7 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
             loading = false;
             updateRendererProps(activeRenderer, cachedItems, false);
           })
-          .catch((error: Error) => {
+          .catch(() => {
             loading = false;
             updateRendererProps(activeRenderer, [], false);
           });

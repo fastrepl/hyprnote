@@ -1,23 +1,36 @@
 import { Link } from "@tanstack/react-router";
 import { clsx } from "clsx";
+import { ChartNoAxesGantt, FolderOpenIcon } from "lucide-react";
 import { useState } from "react";
 import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
-import * as persisted from "../tinybase/store/persisted";
+import * as persisted from "../../tinybase/store/persisted";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
-import { useTabs } from "../hooks/useTabs";
-import { Tab } from "../types";
-import { InteractiveButton } from "./interactive-button";
+import { useTabs } from "../../hooks/useTabs";
+import { Tab } from "../../types";
+import { InteractiveButton } from "../interactive-button";
 
-export function Sidebar() {
+export function LeftSidebar() {
   return (
     <div className="h-screen border-r w-[300px]">
-      <Tabs defaultValue="timeline" className="h-full flex flex-col">
-        <TabsList className="w-full">
-          <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
-          <TabsTrigger value="folder" className="flex-1">Folders</TabsTrigger>
+      <Tabs defaultValue="timeline">
+        <TabsList
+          data-tauri-drag-region
+          className={clsx([
+            "h-full flex flex-row",
+            "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
+            "border-border bg-neutral-50",
+            "pl-[72px]",
+          ])}
+        >
+          <TabsTrigger value="folder" className="flex-1">
+            <FolderOpenIcon />
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="flex-1">
+            <ChartNoAxesGantt />
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline" className="flex-1 overflow-auto p-2 mt-0">

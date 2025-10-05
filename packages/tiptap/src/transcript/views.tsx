@@ -1,6 +1,6 @@
 import { type Editor as TiptapEditor } from "@tiptap/core";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
-import { type ComponentType, memo, useCallback } from "react";
+import { type ComponentType, memo, type ReactElement, useCallback } from "react";
 
 import type { Human } from "@hypr/plugin-db";
 import { SPEAKER_ID_ATTR, SPEAKER_INDEX_ATTR, SPEAKER_LABEL_ATTR } from "./utils";
@@ -69,4 +69,4 @@ export type SpeakerViewInnerProps = {
 
 export type SpeakerChangeRange = "current" | "all" | "fromHere";
 
-export type SpeakerViewInnerComponent = (props: SpeakerViewInnerProps) => JSX.Element;
+export type SpeakerViewInnerComponent = (props: SpeakerViewInnerProps) => ReactElement;

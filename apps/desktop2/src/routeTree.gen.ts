@@ -8,50 +8,59 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppLayoutMainRouteImport } from './routes/app._layout.main'
-import { Route as AppLayoutMainIndexRouteImport } from './routes/app._layout.main.index'
+import { Route as AppSettingsRouteImport } from './routes/app/settings'
+import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
+import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
+
+const AppMainRouteImport = createFileRoute('/app/main')()
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMainRoute = AppMainRouteImport.update({
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppLayoutMainRoute = AppLayoutMainRouteImport.update({
-  id: '/_layout/main',
-  path: '/main',
-  getParentRoute: () => AppRoute,
+const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => AppMainRoute,
 } as any)
-const AppLayoutMainIndexRoute = AppLayoutMainIndexRouteImport.update({
+const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppLayoutMainRoute,
+  getParentRoute: () => AppMainLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
-  '/app/main': typeof AppLayoutMainRouteWithChildren
-  '/app/main/': typeof AppLayoutMainIndexRoute
+  '/app/main': typeof AppMainLayoutRouteWithChildren
+  '/app/main/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
-  '/app/main': typeof AppLayoutMainIndexRoute
+  '/app/main': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
-  '/app/_layout/main': typeof AppLayoutMainRouteWithChildren
-  '/app/_layout/main/': typeof AppLayoutMainIndexRoute
+  '/app/main': typeof AppMainRouteWithChildren
+  '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
+  '/app/main/_layout/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -62,8 +71,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/app'
     | '/app/settings'
-    | '/app/_layout/main'
-    | '/app/_layout/main/'
+    | '/app/main'
+    | '/app/main/_layout'
+    | '/app/main/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -79,6 +89,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/main': {
+      id: '/app/main'
+      path: '/main'
+      fullPath: '/app/main'
+      preLoaderRoute: typeof AppMainRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
@@ -86,43 +103,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/_layout/main': {
-      id: '/app/_layout/main'
+    '/app/main/_layout': {
+      id: '/app/main/_layout'
       path: '/main'
       fullPath: '/app/main'
-      preLoaderRoute: typeof AppLayoutMainRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AppMainLayoutRouteImport
+      parentRoute: typeof AppMainRoute
     }
-    '/app/_layout/main/': {
-      id: '/app/_layout/main/'
+    '/app/main/_layout/': {
+      id: '/app/main/_layout/'
       path: '/'
       fullPath: '/app/main/'
-      preLoaderRoute: typeof AppLayoutMainIndexRouteImport
-      parentRoute: typeof AppLayoutMainRoute
+      preLoaderRoute: typeof AppMainLayoutIndexRouteImport
+      parentRoute: typeof AppMainLayoutRoute
     }
   }
 }
 
-interface AppLayoutMainRouteChildren {
-  AppLayoutMainIndexRoute: typeof AppLayoutMainIndexRoute
+interface AppMainLayoutRouteChildren {
+  AppMainLayoutIndexRoute: typeof AppMainLayoutIndexRoute
 }
 
-const AppLayoutMainRouteChildren: AppLayoutMainRouteChildren = {
-  AppLayoutMainIndexRoute: AppLayoutMainIndexRoute,
+const AppMainLayoutRouteChildren: AppMainLayoutRouteChildren = {
+  AppMainLayoutIndexRoute: AppMainLayoutIndexRoute,
 }
 
-const AppLayoutMainRouteWithChildren = AppLayoutMainRoute._addFileChildren(
-  AppLayoutMainRouteChildren,
+const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
+  AppMainLayoutRouteChildren,
 )
+
+interface AppMainRouteChildren {
+  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
+}
+
+const AppMainRouteChildren: AppMainRouteChildren = {
+  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
+}
+
+const AppMainRouteWithChildren =
+  AppMainRoute._addFileChildren(AppMainRouteChildren)
 
 interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
-  AppLayoutMainRoute: typeof AppLayoutMainRouteWithChildren
+  AppMainRoute: typeof AppMainRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
-  AppLayoutMainRoute: AppLayoutMainRouteWithChildren,
+  AppMainRoute: AppMainRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

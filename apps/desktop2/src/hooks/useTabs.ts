@@ -3,7 +3,7 @@ import { type Tab } from "../types";
 
 export function useTabs() {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/app/_layout/main/" });
+  const search = useSearch({ from: "/app/main/_layout/" });
 
   const openCurrent = (newTab: Tab) => {
     const existingTabIdx = search.tabs.findIndex((t) => t.active);

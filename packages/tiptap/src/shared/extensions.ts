@@ -16,9 +16,10 @@ import { Hashtag } from "./hashtag";
 
 export const extensions = [
   StarterKit.configure({
-    heading: {
-      levels: [1],
-    },
+    heading: { levels: [1] },
+    underline: false,
+    link: false,
+    listKeymap: false,
   }),
   Image,
   Underline,

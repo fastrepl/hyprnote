@@ -1,93 +1,10 @@
-use tauri::{
-    AppHandle, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow,
-    WebviewWindowBuilder,
-};
+use tauri::{AppHandle, LogicalSize, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tauri_specta::Event;
 use uuid::Uuid;
 
-use crate::events;
+use crate::{events, AppWindow};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq, Eq, Hash)]
-#[serde(tag = "type", content = "value")]
-pub enum HyprWindow {
-    #[serde(rename = "main")]
-    Main,
-    #[serde(rename = "note")]
-    Note(String),
-    #[serde(rename = "human")]
-    Human(String),
-    #[serde(rename = "organization")]
-    Organization(String),
-    #[serde(rename = "finder")]
-    Finder,
-    #[serde(rename = "settings")]
-    Settings,
-    #[serde(rename = "video")]
-    Video(String),
-    #[serde(rename = "control")]
-    Control,
-}
-
-impl std::fmt::Display for HyprWindow {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Main => write!(f, "main"),
-            Self::Note(id) => write!(f, "note-{}", id),
-            Self::Human(id) => write!(f, "human-{}", id),
-            Self::Organization(id) => write!(f, "organization-{}", id),
-            Self::Finder => write!(f, "finder"),
-            Self::Settings => write!(f, "settings"),
-            Self::Video(id) => write!(f, "video-{}", id),
-            Self::Control => write!(f, "control"),
-        }
-    }
-}
-
-impl std::str::FromStr for HyprWindow {
-    type Err = strum::ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "main" => return Ok(Self::Main),
-            "finder" => return Ok(Self::Finder),
-            "settings" => return Ok(Self::Settings),
-            _ => {}
-        }
-
-        if let Some((prefix, id)) = s.split_once('-') {
-            match prefix {
-                "note" => return Ok(Self::Note(id.to_string())),
-                "human" => return Ok(Self::Human(id.to_string())),
-                "organization" => return Ok(Self::Organization(id.to_string())),
-                "video" => return Ok(Self::Video(id.to_string())),
-                _ => {}
-            }
-        }
-
-        Err(strum::ParseError::VariantNotFound)
-    }
-}
-
-#[derive(
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    specta::Type,
-    strum::EnumString,
-    PartialEq,
-    Eq,
-    Hash,
-)]
-pub enum KnownPosition {
-    #[serde(rename = "left-half")]
-    LeftHalf,
-    #[serde(rename = "right-half")]
-    RightHalf,
-    #[serde(rename = "center")]
-    Center,
-}
-
-impl HyprWindow {
+impl AppWindow {
     pub fn label(&self) -> String {
         self.to_string()
     }
@@ -145,110 +62,12 @@ impl HyprWindow {
         app.get_webview_window(&label)
     }
 
-    pub fn position(
-        &self,
-        app: &AppHandle<tauri::Wry>,
-        pos: KnownPosition,
-    ) -> Result<(), crate::Error> {
-        if let Some(window) = self.get(app) {
-            let monitor = window
-                .current_monitor()?
-                .ok_or(crate::Error::MonitorNotFound)?;
-
-            let monitor_size = monitor.size();
-            let window_size = window.outer_size()?;
-
-            let scale_factor = window.scale_factor()?;
-            let logical_monitor_width = monitor_size.width as f64 / scale_factor;
-            let logical_monitor_height = monitor_size.height as f64 / scale_factor;
-            let logical_window_width = window_size.width as f64 / scale_factor;
-            let logical_window_height = window_size.height as f64 / scale_factor;
-
-            let split_point = logical_monitor_width * 0.5;
-
-            let y = (logical_monitor_height - logical_window_height) / 2.0;
-            let x = match pos {
-                KnownPosition::LeftHalf => split_point - logical_window_width,
-                KnownPosition::RightHalf => split_point,
-                KnownPosition::Center => split_point - logical_window_width / 2.0,
-            };
-
-            let x = x.max(0.0).min(logical_monitor_width - logical_window_width);
-            let y = y
-                .max(0.0)
-                .min(logical_monitor_height - logical_window_height);
-
-            window.set_position(LogicalPosition::new(x, y))?;
-        }
-
-        Ok(())
-    }
-
-    fn close(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
-        match self {
-            HyprWindow::Control => {
-                crate::abort_overlay_join_handle();
-
-                #[cfg(target_os = "macos")]
-                {
-                    use tauri_nspanel::ManagerExt;
-                    if let Ok(panel) = app.get_webview_panel(&HyprWindow::Control.label()) {
-                        app.run_on_main_thread({
-                            let panel = panel.clone();
-                            move || {
-                                panel.set_released_when_closed(true);
-                                panel.close();
-                            }
-                        })
-                        .map_err(|e| {
-                            tracing::warn!("Failed to run panel close on main thread: {}", e)
-                        })
-                        .ok();
-                    }
-                }
-                #[cfg(not(target_os = "macos"))]
-                {
-                    if let Some(window) = self.get(app) {
-                        let _ = window.close();
-                    }
-                }
-            }
-            _ => {
-                if let Some(window) = self.get(app) {
-                    let _ = window.close();
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
-        if let Some(window) = self.get(app) {
-            window.hide()?;
-        }
-
-        Ok(())
-    }
-
     fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.destroy()?;
         }
 
         Ok(())
-    }
-
-    pub fn is_visible(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
-        self.get(app).map_or(Ok(false), |w| {
-            w.is_visible().map_err(crate::Error::TauriError)
-        })
-    }
-
-    pub fn is_focused(&self, app: &AppHandle<tauri::Wry>) -> Result<bool, crate::Error> {
-        self.get(app).map_or(Ok(false), |w| {
-            w.is_focused().map_err(crate::Error::TauriError)
-        })
     }
 
     pub fn show(&self, app: &AppHandle<tauri::Wry>) -> Result<WebviewWindow, crate::Error> {
@@ -474,28 +293,17 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn close_all_windows(&self) -> Result<(), crate::Error>;
     fn handle_main_window_visibility(&self, visible: bool) -> Result<(), crate::Error>;
 
-    fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error>;
-    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error>;
-    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error>;
-    fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error>;
-    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error>;
-    fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error>;
-    fn window_is_focused(&self, window: HyprWindow) -> Result<bool, crate::Error>;
-
-    fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error>;
-    fn window_set_floating(&self, window: HyprWindow, v: bool) -> Result<(), crate::Error>;
+    fn window_show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error>;
+    fn window_destroy(&self, window: AppWindow) -> Result<(), crate::Error>;
 
     fn window_emit_navigate(
         &self,
-        window: HyprWindow,
+        window: AppWindow,
         event: events::Navigate,
     ) -> Result<(), crate::Error>;
 
-    fn window_navigate(
-        &self,
-        window: HyprWindow,
-        path: impl AsRef<str>,
-    ) -> Result<(), crate::Error>;
+    fn window_navigate(&self, window: AppWindow, path: impl AsRef<str>)
+        -> Result<(), crate::Error>;
 }
 
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
@@ -510,7 +318,7 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
         let state = self.state::<crate::ManagedState>();
         let mut guard = state.lock().unwrap();
 
-        let window_state = guard.windows.entry(HyprWindow::Main).or_default();
+        let window_state = guard.windows.entry(AppWindow::Main).or_default();
 
         if window_state.visible != visible {
             let previous_visible = window_state.visible;
@@ -557,69 +365,17 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
         Ok(())
     }
 
-    fn window_show(&self, window: HyprWindow) -> Result<WebviewWindow, crate::Error> {
+    fn window_show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error> {
         window.show(self)
     }
 
-    fn window_close(&self, window: HyprWindow) -> Result<(), crate::Error> {
-        window.close(self)
-    }
-
-    fn window_hide(&self, window: HyprWindow) -> Result<(), crate::Error> {
-        window.hide(self)
-    }
-
-    fn window_destroy(&self, window: HyprWindow) -> Result<(), crate::Error> {
+    fn window_destroy(&self, window: AppWindow) -> Result<(), crate::Error> {
         window.destroy(self)
-    }
-
-    fn window_position(&self, window: HyprWindow, pos: KnownPosition) -> Result<(), crate::Error> {
-        window.position(self, pos)
-    }
-
-    fn window_is_visible(&self, window: HyprWindow) -> Result<bool, crate::Error> {
-        window.is_visible(self)
-    }
-
-    fn window_is_focused(&self, window: HyprWindow) -> Result<bool, crate::Error> {
-        window.is_focused(self)
-    }
-
-    fn window_get_floating(&self, window: HyprWindow) -> Result<bool, crate::Error> {
-        let app = self.app_handle();
-        let state = app.state::<crate::ManagedState>();
-
-        let v = {
-            let guard = state.lock().unwrap();
-            guard
-                .windows
-                .get(&window)
-                .map(|w| w.floating)
-                .unwrap_or(false)
-        };
-
-        Ok(v)
-    }
-
-    fn window_set_floating(&self, window: HyprWindow, v: bool) -> Result<(), crate::Error> {
-        let app = self.app_handle();
-        let state = app.state::<crate::ManagedState>();
-
-        if let Some(w) = window.get(self) {
-            w.set_always_on_top(v)?;
-
-            {
-                let mut guard = state.lock().unwrap();
-                guard.windows.entry(window).or_default().floating = v;
-            }
-        }
-
-        Ok(())
     }
 
     fn window_emit_navigate(
         &self,
-        window: HyprWindow,
+        window: AppWindow,
         event: events::Navigate,
     ) -> Result<(), crate::Error> {
         window.emit_navigate(self, event)
@@ -627,7 +383,7 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
 
     fn window_navigate(
         &self,
-        window: HyprWindow,
+        window: AppWindow,
         path: impl AsRef<str>,
     ) -> Result<(), crate::Error> {
         window.navigate(self, path)

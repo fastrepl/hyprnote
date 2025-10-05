@@ -1,10 +1,10 @@
 use crate::LocalSttPluginExt;
-use tauri_plugin_windows::HyprWindow;
+use tauri_plugin_windows::AppWindow;
 
 pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::RunEvent) {
     match event {
         tauri::RunEvent::WindowEvent { label, event, .. } => {
-            let hypr_window = match label.parse::<HyprWindow>() {
+            let hypr_window = match label.parse::<AppWindow>() {
                 Ok(window) => window,
                 Err(e) => {
                     tracing::warn!("parse_error: {:?}", e);
@@ -12,7 +12,7 @@ pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::Run
                 }
             };
 
-            if hypr_window != HyprWindow::Main {
+            if hypr_window != AppWindow::Main {
                 return;
             }
 

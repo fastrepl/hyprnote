@@ -239,8 +239,8 @@ impl Actor for SessionActor {
         }
 
         {
-            use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
-            let _ = state.app.window_hide(HyprWindow::Control);
+            use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
+            let _ = state.app.window_hide(AppWindow::Control);
         }
 
         SessionEvent::Inactive {}.emit(&state.app)?;

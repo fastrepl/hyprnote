@@ -131,7 +131,7 @@ tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
-tauri-plugin-windows = { path = "plugins/windows" }
+tauri-plugin-windows = { path = "plugins/windows", default-features = false }
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"

@@ -18,6 +18,8 @@ metal = ["hypr-transcribe-whisper-local/metal"]
 vulkan = ["hypr-transcribe-whisper-local/vulkan"]
 openmp = ["hypr-transcribe-whisper-local/openmp"]
 load-dynamic = ["hypr-transcribe-whisper-local/load-dynamic"]
+windows-v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+windows-v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -60,7 +62,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 dirs = { workspace = true }
 json-patch = "4"

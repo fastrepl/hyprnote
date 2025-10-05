@@ -13,6 +13,8 @@ metal = ["hypr-llama/metal"]
 cuda = ["hypr-llama/cuda"]
 vulkan = ["hypr-llama/vulkan"]
 native = ["hypr-llama/native"]
+windows-v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+windows-v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -36,7 +38,7 @@ tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 tauri-plugin-store2 = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }

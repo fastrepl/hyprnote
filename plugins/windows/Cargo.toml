@@ -40,6 +40,6 @@ tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }
 
 [features]
-version = ["v0"]
+default = []
 v0 = []
 v1 = []

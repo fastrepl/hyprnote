@@ -10,9 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppNewRouteImport } from './routes/app.new'
 import { Route as AppLayoutMainRouteImport } from './routes/app._layout.main'
 import { Route as AppLayoutMainIndexRouteImport } from './routes/app._layout.main.index'
 
@@ -21,19 +19,9 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppNewRoute = AppNewRouteImport.update({
-  id: '/new',
-  path: '/new',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLayoutMainRoute = AppLayoutMainRouteImport.update({
@@ -49,44 +37,31 @@ const AppLayoutMainIndexRoute = AppLayoutMainIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
-  '/app/new': typeof AppNewRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/': typeof AppIndexRoute
   '/app/main': typeof AppLayoutMainRouteWithChildren
   '/app/main/': typeof AppLayoutMainIndexRoute
 }
 export interface FileRoutesByTo {
-  '/app/new': typeof AppNewRoute
+  '/app': typeof AppRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
-  '/app': typeof AppIndexRoute
   '/app/main': typeof AppLayoutMainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
-  '/app/new': typeof AppNewRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/': typeof AppIndexRoute
   '/app/_layout/main': typeof AppLayoutMainRouteWithChildren
   '/app/_layout/main/': typeof AppLayoutMainIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/app'
-    | '/app/new'
-    | '/app/settings'
-    | '/app/'
-    | '/app/main'
-    | '/app/main/'
+  fullPaths: '/app' | '/app/settings' | '/app/main' | '/app/main/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app/new' | '/app/settings' | '/app' | '/app/main'
+  to: '/app' | '/app/settings' | '/app/main'
   id:
     | '__root__'
     | '/app'
-    | '/app/new'
     | '/app/settings'
-    | '/app/'
     | '/app/_layout/main'
     | '/app/_layout/main/'
   fileRoutesById: FileRoutesById
@@ -104,25 +79,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/new': {
-      id: '/app/new'
-      path: '/new'
-      fullPath: '/app/new'
-      preLoaderRoute: typeof AppNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/_layout/main': {
@@ -155,16 +116,12 @@ const AppLayoutMainRouteWithChildren = AppLayoutMainRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppNewRoute: typeof AppNewRoute
   AppSettingsRoute: typeof AppSettingsRoute
-  AppIndexRoute: typeof AppIndexRoute
   AppLayoutMainRoute: typeof AppLayoutMainRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppNewRoute: AppNewRoute,
   AppSettingsRoute: AppSettingsRoute,
-  AppIndexRoute: AppIndexRoute,
   AppLayoutMainRoute: AppLayoutMainRouteWithChildren,
 }
 

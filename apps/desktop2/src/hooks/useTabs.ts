@@ -5,41 +5,64 @@ export function useTabs() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/app/_layout/main/" });
 
-  const openCurrent = (tab: Tab) => {
-    navigate({
-      to: "/app/main",
-      search: { activeTab: tab, inactiveTabs: search.inactiveTabs.filter((t) => t.id !== tab.id) },
-    });
+  const openCurrent = (newTab: Tab) => {
+    const existingTabIdx = search.tabs.findIndex((t) => t.active);
+
+    if (existingTabIdx === -1) {
+      throw navigate({
+        to: "/app/main",
+        search: {
+          tabs: search.tabs.filter((t) => t.id !== newTab.id)
+            .map((t) => ({ ...t, active: false }))
+            .concat([{ ...newTab, active: true }]),
+        },
+      });
+    } else {
+      const nextTabs = search.tabs.map((t, idx) =>
+        idx === existingTabIdx ? { ...newTab, active: true } : { ...t, active: false }
+      );
+
+      navigate({
+        to: "/app/main",
+        search: { tabs: nextTabs },
+      });
+    }
   };
 
   const openNew = (tab: Tab) => {
     navigate({
       to: "/app/main",
-      search: { activeTab: tab, inactiveTabs: [...search.inactiveTabs, tab] },
+      search: {
+        tabs: search.tabs.map((t) => ({ ...t, active: false })).concat([{ ...tab, active: true }]),
+      },
     });
   };
 
   const select = (tab: Tab) => {
     navigate({
       to: "/app/main",
-      search: { activeTab: tab, inactiveTabs: search.inactiveTabs.filter((t) => t.id !== tab.id) },
+      search: {
+        tabs: search.tabs.map((t) => ({ ...t, active: t.id === tab.id })),
+      },
     });
   };
 
   const close = (tab: Tab) => {
-    if (search.inactiveTabs?.length > 0) {
-      const nextActiveTab = search.inactiveTabs[0];
+    const remainingTabs = search.tabs.filter((t) => t.id !== tab.id);
 
-      navigate({
-        to: "/app/main",
-        search: {
-          activeTab: nextActiveTab,
-          inactiveTabs: search.inactiveTabs.filter((t) => [nextActiveTab.id, tab.id].includes(t.id)),
-        },
-      });
-    } else {
-      navigate({ to: "/app/new" });
+    if (remainingTabs.length === 0) {
+      return navigate({ to: "/app/main", search: { tabs: [] } });
     }
+
+    const closedTabIndex = search.tabs.findIndex((t) => t.id === tab.id);
+    const nextActiveIndex = closedTabIndex < remainingTabs.length
+      ? closedTabIndex
+      : remainingTabs.length - 1;
+
+    return navigate({
+      to: "/app/main",
+      search: { tabs: remainingTabs.map((t, idx) => ({ ...t, active: idx === nextActiveIndex })) },
+    });
   };
 
   return {

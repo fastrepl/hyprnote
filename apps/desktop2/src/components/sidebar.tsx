@@ -5,8 +5,11 @@ import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
 import * as persisted from "../tinybase/store/persisted";
 
+import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+import { useTabs } from "../hooks/useTabs";
 import { Tab } from "../types";
+import { InteractiveButton } from "./interactive-button";
 
 export function Sidebar() {
   return (
@@ -88,28 +91,39 @@ function FolderTreeItem({ folderId, depth = 0 }: { folderId: string; depth?: num
 
 function SessionItem({ sessionId, active }: { sessionId: string; active?: boolean }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
-  const tab: Tab = { id: sessionId, type: "note" };
+  const tab: Tab = { id: sessionId, type: "note", active: false };
+
+  const { openCurrent, openNew } = useTabs();
+
+  const contextMenu = (
+    <>
+      <ContextMenuItem onClick={() => console.log("Delete session:", sessionId)}>
+        Delete
+      </ContextMenuItem>
+    </>
+  );
 
   return (
-    <Link to="/app/main" search={{ activeTab: tab }}>
-      <div
-        className={clsx([
-          "px-2 py-1 hover:bg-blue-50 border-b border-gray-100",
-          active && "bg-blue-50",
-        ])}
-      >
-        <div className="text-sm font-medium truncate">{title}</div>
-      </div>
-    </Link>
+    <InteractiveButton
+      onClick={() => openCurrent(tab)}
+      onCmdClick={() => openNew(tab)}
+      contextMenu={contextMenu}
+      className={clsx([
+        "w-full text-left px-2 py-1 hover:bg-blue-50 border-b border-gray-100",
+        active && "bg-blue-50",
+      ])}
+    >
+      <div className="text-sm font-medium truncate">{title}</div>
+    </InteractiveButton>
   );
 }
 
 function SessionItemNested({ sessionId, depth, active }: { sessionId: string; depth: number; active?: boolean }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
-  const tab: Tab = { id: sessionId, type: "note" };
+  const tab: Tab = { id: sessionId, type: "note", active: true };
 
   return (
-    <Link to="/app/main" search={{ activeTab: tab }}>
+    <Link to="/app/main" search={{ tabs: [tab] }}>
       <div
         className={clsx([
           "px-2 py-1 hover:bg-blue-50 flex items-center gap-1",

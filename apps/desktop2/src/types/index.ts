@@ -14,7 +14,7 @@ export type Context = {
 };
 
 export const tabSchema = z.union([
-  z.object({ id: z.string(), type: z.literal("note") }),
+  z.object({ id: z.string(), type: z.literal("note"), active: z.boolean() }),
 ]);
 
 export type Tab = z.infer<typeof tabSchema>;

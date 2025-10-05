@@ -3,21 +3,26 @@ import { clsx } from "clsx";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export function Header() {
-  const navigate = useNavigate();
-
   const { isExpanded } = useLeftSidebar();
   const isMain = getCurrentWebviewWindowLabel() === "main";
+
+  const search = useSearch({ strict: false });
+  const navigate = useNavigate();
 
   const handleClickSettings = () => {
     windowsCommands.windowShow({ type: "settings" });
   };
 
   const handleClickNewNote = () => {
-    navigate({ to: "/app/new" });
+    navigate({
+      to: "/app/main",
+      search: { ...search, new: true },
+    });
   };
+
   return (
     <header
       data-tauri-drag-region

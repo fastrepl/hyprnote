@@ -1,9 +1,13 @@
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, ErrorComponentProps, NotFoundRouteProps, Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
 import type { Context } from "../types";
 
-export const Route = createRootRouteWithContext<Partial<Context>>()({ component: Component });
+export const Route = createRootRouteWithContext<Partial<Context>>()({
+  component: Component,
+  errorComponent: (props: ErrorComponentProps) => <pre>{JSON.stringify(props, null, 2)}</pre>,
+  notFoundComponent: (props: NotFoundRouteProps) => <pre>{JSON.stringify(props, null, 2)}</pre>,
+});
 
 function Component() {
   return (

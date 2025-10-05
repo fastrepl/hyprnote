@@ -1,4 +1,4 @@
-use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
 pub async fn main() {
@@ -32,7 +32,7 @@ pub async fn main() {
     // should always be the first plugin
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.window_show(HyprWindow::Main).unwrap();
+            app.window_show(AppWindow::Main).unwrap();
         }));
     }
 
@@ -109,13 +109,13 @@ pub async fn main() {
 
     if true {
         let app_handle = app.handle().clone();
-        HyprWindow::Main.show(&app_handle).unwrap();
+        AppWindow::Main.show(&app_handle).unwrap();
     }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
-            HyprWindow::Main.show(app).unwrap();
+            AppWindow::Main.show(app).unwrap();
         }
     });
 }

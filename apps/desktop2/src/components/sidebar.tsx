@@ -1,141 +1,138 @@
 import { Link } from "@tanstack/react-router";
+import { clsx } from "clsx";
 import { useState } from "react";
-import { useCell, useSliceRowIds } from "tinybase/ui-react";
+import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
 import * as persisted from "../tinybase/store/persisted";
 
+import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+import { useTabs } from "../hooks/useTabs";
+import { Tab } from "../types";
+import { InteractiveButton } from "./interactive-button";
+
 export function Sidebar() {
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-
   return (
-    <div className="flex h-screen border-r">
-      <FolderColumn selectedFolderId={selectedFolderId} onSelectFolder={setSelectedFolderId} />
-      <SessionColumn selectedFolderId={selectedFolderId} />
+    <div className="h-screen border-r w-[300px]">
+      <Tabs defaultValue="timeline" className="h-full flex flex-col">
+        <TabsList className="w-full">
+          <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
+          <TabsTrigger value="folder" className="flex-1">Folders</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="timeline" className="flex-1 overflow-auto p-2 mt-0">
+          <TimelineView />
+        </TabsContent>
+
+        <TabsContent value="folder" className="flex-1 overflow-auto p-2 mt-0">
+          <FolderView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-function FolderColumn({
-  selectedFolderId,
-  onSelectFolder,
-}: {
-  selectedFolderId: string | null;
-  onSelectFolder: (id: string | null) => void;
-}) {
+function TimelineView() {
+  const allSessionIds = useRowIds("sessions", persisted.STORE_ID);
+
+  return (
+    <div className="flex flex-col">
+      {allSessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+    </div>
+  );
+}
+
+function FolderView() {
   const rootFolderIds = useSliceRowIds(persisted.INDEXES.foldersByParent, "", persisted.STORE_ID);
+  const rootSessionIds = useSliceRowIds(persisted.INDEXES.sessionsByFolder, "", persisted.STORE_ID);
 
   return (
-    <div className="w-[200px] h-full overflow-auto p-2 border-r bg-gray-50">
-      <button
-        onClick={() => onSelectFolder(null)}
-        className={`w-full text-left px-2 py-1 mb-1 rounded ${
-          selectedFolderId === null ? "bg-blue-100" : "hover:bg-gray-100"
-        }`}
-      >
-        All Sessions
-      </button>
+    <div className="flex flex-col">
+      {rootFolderIds?.map((folderId) => <FolderTreeItem key={folderId} folderId={folderId} />)}
 
-      {rootFolderIds?.map((folderId) => (
-        <RootFolder
-          key={folderId}
-          folderId={folderId}
-          selectedFolderId={selectedFolderId}
-          onSelectFolder={onSelectFolder}
-        />
-      ))}
+      {rootSessionIds?.map((sessionId) => <SessionItemNested key={sessionId} sessionId={sessionId} depth={0} />)}
     </div>
   );
 }
 
-function SessionColumn({ selectedFolderId }: { selectedFolderId: string | null }) {
-  const sessionIds = useSliceRowIds(
-    persisted.INDEXES.sessionsByFolder,
-    selectedFolderId ?? "",
-    persisted.STORE_ID,
-  );
-
-  return (
-    <div className="w-[250px] h-full overflow-auto p-2">
-      {sessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
-    </div>
-  );
-}
-
-function RootFolder({
-  folderId,
-  selectedFolderId,
-  onSelectFolder,
-}: {
-  folderId: string;
-  selectedFolderId: string | null;
-  onSelectFolder: (id: string | null) => void;
-}) {
+function FolderTreeItem({ folderId, depth = 0 }: { folderId: string; depth?: number }) {
   const [isOpen, setIsOpen] = useState(true);
   const name = useCell("folders", folderId, "name", persisted.STORE_ID);
-
+  const sessionIds = useSliceRowIds(persisted.INDEXES.sessionsByFolder, folderId, persisted.STORE_ID);
   const subFolderIds = useSliceRowIds(persisted.INDEXES.foldersByParent, folderId, persisted.STORE_ID);
 
-  const isSelected = selectedFolderId === folderId;
+  const hasChildren = (sessionIds && sessionIds.length > 0) || (subFolderIds && subFolderIds.length > 0);
 
   return (
-    <div className="mb-1">
+    <div>
       <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          onSelectFolder(folderId);
-        }}
-        className={`w-full text-left px-2 py-1 rounded font-semibold ${
-          isSelected ? "bg-blue-100" : "hover:bg-gray-100"
-        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left px-2 py-1 hover:bg-gray-100 flex items-center gap-1"
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
-        {isOpen ? "▼" : "▶"} {name}
+        <span className="w-4 text-gray-500 text-xs">
+          {hasChildren && (isOpen ? "▼" : "▶")}
+        </span>
+        <span className="font-medium">{name}</span>
       </button>
 
       {isOpen && (
-        <div className="ml-3">
-          {subFolderIds?.map((subId) => (
-            <SubFolder
-              key={subId}
-              folderId={subId}
-              selectedFolderId={selectedFolderId}
-              onSelectFolder={onSelectFolder}
-            />
+        <>
+          {sessionIds?.map((sessionId) => (
+            <SessionItemNested key={sessionId} sessionId={sessionId} depth={depth + 1} />
           ))}
-        </div>
+
+          {subFolderIds?.map((subId) => <FolderTreeItem key={subId} folderId={subId} depth={depth + 1} />)}
+        </>
       )}
     </div>
   );
 }
 
-function SubFolder({
-  folderId,
-  selectedFolderId,
-  onSelectFolder,
-}: {
-  folderId: string;
-  selectedFolderId: string | null;
-  onSelectFolder: (id: string | null) => void;
-}) {
-  const name = useCell("folders", folderId, "name", persisted.STORE_ID);
-  const isSelected = selectedFolderId === folderId;
+function SessionItem({ sessionId, active }: { sessionId: string; active?: boolean }) {
+  const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
+  const tab: Tab = { id: sessionId, type: "note", active: false };
+
+  const { openCurrent, openNew } = useTabs();
+
+  const contextMenu = (
+    <>
+      <ContextMenuItem onClick={() => console.log("Delete session:", sessionId)}>
+        Delete
+      </ContextMenuItem>
+    </>
+  );
 
   return (
-    <button
-      onClick={() => onSelectFolder(folderId)}
-      className={`w-full text-left px-2 py-1 mb-1 rounded text-sm ${isSelected ? "bg-blue-100" : "hover:bg-gray-100"}`}
+    <InteractiveButton
+      onClick={() => openCurrent(tab)}
+      onCmdClick={() => openNew(tab)}
+      contextMenu={contextMenu}
+      className={clsx([
+        "w-full text-left px-2 py-1 hover:bg-blue-50 border-b border-gray-100",
+        active && "bg-blue-50",
+      ])}
     >
-      {name}
-    </button>
+      <div className="text-sm font-medium truncate">{title}</div>
+    </InteractiveButton>
   );
 }
 
-function SessionItem({ sessionId }: { sessionId: string }) {
+function SessionItemNested({ sessionId, depth, active }: { sessionId: string; depth: number; active?: boolean }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
+  const tab: Tab = { id: sessionId, type: "note", active: true };
 
   return (
-    <Link to="/app/note/$id" params={{ id: sessionId }}>
-      <div className="px-2 py-1 hover:bg-blue-50 border-b border-gray-100">
-        <div className="text-sm font-medium truncate">{title}</div>
+    <Link to="/app/main" search={{ tabs: [tab] }}>
+      <div
+        className={clsx([
+          "px-2 py-1 hover:bg-blue-50 flex items-center gap-1",
+          active && "bg-blue-50",
+        ])}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      >
+        <span className="w-4"></span>
+        <div className="text-sm truncate">{title}</div>
       </div>
     </Link>
   );

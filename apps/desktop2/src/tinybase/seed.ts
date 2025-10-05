@@ -417,7 +417,7 @@ const generateMockData = (config: MockConfig) => {
     Array.from({ length: sessionCount }, () => {
       const shouldLinkToEvent = endedEvents.length > 0 && faker.datatype.boolean({ probability: 0.5 });
       const shouldAddToFolder = allFolderIds.length > 0 && faker.datatype.boolean({ probability: 0.6 });
-      
+
       const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(endedEvents).id : undefined;
       const folderId = shouldAddToFolder ? faker.helpers.arrayElement(allFolderIds) : undefined;
 

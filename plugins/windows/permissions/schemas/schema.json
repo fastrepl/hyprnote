@@ -319,18 +319,6 @@
           "markdownDescription": "Denies the set_fake_window_bounds command without any pre-configured scope."
         },
         {
-          "description": "Enables the window_close command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-close",
-          "markdownDescription": "Enables the window_close command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_close command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-close",
-          "markdownDescription": "Denies the window_close command without any pre-configured scope."
-        },
-        {
           "description": "Enables the window_destroy command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-destroy",
@@ -355,42 +343,6 @@
           "markdownDescription": "Denies the window_emit_navigate command without any pre-configured scope."
         },
         {
-          "description": "Enables the window_get_floating command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-get-floating",
-          "markdownDescription": "Enables the window_get_floating command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_get_floating command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-get-floating",
-          "markdownDescription": "Denies the window_get_floating command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_hide command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-hide",
-          "markdownDescription": "Enables the window_hide command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_hide command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-hide",
-          "markdownDescription": "Denies the window_hide command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_is_visible command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-is-visible",
-          "markdownDescription": "Enables the window_is_visible command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_is_visible command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-is-visible",
-          "markdownDescription": "Denies the window_is_visible command without any pre-configured scope."
-        },
-        {
           "description": "Enables the window_navigate command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-navigate",
@@ -401,66 +353,6 @@
           "type": "string",
           "const": "deny-window-navigate",
           "markdownDescription": "Denies the window_navigate command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_position command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-position",
-          "markdownDescription": "Enables the window_position command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_position command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-position",
-          "markdownDescription": "Denies the window_position command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_remove_overlay_bounds command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-remove-overlay-bounds",
-          "markdownDescription": "Enables the window_remove_overlay_bounds command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_remove_overlay_bounds command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-remove-overlay-bounds",
-          "markdownDescription": "Denies the window_remove_overlay_bounds command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_resize_default command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-resize-default",
-          "markdownDescription": "Enables the window_resize_default command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_resize_default command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-resize-default",
-          "markdownDescription": "Denies the window_resize_default command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_set_floating command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-set-floating",
-          "markdownDescription": "Enables the window_set_floating command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_set_floating command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-set-floating",
-          "markdownDescription": "Denies the window_set_floating command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the window_set_overlay_bounds command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-window-set-overlay-bounds",
-          "markdownDescription": "Enables the window_set_overlay_bounds command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the window_set_overlay_bounds command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-window-set-overlay-bounds",
-          "markdownDescription": "Denies the window_set_overlay_bounds command without any pre-configured scope."
         },
         {
           "description": "Enables the window_show command without any pre-configured scope.",
@@ -475,10 +367,10 @@
           "markdownDescription": "Denies the window_show command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-close`\n- `allow-window-hide`\n- `allow-window-destroy`\n- `allow-window-position`\n- `allow-window-get-floating`\n- `allow-window-set-floating`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-visible`\n- `allow-window-set-overlay-bounds`\n- `allow-window-remove-overlay-bounds`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
         }
       ]
     }

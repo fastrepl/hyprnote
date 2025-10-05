@@ -1,13 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useValidatedRow } from "../hooks/useValidatedRow";
 import * as persisted from "../tinybase/store/persisted";
 
-export const Route = createFileRoute("/app/human/$id")({
-  component: Component,
-});
-
-function Component() {
-  const { id } = Route.useParams();
+export function Human({ id }: { id: string }) {
   const human = persisted.UI.useRow("humans", id, persisted.STORE_ID);
 
   const handleUpdate = persisted.UI.useSetRowCallback(

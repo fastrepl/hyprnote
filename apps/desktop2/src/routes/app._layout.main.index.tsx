@@ -1,11 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import clsx from "clsx";
 import { z } from "zod";
 import * as persisted from "../tinybase/store/persisted";
 
+import { commands as windowsCommands, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-import { useRightPanel } from "@hypr/utils/contexts";
+import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { Chat } from "../components/chat";
 import { Sidebar } from "../components/sidebar";
 import { useTabs } from "../hooks/useTabs";
@@ -82,19 +84,22 @@ function Component() {
   return (
     <div className="flex flex-row gap-2 h-full">
       <Sidebar />
-      {isExpanded
-        ? (
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={75} minSize={30}>
-              <MainArea tabs={tabs} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20}>
-              <Chat />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        )
-        : <MainArea tabs={tabs} />}
+      <div className="flex flex-col gap-2 h-full">
+        <MainHeader />
+        {isExpanded
+          ? (
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={75} minSize={30}>
+                <MainArea tabs={tabs} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={25} minSize={20}>
+                <Chat />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          )
+          : <MainArea tabs={tabs} />}
+      </div>
     </div>
   );
 }
@@ -107,6 +112,54 @@ function MainArea({ tabs }: { tabs: Tab[] }) {
       <Tabs tabs={tabs} />
       <TabContent tab={activeTab} />
     </div>
+  );
+}
+
+function MainHeader() {
+  const { isExpanded } = useLeftSidebar();
+  const isMain = getCurrentWebviewWindowLabel() === "main";
+
+  const search = useSearch({ strict: false });
+  const navigate = useNavigate();
+
+  const handleClickSettings = () => {
+    windowsCommands.windowShow({ type: "settings" });
+  };
+
+  const handleClickNewNote = () => {
+    navigate({
+      to: "/app/main",
+      search: { ...search, new: true },
+    });
+  };
+
+  return (
+    <header
+      data-tauri-drag-region
+      className={clsx([
+        "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
+        isMain
+          ? "border-border bg-neutral-50"
+          : "border-transparent bg-transparent",
+        !isExpanded && "pl-[72px]",
+      ])}
+    >
+      <div
+        className="flex items-center justify-start"
+        data-tauri-drag-region
+      >
+        <button
+          onClick={handleClickSettings}
+        >
+          Setting
+        </button>
+        <button
+          onClick={handleClickNewNote}
+        >
+          New note
+        </button>
+      </div>
+    </header>
   );
 }
 

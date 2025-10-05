@@ -9384,6 +9384,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "notch"
+version = "0.1.0"
+dependencies = [
+ "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+]
+
+[[package]]
 name = "notification"
 version = "0.1.0"
 dependencies = [

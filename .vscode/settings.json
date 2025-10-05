@@ -22,5 +22,6 @@
   "rust-analyzer.cargo.targetDir": "target/analyzer",
   "rust-analyzer.cargo.extraEnv": {
     "MACOSX_DEPLOYMENT_TARGET": "14.2"
-  }
+  },
+  "rust-analyzer.cargo.features": ["windows-v1"]
 }

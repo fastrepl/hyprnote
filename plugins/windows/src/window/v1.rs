@@ -80,7 +80,7 @@ impl WindowImpl for AppWindow {
         let window = match self {
             Self::Main => {
                 let builder = self
-                    .window_builder(app, "/app/new")
+                    .window_builder(app, "/app/main")
                     .maximizable(true)
                     .minimizable(true)
                     .min_inner_size(620.0, 500.0);

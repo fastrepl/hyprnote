@@ -2,13 +2,9 @@ use tauri::{AppHandle, LogicalSize, Manager, WebviewUrl, WebviewWindow, WebviewW
 use tauri_specta::Event;
 use uuid::Uuid;
 
-use crate::{events, AppWindow};
+use crate::{events, AppWindow, WindowImpl};
 
 impl AppWindow {
-    pub fn label(&self) -> String {
-        self.to_string()
-    }
-
     pub fn emit_navigate(
         &self,
         app: &AppHandle<tauri::Wry>,
@@ -42,19 +38,6 @@ impl AppWindow {
         }
 
         Ok(())
-    }
-
-    pub fn title(&self) -> String {
-        match self {
-            Self::Main => "Hyprnote".into(),
-            Self::Note(_) => "Note".into(),
-            Self::Human(_) => "Human".into(),
-            Self::Organization(_) => "Organization".into(),
-            Self::Finder => "Finder".into(),
-            Self::Settings => "Settings".into(),
-            Self::Video(_) => "Video".into(),
-            Self::Control => "Control".into(),
-        }
     }
 
     pub fn get(&self, app: &AppHandle<tauri::Wry>) -> Option<WebviewWindow> {

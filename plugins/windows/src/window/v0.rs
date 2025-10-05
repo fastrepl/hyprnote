@@ -1,3 +1,5 @@
+use crate::WindowImpl;
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq, Eq, Hash)]
 #[serde(tag = "type", content = "value")]
 pub enum AppWindow {
@@ -56,5 +58,20 @@ impl std::str::FromStr for AppWindow {
         }
 
         Err(strum::ParseError::VariantNotFound)
+    }
+}
+
+impl WindowImpl for AppWindow {
+    fn title(&self) -> String {
+        match self {
+            Self::Main => "Hyprnote".into(),
+            Self::Note(_) => "Note".into(),
+            Self::Human(_) => "Human".into(),
+            Self::Organization(_) => "Organization".into(),
+            Self::Finder => "Finder".into(),
+            Self::Settings => "Settings".into(),
+            Self::Video(_) => "Video".into(),
+            Self::Control => "Control".into(),
+        }
     }
 }

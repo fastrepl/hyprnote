@@ -1,4 +1,5 @@
 mod v0;
+mod v1;
 
 pub type AppWindow = v0::AppWindow;
 

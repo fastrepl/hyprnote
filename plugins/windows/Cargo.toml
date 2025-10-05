@@ -38,3 +38,8 @@ once_cell = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }
+
+[features]
+version = ["v0"]
+v0 = []
+v1 = []

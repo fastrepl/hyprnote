@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { clsx } from "clsx";
 import { useState } from "react";
 import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
+
 import * as persisted from "../tinybase/store/persisted";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+import { Tab } from "../types";
 
 export function Sidebar() {
   return (
@@ -83,25 +86,35 @@ function FolderTreeItem({ folderId, depth = 0 }: { folderId: string; depth?: num
   );
 }
 
-function SessionItem({ sessionId }: { sessionId: string }) {
+function SessionItem({ sessionId, active }: { sessionId: string; active?: boolean }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
+  const tab: Tab = { id: sessionId, type: "note" };
 
   return (
-    <Link to="/app/main" search={{ id: sessionId }}>
-      <div className="px-2 py-1 hover:bg-blue-50 border-b border-gray-100">
+    <Link to="/app/main" search={{ activeTab: tab }}>
+      <div
+        className={clsx([
+          "px-2 py-1 hover:bg-blue-50 border-b border-gray-100",
+          active && "bg-blue-50",
+        ])}
+      >
         <div className="text-sm font-medium truncate">{title}</div>
       </div>
     </Link>
   );
 }
 
-function SessionItemNested({ sessionId, depth }: { sessionId: string; depth: number }) {
+function SessionItemNested({ sessionId, depth, active }: { sessionId: string; depth: number; active?: boolean }) {
   const title = useCell("sessions", sessionId, "title", persisted.STORE_ID);
+  const tab: Tab = { id: sessionId, type: "note" };
 
   return (
-    <Link to="/app/main" search={{ id: sessionId }}>
+    <Link to="/app/main" search={{ activeTab: tab }}>
       <div
-        className="px-2 py-1 hover:bg-blue-50 flex items-center gap-1"
+        className={clsx([
+          "px-2 py-1 hover:bg-blue-50 flex items-center gap-1",
+          active && "bg-blue-50",
+        ])}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
         <span className="w-4"></span>

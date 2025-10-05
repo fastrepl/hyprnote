@@ -30,17 +30,15 @@ export function Header() {
       ])}
     >
       <div
-        className="w-40 flex items-center justify-start"
+        className="flex items-center justify-start"
         data-tauri-drag-region
       >
         <button
-          className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
           onClick={handleClickSettings}
         >
           Setting
         </button>
         <button
-          className="bg-neutral-700 hover:bg-neutral-800 text-white px-4 py-2 rounded-md"
           onClick={handleClickNewNote}
         >
           New note

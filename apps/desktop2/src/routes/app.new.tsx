@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/new")({
 
     return redirect({
       to: "/app/main",
-      search: { id: sessionId },
+      search: { activeTab: { id: sessionId, type: "note" } },
     });
   },
 });

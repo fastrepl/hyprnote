@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { useValidatedRow } from "../hooks/useValidatedRow";
-import * as persisted from "../tinybase/store/persisted";
+import { useValidatedRow } from "../../hooks/useValidatedRow";
+import * as persisted from "../../tinybase/store/persisted";
 
 export const Route = createFileRoute("/app/settings")({
   component: Component,

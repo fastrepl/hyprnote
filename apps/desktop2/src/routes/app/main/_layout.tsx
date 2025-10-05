@@ -1,7 +1,7 @@
 import { LeftSidebarProvider, RightPanelProvider } from "@hypr/utils/contexts";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/app/_layout/main")({
+export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
 });
 

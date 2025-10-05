@@ -9387,6 +9387,9 @@ dependencies = [
 name = "notch"
 version = "0.1.0"
 dependencies = [
+ "objc2 0.6.2",
+ "objc2-app-kit 0.3.1",
+ "objc2-foundation 0.3.1",
  "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
 ]
 

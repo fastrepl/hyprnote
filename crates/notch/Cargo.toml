@@ -8,3 +8,8 @@ swift-rs = { workspace = true, features = ["build"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 swift-rs = { workspace = true }
+
+[dev-dependencies]
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true }
+objc2-foundation = { workspace = true }

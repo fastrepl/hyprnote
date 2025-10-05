@@ -23,7 +23,8 @@ let package = Package(
     .target(
       name: "swift-lib",
       dependencies: [
-        .product(name: "SwiftRs", package: "swift-rs")
+        .product(name: "SwiftRs", package: "swift-rs"),
+        .product(name: "DynamicNotchKit", package: "DynamicNotchKit")
       ],
       path: "src"
     )

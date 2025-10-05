@@ -71,7 +71,7 @@ impl WindowImpl for AppWindow {
         }
     }
 
-    fn show_impl(
+    fn build_window(
         &self,
         app: &tauri::AppHandle<tauri::Wry>,
     ) -> Result<tauri::WebviewWindow, crate::Error> {
@@ -80,7 +80,7 @@ impl WindowImpl for AppWindow {
         let window = match self {
             Self::Main => {
                 let builder = self
-                    .window_builder(app, "/app/main")
+                    .window_builder(app, "/")
                     .maximizable(true)
                     .minimizable(true)
                     .min_inner_size(620.0, 500.0);

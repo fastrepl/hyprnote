@@ -35,7 +35,7 @@ pub trait WindowImpl:
 
     fn title(&self) -> String;
 
-    fn show_impl(
+    fn build_window(
         &self,
         app: &tauri::AppHandle<tauri::Wry>,
     ) -> Result<tauri::WebviewWindow, crate::Error>;

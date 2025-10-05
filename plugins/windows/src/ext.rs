@@ -76,7 +76,6 @@ impl AppWindow {
         #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
-        // Analytics for Main window
         if self.label() == "main" {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
             use tauri_plugin_auth::{AuthPluginExt, StoreKey};
@@ -103,12 +102,11 @@ impl AppWindow {
             return Ok(window);
         }
 
-        let window = self.show_impl(app)?;
+        let window = self.build_window(app)?;
 
         window.set_focus()?;
         window.show()?;
 
-        // Handle main window visibility tracking
         if self.label() == "main" {
             if let Err(e) = app.handle_main_window_visibility(true) {
                 tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);

@@ -25,15 +25,15 @@ tauri-plugin-auth = { workspace = true }
 tauri-plugin-db2 = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-fs = { workspace = true }
-tauri-plugin-listener = { workspace = true, features = ["windows-v1"] }
-tauri-plugin-local-stt = { workspace = true, features = ["windows-v1"] }
+tauri-plugin-listener = { workspace = true, features = ["v1"] }
+tauri-plugin-local-stt = { workspace = true, features = ["v1"] }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
-tauri-plugin-tray = { workspace = true, features = ["windows-v1"] }
+tauri-plugin-tray = { workspace = true, features = ["v1"] }
 tauri-plugin-updater = { workspace = true }
 tauri-plugin-windows = { workspace = true, default-features = false, features = ["v1"] }
 

@@ -45,5 +45,5 @@ chrono = { workspace = true }
 
 [features]
 default = []
-windows-v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
-windows-v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
+v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]

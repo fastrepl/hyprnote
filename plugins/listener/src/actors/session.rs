@@ -238,7 +238,7 @@ impl Actor for SessionActor {
             let _ = state.app.set_start_disabled(false);
         }
 
-        #[cfg(feature = "windows-v0")]
+        #[cfg(feature = "v0")]
         {
             use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
             let _ = state.app.window_hide(AppWindow::Control);

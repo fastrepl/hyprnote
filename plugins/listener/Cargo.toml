@@ -73,15 +73,15 @@ objc2-foundation = { workspace = true }
 
 [features]
 default = []
-windows-v0 = [
+v0 = [
   "tauri-plugin-windows",
   "tauri-plugin-windows/v0",
-  "tauri-plugin-local-stt/windows-v0",
-  "tauri-plugin-tray/windows-v0",
+  "tauri-plugin-local-stt/v0",
+  "tauri-plugin-tray/v0",
 ]
-windows-v1 = [
+v1 = [
   "tauri-plugin-windows",
   "tauri-plugin-windows/v1",
-  "tauri-plugin-local-stt/windows-v1",
-  "tauri-plugin-tray/windows-v1",
+  "tauri-plugin-local-stt/v1",
+  "tauri-plugin-tray/v1",
 ]

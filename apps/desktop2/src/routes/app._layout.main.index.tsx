@@ -63,7 +63,7 @@ export const Route = createFileRoute("/app/_layout/main/")({
         to: "/app/main",
         search: { tabs: normalizedTabs },
       });
-    } else {
+    } else if (activeTabs.length === 0) {
       throw redirect({
         to: "/app/main",
         search: { tabs: search.tabs.map((t, idx) => ({ ...t, active: idx === 0 })) },

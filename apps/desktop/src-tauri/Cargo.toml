@@ -35,13 +35,13 @@ tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }
-tauri-plugin-listener = { workspace = true, features = ["windows-v0"] }
-tauri-plugin-local-llm = { workspace = true, features = ["windows-v0"] }
-tauri-plugin-local-stt = { workspace = true, features = ["windows-v0"] }
+tauri-plugin-listener = { workspace = true, features = ["v0"] }
+tauri-plugin-local-llm = { workspace = true, features = ["v0"] }
+tauri-plugin-local-stt = { workspace = true, features = ["v0"] }
 tauri-plugin-machine-uid = { workspace = true }
 tauri-plugin-mcp = { workspace = true }
 tauri-plugin-misc = { workspace = true }
-tauri-plugin-notification = { workspace = true, features = ["windows-v0"] }
+tauri-plugin-notification = { workspace = true, features = ["v0"] }
 tauri-plugin-obsidian = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
@@ -50,7 +50,7 @@ tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
-tauri-plugin-tray = { workspace = true, features = ["windows-v0"] }
+tauri-plugin-tray = { workspace = true, features = ["v0"] }
 tauri-plugin-webhook = { workspace = true }
 tauri-plugin-windows = { workspace = true, features = ["v0"] }
 

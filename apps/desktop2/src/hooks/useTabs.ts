@@ -18,9 +18,9 @@ export function useTabs() {
         },
       });
     } else {
-      const nextTabs = search.tabs.map((t, idx) =>
-        idx === existingTabIdx ? { ...newTab, active: true } : { ...t, active: false }
-      );
+      const nextTabs = search.tabs
+        .filter((t) => t.id !== newTab.id)
+        .map((t, idx) => idx === existingTabIdx ? { ...newTab, active: true } : { ...t, active: false });
 
       navigate({
         to: "/app/main",
@@ -33,7 +33,9 @@ export function useTabs() {
     navigate({
       to: "/app/main",
       search: {
-        tabs: search.tabs.map((t) => ({ ...t, active: false })).concat([{ ...tab, active: true }]),
+        tabs: search.tabs.filter((t) => t.id !== tab.id)
+          .map((t) => ({ ...t, active: false }))
+          .concat([{ ...tab, active: true }]),
       },
     });
   };

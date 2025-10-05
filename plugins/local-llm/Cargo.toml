@@ -13,8 +13,8 @@ metal = ["hypr-llama/metal"]
 cuda = ["hypr-llama/cuda"]
 vulkan = ["hypr-llama/vulkan"]
 native = ["hypr-llama/native"]
-windows-v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
-windows-v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
+v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

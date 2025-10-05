@@ -28,7 +28,7 @@ export const formatDate = (date: Date) => {
   }
 };
 
-export const focusInput = (chatInputRef: React.RefObject<HTMLTextAreaElement>) => {
+export const focusInput = (chatInputRef: React.RefObject<HTMLTextAreaElement | null>) => {
   if (chatInputRef.current) {
     chatInputRef.current.focus();
   }

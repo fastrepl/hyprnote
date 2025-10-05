@@ -423,7 +423,7 @@ function ParticipantCandidates({
   onMutation: () => void;
   selectedIndex: number;
   onSelectedIndexChange: (index: number) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const queryClient = useQueryClient();
 

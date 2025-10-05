@@ -23,7 +23,7 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
 }) => {
   const [progress, setProgress] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     const startTime = Date.now();

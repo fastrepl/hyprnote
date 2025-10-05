@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { TiptapEditor } from "@hypr/tiptap/editor";
 import { useRightPanel } from "@hypr/utils/contexts";
 
 interface TextSelectionPopoverProps {
@@ -12,7 +13,7 @@ interface TextSelectionPopoverProps {
   onAskAI?: (selectedText: string) => void;
   isAnnotationBoxOpen: boolean;
   sessionId: string;
-  editorRef: React.RefObject<{ editor: any }>;
+  editorRef: React.RefObject<{ editor: TiptapEditor | null }>;
 }
 
 interface SelectionInfo {
@@ -24,7 +25,7 @@ export function TextSelectionPopover(
   { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen, sessionId, editorRef }: TextSelectionPopoverProps,
 ) {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
-  const delayTimeoutRef = useRef<NodeJS.Timeout>();
+  const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { userId } = useHypr();
   // Safe hook usage with fallback
   const rightPanel = (() => {

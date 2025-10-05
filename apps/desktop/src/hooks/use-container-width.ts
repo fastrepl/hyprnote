@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function useContainerWidth(ref: React.RefObject<HTMLElement>) {
+export function useContainerWidth(ref: React.RefObject<HTMLElement | null>) {
   const [width, setWidth] = useState(0);
   const [debouncedWidth, setDebouncedWidth] = useState(0);
 

@@ -32,7 +32,7 @@ export function NoteHeader(
     && (!session.enhanced_memo_html || session.enhanced_memo_html === "<p></p>")
     && session.words.length === 0;
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const headerWidth = useContainerWidth(containerRef);
 
   const [isVeryNarrow, setIsVeryNarrow] = useState(headerWidth < 280);

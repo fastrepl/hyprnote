@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { clsx } from "clsx";
+import { ChartNoAxesGantt, FolderOpenIcon } from "lucide-react";
 import { useState } from "react";
 import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
@@ -24,8 +25,12 @@ export function LeftSidebar() {
             "pl-[72px]",
           ])}
         >
-          <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
-          <TabsTrigger value="folder" className="flex-1">Folders</TabsTrigger>
+          <TabsTrigger value="folder" className="flex-1">
+            <FolderOpenIcon />
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="flex-1">
+            <ChartNoAxesGantt />
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="timeline" className="flex-1 overflow-auto p-2 mt-0">

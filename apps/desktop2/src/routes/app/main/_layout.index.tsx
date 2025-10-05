@@ -1,5 +1,4 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
@@ -10,13 +9,13 @@ import { MainContent, MainHeader } from "../../../components/main/main-area";
 import { tabSchema } from "../../../types";
 import { id } from "../../../utils";
 
-const schema = z.object({
+const validateSearch = z.object({
   new: z.boolean().default(false),
   tabs: z.array(tabSchema).default([]),
 });
 
 export const Route = createFileRoute("/app/main/_layout/")({
-  validateSearch: zodValidator(schema),
+  validateSearch,
   beforeLoad: ({ search, context: { internalStore, persistedStore } }) => {
     if (search.new) {
       const sessionId = id();
@@ -80,7 +79,7 @@ function Component() {
   return (
     <div className="flex flex-row h-full">
       <LeftSidebar />
-      <div className="flex flex-col gap-2 h-full">
+      <div className="flex flex-col gap-2 h-full flex-1">
         <MainHeader />
         {isExpanded
           ? (

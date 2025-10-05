@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { useEffect } from "react";
 import { z } from "zod";
 
@@ -22,7 +21,7 @@ import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { cn } from "@hypr/ui/lib/utils";
 
-const schema = z.object({
+const validateSearch = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
   // TODO: not ideal. should match deeplink.rs
   baseUrl: z.string().optional(),
@@ -31,7 +30,7 @@ const schema = z.object({
 
 const PATH = "/app/settings";
 export const Route = createFileRoute(PATH)({
-  validateSearch: zodValidator(schema),
+  validateSearch,
   component: Component,
 });
 

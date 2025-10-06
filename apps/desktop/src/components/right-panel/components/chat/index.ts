@@ -6,3 +6,4 @@ export * from "./empty-chat-state";
 export * from "./floating-action-buttons";
 export * from "./types";
 export { UIMessageComponent } from "./ui-message";
+export { EmptyChatState } from "./empty-chat-state";

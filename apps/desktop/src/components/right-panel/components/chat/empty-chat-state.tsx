@@ -9,10 +9,23 @@ interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
   onFocusInput: () => void;
   sessionId?: string | null;
+  userId?: string | null;
 }
 
-export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: EmptyChatStateProps) => {
+export function EmptyChatState({ onQuickAction, onFocusInput, sessionId }: EmptyChatStateProps) {
   const { userId } = useHypr();
+
+  return (
+    <EmptyChatStateInner 
+      onQuickAction={onQuickAction}
+      onFocusInput={onFocusInput}
+      sessionId={sessionId}
+      userId={userId}
+    />
+  );
+}
+
+export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionId, userId }: EmptyChatStateProps) => {
   const [quickActions, setQuickActions] = useState<
     Array<{
       shownTitle: string;
@@ -24,7 +37,7 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
   const [containerSize, setContainerSize] = useState<"small" | "medium" | "large">("large");
 
   useEffect(() => {
-    getDynamicQuickActions(sessionId || null, userId).then(setQuickActions);
+    getDynamicQuickActions(sessionId ?? null, userId ?? undefined).then(setQuickActions);
   }, [sessionId, userId]);
 
   useEffect(() => {
@@ -137,24 +150,6 @@ export const EmptyChatState = memo(({ onQuickAction, onFocusInput, sessionId }: 
           </button>
         ))}
       </div>
-
-      {/* Beta notice moved to bottom */}
-      {
-        /* <div className="mt-8 p-3 rounded-lg bg-neutral-50 border border-neutral-200 max-w-[280px]">
-        <p className="text-xs text-neutral-600 text-left">
-          <Trans>
-            Chat feature is in beta. For best results, we recommend you to use{" "}
-            <span
-              onClick={handleCustomEndpointsClick}
-              className="text-blue-600 hover:text-blue-800 cursor-pointer underline"
-            >
-              custom endpoints
-            </span>
-            .
-          </Trans>
-        </p>
-      </div> */
-      }
     </div>
   );
 });

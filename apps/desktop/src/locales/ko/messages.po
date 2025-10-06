@@ -15,198 +15,198 @@ msgstr ""
 
 #. js-lingui-explicit-id
 #: src/components/settings/views/general.tsx:441
-msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
-msgstr ""
+#~ msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:22
-msgid "{days} day{plural} later"
-msgstr ""
+#~ msgid "{days} day{plural} later"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:27
-msgid "{hours} hour{plural} later"
-msgstr ""
+#~ msgid "{hours} hour{plural} later"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:32
-msgid "{minutes} minutes later"
-msgstr ""
+#~ msgid "{minutes} minutes later"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:36
 #: ../../packages/utils/src/datetime.ts:223
-msgid "Starting soon"
-msgstr ""
+#~ msgid "Starting soon"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:38
 #: ../../packages/utils/src/datetime.ts:207
-msgid "In progress"
-msgstr ""
+#~ msgid "In progress"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:44
 #: ../../packages/utils/src/datetime.ts:90
-msgid "Unknown date"
-msgstr ""
+#~ msgid "Unknown date"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:53
 #: ../../packages/utils/src/datetime.ts:98
-msgid "Invalid date"
-msgstr ""
+#~ msgid "Invalid date"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:63
-msgid "Today"
-msgstr ""
+#~ msgid "Today"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:65
 #: ../../packages/utils/src/datetime.ts:180
-msgid "Yesterday"
-msgstr ""
+#~ msgid "Yesterday"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:67
 #: ../../packages/utils/src/datetime.ts:182
-msgid "{days} days ago"
-msgstr ""
+#~ msgid "{days} days ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:69
 #: ../../packages/utils/src/datetime.ts:236
-msgid "{days} days later"
-msgstr ""
+#~ msgid "{days} days later"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:76
 #: ../../packages/utils/src/datetime.ts:79
-msgid "{date}"
-msgstr ""
+#~ msgid "{date}"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:84
 #: ../../packages/utils/src/datetime.ts:130
-msgid "Date error"
-msgstr ""
+#~ msgid "Date error"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:109
-msgid "Today ({dayOfWeek})"
-msgstr ""
+#~ msgid "Today ({dayOfWeek})"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:111
-msgid "Yesterday ({dayOfWeek})"
-msgstr ""
+#~ msgid "Yesterday ({dayOfWeek})"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:113
-msgid "{days} days ago ({dayOfWeek})"
-msgstr ""
+#~ msgid "{days} days ago ({dayOfWeek})"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:115
-msgid "{days} days later ({dayOfWeek})"
-msgstr ""
+#~ msgid "{days} days later ({dayOfWeek})"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:122
 #: ../../packages/utils/src/datetime.ts:125
-msgid "{date} ({dayOfWeek})"
-msgstr ""
+#~ msgid "{date} ({dayOfWeek})"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:168
-msgid "Just now"
-msgstr ""
+#~ msgid "Just now"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:170
-msgid "{seconds} seconds ago"
-msgstr ""
+#~ msgid "{seconds} seconds ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:172
-msgid "1 minute ago"
-msgstr ""
+#~ msgid "1 minute ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:174
-msgid "{minutes} minutes ago"
-msgstr ""
+#~ msgid "{minutes} minutes ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:176
-msgid "1 hour ago"
-msgstr ""
+#~ msgid "1 hour ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:178
-msgid "{hours} hours ago"
-msgstr ""
+#~ msgid "{hours} hours ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:184
-msgid "1 week ago"
-msgstr ""
+#~ msgid "1 week ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:186
-msgid "{weeks} weeks ago"
-msgstr ""
+#~ msgid "{weeks} weeks ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:188
-msgid "1 month ago"
-msgstr ""
+#~ msgid "1 month ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:190
-msgid "{months} months ago"
-msgstr ""
+#~ msgid "{months} months ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:192
-msgid "1 year ago"
-msgstr ""
+#~ msgid "1 year ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:194
-msgid "{years} years ago"
-msgstr ""
+#~ msgid "{years} years ago"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:225
-msgid "In 1 minute"
-msgstr ""
+#~ msgid "In 1 minute"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:227
-msgid "In {minutes} minutes"
-msgstr ""
+#~ msgid "In {minutes} minutes"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:229
-msgid "In 1 hour"
-msgstr ""
+#~ msgid "In 1 hour"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:231
-msgid "In {hours} hours"
-msgstr ""
+#~ msgid "In {hours} hours"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:234
-msgid "1 day later"
-msgstr ""
+#~ msgid "1 day later"
+#~ msgstr ""
 
 #. js-lingui-explicit-id
 #: ../../packages/utils/src/datetime.ts:239
-msgid "{weeks} weeks later"
-msgstr ""
+#~ msgid "{weeks} weeks later"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:628
 #~ msgid "(Optional for localhost)"
@@ -316,13 +316,13 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:168
-msgid "Apple"
-msgstr ""
+#~ msgid "Apple"
+#~ msgstr ""
 
 #: src/components/left-sidebar/notes-list.tsx:268
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
-msgid "Are you sure you want to delete this note?"
-msgstr ""
+#~ msgid "Are you sure you want to delete this note?"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:124
 #~ msgid "Ask Hyprnote to..."
@@ -351,8 +351,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:61
 #: src/routes/app.settings.tsx:134
-msgid "Billing & License"
-msgstr ""
+#~ msgid "Billing & License"
+#~ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:68
 #: src/components/settings/views/templates.tsx:356
@@ -361,8 +361,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:51
 #: src/routes/app.settings.tsx:124
-msgid "Calendar"
-msgstr ""
+#~ msgid "Calendar"
+#~ msgstr ""
 
 #: src/components/welcome-modal/calendar-permissions-view.tsx:124
 #~ msgid "Calendar & Contacts"
@@ -377,8 +377,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:143
-msgid "CEO"
-msgstr ""
+#~ msgid "CEO"
+#~ msgstr ""
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:55
 #~ msgid "Chat feature is in beta. For best results, we recommend you to use <0>custom endpoints</0>."
@@ -503,17 +503,17 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/template-sections.tsx:154
-msgid "Describe the content and purpose of this section"
-msgstr ""
+#~ msgid "Describe the content and purpose of this section"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:265
-msgid ""
-"Describe the summary you want to generate...\n"
-"            \n"
-"• what kind of meeting is this?\n"
-"• any format requirements?\n"
-"• what should AI remember when summarizing?"
-msgstr ""
+#~ msgid ""
+#~ "Describe the summary you want to generate...\n"
+#~ "            \n"
+#~ "• what kind of meeting is this?\n"
+#~ "• any format requirements?\n"
+#~ "• what should AI remember when summarizing?"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:252
 #~ msgid "Detect meetings automatically"
@@ -544,8 +544,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/share-and-permission/invite-list.tsx:23
-msgid "Email separated by commas"
-msgstr ""
+#~ msgid "Email separated by commas"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:206
 #~ msgid "Emoji"
@@ -560,8 +560,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/components/template-sections.tsx:144
-msgid "Enter a section title"
-msgstr ""
+#~ msgid "Enter a section title"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:606
 #~ msgid "Enter the base URL for your custom LLM endpoint"
@@ -588,8 +588,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/editor-area/note-header/chips/participants-chip.tsx:385
-msgid "Find person"
-msgstr ""
+#~ msgid "Find person"
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:180
 #~ msgid "Finish Onboarding"
@@ -601,12 +601,12 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:45
 #: src/routes/app.settings.tsx:118
-msgid "General"
-msgstr ""
+#~ msgid "General"
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/title-input.tsx:33
-msgid "Generating title..."
-msgstr ""
+#~ msgid "Generating title..."
+#~ msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:36
 #~ msgid "Get Started"
@@ -635,8 +635,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:65
 #: src/routes/app.settings.tsx:138
-msgid "Help & Support"
-msgstr ""
+#~ msgid "Help & Support"
+#~ msgstr ""
 
 #: src/components/settings/views/help-support.tsx:87
 #~ msgid "Help us improve by reporting issues"
@@ -659,13 +659,13 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:59
 #: src/routes/app.settings.tsx:132
-msgid "Integrations"
-msgstr ""
+#~ msgid "Integrations"
+#~ msgstr ""
 
 #: src/routes/app.settings.tsx:47
 #: src/routes/app.settings.tsx:120
-msgid "Intelligence"
-msgstr ""
+#~ msgid "Intelligence"
+#~ msgstr ""
 
 #: src/components/share-and-permission/invite-list.tsx:30
 #~ msgid "Invite"
@@ -737,8 +737,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:63
 #: src/routes/app.settings.tsx:136
-msgid "MCP"
-msgstr ""
+#~ msgid "MCP"
+#~ msgstr ""
 
 #: src/components/settings/views/team.tsx:145
 #: src/components/settings/views/team.tsx:232
@@ -751,8 +751,8 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:127
 #: src/components/welcome-modal/audio-permissions-view.tsx:165
-msgid "Microphone Access"
-msgstr ""
+#~ msgid "Microphone Access"
+#~ msgstr ""
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:334
 #: src/components/settings/components/ai/llm-custom-view.tsx:429
@@ -840,8 +840,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:53
 #: src/routes/app.settings.tsx:126
-msgid "Notifications"
-msgstr ""
+#~ msgid "Notifications"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:136
 #~ msgid "Obsidian"
@@ -925,16 +925,16 @@ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:166
 #: src/components/welcome-modal/audio-permissions-view.tsx:176
-msgid "Required for meeting transcription"
-msgstr ""
+#~ msgid "Required for meeting transcription"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:138
-msgid "Required to transcribe other people's voice during meetings"
-msgstr ""
+#~ msgid "Required to transcribe other people's voice during meetings"
+#~ msgstr ""
 
 #: src/components/settings/views/sound.tsx:128
-msgid "Required to transcribe your voice during meetings"
-msgstr ""
+#~ msgid "Required to transcribe your voice during meetings"
+#~ msgstr ""
 
 #: src/components/settings/views/notifications.tsx:392
 #~ msgid "Respect Do Not Disturb"
@@ -962,17 +962,17 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/team.tsx:200
-msgid "Search names or emails"
-msgstr ""
+#~ msgid "Search names or emails"
+#~ msgstr ""
 
 #: src/components/settings/components/template-list.tsx:43
 #: src/components/settings/components/templates-sidebar.tsx:33
-msgid "Search templates..."
-msgstr ""
+#~ msgid "Search templates..."
+#~ msgstr ""
 
 #: src/components/search-bar.tsx:144
-msgid "Search..."
-msgstr ""
+#~ msgid "Search..."
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:416
 #~ msgid "Sections"
@@ -1019,8 +1019,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/template.tsx:308
-msgid "Select what to use as context..."
-msgstr ""
+#~ msgid "Select what to use as context..."
+#~ msgstr ""
 
 #: src/components/welcome-modal/language-selection-view.tsx:89
 #~ msgid "Select Your Languages"
@@ -1060,8 +1060,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:57
 #: src/routes/app.settings.tsx:130
-msgid "Sound"
-msgstr ""
+#~ msgid "Sound"
+#~ msgstr ""
 
 #: src/components/settings/views/general.tsx:345
 #~ msgid "Spoken languages"
@@ -1089,8 +1089,8 @@ msgstr ""
 
 #: src/components/settings/views/sound.tsx:137
 #: src/components/welcome-modal/audio-permissions-view.tsx:175
-msgid "System Audio Access"
-msgstr ""
+#~ msgid "System Audio Access"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:259
 #~ msgid "System Instruction"
@@ -1114,8 +1114,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:55
 #: src/routes/app.settings.tsx:128
-msgid "Templates"
-msgstr ""
+#~ msgid "Templates"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:188
 #~ msgid "The base URL of your Obsidian server. This is typically http://127.0.0.1:27123."
@@ -1159,8 +1159,8 @@ msgstr ""
 
 #: src/routes/app.settings.tsx:49
 #: src/routes/app.settings.tsx:122
-msgid "Transcription"
-msgstr ""
+#~ msgid "Transcription"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:156
 #~ msgid "Turn on Obsidian integration to export notes to Obsidian vault."
@@ -1171,16 +1171,16 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/team.tsx:81
-msgid "Type to search..."
-msgstr ""
+#~ msgid "Type to search..."
+#~ msgstr ""
 
 #: src/components/editor-area/note-header/title-input.tsx:35
-msgid "Untitled"
-msgstr ""
+#~ msgid "Untitled"
+#~ msgstr ""
 
 #: src/components/settings/views/template.tsx:230
-msgid "Untitled Template"
-msgstr ""
+#~ msgid "Untitled Template"
+#~ msgstr ""
 
 #: src/components/left-sidebar/events-list.tsx:61
 #~ msgid "Upcoming"
@@ -1207,8 +1207,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:223
-msgid "username"
-msgstr ""
+#~ msgid "username"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:228
 #~ msgid "Vault Name"
@@ -1228,8 +1228,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:193
-msgid "We think different."
-msgstr ""
+#~ msgid "We think different."
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:281
 #~ msgid "We're working on adding more tools and services to connect with your workflow"
@@ -1248,8 +1248,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:28
-msgid "Where Conversations Stay Yours"
-msgstr ""
+#~ msgid "Where Conversations Stay Yours"
+#~ msgstr ""
 
 #: src/components/settings/views/integrations.tsx:213
 #~ msgid "Your API key for Obsidian local-rest-api plugin."
@@ -1264,8 +1264,8 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/settings/views/profile.tsx:123
-msgid "Your Name"
-msgstr ""
+#~ msgid "Your Name"
+#~ msgstr ""
 
 #: src/components/settings/components/templates-sidebar.tsx:45
 #: src/components/settings/views/templates.tsx:292

@@ -20,6 +20,8 @@
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@sentry/react": "^8.55.0",
+    "@supabase/supabase-js": "^2.58.0",
+    "@t3-oss/env-core": "^0.13.8",
     "@tanstack/react-router": "^1.132.41",
     "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2.8.0",

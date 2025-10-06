@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { ChartNoAxesGantt, FolderOpenIcon, SearchIcon } from "lucide-react";
+import { ChartNoAxesGantt, FolderOpenIcon, PanelLeftCloseIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
@@ -8,11 +8,14 @@ import * as persisted from "../../tinybase/store/persisted";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+import { useLeftSidebar } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import { Tab } from "../../types";
 import { InteractiveButton } from "../interactive-button";
 
 export function LeftSidebar() {
+  const { togglePanel: toggleLeftPanel } = useLeftSidebar();
+
   return (
     <div className="h-full border-r w-full flex flex-col overflow-hidden">
       <Tabs defaultValue="timeline" className="flex flex-col flex-1 overflow-hidden">
@@ -34,6 +37,11 @@ export function LeftSidebar() {
           <TabsTrigger value="search" className="flex-1">
             <SearchIcon />
           </TabsTrigger>
+
+          <PanelLeftCloseIcon
+            onClick={toggleLeftPanel}
+            className="cursor-pointer h-5 w-5"
+          />
         </TabsList>
 
         <TabsContent value="timeline" className="flex-1 mt-0 h-0">

@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-import { useRightPanel } from "@hypr/utils/contexts";
+import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { Chat } from "../../../components/chat";
 import { LeftSidebar } from "../../../components/main/left-sidebar";
 import { MainContent, MainHeader } from "../../../components/main/main-area";
@@ -74,25 +74,30 @@ export const Route = createFileRoute("/app/main/_layout/")({
 
 function Component() {
   const { tabs } = Route.useLoaderData();
-  const { isExpanded } = useRightPanel();
+  const { isExpanded: isRightPanelExpanded } = useRightPanel();
+  const { isExpanded: isLeftPanelExpanded } = useLeftSidebar();
 
   return (
     <ResizablePanelGroup direction="horizontal" className="h-full">
-      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
-        <LeftSidebar />
-      </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={80}>
-        <div className="flex flex-col gap-2 h-full">
+      {isLeftPanelExpanded && (
+        <>
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+            <LeftSidebar />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+        </>
+      )}
+      <ResizablePanel>
+        <div className="flex flex-col h-full">
           <MainHeader />
-          {isExpanded
+          {isRightPanelExpanded
             ? (
               <ResizablePanelGroup direction="horizontal">
-                <ResizablePanel defaultSize={75} minSize={30}>
+                <ResizablePanel defaultSize={60} minSize={30}>
                   <MainContent tabs={tabs} />
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={25} minSize={20}>
+                <ResizablePanel defaultSize={40} minSize={30}>
                   <Chat />
                 </ResizablePanel>
               </ResizablePanelGroup>

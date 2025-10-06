@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { ChartNoAxesGantt, FolderOpenIcon } from "lucide-react";
+import { ChartNoAxesGantt, FolderOpenIcon, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { useCell, useRowIds, useSliceRowIds } from "tinybase/ui-react";
 
@@ -14,12 +14,12 @@ import { InteractiveButton } from "../interactive-button";
 
 export function LeftSidebar() {
   return (
-    <div className="h-screen border-r w-[300px]">
-      <Tabs defaultValue="timeline">
+    <div className="h-full border-r w-full flex flex-col overflow-hidden">
+      <Tabs defaultValue="timeline" className="flex flex-col flex-1 overflow-hidden">
         <TabsList
           data-tauri-drag-region
           className={clsx([
-            "h-full flex flex-row",
+            "flex flex-row shrink-0",
             "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
             "border-border bg-neutral-50",
             "pl-[72px]",
@@ -31,14 +31,27 @@ export function LeftSidebar() {
           <TabsTrigger value="timeline" className="flex-1">
             <ChartNoAxesGantt />
           </TabsTrigger>
+          <TabsTrigger value="search" className="flex-1">
+            <SearchIcon />
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="timeline" className="flex-1 overflow-auto p-2 mt-0">
-          <TimelineView />
+        <TabsContent value="timeline" className="flex-1 mt-0 h-0">
+          <div className="h-full overflow-y-auto p-2">
+            <TimelineView />
+          </div>
         </TabsContent>
 
-        <TabsContent value="folder" className="flex-1 overflow-auto p-2 mt-0">
-          <FolderView />
+        <TabsContent value="folder" className="flex-1 mt-0 h-0">
+          <div className="h-full overflow-y-auto p-2">
+            <FolderView />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="search" className="flex-1 mt-0 h-0">
+          <div className="h-full flex flex-col overflow-hidden">
+            <SearchView />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
@@ -52,6 +65,23 @@ function TimelineView() {
     <div className="flex flex-col">
       {allSessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
     </div>
+  );
+}
+
+function SearchView() {
+  return (
+    <>
+      <div className="sticky top-0 bg-white z-10 p-2 border-b">
+        <input
+          type="text"
+          placeholder="Search..."
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {/* Search results will go here */}
+      </div>
+    </>
   );
 }
 

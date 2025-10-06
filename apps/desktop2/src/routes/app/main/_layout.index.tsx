@@ -77,24 +77,29 @@ function Component() {
   const { isExpanded } = useRightPanel();
 
   return (
-    <div className="flex flex-row h-full">
-      <LeftSidebar />
-      <div className="flex flex-col gap-2 h-full flex-1">
-        <MainHeader />
-        {isExpanded
-          ? (
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={75} minSize={30}>
-                <MainContent tabs={tabs} />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={25} minSize={20}>
-                <Chat />
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          )
-          : <MainContent tabs={tabs} />}
-      </div>
-    </div>
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+        <LeftSidebar />
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={80}>
+        <div className="flex flex-col gap-2 h-full">
+          <MainHeader />
+          {isExpanded
+            ? (
+              <ResizablePanelGroup direction="horizontal">
+                <ResizablePanel defaultSize={75} minSize={30}>
+                  <MainContent tabs={tabs} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={25} minSize={20}>
+                  <Chat />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            )
+            : <MainContent tabs={tabs} />}
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

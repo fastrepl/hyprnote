@@ -9,11 +9,31 @@ interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;
   onFocusInput: () => void;
   sessionId?: string | null;
+}
+
+interface EmptyChatStateInnerProps extends EmptyChatStateProps {
   userId?: string | null;
+  handleButtonClick: (prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => void;
+  handleContainerClick: () => void;
 }
 
 export function EmptyChatState({ onQuickAction, onFocusInput, sessionId }: EmptyChatStateProps) {
   const { userId } = useHypr();
+
+  const handleButtonClick = useCallback((prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => {
+    if (userId) {
+      analyticsCommands.event({
+        event: analyticsEvent,
+        distinct_id: userId,
+      });
+    }
+
+    onQuickAction(prompt);
+  }, [onQuickAction, userId]);
+
+  const handleContainerClick = useCallback(() => {
+    onFocusInput();
+  }, [onFocusInput]);
 
   return (
     <EmptyChatStateInner 
@@ -21,11 +41,13 @@ export function EmptyChatState({ onQuickAction, onFocusInput, sessionId }: Empty
       onFocusInput={onFocusInput}
       sessionId={sessionId}
       userId={userId}
+      handleButtonClick={handleButtonClick}
+      handleContainerClick={handleContainerClick}
     />
   );
 }
 
-export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionId, userId }: EmptyChatStateProps) => {
+export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionId, userId, handleButtonClick, handleContainerClick }: EmptyChatStateInnerProps) => {
   const [quickActions, setQuickActions] = useState<
     Array<{
       shownTitle: string;
@@ -65,21 +87,6 @@ export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionI
       resizeObserver.disconnect();
     };
   }, []);
-
-  const handleContainerClick = useCallback(() => {
-    onFocusInput();
-  }, [onFocusInput]);
-
-  const handleButtonClick = useCallback((prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => {
-    if (userId) {
-      analyticsCommands.event({
-        event: analyticsEvent,
-        distinct_id: userId,
-      });
-    }
-
-    onQuickAction(prompt);
-  }, [onQuickAction, userId]);
 
   const sizeClasses = {
     small: {

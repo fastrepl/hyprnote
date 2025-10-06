@@ -13,7 +13,7 @@ interface RightPanelContextType {
   isExpanded: boolean;
   setIsExpanded: (v: boolean) => void;
   togglePanel: () => void;
-  chatInputRef: React.RefObject<HTMLTextAreaElement>;
+  chatInputRef: React.RefObject<HTMLTextAreaElement | null>;
   pendingSelection: SelectionData | null;
   sendSelectionToChat: (selectionData: SelectionData) => void;
   clearPendingSelection: () => void;
@@ -29,7 +29,7 @@ export function RightPanelProvider({
   const [isExpanded, setIsExpanded] = useState(true);
   const [pendingSelection, setPendingSelection] = useState<SelectionData | null>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-  const chatInputRef = useRef<HTMLTextAreaElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const togglePanel = useCallback(() => {
     if (!isExpanded) {

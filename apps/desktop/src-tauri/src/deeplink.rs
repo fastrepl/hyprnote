@@ -1,8 +1,8 @@
-use tauri_plugin_windows::HyprWindow;
+use tauri_plugin_windows::AppWindow;
 
 #[derive(Debug)]
 pub enum DeeplinkAction {
-    OpenInternal(HyprWindow, String),
+    OpenInternal(AppWindow, String),
     OpenExternal(String),
 }
 
@@ -22,7 +22,7 @@ pub fn parse(url: &str) -> Vec<DeeplinkAction> {
 
         path => {
             vec![DeeplinkAction::OpenInternal(
-                HyprWindow::Main,
+                AppWindow::Main,
                 path.to_string(),
             )]
         }
@@ -43,12 +43,12 @@ fn parse_notification_query(parsed_url: &url::Url) -> Vec<DeeplinkAction> {
                 }
                 if let Some(event_id) = params.event_id {
                     actions.push(DeeplinkAction::OpenInternal(
-                        HyprWindow::Main,
+                        AppWindow::Main,
                         format!("/app/note/event/{}", event_id),
                     ));
                 } else {
                     actions.push(DeeplinkAction::OpenInternal(
-                        HyprWindow::Main,
+                        AppWindow::Main,
                         "/app/new?record=true".to_string(),
                     ));
                 }
@@ -57,14 +57,14 @@ fn parse_notification_query(parsed_url: &url::Url) -> Vec<DeeplinkAction> {
                 tracing::error!("{}", e);
 
                 actions.push(DeeplinkAction::OpenInternal(
-                    HyprWindow::Main,
+                    AppWindow::Main,
                     "/app/new?record=true".to_string(),
                 ));
             }
         },
         None => {
             actions.push(DeeplinkAction::OpenInternal(
-                HyprWindow::Main,
+                AppWindow::Main,
                 "/app/new?record=false".to_string(),
             ));
         }
@@ -88,8 +88,8 @@ fn parse_register_query(parsed_url: &url::Url) -> Vec<DeeplinkAction> {
     };
 
     vec![
-        DeeplinkAction::OpenInternal(HyprWindow::Main, main_url),
-        DeeplinkAction::OpenInternal(HyprWindow::Settings, settings_url),
+        DeeplinkAction::OpenInternal(AppWindow::Main, main_url),
+        DeeplinkAction::OpenInternal(AppWindow::Settings, settings_url),
     ]
 }
 
@@ -105,8 +105,8 @@ fn parse_license_query(parsed_url: &url::Url) -> Vec<DeeplinkAction> {
     };
 
     vec![
-        DeeplinkAction::OpenInternal(HyprWindow::Main, main_url),
-        DeeplinkAction::OpenInternal(HyprWindow::Settings, settings_url),
+        DeeplinkAction::OpenInternal(AppWindow::Main, main_url),
+        DeeplinkAction::OpenInternal(AppWindow::Settings, settings_url),
     ]
 }
 
@@ -140,7 +140,7 @@ mod tests {
 
         match &actions[0] {
             DeeplinkAction::OpenInternal(window, url) => {
-                assert_eq!(*window, HyprWindow::Main);
+                assert_eq!(*window, AppWindow::Main);
                 assert_eq!(url, "/app");
             }
             _ => panic!("Expected OpenInternal action"),
@@ -148,7 +148,7 @@ mod tests {
 
         match &actions[1] {
             DeeplinkAction::OpenInternal(window, url) => {
-                assert_eq!(*window, HyprWindow::Settings);
+                assert_eq!(*window, AppWindow::Settings);
                 assert_eq!(
                     url,
                     "/app/settings?baseUrl=http://localhost:3000&apiKey=123"
@@ -167,7 +167,7 @@ mod tests {
 
         match &actions[0] {
             DeeplinkAction::OpenInternal(window, url) => {
-                assert_eq!(*window, HyprWindow::Main);
+                assert_eq!(*window, AppWindow::Main);
                 assert_eq!(url, "/app");
             }
             _ => panic!("Expected OpenInternal action"),
@@ -175,7 +175,7 @@ mod tests {
 
         match &actions[1] {
             DeeplinkAction::OpenInternal(window, url) => {
-                assert_eq!(*window, HyprWindow::Settings);
+                assert_eq!(*window, AppWindow::Settings);
                 assert_eq!(url, "/app/settings?tab=billing&key=123");
             }
             _ => panic!("Expected OpenInternal action"),

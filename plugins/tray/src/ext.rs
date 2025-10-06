@@ -107,24 +107,30 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             .on_menu_event({
                 move |app: &AppHandle, event| match HyprMenuItem::from(event.id.clone()) {
                     HyprMenuItem::TrayOpen => {
-                        use tauri_plugin_windows::HyprWindow;
-                        let _ = HyprWindow::Main.show(app);
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::AppWindow;
+                            let _ = AppWindow::Main.show(app);
+                        }
                     }
                     HyprMenuItem::TrayStart => {
-                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ = app.window_emit_navigate(
-                                HyprWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: Some(
-                                        serde_json::json!({ "record": true })
-                                            .as_object()
-                                            .cloned()
-                                            .unwrap(),
-                                    ),
-                                },
-                            );
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+                            if let Ok(_) = app.window_show(AppWindow::Main) {
+                                let _ = app.window_emit_navigate(
+                                    AppWindow::Main,
+                                    Navigate {
+                                        path: "/app/new".to_string(),
+                                        search: Some(
+                                            serde_json::json!({ "record": true })
+                                                .as_object()
+                                                .cloned()
+                                                .unwrap(),
+                                        ),
+                                    },
+                                );
+                            }
                         }
                     }
                     HyprMenuItem::TrayQuit => {
@@ -163,15 +169,18 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                             });
                     }
                     HyprMenuItem::AppNew => {
-                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ = app.window_emit_navigate(
-                                HyprWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: None,
-                                },
-                            );
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+                            if let Ok(_) = app.window_show(AppWindow::Main) {
+                                let _ = app.window_emit_navigate(
+                                    AppWindow::Main,
+                                    Navigate {
+                                        path: "/app/new".to_string(),
+                                        search: None,
+                                    },
+                                );
+                            }
                         }
                     }
                 }

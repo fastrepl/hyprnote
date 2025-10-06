@@ -1,4 +1,3 @@
-import { Trans, useLingui } from "@lingui/react/macro";
 import { RiCornerDownLeftLine, RiLinkedinBoxFill } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -311,7 +310,6 @@ function ParticipentItem({
 }
 
 function ParticipantAddControl({ sessionId }: { sessionId: string }) {
-  const { t } = useLingui();
   const queryClient = useQueryClient();
   const [newParticipantInput, setNewParticipantInput] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -382,7 +380,7 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
             value={newParticipantInput}
             onChange={(e) => setNewParticipantInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t`Find person`}
+            placeholder={"Find person"}
             className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
           />
           {newParticipantInput.trim() && (
@@ -425,7 +423,7 @@ function ParticipantCandidates({
   onMutation: () => void;
   selectedIndex: number;
   onSelectedIndexChange: (index: number) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) {
   const queryClient = useQueryClient();
 
@@ -560,7 +558,7 @@ function ParticipantCandidates({
             <span className="text-xs">+</span>
           </span>
           <span className="flex items-center gap-1 font-medium text-neutral-600">
-            <Trans>Create</Trans>
+            Create
             <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query.trim()}&quot;</span>
           </span>
         </button>

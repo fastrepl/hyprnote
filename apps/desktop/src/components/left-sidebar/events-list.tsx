@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type LinkProps, useNavigate } from "@tanstack/react-router";
 import { clsx } from "clsx";
@@ -58,7 +57,7 @@ export default function EventsList({
     <section className="border-b mb-4 border-border">
       <div className="flex items-center gap-2">
         <h2 className="font-bold text-neutral-600 mb-1">
-          <Trans>Upcoming</Trans>
+          Upcoming
         </h2>
         <button
           disabled={syncEventsMutation.isPending}
@@ -91,7 +90,7 @@ export default function EventsList({
         : (
           <div className="pb-2 pl-1">
             <p className="text-xs text-neutral-400">
-              <Trans>No upcoming events</Trans>
+              No upcoming events
             </p>
           </div>
         )}
@@ -178,7 +177,7 @@ function EventItem({
           >
             <div className="flex items-center gap-2">
               <AppWindowMacIcon size={16} />
-              <Trans>New window</Trans>
+              New window
             </div>
             <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
           </ContextMenuItem>
@@ -190,7 +189,7 @@ function EventItem({
         >
           <div className="flex items-center gap-2">
             <CalendarDaysIcon size={16} />
-            <Trans>View in calendar</Trans>
+            View in calendar
           </div>
           <ArrowUpRight size={16} className="ml-1 text-zinc-500" />
         </ContextMenuItem>

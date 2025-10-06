@@ -4,12 +4,12 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useTitleGenerationPendingState } from "@/hooks/enhance-pending";
 import { useContainerWidth } from "@/hooks/use-container-width";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import TitleInput from "@hypr/ui/components/block/title-input";
 import { useSession } from "@hypr/utils/contexts";
 import Chips from "./chips";
 import ListenButton from "./listen-button";
 import { TabHeader } from "./tab-header";
 import { TabSubHeader } from "./tab-sub-header";
-import TitleInput from "./title-input";
 import TitleShimmer from "./title-shimmer";
 
 interface NoteHeaderProps {
@@ -32,7 +32,7 @@ export function NoteHeader(
     && (!session.enhanced_memo_html || session.enhanced_memo_html === "<p></p>")
     && session.words.length === 0;
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const headerWidth = useContainerWidth(containerRef);
 
   const [isVeryNarrow, setIsVeryNarrow] = useState(headerWidth < 280);

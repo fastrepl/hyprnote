@@ -1,5 +1,5 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import { Trans } from "@lingui/react/macro";
+
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -141,7 +141,7 @@ export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionI
       {/* Main heading */}
       <div className={`${currentSize.headingWrapper} flex items-center gap-2`}>
         <h3 className={`${currentSize.heading} font-medium`}>
-          <Trans>Ask Hyprnote to...</Trans>
+          Ask Hyprnote to...
         </h3>
       </div>
 

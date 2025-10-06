@@ -7,41 +7,17 @@
 
 
 export const commands = {
-async windowShow(window: HyprWindow) : Promise<null> {
+async windowShow(window: AppWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_show", { window });
 },
-async windowClose(window: HyprWindow) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_close", { window });
-},
-async windowHide(window: HyprWindow) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_hide", { window });
-},
-async windowDestroy(window: HyprWindow) : Promise<null> {
+async windowDestroy(window: AppWindow) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_destroy", { window });
 },
-async windowPosition(window: HyprWindow, pos: KnownPosition) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_position", { window, pos });
-},
-async windowGetFloating(window: HyprWindow) : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:windows|window_get_floating", { window });
-},
-async windowSetFloating(window: HyprWindow, v: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_set_floating", { window, v });
-},
-async windowNavigate(window: HyprWindow, path: string) : Promise<null> {
+async windowNavigate(window: AppWindow, path: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_navigate", { window, path });
 },
-async windowEmitNavigate(window: HyprWindow, event: Navigate) : Promise<null> {
+async windowEmitNavigate(window: AppWindow, event: Navigate) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_emit_navigate", { window, event });
-},
-async windowIsVisible(window: HyprWindow) : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:windows|window_is_visible", { window });
-},
-async windowSetOverlayBounds(name: string, bounds: OverlayBound) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_set_overlay_bounds", { name, bounds });
-},
-async windowRemoveOverlayBounds(name: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:windows|window_remove_overlay_bounds", { name });
 },
 async setFakeWindowBounds(name: string, bounds: OverlayBound) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|set_fake_window_bounds", { name, bounds });
@@ -70,13 +46,12 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type HyprWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "finder" } | { type: "settings" } | { type: "video"; value: string } | { type: "control" }
+export type AppWindow = { type: "main" } | { type: "note"; value: string } | { type: "human"; value: string } | { type: "organization"; value: string } | { type: "finder" } | { type: "settings" } | { type: "video"; value: string } | { type: "control" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type KnownPosition = "left-half" | "right-half" | "center"
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }
 export type OverlayBound = { x: number; y: number; width: number; height: number }
-export type WindowDestroyed = { window: HyprWindow }
+export type WindowDestroyed = { window: AppWindow }
 
 /** tauri-specta globals **/
 

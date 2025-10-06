@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { ChevronsLeftIcon, MenuIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -30,7 +29,7 @@ export function LeftSidebarButton({ type }: { type: "toolbar" | "sidebar" }) {
         </TooltipTrigger>
         <TooltipContent>
           <p>
-            <Trans>Toggle left sidebar</Trans> <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
+            Toggle left sidebar <Shortcut macDisplay="⌘L" windowsDisplay="Ctrl+L" />
           </p>
         </TooltipContent>
       </Tooltip>

@@ -159,8 +159,8 @@ export default function EditorArea({
     s.updateEnhancedNote,
   ]);
 
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const transcriptRef = useRef<TranscriptEditorRef | { editor: TiptapEditor | null } | null>(null);
+  const editorRef = useRef<{ editor: TiptapEditor | null }>({ editor: null });
+  const transcriptRef = useRef<TranscriptEditorRef | null>(null);
   const tabHeaderRef = useRef<TabHeaderRef>(null);
   const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
   const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
@@ -321,7 +321,9 @@ export default function EditorArea({
       {/* Local search bar (slide-down) */}
       <LocalSearchBar
         key={activeTab}
-        editorRef={activeTab === "transcript" ? transcriptRef : editorRef}
+        editorRef={(activeTab === "transcript" ? transcriptRef : editorRef) as
+          | React.RefObject<TranscriptEditorRef | null>
+          | React.RefObject<{ editor: TiptapEditor | null }>}
         onClose={() => setIsFloatingSearchVisible(false)}
         isVisible={isFloatingSearchVisible}
       />

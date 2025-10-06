@@ -38,3 +38,5 @@ export const useStore = () => {
 
   return store;
 };
+
+export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;

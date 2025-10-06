@@ -3,7 +3,7 @@ use std::str::FromStr;
 use tauri::Manager;
 use tauri_specta::Event;
 
-use crate::{HyprWindow, WindowsPluginExt};
+use crate::{AppWindow, WindowsPluginExt};
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
@@ -11,10 +11,10 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
 
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
-            match window.label().parse::<HyprWindow>() {
+            match window.label().parse::<AppWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
-                    if w == HyprWindow::Main {
+                    if w == AppWindow::Main {
                         if window.hide().is_ok() {
                             api.prevent_close();
 
@@ -31,7 +31,7 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
             let app = window.app_handle();
             let state = app.state::<crate::ManagedState>();
 
-            match window.label().parse::<HyprWindow>() {
+            match window.label().parse::<AppWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
                     {
@@ -96,7 +96,7 @@ impl FromStr for Navigate {
 
 common_event_derives! {
     pub struct WindowDestroyed {
-        pub window: HyprWindow,
+        pub window: AppWindow,
     }
 }
 

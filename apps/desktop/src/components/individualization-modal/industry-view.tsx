@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { Briefcase, Check, Code, Edit3, GraduationCap, Hospital, Rocket, Scale, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -60,12 +59,12 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
       {/* Main Title */}
       <h2 className="mb-4 text-center text-xl font-semibold text-neutral-800">
-        <Trans>Help us tailor your Hyprnote experience</Trans>
+        Help us tailor your Hyprnote experience
       </h2>
 
       {/* Specific Question */}
       <h2 className="mb-8 text-center text-base font-medium text-neutral-600">
-        <Trans>What industry are you in?</Trans>
+        What industry are you in?
       </h2>
 
       {/* Industry Options Grid */}
@@ -125,7 +124,7 @@ export const IndustryView: React.FC<IndustryViewProps> = ({ onSelect, onSkip, se
               size="sm"
               className="w-full text-xs text-neutral-500 hover:text-neutral-700"
             >
-              <Trans>Cancel</Trans>
+              Cancel
             </Button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { Trans } from "@lingui/react/macro";
+
 import { PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -86,11 +86,11 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
   return (
     <div className="flex flex-col items-center min-w-[30rem]">
       <h2 className="text-xl font-semibold mb-4">
-        <Trans>Select Your Languages</Trans>
+        Select Your Languages
       </h2>
 
       <p className="text-center text-sm text-muted-foreground mb-8">
-        <Trans>Choose the languages you speak for better transcription accuracy</Trans>
+        Choose the languages you speak for better transcription accuracy
       </p>
 
       <div className="w-full max-w-[30rem] mb-8">
@@ -121,7 +121,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
               </div>
               {selectedLanguages.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  <Trans>Select at least one language</Trans>
+                  Select at least one language
                 </p>
               )}
             </div>
@@ -139,7 +139,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
                 <Command>
                   <CommandInput placeholder="Search languages..." className="h-9" />
                   <CommandEmpty>
-                    <Trans>No language found.</Trans>
+                    No language found.
                   </CommandEmpty>
                   <CommandGroup className="max-h-[150px] overflow-auto">
                     {SUPPORTED_LANGUAGES.filter(
@@ -168,7 +168,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
           </div>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-3">
-          <Trans>Add languages you use during meetings to improve transcription accuracy</Trans>
+          Add languages you use during meetings to improve transcription accuracy
         </p>
       </div>
 
@@ -177,7 +177,7 @@ export function LanguageSelectionView({ onContinue }: LanguageSelectionViewProps
         className="w-full max-w-sm"
         disabled={selectedLanguages.length === 0}
       >
-        <Trans>Finish Onboarding</Trans>
+        Finish Onboarding
       </PushableButton>
     </div>
   );

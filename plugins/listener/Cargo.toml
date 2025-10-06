@@ -38,7 +38,7 @@ tauri-plugin-db = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 
@@ -73,3 +73,15 @@ objc2-foundation = { workspace = true }
 
 [features]
 default = []
+v0 = [
+  "tauri-plugin-windows",
+  "tauri-plugin-windows/v0",
+  "tauri-plugin-local-stt/v0",
+  "tauri-plugin-tray/v0",
+]
+v1 = [
+  "tauri-plugin-windows",
+  "tauri-plugin-windows/v1",
+  "tauri-plugin-local-stt/v1",
+  "tauri-plugin-tray/v1",
+]

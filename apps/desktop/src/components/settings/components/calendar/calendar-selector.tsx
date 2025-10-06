@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CalendarCogIcon, RefreshCwIcon } from "lucide-react";
 
@@ -66,7 +65,7 @@ export function CalendarSelector() {
         <div>
           <div className="flex items-center gap-2">
             <div className="text-sm font-medium">
-              <Trans>Select Calendars</Trans>
+              Select Calendars
             </div>
             <button
               disabled={syncCalendarsMutation.isPending}
@@ -83,7 +82,7 @@ export function CalendarSelector() {
             </button>
           </div>
           <div className="text-xs text-muted-foreground">
-            <Trans>{calendarsQuery.data?.selectedCount ?? 0} calendars selected</Trans>
+            {calendarsQuery.data?.selectedCount ?? 0} calendars selected
           </div>
         </div>
       </div>
@@ -92,13 +91,13 @@ export function CalendarSelector() {
         {calendarsQuery.isLoading
           ? (
             <div className="text-sm text-muted-foreground">
-              <Trans>Loading...</Trans>
+              Loading...
             </div>
           )
           : calendarsQuery.data?.totalCount === 0
           ? (
             <div className="text-sm text-muted-foreground">
-              <Trans>No calendars found</Trans>
+              No calendars found
             </div>
           )
           : (

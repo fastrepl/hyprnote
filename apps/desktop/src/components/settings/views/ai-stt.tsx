@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -114,10 +113,10 @@ export default function SttAI() {
       >
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="default">
-            <Trans>Default</Trans>
+            Default
           </TabsTrigger>
           <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
+            Custom
           </TabsTrigger>
         </TabsList>
         <TabsContent value="default">

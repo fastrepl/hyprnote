@@ -3,7 +3,8 @@ use std::thread::JoinHandle;
 
 use crate::NotificationPluginExt;
 use tauri::AppHandle;
-use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
+#[cfg(feature = "tauri-plugin-windows")]
+use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[derive(Debug, Clone)]
 pub enum NotificationTrigger {
@@ -65,9 +66,12 @@ impl NotificationHandler {
     }
 
     fn handle_detect_event(app_handle: &AppHandle<tauri::Wry>, trigger: NotificationTriggerDetect) {
+        #[cfg(feature = "tauri-plugin-windows")]
         let main_window_focused = app_handle
-            .window_is_focused(HyprWindow::Main)
+            .window_is_focused(AppWindow::Main)
             .unwrap_or(false);
+        #[cfg(not(feature = "tauri-plugin-windows"))]
+        let main_window_focused = false;
 
         let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
 
@@ -151,9 +155,13 @@ impl NotificationHandler {
         app_handle: &AppHandle<tauri::Wry>,
         trigger: NotificationTriggerEvent,
     ) {
+        #[cfg(feature = "tauri-plugin-windows")]
         let main_window_focused = app_handle
-            .window_is_focused(HyprWindow::Main)
+            .window_is_focused(AppWindow::Main)
             .unwrap_or(false);
+
+        #[cfg(not(feature = "tauri-plugin-windows"))]
+        let main_window_focused = false;
 
         let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
 

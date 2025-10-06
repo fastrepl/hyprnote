@@ -1,6 +1,5 @@
-import { useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
+import { useEffect } from "react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
@@ -21,9 +20,8 @@ import {
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { cn } from "@hypr/ui/lib/utils";
-import { useEffect } from "react";
 
-const schema = z.object({
+const validateSearch = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
   // TODO: not ideal. should match deeplink.rs
   baseUrl: z.string().optional(),
@@ -32,37 +30,35 @@ const schema = z.object({
 
 const PATH = "/app/settings";
 export const Route = createFileRoute(PATH)({
-  validateSearch: zodValidator(schema),
+  validateSearch,
   component: Component,
 });
 
 function TabButton({ tab, isActive, onClick }: { tab: Tab; isActive: boolean; onClick: () => void }) {
-  const { t } = useLingui();
-
   const getTabTitle = (tab: Tab) => {
     switch (tab) {
       case "general":
-        return t`General`;
+        return "General";
       case "ai-llm":
-        return t`Intelligence`;
+        return "Intelligence";
       case "ai-stt":
-        return t`Transcription`;
+        return "Transcription";
       case "calendar":
-        return t`Calendar`;
+        return "Calendar";
       case "notifications":
-        return t`Notifications`;
+        return "Notifications";
       case "templates":
-        return t`Templates`;
+        return "Templates";
       case "sound":
-        return t`Sound`;
+        return "Sound";
       case "integrations":
-        return t`Integrations`;
+        return "Integrations";
       case "billing":
-        return t`Billing & License`;
+        return "Billing & License";
       case "mcp":
-        return t`MCP`;
+        return "MCP";
       case "help-support":
-        return t`Help & Support`;
+        return "Help & Support";
       default:
         return tab;
     }
@@ -85,7 +81,6 @@ function TabButton({ tab, isActive, onClick }: { tab: Tab; isActive: boolean; on
 }
 
 function Component() {
-  const { t } = useLingui();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
   const { userId } = useHypr();
@@ -115,27 +110,27 @@ function Component() {
   const getTabTitle = (tab: Tab) => {
     switch (tab) {
       case "general":
-        return t`General`;
+        return "General";
       case "ai-llm":
-        return t`Intelligence`;
+        return "Intelligence";
       case "ai-stt":
-        return t`Transcription`;
+        return "Transcription";
       case "calendar":
-        return t`Calendar`;
+        return "Calendar";
       case "notifications":
-        return t`Notifications`;
+        return "Notifications";
       case "templates":
-        return t`Templates`;
+        return "Templates";
       case "sound":
-        return t`Sound`;
+        return "Sound";
       case "integrations":
-        return t`Integrations`;
+        return "Integrations";
       case "billing":
-        return t`Billing & License`;
+        return "Billing & License";
       case "mcp":
-        return t`MCP`;
+        return "MCP";
       case "help-support":
-        return t`Help & Support`;
+        return "Help & Support";
       default:
         return tab;
     }

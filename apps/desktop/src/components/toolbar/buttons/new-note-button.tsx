@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useParams } from "@tanstack/react-router";
 import { SquarePenIcon } from "lucide-react";
 
@@ -43,7 +42,7 @@ function ActualButton({ disabled }: { disabled: boolean }) {
       </TooltipTrigger>
       <TooltipContent>
         <p>
-          <Trans>Create new note</Trans> <Shortcut macDisplay="⌘N" windowsDisplay="Ctrl+N" />
+          Create new note <Shortcut macDisplay="⌘N" windowsDisplay="Ctrl+N" />
         </p>
       </TooltipContent>
     </Tooltip>

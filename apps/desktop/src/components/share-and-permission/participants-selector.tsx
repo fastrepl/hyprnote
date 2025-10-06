@@ -2,7 +2,6 @@ import { ChevronDown, ChevronRight, Users2Icon } from "lucide-react";
 import { InvitedUser } from "./invited-user";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { Trans } from "@lingui/react/macro";
 
 export interface ParticipantsSelectorProps {
   expanded: boolean;
@@ -28,11 +27,11 @@ export const ParticipantsSelector = ({
         </div>
         <div>
           <div className="text-sm font-medium">
-            <Trans>All Participants</Trans>
+            All Participants
           </div>
           <div className="text-xs text-neutral-600">
-            <Trans>Teamspace</Trans> · {participants.length}
-            <Trans>people</Trans>
+            Teamspace · {participants.length}
+            people
           </div>
         </div>
       </div>

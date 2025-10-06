@@ -54,6 +54,7 @@ hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
+hypr-notch = { path = "crates/notch", package = "notch" }
 hypr-notification = { path = "crates/notification", package = "notification" }
 hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
 hypr-notification-macos = { path = "crates/notification-macos", package = "notification-macos" }
@@ -131,7 +132,7 @@ tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
-tauri-plugin-windows = { path = "plugins/windows" }
+tauri-plugin-windows = { path = "plugins/windows", default-features = false }
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"

@@ -23,9 +23,17 @@ export const organizations = pgTable(TABLE_ORGANIZATIONS, {
   name: text("name").notNull(),
 });
 
+export const TABLE_FOLDERS = "folders";
+export const folders: any = pgTable(TABLE_FOLDERS, {
+  ...SHARED,
+  name: text("name").notNull(),
+  parent_folder_id: uuid("parent_folder_id").references((): any => folders.id, { onDelete: "cascade" }),
+});
+
 export const TABLE_SESSIONS = "sessions";
 export const sessions = pgTable(TABLE_SESSIONS, {
   ...SHARED,
+  folder_id: uuid("folder_id").references(() => folders.id, { onDelete: "cascade" }),
   event_id: uuid("event_id"),
   title: text("title").notNull(),
   raw_md: text("raw_md").notNull(),
@@ -124,6 +132,7 @@ export const transcriptSchema = z.object({
 
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
+export const folderSchema = createSelectSchema(folders);
 export const eventSchema = createSelectSchema(events);
 export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);

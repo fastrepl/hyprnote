@@ -7,6 +7,7 @@ import type {
   ChatGroup,
   ChatMessage,
   Event,
+  Folder,
   Human,
   MappingEventParticipant,
   MappingTagSession,
@@ -131,7 +132,7 @@ const generateTranscript = () => {
   return { words };
 };
 
-const createSession = (eventId?: string) => {
+const createSession = (eventId?: string, folderId?: string) => {
   const title = generateTitle();
   const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
   const enhanced_md = generateEnhancedMarkdown();
@@ -144,11 +145,22 @@ const createSession = (eventId?: string) => {
       raw_md,
       enhanced_md,
       created_at: faker.date.recent({ days: 30 }).toISOString(),
-      event_id: eventId || null,
+      event_id: eventId,
+      folder_id: folderId,
       transcript: generateTranscript(),
     } satisfies Session,
   };
 };
+
+const createFolder = (parentFolderId?: string) => ({
+  id: id(),
+  data: {
+    user_id: USER_ID,
+    name: faker.system.directoryPath().split("/").pop() || faker.lorem.word(),
+    parent_folder_id: parentFolderId,
+    created_at: faker.date.past({ years: 1 }).toISOString(),
+  } satisfies Folder,
+});
 
 const createMappingEventParticipant = (event_id: string, human_id: string) => ({
   id: id(),
@@ -304,6 +316,7 @@ const generateMockData = (config: MockConfig) => {
   const organizations: Record<string, any> = {};
   const humans: Record<string, any> = {};
   const calendars: Record<string, any> = {};
+  const folders: Record<string, any> = {};
   const sessions: Record<string, any> = {};
   const events: Record<string, any> = {};
   const mapping_event_participant: Record<string, any> = {};
@@ -360,6 +373,24 @@ const generateMockData = (config: MockConfig) => {
 
   const now = new Date();
 
+  const rootFolderIds = Array.from({ length: 3 }, () => {
+    const folder = createFolder();
+    folders[folder.id] = folder.data;
+    return folder.id;
+  });
+
+  const subFolderIds: string[] = [];
+  rootFolderIds.forEach((rootId) => {
+    const subFolderCount = faker.number.int({ min: 0, max: 3 });
+    Array.from({ length: subFolderCount }, () => {
+      const subFolder = createFolder(rootId);
+      folders[subFolder.id] = subFolder.data;
+      subFolderIds.push(subFolder.id);
+    });
+  });
+
+  const allFolderIds = [...rootFolderIds, ...subFolderIds];
+
   const tagIds = Array.from({ length: 8 }, () => {
     const tag = createTag();
     tags[tag.id] = tag.data;
@@ -385,11 +416,12 @@ const generateMockData = (config: MockConfig) => {
 
     Array.from({ length: sessionCount }, () => {
       const shouldLinkToEvent = endedEvents.length > 0 && faker.datatype.boolean({ probability: 0.5 });
+      const shouldAddToFolder = allFolderIds.length > 0 && faker.datatype.boolean({ probability: 0.6 });
 
-      const session = shouldLinkToEvent
-        ? createSession(faker.helpers.arrayElement(endedEvents).id)
-        : createSession();
+      const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(endedEvents).id : undefined;
+      const folderId = shouldAddToFolder ? faker.helpers.arrayElement(allFolderIds) : undefined;
 
+      const session = createSession(eventId, folderId);
       sessions[session.id] = session.data;
       sessionIds.push(session.id);
     });
@@ -426,6 +458,7 @@ const generateMockData = (config: MockConfig) => {
     organizations,
     humans,
     calendars,
+    folders,
     sessions,
     events,
     mapping_event_participant,

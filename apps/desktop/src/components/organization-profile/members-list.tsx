@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { RiLinkedinBoxFill, RiMailLine } from "@remixicon/react";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
@@ -24,7 +23,7 @@ export function MembersList({ organizationId }: MembersListProps) {
     <div className="mt-8">
       <h2 className="mb-4 flex items-center justify-center gap-2 font-semibold">
         <Users className="size-5" />
-        <Trans>Members</Trans>
+        Members
         <span className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
           {members.length}
         </span>
@@ -99,7 +98,7 @@ export function MembersList({ organizationId }: MembersListProps) {
 
       {members.length > 5 && (
         <p className="text-xs text-muted-foreground text-center mt-2">
-          <Trans>and {members.length - 5} more members</Trans>
+          and {members.length - 5} more members
         </p>
       )}
     </div>

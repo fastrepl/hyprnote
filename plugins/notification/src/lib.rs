@@ -120,8 +120,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     });
                 }
             }
+            #[cfg(feature = "tauri-plugin-windows")]
             tauri::RunEvent::WindowEvent { label, event, .. } => {
-                if let Ok(tauri_plugin_windows::HyprWindow::Main) = tauri_plugin_windows::HyprWindow::from_str(label.as_ref()) {
+                if let Ok(tauri_plugin_windows::AppWindow::Main) = tauri_plugin_windows::AppWindow::from_str(label.as_ref()) {
                     if let tauri::WindowEvent::Focused(true) = event {
                         app.clear_notifications().unwrap();
                     }

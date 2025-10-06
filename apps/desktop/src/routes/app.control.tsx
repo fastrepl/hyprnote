@@ -227,7 +227,7 @@ function IconButton({
   );
 }
 
-function useFloatingPosition(toolbarRef: React.RefObject<HTMLDivElement>) {
+function useFloatingPosition(toolbarRef: React.RefObject<HTMLDivElement | null>) {
   const STORAGE_KEY = "floating-control-position";
   const POSITION_SYNC_DELAY = 100;
   const BOUNDS_UPDATE_DELAY = 100;

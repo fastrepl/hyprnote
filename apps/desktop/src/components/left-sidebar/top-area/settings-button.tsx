@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { getName, getVersion } from "@tauri-apps/api/app";
@@ -131,26 +130,26 @@ export function SettingsButton() {
             onClick={handleClickSettings}
             className="cursor-pointer"
           >
-            <Trans>Settings</Trans>
+            Settings
             <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickProfile}
             className="cursor-pointer"
           >
-            <Trans>My Profile</Trans>
+            My Profile
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleCheckUpdates}
             className="cursor-pointer"
           >
-            <Trans>Check Updates</Trans>
+            Check Updates
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickTalkToFounders}
             className="cursor-pointer"
           >
-            <Trans>Talk to Founders</Trans>
+            Talk to Founders
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickChangelog}

@@ -19,7 +19,6 @@
     "@hypr/plugin-listener": "workspace:^",
     "@hypr/plugin-sse": "workspace:^",
     "@hypr/plugin-windows": "workspace:^",
-    "@lingui/core": "^5.5.0",
     "@tauri-apps/api": "^2.8.0",
     "@tauri-apps/plugin-http": "^2.5.2",
     "ai": "^5.0.60",
@@ -31,10 +30,10 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@types/react": "^18.3.25",
+    "@types/react": "^19.2.0",
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
-    "react": "^18.3.1"
+    "react": "^19.2"
   }
 }

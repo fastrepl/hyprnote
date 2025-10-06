@@ -462,6 +462,9 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: ^2.5.0
         version: 2.5.0
+      '@tauri-apps/plugin-store':
+        specifier: ^2.4.0
+        version: 2.4.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

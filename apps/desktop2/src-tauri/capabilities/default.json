@@ -26,6 +26,7 @@
     "auth:default",
     "analytics:default",
     "updater:default",
-    "deep-link:default"
+    "deep-link:default",
+    "store:default"
   ]
 }

@@ -68,10 +68,13 @@ export function LeftSidebar() {
 
 function TimelineView() {
   const allSessionIds = useRowIds("sessions", persisted.STORE_ID);
+  const { currentTab } = useTabs();
 
   return (
     <div className="flex flex-col">
-      {allSessionIds?.map((sessionId) => <SessionItem key={sessionId} sessionId={sessionId} />)}
+      {allSessionIds?.map((sessionId) => (
+        <SessionItem key={sessionId} sessionId={sessionId} active={currentTab?.id === sessionId} />
+      ))}
     </div>
   );
 }
@@ -96,18 +99,22 @@ function SearchView() {
 function FolderView() {
   const rootFolderIds = useSliceRowIds(persisted.INDEXES.foldersByParent, "", persisted.STORE_ID);
   const rootSessionIds = useSliceRowIds(persisted.INDEXES.sessionsByFolder, "", persisted.STORE_ID);
+  const { currentTab } = useTabs();
 
   return (
     <div className="flex flex-col">
       {rootFolderIds?.map((folderId) => <FolderTreeItem key={folderId} folderId={folderId} />)}
-
-      {rootSessionIds?.map((sessionId) => <SessionItemNested key={sessionId} sessionId={sessionId} depth={0} />)}
+      {rootSessionIds?.map((sessionId) => (
+        <SessionItemNested key={sessionId} sessionId={sessionId} depth={0} active={currentTab?.id === sessionId} />
+      ))}
     </div>
   );
 }
 
 function FolderTreeItem({ folderId, depth = 0 }: { folderId: string; depth?: number }) {
   const [isOpen, setIsOpen] = useState(true);
+  const { currentTab } = useTabs();
+
   const name = useCell("folders", folderId, "name", persisted.STORE_ID);
   const sessionIds = useSliceRowIds(persisted.INDEXES.sessionsByFolder, folderId, persisted.STORE_ID);
   const subFolderIds = useSliceRowIds(persisted.INDEXES.foldersByParent, folderId, persisted.STORE_ID);
@@ -130,7 +137,12 @@ function FolderTreeItem({ folderId, depth = 0 }: { folderId: string; depth?: num
       {isOpen && (
         <>
           {sessionIds?.map((sessionId) => (
-            <SessionItemNested key={sessionId} sessionId={sessionId} depth={depth + 1} />
+            <SessionItemNested
+              key={sessionId}
+              sessionId={sessionId}
+              depth={depth + 1}
+              active={currentTab?.id === sessionId}
+            />
           ))}
 
           {subFolderIds?.map((subId) => <FolderTreeItem key={subId} folderId={subId} depth={depth + 1} />)}

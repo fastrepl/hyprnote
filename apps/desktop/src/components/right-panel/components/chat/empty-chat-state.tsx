@@ -1,6 +1,6 @@
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { EmptyChatStateUI } from "@hypr/ui/components/chat/empty-chat-state";
+import { useCallback, useEffect, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { getDynamicQuickActions } from "../../utils/dynamic-quickactions";
@@ -11,14 +11,19 @@ interface EmptyChatStateProps {
   sessionId?: string | null;
 }
 
-interface EmptyChatStateInnerProps extends EmptyChatStateProps {
-  userId?: string | null;
-  handleButtonClick: (prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => void;
-  handleContainerClick: () => void;
-}
-
 export function EmptyChatState({ onQuickAction, onFocusInput, sessionId }: EmptyChatStateProps) {
   const { userId } = useHypr();
+  const [quickActions, setQuickActions] = useState<
+    Array<{
+      shownTitle: string;
+      actualPrompt: string;
+      eventName: string;
+    }>
+  >([]);
+
+  useEffect(() => {
+    getDynamicQuickActions(sessionId ?? null, userId ?? undefined).then(setQuickActions);
+  }, [sessionId, userId]);
 
   const handleButtonClick = useCallback((prompt: string, analyticsEvent: string) => (e: React.MouseEvent) => {
     if (userId) {
@@ -36,127 +41,14 @@ export function EmptyChatState({ onQuickAction, onFocusInput, sessionId }: Empty
   }, [onFocusInput]);
 
   return (
-    <EmptyChatStateInner 
+    <EmptyChatStateUI
       onQuickAction={onQuickAction}
       onFocusInput={onFocusInput}
       sessionId={sessionId}
       userId={userId}
       handleButtonClick={handleButtonClick}
       handleContainerClick={handleContainerClick}
+      quickActions={quickActions}
     />
   );
 }
-
-export const EmptyChatStateInner = memo(({ onQuickAction, onFocusInput, sessionId, userId, handleButtonClick, handleContainerClick }: EmptyChatStateInnerProps) => {
-  const [quickActions, setQuickActions] = useState<
-    Array<{
-      shownTitle: string;
-      actualPrompt: string;
-      eventName: string;
-    }>
-  >([]);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState<"small" | "medium" | "large">("large");
-
-  useEffect(() => {
-    getDynamicQuickActions(sessionId ?? null, userId ?? undefined).then(setQuickActions);
-  }, [sessionId, userId]);
-
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const width = containerRef.current.offsetWidth;
-        if (width < 300) {
-          setContainerSize("small");
-        } else if (width < 400) {
-          setContainerSize("medium");
-        } else {
-          setContainerSize("large");
-        }
-      }
-    };
-
-    updateSize();
-    const resizeObserver = new ResizeObserver(updateSize);
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  const sizeClasses = {
-    small: {
-      container: "p-3",
-      iconWrapper: "mb-1",
-      icon: "w-12 h-12",
-      headingWrapper: "mb-1",
-      heading: "text-sm",
-      actionsGap: "gap-1.5",
-      buttonPadding: "px-2 py-1.5",
-      buttonText: "text-xs",
-    },
-    medium: {
-      container: "p-4",
-      iconWrapper: "mb-2",
-      icon: "w-16 h-16",
-      headingWrapper: "mb-2",
-      heading: "text-base",
-      actionsGap: "gap-2",
-      buttonPadding: "px-3 py-2",
-      buttonText: "text-xs",
-    },
-    large: {
-      container: "p-6",
-      iconWrapper: "mb-4",
-      icon: "w-20 h-20",
-      headingWrapper: "mb-4",
-      heading: "text-xl",
-      actionsGap: "gap-3",
-      buttonPadding: "px-4 py-3",
-      buttonText: "text-sm",
-    },
-  };
-
-  const currentSize = sizeClasses[containerSize];
-
-  return (
-    <div
-      ref={containerRef}
-      className={`relative flex-1 max-h-[calc(100%-120px)] flex flex-col items-center justify-center overflow-y-auto text-center ${currentSize.container}`}
-      onClick={handleContainerClick}
-    >
-      {/* Icon at the top */}
-      <div className={currentSize.iconWrapper}>
-        <img
-          src="/assets/dynamic.gif"
-          alt=""
-          className={`${currentSize.icon} mx-auto`}
-        />
-      </div>
-
-      {/* Main heading */}
-      <div className={`${currentSize.headingWrapper} flex items-center gap-2`}>
-        <h3 className={`${currentSize.heading} font-medium`}>
-          Ask Hyprnote to...
-        </h3>
-      </div>
-
-      {/* Vertical list of actions */}
-      <div className={`flex flex-col ${currentSize.actionsGap} w-full max-w-[320px]`}>
-        {quickActions.map((action, index) => (
-          <button
-            key={index}
-            onClick={handleButtonClick(action.actualPrompt, action.eventName)}
-            className={`w-full text-left ${currentSize.buttonPadding} rounded-lg bg-neutral-100 hover:bg-neutral-200 transition-colors ${currentSize.buttonText} text-neutral-700`}
-          >
-            {action.shownTitle}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-});

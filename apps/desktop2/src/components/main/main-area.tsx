@@ -3,7 +3,9 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
 
 import NoteEditor from "@hypr/tiptap/editor";
+import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
+import { useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
 import { Tab } from "../../types";
@@ -22,6 +24,7 @@ export function MainContent({ tabs }: { tabs: Tab[] }) {
 export function MainHeader() {
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
+  const { isExpanded, togglePanel } = useRightPanel();
 
   const handleClickSettings = () => {
     windowsCommands.windowShow({ type: "settings" });
@@ -57,6 +60,10 @@ export function MainHeader() {
           New note
         </button>
       </div>
+      <ChatPanelButton
+        isExpanded={isExpanded}
+        togglePanel={togglePanel}
+      />
     </header>
   );
 }

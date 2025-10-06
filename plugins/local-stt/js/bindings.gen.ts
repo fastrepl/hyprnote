@@ -22,11 +22,11 @@ async isModelDownloading(model: SupportedSttModel) : Promise<boolean> {
 async downloadModel(model: SupportedSttModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
 },
-async getCurrentModel() : Promise<SupportedSttModel> {
-    return await TAURI_INVOKE("plugin:local-stt|get_current_model");
+async getLocalModel() : Promise<SupportedSttModel> {
+    return await TAURI_INVOKE("plugin:local-stt|get_local_model");
 },
-async setCurrentModel(model: SupportedSttModel) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_current_model", { model });
+async setLocalModel(model: SupportedSttModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_local_model", { model });
 },
 async getServers() : Promise<Partial<{ [key in ServerType]: ServerHealth }>> {
     return await TAURI_INVOKE("plugin:local-stt|get_servers");
@@ -42,6 +42,30 @@ async listSupportedModels() : Promise<SttModelInfo[]> {
 },
 async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_languages", { model });
+},
+async getCustomBaseUrl() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_base_url");
+},
+async getCustomApiKey() : Promise<string | null> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_api_key");
+},
+async setCustomBaseUrl(baseUrl: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_base_url", { baseUrl });
+},
+async setCustomApiKey(apiKey: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_api_key", { apiKey });
+},
+async getProvider() : Promise<Provider> {
+    return await TAURI_INVOKE("plugin:local-stt|get_provider");
+},
+async setProvider(provider: Provider) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_provider", { provider });
+},
+async getCustomModel() : Promise<SupportedSttModel | null> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_model");
+},
+async setCustomModel(model: SupportedSttModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_model", { model });
 }
 }
 
@@ -58,10 +82,11 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type Language = { iso639: string }
+export type Provider = "Local" | "Custom"
 export type ServerHealth = "unreachable" | "loading" | "ready"
-export type ServerType = "internal" | "external"
+export type ServerType = "internal" | "external" | "custom"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
-export type SupportedSttModel = WhisperModel | AmModel
+export type SupportedSttModel = WhisperModel | AmModel | string
 export type TAURI_CHANNEL<TSend> = null
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 

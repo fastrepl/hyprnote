@@ -15,8 +15,6 @@ common_event_derives! {
         Inactive {},
         #[serde(rename = "running_active")]
         RunningActive {},
-        #[serde(rename = "running_paused")]
-        RunningPaused {},
         #[serde(rename = "finalWords")]
         FinalWords { words: HashMap<usize, Vec<owhisper_interface::Word2>>},
         #[serde(rename = "partialWords")]

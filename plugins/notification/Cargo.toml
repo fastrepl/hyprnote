@@ -17,10 +17,16 @@ tauri-plugin-store = { workspace = true }
 [dependencies]
 hypr-db-user = { workspace = true }
 hypr-detect = { workspace = true }
-hypr-notification2 = { workspace = true }
+hypr-host = { workspace = true }
+hypr-intercept = { workspace = true }
+hypr-notification = { workspace = true }
 
+tauri-plugin-analytics = { workspace = true }
 tauri-plugin-db = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
+tauri-plugin-listener = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 serde = { workspace = true }
 specta = { workspace = true }
@@ -36,3 +42,8 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
 chrono = { workspace = true }
+
+[features]
+default = []
+v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]

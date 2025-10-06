@@ -18,6 +18,8 @@ metal = ["hypr-transcribe-whisper-local/metal"]
 vulkan = ["hypr-transcribe-whisper-local/vulkan"]
 openmp = ["hypr-transcribe-whisper-local/openmp"]
 load-dynamic = ["hypr-transcribe-whisper-local/load-dynamic"]
+v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -44,6 +46,7 @@ hypr-am = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
+hypr-host = { workspace = true }
 hypr-language = { workspace = true, features = ["whisper"] }
 hypr-transcribe-moonshine = { workspace = true }
 hypr-transcribe-whisper-local = { workspace = true }
@@ -59,9 +62,10 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 dirs = { workspace = true }
+json-patch = "4"
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
@@ -72,11 +76,13 @@ axum = { workspace = true, features = ["ws"] }
 axum-extra = { workspace = true, features = ["query"] }
 tower-http = { workspace = true, features = ["cors", "trace"] }
 
+backon = { workspace = true }
 futures-util = { workspace = true }
+ractor = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
 
+port-killer = "0.1.0"
 port_check = "0.3.0"
-sysinfo = "0.37.0"

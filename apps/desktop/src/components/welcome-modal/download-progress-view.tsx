@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { Channel } from "@tauri-apps/api/core";
 import { BrainIcon, CheckCircle2Icon, MicIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -63,7 +62,7 @@ const ModelProgressCard = ({
               ? (
                 <span className="text-blue-600 flex items-center gap-1">
                   <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                  <Trans>Ready</Trans>
+                  Ready
                 </span>
               )
               : (
@@ -172,7 +171,7 @@ export const DownloadProgressView = ({
     const handleSttCompletion = async () => {
       if (sttDownload.completed) {
         try {
-          await localSttCommands.setCurrentModel(selectedSttModel);
+          await localSttCommands.setLocalModel(selectedSttModel);
           await localSttCommands.startServer(null);
         } catch (error) {
           console.error("Error setting up STT:", error);
@@ -198,7 +197,7 @@ export const DownloadProgressView = ({
   return (
     <div className="flex flex-col items-center min-w-[30rem] w-full max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">
-        <Trans>Downloading AI Models</Trans>
+        Downloading AI Models
       </h2>
 
       {/* Replace static text with animated messages */}
@@ -218,13 +217,13 @@ export const DownloadProgressView = ({
 
           {bothCompleted && (
             <span className="text-blue-600">
-              <Trans>All models ready!</Trans>
+              All models ready!
             </span>
           )}
 
           {hasErrors && (
             <span className="text-amber-600">
-              <Trans>Some downloads failed, but you can continue</Trans>
+              Some downloads failed, but you can continue
             </span>
           )}
         </p>
@@ -252,11 +251,11 @@ export const DownloadProgressView = ({
         onClick={onContinue}
         className="w-full max-w-sm"
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
 
       <p className="text-xs text-muted-foreground text-center mt-4">
-        <Trans>It's ok to move on, downloads will continue in the background</Trans>
+        It's ok to move on, downloads will continue in the background
       </p>
     </div>
   );

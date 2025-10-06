@@ -13,6 +13,21 @@ tasks:
   stripe: stripe listen --skip-verify --forward-to http://localhost:5000/webhook/stripe
   bacon: bacon {{.CLI_ARGS}}
 
+  diff:
+    vars:
+      DIFF_FROM: "desktop_v0.0.79"
+      DIFF_TO: "desktop_v0.0.80"
+      PATHS: "apps/desktop/src-tauri plugins crates"
+    cmds:
+      # - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} > out.diff
+      - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} | diff2html -i stdin
+
+  jsonschema:
+    cmds:
+      - |
+          jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/onboarding.json
+          jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/dev.json
+
   bump:
     cmds:
       - |
@@ -29,6 +44,8 @@ tasks:
 
           perl -i -pe "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/Cargo.toml
           perl -i -pe "s/^  \"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/  \"version\": \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/tauri.conf.json
+
+          cargo update -p desktop
 
   i18n:
     cmds:
@@ -51,3 +68,8 @@ tasks:
             | jq -r '.packages[].name' \
             | grep '^tauri-plugin-' \
             | xargs -n1 cargo test export_types --package
+
+  stt:
+    cmds:
+      - chmod +x ./apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin
+      - chmod +x ./apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin

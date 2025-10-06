@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { Trans } from "@lingui/react/macro";
+
 import { Building, Building2, Factory, Users } from "lucide-react";
 
 interface OrgSizeViewProps {
@@ -21,12 +21,12 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
     <div className="flex flex-col items-center w-full">
       {/* Main Title */}
       <h2 className="mb-4 text-center text-xl font-semibold text-neutral-800">
-        <Trans>Help us tailor your Hyprnote experience</Trans>
+        Help us tailor your Hyprnote experience
       </h2>
 
       {/* Specific Question */}
       <h2 className="mb-8 text-center text-base font-medium text-neutral-600">
-        <Trans>What's your organization size?</Trans>
+        What's your organization size?
       </h2>
 
       <div className="grid grid-cols-2 gap-3 w-full max-w-sm mb-6">
@@ -40,8 +40,8 @@ export const OrgSizeView: React.FC<OrgSizeViewProps> = ({ onSelect, onSkip, sele
               onClick={() => onSelect(option.value)}
               variant="outline"
               className={cn(
-                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all",
-                isSelected && "bg-black text-white hover:bg-black hover:text-white",
+                "h-20 flex flex-col items-center justify-center gap-2 hover:bg-neutral-50 transition-all",
+                isSelected && "ring-2 ring-blue-500 bg-blue-50 hover:bg-blue-100",
               )}
             >
               <IconComponent className="h-6 w-6" />

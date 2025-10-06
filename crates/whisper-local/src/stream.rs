@@ -8,7 +8,7 @@ use dasp::sample::FromSample;
 use futures_util::{Stream, StreamExt};
 use rodio::Source;
 
-use super::{Segment, Whisper};
+use crate::{Segment, Whisper};
 
 pub struct TranscriptionTask<S, T> {
     stream: S,

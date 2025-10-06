@@ -10,12 +10,5 @@
         "https://desktop.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=stable"
       ]
     }
-  },
-  "bundle": {
-    "macOS": {
-      "files": {
-        "embedded.provisionprofile": "assets/hyprnote-stable.provisionprofile"
-      }
-    }
   }
 }

@@ -33,7 +33,7 @@ common_derives! {
 impl From<Word> for Word2 {
     fn from(word: Word) -> Self {
         Word2 {
-            text: word.word.to_string(),
+            text: word.punctuated_word.unwrap_or(word.word),
             speaker: word
                 .speaker
                 .map(|s| SpeakerIdentity::Unassigned { index: s as u8 }),

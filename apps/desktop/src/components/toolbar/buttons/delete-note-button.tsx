@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { confirm } from "@tauri-apps/plugin-dialog";
@@ -15,7 +14,6 @@ export function DeleteNoteButton() {
 }
 
 function DeleteNoteButtonInNote() {
-  const { t } = useLingui();
   const queryClient = useQueryClient();
 
   const navigate = useNavigate();
@@ -40,7 +38,7 @@ function DeleteNoteButtonInNote() {
   });
 
   const handleDelete = () => {
-    confirm(t`Are you sure you want to delete this note?`).then((yes) => {
+    confirm("Are you sure you want to delete this note?").then((yes) => {
       if (yes) {
         deleteMutation.mutate();
       }

@@ -1,11 +1,19 @@
 use std::future::Future;
 
 use futures_util::StreamExt;
+use ractor::{call_t, concurrency, registry, Actor, ActorRef};
+
+use tauri_specta::Event;
 
 #[cfg(target_os = "macos")]
 use {
     objc2::{class, msg_send, runtime::Bool},
     objc2_foundation::NSString,
+};
+
+use crate::{
+    actors::{SessionActor, SessionArgs, SessionMsg},
+    SessionEvent,
 };
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
@@ -33,8 +41,6 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
     fn start_session(&self, id: impl Into<String>) -> impl Future<Output = ()>;
-    fn pause_session(&self) -> impl Future<Output = ()>;
-    fn resume_session(&self) -> impl Future<Output = ()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -45,9 +51,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        let state = self.state::<crate::SharedState>();
-        let s = state.lock().await;
-        Ok(s.fsm.get_current_mic_device())
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+
+            match call_t!(actor, SessionMsg::GetMicDeviceName, 500) {
+                Ok(device_name) => Ok(device_name),
+                Err(_) => Ok(None),
+            }
+        } else {
+            Err(crate::Error::ActorNotFound(SessionActor::name()))
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -55,12 +68,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::MicChange(Some(device_name.into()));
-            guard.fsm.handle(&event).await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
         }
 
         Ok(())
@@ -178,94 +188,86 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
-        guard.fsm.state().clone()
+        if let Some(_) = registry::where_is(SessionActor::name()) {
+            crate::fsm::State::RunningActive
+        } else {
+            crate::fsm::State::Inactive
+        }
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        {
-            let guard = state.lock().await;
-            guard.fsm.is_mic_muted()
+            match call_t!(actor, SessionMsg::GetMicMute, 100) {
+                Ok(muted) => muted,
+                Err(_) => false,
+            }
+        } else {
+            false
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_speaker_muted(&self) -> bool {
-        let state = self.state::<crate::SharedState>();
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        {
-            let guard = state.lock().await;
-            guard.fsm.is_speaker_muted()
+            match call_t!(actor, SessionMsg::GetSpeakerMute, 100) {
+                Ok(muted) => muted,
+                Err(_) => false,
+            }
+        } else {
+            false
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::MicMuted(muted);
-            guard.fsm.handle(&event).await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn set_speaker_muted(&self, muted: bool) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::SpeakerMuted(muted);
-            guard.fsm.handle(&event).await;
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor.cast(SessionMsg::SetSpeakerMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn start_session(&self, session_id: impl Into<String>) {
         let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Start(session_id.into());
-            guard.fsm.handle(&event).await;
-        }
+        let _ = Actor::spawn(
+            Some(SessionActor::name()),
+            SessionActor,
+            SessionArgs {
+                app: guard.app.clone(),
+                session_id: session_id.into(),
+            },
+        )
+        .await;
     }
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
-        let state = self.state::<crate::SharedState>();
+        if let Some(cell) = registry::where_is(SessionActor::name()) {
+            let actor: ActorRef<SessionMsg> = cell.into();
 
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Stop;
-            guard.fsm.handle(&event).await;
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn pause_session(&self) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Pause;
-            guard.fsm.handle(&event).await;
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn resume_session(&self) {
-        let state = self.state::<crate::SharedState>();
-
-        {
-            let mut guard = state.lock().await;
-            let event = crate::fsm::StateEvent::Resume;
-            guard.fsm.handle(&event).await;
+            if let Ok(_) = actor
+                .stop_and_wait(None, Some(concurrency::Duration::from_secs(3)))
+                .await
+            {
+                let state = self.state::<crate::SharedState>();
+                let guard = state.lock().await;
+                SessionEvent::Inactive {}.emit(&guard.app).unwrap();
+            }
         }
     }
 }

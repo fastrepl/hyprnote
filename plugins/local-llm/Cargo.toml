@@ -13,6 +13,8 @@ metal = ["hypr-llama/metal"]
 cuda = ["hypr-llama/cuda"]
 vulkan = ["hypr-llama/vulkan"]
 native = ["hypr-llama/native"]
+v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
+v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -27,16 +29,22 @@ tauri-plugin-store = { workspace = true }
 hypr-download-interface = { workspace = true }
 hypr-file = { workspace = true }
 hypr-gbnf = { workspace = true }
+hypr-gguf = { workspace = true }
 hypr-llama = { workspace = true }
+hypr-llm = { workspace = true }
+hypr-llm-interface = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-store2 = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-store2 = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
+dirs = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }

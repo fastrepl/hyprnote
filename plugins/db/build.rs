@@ -47,6 +47,11 @@ const COMMANDS: &[&str] = &[
     "create_chat_group",
     "upsert_chat_message",
     "delete_chat_messages",
+    "create_conversation",
+    "list_conversations",
+    "create_message_v2",
+    "list_messages_v2",
+    "update_message_v2_parts",
     // tag
     "upsert_tag",
     "delete_tag",
@@ -58,4 +63,10 @@ const COMMANDS: &[&str] = &[
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();
+
+    std::fs::write(
+        "./seed/schema.json",
+        serde_json::to_string_pretty(&schemars::schema_for!(hypr_db_user::seed::SeedData)).unwrap(),
+    )
+    .unwrap();
 }

@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "0.0.70"
+version = "0.0.83"
 authors = ["you"]
 edition = "2021"
 description = "Hyprnote Desktop App"
@@ -26,6 +26,7 @@ hypr-data = { workspace = true, optional = true }
 hypr-db-core = { workspace = true }
 hypr-db-script = { workspace = true }
 hypr-db-user = { workspace = true }
+hypr-host = { workspace = true }
 hypr-turso = { workspace = true }
 hypr-whisper-local-model = { workspace = true }
 
@@ -34,13 +35,13 @@ tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }
-tauri-plugin-listener = { workspace = true }
-tauri-plugin-local-llm = { workspace = true }
-tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-listener = { workspace = true, features = ["v0"] }
+tauri-plugin-local-llm = { workspace = true, features = ["v0"] }
+tauri-plugin-local-stt = { workspace = true, features = ["v0"] }
 tauri-plugin-machine-uid = { workspace = true }
 tauri-plugin-mcp = { workspace = true }
 tauri-plugin-misc = { workspace = true }
-tauri-plugin-notification = { workspace = true }
+tauri-plugin-notification = { workspace = true, features = ["v0"] }
 tauri-plugin-obsidian = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-sfx = { workspace = true }
@@ -48,31 +49,30 @@ tauri-plugin-sse = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
 tauri-plugin-task = { workspace = true }
 tauri-plugin-template = { workspace = true }
-tauri-plugin-tray = { workspace = true }
+tauri-plugin-tracing = { workspace = true }
+tauri-plugin-tray = { workspace = true, features = ["v0"] }
 tauri-plugin-webhook = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, features = ["v0"] }
 
 tauri = { workspace = true, features = ["specta", "macos-private-api"] }
-tauri-plugin-autostart = "2"
+tauri-plugin-autostart = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
-tauri-plugin-global-shortcut = "2"
-tauri-plugin-http = { workspace = true }
+tauri-plugin-http = { workspace = true, features = ["tracing", "unsafe-headers"] }
 tauri-plugin-keygen = { workspace = true }
-tauri-plugin-os = "2"
-tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
-tauri-plugin-process = "2"
-tauri-plugin-sentry = { version = "0.4.1", features = ["tracing"] }
+tauri-plugin-os = { workspace = true }
+tauri-plugin-prevent-default = { workspace = true, features = ["platform-windows"] }
+tauri-plugin-process = { workspace = true }
+tauri-plugin-sentry = { workspace = true }
 tauri-plugin-shell = { workspace = true }
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-single-instance = { workspace = true, features = ["deep-link"] }
 tauri-plugin-store = { workspace = true }
-tauri-plugin-updater = "2"
-tauri-plugin-window-state = "2"
+tauri-plugin-updater = { workspace = true }
 
+sentry = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter", "chrono"] }
 
 specta = { workspace = true }
 specta-typescript = { workspace = true }
@@ -100,10 +100,11 @@ tokio-stream = { workspace = true }
 hound = { workspace = true }
 
 [features]
+devtools = ["tauri/devtools"]
 macos-default = ["llm-metal", "stt-metal", "stt-coreml"]
 windows-default = ["llm-vulkan", "llm-native", "stt-vulkan", "stt-openblas", "stt-directml"]
 
-load-dynamic = ["tauri-plugin-local-stt/load-dynamic", "tauri-plugin-listener/load-dynamic"]
+load-dynamic = ["tauri-plugin-local-stt/load-dynamic"]
 
 llm-metal = ["tauri-plugin-local-llm/metal"]
 llm-cuda = ["tauri-plugin-local-llm/cuda"]

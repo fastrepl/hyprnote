@@ -31,6 +31,35 @@ pub fn fingerprint() -> String {
     format!("{:x}", hasher.finish())
 }
 
+pub enum ProcessMatcher {
+    Name(String),
+    Sidecar,
+}
+
+pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
+    let target = match matcher {
+        ProcessMatcher::Name(name) => name,
+        ProcessMatcher::Sidecar => "stt-aarch64-apple-darwin".to_string(),
+    };
+
+    let mut sys = sysinfo::System::new();
+    sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+
+    let mut killed_count = 0;
+
+    for (_, process) in sys.processes() {
+        let process_name = process.name().to_string_lossy();
+
+        if process_name.contains(&target) {
+            if process.kill() {
+                killed_count += 1;
+            }
+        }
+    }
+
+    killed_count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -60,5 +89,11 @@ mod tests {
         let c = fingerprint();
         assert_eq!(a, b);
         assert_eq!(a, c);
+    }
+
+    #[test]
+    fn test_kill_processes_by_matcher() {
+        let killed_count = kill_processes_by_matcher(ProcessMatcher::Sidecar);
+        assert!(killed_count > 0);
     }
 }

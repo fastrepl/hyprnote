@@ -107,24 +107,30 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             .on_menu_event({
                 move |app: &AppHandle, event| match HyprMenuItem::from(event.id.clone()) {
                     HyprMenuItem::TrayOpen => {
-                        use tauri_plugin_windows::HyprWindow;
-                        let _ = HyprWindow::Main.show(app);
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::AppWindow;
+                            let _ = AppWindow::Main.show(app);
+                        }
                     }
                     HyprMenuItem::TrayStart => {
-                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ = app.window_emit_navigate(
-                                HyprWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: Some(
-                                        serde_json::json!({ "record": true })
-                                            .as_object()
-                                            .cloned()
-                                            .unwrap(),
-                                    ),
-                                },
-                            );
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+                            if let Ok(_) = app.window_show(AppWindow::Main) {
+                                let _ = app.window_emit_navigate(
+                                    AppWindow::Main,
+                                    Navigate {
+                                        path: "/app/new".to_string(),
+                                        search: Some(
+                                            serde_json::json!({ "record": true })
+                                                .as_object()
+                                                .cloned()
+                                                .unwrap(),
+                                        ),
+                                    },
+                                );
+                            }
                         }
                     }
                     HyprMenuItem::TrayQuit => {
@@ -136,16 +142,15 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         let app_commit = app.get_git_hash();
                         let app_backends = app.list_ggml_backends();
 
+                        let backends_formatted = app_backends
+                            .iter()
+                            .map(|b| format!("{:?}", b))
+                            .collect::<Vec<_>>()
+                            .join("\n");
+
                         let message = format!(
-                            "{} v{}\n\nSHA: {}\n\nBackends: {}",
-                            app_name,
-                            app_version,
-                            app_commit,
-                            app_backends
-                                .iter()
-                                .map(|b| format!("{:?}", b))
-                                .collect::<Vec<_>>()
-                                .join("\n")
+                            "• App Name: {}\n• App Version: {}\n• SHA:\n  {}\n• Backends:\n{}",
+                            app_name, app_version, app_commit, backends_formatted
                         );
 
                         let app_clone = app.clone();
@@ -153,7 +158,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         app.dialog()
                             .message(&message)
                             .title("About Hyprnote")
-                            .buttons(MessageDialogButtons::OkCustom("Copy".to_string()))
+                            .buttons(MessageDialogButtons::OkCancelCustom(
+                                "Copy".to_string(),
+                                "Cancel".to_string(),
+                            ))
                             .show(move |result| {
                                 if result {
                                     let _ = app_clone.clipboard().write_text(&message);
@@ -161,15 +169,18 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                             });
                     }
                     HyprMenuItem::AppNew => {
-                        use tauri_plugin_windows::{HyprWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(HyprWindow::Main) {
-                            let _ = app.window_emit_navigate(
-                                HyprWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: None,
-                                },
-                            );
+                        #[cfg(feature = "tauri-plugin-windows")]
+                        {
+                            use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+                            if let Ok(_) = app.window_show(AppWindow::Main) {
+                                let _ = app.window_emit_navigate(
+                                    AppWindow::Main,
+                                    Navigate {
+                                        path: "/app/new".to_string(),
+                                        search: None,
+                                    },
+                                );
+                            }
                         }
                     }
                 }
@@ -241,5 +252,11 @@ fn tray_start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Res
 }
 
 fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(app, HyprMenuItem::TrayQuit, "Quit", true, Some("cmd+q"))
+    MenuItem::with_id(
+        app,
+        HyprMenuItem::TrayQuit,
+        "Quit Completely",
+        true,
+        Some("cmd+q"),
+    )
 }

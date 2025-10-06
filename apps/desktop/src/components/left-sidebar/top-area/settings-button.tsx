@@ -1,11 +1,12 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import type { LinkProps } from "@tanstack/react-router";
 import { getName, getVersion } from "@tauri-apps/api/app";
+import { check } from "@tauri-apps/plugin-updater";
 import { CastleIcon, CogIcon, ShieldIcon } from "lucide-react";
 import { useState } from "react";
 
 import Shortcut from "@/components/shortcut";
+import { createUpdateToast } from "@/components/toast/ota";
 import { useHypr } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
 import { openURL } from "@/utils/shell";
@@ -17,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 
 export function SettingsButton() {
@@ -76,9 +78,39 @@ export function SettingsButton() {
   const handleClickTalkToFounders = async () => {
     setOpen(false);
     try {
-      await openURL("https://cal.com/team/hyprnote/intro");
+      await openURL("https://cal.com/team/hyprnote/welcome");
     } catch (error) {
       console.error("Failed to open talk to founders:", error);
+    }
+  };
+
+  const handleCheckUpdates = async () => {
+    setOpen(false);
+
+    try {
+      const update = await check();
+
+      if (update) {
+        const toastConfig = await createUpdateToast(update, "manual-update-check");
+        toast(toastConfig);
+      } else {
+        toast({
+          id: "no-updates-available",
+          title: "No Updates Available",
+          content: "You're running the latest version!",
+          dismissible: true,
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to check for updates:", error);
+      toast({
+        id: "update-check-failed",
+        title: "Update Check Failed",
+        content: "Unable to check for updates. Please try again later.",
+        dismissible: true,
+        duration: 3000,
+      });
     }
   };
 
@@ -98,20 +130,26 @@ export function SettingsButton() {
             onClick={handleClickSettings}
             className="cursor-pointer"
           >
-            <Trans>Settings</Trans>
+            Settings
             <Shortcut macDisplay="⌘," windowsDisplay="Ctrl+," />
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickProfile}
             className="cursor-pointer"
           >
-            <Trans>My Profile</Trans>
+            My Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleCheckUpdates}
+            className="cursor-pointer"
+          >
+            Check Updates
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickTalkToFounders}
             className="cursor-pointer"
           >
-            <Trans>Talk to Founders</Trans>
+            Talk to Founders
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={handleClickChangelog}

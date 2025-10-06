@@ -6,7 +6,8 @@
     "**/routeTree.gen.ts": true
   },
   "files.readonlyInclude": {
-    "**/routeTree.gen.ts": true
+    "**/routeTree.gen.ts": true,
+    "plugins/listener/assets/**/*.json*": true
   },
   "editor.wordBasedSuggestions": "off",
   "editor.quickSuggestionsDelay": 200,
@@ -19,7 +20,6 @@
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.allTargets": true,
   "rust-analyzer.cargo.targetDir": "target/analyzer",
-  "rust-analyzer.cargo.extraEnv": {
-    "MACOSX_DEPLOYMENT_TARGET": "14.2"
-  }
+  "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" },
+  "rust-analyzer.cargo.features": ["v1"]
 }

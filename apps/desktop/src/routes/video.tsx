@@ -2,7 +2,6 @@ import type MuxPlayerElement from "@mux/mux-player";
 import type { MuxPlayerElementEventMap } from "@mux/mux-player";
 import MuxPlayer from "@mux/mux-player-react/lazy";
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -11,13 +10,13 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { events as listenerEvents } from "@hypr/plugin-listener";
 import { commands as windowsCommands, events as windowsEvents } from "@hypr/plugin-windows";
 
-const schema = z.object({
+const validateSearch = z.object({
   id: z.string(),
 });
 
 export const Route = createFileRoute("/video")({
+  validateSearch,
   component: Component,
-  validateSearch: zodValidator(schema),
   loaderDeps: ({ search }) => search,
   loader: async ({ deps: { id } }) => {
     return { id };
@@ -34,10 +33,6 @@ function Component() {
     let unlisten: () => void;
 
     listenerEvents.sessionEvent.listen(({ payload }) => {
-      if (payload.type === "running_paused") {
-        player.current?.pause();
-      }
-
       if (payload.type === "running_active") {
         player.current?.play();
 

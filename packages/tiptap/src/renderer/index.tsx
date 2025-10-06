@@ -1,8 +1,10 @@
 import "../styles/tiptap.css";
+import "../styles/mention.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 import * as shared from "../shared";
+import { mentionReadonly } from "./mention-readonly";
 
 interface RendererProps {
   initialContent: HTMLContent;
@@ -11,7 +13,7 @@ interface RendererProps {
 const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
   ({ initialContent }, ref) => {
     const editor = useEditor({
-      extensions: shared.extensions,
+      extensions: [...shared.extensions, mentionReadonly],
       editable: false,
       shouldRerenderOnTransaction: false,
       editorProps: {

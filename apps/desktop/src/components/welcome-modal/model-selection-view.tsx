@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -37,7 +36,7 @@ export const ModelSelectionView = ({
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-xl font-semibold mb-4 flex items-center justify-center">
-        <Trans>Select a transcribing model (STT)</Trans>
+        Select a transcribing model (STT)
       </h2>
 
       <div className="w-full mb-8 px-2 sm:px-4">
@@ -91,7 +90,7 @@ export const ModelSelectionView = ({
         className="w-full max-w-sm"
         disabled={!selectedModel}
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
     </div>
   );

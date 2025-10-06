@@ -1,12 +1,18 @@
+mod device_monitor;
 mod errors;
 mod mic;
 mod norm;
+mod resampler;
 mod speaker;
+mod utils;
 
+pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
+pub use resampler::*;
 pub use speaker::*;
+pub use utils::*;
 
 pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -38,13 +44,21 @@ impl AudioOutput {
     }
 
     pub fn silence() -> std::sync::mpsc::Sender<()> {
-        use rodio::{source::Zero, OutputStream, Sink};
+        use rodio::{
+            source::{Source, Zero},
+            OutputStream, Sink,
+        };
+
         let (tx, rx) = std::sync::mpsc::channel();
 
         std::thread::spawn(move || {
             if let Ok((_, stream)) = OutputStream::try_default() {
+                let silence = Zero::<f32>::new(2, 48_000)
+                    .take_duration(std::time::Duration::from_secs(1))
+                    .repeat_infinite();
+
                 let sink = Sink::try_new(&stream).unwrap();
-                sink.append(Zero::<f32>::new(1, 16000));
+                sink.append(silence);
 
                 let _ = rx.recv();
                 sink.stop();
@@ -69,10 +83,14 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
-    pub fn get_default_mic_device_name() -> String {
-        let host = cpal::default_host();
-        let device = host.default_input_device().unwrap();
-        device.name().unwrap_or("Unknown Microphone".to_string())
+    pub fn get_default_device_name() -> String {
+        let name = {
+            let host = cpal::default_host();
+            let device = host.default_input_device().unwrap();
+            device.name().unwrap_or("Unknown Microphone".to_string())
+        };
+
+        name
     }
 
     pub fn list_mic_devices() -> Vec<String> {
@@ -110,20 +128,11 @@ impl AudioInput {
         }
     }
 
-    pub fn from_recording(data: Vec<u8>) -> Self {
-        Self {
-            source: AudioSource::Recorded,
-            mic: None,
-            speaker: None,
-            data: Some(data),
-        }
-    }
-
     pub fn device_name(&self) -> String {
         match &self.source {
             AudioSource::RealtimeMic => self.mic.as_ref().unwrap().device_name(),
-            AudioSource::RealtimeSpeaker => "TODO".to_string(),
-            AudioSource::Recorded => "TODO".to_string(),
+            AudioSource::RealtimeSpeaker => "RealtimeSpeaker".to_string(),
+            AudioSource::Recorded => "Recorded".to_string(),
         }
     }
 
@@ -162,7 +171,6 @@ impl Stream for AudioStream {
         match &mut *self {
             AudioStream::RealtimeMic { mic } => mic.poll_next_unpin(cx),
             AudioStream::RealtimeSpeaker { speaker } => speaker.poll_next_unpin(cx),
-            // assume pcm_s16le, without WAV header
             AudioStream::Recorded { data, position } => {
                 if *position + 2 <= data.len() {
                     let bytes = [data[*position], data[*position + 1]];
@@ -191,4 +199,45 @@ impl kalosm_sound::AsyncSource for AudioStream {
             AudioStream::Recorded { .. } => 16000,
         }
     }
+}
+
+pub fn is_using_headphone() -> bool {
+    let headphone = {
+        #[cfg(target_os = "macos")]
+        {
+            utils::macos::is_headphone_from_default_output_device()
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
+    };
+
+    headphone
+}
+
+#[cfg(test)]
+pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
+    use rodio::{
+        cpal::SampleRate,
+        source::{Function::Sine, SignalGenerator, Source},
+        OutputStream,
+    };
+    use std::{
+        thread::{sleep, spawn},
+        time::Duration,
+    };
+
+    spawn(move || {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let source = SignalGenerator::new(SampleRate(44100), 440.0, Sine);
+
+        let source = source
+            .convert_samples()
+            .take_duration(Duration::from_secs(seconds))
+            .amplify(0.01);
+
+        stream_handle.play_raw(source).unwrap();
+        sleep(Duration::from_secs(seconds));
+    })
 }

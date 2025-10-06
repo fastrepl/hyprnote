@@ -1,0 +1,96 @@
+{
+  "$schema": "./schema.json",
+  "organizations": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Fastrepl",
+      "description": "https://github.com/fastrepl"
+    }
+  ],
+  "humans": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "full_name": "John Jeong",
+      "email": "john@hyprnote.com",
+      "organization_id": "550e8400-e29b-41d4-a716-446655440000",
+      "is_user": false,
+      "job_title": null,
+      "linkedin_username": "johntopia"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "full_name": "Yujong Lee",
+      "email": "yujonglee@hyprnote.com",
+      "organization_id": "550e8400-e29b-41d4-a716-446655440000",
+      "is_user": false,
+      "job_title": null,
+      "linkedin_username": "yujong1ee"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440004",
+      "full_name": "Duck Lee",
+      "email": "duck@hyprnote.com",
+      "organization_id": "550e8400-e29b-41d4-a716-446655440000",
+      "is_user": false,
+      "job_title": null,
+      "linkedin_username": null
+    }
+  ],
+  "calendars": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440010",
+      "user_id": "{{ CURRENT_USER_ID }}",
+      "tracking_id": "550e8400-e29b-41d4-a716-446655440011",
+      "name": "Default",
+      "platform": "Apple",
+      "selected": false,
+      "source": null
+    }
+  ],
+  "events": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440020",
+      "user_id": "{{ CURRENT_USER_ID }}",
+      "tracking_id": "550e8400-e29b-41d4-a716-446655440021",
+      "name": "Welcome to Hyprnote",
+      "note": "",
+      "calendar_id": "550e8400-e29b-41d4-a716-446655440010",
+      "start_date": "1970-01-01T00:03:00Z",
+      "end_date": "1970-01-01T00:10:00Z",
+      "google_event_url": null,
+      "participants": null,
+      "is_recurring": false
+    }
+  ],
+  "sessions": [
+    {
+      "id": "df1d8c52-6d9d-4471-aff1-5dbd35899cbe",
+      "title": "Welcome to Hyprnote",
+      "raw_memo_html": "ONBOARDING_RAW_HTML_CONTENT",
+      "enhanced_memo_html": null,
+      "words": [],
+      "created_at": "1970-01-01T00:00:00Z",
+      "visited_at": "1970-01-01T00:00:00Z",
+      "user_id": "{{ CURRENT_USER_ID }}",
+      "calendar_event_id": "550e8400-e29b-41d4-a716-446655440020",
+      "record_start": null,
+      "record_end": null,
+      "pre_meeting_memo_html": null
+    },
+    {
+      "id": "872cf207-6a28-4229-bd66-492d0dce43c0",
+      "title": "Thank you",
+      "raw_memo_html": "",
+      "enhanced_memo_html": null,
+      "words": [],
+      "created_at": "1970-01-01T00:00:00Z",
+      "visited_at": "1970-01-01T00:00:00Z",
+      "user_id": "{{ CURRENT_USER_ID }}",
+      "calendar_event_id": null,
+      "record_start": null,
+      "record_end": null,
+      "pre_meeting_memo_html": null
+    }
+  ],
+  "tags": []
+}

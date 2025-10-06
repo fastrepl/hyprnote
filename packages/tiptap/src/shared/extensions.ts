@@ -7,6 +7,8 @@ import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
+import { SearchAndReplace } from "../transcript/extensions/search-and-replace";
+import { AIHighlight } from "./ai-highlight";
 import { StreamingAnimation } from "./animation";
 import { ClipboardTextSerializer } from "./clipboard";
 import CustomListKeymap from "./custom-list-keymap";
@@ -14,9 +16,10 @@ import { Hashtag } from "./hashtag";
 
 export const extensions = [
   StarterKit.configure({
-    heading: {
-      levels: [1],
-    },
+    heading: { levels: [1] },
+    underline: false,
+    link: false,
+    listKeymap: false,
   }),
   Image,
   Underline,
@@ -84,7 +87,12 @@ export const extensions = [
     nested: true,
   }),
   Highlight,
+  AIHighlight,
   CustomListKeymap,
   StreamingAnimation,
   ClipboardTextSerializer,
+  SearchAndReplace.configure({
+    searchResultClass: "search-result",
+    disableRegex: true,
+  }),
 ];

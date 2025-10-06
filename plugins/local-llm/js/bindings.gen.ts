@@ -42,12 +42,32 @@ async setCurrentModel(model: SupportedModel) : Promise<null> {
 },
 async listDownloadedModel() : Promise<SupportedModel[]> {
     return await TAURI_INVOKE("plugin:local-llm|list_downloaded_model");
+},
+async listCustomModels() : Promise<CustomModelInfo[]> {
+    return await TAURI_INVOKE("plugin:local-llm|list_custom_models");
+},
+async getCurrentModelSelection() : Promise<ModelSelection> {
+    return await TAURI_INVOKE("plugin:local-llm|get_current_model_selection");
+},
+async setCurrentModelSelection(model: ModelSelection) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|set_current_model_selection", { model });
+},
+async generateTitle(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|generate_title", { ctx });
+},
+async generateTags(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:local-llm|generate_tags", { ctx });
 }
 }
 
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+llmEvent: LLMEvent
+}>({
+llmEvent: "plugin:local-llm:llm-event"
+})
 
 /** user-defined constants **/
 
@@ -55,7 +75,11 @@ async listDownloadedModel() : Promise<SupportedModel[]> {
 
 /** user-defined types **/
 
+export type CustomModelInfo = { path: string; name: string }
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type LLMEvent = { progress: number }
 export type ModelInfo = { key: SupportedModel; name: string; description: string; size_bytes: number }
+export type ModelSelection = { type: "Predefined"; content: { key: SupportedModel } } | { type: "Custom"; content: { path: string } }
 export type SupportedModel = "Llama3p2_3bQ4" | "Gemma3_4bQ4" | "HyprLLM"
 export type TAURI_CHANNEL<TSend> = null
 

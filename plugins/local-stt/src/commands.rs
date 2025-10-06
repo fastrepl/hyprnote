@@ -60,21 +60,19 @@ pub async fn download_model<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub fn get_current_model<R: tauri::Runtime>(
+pub fn get_local_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<SupportedSttModel, String> {
-    app.get_current_model().map_err(|e| e.to_string())
+    app.get_local_model().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn set_current_model<R: tauri::Runtime>(
+pub async fn set_local_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
 ) -> Result<(), String> {
-    app.set_current_model(model)
-        .await
-        .map_err(|e| e.to_string())
+    app.set_local_model(model).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -109,4 +107,70 @@ pub async fn get_servers<R: tauri::Runtime>(
 #[specta::specta]
 pub fn list_supported_languages(model: SupportedSttModel) -> Vec<hypr_language::Language> {
     model.supported_languages()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_custom_base_url<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<String, String> {
+    app.get_custom_base_url().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_custom_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_custom_api_key().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_base_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    base_url: String,
+) -> Result<(), String> {
+    app.set_custom_base_url(base_url).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_api_key<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    api_key: String,
+) -> Result<(), String> {
+    app.set_custom_api_key(api_key).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_provider<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<crate::Provider, String> {
+    app.get_provider().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_provider<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    provider: crate::Provider,
+) -> Result<(), String> {
+    app.set_provider(provider).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_custom_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<SupportedSttModel>, String> {
+    app.get_custom_model().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_model<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: SupportedSttModel,
+) -> Result<(), String> {
+    app.set_custom_model(model).map_err(|e| e.to_string())
 }

@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { Globe, Linkedin, Search, Twitter, UserPlus } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -30,12 +29,12 @@ export const HowHeardView: React.FC<HowHeardViewProps> = ({ onSelect, onSkip, se
     <div className="flex flex-col items-center w-full">
       {/* Main Title */}
       <h2 className="mb-4 text-center text-xl font-semibold text-neutral-800">
-        <Trans>Help us tailor your Hyprnote experience</Trans>
+        Help us tailor your Hyprnote experience
       </h2>
 
       {/* Specific Question */}
       <h2 className="mb-8 text-center text-base font-medium text-neutral-600">
-        <Trans>How did you hear about Hyprnote?</Trans>
+        How did you hear about Hyprnote?
       </h2>
 
       <div className="grid grid-cols-3 gap-3 w-full max-w-lg mb-6">

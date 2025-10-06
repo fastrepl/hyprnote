@@ -6,7 +6,6 @@
    <a href="https://deepwiki.com/fastrepl/hyprnote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
    <a href="https://hyprnote.com/discord" target="_blank"><img src="https://img.shields.io/static/v1?label=Join%20our&message=Discord&color=blue&logo=Discord" alt="Discord"></a>
    <a href="https://x.com/tryhyprnote" target="_blank"><img src="https://img.shields.io/static/v1?label=Follow%20us%20on&message=X&color=black&logo=x" alt="X"></a>
-   <img referrerpolicy="no-referrer-when-downgrade" src="https://pixel.hyprnote.com/a.png?x-pxid=082cd823-8c29-4e45-999b-0aa73f931a9d&page=README.md" />
   </p>
 </p>
    

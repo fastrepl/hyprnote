@@ -1,4 +1,3 @@
-import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
 import { useState } from "react";
@@ -41,7 +40,7 @@ function PermissionItem({
         <div>
           <div className="text-sm font-medium">{title}</div>
           <div className="text-xs text-muted-foreground">
-            {done ? <Trans>Access Granted</Trans> : description}
+            {done ? <p>Access Granted</p> : <p>{description}</p>}
           </div>
         </div>
       </div>
@@ -58,10 +57,10 @@ function PermissionItem({
               ? (
                 <>
                   <Spinner className="mr-2" />
-                  <Trans>Requesting...</Trans>
+                  Requesting...
                 </>
               )
-              : <Trans>{buttonText}</Trans>}
+              : <p>{buttonText}</p>}
           </Button>
         )}
       </div>
@@ -70,8 +69,6 @@ function PermissionItem({
 }
 
 export default function Sound() {
-  const { t } = useLingui();
-
   const [micPermissionRequested, setMicPermissionRequested] = useState(false);
 
   const micPermissionStatus = useQuery({
@@ -124,8 +121,8 @@ export default function Sound() {
       <div className="space-y-2">
         <PermissionItem
           icon={<MicIcon className="h-4 w-4" />}
-          title={t`Microphone Access`}
-          description={t`Required to transcribe your voice during meetings`}
+          title={"Microphone Access"}
+          description={"Required to transcribe your voice during meetings"}
           done={micPermissionStatus.data}
           isPending={micPermission.isPending}
           onRequest={handleMicPermissionAction}
@@ -134,8 +131,8 @@ export default function Sound() {
 
         <PermissionItem
           icon={<Volume2Icon className="h-4 w-4" />}
-          title={t`System Audio Access`}
-          description={t`Required to transcribe other people's voice during meetings`}
+          title={"System Audio Access"}
+          description={"Required to transcribe other people's voice during meetings"}
           done={systemAudioPermissionStatus.data}
           isPending={capturePermission.isPending}
           onRequest={() => capturePermission.mutate({})}

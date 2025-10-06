@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+import { TiptapEditor } from "@hypr/tiptap/editor";
+import { useRightPanel } from "@hypr/utils/contexts";
 
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;
   onAnnotate: (selectedText: string, selectedRect: DOMRect) => void;
   onAskAI?: (selectedText: string) => void;
-  isAnnotationBoxOpen: boolean; // Add this prop
+  isAnnotationBoxOpen: boolean;
+  sessionId: string;
+  editorRef: React.RefObject<{ editor: TiptapEditor | null }>;
 }
 
 interface SelectionInfo {
@@ -18,11 +22,25 @@ interface SelectionInfo {
 }
 
 export function TextSelectionPopover(
-  { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen }: TextSelectionPopoverProps,
+  { isEnhancedNote, onAnnotate, onAskAI, isAnnotationBoxOpen, sessionId, editorRef }: TextSelectionPopoverProps,
 ) {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
-  const delayTimeoutRef = useRef<NodeJS.Timeout>();
+  const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { userId } = useHypr();
+  // Safe hook usage with fallback
+  const rightPanel = (() => {
+    try {
+      return useRightPanel();
+    } catch {
+      return {
+        sendSelectionToChat: () => {
+          console.warn("RightPanel not available - selection ignored");
+        },
+      };
+    }
+  })();
+
+  const { sendSelectionToChat } = rightPanel;
 
   useEffect(() => {
     if (!isEnhancedNote) {
@@ -49,9 +67,16 @@ export function TextSelectionPopover(
       }
 
       const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
 
+      const editorElement = editorRef.current?.editor?.view?.dom;
+      if (!editorElement || !editorElement.contains(range.commonAncestorContainer)) {
+        setSelection(null);
+        return;
+      }
+
+      const rect = range.getBoundingClientRect();
       const selectedText = sel.toString().trim();
+
       if (selectedText.length > 0) {
         delayTimeoutRef.current = setTimeout(() => {
           setSelection({
@@ -104,10 +129,83 @@ export function TextSelectionPopover(
     setSelection(null); // Hide the popover
   };
 
-  const handleAskAIClick = () => {
-    if (onAskAI) {
-      onAskAI(selection.text);
+  // Helper to get TipTap/ProseMirror positions from DOM selection
+  const getTipTapPositions = () => {
+    const editor = editorRef.current?.editor;
+    if (!editor) {
+      console.warn("No TipTap editor available");
+      return null;
     }
+
+    // Get current TipTap selection positions
+    const { from, to } = editor.state.selection;
+
+    // CLEAN HTML APPROACH: Extract selected content as HTML directly
+    let selectedHtml = "";
+    try {
+      // Get the selected DOM range
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const fragment = range.cloneContents();
+
+        // Create a temporary div to get the HTML
+        const tempDiv = document.createElement("div");
+        tempDiv.appendChild(fragment);
+        selectedHtml = tempDiv.innerHTML;
+      }
+
+      // Fallback: if no DOM selection, use plain text
+      if (!selectedHtml) {
+        selectedHtml = editor.state.doc.textBetween(from, to);
+      }
+    } catch (error) {
+      console.warn("Could not extract HTML, falling back to plain text:", error);
+      selectedHtml = editor.state.doc.textBetween(from, to);
+    }
+
+    return {
+      from,
+      to,
+      text: selectedHtml, // Now contains HTML instead of plain text
+    };
+  };
+
+  const handleAskAIClick = () => {
+    if (!selection) {
+      return;
+    }
+
+    analyticsCommands.event({
+      event: "ask_ai_clicked",
+      distinct_id: userId,
+    });
+
+    // Get TipTap/ProseMirror positions (much more accurate)
+    const tipTapPositions = getTipTapPositions();
+    if (!tipTapPositions) {
+      console.error("Could not get TipTap positions");
+      return;
+    }
+
+    // Verify DOM selection matches TipTap selection
+    if (selection.text.trim() !== tipTapPositions.text.trim()) {
+      console.warn("DOM selection doesn't match TipTap selection:");
+      console.warn("DOM:", selection.text);
+      console.warn("TipTap:", tipTapPositions.text);
+    }
+
+    const selectionData = {
+      text: tipTapPositions.text, // Use TipTap's text (more reliable)
+      startOffset: tipTapPositions.from, // ProseMirror position
+      endOffset: tipTapPositions.to, // ProseMirror position
+      sessionId,
+      timestamp: Date.now(),
+    };
+
+    // Send selection to chat
+    sendSelectionToChat(selectionData);
+
     setSelection(null);
   };
 
@@ -147,24 +245,22 @@ export function TextSelectionPopover(
         size="sm"
         variant="ghost"
         onClick={handleAnnotateClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal"
+        className="flex items-center gap-1 text-xs h-6 px-2 hover:bg-neutral-100 font-normal"
       >
         <MessageSquare className="h-2.5 w-2.5" />
         <span className="text-[11px]">Source</span>
       </Button>
 
-      <div className="w-px h-3 bg-neutral-200 mx-0.5" />
+      <div className="w-px h-4 bg-neutral-200 mx-0.5" />
 
       <Button
         size="sm"
         variant="ghost"
         onClick={handleAskAIClick}
-        className="flex items-center gap-1 text-xs h-5 px-1.5 hover:bg-neutral-100 font-normal opacity-60 cursor-not-allowed"
-        disabled
+        className="flex items-center gap-1 text-xs h-6 px-2 hover:bg-neutral-100 font-normal"
       >
         <Sparkles className="h-2.5 w-2.5" />
         <span className="text-[11px]">Ask AI</span>
-        <span className="text-[9px] text-neutral-400 ml-0.5">coming soon</span>
       </Button>
     </div>
   );

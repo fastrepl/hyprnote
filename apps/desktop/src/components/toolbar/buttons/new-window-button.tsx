@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useMatch } from "@tanstack/react-router";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 
@@ -32,7 +31,7 @@ export function NewWindowButton() {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <Trans>Open in new window</Trans>
+        Open in new window
       </TooltipContent>
     </Tooltip>
   );

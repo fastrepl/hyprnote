@@ -19,13 +19,13 @@ import { ThemeProvider } from "@hypr/ui/contexts/theme";
 import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stores";
 import { broadcastQueryClient } from "./utils";
 
-import { messages as enMessages } from "./locales/en/messages";
-import { messages as koMessages } from "./locales/ko/messages";
-
 import { routeTree } from "./routeTree.gen";
 
 import * as Sentry from "@sentry/react";
 import { defaultOptions } from "tauri-plugin-sentry-api";
+
+import { messages as enMessages } from "@/locales/en/messages";
+import { messages as koMessages } from "@/locales/ko/messages";
 
 i18n.load({
   en: enMessages,
@@ -61,11 +61,16 @@ function LanguageInitializer({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // for most case, we don't want cache
       gcTime: 0,
+      networkMode: "always",
+    },
+    mutations: {
+      networkMode: "always",
     },
   },
 });

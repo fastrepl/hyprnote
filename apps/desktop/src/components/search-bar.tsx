@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 // import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { LoaderIcon, SearchIcon, TagIcon, XIcon } from "lucide-react";
@@ -39,7 +38,7 @@ export function SearchBar() {
     removeTagFilter: s.removeTagFilter,
     clearTagFilters: s.clearTagFilters,
   }));
-  const { t } = useLingui();
+
   const [isFocused, setIsFocused] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   // const [showTagSelector, setShowTagSelector] = useState(false);
@@ -118,6 +117,7 @@ export function SearchBar() {
           "hover:bg-white",
           isFocused && "bg-white",
           "transition-colors duration-200",
+          "cursor-pointer",
         ])}
         onClick={() => setShowCommandPalette(true)}
       >
@@ -140,8 +140,9 @@ export function SearchBar() {
               setShowHistory(false);
             }, 150);
           }}
-          placeholder={t`Search...`}
-          className="flex-1 bg-transparent outline-none text-xs"
+          placeholder={"Search..."}
+          className="flex-1 bg-transparent outline-none text-xs pointer-events-none"
+          disabled
         />
         {/* Tag selector */}
         {

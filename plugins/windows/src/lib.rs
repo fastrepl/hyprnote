@@ -3,10 +3,13 @@ mod errors;
 mod events;
 mod ext;
 mod overlay;
+mod window;
 
 pub use errors::*;
 pub use events::*;
 pub use ext::*;
+pub use window::*;
+
 use overlay::*;
 pub use overlay::{FakeWindowBounds, OverlayBound};
 
@@ -19,7 +22,6 @@ pub type ManagedState = std::sync::Mutex<State>;
 
 pub struct WindowState {
     id: String,
-    floating: bool,
     visible: bool,
 }
 
@@ -27,7 +29,6 @@ impl Default for WindowState {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4().to_string(),
-            floating: false,
             visible: false,
         }
     }
@@ -35,7 +36,7 @@ impl Default for WindowState {
 
 #[derive(Default)]
 pub struct State {
-    windows: std::collections::HashMap<HyprWindow, WindowState>,
+    windows: std::collections::HashMap<AppWindow, WindowState>,
 }
 
 fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
@@ -48,17 +49,9 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,
-            commands::window_close,
-            commands::window_hide,
             commands::window_destroy,
-            commands::window_position,
-            commands::window_get_floating,
-            commands::window_set_floating,
             commands::window_navigate,
             commands::window_emit_navigate,
-            commands::window_is_visible,
-            commands::window_set_overlay_bounds,
-            commands::window_remove_overlay_bounds,
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
         ])

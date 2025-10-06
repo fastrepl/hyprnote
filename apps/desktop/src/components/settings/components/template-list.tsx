@@ -1,5 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
-import { Trans } from "@lingui/react/macro";
 import { HeartIcon, SearchIcon, TagIcon, ZapIcon } from "lucide-react";
 import { type ReactNode } from "react";
 
@@ -23,8 +21,6 @@ export function TemplateList({
   onTemplateSelect,
   selectedTemplate,
 }: TemplateListProps) {
-  const { t } = useLingui();
-
   const filterTemplate = (template: Template, query: string) => {
     const searchLower = query.toLowerCase();
     return (
@@ -40,7 +36,7 @@ export function TemplateList({
         <div className="relative">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-neutral-400" />
           <input
-            placeholder={t`Search templates...`}
+            placeholder={"Search templates..."}
             className="w-full bg-transparent px-8 py-2 text-sm text-foreground focus:outline-none"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -53,7 +49,7 @@ export function TemplateList({
           <section className="p-2">
             <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
               <HeartIcon className="h-4 w-4" />
-              <Trans>My Templates</Trans>
+              My Templates
             </h3>
             <nav className="mt-2 rounded-md bg-neutral-50 p-2">
               <ul>
@@ -88,7 +84,7 @@ export function TemplateList({
         <section className="p-2">
           <h3 className="flex items-center gap-2 p-2 text-sm font-semibold text-neutral-700">
             <ZapIcon className="h-4 w-4" />
-            <Trans>Official Templates</Trans>
+            Official Templates
           </h3>
           <nav className="mt-2 rounded-md bg-neutral-50 p-2">
             <ul>

@@ -15,9 +15,11 @@ use tokio_util::sync::CancellationToken;
 use hypr_gguf::GgufExt;
 
 mod error;
+mod parser;
 mod types;
 
 pub use error::*;
+pub use parser::{Response, StreamingParser};
 pub use types::*;
 
 const DEFAULT_MAX_INPUT_TOKENS: u32 = 1024 * 16;
@@ -39,7 +41,7 @@ pub struct Llama {
 pub enum Task {
     Generate {
         request: LlamaRequest,
-        response_sender: tokio::sync::mpsc::UnboundedSender<String>,
+        response_sender: tokio::sync::mpsc::UnboundedSender<Response>,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
         cancellation_token: CancellationToken,
     },
@@ -121,6 +123,7 @@ impl Llama {
             LlamaBatch,
             i32,
             *mut std::ffi::c_void,
+            u32,
         ),
         crate::Error,
     > {
@@ -144,6 +147,7 @@ impl Llama {
         let mut tokens_list = model.str_to_token(&prompt, AddBos::Always).unwrap();
         tokens_list.truncate(DEFAULT_MAX_INPUT_TOKENS as usize);
         let input_tokens_len = tokens_list.len() as u32;
+        let max_output_tokens = request.max_tokens.unwrap_or(DEFAULT_MAX_OUTPUT_TOKENS);
 
         let progress_data = Box::new(ProgressData {
             total: input_tokens_len as usize,
@@ -204,12 +208,13 @@ impl Llama {
                 backend,
                 LlamaContextParams::default()
                     .with_n_ctx(std::num::NonZeroU32::new(
-                        input_tokens_len + DEFAULT_MAX_OUTPUT_TOKENS,
+                        input_tokens_len + max_output_tokens,
                     ))
                     .with_n_batch(input_tokens_len)
                     .with_embeddings(false)
                     .with_swa_full(false)
-                    .with_flash_attention(true)
+                    // https://github.com/ggml-org/llama.cpp/blob/f505bd8/include/llama.h#L182
+                    .with_flash_attention_policy(0)
                     .with_cb_eval_user_data(progress_data_ptr)
                     .with_cb_eval(Some(cb_eval_fn)),
             )
@@ -237,7 +242,7 @@ impl Llama {
             }));
         }
 
-        Ok((ctx, batch, last_index, progress_data_ptr))
+        Ok((ctx, batch, last_index, progress_data_ptr, max_output_tokens))
     }
 
     fn process_generation<'a>(
@@ -246,16 +251,18 @@ impl Llama {
         mut batch: LlamaBatch,
         last_index: i32,
         request: &LlamaRequest,
-        response_sender: tokio::sync::mpsc::UnboundedSender<String>,
+        response_sender: tokio::sync::mpsc::UnboundedSender<Response>,
         progress_data_ptr: *mut std::ffi::c_void,
         cancellation_token: CancellationToken,
+        max_output_tokens: u32,
     ) {
         let mut n_cur = batch.n_tokens();
         let mut decoder = encoding_rs::UTF_8.new_decoder();
         let mut sampler = Self::get_sampler(model, request.grammar.as_deref());
+        let mut parser = StreamingParser::new();
 
-        while n_cur <= last_index + DEFAULT_MAX_OUTPUT_TOKENS as i32 {
-            if cancellation_token.is_cancelled() {
+        'generation: while n_cur <= last_index + max_output_tokens as i32 {
+            if cancellation_token.is_cancelled() || response_sender.is_closed() {
                 break;
             }
 
@@ -275,14 +282,20 @@ impl Llama {
                 io::stdout().flush().unwrap();
             }
 
-            if response_sender.send(output_string).is_err() {
-                break;
+            let responses = parser.process_chunk(&output_string);
+            for response in responses {
+                if response_sender.send(response).is_err() {
+                    break 'generation;
+                }
             }
 
             batch.clear();
             batch.add(token, n_cur, &[0], true).unwrap();
 
             n_cur += 1;
+            if cancellation_token.is_cancelled() || response_sender.is_closed() {
+                break;
+            }
             ctx.decode(&mut batch).unwrap();
         }
 
@@ -300,7 +313,7 @@ impl Llama {
     pub fn new(model_path: impl AsRef<std::path::Path>) -> Result<Self, crate::Error> {
         Self::setup_log();
 
-        let template = model_path.gguf_chat_format()?.unwrap();
+        let template = model_path.chat_format()?.unwrap();
 
         let backend = Self::get_backend();
         let model = Self::load_model(model_path)?;
@@ -330,7 +343,13 @@ impl Llama {
                                 callback,
                                 cancellation_token.clone(),
                             ) {
-                                Ok((ctx, batch, last_index, progress_data_ptr)) => {
+                                Ok((
+                                    ctx,
+                                    batch,
+                                    last_index,
+                                    progress_data_ptr,
+                                    max_output_tokens,
+                                )) => {
                                     Self::process_generation(
                                         &model,
                                         ctx,
@@ -340,6 +359,7 @@ impl Llama {
                                         response_sender,
                                         progress_data_ptr,
                                         cancellation_token,
+                                        max_output_tokens,
                                     );
                                 }
                                 Err(e) => {
@@ -359,7 +379,7 @@ impl Llama {
     pub fn generate_stream(
         &self,
         request: LlamaRequest,
-    ) -> Result<impl futures_util::Stream<Item = String>, crate::Error> {
+    ) -> Result<impl futures_util::Stream<Item = Response>, crate::Error> {
         let callback = Box::new(|_| {});
         let (stream, _cancellation_token) =
             self.generate_stream_with_callback(request, callback)?;
@@ -370,8 +390,15 @@ impl Llama {
         &self,
         request: LlamaRequest,
         callback: Box<dyn FnMut(f64) + Send + 'static>,
-    ) -> Result<(impl futures_util::Stream<Item = String>, CancellationToken), crate::Error> {
-        let (response_sender, response_receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
+    ) -> Result<
+        (
+            impl futures_util::Stream<Item = Response>,
+            CancellationToken,
+        ),
+        crate::Error,
+    > {
+        let (response_sender, response_receiver) =
+            tokio::sync::mpsc::unbounded_channel::<Response>();
         let cancellation_token = CancellationToken::new();
 
         let task = Task::Generate {
@@ -393,7 +420,7 @@ mod tests {
     use super::*;
     use futures_util::{pin_mut, StreamExt};
 
-    async fn run(model: &Llama, request: LlamaRequest) -> String {
+    async fn run(model: &Llama, request: LlamaRequest) -> Vec<Response> {
         let (stream, _cancellation_token) = model
             .generate_stream_with_callback(
                 request,
@@ -402,13 +429,13 @@ mod tests {
             .unwrap();
         pin_mut!(stream);
 
-        let mut acc = String::new();
+        let mut responses = Vec::new();
 
-        while let Some(token) = stream.next().await {
-            acc += &token;
+        while let Some(response) = stream.next().await {
+            responses.push(response.clone());
         }
 
-        acc
+        responses
     }
 
     fn get_model() -> Llama {
@@ -438,7 +465,7 @@ mod tests {
                     content: hypr_data::english_3::WORDS_JSON.repeat(1),
                 },
             ],
-            tools: None,
+            ..Default::default()
         }
     }
 
@@ -448,25 +475,41 @@ mod tests {
     async fn test_tool() {
         let llama = get_model();
         let request = LlamaRequest {
-            grammar: None,
             messages: vec![LlamaMessage {
                 role: "user".into(),
-                content: "hi".into(),
+                content: "response, and say hi".into(),
             }],
-            tools: Some(vec![async_openai::types::ChatCompletionTool {
-                r#type: async_openai::types::ChatCompletionToolType::Function,
-                function: async_openai::types::FunctionObject {
-                    name: "greet".into(),
-                    description: Some("Greet the user".into()),
-                    strict: None,
-                    parameters: Some(serde_json::json!({
-                        "type": "object",
-                        "properties": {
-                            "name": { "type": "string" },
-                        }
-                    })),
+            tools: Some(vec![
+                async_openai::types::ChatCompletionTool {
+                    r#type: async_openai::types::ChatCompletionToolType::Function,
+                    function: async_openai::types::FunctionObject {
+                        name: "greet".into(),
+                        description: Some("Greet the user".into()),
+                        strict: None,
+                        parameters: Some(serde_json::json!({
+                            "type": "object",
+                            "properties": {
+                                "text": { "type": "string" },
+                            }
+                        })),
+                    },
                 },
-            }]),
+                async_openai::types::ChatCompletionTool {
+                    r#type: async_openai::types::ChatCompletionToolType::Function,
+                    function: async_openai::types::FunctionObject {
+                        name: "response".into(),
+                        description: Some("Response to the user".into()),
+                        strict: None,
+                        parameters: Some(serde_json::json!({
+                            "type": "object",
+                            "properties": {
+                                "text": { "type": "string" },
+                            }
+                        })),
+                    },
+                },
+            ]),
+            ..Default::default()
         };
 
         run(&llama, request).await;
@@ -478,7 +521,6 @@ mod tests {
     async fn test_simple() {
         let llama = get_model();
         let request = LlamaRequest {
-            grammar: None,
             messages: vec![
                 LlamaMessage {
                     role: "system".into(),
@@ -489,7 +531,8 @@ mod tests {
                     content: "hello".into(),
                 },
             ],
-            tools: None,
+            max_tokens: Some(5),
+            ..Default::default()
         };
 
         run(&llama, request).await;
@@ -520,19 +563,19 @@ mod tests {
             .unwrap();
         pin_mut!(stream);
 
-        let mut acc = String::new();
+        let mut count = 0;
 
-        while let Some(token) = stream.next().await {
-            acc += &token;
+        while let Some(_response) = stream.next().await {
+            count += 1;
 
-            if acc.len() > 3 {
+            if count > 3 {
                 let token_clone = cancellation_token.clone();
                 std::thread::spawn(move || {
                     token_clone.cancel();
                 });
             }
         }
-        assert!(acc.len() < 10);
+        assert!(count < 10);
     }
 
     // cargo test test_cancel_prefill -p llama -- --nocapture --ignored

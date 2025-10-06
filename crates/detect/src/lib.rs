@@ -1,19 +1,25 @@
 mod app;
-mod browser;
+mod list;
 mod mic;
 mod utils;
 
 pub use app::*;
-pub use browser::*;
+pub use list::*;
 pub use mic::*;
 
 use utils::*;
 
-pub type DetectCallback = std::sync::Arc<dyn Fn(String) + Send + Sync + 'static>;
+#[derive(Debug, Clone)]
+pub enum DetectEvent {
+    MicStarted(Vec<InstalledApp>),
+    MicStopped,
+}
+
+pub type DetectCallback = std::sync::Arc<dyn Fn(DetectEvent) + Send + Sync + 'static>;
 
 pub fn new_callback<F>(f: F) -> DetectCallback
 where
-    F: Fn(String) + Send + Sync + 'static,
+    F: Fn(DetectEvent) + Send + Sync + 'static,
 {
     std::sync::Arc::new(f)
 }
@@ -25,8 +31,6 @@ trait Observer: Send + Sync {
 
 #[derive(Default)]
 pub struct Detector {
-    // app_detector: AppDetector,
-    // browser_detector: BrowserDetector,
     mic_detector: MicDetector,
 }
 
@@ -43,34 +47,11 @@ impl Detector {
         Ok(())
     }
 
-    // Not sure why this not works.
-    // TODO: remove `macos_accessibility_client`
-
-    // #[cfg(target_os = "macos")]
-    // // https://github.com/next-slide-please/macos-accessibility-client/blob/03025a9/src/lib.rs#L38
-    // pub fn macos_request_accessibility_permission(&self) -> Result<(), String> {
-    //     let keys = [&*objc2_core_foundation::CFString::from_static_str(
-    //         "kAXTrustedCheckOptionPrompt",
-    //     )];
-    //     let values = [&*objc2_core_foundation::CFBoolean::new(true)];
-    //     let options = objc2_core_foundation::CFDictionary::from_slices(&keys, &values);
-
-    //     unsafe {
-    //         objc2_application_services::AXIsProcessTrustedWithOptions(Some(options.as_opaque()))
-    //     };
-
-    //     Ok(())
-    // }
-
     pub fn start(&mut self, f: DetectCallback) {
-        // self.app_detector.start(f.clone());
-        // self.browser_detector.start(f.clone());
         self.mic_detector.start(f);
     }
 
     pub fn stop(&mut self) {
-        // self.app_detector.stop();
-        // self.browser_detector.stop();
         self.mic_detector.stop();
     }
 }

@@ -1,4 +1,8 @@
 You are a professional assistant that generates enhanced meetings notes while maintaining accuracy, completeness, and professional terminology in {{ config.general.summary_language | language }}.
+{%- set j_list = (config.general.jargons | default([])) -%}
+{%- if j_list | length > 0 -%}
+There might be errors/typos in the transcript. If they look like any of the words in [{{ j_list | join(", ") }}], you should correct them.
+{%- endif -%}
 
 {%- set specificity = config.ai.ai_specificity | default(3) %}
 

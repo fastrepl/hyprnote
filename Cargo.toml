@@ -11,13 +11,14 @@ debug = false
 resolver = "2"
 members = [
   "apps/desktop/src-tauri",
+  "apps/desktop2/src-tauri",
   "crates/*",
   "owhisper/*",
   "plugins/*",
 ]
 
 [workspace.package]
-rust-version = "1.88.0"
+rust-version = "1.90.0"
 
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
@@ -32,7 +33,6 @@ hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-appl
 hypr-calendar-google = { path = "crates/calendar-google", package = "calendar-google" }
 hypr-calendar-interface = { path = "crates/calendar-interface", package = "calendar-interface" }
 hypr-calendar-outlook = { path = "crates/calendar-outlook", package = "calendar-outlook" }
-hypr-clova = { path = "crates/clova", package = "clova" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
@@ -44,21 +44,25 @@ hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
 hypr-host = { path = "crates/host", package = "host" }
+hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
 hypr-language = { path = "crates/language", package = "language" }
 hypr-llama = { path = "crates/llama", package = "llama" }
+hypr-llm = { path = "crates/llm", package = "llm" }
+hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }
+hypr-notch = { path = "crates/notch", package = "notch" }
 hypr-notification = { path = "crates/notification", package = "notification" }
-hypr-notification2 = { path = "crates/notification2", package = "notification2" }
+hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
+hypr-notification-macos = { path = "crates/notification-macos", package = "notification-macos" }
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }
 hypr-pyannote-cloud = { path = "crates/pyannote-cloud", package = "pyannote-cloud" }
 hypr-pyannote-local = { path = "crates/pyannote-local", package = "pyannote-local" }
-hypr-rtzr = { path = "crates/rtzr", package = "rtzr" }
 hypr-s3 = { path = "crates/s3", package = "s3" }
 hypr-slack = { path = "crates/slack", package = "slack" }
 hypr-tcc = { path = "crates/tcc", package = "tcc" }
@@ -72,6 +76,7 @@ hypr-transcribe-openai = { path = "crates/transcribe-openai", package = "transcr
 hypr-transcribe-whisper-local = { path = "crates/transcribe-whisper-local", package = "transcribe-whisper-local" }
 hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad = { path = "crates/vad", package = "vad" }
+hypr-vad2 = { path = "crates/vad2", package = "vad2" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
@@ -83,26 +88,34 @@ owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-confi
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
 owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" }
 
-tauri = "2.7"
-tauri-build = "2.3"
+tauri = "2.8"
+tauri-build = "2.4"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
-tauri-plugin = "2.3"
+tauri-plugin = "2.4"
+tauri-plugin-autostart = "2.5"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"
 tauri-plugin-fs = "2.4"
-tauri-plugin-http = { version = "2.5", features = ["unsafe-headers"] }
+tauri-plugin-http = "2.5"
 tauri-plugin-keygen = { git = "https://github.com/bagindo/tauri-plugin-keygen", branch = "v2" }
 tauri-plugin-machine-uid = "0.1.1"
 tauri-plugin-opener = "2.5"
+tauri-plugin-os = "2.3"
+tauri-plugin-prevent-default = "3.0"
+tauri-plugin-process = "2.3"
+tauri-plugin-sentry = { version = "0.5" }
 tauri-plugin-shell = "2.3"
+tauri-plugin-single-instance = "2"
 tauri-plugin-store = "2.4"
+tauri-plugin-updater = "2.9"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-connector = { path = "plugins/connector" }
 tauri-plugin-db = { path = "plugins/db" }
+tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-flags = { path = "plugins/flags" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
@@ -116,14 +129,16 @@ tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
+tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
-tauri-plugin-windows = { path = "plugins/windows" }
+tauri-plugin-windows = { path = "plugins/windows", default-features = false }
 
 async-stream = "0.3.6"
 futures-channel = "0.3.31"
 futures-core = "0.3.31"
 futures-util = "0.3.31"
+ractor = "0.15"
 reqwest = "0.12"
 reqwest-streams = "0.10.0"
 tokio = "1"
@@ -133,7 +148,7 @@ tokio-util = "0.7.15"
 
 anyhow = "1"
 approx = "0.5.1"
-backon = "1.4.1"
+backon = "1.5.2"
 bytes = "1.9.0"
 cached = "0.55.1"
 clap = "4"
@@ -153,7 +168,7 @@ serde_bytes = "0.11.15"
 serde_json = "1"
 serde_qs = "1.0.0-rc.3"
 similar = "2.7.0"
-statig = { version = "0.3.0" }
+statig = "0.4"
 strum = "0.26"
 tempfile = "3"
 thiserror = "2"
@@ -174,18 +189,12 @@ tower-http = "0.6.2"
 chrono = "0.4.39"
 chrono-tz = "0.10.1"
 
-prost = "0.13.4"
-prost-build = "0.13.4"
-tonic = "0.12.3"
-tonic-build = "0.12.3"
-
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
 graph-rs-sdk = "2.0.3"
 
-sentry = "0.38.1"
-sentry-rust-minidump = "0.11.0"
+sentry = "0.42"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
@@ -193,9 +202,10 @@ minijinja = "2.7.0"
 minijinja-contrib = "2.7.0"
 
 env_logger = "0.11.8"
-log = "0.4.27"
-tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+log = "0.4"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tracing-test = "0.2"
 
 apalis = "0.7.0"
 apalis-cron = "0.7.0"
@@ -205,7 +215,7 @@ specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = { git = "https://github.com/yury/cidre", rev = "6f9d1f4" }
+cidre = { git = "https://github.com/yury/cidre", rev = "a9587fa" }
 cpal = "0.15.3"
 dasp = "0.11.0"
 flume = "0.11.1"
@@ -214,6 +224,7 @@ realfft = "3.5.0"
 ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
+vorbis_rs = "0.5.5"
 
 kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
@@ -222,7 +233,7 @@ kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", de
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.6.8", default-features = false }
-libsql = "0.9.17"
+libsql = "0.9.24"
 
 block2 = "0.6"
 objc2 = "0.6"
@@ -234,6 +245,9 @@ objc2-user-notifications = "0.3"
 
 rmcp = "0.5.0"
 tokenizers = "0.21.4"
+
+swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9" }
+sysinfo = "0.37.0"
 
 [patch.crates-io]
 cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }

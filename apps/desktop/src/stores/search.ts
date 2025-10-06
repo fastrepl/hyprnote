@@ -29,7 +29,7 @@ type State = {
   query: string;
   selectedTags: Tag[];
   matches: SearchMatch[];
-  searchInputRef: React.RefObject<HTMLInputElement> | null;
+  searchInputRef: React.RefObject<HTMLInputElement | null> | null;
   isSearching: boolean;
   selectedIndex: number;
   searchHistory: string[];
@@ -39,7 +39,7 @@ type Actions = {
   setQuery: (query: string) => void;
   clearSearch: () => void;
   focusSearch: () => void;
-  setSearchInputRef: (ref: React.RefObject<HTMLInputElement>) => void;
+  setSearchInputRef: (ref: React.RefObject<HTMLInputElement | null>) => void;
   navigateResults: (direction: "up" | "down") => void;
   selectResult: () => void;
   addToSearchHistory: (query: string) => void;
@@ -163,7 +163,7 @@ export const createSearchStore = (userId: string) => {
         get().searchInputRef?.current?.focus();
       }, 10);
     },
-    setSearchInputRef: (ref: React.RefObject<HTMLInputElement>) => set({ searchInputRef: ref }),
+    setSearchInputRef: (ref: React.RefObject<HTMLInputElement | null>) => set({ searchInputRef: ref }),
     navigateResults: (direction: "up" | "down") => {
       const { matches, selectedIndex } = get();
       if (matches.length === 0) {

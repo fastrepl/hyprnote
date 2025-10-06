@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/react/macro";
 import { GripVertical as HandleIcon, PlusIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useState } from "react";
@@ -97,8 +96,6 @@ interface SectionItemProps {
 }
 
 export function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
-  const { t } = useLingui();
-
   const handleChangeTitle = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange({ ...item, title: e.target.value });
@@ -141,7 +138,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
             disabled={disabled}
             value={item.title}
             onChange={handleChangeTitle}
-            placeholder={t`Enter a section title`}
+            placeholder={"Enter a section title"}
             className="border-0 bg-transparent p-0 text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
           />
         </div>
@@ -151,7 +148,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
             disabled={disabled}
             value={item.description}
             onChange={handleChangeDescription}
-            placeholder={t`Describe the content and purpose of this section`}
+            placeholder={"Describe the content and purpose of this section"}
             className="min-h-[30px] resize-none border-0 bg-transparent p-0 text-sm text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
           />
         </div>

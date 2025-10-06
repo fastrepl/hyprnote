@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "version": "0.0.1",
+  "productName": "Hyprnote2 Dev",
+  "mainBinaryName": "Hyprnote2 Dev",
+  "identifier": "com.hyprnote2.dev",
+  "build": {
+    "beforeDevCommand": "pnpm -F desktop2 dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm -F desktop2 build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "macOSPrivateApi": true,
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "publisher": "Fastrepl",
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": "all",
+    "icon": [
+      "icons/stable/32x32.png",
+      "icons/stable/128x128.png",
+      "icons/stable/128x128@2x.png",
+      "icons/stable/icon.icns",
+      "icons/stable/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "14.2",
+      "entitlements": "./Entitlements.plist",
+      "dmg": {
+        "background": "assets/dmg-background-stable.png",
+        "windowSize": {
+          "width": 660,
+          "height": 430
+        },
+        "appPosition": {
+          "x": 177,
+          "y": 200
+        },
+        "applicationFolderPosition": {
+          "x": 483,
+          "y": 200
+        }
+      }
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "hypr"
+        ]
+      }
+    },
+    "updater": {
+      "active": false,
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFFNUI0ODhBNzhBMTEwQQpSV1FLRVlxbmlMVGxDdXJvaUVTTnlwNEF5R1Bodzh3WThMZUpNMVk4K0hhbnV4TDZ1TFFucC9Gbwo=",
+      "endpoints": [
+        "https://cdn.crabnebula.app/update/fastrepl/hyprnote/{{target}}-{{arch}}/{{current_version}}"
+      ]
+    }
+  }
+}

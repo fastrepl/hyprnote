@@ -1,5 +1,5 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { Trans } from "@lingui/react/macro";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { clsx } from "clsx";
@@ -109,8 +109,8 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
         className={`flex flex-row items-center gap-2 rounded-md ${isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"}`}
         style={{ outline: "none" }}
       >
-        <CalendarIcon size={14} className="flex-shrink-0" />
-        {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
+        <CalendarIcon size={14} className="flex-shrink-0 text-neutral-500" />
+        {!isVeryNarrow && <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>}
       </div>
     );
   }
@@ -145,9 +145,11 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                     )}
                   >
                     {event.data.meetingLink
-                      ? <VideoIcon size={14} className="flex-shrink-0" />
-                      : <SpeechIcon size={14} className="flex-shrink-0" />}
-                    {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(date)}</p>}
+                      ? <VideoIcon size={14} className="flex-shrink-0 text-neutral-500" />
+                      : <SpeechIcon size={14} className="flex-shrink-0 text-neutral-500" />}
+                    {!isVeryNarrow && (
+                      <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(date)}</p>
+                    )}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -196,7 +198,7 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                         className="flex-1 focus:outline-none"
                       >
                         <VideoIcon size={16} />
-                        <Trans>Join meeting</Trans>
+                        Join meeting
                       </Button>
                     )}
 
@@ -206,7 +208,7 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                       disabled={!calendar.data}
                       className="flex-1 focus:outline-none"
                     >
-                      <Trans>View in calendar</Trans>
+                      View in calendar
                     </Button>
                   </div>
 
@@ -248,8 +250,10 @@ export function EventChip({ sessionId, isVeryNarrow = false, isNarrow = false }:
                 isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
               }`}
             >
-              <CalendarIcon size={14} className="flex-shrink-0" />
-              {!isVeryNarrow && <p className="text-xs truncate">{formatRelativeWithDay(sessionCreatedAt)}</p>}
+              <CalendarIcon size={14} className="flex-shrink-0 text-neutral-500" />
+              {!isVeryNarrow && (
+                <p className="text-xs truncate text-neutral-500">{formatRelativeWithDay(sessionCreatedAt)}</p>
+              )}
             </div>
           </PopoverTrigger>
 
@@ -463,7 +467,7 @@ function EventTab({
         if (eventsInPastWithoutAssignedSession.isLoading) {
           return (
             <div className="p-4 text-center text-sm text-neutral-500">
-              <Trans>Loading events...</Trans>
+              Loading events...
             </div>
           );
         }
@@ -471,7 +475,7 @@ function EventTab({
         if (filteredEvents.length === 0) {
           return (
             <div className="p-4 text-center text-sm text-neutral-500">
-              <Trans>No past events found.</Trans>
+              No past events found.
             </div>
           );
         }
@@ -592,7 +596,7 @@ function DateTab({
           disabled={updateSessionDate.isPending}
           className="flex-1 focus:outline-none"
         >
-          {updateSessionDate.isPending ? <Trans>Saving...</Trans> : <Trans>Save Date</Trans>}
+          {updateSessionDate.isPending ? <p>Saving...</p> : <p>Save Date</p>}
         </Button>
       </div>
     </div>

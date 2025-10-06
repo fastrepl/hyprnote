@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { Trans, useLingui } from "@lingui/react/macro";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as autostart from "@tauri-apps/plugin-autostart";
 import { Plus, X } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { showModelSelectToast } from "@/components/toast/model-select";
-import { commands } from "@/types";
 import { commands as dbCommands, type ConfigGeneral } from "@hypr/plugin-db";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -22,10 +22,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@hypr/ui/components/ui/form";
-import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Switch } from "@hypr/ui/components/ui/switch";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
@@ -87,7 +87,6 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export default function General() {
-  const { t } = useLingui();
   const queryClient = useQueryClient();
 
   const config = useQuery({
@@ -163,7 +162,15 @@ export default function General() {
       mutation.mutate(form.getValues());
 
       if (name === "autostart") {
-        commands.setAutostart(!!value.autostart);
+        if (value.autostart) {
+          autostart.enable().then(() => {
+            console.log("Autostart enabled");
+          });
+        } else {
+          autostart.disable().then(() => {
+            console.log("Autostart disabled");
+          });
+        }
       }
 
       if (name === "displayLanguage" && value.displayLanguage) {
@@ -180,17 +187,39 @@ export default function General() {
         <form className="space-y-8">
           <FormField
             control={form.control}
+            name="autostart"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    Start automatically at login
+                  </FormLabel>
+                  <FormDescription>
+                    Only starts at the background for notification purposes.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="saveRecordings"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    <Trans>Save recordings</Trans>
+                    Save recordings
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Choose whether to save your recordings locally.
-                    </Trans>
+                    Save audio recording locally alongside the transcript.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -211,7 +240,7 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div>
                   <FormLabel>
-                    <Trans>Share usage data</Trans>
+                    Share usage data
                   </FormLabel>
                   <FormDescription className="flex flex-col">
                     <span>
@@ -241,10 +270,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Summary language</Trans>
+                    Summary language
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Language for AI-generated summaries</Trans>
+                    Language for AI-generated summaries
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -270,6 +299,8 @@ export default function General() {
             )}
           />
 
+          {
+            /*
           <FormField
             control={form.control}
             name="displayLanguage"
@@ -277,10 +308,10 @@ export default function General() {
               <FormItem className="flex flex-row items-center justify-between">
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Display language</Trans>
+                    Display language
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Primary language for the interface</Trans>
+                    Primary language for the interface
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -298,6 +329,8 @@ export default function General() {
               </FormItem>
             )}
           />
+          */
+          }
 
           <FormField
             control={form.control}
@@ -306,10 +339,10 @@ export default function General() {
               <FormItem>
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Spoken languages</Trans>
+                    Spoken languages
                   </FormLabel>
                   <FormDescription>
-                    <Trans>Select languages you speak for better transcription</Trans>
+                    Select languages you speak for better transcription
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -379,7 +412,6 @@ export default function General() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="jargons"
@@ -387,22 +419,26 @@ export default function General() {
               <FormItem>
                 <div className="space-y-0.5">
                   <FormLabel>
-                    <Trans>Custom Vocabulary</Trans>
+                    Custom Vocabulary
                   </FormLabel>
                   <FormDescription>
-                    <Trans>
-                      Add specific terms or jargon for improved transcription accuracy
-                    </Trans>
+                    Add specific terms or jargon for improved transcription accuracy
                   </FormDescription>
                 </div>
                 <FormControl>
-                  <Input
+                  <Textarea
                     {...field}
+                    rows={3}
                     onBlur={() => mutation.mutate(form.getValues())}
-                    placeholder={t({
-                      id: "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)",
-                    })}
-                    className="focus-visible:ring-1 focus-visible:ring-ring"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        mutation.mutate(form.getValues());
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    placeholder={"Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"}
+                    className="focus-visible:ring-1 focus-visible:ring-ring resize-none"
                   />
                 </FormControl>
                 <FormMessage />

@@ -1,17 +1,43 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
-pub struct TranscriptManager {
-    id: uuid::Uuid,
-    partial_words_by_channel: HashMap<usize, Vec<owhisper_interface::Word>>,
+pub type WordsByChannel = HashMap<usize, Vec<owhisper_interface::Word>>;
+
+#[derive(Default)]
+pub struct TranscriptManagerBuilder {
+    manager_offset: Option<u64>,
+    partial_words_by_channel: Option<WordsByChannel>,
 }
 
-impl Default for TranscriptManager {
-    fn default() -> Self {
-        Self {
+impl TranscriptManagerBuilder {
+    // unix timestamp in ms
+    pub fn with_manager_offset(mut self, manager_offset: u64) -> Self {
+        self.manager_offset = Some(manager_offset);
+        self
+    }
+
+    pub fn with_existing_partial_words(mut self, m: impl Into<WordsByChannel>) -> Self {
+        self.partial_words_by_channel = Some(m.into());
+        self
+    }
+
+    pub fn build(self) -> TranscriptManager {
+        TranscriptManager {
             id: uuid::Uuid::new_v4(),
-            partial_words_by_channel: HashMap::new(),
+            partial_words_by_channel: self.partial_words_by_channel.unwrap_or_default(),
+            manager_offset: self.manager_offset.unwrap_or(0),
         }
+    }
+}
+
+pub struct TranscriptManager {
+    pub id: uuid::Uuid,
+    pub partial_words_by_channel: WordsByChannel,
+    pub manager_offset: u64,
+}
+
+impl TranscriptManager {
+    pub fn builder() -> TranscriptManagerBuilder {
+        TranscriptManagerBuilder::default()
     }
 }
 
@@ -93,6 +119,11 @@ impl TranscriptManager {
                             w.speaker = Some(speaker);
                         }
 
+                        let start_ms = self.manager_offset as f64 + (w.start * 1000.0);
+                        let end_ms = self.manager_offset as f64 + (w.end * 1000.0);
+
+                        w.start = start_ms / 1000.0;
+                        w.end = end_ms / 1000.0;
                         w
                     })
                     .collect::<Vec<_>>();
@@ -112,6 +143,13 @@ impl TranscriptManager {
 
                 ws
             };
+            // needed for deepgram
+            if words.is_empty() {
+                return Diff {
+                    final_words: HashMap::new(),
+                    partial_words: self.partial_words_by_channel.clone(),
+                };
+            }
 
             if is_final {
                 let last_final_word_end = words.last().unwrap().end;
@@ -123,7 +161,7 @@ impl TranscriptManager {
 
                 *channel_partial_words = channel_partial_words
                     .iter()
-                    .filter(|w| w.end > last_final_word_end)
+                    .filter(|w| w.start > last_final_word_end)
                     .cloned()
                     .collect::<Vec<_>>();
 
@@ -131,7 +169,7 @@ impl TranscriptManager {
                     final_words: vec![(channel_idx, words)].into_iter().collect(),
                     partial_words: self.partial_words_by_channel.clone(),
                 };
-            } else if data.confidence > 0.6 {
+            } else {
                 let channel_partial_words = self
                     .partial_words_by_channel
                     .entry(channel_idx)
@@ -139,6 +177,7 @@ impl TranscriptManager {
 
                 *channel_partial_words = {
                     let mut merged = Vec::new();
+
                     if let Some(first_start) = words.first().map(|w| w.start) {
                         merged.extend(
                             channel_partial_words
@@ -148,6 +187,15 @@ impl TranscriptManager {
                         );
                     }
                     merged.extend(words.clone());
+                    if let Some(last_end) = words.last().map(|w| w.end) {
+                        merged.extend(
+                            channel_partial_words
+                                .iter()
+                                .filter(|w| w.start >= last_end)
+                                .cloned(),
+                        );
+                    }
+
                     merged
                 };
 
@@ -193,66 +241,53 @@ mod tests {
             .collect()
     }
 
-    #[test]
-    fn test_f7952672_5d18_4f75_8aa0_74ab8b02dac3() {
-        let mut manager = TranscriptManager::default();
-        let items = get_items(
-            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("assets")
-                .join("f7952672-5d18-4f75-8aa0-74ab8b02dac3.jsonl"),
-        );
+    #[derive(Debug, serde::Serialize)]
+    struct TestDiff {
+        final_content: HashMap<usize, String>,
+        partial_content: HashMap<usize, String>,
+    }
 
-        let mut final_diffs = vec![];
-        let mut partial_diffs = vec![];
+    #[cfg(test)]
+    mod tests {
+        use super::*;
 
-        for item in items {
-            let diff = manager.append(item);
-            partial_diffs.push(diff.partial_content());
-            final_diffs.push(diff.final_content());
+        macro_rules! test_transcript {
+            ($name:ident, $uuid:expr) => {
+                #[test]
+                #[allow(non_snake_case)]
+                fn $name() {
+                    let mut manager = TranscriptManager::builder().build();
+                    let items = get_items(
+                        &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("assets/raw")
+                            .join(concat!($uuid, ".jsonl")),
+                    );
+
+                    let mut diffs = vec![];
+                    for item in items {
+                        let diff = manager.append(item);
+                        diffs.push(TestDiff {
+                            final_content: diff.final_content(),
+                            partial_content: diff.partial_content(),
+                        });
+                    }
+
+                    std::fs::write(
+                        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                            .join("assets/diff")
+                            .join(concat!($uuid, ".json")),
+                        serde_json::to_string_pretty(&diffs).unwrap(),
+                    )
+                    .unwrap();
+                }
+            };
         }
 
-        let formatted_diffs: Vec<String> = final_diffs
-            .iter()
-            .zip(partial_diffs.iter())
-            .map(|(final_map, partial_map)| {
-                let final_str = final_map
-                    .values()
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(" ");
-                let partial_str = partial_map
-                    .values()
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(" ");
-                format!("{} | {}", final_str, partial_str)
-            })
-            .collect();
+        test_transcript!(
+            test_f7952672_5d18_4f75_8aa0_74ab8b02dac3,
+            "f7952672-5d18-4f75-8aa0-74ab8b02dac3"
+        );
 
-        insta::assert_debug_snapshot!(formatted_diffs, @r#"
-        [
-            " | I just learned a few",
-            "I just | learned a few",
-            " | learned a few basic tricks from",
-            " | learned a few basic tricks from people like my grandfather.",
-            "learned a few basic tricks from people | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather.",
-            " | like my grandfather. - Now everybody's reading him.",
-            "like my grandfather. - Now | everybody's reading him.",
-            " | everybody's reading him on the note.",
-            " | everybody's reading him on the note. It's too late for you old guys.",
-            "everybody's reading | him on the note. It's too late for you old guys.",
-            " | him on the phone. It's too late for you old guys.",
-            " | him on the note. It's too late for you old guys.",
-            "him on the note. It's too late for | you old guys.",
-            " | you old guys.",
-            " | you old guys.",
-            " | you you old guys.",
-            " | you old guys.",
-            " | you you old guys. The, uh, no.",
-        ]
-        "#);
+        test_transcript!(test_council_011320_2022003V, "council_011320_2022003V");
     }
 }

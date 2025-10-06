@@ -7,6 +7,12 @@
 
 
 export const commands = {
+async listApplications() : Promise<InstalledApp[]> {
+    return await TAURI_INVOKE("plugin:notification|list_applications");
+},
+async showNotification(v: Notification) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|show_notification", { v });
+},
 async getEventNotification() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:notification|get_event_notification");
 },
@@ -16,17 +22,14 @@ async setEventNotification(enabled: boolean) : Promise<null> {
 async getDetectNotification() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:notification|get_detect_notification");
 },
+async getRespectDoNotDisturb() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:notification|get_respect_do_not_disturb");
+},
+async setRespectDoNotDisturb(enabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_respect_do_not_disturb", { enabled });
+},
 async setDetectNotification(enabled: boolean) : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|set_detect_notification", { enabled });
-},
-async openNotificationSettings() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|open_notification_settings");
-},
-async requestNotificationPermission() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|request_notification_permission");
-},
-async checkNotificationPermission() : Promise<NotificationPermission> {
-    return await TAURI_INVOKE("plugin:notification|check_notification_permission");
 },
 async startDetectNotification() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|start_detect_notification");
@@ -39,6 +42,12 @@ async startEventNotification() : Promise<null> {
 },
 async stopEventNotification() : Promise<null> {
     return await TAURI_INVOKE("plugin:notification|stop_event_notification");
+},
+async getIgnoredPlatforms() : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:notification|get_ignored_platforms");
+},
+async setIgnoredPlatforms(platforms: string[]) : Promise<null> {
+    return await TAURI_INVOKE("plugin:notification|set_ignored_platforms", { platforms });
 }
 }
 
@@ -52,7 +61,9 @@ async stopEventNotification() : Promise<null> {
 
 /** user-defined types **/
 
-export type NotificationPermission = "Granted" | "NotGrantedAndShouldRequest" | "NotGrantedAndShouldAskManual"
+export type Duration = { secs: number; nanos: number }
+export type InstalledApp = { bundle_id: string; localized_name: string }
+export type Notification = { key: string | null; title: string; message: string; url: string | null; timeout: Duration | null }
 
 /** tauri-specta globals **/
 

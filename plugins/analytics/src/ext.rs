@@ -10,6 +10,10 @@ pub trait AnalyticsPluginExt<R: tauri::Runtime> {
         &self,
         payload: hypr_analytics::AnalyticsPayload,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn set_properties(
+        &self,
+        payload: hypr_analytics::PropertiesPayload,
+    ) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T {
@@ -65,5 +69,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         let store = self.scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(false);
         Ok(v)
+    }
+
+    async fn set_properties(
+        &self,
+        payload: hypr_analytics::PropertiesPayload,
+    ) -> Result<(), crate::Error> {
+        if !self.is_disabled()? {
+            let client = self.state::<hypr_analytics::AnalyticsClient>();
+            client
+                .set_properties(payload)
+                .await
+                .map_err(crate::Error::HyprAnalytics)?;
+        }
+
+        Ok(())
     }
 }

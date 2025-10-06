@@ -1,12 +1,12 @@
-use statig::awaitable::IntoStateMachineExt;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
+mod actors;
 mod commands;
 mod error;
 mod events;
 mod ext;
-mod fsm;
+pub mod fsm;
 mod manager;
 
 pub use error::*;
@@ -18,7 +18,17 @@ const PLUGIN_NAME: &str = "listener";
 pub type SharedState = Mutex<State>;
 
 pub struct State {
-    fsm: statig::awaitable::StateMachine<fsm::Session>,
+    app: tauri::AppHandle,
+}
+
+impl State {
+    pub async fn get_state(&self) -> fsm::State {
+        if let Some(_) = ractor::registry::where_is(actors::SessionActor::name()) {
+            crate::fsm::State::RunningActive
+        } else {
+            crate::fsm::State::Inactive
+        }
+    }
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -40,8 +50,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_speaker_muted::<tauri::Wry>,
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
-            commands::pause_session::<tauri::Wry>,
-            commands::resume_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![SessionEvent])
@@ -56,9 +64,10 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let handle = app.app_handle();
-            let fsm = fsm::Session::new(handle.clone()).state_machine();
-            let state: SharedState = Mutex::new(State { fsm });
+            let app_handle = app.app_handle().clone();
+
+            let state: SharedState = Mutex::new(State { app: app_handle });
+
             app.manage(state);
             Ok(())
         })

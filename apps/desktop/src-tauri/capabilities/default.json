@@ -4,7 +4,6 @@
   "description": "Capability for Hyprnote",
   "windows": ["*"],
   "platforms": ["macOS", "windows", "linux"],
-  "withGlobalTauri": true,
   "permissions": [
     "core:default",
     "core:window:default",
@@ -89,11 +88,12 @@
       "identifier": "http:default",
       "allow": [
         { "url": "http://localhost:*/**" },
-        { "url": "http://127.0.0.1:*/**" },
+        { "url": "http://*.*.*.*:*/**" },
         { "url": "https://**" },
         { "url": "http://**" }
       ]
     },
-    "dialog:allow-save"
+    "dialog:allow-save",
+    "tracing:default"
   ]
 }

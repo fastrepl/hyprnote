@@ -22,10 +22,8 @@ pub enum Error {
     StartSessionFailed,
     #[error("stop session failed")]
     StopSessionFailed,
-    #[error("pause session failed")]
-    PauseSessionFailed,
-    #[error("resume session failed")]
-    ResumeSessionFailed,
+    #[error("actor not found {0}")]
+    ActorNotFound(String),
 }
 
 impl Serialize for Error {

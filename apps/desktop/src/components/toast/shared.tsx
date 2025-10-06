@@ -12,9 +12,13 @@ import { sonnerToast, toast } from "@hypr/ui/components/ui/toast";
 export const DownloadProgress = ({
   channel,
   onComplete,
+  onRetry,
+  onCancel,
 }: {
   channel: Channel<number>;
   onComplete?: () => void;
+  onRetry?: () => void;
+  onCancel?: () => void;
 }) => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(false);
@@ -38,8 +42,20 @@ export const DownloadProgress = ({
 
   if (error) {
     return (
-      <div className="w-full">
+      <div className="w-full space-y-3">
         <div className="text-destructive font-medium">Download failed. Please try again.</div>
+        <div className="flex gap-2">
+          {onRetry && (
+            <Button variant="default" size="sm" onClick={onRetry}>
+              Retry
+            </Button>
+          )}
+          {onCancel && (
+            <Button variant="outline" size="sm" onClick={onCancel}>
+              Close
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -69,6 +85,15 @@ export function showSttModelDownloadToast(
 
   const id = `stt-model-download-${model}`;
 
+  const handleRetry = () => {
+    sonnerToast.dismiss(id);
+    showSttModelDownloadToast(model, onComplete, queryClient);
+  };
+
+  const handleCancel = () => {
+    sonnerToast.dismiss(id);
+  };
+
   toast(
     {
       id,
@@ -80,12 +105,13 @@ export function showSttModelDownloadToast(
             channel={sttChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
-              localSttCommands.setCurrentModel(model);
-              localSttCommands.startServer(null);
+              localSttCommands.setLocalModel(model).then(() => localSttCommands.startServer(null));
               if (onComplete) {
                 onComplete();
               }
             }}
+            onRetry={handleRetry}
+            onCancel={handleCancel}
           />
         </div>
       ),
@@ -112,6 +138,15 @@ export function showLlmModelDownloadToast(
 
   const id = `llm-model-download-${modelToDownload}`;
 
+  const handleRetry = () => {
+    sonnerToast.dismiss(id);
+    showLlmModelDownloadToast(model, onComplete, queryClient);
+  };
+
+  const handleCancel = () => {
+    sonnerToast.dismiss(id);
+  };
+
   toast(
     {
       id,
@@ -123,12 +158,13 @@ export function showLlmModelDownloadToast(
             channel={llmChannel}
             onComplete={() => {
               sonnerToast.dismiss(id);
-              localLlmCommands.setCurrentModel(modelToDownload);
-              localLlmCommands.startServer();
+              localLlmCommands.setCurrentModel(modelToDownload).then(() => localLlmCommands.startServer());
               if (onComplete) {
                 onComplete();
               }
             }}
+            onRetry={handleRetry}
+            onCancel={handleCancel}
           />
         </div>
       ),

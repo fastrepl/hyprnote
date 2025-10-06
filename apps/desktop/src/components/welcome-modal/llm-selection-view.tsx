@@ -1,5 +1,4 @@
-import { Trans } from "@lingui/react/macro";
-import { Network, ShieldIcon } from "lucide-react";
+import { ShieldIcon, Unplug } from "lucide-react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
@@ -29,19 +28,19 @@ export function LLMSelectionView({ onContinue }: LLMSelectionViewProps) {
     {
       id: "byom",
       title: "Bring Your Own Model",
-      subtitle: "I want first-in-class meeting summarization",
-      icon: Network,
+      subtitle: "Connect custom APIs, from public providers to private servers",
+      icon: Unplug,
     },
   ] as const;
 
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-lg font-semibold mb-3">
-        <Trans>Choose Your LLM</Trans>
+        Choose Your LLM
       </h2>
 
       <p className="text-center text-sm text-muted-foreground mb-6">
-        <Trans>Select how you want to process your meeting notes</Trans>
+        Select how you want to process your meeting notes
       </p>
 
       <div className="w-full mb-6 px-2 sm:px-4">
@@ -91,12 +90,12 @@ export function LLMSelectionView({ onContinue }: LLMSelectionViewProps) {
         disabled={!selected}
         className="w-full max-w-sm"
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
 
       {!selected && (
         <p className="text-xs text-muted-foreground text-center mt-3">
-          <Trans>Select an option to continue</Trans>
+          Select an option to continue
         </p>
       )}
     </div>

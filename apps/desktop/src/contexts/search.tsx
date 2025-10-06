@@ -23,7 +23,7 @@ export function SearchProvider({
     storeRef.current = store || createSearchStore(userId);
   }
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   if (storeRef.current && searchInputRef.current !== storeRef.current.getState().searchInputRef?.current) {
     storeRef.current.getState().setSearchInputRef(searchInputRef);

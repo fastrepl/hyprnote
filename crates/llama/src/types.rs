@@ -1,7 +1,7 @@
 use async_openai::types::{
     ChatCompletionRequestAssistantMessageContent, ChatCompletionRequestMessage,
-    ChatCompletionRequestSystemMessageContent, ChatCompletionRequestUserMessageContent,
-    ChatCompletionTool,
+    ChatCompletionRequestSystemMessageContent, ChatCompletionRequestToolMessageContent,
+    ChatCompletionRequestUserMessageContent, ChatCompletionTool,
 };
 
 pub use llama_cpp_2::model::LlamaChatMessage;
@@ -11,6 +11,7 @@ pub struct LlamaRequest {
     pub grammar: Option<String>,
     pub messages: Vec<LlamaMessage>,
     pub tools: Option<Vec<ChatCompletionTool>>,
+    pub max_tokens: Option<u32>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -55,6 +56,17 @@ impl FromOpenAI for LlamaMessage {
 
                 LlamaMessage {
                     role: "user".into(),
+                    content: content.clone(),
+                }
+            }
+            ChatCompletionRequestMessage::Tool(tool) => {
+                let content = match &tool.content {
+                    ChatCompletionRequestToolMessageContent::Text(text) => text,
+                    _ => todo!(),
+                };
+
+                LlamaMessage {
+                    role: "tool".into(),
                     content: content.clone(),
                 }
             }

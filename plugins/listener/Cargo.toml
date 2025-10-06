@@ -18,7 +18,6 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-aec = { workspace = true }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
@@ -26,8 +25,9 @@ hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-db-user = { workspace = true }
 hypr-language = { workspace = true }
+hypr-llm = { workspace = true }
 hypr-tcc = { workspace = true }
-hypr-vad = { workspace = true }
+hypr-vad2 = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
@@ -38,7 +38,7 @@ tauri-plugin-db = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
-tauri-plugin-windows = { workspace = true }
+tauri-plugin-windows = { workspace = true, optional = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 
@@ -57,15 +57,15 @@ thiserror = { workspace = true }
 url = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 
+hound = { workspace = true }
+vorbis_rs = { workspace = true }
+
 futures-util = { workspace = true }
+ractor = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
 tracing = { workspace = true }
-
-hound = { workspace = true }
-
-flume = { workspace = true }
-statig = { workspace = true, features = ["async"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
@@ -73,4 +73,15 @@ objc2-foundation = { workspace = true }
 
 [features]
 default = []
-load-dynamic = ["hypr-aec/load-dynamic"]
+v0 = [
+  "tauri-plugin-windows",
+  "tauri-plugin-windows/v0",
+  "tauri-plugin-local-stt/v0",
+  "tauri-plugin-tray/v0",
+]
+v1 = [
+  "tauri-plugin-windows",
+  "tauri-plugin-windows/v1",
+  "tauri-plugin-local-stt/v1",
+  "tauri-plugin-tray/v1",
+]

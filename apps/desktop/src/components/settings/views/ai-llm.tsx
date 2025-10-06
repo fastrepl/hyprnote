@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trans } from "@lingui/react/macro";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-shell";
 import { InfoIcon } from "lucide-react";
@@ -665,10 +665,10 @@ export default function LlmAI() {
       >
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="default">
-            <Trans>Default</Trans>
+            Default
           </TabsTrigger>
           <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
+            Custom
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -699,7 +699,7 @@ export default function LlmAI() {
                       <FormItem>
                         <div className="flex items-center gap-2">
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Autonomy Selector</Trans>
+                            Autonomy Selector
                           </FormLabel>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -713,14 +713,14 @@ export default function LlmAI() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <Trans>Learn more about AI autonomy</Trans>
+                              Learn more about AI autonomy
                             </TooltipContent>
                           </Tooltip>
                         </div>
                         <FormDescription className="text-xs">
                           {(!customLLMEnabled.data || hyprCloudEnabled.data)
-                            ? <Trans>Only works with Custom Endpoints. Please configure one of the above first.</Trans>
-                            : <Trans>Control how autonomous the AI enhancement should be.</Trans>}
+                            ? <p>Only works with Custom Endpoints. Please configure one of the above first.</p>
+                            : <p>Control how autonomous the AI enhancement should be.</p>}
                         </FormDescription>
                         <FormControl>
                           <div className="space-y-3">
@@ -730,16 +730,30 @@ export default function LlmAI() {
                                   <button
                                     key={level}
                                     type="button"
-                                    onClick={() => {
+                                    onClick={async () => {
                                       field.onChange(level);
                                       aiConfigMutation.mutate({
                                         aiSpecificity: level,
                                       });
+
+                                      // legacy: send analytics event
                                       analyticsCommands.event({
                                         event: "autonomy_selected",
                                         distinct_id: userId,
                                         level: level,
                                       });
+
+                                      // set user properties
+                                      if (userId) {
+                                        const autonomyValue = specificityLevels[level as keyof typeof specificityLevels]
+                                          ?.title.toLowerCase();
+                                        await analyticsCommands.setProperties({
+                                          distinct_id: userId,
+                                          set: {
+                                            "llm-autonomy": autonomyValue,
+                                          },
+                                        });
+                                      }
                                     }}
                                     disabled={!customLLMEnabled.data || hyprCloudEnabled.data}
                                     className={cn(

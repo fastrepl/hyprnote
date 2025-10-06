@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::{self, CorsLayer};
 
-use crate::ModelManager;
+use crate::{events::LLMEvent, ModelManager};
 
 #[derive(Clone)]
 pub struct ServerHandle {
@@ -38,13 +38,18 @@ impl ServerHandle {
 
 #[derive(Clone)]
 pub struct ServerState {
+    pub emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>,
     pub model_manager: ModelManager,
     pub cancellation_tokens: Arc<Mutex<Vec<CancellationToken>>>,
 }
 
 impl ServerState {
-    pub fn new(model_manager: ModelManager) -> Self {
+    pub fn new(
+        emitter: impl Fn(LLMEvent) + 'static + Send + Sync,
+        model_manager: ModelManager,
+    ) -> Self {
         Self {
+            emitter: Arc::new(emitter),
             model_manager,
             cancellation_tokens: Arc::new(Mutex::new(Vec::new())),
         }
@@ -127,7 +132,7 @@ async fn chat_completions(
         tracing::info!("using_mock_provider");
         provider.chat_completions(request, &state).await
     } else {
-        let provider = LocalProvider::new(state.model_manager.clone());
+        let provider = LocalProvider::new(state.emitter.clone(), state.model_manager.clone());
         tracing::info!("using_local_provider");
         provider.chat_completions(request, &state).await
     };
@@ -138,12 +143,16 @@ async fn chat_completions(
 }
 
 struct LocalProvider {
+    emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>,
     model_manager: ModelManager,
 }
 
 impl LocalProvider {
-    fn new(model_manager: ModelManager) -> Self {
-        Self { model_manager }
+    fn new(emitter: Arc<dyn Fn(LLMEvent) + Send + Sync>, model_manager: ModelManager) -> Self {
+        Self {
+            emitter,
+            model_manager,
+        }
     }
 
     async fn chat_completions(
@@ -154,11 +163,19 @@ impl LocalProvider {
         let model = self.model_manager.get_model().await?;
         tracing::info!("loaded_model: {:?}", model.name);
 
-        build_chat_completion_response(&request, || {
-            let (stream, token) = Self::build_stream(&model, &request)?;
-            state.register_token(token.clone());
-            Ok(stream)
-        })
+        let emitter = self.emitter.clone();
+
+        build_chat_completion_response(
+            &request,
+            || {
+                let (stream, token) = Self::build_stream(&model, &request)?;
+                state.register_token(token.clone());
+                Ok(stream)
+            },
+            move |v| {
+                emitter(LLMEvent::Progress(v));
+            },
+        )
         .await
     }
 
@@ -178,33 +195,38 @@ impl LocalProvider {
             .map(hypr_llama::FromOpenAI::from_openai)
             .collect();
 
-        let grammar = request
+        let maybe_grammar = request
             .metadata
             .as_ref()
             .and_then(|v| v.get("grammar"))
             .and_then(|v| serde_json::from_value::<hypr_gbnf::Grammar>(v.clone()).ok());
 
-        let tools = request
-            .tools
-            .as_ref()
-            .map(|tools| {
-                tools
-                    .iter()
-                    .filter(|tool| tool.function.name != "update_progress")
-                    .cloned()
-                    .collect::<Vec<_>>()
-            })
-            .filter(|tools| !tools.is_empty());
+        let grammar = match maybe_grammar {
+            None => None,
+            Some(g) => {
+                if model.name == hypr_llama::ModelName::HyprLLM {
+                    match &g {
+                        hypr_gbnf::Grammar::Enhance { sections: None } => None,
+                        _ => Some(g.build()),
+                    }
+                } else {
+                    Some(g.build())
+                }
+            }
+        };
+
+        let tools = request.tools.clone();
 
         let request = hypr_llama::LlamaRequest {
             messages,
-            grammar: grammar.map(|g| g.build()),
+            grammar,
             tools,
+            max_tokens: request.max_completion_tokens,
         };
 
         let (progress_sender, mut progress_receiver) = mpsc::unbounded_channel::<f64>();
 
-        let (content_stream, cancellation_token) = model.generate_stream_with_callback(
+        let (response_stream, cancellation_token) = model.generate_stream_with_callback(
             request,
             Box::new(move |v| {
                 let _ = progress_sender.send(v);
@@ -212,13 +234,13 @@ impl LocalProvider {
         )?;
 
         let mixed_stream = async_stream::stream! {
-            tokio::pin!(content_stream);
+            tokio::pin!(response_stream);
 
             loop {
                 tokio::select! {
-                    content_result = content_stream.next() => {
-                        match content_result {
-                            Some(content) => yield StreamEvent::Content(content),
+                    response_result = response_stream.next() => {
+                        match response_result {
+                            Some(response) => yield StreamEvent::Response(response),
                             None => break,
                         }
                     },
@@ -246,11 +268,15 @@ impl MockProvider {
         state: &ServerState,
     ) -> Result<ChatCompletionResponse, crate::Error> {
         let content = crate::ONBOARDING_ENHANCED_MD;
-        build_chat_completion_response(&request, || {
-            let (stream, token) = Self::build_stream(&content);
-            state.register_token(token.clone());
-            Ok(stream)
-        })
+        build_chat_completion_response(
+            &request,
+            || {
+                let (stream, token) = Self::build_stream(&content);
+                state.register_token(token.clone());
+                Ok(stream)
+            },
+            |_v| {},
+        )
         .await
     }
 
@@ -274,8 +300,8 @@ impl MockProvider {
             .collect::<Vec<_>>();
 
         let stream = Box::pin(stream::iter(chunks).then(|chunk| async move {
-            tokio::time::sleep(Duration::from_millis(200)).await;
-            StreamEvent::Content(chunk)
+            tokio::time::sleep(Duration::from_millis(50)).await;
+            StreamEvent::Response(hypr_llama::Response::TextDelta(chunk))
         }));
 
         let cancellation_token = CancellationToken::new();
@@ -285,7 +311,7 @@ impl MockProvider {
 
 #[derive(Debug, Clone)]
 enum StreamEvent {
-    Content(String),
+    Response(hypr_llama::Response),
     Progress(f64),
 }
 
@@ -295,6 +321,7 @@ async fn build_chat_completion_response(
         Pin<Box<dyn futures_util::Stream<Item = StreamEvent> + Send>>,
         crate::Error,
     >,
+    progress_fn: impl Fn(f64) + Send + Sync + 'static,
 ) -> Result<ChatCompletionResponse, crate::Error> {
     let id = uuid::Uuid::new_v4().to_string();
     let created = std::time::SystemTime::now()
@@ -356,10 +383,26 @@ async fn build_chat_completion_response(
     if !is_stream {
         let mut stream = response_stream_fn()?;
         let mut completion = String::new();
+        let mut tool_calls = Vec::new();
 
         while let Some(event) = futures_util::StreamExt::next(&mut stream).await {
             match event {
-                StreamEvent::Content(chunk) => completion.push_str(&chunk),
+                StreamEvent::Response(response) => match response {
+                    hypr_llama::Response::TextDelta(chunk) => completion.push_str(&chunk),
+                    hypr_llama::Response::ToolCall { name, arguments } => {
+                        tool_calls.push(async_openai::types::ChatCompletionMessageToolCall {
+                            id: uuid::Uuid::new_v4().to_string(),
+                            r#type: ChatCompletionToolType::Function,
+                            function: async_openai::types::FunctionCall {
+                                name,
+                                arguments: serde_json::to_string(&arguments).unwrap_or_default(),
+                            },
+                        });
+                    }
+                    hypr_llama::Response::Reasoning(s) => {
+                        tracing::debug!("reasoning: {}", s);
+                    }
+                },
                 StreamEvent::Progress(_) => {}
             }
         }
@@ -367,7 +410,16 @@ async fn build_chat_completion_response(
         let res = CreateChatCompletionResponse {
             choices: vec![ChatChoice {
                 message: ChatCompletionResponseMessage {
-                    content: Some(completion),
+                    content: if completion.is_empty() {
+                        None
+                    } else {
+                        Some(completion)
+                    },
+                    tool_calls: if tool_calls.is_empty() {
+                        None
+                    } else {
+                        Some(tool_calls)
+                    },
                     ..empty_message
                 },
                 ..empty_choice
@@ -378,52 +430,66 @@ async fn build_chat_completion_response(
         Ok(ChatCompletionResponse::NonStream(res))
     } else {
         let source_stream = response_stream_fn()?;
-        let stream = Box::pin(source_stream.enumerate().map(move |(index, event)| {
-            let delta_template = empty_stream_response_delta.clone();
-            let response_template = base_stream_response_template.clone();
+        let stream = Box::pin(
+            source_stream
+                .enumerate()
+                .map(move |(index, event)| {
+                    let delta_template = empty_stream_response_delta.clone();
+                    let response_template = base_stream_response_template.clone();
 
-            let response = match event {
-                StreamEvent::Content(chunk) => CreateChatCompletionStreamResponse {
-                    choices: vec![ChatChoiceStream {
-                        index: 0,
-                        delta: ChatCompletionStreamResponseDelta {
-                            content: Some(chunk),
-                            ..delta_template
+                    match event {
+                        StreamEvent::Response(llama_response) => match llama_response {
+                            hypr_llama::Response::TextDelta(chunk) => {
+                                Some(Ok(CreateChatCompletionStreamResponse {
+                                    choices: vec![ChatChoiceStream {
+                                        index: 0,
+                                        delta: ChatCompletionStreamResponseDelta {
+                                            content: Some(chunk),
+                                            ..delta_template
+                                        },
+                                        finish_reason: None,
+                                        logprobs: None,
+                                    }],
+                                    ..response_template
+                                }))
+                            }
+                            hypr_llama::Response::Reasoning(_) => None,
+                            hypr_llama::Response::ToolCall { name, arguments } => {
+                                Some(Ok(CreateChatCompletionStreamResponse {
+                                    choices: vec![ChatChoiceStream {
+                                        index: 0,
+                                        delta: ChatCompletionStreamResponseDelta {
+                                            tool_calls: Some(vec![
+                                                ChatCompletionMessageToolCallChunk {
+                                                    index: index.try_into().unwrap_or(0),
+                                                    id: Some(uuid::Uuid::new_v4().to_string()),
+                                                    r#type: Some(ChatCompletionToolType::Function),
+                                                    function: Some(FunctionCallStream {
+                                                        name: Some(name),
+                                                        arguments: Some(
+                                                            serde_json::to_string(&arguments)
+                                                                .unwrap_or_default(),
+                                                        ),
+                                                    }),
+                                                },
+                                            ]),
+                                            ..delta_template
+                                        },
+                                        finish_reason: None,
+                                        logprobs: None,
+                                    }],
+                                    ..response_template
+                                }))
+                            }
                         },
-                        finish_reason: None,
-                        logprobs: None,
-                    }],
-                    ..response_template
-                },
-                StreamEvent::Progress(progress) => CreateChatCompletionStreamResponse {
-                    choices: vec![ChatChoiceStream {
-                        index: 0,
-                        delta: ChatCompletionStreamResponseDelta {
-                            tool_calls: Some(vec![ChatCompletionMessageToolCallChunk {
-                                index: index.try_into().unwrap_or(0),
-                                id: Some("progress_update".to_string()),
-                                r#type: Some(ChatCompletionToolType::Function),
-                                function: Some(FunctionCallStream {
-                                    name: Some("update_progress".to_string()),
-                                    arguments: Some(
-                                        serde_json::to_string(&serde_json::json!({
-                                            "progress": progress
-                                        }))
-                                        .unwrap(),
-                                    ),
-                                }),
-                            }]),
-                            ..delta_template
-                        },
-                        finish_reason: None,
-                        logprobs: None,
-                    }],
-                    ..response_template
-                },
-            };
-
-            Ok(response)
-        }));
+                        StreamEvent::Progress(v) => {
+                            progress_fn(v);
+                            None
+                        }
+                    }
+                })
+                .filter_map(|x| async move { x }),
+        );
 
         Ok(ChatCompletionResponse::Stream(stream))
     }

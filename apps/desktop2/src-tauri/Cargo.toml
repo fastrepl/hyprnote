@@ -1,0 +1,52 @@
+[package]
+name = "desktop2"
+version = "0.1.0"
+authors = ["you"]
+edition = "2021"
+description = "Hyprnote Desktop2 App"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "hyprnote_desktop2_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { workspace = true, features = [] }
+
+[dependencies]
+tauri = { workspace = true, features = ["specta", "macos-private-api"] }
+
+tauri-plugin-analytics = { workspace = true }
+tauri-plugin-auth = { workspace = true }
+tauri-plugin-db2 = { workspace = true }
+tauri-plugin-deep-link = { workspace = true }
+tauri-plugin-fs = { workspace = true }
+tauri-plugin-listener = { workspace = true, features = ["v1"] }
+tauri-plugin-local-stt = { workspace = true, features = ["v1"] }
+tauri-plugin-opener = { workspace = true }
+tauri-plugin-os = { workspace = true }
+tauri-plugin-sentry = { workspace = true }
+tauri-plugin-single-instance = { workspace = true }
+tauri-plugin-store = { workspace = true }
+tauri-plugin-tracing = { workspace = true }
+tauri-plugin-tray = { workspace = true, features = ["v1"] }
+tauri-plugin-updater = { workspace = true }
+tauri-plugin-windows = { workspace = true, default-features = false, features = ["v1"] }
+
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+sentry = { workspace = true, features = ["tracing"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[features]
+devtools = ["tauri/devtools"]

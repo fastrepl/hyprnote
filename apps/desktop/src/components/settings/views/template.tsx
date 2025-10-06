@@ -1,18 +1,15 @@
 import { TemplateService } from "@/utils/template-service";
-import { type Template } from "@hypr/plugin-db";
+import { commands as dbCommands, type Template } from "@hypr/plugin-db";
+import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { Trans, useLingui } from "@lingui/react/macro";
-import { CopyIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+
+import { useQuery } from "@tanstack/react-query";
+import { Plus, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { SectionsList } from "../components/template-sections";
 
@@ -21,6 +18,7 @@ interface TemplateEditorProps {
   template: Template;
   onTemplateUpdate: (template: Template) => void;
   onDelete?: () => void;
+  onDuplicate?: (template: Template) => void;
   isCreator?: boolean;
 }
 
@@ -72,9 +70,14 @@ export default function TemplateEditor({
   template,
   onTemplateUpdate,
   onDelete,
+  onDuplicate,
   isCreator = true,
 }: TemplateEditorProps) {
-  const { t } = useLingui();
+  // Load all tags from database
+  const { data: allTags = [] } = useQuery({
+    queryKey: ["all-tags"],
+    queryFn: () => dbCommands.listAllTags(),
+  });
 
   // Check if this is a built-in template
   const isBuiltinTemplate = !TemplateService.canEditTemplate(template.id);
@@ -100,11 +103,44 @@ export default function TemplateEditor({
   const [selectedEmoji, setSelectedEmoji] = useState(() => extractEmojiFromTitle(template.title || ""));
   const [emojiPopoverOpen, setEmojiPopoverOpen] = useState(false);
 
+  // Context selection state
+  const [contextType, setContextType] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Parse context_option from template
+  const parseContextOption = (contextOption: string | null) => {
+    if (!contextOption) {
+      return { type: "", selections: [] };
+    }
+    try {
+      const parsed = JSON.parse(contextOption);
+      return {
+        type: parsed.type || "",
+        selections: parsed.selections || [],
+      };
+    } catch {
+      return { type: "", selections: [] };
+    }
+  };
+
+  // Stringify context config for saving
+  const stringifyContextOption = (type: string, selections: string[]) => {
+    if (!type) {
+      return null;
+    }
+    return JSON.stringify({ type, selections });
+  };
+
   // Sync local state when template ID changes (new template loaded)
   useEffect(() => {
     setTitleText(getTitleWithoutEmoji(template.title || ""));
     setDescriptionText(template.description || "");
     setSelectedEmoji(extractEmojiFromTitle(template.title || ""));
+
+    // Parse and set context option
+    const contextConfig = parseContextOption(template.context_option);
+    setContextType(contextConfig.type);
+    setSelectedTags(contextConfig.selections);
   }, [template.id]);
 
   // Simple handlers with local state
@@ -138,8 +174,8 @@ export default function TemplateEditor({
   );
 
   const handleDuplicate = useCallback(() => {
-    // TODO: Implement duplicate functionality
-  }, []);
+    onDuplicate?.(template);
+  }, [onDuplicate, template]);
 
   const handleDelete = useCallback(() => {
     onDelete?.();
@@ -165,7 +201,7 @@ export default function TemplateEditor({
               <PopoverContent className="w-72 p-3" align="start">
                 <div className="space-y-2">
                   <h4 className="font-medium text-xs">
-                    <Trans>Emoji</Trans>
+                    Emoji
                   </h4>
                   <div className="grid grid-cols-8 gap-1">
                     {EMOJI_OPTIONS.map((emoji) => (
@@ -189,58 +225,193 @@ export default function TemplateEditor({
               value={titleText}
               onChange={handleChangeTitle}
               className="rounded-none border-0 p-0 !text-lg font-semibold focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 flex-1"
-              placeholder={t`Untitled Template`}
+              placeholder={"Untitled Template"}
             />
           </div>
 
           {isCreator && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreHorizontalIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleDuplicate} className="cursor-pointer">
-                  <CopyIcon className="mr-2 h-4 w-4" />
-                  <Trans>Duplicate</Trans>
-                </DropdownMenuItem>
-
-                {/* Only show separator and delete option for custom templates */}
-                {!isBuiltinTemplate && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleDelete}
-                      className="text-destructive hover:bg-red-100 hover:text-red-600 cursor-pointer"
-                    >
-                      <TrashIcon className="mr-2 h-4 w-4" />
-                      <Trans>Delete</Trans>
-                    </DropdownMenuItem>
-                  </>
+            <div className="flex gap-2">
+              {isBuiltinTemplate
+                ? (
+                  <Button variant="outline" size="sm" onClick={handleDuplicate}>
+                    Duplicate
+                  </Button>
+                )
+                : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="text-destructive hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                  >
+                    Delete
+                  </Button>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            </div>
           )}
         </div>
       </div>
 
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">
-          <Trans>System Instruction</Trans>
+          System Instruction
         </h2>
         <Textarea
           disabled={isReadOnly}
           value={descriptionText}
           onChange={handleChangeDescription}
-          placeholder={t`Add a system instruction...`}
-          className="h-20 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder={`Describe the summary you want to generate...
+            
+• what kind of meeting is this?
+• any format requirements?
+• what should AI remember when summarizing?`}
+          className="h-48 resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
 
+      {/* Context section - only show for custom templates */}
+      {!isBuiltinTemplate && (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">
+            Context
+          </h2>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-neutral-600">
+                Refer to past notes with:
+              </label>
+              <Select
+                disabled={isReadOnly}
+                value={contextType}
+                onValueChange={(value) => {
+                  let newContextType = "";
+                  let newSelectedTags = selectedTags;
+
+                  if (value === "none") {
+                    newContextType = "";
+                    newSelectedTags = [];
+                  } else {
+                    newContextType = value;
+                  }
+
+                  setContextType(newContextType);
+                  setSelectedTags(newSelectedTags);
+
+                  const contextOption = stringifyContextOption(newContextType, newSelectedTags);
+                  onTemplateUpdate({ ...template, context_option: contextOption });
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={"Select what to use as context..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    None (disabled)
+                  </SelectItem>
+                  <SelectItem value="tags">
+                    Tags
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Multi-select for tags */}
+            {contextType === "tags" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-neutral-600">
+                  Select tags
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
+                    {selectedTags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                      >
+                        {tag}
+                        {!isReadOnly && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                            onClick={() => {
+                              const newSelectedTags = selectedTags.filter((t) => t !== tag);
+                              setSelectedTags(newSelectedTags);
+
+                              // Save to template immediately
+                              const contextOption = stringifyContextOption(contextType, newSelectedTags);
+                              onTemplateUpdate({ ...template, context_option: contextOption });
+                            }}
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </Button>
+                        )}
+                      </Badge>
+                    ))}
+                    {selectedTags.length === 0 && (
+                      <span className="text-sm text-muted-foreground py-1">
+                        No tags selected
+                      </span>
+                    )}
+                  </div>
+                  {!isReadOnly && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-[38px] w-[38px]"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[220px] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder="Search tags..." className="h-9" />
+                          <CommandEmpty>
+                            {allTags.length === 0
+                              ? "No tags available. Create tags by tagging your notes first."
+                              : "No tag found."}
+                          </CommandEmpty>
+                          <CommandGroup className="max-h-[200px] overflow-auto">
+                            {allTags.filter(
+                              (tag) => !selectedTags.includes(tag.name),
+                            ).map((tag) => (
+                              <CommandItem
+                                key={tag.id}
+                                onSelect={() => {
+                                  if (!selectedTags.includes(tag.name)) {
+                                    const newSelectedTags = [...selectedTags, tag.name];
+                                    setSelectedTags(newSelectedTags);
+
+                                    // Save to template immediately
+                                    const contextOption = stringifyContextOption(contextType, newSelectedTags);
+                                    onTemplateUpdate({ ...template, context_option: contextOption });
+                                  }
+                                }}
+                              >
+                                {tag.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-medium">
-          <Trans>Sections</Trans>
+          Sections
         </h2>
         <SectionsList
           disabled={isReadOnly}

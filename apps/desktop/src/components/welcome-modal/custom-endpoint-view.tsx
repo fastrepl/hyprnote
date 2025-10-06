@@ -1,4 +1,3 @@
-import { Trans } from "@lingui/react/macro";
 import { useEffect, useState } from "react";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@hypr/ui/components/ui/form";
@@ -211,7 +210,7 @@ export function CustomEndpointView({
   return (
     <div className="flex flex-col items-center">
       <h2 className="text-xl font-semibold mb-3">
-        <Trans>Configure Your LLM</Trans>
+        Set up Your AI Provider
       </h2>
 
       <div className="w-full max-w-lg mb-6">
@@ -268,7 +267,7 @@ export function CustomEndpointView({
           {!selectedProvider && (
             <div className="flex items-center justify-center h-full min-h-[140px]">
               <p className="text-sm text-neutral-500">
-                <Trans>Select a provider above to configure</Trans>
+                Select a provider above to configure
               </p>
             </div>
           )}
@@ -291,7 +290,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>API Key</Trans>
+                          API Key
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -312,7 +311,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>Model</Trans>
+                          Model
                         </FormLabel>
                         <FormControl>
                           <Select
@@ -358,7 +357,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>API Key</Trans>
+                          API Key
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -379,7 +378,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>Model</Trans>
+                          Model
                         </FormLabel>
                         <FormControl>
                           <Select
@@ -435,7 +434,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>API Key</Trans>
+                          API Key
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -456,7 +455,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>Model</Trans>
+                          Model
                         </FormLabel>
                         <FormControl>
                           <Select
@@ -495,7 +494,7 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>API Base URL</Trans>
+                          API Base URL
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -515,10 +514,10 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>API Key</Trans>
+                          API Key
                           {customForm.watch("api_base") && isLocalEndpoint() && (
                             <span className="text-xs font-normal text-neutral-500 ml-1">
-                              <Trans>(Optional)</Trans>
+                              (Optional)
                             </span>
                           )}
                         </FormLabel>
@@ -541,13 +540,13 @@ export function CustomEndpointView({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs font-medium">
-                          <Trans>Model Name</Trans>
+                          Model Name
                         </FormLabel>
                         <FormControl>
                           {othersModels.isLoading && !field.value
                             ? (
                               <div className="py-0.5 text-xs text-neutral-500">
-                                <Trans>Loading models...</Trans>
+                                Loading models...
                               </div>
                             )
                             : othersModels.data && othersModels.data.length > 0
@@ -592,12 +591,12 @@ export function CustomEndpointView({
         disabled={!isConfigured}
         className="w-full max-w-sm"
       >
-        <Trans>Continue</Trans>
+        Continue
       </PushableButton>
 
       {!isConfigured && selectedProvider && (
         <p className="text-xs text-muted-foreground text-center mt-4">
-          <Trans>Complete the configuration to continue</Trans>
+          Complete the configuration to continue
         </p>
       )}
     </div>

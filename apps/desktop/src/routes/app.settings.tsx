@@ -1,8 +1,5 @@
-import { Trans, useLingui } from "@lingui/react/macro";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-adapter";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon } from "lucide-react";
+import { useEffect } from "react";
 import { z } from "zod";
 
 import { TabIcon } from "@/components/settings/components/tab-icon";
@@ -13,15 +10,18 @@ import {
   Billing,
   Calendar,
   General,
+  HelpSupport,
   Integrations,
   MCP,
   Notifications,
   Sound,
   TemplatesView,
 } from "@/components/settings/views";
+import { useHypr } from "@/contexts";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { cn } from "@hypr/ui/lib/utils";
 
-const schema = z.object({
+const validateSearch = z.object({
   tab: z.enum(TABS.map(t => t.name) as [Tab, ...Tab[]]).default("general"),
   // TODO: not ideal. should match deeplink.rs
   baseUrl: z.string().optional(),
@@ -30,47 +30,107 @@ const schema = z.object({
 
 const PATH = "/app/settings";
 export const Route = createFileRoute(PATH)({
-  validateSearch: zodValidator(schema),
+  validateSearch,
   component: Component,
 });
 
+function TabButton({ tab, isActive, onClick }: { tab: Tab; isActive: boolean; onClick: () => void }) {
+  const getTabTitle = (tab: Tab) => {
+    switch (tab) {
+      case "general":
+        return "General";
+      case "ai-llm":
+        return "Intelligence";
+      case "ai-stt":
+        return "Transcription";
+      case "calendar":
+        return "Calendar";
+      case "notifications":
+        return "Notifications";
+      case "templates":
+        return "Templates";
+      case "sound":
+        return "Sound";
+      case "integrations":
+        return "Integrations";
+      case "billing":
+        return "Billing & License";
+      case "mcp":
+        return "MCP";
+      case "help-support":
+        return "Help & Support";
+      default:
+        return tab;
+    }
+  };
+
+  return (
+    <div key={tab}>
+      <button
+        className={cn(
+          "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
+          isActive && "bg-neutral-100 font-medium",
+        )}
+        onClick={onClick}
+      >
+        <TabIcon tab={tab} />
+        <span>{getTabTitle(tab)}</span>
+      </button>
+    </div>
+  );
+}
+
 function Component() {
-  const { t } = useLingui();
   const navigate = useNavigate();
   const search = useSearch({ from: PATH });
+  const { userId } = useHypr();
+
+  useEffect(() => {
+    if (userId) {
+      const eventMap = {
+        "general": "show_settings_window_general",
+        "ai-llm": "show_settings_window_intelligence",
+        "ai-stt": "show_settings_window_transcription",
+      };
+
+      const event = eventMap[search.tab as keyof typeof eventMap];
+      if (event) {
+        analyticsCommands.event({
+          event,
+          distinct_id: userId,
+        });
+      }
+    }
+  }, [search.tab, userId]);
 
   const handleClickTab = (tab: Tab) => {
-    if (tab === "feedback") {
-      openUrl("https://hyprnote.canny.io/feature-requests");
-    } else {
-      navigate({ to: PATH, search: { ...search, tab } });
-    }
+    navigate({ to: PATH, search: { ...search, tab } });
   };
 
   const getTabTitle = (tab: Tab) => {
     switch (tab) {
       case "general":
-        return t`General`;
+        return "General";
       case "ai-llm":
-        return t`Intelligence`;
+        return "Intelligence";
       case "ai-stt":
-        return t`Transcription`;
+        return "Transcription";
       case "calendar":
-        return t`Calendar`;
+        return "Calendar";
       case "notifications":
-        return t`Notifications`;
+        return "Notifications";
       case "templates":
-        return t`Templates`;
+        return "Templates";
       case "sound":
-        return t`Sound`;
+        return "Sound";
       case "integrations":
-        return t`Integrations`;
-      case "feedback":
-        return t`Feedback`;
+        return "Integrations";
       case "billing":
-        return t`License`;
+        return "Billing & License";
       case "mcp":
-        return t`MCP`;
+        return "MCP";
+      case "help-support":
+        return "Help & Support";
       default:
         return tab;
     }
@@ -87,29 +147,32 @@ function Component() {
               className="flex items-center h-11 justify-end px-2"
             />
 
-            <div className="flex h-full flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-2">
+            <div className="flex h-[calc(100%-2.75rem)] flex-col">
+              <div className="flex-1 overflow-y-auto p-2 min-h-0">
                 <div className="space-y-1">
-                  {TABS.map((tab) => (
-                    <button
+                  {TABS.filter(tab => tab.name !== "help-support" && tab.name !== "billing").map((tab) => (
+                    <TabButton
                       key={tab.name}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
-                        search.tab === tab.name && "bg-neutral-100 font-medium",
-                      )}
+                      tab={tab.name}
+                      isActive={search.tab === tab.name}
                       onClick={() => handleClickTab(tab.name)}
-                    >
-                      <TabIcon tab={tab.name} />
-                      {tab.name === "feedback"
-                        ? (
-                          <div className="flex items-center justify-between flex-1">
-                            <Trans>Feedback</Trans>
-                            <ExternalLinkIcon className="h-3 w-3" />
-                          </div>
-                        )
-                        : <span>{getTabTitle(tab.name)}</span>}
-                    </button>
+                    />
                   ))}
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 p-2 border-t border-neutral-200">
+                <div className="space-y-1">
+                  <TabButton
+                    tab="billing"
+                    isActive={search.tab === "billing"}
+                    onClick={() => handleClickTab("billing")}
+                  />
+                  <TabButton
+                    tab="help-support"
+                    isActive={search.tab === "help-support"}
+                    onClick={() => handleClickTab("help-support")}
+                  />
                 </div>
               </div>
             </div>
@@ -140,6 +203,7 @@ function Component() {
               {search.tab === "integrations" && <Integrations />}
               {search.tab === "mcp" && <MCP />}
               {search.tab === "billing" && <Billing />}
+              {search.tab === "help-support" && <HelpSupport />}
             </div>
           </div>
         </div>

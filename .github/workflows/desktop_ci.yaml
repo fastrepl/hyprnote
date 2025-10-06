@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-latest"
+            runner: "macos-14"
           - platform: "windows"
             runner: "windows-latest"
     runs-on: ${{ matrix.runner }}
@@ -40,4 +40,4 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           target: ${{ matrix.platform }}
-      - run: cargo check -p desktop
+      - run: cargo check -p desktop && cargo check -p desktop2

@@ -21,6 +21,7 @@
   },
   "excludes": [
     ".venv",
+    ".drizzle",
     "**/*-lock.yaml",
     "**/*-lock.json",
     "**/locales",

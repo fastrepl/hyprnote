@@ -19,7 +19,7 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
-import { Trans } from "@lingui/react/macro";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AudioPermissionsView } from "./audio-permissions-view";
@@ -76,7 +76,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   /*
   const selectSTTModel = useMutation({
-    mutationFn: (model: WhisperModel) => localSttCommands.setCurrentModel(model),
+    mutationFn: (model: WhisperModel) => localSttCommands.setLocalModel(model),
   });
   */
 
@@ -348,7 +348,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             className="absolute top-6 left-6 z-20 flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 hover:bg-white/90"
           >
             <ArrowLeft className="w-4 h-4" />
-            <Trans>Back</Trans>
+            Back
           </button>
         )}
 

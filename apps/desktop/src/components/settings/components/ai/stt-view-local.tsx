@@ -4,7 +4,9 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+import { useHypr } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as localSttCommands, ServerHealth, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
@@ -28,6 +30,8 @@ const REFETCH_INTERVALS = {
 interface STTViewProps extends SharedSTTProps {
   isWerModalOpen: boolean;
   setIsWerModalOpen: (open: boolean) => void;
+  provider: "Local" | "Custom";
+  setProviderToLocal: () => void;
 }
 
 interface ModelSectionProps {
@@ -37,6 +41,9 @@ interface ModelSectionProps {
   setSelectedSTTModel: (model: string) => void;
   downloadingModels: Set<string>;
   handleModelDownload: (model: string) => void;
+  provider: "Local" | "Custom";
+  setProviderToLocal: () => void;
+  userId?: string;
 }
 
 export function STTViewLocal({
@@ -46,22 +53,21 @@ export function STTViewLocal({
   setSttModels,
   downloadingModels,
   handleModelDownload,
+  provider,
+  setProviderToLocal,
 }: STTViewProps) {
+  const { userId } = useHypr();
   const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
 
   const servers = useQuery({
     queryKey: ["local-stt-servers"],
-    queryFn: async () => {
-      const servers = await localSttCommands.getServers();
-      console.log(servers);
-      return servers;
-    },
+    queryFn: async () => localSttCommands.getServers(),
     refetchInterval: REFETCH_INTERVALS.servers,
   });
 
   const currentSTTModel = useQuery({
     queryKey: ["current-stt-model"],
-    queryFn: () => localSttCommands.getCurrentModel(),
+    queryFn: () => localSttCommands.getLocalModel(),
   });
 
   const sttModelDownloadStatus = useQuery({
@@ -133,6 +139,9 @@ export function STTViewLocal({
         setSelectedSTTModel={setSelectedSTTModel}
         downloadingModels={downloadingModels}
         handleModelDownload={handleModelDownload}
+        provider={provider}
+        setProviderToLocal={setProviderToLocal}
+        userId={userId}
       />
 
       {/* Divider - only show if pro models available */}
@@ -147,6 +156,9 @@ export function STTViewLocal({
             setSelectedSTTModel={setSelectedSTTModel}
             downloadingModels={downloadingModels}
             handleModelDownload={handleModelDownload}
+            provider={provider}
+            setProviderToLocal={setProviderToLocal}
+            userId={userId}
           />
         </>
       )}
@@ -164,6 +176,9 @@ function BasicModelsSection({
   setSelectedSTTModel,
   downloadingModels,
   handleModelDownload,
+  provider,
+  setProviderToLocal,
+  userId,
 }: ModelSectionProps) {
   const handleShowFileLocation = async () => {
     const path = await localSttCommands.modelsDir();
@@ -191,6 +206,9 @@ function BasicModelsSection({
             downloadingModels={downloadingModels}
             handleModelDownload={handleModelDownload}
             handleShowFileLocation={handleShowFileLocation}
+            provider={provider}
+            setProviderToLocal={setProviderToLocal}
+            userId={userId}
           />
         ))}
       </div>
@@ -207,6 +225,9 @@ function ProModelsSection({
   setSelectedSTTModel,
   downloadingModels,
   handleModelDownload,
+  provider,
+  setProviderToLocal,
+  userId,
 }: Omit<ModelSectionProps, "modelsToShow">) {
   const { getLicense } = useLicense();
 
@@ -240,8 +261,8 @@ function ProModelsSection({
   return (
     <section className="max-w-2xl">
       <SectionHeader
-        title="Pro Models (Beta)"
-        description="Latency and resource optimized inference engine."
+        title="Pro Models"
+        description="Resource and latency optimized. Only for pro users."
         status={status}
         docsUrl="https://docs.hyprnote.com/models"
       />
@@ -258,6 +279,9 @@ function ProModelsSection({
             downloadingModels={downloadingModels}
             handleModelDownload={handleModelDownload}
             handleShowFileLocation={handleShowFileLocation}
+            provider={provider}
+            setProviderToLocal={setProviderToLocal}
+            userId={userId}
           />
         ))}
       </div>
@@ -282,8 +306,7 @@ function SectionHeader({
   docsUrl?: string;
 }) {
   const handleClick = () => {
-    localSttCommands.stopServer(null);
-    localSttCommands.startServer(null);
+    localSttCommands.stopServer(null).then(() => localSttCommands.startServer(null));
   };
 
   return (
@@ -328,7 +351,10 @@ function ModelEntry({
   downloadingModels,
   handleModelDownload,
   handleShowFileLocation,
+  provider,
+  setProviderToLocal,
   disabled = false,
+  userId,
 }: {
   model: STTModel;
   selectedSTTModel: string;
@@ -336,18 +362,35 @@ function ModelEntry({
   downloadingModels: Set<string>;
   handleModelDownload: (model: string) => void;
   handleShowFileLocation: () => void;
+  provider: "Local" | "Custom";
+  setProviderToLocal: () => void;
   disabled?: boolean;
+  userId?: string;
 }) {
-  const isSelected = selectedSTTModel === model.key && model.downloaded;
+  // only highlight if provider is Local and this is the selected model
+  const isSelected = provider === "Local" && selectedSTTModel === model.key && model.downloaded;
   const isSelectable = model.downloaded && !disabled;
   const isDownloading = downloadingModels.has(model.key);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isSelectable) {
       setSelectedSTTModel(model.key as SupportedSttModel);
-      localSttCommands.setCurrentModel(model.key as SupportedSttModel);
-      localSttCommands.stopServer(null);
-      localSttCommands.startServer(null);
+      await localSttCommands.setLocalModel(model.key as SupportedSttModel);
+      setProviderToLocal();
+      await localSttCommands.stopServer(null);
+      await localSttCommands.startServer(null);
+
+      if (userId) {
+        const isProModel = model.key.startsWith("am-");
+        const sttType = isProModel ? "local-pro" : "local-basic";
+
+        await analyticsCommands.setProperties({
+          distinct_id: userId,
+          set: {
+            stt: sttType,
+          },
+        });
+      }
     }
   };
 

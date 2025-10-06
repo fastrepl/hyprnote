@@ -15,6 +15,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Next Steps", description: "Follow-up actions and next meeting details" },
     ],
     tags: ["general", "meeting", "agenda", "action-items", "builtin"],
+    context_option: null,
   },
   {
     id: "default-standup",
@@ -30,6 +31,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Notes", description: "Additional updates or important information" },
     ],
     tags: ["general", "standup", "daily", "progress", "blockers", "builtin"],
+    context_option: null,
   },
   {
     id: "default-weekly-review",
@@ -45,6 +47,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Improvements", description: "Areas for personal or process improvement" },
     ],
     tags: ["general", "weekly", "review", "reflection", "planning", "builtin"],
+    context_option: null,
   },
   {
     id: "default-one-on-one",
@@ -61,6 +64,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Action Items", description: "Follow-up tasks and commitments" },
     ],
     tags: ["general", "one-on-one", "1-on-1", "management", "feedback", "builtin"],
+    context_option: null,
   },
   {
     id: "default-user-interview",
@@ -77,6 +81,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Key Insights", description: "Important learnings and next steps" },
     ],
     tags: ["startup", "user-interview", "research", "feedback", "ux", "builtin"],
+    context_option: null,
   },
   {
     id: "default-b2b-discovery",
@@ -93,6 +98,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Next Steps", description: "Follow-up actions and timeline" },
     ],
     tags: ["startup", "b2b", "discovery", "sales", "customer", "builtin"],
+    context_option: null,
   },
   {
     id: "default-b2b-pilot",
@@ -109,6 +115,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Next Phase", description: "Plans for expansion or full deployment" },
     ],
     tags: ["startup", "b2b", "pilot", "customer", "progress", "builtin"],
+    context_option: null,
   },
   {
     id: "default-job-interview",
@@ -125,6 +132,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Overall Evaluation", description: "Recommendation and hiring decision" },
     ],
     tags: ["general", "job-interview", "hiring", "candidate", "assessment", "builtin"],
+    context_option: null,
   },
   {
     id: "default-patient-visit",
@@ -141,6 +149,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Follow-up", description: "Next appointment and monitoring plan" },
     ],
     tags: ["patient", "medical", "healthcare", "consultation", "builtin"],
+    context_option: null,
   },
   {
     id: "default-client-meeting-legal",
@@ -157,6 +166,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Next Steps", description: "Action items and follow-up tasks" },
     ],
     tags: ["legal", "client", "case", "consultation", "builtin"],
+    context_option: null,
   },
   {
     id: "default-therapy-session",
@@ -173,6 +183,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Homework", description: "Tasks and exercises for next session" },
     ],
     tags: ["healthcare", "therapy", "counseling", "mental-health", "session", "builtin"],
+    context_option: null,
   },
   {
     id: "default-brainstorming",
@@ -189,6 +200,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Action Items", description: "Who does what and when" },
     ],
     tags: ["startup", "brainstorming", "creative", "ideation", "innovation", "builtin"],
+    context_option: null,
   },
   {
     id: "default-coffee-chat",
@@ -205,6 +217,7 @@ export const DEFAULT_TEMPLATES: Template[] = [
       { title: "Follow-up", description: "How to stay in touch and next steps" },
     ],
     tags: ["casual", "coffee-chat", "networking", "relationship", "informal", "builtin"],
+    context_option: null,
   },
 ];
 

@@ -1,4 +1,3 @@
-import { Trans, useLingui } from "@lingui/react/macro";
 import { FileTextIcon, SearchIcon } from "lucide-react";
 
 import { type Template } from "@hypr/plugin-db";
@@ -21,8 +20,6 @@ export function TemplatesSidebar({
   selectedTemplate,
   onTemplateSelect,
 }: TemplatesSidebarProps) {
-  const { t } = useLingui();
-
   return (
     <>
       <div className="p-2">
@@ -30,7 +27,7 @@ export function TemplatesSidebar({
           <SearchIcon className="absolute left-2 h-4 w-4 text-neutral-400" />
           <input
             type="text"
-            placeholder={t`Search templates...`}
+            placeholder={"Search templates..."}
             className="w-full rounded-md border border-neutral-200 bg-white py-1 pl-8 pr-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
             value={searchQuery}
             onChange={onSearchChange}
@@ -42,7 +39,7 @@ export function TemplatesSidebar({
           {customTemplates.length > 0 && (
             <div>
               <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
-                <Trans>Your Templates</Trans>
+                Your Templates
               </h3>
               <div className="space-y-1">
                 {customTemplates.map((template) => (
@@ -65,7 +62,7 @@ export function TemplatesSidebar({
           {builtinTemplates.length > 0 && (
             <div>
               <h3 className="mb-1 px-2 text-xs font-medium uppercase text-neutral-500">
-                <Trans>Built-in Templates</Trans>
+                Built-in Templates
               </h3>
               <div className="space-y-1">
                 {builtinTemplates.map((template) => (

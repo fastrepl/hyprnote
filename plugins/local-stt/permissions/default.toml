@@ -12,4 +12,12 @@ permissions = [
     "allow-set-current-model",
     "allow-list-supported-models",
     "allow-list-supported-languages",
+    "allow-get-custom-base-url",
+    "allow-get-custom-api-key",
+    "allow-set-custom-base-url",
+    "allow-set-custom-api-key",
+    "allow-get-provider", 
+    "allow-set-provider", 
+    "allow-get-custom-model", 
+    "allow-set-custom-model",
 ]

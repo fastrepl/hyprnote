@@ -7,29 +7,13 @@ use ext::*;
 use store::*;
 
 use tauri_plugin_opener::OpenerExt;
-use tauri_plugin_windows::{HyprWindow, WindowsPluginExt};
-
-use tracing_subscriber::{
-    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
-};
+use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
-    {
-        let env_filter = EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new("info"))
-            .add_directive("ort=warn".parse().unwrap());
-
-        tracing_subscriber::Registry::default()
-            .with(fmt::layer())
-            .with(env_filter)
-            .with(tauri_plugin_sentry::sentry::integrations::tracing::layer())
-            .init();
-    }
-
-    let sentry_client = tauri_plugin_sentry::sentry::init((
+    let sentry_client = sentry::init((
         {
             #[cfg(not(debug_assertions))]
             {
@@ -41,8 +25,8 @@ pub async fn main() {
                 option_env!("SENTRY_DSN").unwrap_or_default()
             }
         },
-        tauri_plugin_sentry::sentry::ClientOptions {
-            release: tauri_plugin_sentry::sentry::release_name!(),
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
             traces_sample_rate: 1.0,
             auto_session_tracking: true,
             ..Default::default()
@@ -57,7 +41,7 @@ pub async fn main() {
     // should always be the first plugin
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.window_show(HyprWindow::Main).unwrap();
+            app.window_show(AppWindow::Main).unwrap();
         }));
     }
 
@@ -71,6 +55,7 @@ pub async fn main() {
         .plugin(tauri_plugin_sse::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_db::init())
+        .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
@@ -88,7 +73,6 @@ pub async fn main() {
         .plugin(tauri_plugin_obsidian::init())
         .plugin(tauri_plugin_sfx::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -101,10 +85,9 @@ pub async fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec![]),
+            Some(vec!["--background"]),
         ));
 
     {
@@ -137,13 +120,16 @@ pub async fn main() {
         builder = builder.plugin(tauri_plugin_apple_calendar::init())
     }
 
-    #[cfg(not(debug_assertions))]
+    #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {
         let plugin = tauri_plugin_prevent_default::init();
         builder = builder.plugin(plugin);
     }
 
     let specta_builder = make_specta_builder();
+
+    let args: Vec<String> = std::env::args().collect();
+    let is_background_launch = args.contains(&"--background".to_string());
 
     let app = builder
         .invoke_handler({
@@ -158,7 +144,7 @@ pub async fn main() {
 
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
-                use tauri_plugin_windows::WindowsPluginExt;
+                use tauri_plugin_windows::{Navigate, WindowsPluginExt};
 
                 let app_clone = app.clone();
 
@@ -170,12 +156,17 @@ pub async fn main() {
                         return;
                     };
 
-                    let actions = deeplink::parse(url);
+                    let actions = deeplink::parse(&url);
+                    tracing::info!(url = url, actions = ?actions, "deeplink");
+
                     for action in actions {
                         match action {
                             deeplink::DeeplinkAction::OpenInternal(window, url) => {
-                                if app_clone.window_show(window.clone()).is_ok() {
-                                    let _ = app_clone.window_navigate(window, &url);
+                                if let Ok(navigate) = url.parse::<Navigate>() {
+                                    tracing::info!(navigate = ?navigate, "deeplink");
+                                    if app_clone.window_show(window.clone()).is_ok() {
+                                        let _ = app_clone.window_emit_navigate(window, navigate);
+                                    }
                                 }
                             }
                             deeplink::DeeplinkAction::OpenExternal(url) => {
@@ -216,30 +207,26 @@ pub async fn main() {
                                 let _ =
                                     sentry_client.close(Some(std::time::Duration::from_secs(1)));
                             }
+
+                            {
+                                use tauri_plugin_autostart::ManagerExt;
+                                let autostart_manager = app_clone.autolaunch();
+                                if config.general.autostart {
+                                    let _ = autostart_manager.enable();
+                                } else {
+                                    let _ = autostart_manager.disable();
+                                }
+                            }
                         }
 
-                        tauri_plugin_sentry::sentry::configure_scope(|scope| {
-                            scope.set_user(Some(tauri_plugin_sentry::sentry::User {
+                        sentry::configure_scope(|scope| {
+                            scope.set_user(Some(sentry::User {
                                 id: Some(user_id.clone()),
                                 ..Default::default()
                             }));
                         });
                     }
                 }
-
-                // Start event notification after DB is initialized
-                {
-                    use tauri_plugin_notification::NotificationPluginExt;
-                    if app_clone.get_event_notification().unwrap_or(false) {
-                        if let Err(e) = app_clone.start_event_notification().await {
-                            tracing::error!("start_event_notification_failed: {:?}", e);
-                        }
-                    }
-                }
-
-                tokio::spawn(async move {
-                    app_clone.setup_local_ai().await.unwrap();
-                });
             });
 
             Ok(())
@@ -247,13 +234,15 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
-    let app_handle = app.handle().clone();
-    HyprWindow::Main.show(&app_handle).unwrap();
+    if !is_background_launch {
+        let app_handle = app.handle().clone();
+        AppWindow::Main.show(&app_handle).unwrap();
+    }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
-            HyprWindow::Main.show(app).unwrap();
+            AppWindow::Main.show(app).unwrap();
         }
     });
 }
@@ -264,7 +253,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::sentry_dsn::<tauri::Wry>,
             commands::is_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
-            commands::setup_db_for_cloud::<tauri::Wry>,
             commands::set_autostart::<tauri::Wry>,
             commands::is_individualization_needed::<tauri::Wry>,
             commands::set_individualization_needed::<tauri::Wry>,

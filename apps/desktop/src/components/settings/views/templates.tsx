@@ -1,6 +1,6 @@
-import { Trans } from "@lingui/react/macro";
+import { showProGateModal } from "@/components/pro-gate-modal/service";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { message } from "@tauri-apps/plugin-dialog";
 import { open } from "@tauri-apps/plugin-shell";
 import { ArrowLeftIcon, CheckIcon, InfoIcon, Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function TemplatesView() {
     setViewState("editor");
   };
 
-  const handleNewTemplate = () => {
+  const handleNewTemplate = async () => {
     if (!getLicense.data?.valid) {
       if (customTemplates.length > 1) {
         analyticsCommands.event({
@@ -117,10 +117,7 @@ export default function TemplatesView() {
           distinct_id: userId,
         });
 
-        message("Free users can create only two custom templates. Upgrade to Pro for unlimited templates.", {
-          title: "Pro License Required",
-          kind: "info",
-        });
+        await showProGateModal("template");
         return;
       }
     }
@@ -137,6 +134,7 @@ export default function TemplatesView() {
       description: "",
       sections: [],
       tags: [],
+      context_option: null,
     };
     setSelectedTemplate(newTemplate);
     setViewState("new");
@@ -199,6 +197,44 @@ export default function TemplatesView() {
     }
   };
 
+  const handleDuplicateTemplate = async (template: Template) => {
+    try {
+      if (!getLicense.data?.valid) {
+        analyticsCommands.event({
+          event: "pro_license_required_template",
+          distinct_id: userId,
+        });
+        await showProGateModal("template_duplicate");
+        return;
+      }
+
+      const emojiMatch = template.title?.match(/^(\p{Emoji})\s*/u);
+      const originalEmoji = emojiMatch ? emojiMatch[1] : "📄";
+      const titleWithoutEmoji = template.title?.replace(/^(\p{Emoji})\s*/u, "") || "Untitled";
+      const duplicatedTemplate: Template = {
+        ...template,
+        id: crypto.randomUUID(),
+        user_id: userId,
+        title: `${originalEmoji} ${titleWithoutEmoji} (Copy)`,
+        tags: template.tags?.filter(tag => tag !== "builtin") || [],
+      };
+
+      await TemplateService.saveTemplate(duplicatedTemplate);
+
+      await loadTemplates();
+
+      setSelectedTemplate(duplicatedTemplate);
+      setViewState("editor");
+
+      analyticsCommands.event({
+        event: "template_duplicated",
+        distinct_id: userId,
+      });
+    } catch (error) {
+      console.error("Failed to duplicate template:", error);
+    }
+  };
+
   // Check if current template is being viewed (read-only)
   const isViewingTemplate = selectedTemplate && !TemplateService.canEditTemplate(selectedTemplate.id);
 
@@ -214,7 +250,7 @@ export default function TemplatesView() {
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeftIcon className="h-4 w-4" />
-            <Trans>{isViewingTemplate ? "Back" : "Save and close"}</Trans>
+            {isViewingTemplate ? "Back" : "Save and close"}
           </Button>
         </div>
 
@@ -224,6 +260,7 @@ export default function TemplatesView() {
             template={selectedTemplate}
             onTemplateUpdate={handleTemplateUpdate}
             onDelete={handleTemplateDeleteFromEditor}
+            onDuplicate={handleDuplicateTemplate}
             isCreator={true}
           />
         )}
@@ -237,7 +274,7 @@ export default function TemplatesView() {
       <div className="flex flex-col items-center justify-center h-32 space-y-2">
         <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          <Trans>Loading templates...</Trans>
+          Loading templates...
         </p>
       </div>
     );
@@ -252,7 +289,7 @@ export default function TemplatesView() {
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                <Trans>Your Templates</Trans>
+                Your Templates
               </div>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -266,12 +303,12 @@ export default function TemplatesView() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <Trans>Learn more about templates</Trans>
+                  Learn more about templates
                 </TooltipContent>
               </Tooltip>
             </div>
             <div className="text-sm text-muted-foreground">
-              <Trans>Select a template to enhance your meeting notes</Trans>
+              Select a template to enhance your meeting notes
             </div>
           </div>
 
@@ -303,10 +340,10 @@ export default function TemplatesView() {
             : (
               <div className="flex flex-col items-center justify-center py-8 px-6 text-center bg-neutral-50 border border-neutral-200 rounded-lg">
                 <div className="text-sm font-medium text-neutral-600 mb-1">
-                  <Trans>No templates yet</Trans>
+                  No templates yet
                 </div>
                 <div className="text-xs text-neutral-500">
-                  <Trans>Create your first template to get started</Trans>
+                  Create your first template to get started
                 </div>
               </div>
             )}
@@ -316,7 +353,7 @@ export default function TemplatesView() {
         {builtinTemplates.length > 0 && (
           <div>
             <div className="text-sm font-medium mb-2">
-              <Trans>Built-in Templates</Trans>
+              Built-in Templates
             </div>
             <div className="space-y-2">
               {builtinTemplates.map((template) => (

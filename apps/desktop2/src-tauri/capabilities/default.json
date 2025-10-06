@@ -1,0 +1,31 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["*"],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-close",
+    "core:window:allow-show",
+    "core:window:allow-center",
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-position",
+    "core:window:allow-is-maximized",
+    "core:window:allow-toggle-maximize",
+    "opener:default",
+    "db2:default",
+    "windows:default",
+    "tracing:default",
+    "tray:default",
+    "auth:default",
+    "analytics:default",
+    "updater:default",
+    "deep-link:default"
+  ]
+}

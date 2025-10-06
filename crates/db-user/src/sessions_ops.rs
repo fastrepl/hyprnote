@@ -5,11 +5,11 @@ use super::{
 use uuid;
 
 impl UserDatabase {
-    pub fn onboarding_session_id(&self) -> String {
+    pub fn onboarding_session_id() -> String {
         "df1d8c52-6d9d-4471-aff1-5dbd35899cbe".to_string()
     }
 
-    pub fn thank_you_session_id(&self) -> String {
+    pub fn thank_you_session_id() -> String {
         "872cf207-6a28-4229-bd66-492d0dce43c0".to_string()
     }
 
@@ -109,28 +109,6 @@ impl UserDatabase {
     pub async fn delete_session(&self, id: impl Into<String>) -> Result<(), crate::Error> {
         let session_id = id.into();
         let conn = self.conn()?;
-
-        let mut rows = conn
-            .query(
-                "SELECT id FROM chat_groups WHERE session_id = ?",
-                vec![session_id.clone()],
-            )
-            .await?;
-
-        while let Some(row) = rows.next().await? {
-            let group_id: String = row.get(0)?;
-            conn.execute(
-                "DELETE FROM chat_messages WHERE group_id = ?",
-                vec![group_id],
-            )
-            .await?;
-        }
-
-        conn.execute(
-            "DELETE FROM chat_groups WHERE session_id = ?",
-            vec![session_id.clone()],
-        )
-        .await?;
 
         conn.execute("DELETE FROM sessions WHERE id = ?", vec![session_id])
             .await?;

@@ -1,9 +1,13 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
+import { PanelLeftOpenIcon } from "lucide-react";
 
 import NoteEditor from "@hypr/tiptap/editor";
+import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
+import { ScrollArea, ScrollBar } from "@hypr/ui/components/ui/scroll-area";
+import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
 import { Tab } from "../../types";
@@ -12,8 +16,8 @@ export function MainContent({ tabs }: { tabs: Tab[] }) {
   const activeTab = tabs.find((t) => t.active)!;
 
   return (
-    <div className="flex flex-col gap-2">
-      <Tabs tabs={tabs} />
+    <div className="flex flex-col">
+      <TabsHeader tabs={tabs} />
       <TabContent tab={activeTab} />
     </div>
   );
@@ -22,6 +26,8 @@ export function MainContent({ tabs }: { tabs: Tab[] }) {
 export function MainHeader() {
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
+  const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
 
   const handleClickSettings = () => {
     windowsCommands.windowShow({ type: "settings" });
@@ -40,8 +46,17 @@ export function MainHeader() {
       className={clsx([
         "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
         "border-border bg-neutral-50",
+        "pl-[82px]",
       ])}
     >
+      {!isLeftPanelExpanded
+        && (
+          <PanelLeftOpenIcon
+            onClick={toggleLeftPanel}
+            className="cursor-pointer h-5 w-5"
+          />
+        )}
+
       <div
         className="flex items-center justify-start"
         data-tauri-drag-region
@@ -57,29 +72,37 @@ export function MainHeader() {
           New note
         </button>
       </div>
+
+      <ChatPanelButton
+        isExpanded={isRightPanelExpanded}
+        togglePanel={toggleRightPanel}
+      />
     </header>
   );
 }
 
-function Tabs({ tabs }: { tabs: Tab[] }) {
+function TabsHeader({ tabs }: { tabs: Tab[] }) {
   const { select, close } = useTabs();
 
   return (
-    <div className="flex flex-row gap-2">
-      {tabs.map((tab) => (
-        <TabHeader
-          key={tab.id}
-          tab={tab}
-          active={tab.active}
-          handleSelect={select}
-          handleClose={close}
-        />
-      ))}
-    </div>
+    <ScrollArea className="w-full border-b whitespace-nowrap">
+      <div className="flex w-max gap-1">
+        {tabs.map((tab) => (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            active={tab.active}
+            handleSelect={select}
+            handleClose={close}
+          />
+        ))}
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }
 
-function TabHeader(
+function TabItem(
   { tab, active, handleSelect, handleClose }: {
     tab: Tab;
     active: boolean;
@@ -92,21 +115,23 @@ function TabHeader(
   return (
     <div
       className={clsx([
-        "flex items-center gap-2",
-        "border border-gray-300 rounded py-0.5 px-2",
-        active && "bg-blue-100",
+        "flex items-center gap-2 shrink-0",
+        "border-x rounded px-3 py-1.5",
+        active
+          ? "border-border bg-background text-foreground"
+          : "border-transparent bg-muted/50 hover:bg-muted text-muted-foreground",
       ])}
     >
       <button
         onClick={() => handleSelect(tab)}
-        className="truncate max-w-[120px]"
+        className="text-sm truncate max-w-[120px]"
       >
         {title}
       </button>
       {active && (
         <button
           onClick={() => handleClose(tab)}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground text-xs"
         >
           ✕
         </button>
@@ -135,7 +160,7 @@ function TabContent({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 px-2 pt-2">
       <TitleInput
         value={row.title ?? ""}
         editable={true}

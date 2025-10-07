@@ -12,13 +12,13 @@ import { ChatInput } from "@hypr/ui/components/chat/chat-input";
 import { ChatMessagesView } from "@hypr/ui/components/chat/chat-messages-view";
 import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons";
 import { useRightPanel, useSessions } from "@hypr/utils/contexts";
-import { ChatSession, EmptyChatState } from "../components/chat";
+import { ChatSession, EmptyChatState } from "./components/chat";
 
-import { useActiveEntity } from "../hooks/useActiveEntity";
-import { useChat2 } from "../hooks/useChat2";
-import { useChatInput } from "../hooks/useChatInput";
-import { useChatQueries2 } from "../hooks/useChatQueries2";
-import { focusInput, formatDate } from "../utils/chat-utils";
+import { useActiveEntity } from "./hooks/useActiveEntity";
+import { useChat2 } from "./hooks/useChat2";
+import { useChatInput } from "./hooks/useChatInput";
+import { useChatQueries2 } from "./hooks/useChatQueries2";
+import { focusInput, formatDate } from "./utils/chat-utils";
 
 export function ChatView() {
   return ChatViewInner();

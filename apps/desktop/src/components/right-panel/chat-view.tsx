@@ -14,12 +14,12 @@ import {
   ChatSession,
   EmptyChatState,
   FloatingActionButtons,
-} from "../components/chat";
+} from "./components/chat";
 
-import { useActiveEntity } from "../hooks/useActiveEntity";
-import { useChat2 } from "../hooks/useChat2";
-import { useChatQueries2 } from "../hooks/useChatQueries2";
-import { focusInput, formatDate } from "../utils/chat-utils";
+import { useActiveEntity } from "./hooks/useActiveEntity";
+import { useChat2 } from "./hooks/useChat2";
+import { useChatQueries2 } from "./hooks/useChatQueries2";
+import { focusInput, formatDate } from "./utils/chat-utils";
 
 export function ChatView() {
   const navigate = useNavigate();

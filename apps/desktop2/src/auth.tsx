@@ -1,4 +1,4 @@
-import { createClient, processLock, type Session, type SupportedStorage } from "@supabase/supabase-js";
+import { createClient, processLock, type Session, SupabaseClient, type SupportedStorage } from "@supabase/supabase-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -37,7 +37,12 @@ const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY
   })
   : null;
 
-const AuthContext = createContext<any | undefined>(undefined);
+const AuthContext = createContext<
+  {
+    supabase: SupabaseClient | null;
+    session: Session | null;
+  } | null
+>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);

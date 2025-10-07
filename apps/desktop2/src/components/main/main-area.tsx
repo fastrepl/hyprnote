@@ -1,7 +1,7 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { PanelLeftOpenIcon } from "lucide-react";
+import { CogIcon, PanelLeftOpenIcon, PencilIcon } from "lucide-react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
@@ -58,19 +58,17 @@ export function MainHeader() {
         )}
 
       <div
-        className="flex items-center justify-start"
+        className="flex items-center justify-start gap-2"
         data-tauri-drag-region
       >
-        <button
+        <CogIcon
           onClick={handleClickSettings}
-        >
-          Setting
-        </button>
-        <button
+          className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
+        />
+        <PencilIcon
           onClick={handleClickNewNote}
-        >
-          New note
-        </button>
+          className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
+        />
       </div>
 
       <ChatPanelButton

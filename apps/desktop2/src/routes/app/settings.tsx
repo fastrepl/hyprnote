@@ -1,13 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import clsx from "clsx";
+import { z } from "zod";
 import { useValidatedRow } from "../../hooks/useValidatedRow";
 import * as persisted from "../../tinybase/store/persisted";
 
+const TABS = ["general", "calendar", "account"] as const;
+
+const validateSearch = z.object({
+  tab: z.enum(TABS).default("general"),
+});
+
 export const Route = createFileRoute("/app/settings")({
+  validateSearch,
   component: Component,
 });
 
 function Component() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  return (
+    <div>
+      <div className="flex flex-col gap-2">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            className={clsx(["w-32 px-2 py-1 rounded", search.tab === tab && "bg-gray-200"])}
+            onClick={() => navigate({ search: { tab } })}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+      {search.tab === "general" && <SettingsGeneral />}
+    </div>
+  );
+}
+
+function SettingsGeneral() {
   const rowIds = persisted.UI.useResultRowIds(
     persisted.QUERIES.configForUser,
     persisted.STORE_ID,

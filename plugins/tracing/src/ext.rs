@@ -59,14 +59,20 @@ pub const JS_INIT_SCRIPT: &str = r#"
             return;
         }
         
+        const originalLog = console.log.bind(console);
+        const originalDebug = console.debug.bind(console);
+        const originalInfo = console.info.bind(console);
+        const originalWarn = console.warn.bind(console);
+        const originalError = console.error.bind(console);
+        
         const invoke = window.__TAURI__.core.invoke;
         const log = (level, ...args) => invoke('plugin:tracing|do_log', { level, data: args });
         
-        console.log = (...args) => log('INFO', ...args);
-        console.debug = (...args) => log('DEBUG', ...args);
-        console.info = (...args) => log('INFO', ...args);
-        console.warn = (...args) => log('WARN', ...args);
-        console.error = (...args) => log('ERROR', ...args);
+        console.log = (...args) => { originalLog(...args); log('INFO', ...args); };
+        console.debug = (...args) => { originalDebug(...args); log('DEBUG', ...args); };
+        console.info = (...args) => { originalInfo(...args); log('INFO', ...args); };
+        console.warn = (...args) => { originalWarn(...args); log('WARN', ...args); };
+        console.error = (...args) => { originalError(...args); log('ERROR', ...args); };
     }
     
     initConsoleOverride();

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-
 import clsx from "clsx";
 import { z } from "zod";
+
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { useAuth } from "../../auth";
 import { useValidatedRow } from "../../hooks/useValidatedRow";
 import * as persisted from "../../tinybase/store/persisted";
 
@@ -21,40 +23,58 @@ function Component() {
   const navigate = Route.useNavigate();
 
   return (
-    <div>
-      <div className="flex flex-col gap-2">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            className={clsx(["w-32 px-2 py-1 rounded", search.tab === tab && "bg-gray-200"])}
-            onClick={() => navigate({ search: { tab } })}
-          >
-            {tab}
-          </button>
-        ))}
+    <div className="flex h-full">
+      <div className="w-60 border-r flex flex-col">
+        <div data-tauri-drag-region className="h-11" />
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              className={clsx(
+                "flex w-full items-center gap-2 rounded-lg p-2 text-sm text-neutral-600 hover:bg-neutral-100",
+                search.tab === tab && "bg-neutral-100 font-medium",
+              )}
+              onClick={() => navigate({ search: { tab } })}
+            >
+              <span className="capitalize">{tab}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      {search.tab === "general" && <SettingsGeneral />}
+
+      <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
+        <header
+          data-tauri-drag-region
+          className="h-11 w-full flex items-center justify-between border-b px-2"
+        >
+          <div className="w-40"></div>
+          <h1 data-tauri-drag-region className="text-md font-semibold capitalize">{search.tab}</h1>
+          <div className="w-40"></div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-6 w-full">
+          {search.tab === "general" && <SettingsGeneral />}
+          {search.tab === "calendar" && <SettingsCalendar />}
+          {search.tab === "account" && <SettingsAccount />}
+        </div>
+      </div>
     </div>
   );
 }
 
 function SettingsGeneral() {
-  const rowIds = persisted.UI.useResultRowIds(
-    persisted.QUERIES.configForUser,
-    persisted.STORE_ID,
-  );
-  const rowId = rowIds?.[0] ?? "";
+  const res = persisted.useConfig();
+  if (!res) {
+    return null;
+  }
+  const { id, config } = res;
 
-  const config = persisted.UI.useResultRow(
-    persisted.QUERIES.configForUser,
-    rowId,
-    persisted.STORE_ID,
-  ) as unknown as persisted.Config | undefined;
+  const parsedConfig = persisted.configSchema.parse(config);
 
   const handleUpdate = persisted.UI.useSetRowCallback(
     "configs",
-    rowId,
-    (row: persisted.Config, _store) => ({
+    id,
+    (row: persisted.Config) => ({
       ...row,
       spoken_languages: JSON.stringify(row.spoken_languages),
       jargons: JSON.stringify(row.jargons),
@@ -62,16 +82,36 @@ function SettingsGeneral() {
         ? JSON.stringify(row.notification_ignored_platforms)
         : undefined,
     }),
-    [rowId],
+    [id],
     persisted.STORE_ID,
   );
 
-  const r = useValidatedRow(persisted.configSchema, config, handleUpdate);
+  const r = useValidatedRow(persisted.configSchema, parsedConfig, handleUpdate);
 
   return (
     <div>
       <pre>{JSON.stringify(config, null, 2)}</pre>
-      <pre>{JSON.stringify(r, null, 2)}</pre>
+      <input
+        type="checkbox"
+        onChange={(e) => r.setField("save_recordings", e.target.checked)}
+      />
+    </div>
+  );
+}
+
+function SettingsCalendar() {
+  return null;
+}
+
+function SettingsAccount() {
+  const s = useAuth();
+
+  const handleAuth = () => windowsCommands.windowShow({ type: "auth" });
+
+  return (
+    <div>
+      <pre>{JSON.stringify(s?.session)}</pre>
+      <button onClick={handleAuth}>Auth</button>
     </div>
   );
 }

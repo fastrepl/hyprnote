@@ -1,7 +1,6 @@
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { diffWords } from "diff";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHypr } from "@/contexts";
@@ -23,6 +22,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
+import { showTipsModal } from "../tips-modal/service";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { LocalSearchBar } from "./local-search-bar";
@@ -65,7 +65,6 @@ async function shouldShowTipsModal(
     return false;
   }
 }
-import { showTipsModal } from "../tips-modal/service";
 
 async function generateTitleDirect(
   enhancedContent: string,
@@ -146,7 +145,6 @@ export default function EditorArea({
   const showRaw = useSession(sessionId, (s) => s.showRaw);
   const activeTab = useSession(sessionId, (s) => s.activeTab);
   const { userId, onboardingSessionId, thankYouSessionId } = useHypr();
-  // const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
 
   const [rawContent, setRawContent] = useSession(sessionId, (s) => [
     s.session?.raw_memo_html ?? "",
@@ -231,12 +229,6 @@ export default function EditorArea({
             if (shouldShow) {
               localStorage.setItem(TIPS_MODAL_SHOWN_KEY, "true");
               showTipsModal(userId);
-            } else {
-              // comment out to turn off auto-open chat panel
-
-              // if (!isRightPanelExpanded) {
-              // toggleRightPanel("chat");
-              // }
             }
           } catch (error) {
             console.error("Failed to show tips modal:", error);
@@ -327,24 +319,12 @@ export default function EditorArea({
         onClose={() => setIsFloatingSearchVisible(false)}
         isVisible={isFloatingSearchVisible}
       />
-      {/* Date placeholder - closer when search bar is visible */}
       <div
         className={cn([
           "flex justify-center pb-4 px-8",
-          isFloatingSearchVisible ? "pt-1" : "pt-1", // ← Less top padding when search bar is visible
+          isFloatingSearchVisible ? "pt-1" : "pt-1",
         ])}
       >
-        {
-          /*
-        <MetadataModal sessionId={sessionId} hashtags={hashtags}>
-          <div className="cursor-pointer px-2 py-1">
-            <span className="text-xs text-neutral-300 font-medium transition-colors">
-              Today, December 19, 2024
-            </span>
-          </div>
-        </MetadataModal>
-        */
-        }
       </div>
 
       <NoteHeader
@@ -432,19 +412,6 @@ export default function EditorArea({
         </div>
       </div>
 
-      {
-        /**
-         * FloatingSearchBox temporarily disabled in favor of LocalSearchBar
-         * <FloatingSearchBox
-         *   key={activeTab}
-         *   editorRef={activeTab === 'transcript' ? transcriptRef : editorRef}
-         *   onClose={() => setIsFloatingSearchVisible(false)}
-         *   isVisible={isFloatingSearchVisible}
-         * />
-         */
-      }
-
-      {/* Add the text selection popover - but not for onboarding sessions */}
       {sessionId !== onboardingSessionId && (
         <TextSelectionPopover
           isEnhancedNote={isEnhancedNote}
@@ -463,33 +430,6 @@ export default function EditorArea({
           onCancel={handleCancelAnnotation}
         />
       )}
-
-      {
-        /*<AnimatePresence>
-        <motion.div
-          className="absolute bottom-4 w-full flex justify-center items-center pointer-events-none z-10"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 50, opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-
-          <div className="pointer-events-auto">
-            <FloatingButton
-              key={`floating-button-${sessionId}`}
-              handleEnhance={handleClickEnhance}
-              handleEnhanceWithTemplate={handleEnhanceWithTemplate}
-              templates={templatesQuery.data || []}
-              session={sessionStore.session}
-              isError={enhance.status === "error" && !isCancelled}
-              progress={progress}
-              showProgress={llmConnectionQuery.data?.type === "HyprLocal" && sessionId !== onboardingSessionId}
-              userId={userId}
-            />
-          </div>
-        </motion.div>
-      </AnimatePresence>*/
-      }
     </div>
   );
 }

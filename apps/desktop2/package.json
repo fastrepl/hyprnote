@@ -25,6 +25,7 @@
     "@tanstack/react-router": "^1.132.41",
     "@tanstack/react-virtual": "^3.13.12",
     "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-deep-link": "^2.4.3",
     "@tauri-apps/plugin-opener": "^2.5.0",
     "@tauri-apps/plugin-store": "^2.4.0",
     "clsx": "^2.1.1",

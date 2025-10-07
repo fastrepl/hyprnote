@@ -87,13 +87,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        #[cfg(feature = "v1")]
+        const OUTPUT_FILE: &str = "./js/bindings.v1.gen.ts";
+
+        #[cfg(not(feature = "v1"))]
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
                     .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
             .unwrap()
     }

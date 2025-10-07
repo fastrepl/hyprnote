@@ -1,7 +1,7 @@
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { ResizablePanel } from "@hypr/ui/components/ui/resizable";
 import { useRightPanel } from "@hypr/utils/contexts";
-import { ChatView } from "./views";
+import { ChatView } from "./chat-view";
 
 export default function RightPanel() {
   const { isExpanded } = useRightPanel();

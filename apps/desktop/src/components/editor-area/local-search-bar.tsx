@@ -1,9 +1,10 @@
+import { ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { type TiptapEditor } from "@hypr/tiptap/editor";
 import { type TranscriptEditorRef } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 interface LocalSearchBarProps {
   editorRef: React.RefObject<TranscriptEditorRef | null> | React.RefObject<{ editor: TiptapEditor | null }>;

@@ -299,7 +299,7 @@ export function ChatInput(
           margin: 0 !important;
           display: block !important;  
         }
-        .chat-editor .mention:not(.selection-ref) {
+        .chat-editor .mention{
           color: #3b82f6 !important;
           font-weight: 500 !important;
           text-decoration: none !important;

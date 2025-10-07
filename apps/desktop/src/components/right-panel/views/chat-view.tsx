@@ -8,13 +8,13 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { useRightPanel, useSessions } from "@hypr/utils/contexts";
 import {
-  ChatHistoryView,
   ChatInput,
-  ChatMessagesView,
   ChatSession,
   EmptyChatState,
-  FloatingActionButtons,
+  ChatMessagesView,
 } from "../components/chat";
+import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons"
+import { ChatHistoryView } from "@hypr/ui/components/chat/chat-history-view";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChat2 } from "../hooks/useChat2";

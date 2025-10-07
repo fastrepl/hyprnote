@@ -382,6 +382,7 @@ export function ChatInput(
       <ChatModelInfoModal
         isOpen={isModelModalOpen}
         onClose={() => setIsModelModalOpen(false)}
+        onChooseModel={() => setIsModelModalOpen(false)}
       />
     </div>
   );

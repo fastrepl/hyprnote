@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 interface EmptyChatStateProps {
   onQuickAction: (prompt: string) => void;

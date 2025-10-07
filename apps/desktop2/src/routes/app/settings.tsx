@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import clsx from "clsx";
 import { z } from "zod";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { useAuth } from "../../auth";
 import { useValidatedRow } from "../../hooks/useValidatedRow";
 import * as persisted from "../../tinybase/store/persisted";
@@ -105,9 +106,12 @@ function SettingsCalendar() {
 function SettingsAccount() {
   const s = useAuth();
 
+  const handleAuth = () => windowsCommands.windowShow({ type: "auth" });
+
   return (
     <div>
       <pre>{JSON.stringify(s?.session)}</pre>
+      <button onClick={handleAuth}>Auth</button>
     </div>
   );
 }

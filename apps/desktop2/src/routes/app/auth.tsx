@@ -1,9 +1,10 @@
+import { Provider } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { clsx } from "clsx";
 import { useCallback, useEffect } from "react";
 
-import { Provider } from "@supabase/supabase-js";
 import { useAuth } from "../../auth";
 
 export const Route = createFileRoute("/app/auth")({
@@ -60,13 +61,19 @@ function Component() {
   }) => {
     if (auth?.supabase) {
       const redirectUrl = "hypr://auth/callback";
-      const { error } = await auth.supabase.auth.signInWithOAuth({
+      const { data, error } = await auth.supabase.auth.signInWithOAuth({
         provider,
         options: {
+          skipBrowserRedirect: true,
           redirectTo: redirectUrl,
         },
       });
-      console.error(error);
+      if (error) {
+        console.error(error);
+      }
+      if (data.url) {
+        openUrl(data.url);
+      }
     }
   }, [auth?.supabase]);
 
@@ -105,8 +112,13 @@ function ManualCodeProvider({ handleCode }: { handleCode: (code: string) => void
       onSubmit={handleSubmit}
       className={clsx(["flex flex-col gap-2", "border border-gray-300 rounded-md p-4 m-2"])}
     >
-      <input className="border border-gray-300 rounded-md p-2" name="code" />
-      <button className="bg-blue-500 text-white px-4 py-2 rounded-md" type="submit">Submit</button>
+      <input name="code" className="border border-gray-300 rounded-md p-2" />
+      <button
+        type="submit"
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+      >
+        Submit
+      </button>
     </form>
   );
 }

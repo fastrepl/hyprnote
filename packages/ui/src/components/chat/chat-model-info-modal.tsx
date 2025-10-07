@@ -13,6 +13,11 @@ export function ChatModelInfoModal({ isOpen, onClose, onChooseModel }: ChatModel
     onClose();
   };
 
+  const handleChooseModel = () => {
+    onChooseModel();
+    onClose();
+  }
+
   if (!isOpen) {
     return null;
   }
@@ -47,7 +52,7 @@ export function ChatModelInfoModal({ isOpen, onClose, onChooseModel }: ChatModel
 
             <ModalDescription className="text-neutral-600 text-sm mb-6">
               <button
-                onClick={onChooseModel}
+                onClick={handleChooseModel}
                 className="underline hover:text-neutral-800 transition-colors cursor-pointer"
               >
                 Choose

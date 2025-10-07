@@ -6,13 +6,16 @@ import { useHypr } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { ChatHistoryView } from "@hypr/ui/components/chat/chat-history-view";
 import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons";
 import { useRightPanel, useSessions } from "@hypr/utils/contexts";
-import { ChatInput, ChatMessagesView, ChatSession, EmptyChatState } from "../components/chat";
+import { ChatMessagesView, ChatSession, EmptyChatState } from "../components/chat";
+import { ChatInput } from "@hypr/ui/components/chat/chat-input";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChat2 } from "../hooks/useChat2";
+import { useChatInput } from "../hooks/useChatInput";
 import { useChatQueries2 } from "../hooks/useChatQueries2";
 import { focusInput, formatDate } from "../utils/chat-utils";
 
@@ -255,6 +258,17 @@ function ChatViewInner() {
     }
   };
 
+  const handleChooseModel = () => {
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "ai-llm" },
+        });
+      }, 800);
+    });
+  };
+
   useEffect(() => {
     if (isExpanded) {
       const focusTimeout = setTimeout(() => {
@@ -264,6 +278,14 @@ function ChatViewInner() {
       return () => clearTimeout(focusTimeout);
     }
   }, [isExpanded, chatInputRef]);
+
+  // Use the chat input hook to get all the props for ChatInput
+  const chatInputProps = useChatInput({
+    entityId: activeEntity?.id,
+    entityType: activeEntity?.type,
+    onSubmit: handleSubmit,
+  });
+
 
   if (showHistory) {
     return (
@@ -332,8 +354,7 @@ function ChatViewInner() {
         <ChatInput
           inputValue={inputValue}
           onChange={handleInputChange}
-          onSubmit={(mentionedContent, selectionData, htmlContent) =>
-            handleSubmit(mentionedContent, selectionData, htmlContent)}
+          onSubmit={handleSubmit}
           onKeyDown={handleKeyDown}
           autoFocus={true}
           entityId={activeEntity?.id}
@@ -341,6 +362,17 @@ function ChatViewInner() {
           onNoteBadgeClick={handleNoteBadgeClick}
           isGenerating={isGenerating}
           onStop={handleStop}
+          // Props from useChatInput hook
+          isModelModalOpen={chatInputProps.isModelModalOpen}
+          setIsModelModalOpen={chatInputProps.setIsModelModalOpen}
+          entityTitle={chatInputProps.entityTitle}
+          currentModelName={chatInputProps.currentModelName}
+          pendingSelection={chatInputProps.pendingSelection}
+          handleMentionSearch={chatInputProps.handleMentionSearch}
+          processSelection={chatInputProps.processSelection}
+          clearPendingSelection={chatInputProps.clearPendingSelection}
+          chatInputRef={chatInputRef}
+          onChooseModel={handleChooseModel}
         />
       </div>
     </div>

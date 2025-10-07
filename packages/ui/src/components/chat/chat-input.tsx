@@ -3,12 +3,11 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import { type SelectionData, useRightPanel } from "@hypr/utils/contexts";
-import { BadgeType } from "../../types/chat-types";
+import { type SelectionData } from "@hypr/utils/contexts";
+import { BadgeType } from "@hypr/ui/components/chat/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
-import { useChatInput } from "../../hooks/useChatInput";
-import { ChatModelInfoModal } from "../chat-model-info-modal";
+import { ChatModelInfoModal } from "@hypr/ui/components/chat/chat-model-info-modal";
 
 interface ChatInputProps {
   inputValue: string;
@@ -25,6 +24,17 @@ interface ChatInputProps {
   onNoteBadgeClick?: () => void;
   isGenerating?: boolean;
   onStop?: () => void;
+  // Props from useChatInput hook
+  isModelModalOpen: boolean;
+  setIsModelModalOpen: (open: boolean) => void;
+  entityTitle: string;
+  currentModelName: string;
+  pendingSelection: SelectionData | null;
+  handleMentionSearch: (search: string, editor: any) => Promise<any>;
+  processSelection: (selection: any) => { id: string; html: string; text: string; } | null;
+  clearPendingSelection: () => void;
+  chatInputRef: React.RefObject<HTMLTextAreaElement | null>;
+  onChooseModel: () => void;
 }
 
 export function ChatInput(
@@ -39,14 +49,6 @@ export function ChatInput(
     onNoteBadgeClick,
     isGenerating = false,
     onStop,
-  }: ChatInputProps,
-) {
-  const { chatInputRef } = useRightPanel();
-  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const processedSelectionRef = useRef<string | null>(null);
-
-  // Use the extracted hook
-  const {
     isModelModalOpen,
     setIsModelModalOpen,
     entityTitle,
@@ -54,12 +56,13 @@ export function ChatInput(
     pendingSelection,
     handleMentionSearch,
     processSelection,
-    handleSubmit: hookSubmit,
-  } = useChatInput({
-    entityId,
-    entityType,
-    onSubmit,
-  });
+    clearPendingSelection,
+    chatInputRef,
+    onChooseModel,
+  }: ChatInputProps,
+) {
+  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const processedSelectionRef = useRef<string | null>(null);
 
   const extractPlainText = useCallback((html: string) => {
     const div = document.createElement("div");
@@ -131,8 +134,9 @@ export function ChatInput(
       htmlContent = editorRef.current.editor.getHTML();
     }
 
-    // Use the hook's submit handler
-    hookSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
+    // Call the submit handler and clear pending selection
+    onSubmit(mentionedContent, pendingSelection || undefined, htmlContent);
+    clearPendingSelection();
 
     // Reset editor
     processedSelectionRef.current = null;
@@ -144,7 +148,7 @@ export function ChatInput(
       } as React.ChangeEvent<HTMLTextAreaElement>;
       onChange(syntheticEvent);
     }
-  }, [hookSubmit, onChange, extractMentionedContent, pendingSelection]);
+  }, [onSubmit, onChange, extractMentionedContent, pendingSelection, clearPendingSelection]);
 
   useEffect(() => {
     if (chatInputRef && typeof chatInputRef === "object" && editorRef.current?.editor) {
@@ -343,7 +347,7 @@ export function ChatInput(
           editable={!isGenerating}
           mentionConfig={{
             trigger: "@",
-            handleSearch: handleMentionSearch,
+            handleSearch: (query: string) => handleMentionSearch(query, editorRef.current?.editor),
           }}
         />
         {isGenerating && !inputValue.trim() && (
@@ -382,7 +386,7 @@ export function ChatInput(
       <ChatModelInfoModal
         isOpen={isModelModalOpen}
         onClose={() => setIsModelModalOpen(false)}
-        onChooseModel={() => setIsModelModalOpen(false)}
+        onChooseModel={onChooseModel}
       />
     </div>
   );

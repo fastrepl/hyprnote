@@ -16,7 +16,7 @@ export function ChatModelInfoModal({ isOpen, onClose, onChooseModel }: ChatModel
   const handleChooseModel = () => {
     onChooseModel();
     onClose();
-  }
+  };
 
   if (!isOpen) {
     return null;

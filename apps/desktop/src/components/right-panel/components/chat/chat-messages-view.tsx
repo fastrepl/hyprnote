@@ -1,7 +1,7 @@
+import { ThinkingIndicator } from "@hypr/ui/components/chat/thinking-indicator";
 import type { UIMessage } from "@hypr/utils/ai";
 import { useEffect, useRef, useState } from "react";
 import { UIMessageComponent } from "./ui-message";
-import { ThinkingIndicator } from "@hypr/ui/components/chat/thinking-indicator";
 
 interface ChatMessagesViewProps {
   messages: UIMessage[];

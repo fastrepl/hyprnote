@@ -1,10 +1,10 @@
 import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
+import { BadgeType } from "@hypr/ui/components/chat/chat-types";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { type SelectionData } from "@hypr/utils/contexts";
-import { BadgeType } from "@hypr/ui/components/chat/chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import { ChatModelInfoModal } from "@hypr/ui/components/chat/chat-model-info-modal";
@@ -24,14 +24,13 @@ interface ChatInputProps {
   onNoteBadgeClick?: () => void;
   isGenerating?: boolean;
   onStop?: () => void;
-  // Props from useChatInput hook
   isModelModalOpen: boolean;
   setIsModelModalOpen: (open: boolean) => void;
   entityTitle: string;
   currentModelName: string;
   pendingSelection: SelectionData | null;
   handleMentionSearch: (search: string, editor: any) => Promise<any>;
-  processSelection: (selection: any) => { id: string; html: string; text: string; } | null;
+  processSelection: (selection: any) => { id: string; html: string; text: string } | null;
   clearPendingSelection: () => void;
   chatInputRef: React.RefObject<HTMLTextAreaElement | null>;
   onChooseModel: () => void;

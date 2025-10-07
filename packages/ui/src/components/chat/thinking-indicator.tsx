@@ -1,8 +1,8 @@
 export function ThinkingIndicator() {
-    return (
-      <>
-        <style>
-          {`
+  return (
+    <>
+      <style>
+        {`
             @keyframes thinking-dots {
               0%, 20% { opacity: 0; }
               50% { opacity: 1; }
@@ -16,13 +16,13 @@ export function ThinkingIndicator() {
               display: inline-block;
             }
           `}
-        </style>
-        <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "0 0 8px 0" }}>
-          <span>Thinking</span>
-          <span className="thinking-dot">.</span>
-          <span className="thinking-dot">.</span>
-          <span className="thinking-dot">.</span>
-        </div>
-      </>
-    );
-  }
+      </style>
+      <div style={{ color: "rgb(115 115 115)", fontSize: "0.875rem", padding: "0 0 8px 0" }}>
+        <span>Thinking</span>
+        <span className="thinking-dot">.</span>
+        <span className="thinking-dot">.</span>
+        <span className="thinking-dot">.</span>
+      </div>
+    </>
+  );
+}

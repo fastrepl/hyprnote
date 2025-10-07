@@ -8,10 +8,10 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { ChatHistoryView } from "@hypr/ui/components/chat/chat-history-view";
+import { ChatInput } from "@hypr/ui/components/chat/chat-input";
 import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons";
 import { useRightPanel, useSessions } from "@hypr/utils/contexts";
 import { ChatMessagesView, ChatSession, EmptyChatState } from "../components/chat";
-import { ChatInput } from "@hypr/ui/components/chat/chat-input";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChat2 } from "../hooks/useChat2";
@@ -285,7 +285,6 @@ function ChatViewInner() {
     entityType: activeEntity?.type,
     onSubmit: handleSubmit,
   });
-
 
   if (showHistory) {
     return (

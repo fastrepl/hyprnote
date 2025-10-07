@@ -11,6 +11,8 @@ export const Route = createFileRoute("/app/auth")({
   component: Component,
 });
 
+const redirectTo = import.meta.env.DEV ? "http://localhost:5173" : "https://api.hyprnote.com";
+
 function Component() {
   const auth = useAuth();
 
@@ -41,13 +43,11 @@ function Component() {
 
   const handleSignupEmail = useCallback(async (email: string, password: string) => {
     if (auth?.supabase) {
-      const redirectUrl = "hypr://auth/callback";
-
       const { error } = await auth.supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo: redirectTo,
         },
       });
       console.error(error);
@@ -60,19 +60,27 @@ function Component() {
     provider: Provider;
   }) => {
     if (auth?.supabase) {
-      const redirectUrl = "https://api.hyprnote.com/auth/callback";
       const { data, error } = await auth.supabase.auth.signInWithOAuth({
         provider,
         options: {
           skipBrowserRedirect: true,
-          redirectTo: redirectUrl,
+          redirectTo,
         },
       });
-      if (error) {
+
+      if (!error && data.url) {
+        openUrl(data.url);
+      } else {
         console.error(error);
       }
-      if (data.url) {
-        openUrl(data.url);
+    }
+  }, [auth?.supabase]);
+
+  const handleSignout = useCallback(async () => {
+    if (auth?.supabase) {
+      const { error } = await auth.supabase.auth.signOut();
+      if (error) {
+        console.error(error);
       }
     }
   }, [auth?.supabase]);
@@ -80,7 +88,6 @@ function Component() {
   return (
     <div className="flex flex-col h-full">
       <Header />
-      <pre>session: {JSON.stringify(auth?.session, null, 2)}</pre>
       <button
         className="bg-blue-500 text-white px-4 py-2 rounded-md"
         onClick={() => handleSignupEmail("yujonglee.dev@gmail.com", "fastreplwillwin1!")}
@@ -94,7 +101,16 @@ function Component() {
         signup with github
       </button>
 
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        onClick={() => handleSignout()}
+      >
+        signout
+      </button>
+
       <ManualCodeProvider handleCode={handleCode} />
+
+      <pre>session: {JSON.stringify(auth?.session, null, 2)}</pre>
     </div>
   );
 }

@@ -256,7 +256,7 @@ export function ChatInput(
   };
 
   return (
-    <div className="border border-b-0 border-input max-w-[50%] rounded-t-lg overflow-clip flex flex-col bg-white">
+    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
       {/* Note badge at top */}
       {entityId && (
         <div className="px-3 pt-2 pb-2">

@@ -147,6 +147,7 @@ const config = {
   content: [
     path.resolve(__dirname, "src/components/ui/*.tsx"),
     path.resolve(__dirname, "src/components/block/*.tsx"),
+    path.resolve(__dirname, "src/components/chat/*.tsx"),
   ],
   theme: {
     extend: {

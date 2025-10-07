@@ -1,7 +1,9 @@
+import { MarkdownCard } from "@hypr/ui/components/chat/markdown-card";
 import { ThinkingIndicator } from "@hypr/ui/components/chat/thinking-indicator";
+import { UIMessageComponent } from "@hypr/ui/components/chat/ui-message";
 import type { UIMessage } from "@hypr/utils/ai";
 import { useEffect, useRef, useState } from "react";
-import { UIMessageComponent } from "./ui-message";
+import { parseMarkdownBlocks } from "./utils/markdown-parser";
 
 interface ChatMessagesViewProps {
   messages: UIMessage[];
@@ -12,11 +14,21 @@ interface ChatMessagesViewProps {
   isStreaming?: boolean;
   isReady?: boolean;
   isError?: boolean;
+  convertMarkdownToHtml?: (markdown: string) => Promise<string>;
 }
 
 export function ChatMessagesView(
-  { messages, sessionTitle, hasEnhancedNote, onApplyMarkdown, isSubmitted, isStreaming, isReady, isError }:
-    ChatMessagesViewProps,
+  {
+    messages,
+    sessionTitle,
+    hasEnhancedNote,
+    onApplyMarkdown,
+    isSubmitted,
+    isStreaming,
+    isReady,
+    isError,
+    convertMarkdownToHtml,
+  }: ChatMessagesViewProps,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showThinking, setShowThinking] = useState(false);
@@ -96,6 +108,9 @@ export function ChatMessagesView(
           sessionTitle={sessionTitle}
           hasEnhancedNote={hasEnhancedNote}
           onApplyMarkdown={onApplyMarkdown}
+          convertMarkdownToHtml={convertMarkdownToHtml}
+          parseMarkdownBlocks={parseMarkdownBlocks}
+          MarkdownCard={MarkdownCard}
         />
       ))}
 

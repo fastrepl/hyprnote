@@ -25,6 +25,7 @@ interface UIMessageComponentProps {
     sessionTitle?: string;
     hasEnhancedNote?: boolean;
     onApplyMarkdown?: (content: string) => void;
+    convertMarkdownToHtml?: (markdown: string) => Promise<string>;
   }>;
 }
 
@@ -253,6 +254,7 @@ export const UIMessageComponent: FC<UIMessageComponentProps> = ({
                       sessionTitle={sessionTitle}
                       hasEnhancedNote={hasEnhancedNote}
                       onApplyMarkdown={onApplyMarkdown}
+                      convertMarkdownToHtml={convertMarkdownToHtml}
                     />
                   );
                 }

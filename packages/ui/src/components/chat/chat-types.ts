@@ -1,4 +1,4 @@
-import type { ChatSession, Message, MessagePart } from "@hypr/ui/components/chat/types";
+import type { ChatSession, Message, MessagePart } from "./types";
 
 export interface ActiveEntityInfo {
   id: string;

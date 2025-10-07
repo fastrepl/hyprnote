@@ -1,13 +1,13 @@
 import { ArrowUpIcon, BrainIcon, BuildingIcon, FileTextIcon, Square, UserIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
-import { BadgeType } from "@hypr/ui/components/chat/chat-types";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { type SelectionData } from "@hypr/utils/contexts";
+import { BadgeType } from "./chat-types";
 
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
-import { ChatModelInfoModal } from "@hypr/ui/components/chat/chat-model-info-modal";
+import { ChatModelInfoModal } from "./chat-model-info-modal";
 
 interface ChatInputProps {
   inputValue: string;
@@ -256,7 +256,7 @@ export function ChatInput(
   };
 
   return (
-    <div className="border border-b-0 border-input mx-4 rounded-t-lg overflow-clip flex flex-col bg-white">
+    <div className="border border-b-0 border-input max-w-[50%] rounded-t-lg overflow-clip flex flex-col bg-white">
       {/* Note badge at top */}
       {entityId && (
         <div className="px-3 pt-2 pb-2">

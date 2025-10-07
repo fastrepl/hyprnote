@@ -48,7 +48,7 @@ export function MarkdownCard(
     if (content.trim()) {
       convertMarkdown();
     }
-  }, [content]);
+  }, [content, convertMarkdownToHtml]);
 
   return (
     <>

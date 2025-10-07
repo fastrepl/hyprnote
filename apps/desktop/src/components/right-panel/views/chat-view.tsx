@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { useHypr } from "@/contexts";
@@ -9,9 +9,10 @@ import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { ChatHistoryView } from "@hypr/ui/components/chat/chat-history-view";
 import { ChatInput } from "@hypr/ui/components/chat/chat-input";
+import { ChatMessagesView } from "@hypr/ui/components/chat/chat-messages-view";
 import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons";
 import { useRightPanel, useSessions } from "@hypr/utils/contexts";
-import { ChatMessagesView, ChatSession, EmptyChatState } from "../components/chat";
+import { ChatSession, EmptyChatState } from "../components/chat";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChat2 } from "../hooks/useChat2";
@@ -149,6 +150,10 @@ function ChatViewInner() {
   const handleStop = () => {
     stop();
   };
+
+  const convertMarkdownToHtml = useCallback(async (markdown: string) => {
+    return await miscCommands.opinionatedMdToHtml(markdown);
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -347,6 +352,7 @@ function ChatViewInner() {
               isStreaming={isStreaming}
               isReady={isReady}
               isError={isError}
+              convertMarkdownToHtml={convertMarkdownToHtml}
             />
           )}
 

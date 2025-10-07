@@ -3,7 +3,9 @@ import type { Context } from "hono";
 import { env } from "hono/adapter";
 import { z } from "zod";
 
-export const getEnv = (c: Context) =>
+import type { Env } from "./types";
+
+export const getEnv = (c: Context<Env>) =>
   createEnv({
     server: {
       PORT: z.coerce.number().default(3000),
@@ -13,6 +15,6 @@ export const getEnv = (c: Context) =>
       SUPABASE_URL: z.string().min(1),
       SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     },
-    runtimeEnv: env(c),
+    runtimeEnv: env(c) as Record<string, string | undefined>,
     emptyStringAsUndefined: true,
   });

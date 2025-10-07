@@ -2,9 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { createMiddleware } from "hono/factory";
 
 import { getEnv } from "../env";
+import type { Env } from "../types";
 
 export const supabaseMiddleware = () => {
-  return createMiddleware(async (c, next) => {
+  return createMiddleware<Env>(async (c, next) => {
     const authHeader = c.req.header("Authorization");
     const token = authHeader?.replace("Bearer ", "");
 

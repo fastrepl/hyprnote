@@ -39,9 +39,10 @@ app.get("/", renderer, (c) => {
               window.open(deeplink);
             }
 
-            window.addEventListener('load', () => {
+             window.addEventListener('load', () => {
               trigger();
             });
+            
             document.getElementById('open').addEventListener('click', () => {
               trigger();
             });

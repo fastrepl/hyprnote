@@ -6,6 +6,7 @@ export interface SelectionData {
   startOffset: number;
   endOffset: number;
   sessionId: string;
+  sessionTitle?: string;
   timestamp: number;
 }
 

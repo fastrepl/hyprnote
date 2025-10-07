@@ -143,7 +143,7 @@ export function useChatInput({ entityId, entityType = "note", onSubmit }: UseCha
       return null;
     }
 
-    const noteName = noteData?.title || humanData?.full_name || organizationData?.name || "Note";
+    const noteName = selection.sessionTitle || noteData?.title || humanData?.full_name || organizationData?.name || "Note";
     const selectedHtml = selection.text || "";
 
     // Strip HTML tags

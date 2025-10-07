@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHypr } from "@/contexts";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { TiptapEditor } from "@hypr/tiptap/editor";
-import { useRightPanel } from "@hypr/utils/contexts";
+import { useRightPanel, useSession } from "@hypr/utils/contexts";
 
 interface TextSelectionPopoverProps {
   isEnhancedNote: boolean;
@@ -27,6 +27,7 @@ export function TextSelectionPopover(
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { userId } = useHypr();
+  const sessionTitle = useSession(sessionId, (s) => s.session.title);
   // Safe hook usage with fallback
   const rightPanel = (() => {
     try {
@@ -200,6 +201,7 @@ export function TextSelectionPopover(
       startOffset: tipTapPositions.from, // ProseMirror position
       endOffset: tipTapPositions.to, // ProseMirror position
       sessionId,
+      sessionTitle: sessionTitle || "Untitled",
       timestamp: Date.now(),
     };
 

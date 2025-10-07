@@ -11,6 +11,13 @@ const app = new Hono<Env>();
 app.use("/v1", supabaseMiddleware());
 
 app.get("/health", (c) => c.text("OK"));
+app.get("/", (c) => {
+  const allParams = c.req.query();
+
+  return c.render(
+    <pre>{JSON.stringify(allParams, null, 2)}</pre>,
+  );
+});
 
 app.post(
   "/v1/write",

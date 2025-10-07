@@ -109,7 +109,7 @@ impl WindowImpl for AppWindow {
             Self::Auth => {
                 let window = self
                     .window_builder(app, "/app/auth")
-                    .resizable(true)
+                    .resizable(false)
                     .min_inner_size(400.0, 600.0)
                     .build()?;
 

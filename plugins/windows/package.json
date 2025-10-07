@@ -2,6 +2,10 @@
   "name": "@hypr/plugin-windows",
   "private": true,
   "main": "./js/index.ts",
+  "exports": {
+    ".": "./js/index.ts",
+    "./v1": "./js/bindings.v1.gen.ts"
+  },
   "scripts": {
     "codegen": "cargo test -p tauri-plugin-windows"
   },

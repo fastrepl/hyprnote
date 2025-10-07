@@ -178,16 +178,12 @@ function Component() {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
-            {/* Header */}
             <header data-tauri-drag-region className="h-11 w-full flex items-center justify-between border-b px-2">
               <div className="w-40" data-tauri-drag-region></div>
-
               <h1 className="text-md font-semibold capitalize" data-tauri-drag-region>
                 {getTabTitle(search.tab)}
               </h1>
-
               <div className="w-40" data-tauri-drag-region></div>
             </header>
 

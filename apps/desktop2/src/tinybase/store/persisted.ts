@@ -29,9 +29,10 @@ import {
   templateSchema as baseTemplateSchema,
   transcriptSchema,
 } from "@hypr/db";
+import { id } from "../../utils";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
 import { createLocalSynchronizer } from "../localSynchronizer";
-import { InferTinyBaseSchema, jsonObject } from "../shared";
+import { InferTinyBaseSchema, InferTinyBaseSchemaSchema, jsonObject } from "../shared";
 import * as internal from "./internal";
 
 export const STORE_ID = "persisted";
@@ -122,7 +123,7 @@ const SCHEMA = {
       created_at: { type: "string" },
       name: { type: "string" },
       parent_folder_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof folderSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof folderSchema>,
     sessions: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -132,24 +133,24 @@ const SCHEMA = {
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
       transcript: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof sessionSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof sessionSchema>,
     humans: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
       email: { type: "string" },
       org_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof humanSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof humanSchema>,
     organizations: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof organizationSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof organizationSchema>,
     calendars: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof calendarSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof calendarSchema>,
     events: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -157,31 +158,31 @@ const SCHEMA = {
       title: { type: "string" },
       started_at: { type: "string" },
       ended_at: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof eventSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof eventSchema>,
     mapping_event_participant: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       event_id: { type: "string" },
       human_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof mappingEventParticipantSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof mappingEventParticipantSchema>,
     tags: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof tagSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof tagSchema>,
     mapping_tag_session: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       tag_id: { type: "string" },
       session_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof mappingTagSessionSchema>,
     templates: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       title: { type: "string" },
       description: { type: "string" },
       sections: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof templateSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof templateSchema>,
     configs: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -199,12 +200,12 @@ const SCHEMA = {
       ai_api_base: { type: "string" },
       ai_api_key: { type: "string" },
       ai_specificity: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof configSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof configSchema>,
     chat_groups: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       title: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof chatGroupSchema>,
     chat_messages: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -213,7 +214,7 @@ const SCHEMA = {
       content: { type: "string" },
       metadata: { type: "string" },
       parts: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
+    } satisfies InferTinyBaseSchemaSchema<typeof chatMessageSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -247,17 +248,15 @@ export const StoreComponent = () => {
     () => {
       const [changedTables, _changedValues] = store.getTransactionChanges();
 
-      store2.transaction(() => {
-        Object.entries(changedTables).forEach(([tableId, rows]) => {
-          Object.entries(rows).forEach(([rowId, cells]) => {
-            const id = internal.rowIdOfChange(tableId, rowId);
+      Object.entries(changedTables).forEach(([tableId, rows]) => {
+        Object.entries(rows).forEach(([rowId, cells]) => {
+          const id = internal.rowIdOfChange(tableId, rowId);
 
-            store2.setRow("changes", id, {
-              row_id: rowId,
-              table: tableId,
-              deleted: !cells,
-              updated: !!cells,
-            });
+          store2.setRow("changes", id, {
+            row_id: rowId,
+            table: tableId,
+            deleted: !cells,
+            updated: !!cells,
           });
         });
       });
@@ -352,27 +351,7 @@ export const StoreComponent = () => {
     [],
   )!;
 
-  const queries = useCreateQueries(store, (store) =>
-    createQueries(store)
-      .setQueryDefinition(QUERIES.configForUser, "configs", ({ select, where }) => {
-        select("user_id");
-        select("created_at");
-        select("autostart");
-        select("display_language");
-        select("spoken_languages");
-        select("jargons");
-        select("telemetry_consent");
-        select("save_recordings");
-        select("selected_template_id");
-        select("summary_language");
-        select("notification_before");
-        select("notification_auto");
-        select("notification_ignored_platforms");
-        select("ai_api_base");
-        select("ai_api_key");
-        select("ai_specificity");
-        where((getCell) => getCell("user_id") === store2.getValue("user_id"));
-      }), [store2])!;
+  const queries = useCreateQueries(store, (store) => createQueries(store), [store2])!;
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
@@ -429,9 +408,7 @@ export const StoreComponent = () => {
   return null;
 };
 
-export const QUERIES = {
-  configForUser: "configForUser",
-};
+export const QUERIES = {};
 
 export const METRICS = {
   totalHumans: "totalHumans",
@@ -449,4 +426,31 @@ export const INDEXES = {
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",
   chatMessagesByGroup: "chatMessagesByGroup",
+};
+
+// TODO
+export const useConfig = () => {
+  const user_id = "0b28fde2-2f07-49da-946c-01fc4b94e9ae";
+  const config_id = id();
+
+  const defaultConfig = {
+    user_id,
+    created_at: new Date().toISOString(),
+    autostart: false,
+    display_language: "en",
+    telemetry_consent: true,
+    summary_language: "en",
+    notification_before: true,
+    notification_auto: true,
+    spoken_languages: JSON.stringify(["en"]),
+    jargons: JSON.stringify([]),
+    save_recordings: false,
+    selected_template_id: undefined,
+    notification_ignored_platforms: undefined,
+    ai_api_base: undefined,
+    ai_api_key: undefined,
+    ai_specificity: "3",
+  } satisfies InferTinyBaseSchema<typeof configSchema>;
+
+  return { id: config_id, config: defaultConfig };
 };

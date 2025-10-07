@@ -48,6 +48,8 @@ export const createStore = () => {
 
 export const useStore = () => {
   const store = useCreateMergeableStore(() => createStore());
+  // TODO
+  store.setValue("user_id", "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a");
 
   useCreateSynchronizer(
     store,

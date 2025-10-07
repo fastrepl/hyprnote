@@ -60,7 +60,7 @@ function Component() {
     provider: Provider;
   }) => {
     if (auth?.supabase) {
-      const redirectUrl = "hypr://auth/callback";
+      const redirectUrl = "https://api.hyprnote.com/auth/callback";
       const { data, error } = await auth.supabase.auth.signInWithOAuth({
         provider,
         options: {

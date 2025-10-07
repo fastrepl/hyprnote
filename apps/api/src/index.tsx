@@ -5,17 +5,51 @@ import { z } from "zod";
 
 import { getEnv } from "./env";
 import { supabaseMiddleware } from "./middleware/supabase";
+import { renderer } from "./renderer";
 import type { Env } from "./types";
 
 const app = new Hono<Env>();
 app.use("/v1", supabaseMiddleware());
 
 app.get("/health", (c) => c.text("OK"));
-app.get("/", (c) => {
-  const allParams = c.req.query();
+app.get("/", renderer, (c) => {
+  const params = c.req.query();
+  const code = params.code;
+  const deeplink = "hypr://auth/callback?" + new URLSearchParams(params).toString();
 
   return c.render(
-    <pre>{JSON.stringify(allParams, null, 2)}</pre>,
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+        <div class="space-y-4">
+          <p class="font-mono text-lg bg-gray-100 p-2 rounded">Code: {code}</p>
+          <button
+            id="open"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+          >
+            Open App
+          </button>
+        </div>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            function trigger() {
+              const params = new URLSearchParams(window.location.search);
+              const deeplink = 'hypr://auth/callback?' + new URLSearchParams(params).toString();
+              window.open(deeplink);
+            }
+
+            window.addEventListener('load', () => {
+              trigger();
+            });
+            document.getElementById('open').addEventListener('click', () => {
+              trigger();
+            });
+          `,
+          }}
+        />
+      </div>
+    </div>,
   );
 });
 

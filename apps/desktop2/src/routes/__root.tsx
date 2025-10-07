@@ -1,6 +1,7 @@
 import { createRootRouteWithContext, ErrorComponentProps, NotFoundRouteProps, Outlet } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
+import { AuthProvider } from "../auth";
 import type { Context } from "../types";
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({
@@ -11,13 +12,13 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 
 function Component() {
   return (
-    <>
+    <AuthProvider>
       <Outlet />
       <Suspense>
         <TanStackRouterDevtools position="bottom-right" initialIsOpen={false} />
         <TinybaseInspector />
       </Suspense>
-    </>
+    </AuthProvider>
   );
 }
 

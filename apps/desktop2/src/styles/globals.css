@@ -62,6 +62,7 @@ h6 {
 #root,
 #__next {
   isolation: isolate;
+  height: 100%;
 }
 
 /* https://github.com/gitbutlerapp/gitbutler/blob/master/apps/desktop/src/styles/styles.css */

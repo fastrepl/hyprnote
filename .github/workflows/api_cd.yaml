@@ -1,6 +1,8 @@
 on:
   workflow_dispatch:
   push:
+    paths:
+      - "apps/api/**"
     branches:
       - main
 jobs:

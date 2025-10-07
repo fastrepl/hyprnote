@@ -7,6 +7,8 @@ pub enum AppWindow {
     Main,
     #[serde(rename = "settings")]
     Settings,
+    #[serde(rename = "auth")]
+    Auth,
 }
 
 impl std::fmt::Display for AppWindow {
@@ -14,6 +16,7 @@ impl std::fmt::Display for AppWindow {
         match self {
             Self::Main => write!(f, "main"),
             Self::Settings => write!(f, "settings"),
+            Self::Auth => write!(f, "auth"),
         }
     }
 }
@@ -25,6 +28,7 @@ impl std::str::FromStr for AppWindow {
         match s {
             "main" => return Ok(Self::Main),
             "settings" => return Ok(Self::Settings),
+            "auth" => return Ok(Self::Auth),
             _ => {}
         }
 
@@ -68,6 +72,7 @@ impl WindowImpl for AppWindow {
         match self {
             Self::Main => "Hyprnote".into(),
             Self::Settings => "Settings".into(),
+            Self::Auth => "Auth".into(),
         }
     }
 
@@ -96,6 +101,19 @@ impl WindowImpl for AppWindow {
                     .build()?;
 
                 let desired_size = LogicalSize::new(800.0, 600.0);
+                window.set_size(LogicalSize::new(1.0, 1.0))?;
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                window.set_size(desired_size)?;
+                window
+            }
+            Self::Auth => {
+                let window = self
+                    .window_builder(app, "/app/auth")
+                    .resizable(true)
+                    .min_inner_size(400.0, 600.0)
+                    .build()?;
+
+                let desired_size = LogicalSize::new(400.0, 600.0);
                 window.set_size(LogicalSize::new(1.0, 1.0))?;
                 std::thread::sleep(std::time::Duration::from_millis(10));
                 window.set_size(desired_size)?;

@@ -3,12 +3,11 @@ import { useMatch } from "@tanstack/react-router";
 import { DeleteNoteButton } from "@/components/toolbar/buttons/delete-note-button";
 import { NewNoteButton } from "@/components/toolbar/buttons/new-note-button";
 import { NewWindowButton } from "@/components/toolbar/buttons/new-window-button";
-// import { ShareButton } from "@/components/toolbar/buttons/share-button";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import { cn } from "@hypr/ui/lib/utils";
-import { useLeftSidebar } from "@hypr/utils/contexts";
+import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { SearchBar } from "../../search-bar";
-import { ChatPanelButton } from "../buttons/chat-panel-button";
 import { LeftSidebarButton } from "../buttons/left-sidebar-button";
 import { ShareButton } from "../buttons/share-button";
 
@@ -23,6 +22,8 @@ export function MainToolbar() {
 
   const isNote = !!noteMatch;
   const isMain = getCurrentWebviewWindowLabel() === "main";
+
+  const { isExpanded: isChatPanelExpanded, togglePanel: toggleChatPanel } = useRightPanel();
 
   return (
     <header
@@ -58,7 +59,7 @@ export function MainToolbar() {
           <>
             {(organizationMatch || humanMatch) && <NewWindowButton />}
             {isNote && <ShareButton />}
-            <ChatPanelButton />
+            <ChatPanelButton isExpanded={isChatPanelExpanded} togglePanel={toggleChatPanel} />
           </>
         )}
       </div>

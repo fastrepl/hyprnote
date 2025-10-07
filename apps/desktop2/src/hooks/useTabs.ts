@@ -68,6 +68,7 @@ export function useTabs() {
   };
 
   return {
+    currentTab: search.tabs.find((t) => t.active),
     openCurrent,
     openNew,
     select,

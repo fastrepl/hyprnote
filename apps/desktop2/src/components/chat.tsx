@@ -53,40 +53,64 @@ export function Chat() {
 
   if (!currentChatGroupId || !messageIds?.length) {
     return (
-      <div className="border border-gray-300 rounded p-2">
-        <div className="text-gray-500">Select or create a chat group</div>
+      <div className="h-full flex flex-col bg-gray-100">
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex flex-col gap-2">
+            {chatGroupIds?.map((chatGroupId) => (
+              <ChatGroup
+                key={chatGroupId}
+                id={chatGroupId}
+                handleClick={() => setCurrentChatGroupId(chatGroupId)}
+              />
+            ))}
+          </div>
+        </div>
 
-        <div className="flex flex-col gap-2">
-          {chatGroupIds?.map((chatGroupId) => (
-            <ChatGroup
-              key={chatGroupId}
-              id={chatGroupId}
-              handleClick={() => setCurrentChatGroupId(chatGroupId)}
+        <div className="border-t border-gray-300 p-4">
+          <form onSubmit={handleSubmitMessage}>
+            <textarea
+              name="message"
+              placeholder="Type a message..."
+              className="w-full border border-gray-300 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
             />
-          ))}
+            <button className="mt-2 border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">
+              Send
+            </button>
+          </form>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="border border-gray-300 rounded p-2">
-      <button onClick={() => setCurrentChatGroupId("")}>
-        reset
-      </button>
+    <div className="h-full flex flex-col border border-gray-300 rounded">
+      <div className="border-b border-gray-300 p-2">
+        <button
+          onClick={() => setCurrentChatGroupId("")}
+          className="border border-gray-300 rounded px-3 py-1 hover:bg-gray-100"
+        >
+          reset
+        </button>
+      </div>
 
-      <div className="space-y-2">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {messageIds?.map((messageId) => <ChatMessage key={messageId} messageId={messageId} />)}
       </div>
 
-      <form onSubmit={handleSubmitMessage}>
-        <input
-          name="message"
-          type="text"
-          className="border border-gray-300 rounded p-2"
-        />
-        <button className="border border-gray-300 rounded p-2">Send</button>
-      </form>
+      <div className="border-t border-gray-300 p-4">
+        <form onSubmit={handleSubmitMessage} className="flex flex-col gap-2">
+          <textarea
+            name="message"
+            placeholder="Type a message..."
+            className="w-full border border-gray-300 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+          />
+          <button className="self-end border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">
+            Send
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

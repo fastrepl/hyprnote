@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
+import { Route as AppAuthRouteImport } from './routes/app/auth'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
@@ -33,6 +34,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAuthRoute = AppAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => AppMainRoute,
@@ -45,18 +51,21 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
+  '/app/auth': typeof AppAuthRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/main/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
+  '/app/auth': typeof AppAuthRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
+  '/app/auth': typeof AppAuthRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
@@ -64,12 +73,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/app' | '/app/settings' | '/app/main' | '/app/main/'
+  fullPaths: '/app' | '/app/auth' | '/app/settings' | '/app/main' | '/app/main/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/settings' | '/app/main'
+  to: '/app' | '/app/auth' | '/app/settings' | '/app/main'
   id:
     | '__root__'
     | '/app'
+    | '/app/auth'
     | '/app/settings'
     | '/app/main'
     | '/app/main/_layout'
@@ -101,6 +111,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/auth': {
+      id: '/app/auth'
+      path: '/auth'
+      fullPath: '/app/auth'
+      preLoaderRoute: typeof AppAuthRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/main/_layout': {
@@ -144,11 +161,13 @@ const AppMainRouteWithChildren =
   AppMainRoute._addFileChildren(AppMainRouteChildren)
 
 interface AppRouteChildren {
+  AppAuthRoute: typeof AppAuthRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppMainRoute: typeof AppMainRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAuthRoute: AppAuthRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppMainRoute: AppMainRouteWithChildren,
 }

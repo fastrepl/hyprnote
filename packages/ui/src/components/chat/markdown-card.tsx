@@ -13,7 +13,8 @@ interface MarkdownCardProps {
 }
 
 export function MarkdownCard(
-  { content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false, convertMarkdownToHtml }: MarkdownCardProps,
+  { content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false, convertMarkdownToHtml }:
+    MarkdownCardProps,
 ) {
   const [htmlContent, setHtmlContent] = useState<string>("");
 

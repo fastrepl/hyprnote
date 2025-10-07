@@ -6,15 +6,10 @@ import { useHypr } from "@/contexts";
 import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { useRightPanel, useSessions } from "@hypr/utils/contexts";
-import {
-  ChatInput,
-  ChatSession,
-  EmptyChatState,
-  ChatMessagesView,
-} from "../components/chat";
-import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons"
 import { ChatHistoryView } from "@hypr/ui/components/chat/chat-history-view";
+import { FloatingActionButtons } from "@hypr/ui/components/chat/floating-action-buttons";
+import { useRightPanel, useSessions } from "@hypr/utils/contexts";
+import { ChatInput, ChatMessagesView, ChatSession, EmptyChatState } from "../components/chat";
 
 import { useActiveEntity } from "../hooks/useActiveEntity";
 import { useChat2 } from "../hooks/useChat2";

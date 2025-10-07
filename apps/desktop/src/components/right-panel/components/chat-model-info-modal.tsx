@@ -22,4 +22,3 @@ export function ChatModelInfoModal({ isOpen, onClose }: ChatModelInfoModalProps)
 
   return <ChatModelInfoModalUI isOpen={isOpen} onClose={onClose} onChooseModel={handleChooseModel} />;
 }
-

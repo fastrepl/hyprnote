@@ -13,17 +13,18 @@ interface MarkdownCardProps {
 export function MarkdownCard(
   { content, isComplete, sessionTitle, onApplyMarkdown, hasEnhancedNote = false }: MarkdownCardProps,
 ) {
-
   const convertMarkdownToHtml = useCallback(async (markdown: string) => {
     return await miscCommands.opinionatedMdToHtml(markdown);
   }, []);
 
-  return <MarkdownCardUI 
-  content={content} 
-  isComplete={isComplete} 
-  sessionTitle={sessionTitle} 
-  onApplyMarkdown={onApplyMarkdown} 
-  hasEnhancedNote={hasEnhancedNote} 
-  convertMarkdownToHtml={convertMarkdownToHtml} 
-  />;
+  return (
+    <MarkdownCardUI
+      content={content}
+      isComplete={isComplete}
+      sessionTitle={sessionTitle}
+      onApplyMarkdown={onApplyMarkdown}
+      hasEnhancedNote={hasEnhancedNote}
+      convertMarkdownToHtml={convertMarkdownToHtml}
+    />
+  );
 }

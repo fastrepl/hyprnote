@@ -6,7 +6,7 @@ import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { Chat } from "../../../components/chat";
 import { LeftSidebar } from "../../../components/main/left-sidebar";
 import { MainContent, MainHeader } from "../../../components/main/main-area";
-import { tabSchema } from "../../../types";
+import { isSameTab, tabSchema } from "../../../types";
 import { id } from "../../../utils";
 
 const validateSearch = z.object({
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/app/main/_layout/")({
     if (activeTabs.length > 1) {
       const normalizedTabs = search.tabs.map((t, idx) => ({
         ...t,
-        active: activeTabs.length === 0 ? idx === 0 : t.id === activeTabs[0].id,
+        active: activeTabs.length === 0 ? idx === 0 : isSameTab(t, activeTabs[0]),
       }));
 
       throw redirect({

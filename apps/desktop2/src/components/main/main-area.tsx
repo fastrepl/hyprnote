@@ -1,14 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import {
-  Building2Icon,
-  CalendarIcon,
-  CogIcon,
-  PanelLeftOpenIcon,
-  PencilIcon,
-  StickyNoteIcon,
-  UserIcon,
-} from "lucide-react";
+import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
@@ -18,8 +10,7 @@ import { ScrollArea, ScrollBar } from "@hypr/ui/components/ui/scroll-area";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
-import { Tab } from "../../types";
-import { id } from "../../utils";
+import { rowIdfromTab, Tab, uniqueIdfromTab } from "../../types";
 
 export function MainContent({ tabs }: { tabs: Tab[] }) {
   const activeTab = tabs.find((t) => t.active)!;
@@ -81,7 +72,7 @@ export function MainHeader() {
           className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
         />
         <CalendarIcon
-          onClick={() => openNew({ type: "calendars", id: id(), active: true })}
+          onClick={() => openNew({ type: "calendars", month: new Date(), active: true })}
           className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
         />
       </div>
@@ -100,15 +91,7 @@ function TabsHeader({ tabs }: { tabs: Tab[] }) {
   return (
     <ScrollArea className="w-full border-b whitespace-nowrap">
       <div className="flex w-max gap-1">
-        {tabs.map((tab) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            active={tab.active}
-            handleSelect={select}
-            handleClose={close}
-          />
-        ))}
+        {tabs.map((tab) => <TabItem key={uniqueIdfromTab(tab)} tab={tab} handleClose={close} handleSelect={select} />)}
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
@@ -116,15 +99,66 @@ function TabsHeader({ tabs }: { tabs: Tab[] }) {
 }
 
 function TabItem(
-  { tab, active, handleSelect, handleClose }: {
+  { tab, handleClose, handleSelect }: { tab: Tab; handleClose: (tab: Tab) => void; handleSelect: (tab: Tab) => void },
+) {
+  if (tab.type === "sessions") {
+    return <TabItemNote tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
+
+  if (tab.type === "calendars") {
+    return <TabItemCalendar tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
+
+  return null;
+}
+
+function TabItemNote(
+  { tab, handleClose, handleSelect }: {
     tab: Tab;
-    active: boolean;
-    handleSelect: (tab: Tab) => void;
     handleClose: (tab: Tab) => void;
+    handleSelect: (tab: Tab) => void;
   },
 ) {
-  const title = persisted.UI.useCell("sessions", tab.id, "title", persisted.STORE_ID);
+  const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
 
+  return (
+    <TabItemBase
+      icon={<StickyNoteIcon className="w-4 h-4" />}
+      title={title ?? ""}
+      active={tab.active}
+      handleClose={() => handleClose(tab)}
+      handleSelect={() => handleSelect(tab)}
+    />
+  );
+}
+
+function TabItemCalendar(
+  { tab, handleClose, handleSelect }: {
+    tab: Tab;
+    handleClose: (tab: Tab) => void;
+    handleSelect: (tab: Tab) => void;
+  },
+) {
+  return (
+    <TabItemBase
+      icon={<CalendarIcon className="w-4 h-4" />}
+      title={"Calendar"}
+      active={tab.active}
+      handleClose={() => handleClose(tab)}
+      handleSelect={() => handleSelect(tab)}
+    />
+  );
+}
+
+function TabItemBase(
+  { icon, title, active, handleClose, handleSelect }: {
+    icon: React.ReactNode;
+    title: string;
+    active: boolean;
+    handleClose: () => void;
+    handleSelect: () => void;
+  },
+) {
   return (
     <div
       className={clsx([
@@ -136,27 +170,17 @@ function TabItem(
       ])}
     >
       <button
-        onClick={() => handleSelect(tab)}
+        onClick={() => handleSelect()}
         className="flex flex-row items-center gap-1 text-sm max-w-[140px]"
       >
         <span className="flex-shrink-0">
-          {tab.type === "sessions"
-            ? <StickyNoteIcon className="w-4 h-4" />
-            : tab.type === "calendars"
-            ? <CalendarIcon className="w-4 h-4" />
-            : tab.type === "humans"
-            ? <UserIcon className="w-4 h-4" />
-            : tab.type === "events"
-            ? <CalendarIcon className="w-4 h-4" />
-            : tab.type === "organizations"
-            ? <Building2Icon className="w-4 h-4" />
-            : <></>}
+          {icon}
         </span>
         <span className="truncate">{title}</span>
       </button>
       {active && (
         <button
-          onClick={() => handleClose(tab)}
+          onClick={() => handleClose()}
           className="text-muted-foreground hover:text-foreground text-xs"
         >
           ✕
@@ -179,11 +203,12 @@ function TabContent({ tab }: { tab: Tab }) {
 }
 
 function TabContentNote({ tab }: { tab: Tab }) {
-  const row = persisted.UI.useRow("sessions", tab.id, persisted.STORE_ID);
+  const id = rowIdfromTab(tab);
+  const row = persisted.UI.useRow("sessions", id, persisted.STORE_ID);
 
   const handleEditTitle = persisted.UI.useSetRowCallback(
     "sessions",
-    tab.id,
+    id,
     (input: string, _store) => ({ ...row, title: input }),
     [row],
     persisted.STORE_ID,
@@ -191,7 +216,7 @@ function TabContentNote({ tab }: { tab: Tab }) {
 
   const handleEditRawMd = persisted.UI.useSetRowCallback(
     "sessions",
-    tab.id,
+    id,
     (input: string, _store) => ({ ...row, raw_md: input }),
     [row],
     persisted.STORE_ID,
@@ -233,12 +258,12 @@ function TabContentCalendarMonth({ sliceId }: { sliceId: string }) {
 
   return (
     <div>
-      {rowIds.map((rowId) => <TabContentCalendarMonthDay key={rowId} rowId={rowId} />)}
+      {rowIds.map((rowId) => <TabContentCalendarDay key={rowId} rowId={rowId} />)}
     </div>
   );
 }
 
-function TabContentCalendarMonthDay({ rowId }: { rowId: string }) {
+function TabContentCalendarDay({ rowId }: { rowId: string }) {
   const row = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
 
   return <pre>{JSON.stringify(row, null, 2)}</pre>;

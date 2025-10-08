@@ -1,7 +1,15 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { CogIcon, PanelLeftOpenIcon, PencilIcon } from "lucide-react";
+import {
+  Building2Icon,
+  CalendarIcon,
+  CogIcon,
+  PanelLeftOpenIcon,
+  PencilIcon,
+  StickyNoteIcon,
+  UserIcon,
+} from "lucide-react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
@@ -122,9 +130,22 @@ function TabItem(
     >
       <button
         onClick={() => handleSelect(tab)}
-        className="text-sm truncate max-w-[120px]"
+        className="flex flex-row items-center gap-1 text-sm max-w-[140px]"
       >
-        {title}
+        <span className="flex-shrink-0">
+          {tab.type === "sessions"
+            ? <StickyNoteIcon className="w-4 h-4" />
+            : tab.type === "calendars"
+            ? <CalendarIcon className="w-4 h-4" />
+            : tab.type === "humans"
+            ? <UserIcon className="w-4 h-4" />
+            : tab.type === "events"
+            ? <CalendarIcon className="w-4 h-4" />
+            : tab.type === "organizations"
+            ? <Building2Icon className="w-4 h-4" />
+            : <></>}
+        </span>
+        <span className="truncate">{title}</span>
       </button>
       {active && (
         <button

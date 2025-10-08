@@ -35,7 +35,7 @@ export const Route = createFileRoute("/app/main/_layout/")({
             ...search.tabs.map((t) => ({ ...t, active: false })),
             {
               id: sessionId,
-              type: "note",
+              type: "sessions",
               active: true,
             },
           ],

@@ -218,7 +218,7 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
-export const TABLES_TO_SYNC = Object.keys(SCHEMA.table) as (keyof typeof SCHEMA.table)[];
+export const TABLES = Object.keys(SCHEMA.table) as (keyof typeof SCHEMA.table)[];
 
 const {
   useCreateMergeableStore,

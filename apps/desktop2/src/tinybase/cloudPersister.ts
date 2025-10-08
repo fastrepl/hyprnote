@@ -45,7 +45,7 @@ const useCloudSaver = () => {
     const changesTable = store2.getTable("changes")!;
     const tables = store.getTables();
 
-    const changes = persisted.TABLES_TO_SYNC.flatMap((tableName) => {
+    const changes = persisted.TABLES.flatMap((tableName) => {
       const table = tables[tableName];
       if (!table) {
         return [];
@@ -92,7 +92,7 @@ const useCloudLoader = () => {
   const metaTable = store2.getTable("electric")!;
 
   const load = useCallback(async () => {
-    const steams = persisted.TABLES_TO_SYNC.map((table) => {
+    const steams = persisted.TABLES.map((table) => {
       const metaRow = Object.values(metaTable).find((row) => row.table === table);
 
       const resumable: {
@@ -144,14 +144,14 @@ const useCloudLoader = () => {
       }),
     );
 
-    const results = persisted.TABLES_TO_SYNC.reduce((acc, table, index) => {
+    const results = persisted.TABLES.reduce((acc, table, index) => {
       acc[table] = resultsArray[index];
       return acc;
-    }, {} as Record<typeof persisted.TABLES_TO_SYNC[number], IncomingChangeMessage[]>);
+    }, {} as Record<typeof persisted.TABLES[number], IncomingChangeMessage[]>);
 
     for (
       const [table, messages] of Object.entries(results) as [
-        typeof persisted.TABLES_TO_SYNC[number],
+        typeof persisted.TABLES[number],
         IncomingChangeMessage[],
       ][]
     ) {

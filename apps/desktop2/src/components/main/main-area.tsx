@@ -10,13 +10,13 @@ import {
   PencilIcon,
   StickyNoteIcon,
 } from "lucide-react";
+import { Reorder } from "motion/react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
 import { Button } from "@hypr/ui/components/ui/button";
-import { ScrollArea, ScrollBar } from "@hypr/ui/components/ui/scroll-area";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
@@ -96,15 +96,30 @@ export function MainHeader() {
 }
 
 function TabsHeader({ tabs }: { tabs: Tab[] }) {
-  const { select, close } = useTabs();
+  const { select, close, reorder } = useTabs();
 
   return (
-    <ScrollArea className="w-full border-b whitespace-nowrap">
-      <div className="flex w-max gap-1">
-        {tabs.map((tab) => <TabItem key={uniqueIdfromTab(tab)} tab={tab} handleClose={close} handleSelect={select} />)}
-      </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+    <div className="w-full border-b overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <Reorder.Group
+        as="div"
+        axis="x"
+        values={tabs}
+        onReorder={reorder}
+        className="flex w-max gap-1"
+        layoutScroll
+      >
+        {tabs.map((tab) => (
+          <Reorder.Item
+            key={uniqueIdfromTab(tab)}
+            value={tab}
+            as="div"
+            style={{ position: "relative" }}
+          >
+            <TabItem tab={tab} handleClose={close} handleSelect={select} />
+          </Reorder.Item>
+        ))}
+      </Reorder.Group>
+    </div>
   );
 }
 
@@ -172,7 +187,7 @@ function TabItemBase(
   return (
     <div
       className={clsx([
-        "flex items-center gap-2 shrink-0",
+        "flex items-center gap-2 min-w-[100px] max-w-[200px]",
         "border-x rounded px-3 py-1.5",
         active
           ? "border-border bg-background text-foreground"
@@ -181,21 +196,24 @@ function TabItemBase(
     >
       <button
         onClick={() => handleSelect()}
-        className="flex flex-row items-center gap-1 text-sm max-w-[140px]"
+        className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0"
       >
         <span className="flex-shrink-0">
           {icon}
         </span>
         <span className="truncate">{title}</span>
       </button>
-      {active && (
-        <button
-          onClick={() => handleClose()}
-          className="text-muted-foreground hover:text-foreground text-xs"
-        >
-          ✕
-        </button>
-      )}
+      <button
+        onClick={() => handleClose()}
+        className={clsx([
+          "text-xs flex-shrink-0",
+          active
+            ? "text-muted-foreground hover:text-foreground"
+            : "opacity-0 pointer-events-none",
+        ])}
+      >
+        ✕
+      </button>
     </div>
   );
 }

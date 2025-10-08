@@ -1,12 +1,21 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
-import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
+import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
+import {
+  CalendarIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CogIcon,
+  PanelLeftOpenIcon,
+  PencilIcon,
+  StickyNoteIcon,
+} from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
+import { Button } from "@hypr/ui/components/ui/button";
 import { ScrollArea, ScrollBar } from "@hypr/ui/components/ui/scroll-area";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
@@ -248,16 +257,57 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
   if (tab.type !== "calendars") {
     return null;
   }
+
+  const { openCurrent } = useTabs();
   const monthStart = startOfMonth(tab.month);
   const monthEnd = endOfMonth(tab.month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((day) => format(day, "yyyy-MM-dd"));
   const startDayOfWeek = getDay(monthStart); // 0 = Sunday, 6 = Saturday
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+  const handlePreviousMonth = () => {
+    openCurrent({ ...tab, month: addMonths(tab.month, -1) });
+  };
+
+  const handleNextMonth = () => {
+    openCurrent({ ...tab, month: addMonths(tab.month, 1) });
+  };
+
+  const handleToday = () => {
+    openCurrent({ ...tab, month: new Date() });
+  };
+
   return (
     <div className="flex flex-col h-full p-4">
-      <div className="mb-4 text-xl font-semibold">
-        {format(tab.month, "MMMM yyyy")}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-xl font-semibold">
+          {format(tab.month, "MMMM yyyy")}
+        </div>
+        <div className="flex h-fit rounded-md overflow-clip border border-neutral-200">
+          <Button
+            variant="outline"
+            className="p-0.5 rounded-none border-none"
+            onClick={handlePreviousMonth}
+          >
+            <ChevronLeftIcon size={16} />
+          </Button>
+
+          <Button
+            variant="outline"
+            className="text-sm px-1 py-0.5 rounded-none border-none"
+            onClick={handleToday}
+          >
+            Today
+          </Button>
+
+          <Button
+            variant="outline"
+            className="p-0.5 rounded-none border-none"
+            onClick={handleNextMonth}
+          >
+            <ChevronRightIcon size={16} />
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-7 gap-2">
         {weekDays.map((day) => (

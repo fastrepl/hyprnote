@@ -329,6 +329,8 @@ function TabContentCalendarDay({ day }: { day: string }) {
 
   const dayNumber = format(new Date(day), "d");
   const isToday = format(new Date(), "yyyy-MM-dd") === day;
+  const dayOfWeek = getDay(new Date(day));
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; 
 
-  return <CalendarDay dayNumber={dayNumber} isToday={isToday} events={events} />;
+  return <CalendarDay dayNumber={dayNumber} isToday={isToday} isWeekend={isWeekend} events={events} />;
 }

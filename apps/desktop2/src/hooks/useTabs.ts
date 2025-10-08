@@ -73,11 +73,19 @@ export function useTabs() {
     });
   };
 
+  const reorder = (newOrder: Tab[]) => {
+    navigate({
+      to: "/app/main",
+      search: { tabs: newOrder },
+    });
+  };
+
   return {
     currentTab: search.tabs.find((t) => t.active),
     openCurrent,
     openNew,
     select,
     close,
+    reorder,
   };
 }

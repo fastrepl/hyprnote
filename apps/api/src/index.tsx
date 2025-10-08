@@ -1,18 +1,22 @@
 import { zValidator } from "@hono/zod-validator";
+import { sql } from "drizzle-orm";
 import { Hono } from "hono";
+import { logger } from "hono/logger";
 import { proxy } from "hono/proxy";
 import { z } from "zod";
 
 import { getEnv } from "./env";
+import { drizzlePersisterMiddleware } from "./middleware/drizzle";
 import { supabaseMiddleware } from "./middleware/supabase";
 import { renderer } from "./renderer";
 import type { Env } from "./types";
 
 const app = new Hono<Env>();
+app.use(logger());
 app.use("/v1", supabaseMiddleware());
 
 app.get("/health", (c) => c.text("OK"));
-app.get("/", renderer, (c) => {
+app.get("/callback/auth", renderer, (c) => {
   const params = c.req.query();
   const code = params.code;
   const deeplink = "hypr://auth/callback?" + new URLSearchParams(params).toString();
@@ -56,39 +60,87 @@ app.get("/", renderer, (c) => {
 
 app.post(
   "/v1/write",
+  drizzlePersisterMiddleware(),
   zValidator(
     "json",
-    z.discriminatedUnion("operation", [
-      z.object({
-        table: z.string(),
-        row_id: z.string(),
-        operation: z.literal("delete"),
-      }),
-      z.object({
-        table: z.string(),
-        row_id: z.string(),
-        data: z.record(z.string(), z.unknown()),
-        operation: z.literal("update"),
-      }),
-    ]),
+    z.array(
+      z.discriminatedUnion("operation", [
+        z.object({
+          table: z.string(),
+          row_id: z.string(),
+          operation: z.literal("delete"),
+        }),
+        z.object({
+          table: z.string(),
+          row_id: z.string(),
+          data: z.record(z.string(), z.unknown()),
+          operation: z.literal("update"),
+        }),
+      ]),
+    ),
   ),
   async (c) => {
-    const supabase = c.get("supabase");
+    const db = c.get("db");
     const user = c.get("user");
     const body = c.req.valid("json");
 
-    // TODO: use RPC / transaction
-    if (body.operation === "delete") {
-      await supabase.from(body.table).delete().eq("id", body.row_id);
-    } else {
-      await supabase.from(body.table).upsert({
-        ...body.data,
-        id: body.row_id,
-        user_id: user.id,
-      });
-    }
+    try {
+      await db.transaction(async (tx) => {
+        for (const change of body) {
+          const tableName = sql.identifier(change.table);
 
-    return c.json({ message: "OK" });
+          if (change.operation === "delete") {
+            await tx.execute(
+              sql`
+                DELETE FROM ${tableName}
+                WHERE id = ${change.row_id}
+                  AND user_id = ${user.id}
+              `,
+            );
+          } else {
+            const protectedFields = new Set(["id", "user_id"]);
+            const safeData = Object.fromEntries(
+              Object.entries(change.data).filter(([key]) => !protectedFields.has(key)),
+            );
+
+            const columns = ["id", "user_id", ...Object.keys(safeData)];
+            const values = [change.row_id, user.id, ...Object.values(safeData)];
+
+            const columnIdentifiers = sql.join(
+              columns.map((col) => sql.identifier(col)),
+              sql.raw(", "),
+            );
+
+            const valuePlaceholders = sql.join(
+              values.map((v) => sql`${v}`),
+              sql.raw(", "),
+            );
+
+            const updateSet = sql.join(
+              columns.slice(2).map((col) => {
+                const colId = sql.identifier(col);
+                return sql`${colId} = EXCLUDED.${colId}`;
+              }),
+              sql.raw(", "),
+            );
+
+            await tx.execute(
+              sql`
+                INSERT INTO ${tableName} (${columnIdentifiers}) 
+                VALUES (${valuePlaceholders}) 
+                ON CONFLICT (id) 
+                DO UPDATE SET ${updateSet} 
+                WHERE ${tableName}.user_id = ${user.id}
+              `,
+            );
+          }
+        }
+      });
+
+      return c.json({ message: "OK" });
+    } catch (error) {
+      return c.json({ error }, 500);
+    }
   },
 );
 

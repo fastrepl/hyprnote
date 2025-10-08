@@ -1,4 +1,3 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import {
@@ -11,6 +10,7 @@ import {
   UserIcon,
 } from "lucide-react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";

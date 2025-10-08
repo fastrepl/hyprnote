@@ -11,7 +11,9 @@ export const Route = createFileRoute("/app/auth")({
   component: Component,
 });
 
-const redirectTo = import.meta.env.DEV ? "http://localhost:5173" : "https://api.hyprnote.com";
+const redirectTo = import.meta.env.DEV
+  ? "http://localhost:5173/callback/auth"
+  : "https://api.hyprnote.com/callback/auth";
 
 function Component() {
   const auth = useAuth();

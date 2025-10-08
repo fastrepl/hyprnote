@@ -1,6 +1,7 @@
 import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
+import { useAuth } from "../auth";
 import * as internal from "./store/internal";
 import * as persisted from "./store/persisted";
 
@@ -33,6 +34,11 @@ export const useCloudPersister = () => {
 };
 
 const useCloudSaver = () => {
+  const auth = useAuth();
+  if (!auth) {
+    throw new Error("'auth' is not set");
+  }
+
   const store = persisted.UI.useStore(persisted.STORE_ID)!;
   const store2 = internal.UI.useStore(internal.STORE_ID)!;
 
@@ -73,8 +79,9 @@ const useCloudSaver = () => {
         .filter((item): item is NonNullable<typeof item> => item !== null);
     });
 
-    // TODO
-    console.log(changes);
+    const response = await auth.apiClient?.syncWrite(changes);
+    console.log(response);
+    return response;
   }, [store]);
 
   return save;

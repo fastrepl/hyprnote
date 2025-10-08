@@ -41,11 +41,28 @@ const AuthContext = createContext<
   {
     supabase: SupabaseClient | null;
     session: Session | null;
+    apiClient: ReturnType<typeof buildApiClient> | null;
   } | null
 >(null);
 
+const buildApiClient = (session: Session) => {
+  const base = "http://localhost:5173";
+  const apiClient = {
+    syncWrite: (changes: any) => {
+      return fetch(`${base}/v1/write`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+        body: JSON.stringify(changes),
+      });
+    },
+  };
+
+  return apiClient;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [apiClient, setApiClient] = useState<ReturnType<typeof buildApiClient> | null>(null);
 
   useEffect(() => {
     if (!supabase) {
@@ -83,9 +100,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!session) {
+      setApiClient(null);
+    } else {
+      setApiClient(buildApiClient(session));
+    }
+  }, [session]);
+
   const value = {
     session,
     supabase,
+    apiClient,
   };
 
   return (

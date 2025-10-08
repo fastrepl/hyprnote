@@ -13,7 +13,9 @@
     "@supabase/supabase-js": "^2.58.0",
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.1.14",
+    "drizzle-orm": "^0.44.6",
     "hono": "^4.9.10",
+    "postgres": "^3.4.7",
     "tailwindcss": "^4.1.14",
     "zod": "^4.1.12"
   },

@@ -1,5 +1,4 @@
 packages:
   - "apps/*"
-  - "admin/*"
   - "packages/*"
   - "plugins/*"

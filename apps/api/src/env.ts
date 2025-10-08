@@ -12,6 +12,7 @@ export const getEnv = (c: Context<Env>) =>
       OPENAI_DEFAULT_MODEL: z.string().min(1),
       OPENAI_BASE_URL: z.string().min(1),
       OPENAI_API_KEY: z.string().min(1),
+      DATABASE_URL: z.string().min(1),
       SUPABASE_URL: z.string().min(1),
       SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     },

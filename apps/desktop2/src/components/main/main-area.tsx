@@ -16,6 +16,7 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
+import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import { Button } from "@hypr/ui/components/ui/button";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
@@ -256,6 +257,15 @@ function TabContentNote({ tab }: { tab: Tab }) {
         editable={true}
         value={row.title ?? ""}
         onChange={(e) => handleEditTitle(e.target.value)}
+      />
+      <TabHeader
+        isEnhancing={false}
+        onVisibilityChange={() => {}}
+        currentTab="raw"
+        onTabChange={() => {}}
+        isCurrentlyRecording={false}
+        shouldShowTab={true}
+        shouldShowEnhancedTab={false}
       />
       <NoteEditor
         initialContent={row.raw_md ?? ""}

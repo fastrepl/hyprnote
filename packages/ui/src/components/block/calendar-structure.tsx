@@ -69,4 +69,3 @@ export const CalendarStructure = ({
     </div>
   );
 };
-

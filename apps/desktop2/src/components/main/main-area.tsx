@@ -1,22 +1,16 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
-import {
-  CalendarIcon,
-  CogIcon,
-  PanelLeftOpenIcon,
-  PencilIcon,
-  StickyNoteIcon,
-} from "lucide-react";
+import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
-import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
-import TitleInput from "@hypr/ui/components/block/title-input";
 import { CalendarDay } from "@hypr/ui/components/block/calendar-day";
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
+import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
+import TitleInput from "@hypr/ui/components/block/title-input";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
@@ -313,9 +307,7 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
       onNextMonth={handleNextMonth}
       onToday={handleToday}
     >
-      {days.map((day) => (
-        <TabContentCalendarDay key={day} day={day} />
-      ))}
+      {days.map((day) => <TabContentCalendarDay key={day} day={day} />)}
     </CalendarStructure>
   );
 }

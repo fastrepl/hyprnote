@@ -15,13 +15,13 @@ interface CalendarDayProps {
   events: CalendarEvent[];
 }
 
-export const CalendarDay = ({ 
-  dayNumber, 
-  isToday, 
+export const CalendarDay = ({
+  dayNumber,
+  isToday,
   isWeekend = false,
   isCurrentMonth = true,
   monthName,
-  events 
+  events,
 }: CalendarDayProps) => {
   return (
     <div
@@ -46,7 +46,7 @@ export const CalendarDay = ({
               {monthName}
             </span>
           )}
-          
+
           <div
             className={clsx(
               isToday && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center",
@@ -68,13 +68,11 @@ export const CalendarDay = ({
           </div>
         </div>
       </div>
-      
+
       {/* Events area */}
       <div className="flex-1 overflow-hidden flex flex-col px-1">
         <div className="space-y-1">
-          {events?.map((event) => (
-            <CalendarItem key={event.id} eventName={event.title} />
-          ))}
+          {events?.map((event) => <CalendarItem key={event.id} eventName={event.title} />)}
         </div>
       </div>
     </div>

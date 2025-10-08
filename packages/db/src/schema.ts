@@ -106,7 +106,7 @@ export const configs = pgTable(TABLE_CONFIGS, {
 export const TABLE_CHAT_GROUPS = "chat_groups";
 export const chatGroups = pgTable(TABLE_CHAT_GROUPS, {
   ...SHARED,
-  title: text("title").notNull(),
+  title2: text("title2").notNull(),
 });
 
 export const TABLE_CHAT_MESSAGES = "chat_messages";

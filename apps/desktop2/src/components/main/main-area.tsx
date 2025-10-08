@@ -19,6 +19,7 @@ import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
 import { Tab } from "../../types";
+import { id } from "../../utils";
 
 export function MainContent({ tabs }: { tabs: Tab[] }) {
   const activeTab = tabs.find((t) => t.active)!;
@@ -34,6 +35,8 @@ export function MainContent({ tabs }: { tabs: Tab[] }) {
 export function MainHeader() {
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
+
+  const { openNew } = useTabs();
   const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
 
@@ -75,6 +78,10 @@ export function MainHeader() {
         />
         <PencilIcon
           onClick={handleClickNewNote}
+          className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
+        />
+        <CalendarIcon
+          onClick={() => openNew({ type: "calendars", id: id(), active: true })}
           className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
         />
       </div>
@@ -160,6 +167,18 @@ function TabItem(
 }
 
 function TabContent({ tab }: { tab: Tab }) {
+  if (tab.type === "sessions") {
+    return <TabContentNote tab={tab} />;
+  }
+
+  if (tab.type === "calendars") {
+    return <TabContentCalendar tab={tab} />;
+  }
+
+  return null;
+}
+
+function TabContentNote({ tab }: { tab: Tab }) {
   const row = persisted.UI.useRow("sessions", tab.id, persisted.STORE_ID);
 
   const handleEditTitle = persisted.UI.useSetRowCallback(
@@ -181,8 +200,8 @@ function TabContent({ tab }: { tab: Tab }) {
   return (
     <div className="flex flex-col gap-2 px-2 pt-2">
       <TitleInput
-        value={row.title ?? ""}
         editable={true}
+        value={row.title ?? ""}
         onChange={(e) => handleEditTitle(e.target.value)}
       />
       <NoteEditor
@@ -197,4 +216,30 @@ function TabContent({ tab }: { tab: Tab }) {
       />
     </div>
   );
+}
+
+function TabContentCalendar(_: { tab: Tab }) {
+  const slices = persisted.UI.useSliceIds(persisted.INDEXES.eventsByMonth, persisted.STORE_ID);
+
+  return (
+    <div className="flex flex-col h-full">
+      {slices.map((sliceId) => <TabContentCalendarMonth key={sliceId} sliceId={sliceId} />)}
+    </div>
+  );
+}
+
+function TabContentCalendarMonth({ sliceId }: { sliceId: string }) {
+  const rowIds = persisted.UI.useSliceRowIds(persisted.INDEXES.eventsByMonth, sliceId, persisted.STORE_ID);
+
+  return (
+    <div>
+      {rowIds.map((rowId) => <TabContentCalendarMonthDay key={rowId} rowId={rowId} />)}
+    </div>
+  );
+}
+
+function TabContentCalendarMonthDay({ rowId }: { rowId: string }) {
+  const row = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
+
+  return <pre>{JSON.stringify(row, null, 2)}</pre>;
 }

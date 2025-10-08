@@ -204,7 +204,7 @@ const SCHEMA = {
     chat_groups: {
       user_id: { type: "string" },
       created_at: { type: "string" },
-      title: { type: "string" },
+      title2: { type: "string" },
     } satisfies InferTinyBaseSchemaSchema<typeof chatGroupSchema>,
     chat_messages: {
       user_id: { type: "string" },

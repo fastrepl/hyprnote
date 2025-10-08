@@ -87,4 +87,3 @@ export function NoteHeader(
 
 // Export the TabHeader and TabSubHeader components for use outside this directory
 export { TabHeader, TabSubHeader };
-export type { TabHeaderRef } from "./tab-header";

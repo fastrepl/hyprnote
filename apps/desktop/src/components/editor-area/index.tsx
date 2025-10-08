@@ -26,7 +26,7 @@ import { showTipsModal } from "../tips-modal/service";
 import { enhanceFailedToast } from "../toast/shared";
 import { AnnotationBox } from "./annotation-box";
 import { LocalSearchBar } from "./local-search-bar";
-import { NoteHeader, TabHeader, type TabHeaderRef } from "./note-header";
+import { NoteHeader, TabHeader } from "./note-header";
 import { EnhancedNoteSubHeader } from "./note-header/sub-headers/enhanced-note-sub-header";
 import { TranscriptSubHeader } from "./note-header/sub-headers/transcript-sub-header";
 import { TextSelectionPopover } from "./text-selection-popover";
@@ -159,7 +159,6 @@ export default function EditorArea({
 
   const editorRef = useRef<{ editor: TiptapEditor | null }>({ editor: null });
   const transcriptRef = useRef<TranscriptEditorRef | null>(null);
-  const tabHeaderRef = useRef<TabHeaderRef>(null);
   const [transcriptEditorRef, setTranscriptEditorRef] = useState<TranscriptEditorRef | null>(null);
   const [isFloatingSearchVisible, setIsFloatingSearchVisible] = useState(false);
   const [isTabHeaderVisible, setIsTabHeaderVisible] = useState(false);
@@ -335,7 +334,6 @@ export default function EditorArea({
       />
 
       <TabHeader
-        ref={tabHeaderRef}
         sessionId={sessionId}
         onEnhance={enhance.mutate}
         isEnhancing={enhance.status === "pending"}

@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { eachDayOfInterval, endOfMonth, startOfMonth } from "date-fns";
+import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
 import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -248,28 +248,56 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
   if (tab.type !== "calendars") {
     return null;
   }
-  const days = eachDayOfInterval({ start: startOfMonth(tab.month), end: endOfMonth(tab.month) });
+  const monthStart = startOfMonth(tab.month);
+  const monthEnd = endOfMonth(tab.month);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((day) => format(day, "yyyy-MM-dd"));
+  const startDayOfWeek = getDay(monthStart); // 0 = Sunday, 6 = Saturday
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="flex flex-col h-full">
-      {days.map((day) => <TabContentCalendarDay key={day.toISOString()} day={day} />)}
+    <div className="flex flex-col h-full p-4">
+      <div className="mb-4 text-xl font-semibold">
+        {format(tab.month, "MMMM yyyy")}
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {weekDays.map((day) => (
+          <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
+            {day}
+          </div>
+        ))}
+        {Array.from({ length: startDayOfWeek }).map((_, i) => <div key={`empty-${i}`} />)}
+        {days.map((day) => <TabContentCalendarDay key={day} day={day} />)}
+      </div>
     </div>
   );
 }
 
-function TabContentCalendarDay({ day }: { day: Date }) {
-  const dateKey = day.toISOString().slice(0, 10);
-
+function TabContentCalendarDay({ day }: { day: string }) {
   const eventIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.eventsByDate,
-    dateKey,
+    day,
     persisted.STORE_ID,
   );
 
+  const dayNumber = format(new Date(day), "d");
+  const isToday = format(new Date(), "yyyy-MM-dd") === day;
+
   return (
-    <div>
-      <span className="text-sm">{dateKey}</span>
-      <div className="flex flex-col gap-1">
+    <div
+      className={clsx([
+        "h-32 max-h-32 p-2 border rounded-md flex flex-col overflow-hidden",
+        isToday ? "bg-blue-50 border-blue-300" : "bg-background border-border",
+      ])}
+    >
+      <div
+        className={clsx([
+          "text-sm font-medium mb-1 flex-shrink-0",
+          isToday && "text-blue-600",
+        ])}
+      >
+        {dayNumber}
+      </div>
+      <div className="flex flex-col gap-1 overflow-y-auto">
         {eventIds?.map((rowId) => <TabContentCalendarDayEvent key={rowId} rowId={rowId} />)}
       </div>
     </div>
@@ -278,5 +306,5 @@ function TabContentCalendarDay({ day }: { day: Date }) {
 
 function TabContentCalendarDayEvent({ rowId }: { rowId: string }) {
   const event = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
-  return <span className="text-sm bg-blue-100 px-2 py-1 m-1 rounded-md">{event.title}</span>;
+  return <div className="text-xs bg-blue-100 px-1.5 py-0.5 rounded truncate">{event.title}</div>;
 }

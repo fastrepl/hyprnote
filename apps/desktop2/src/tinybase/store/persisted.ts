@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createIndexes,
@@ -364,7 +365,7 @@ export const StoreComponent = () => {
         "events",
         (getCell) => {
           const d = new Date(getCell("started_at")!);
-          return d.toISOString().slice(0, 10);
+          return format(d, "yyyy-MM-dd");
         },
         "started_at",
         (a, b) => a.localeCompare(b),

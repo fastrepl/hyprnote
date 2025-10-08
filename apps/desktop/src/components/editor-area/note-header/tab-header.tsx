@@ -1,7 +1,7 @@
 import { useEnhancePendingState } from "@/hooks/enhance-pending";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { useEffect } from "react";
 
 interface TabHeaderProps {
   sessionId: string;
@@ -12,12 +12,7 @@ interface TabHeaderProps {
   onVisibilityChange?: (isVisible: boolean) => void;
 }
 
-export interface TabHeaderRef {
-  isVisible: boolean;
-}
-
-export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
-  ({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false, onVisibilityChange }, ref) => {
+export const TabHeader = ({ sessionId, onEnhance, isEnhancing, progress = 0, showProgress = false, onVisibilityChange }: TabHeaderProps) => {
     const [activeTab, setActiveTab] = useSession(sessionId, (s) => [
       s.activeTab,
       s.setActiveTab,
@@ -61,11 +56,6 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
     const handleTabClick = (tab: "raw" | "enhanced" | "transcript") => {
       setActiveTab(tab);
     };
-
-    // Expose visibility state via ref
-    useImperativeHandle(ref, () => ({
-      isVisible: isMeetingSession ?? false,
-    }), [isMeetingSession]);
 
     // Notify parent when visibility changes
     useEffect(() => {
@@ -138,5 +128,4 @@ export const TabHeader = forwardRef<TabHeaderRef, TabHeaderProps>(
         </div>
       </div>
     );
-  },
-);
+};

@@ -369,16 +369,6 @@ export const StoreComponent = () => {
         "started_at",
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
-      ).setIndexDefinition(
-        INDEXES.eventsByMonth,
-        "events",
-        (getCell) => {
-          const d = new Date(getCell("started_at")!);
-          return d.toISOString().slice(0, 7);
-        },
-        "started_at",
-        (a, b) => a.localeCompare(b),
-        (a, b) => String(a).localeCompare(String(b)),
       )
       .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
       .setIndexDefinition(INDEXES.tagSessionsBySession, "mapping_tag_session", "session_id")
@@ -421,7 +411,6 @@ export const INDEXES = {
   sessionsByFolder: "sessionsByFolder",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
-  eventsByMonth: "eventsByMonth",
   tagsByName: "tagsByName",
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",

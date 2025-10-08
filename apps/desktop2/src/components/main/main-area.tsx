@@ -1,5 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
+import { eachDayOfInterval, endOfMonth, startOfMonth } from "date-fns";
 import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -243,28 +244,39 @@ function TabContentNote({ tab }: { tab: Tab }) {
   );
 }
 
-function TabContentCalendar(_: { tab: Tab }) {
-  const slices = persisted.UI.useSliceIds(persisted.INDEXES.eventsByMonth, persisted.STORE_ID);
+function TabContentCalendar({ tab }: { tab: Tab }) {
+  if (tab.type !== "calendars") {
+    return null;
+  }
+  const days = eachDayOfInterval({ start: startOfMonth(tab.month), end: endOfMonth(tab.month) });
 
   return (
     <div className="flex flex-col h-full">
-      {slices.map((sliceId) => <TabContentCalendarMonth key={sliceId} sliceId={sliceId} />)}
+      {days.map((day) => <TabContentCalendarDay key={day.toISOString()} day={day} />)}
     </div>
   );
 }
 
-function TabContentCalendarMonth({ sliceId }: { sliceId: string }) {
-  const rowIds = persisted.UI.useSliceRowIds(persisted.INDEXES.eventsByMonth, sliceId, persisted.STORE_ID);
+function TabContentCalendarDay({ day }: { day: Date }) {
+  const dateKey = day.toISOString().slice(0, 10);
+
+  const eventIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.eventsByDate,
+    dateKey,
+    persisted.STORE_ID,
+  );
 
   return (
     <div>
-      {rowIds.map((rowId) => <TabContentCalendarDay key={rowId} rowId={rowId} />)}
+      <span className="text-sm">{dateKey}</span>
+      <div className="flex flex-col gap-1">
+        {eventIds?.map((rowId) => <TabContentCalendarDayEvent key={rowId} rowId={rowId} />)}
+      </div>
     </div>
   );
 }
 
-function TabContentCalendarDay({ rowId }: { rowId: string }) {
-  const row = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
-
-  return <pre>{JSON.stringify(row, null, 2)}</pre>;
+function TabContentCalendarDayEvent({ rowId }: { rowId: string }) {
+  const event = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
+  return <span className="text-sm bg-blue-100 px-2 py-1 m-1 rounded-md">{event.title}</span>;
 }

@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { type Tab } from "../types";
+import { isSameTab, type Tab } from "../types";
 
 export function useTabs() {
   const navigate = useNavigate();
@@ -12,15 +12,21 @@ export function useTabs() {
       throw navigate({
         to: "/app/main",
         search: {
-          tabs: search.tabs.filter((t) => t.id !== newTab.id)
+          tabs: search.tabs.filter((t) => !isSameTab(t, newTab))
             .map((t) => ({ ...t, active: false }))
             .concat([{ ...newTab, active: true }]),
         },
       });
     } else {
       const nextTabs = search.tabs
-        .filter((t) => t.id !== newTab.id)
-        .map((t, idx) => idx === existingTabIdx ? { ...newTab, active: true } : { ...t, active: false });
+        .map((t, idx) =>
+          idx === existingTabIdx
+            ? { ...newTab, active: true }
+            : isSameTab(t, newTab)
+            ? null
+            : { ...t, active: false }
+        )
+        .filter((t): t is Tab => t !== null);
 
       navigate({
         to: "/app/main",
@@ -33,7 +39,7 @@ export function useTabs() {
     navigate({
       to: "/app/main",
       search: {
-        tabs: search.tabs.filter((t) => t.id !== tab.id)
+        tabs: search.tabs.filter((t) => !isSameTab(t, tab))
           .map((t) => ({ ...t, active: false }))
           .concat([{ ...tab, active: true }]),
       },
@@ -44,19 +50,19 @@ export function useTabs() {
     navigate({
       to: "/app/main",
       search: {
-        tabs: search.tabs.map((t) => ({ ...t, active: t.id === tab.id })),
+        tabs: search.tabs.map((t) => ({ ...t, active: isSameTab(t, tab) })),
       },
     });
   };
 
   const close = (tab: Tab) => {
-    const remainingTabs = search.tabs.filter((t) => t.id !== tab.id);
+    const remainingTabs = search.tabs.filter((t) => !isSameTab(t, tab));
 
     if (remainingTabs.length === 0) {
       return navigate({ to: "/app/main", search: { tabs: [] } });
     }
 
-    const closedTabIndex = search.tabs.findIndex((t) => t.id === tab.id);
+    const closedTabIndex = search.tabs.findIndex((t) => isSameTab(t, tab));
     const nextActiveIndex = closedTabIndex < remainingTabs.length
       ? closedTabIndex
       : remainingTabs.length - 1;

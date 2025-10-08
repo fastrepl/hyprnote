@@ -42,7 +42,11 @@ function TimelineView() {
   return (
     <div className="flex flex-col">
       {allSessionIds?.map((sessionId) => (
-        <SessionItem key={sessionId} sessionId={sessionId} active={currentTab?.id === sessionId} />
+        <SessionItem
+          key={sessionId}
+          sessionId={sessionId}
+          active={currentTab?.type === "sessions" && currentTab?.id === sessionId}
+        />
       ))}
     </div>
   );

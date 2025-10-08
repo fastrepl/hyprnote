@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createIndexes,
@@ -364,17 +365,7 @@ export const StoreComponent = () => {
         "events",
         (getCell) => {
           const d = new Date(getCell("started_at")!);
-          return d.toISOString().slice(0, 10);
-        },
-        "started_at",
-        (a, b) => a.localeCompare(b),
-        (a, b) => String(a).localeCompare(String(b)),
-      ).setIndexDefinition(
-        INDEXES.eventsByMonth,
-        "events",
-        (getCell) => {
-          const d = new Date(getCell("started_at")!);
-          return d.toISOString().slice(0, 7);
+          return format(d, "yyyy-MM-dd");
         },
         "started_at",
         (a, b) => a.localeCompare(b),
@@ -421,7 +412,6 @@ export const INDEXES = {
   sessionsByFolder: "sessionsByFolder",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
-  eventsByMonth: "eventsByMonth",
   tagsByName: "tagsByName",
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",

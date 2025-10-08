@@ -3,8 +3,6 @@ import { clsx } from "clsx";
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
 import {
   CalendarIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   CogIcon,
   PanelLeftOpenIcon,
   PencilIcon,
@@ -16,8 +14,9 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import TitleInput from "@hypr/ui/components/block/title-input";
+import { CalendarDay } from "@hypr/ui/components/block/calendar-day";
+import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
-import { Button } from "@hypr/ui/components/ui/button";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
@@ -306,47 +305,18 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
   };
 
   return (
-    <div className="flex flex-col h-full p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-xl font-semibold">
-          {format(tab.month, "MMMM yyyy")}
-        </div>
-        <div className="flex h-fit rounded-md overflow-clip border border-neutral-200">
-          <Button
-            variant="outline"
-            className="p-0.5 rounded-none border-none"
-            onClick={handlePreviousMonth}
-          >
-            <ChevronLeftIcon size={16} />
-          </Button>
-
-          <Button
-            variant="outline"
-            className="text-sm px-1 py-0.5 rounded-none border-none"
-            onClick={handleToday}
-          >
-            Today
-          </Button>
-
-          <Button
-            variant="outline"
-            className="p-0.5 rounded-none border-none"
-            onClick={handleNextMonth}
-          >
-            <ChevronRightIcon size={16} />
-          </Button>
-        </div>
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {weekDays.map((day) => (
-          <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
-            {day}
-          </div>
-        ))}
-        {Array.from({ length: startDayOfWeek }).map((_, i) => <div key={`empty-${i}`} />)}
-        {days.map((day) => <TabContentCalendarDay key={day} day={day} />)}
-      </div>
-    </div>
+    <CalendarStructure
+      monthLabel={format(tab.month, "MMMM yyyy")}
+      weekDays={weekDays}
+      startDayOfWeek={startDayOfWeek}
+      onPreviousMonth={handlePreviousMonth}
+      onNextMonth={handleNextMonth}
+      onToday={handleToday}
+    >
+      {days.map((day) => (
+        <TabContentCalendarDay key={day} day={day} />
+      ))}
+    </CalendarStructure>
   );
 }
 
@@ -357,32 +327,16 @@ function TabContentCalendarDay({ day }: { day: string }) {
     persisted.STORE_ID,
   );
 
+  const events = (eventIds ?? []).map((rowId) => {
+    const event = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
+    return {
+      id: rowId,
+      title: event.title ?? "",
+    };
+  });
+
   const dayNumber = format(new Date(day), "d");
   const isToday = format(new Date(), "yyyy-MM-dd") === day;
 
-  return (
-    <div
-      className={clsx([
-        "h-32 max-h-32 p-2 border rounded-md flex flex-col overflow-hidden",
-        isToday ? "bg-blue-50 border-blue-300" : "bg-background border-border",
-      ])}
-    >
-      <div
-        className={clsx([
-          "text-sm font-medium mb-1 flex-shrink-0",
-          isToday && "text-blue-600",
-        ])}
-      >
-        {dayNumber}
-      </div>
-      <div className="flex flex-col gap-1 overflow-y-auto">
-        {eventIds?.map((rowId) => <TabContentCalendarDayEvent key={rowId} rowId={rowId} />)}
-      </div>
-    </div>
-  );
-}
-
-function TabContentCalendarDayEvent({ rowId }: { rowId: string }) {
-  const event = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
-  return <div className="text-xs bg-blue-100 px-1.5 py-0.5 rounded truncate">{event.title}</div>;
+  return <CalendarDay dayNumber={dayNumber} isToday={isToday} events={events} />;
 }

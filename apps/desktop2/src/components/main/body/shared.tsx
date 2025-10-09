@@ -20,8 +20,8 @@ export function TabItemBase(
   return (
     <div
       className={clsx([
-        "flex items-center gap-2 min-w-[100px] max-w-[200px] h-full",
-        "border-x border-t rounded-t px-2",
+        "flex items-center gap-2",
+        "min-w-[100px] max-w-[200px] h-full px-2",
         active
           ? "border-border bg-background text-foreground"
           : "border-transparent bg-muted/50 hover:bg-muted text-muted-foreground",

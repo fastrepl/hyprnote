@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { Reorder } from "motion/react";
 
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
@@ -27,7 +28,12 @@ function TabsHeader({ tabs }: { tabs: Tab[] }) {
   const { select, close, reorder } = useTabs();
 
   return (
-    <div className="w-full border-b overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] h-11">
+    <div
+      className={clsx([
+        "w-full border-b overflow-x-auto h-11",
+        "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+      ])}
+    >
       <Reorder.Group
         as="div"
         axis="x"
@@ -42,7 +48,7 @@ function TabsHeader({ tabs }: { tabs: Tab[] }) {
             value={tab}
             as="div"
             style={{ position: "relative" }}
-            className="h-full"
+            className="h-full border-r border-t"
           >
             <TabItem tab={tab} handleClose={close} handleSelect={select} />
           </Reorder.Item>

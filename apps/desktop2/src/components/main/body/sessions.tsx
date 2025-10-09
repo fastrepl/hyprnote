@@ -1,10 +1,11 @@
 import { StickyNoteIcon } from "lucide-react";
+import { useCallback } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import TitleInput from "@hypr/ui/components/block/title-input";
 import * as persisted from "../../../store/tinybase/persisted";
-import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
+import { rowIdfromTab, type Tab, useTabs } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
@@ -44,6 +45,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   return (
     <div className="flex flex-col gap-2 px-2 pt-2">
       <TabContentNoteHeader sessionRow={sessionRow} />
+
       <TitleInput
         editable={true}
         value={sessionRow.title ?? ""}
@@ -110,9 +112,9 @@ function TabContentNoteHeaderFolderChain({ title, folderId }: { title: string; f
           <TabContentNoteHeaderFolder folderId={id} />
         </div>
       ))}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <span>/</span>
-        <span className="truncate max-w-[60px]">{title}</span>
+        <span className="truncate max-w-[80px]">{title}</span>
       </div>
     </div>
   );
@@ -120,7 +122,19 @@ function TabContentNoteHeaderFolderChain({ title, folderId }: { title: string; f
 
 function TabContentNoteHeaderFolder({ folderId }: { folderId: string }) {
   const folderName = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
-  return <span>{folderName}</span>;
+  const { openNew } = useTabs();
+  const handleClick = useCallback(() => {
+    openNew({ type: "folders", id: folderId, active: true });
+  }, [openNew, folderId]);
+
+  return (
+    <button
+      className="text-gray-500 hover:text-gray-700"
+      onClick={handleClick}
+    >
+      {folderName}
+    </button>
+  );
 }
 
 function TabContentNoteHeaderEvent({ eventId }: { eventId: string }) {

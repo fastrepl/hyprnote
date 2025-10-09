@@ -22,6 +22,7 @@ import { useLeftSidebar } from "@hypr/utils/contexts";
 import * as persisted from "../../store/tinybase/persisted";
 import { useTabs } from "../../store/zustand/tabs";
 import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../store/zustand/tabs";
+import { TabContentHuman, TabItemHuman } from "./human";
 import { type TabItem, TabItemBase } from "./shared";
 
 export function MainContent() {
@@ -153,6 +154,10 @@ function TabItem(
     return <TabItemFolder tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
 
+  if (tab.type === "humans") {
+    return <TabItemHuman tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
+
   return null;
 }
 
@@ -253,6 +258,10 @@ function TabContent({ tab }: { tab: Tab }) {
 
   if (tab.type === "folders") {
     return <TabContentFolder tab={tab} />;
+  }
+
+  if (tab.type === "humans") {
+    return <TabContentHuman tab={tab} />;
   }
 
   return null;

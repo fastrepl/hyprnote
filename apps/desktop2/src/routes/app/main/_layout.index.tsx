@@ -87,7 +87,7 @@ function Component() {
             <ResizableHandle withHandle />
           </>
         )}
-        
+
         <ResizablePanel>
           <div className="flex flex-col h-full">
             <MainHeader />

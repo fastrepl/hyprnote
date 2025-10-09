@@ -30,7 +30,7 @@ export function MainHeader() {
   const navigate = useNavigate();
 
   const { openNew } = useTabs();
-  //const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  // const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
 
   const handleClickSettings = () => {

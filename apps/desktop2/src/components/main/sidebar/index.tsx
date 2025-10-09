@@ -19,6 +19,7 @@ export function LeftSidebar() {
           "pl-[72px]",
         ])}
       >
+        <div className="flex-1" />
         <PanelLeftCloseIcon
           onClick={toggleLeftPanel}
           className="cursor-pointer h-5 w-5"

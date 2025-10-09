@@ -4,11 +4,11 @@ import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, 
 import {
   CalendarIcon,
   CogIcon,
+  FileTextIcon,
   FolderIcon,
   PanelLeftOpenIcon,
   PencilIcon,
   StickyNoteIcon,
-  FileTextIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback } from "react";

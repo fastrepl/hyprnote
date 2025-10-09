@@ -9,15 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IntegrationRouteImport } from './routes/integration'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
+import { Route as CallbackAuthRouteImport } from './routes/callback/auth'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
 import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
 import { Route as ApiChatCompletionsRouteImport } from './routes/api/chat.completions'
-import { Route as ApiCallbackAuthRouteImport } from './routes/api/callback.auth'
 
+const IntegrationRoute = IntegrationRouteImport.update({
+  id: '/integration',
+  path: '/integration',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebhookNangoRoute = WebhookNangoRouteImport.update({
+  id: '/webhook/nango',
+  path: '/webhook/nango',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallbackAuthRoute = CallbackAuthRouteImport.update({
+  id: '/callback/auth',
+  path: '/callback/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSyncWriteRoute = ApiSyncWriteRouteImport.update({
@@ -35,22 +52,21 @@ const ApiChatCompletionsRoute = ApiChatCompletionsRouteImport.update({
   path: '/api/chat/completions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCallbackAuthRoute = ApiCallbackAuthRouteImport.update({
-  id: '/api/callback/auth',
-  path: '/api/callback/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/callback/auth': typeof ApiCallbackAuthRoute
+  '/integration': typeof IntegrationRoute
+  '/callback/auth': typeof CallbackAuthRoute
+  '/webhook/nango': typeof WebhookNangoRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/callback/auth': typeof ApiCallbackAuthRoute
+  '/integration': typeof IntegrationRoute
+  '/callback/auth': typeof CallbackAuthRoute
+  '/webhook/nango': typeof WebhookNangoRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
@@ -58,7 +74,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/callback/auth': typeof ApiCallbackAuthRoute
+  '/integration': typeof IntegrationRoute
+  '/callback/auth': typeof CallbackAuthRoute
+  '/webhook/nango': typeof WebhookNangoRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
@@ -67,21 +85,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/api/callback/auth'
+    | '/integration'
+    | '/callback/auth'
+    | '/webhook/nango'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/api/callback/auth'
+    | '/integration'
+    | '/callback/auth'
+    | '/webhook/nango'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
   id:
     | '__root__'
     | '/'
-    | '/api/callback/auth'
+    | '/integration'
+    | '/callback/auth'
+    | '/webhook/nango'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
@@ -89,7 +113,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiCallbackAuthRoute: typeof ApiCallbackAuthRoute
+  IntegrationRoute: typeof IntegrationRoute
+  CallbackAuthRoute: typeof CallbackAuthRoute
+  WebhookNangoRoute: typeof WebhookNangoRoute
   ApiChatCompletionsRoute: typeof ApiChatCompletionsRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
   ApiSyncWriteRoute: typeof ApiSyncWriteRoute
@@ -97,11 +123,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/integration': {
+      id: '/integration'
+      path: '/integration'
+      fullPath: '/integration'
+      preLoaderRoute: typeof IntegrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webhook/nango': {
+      id: '/webhook/nango'
+      path: '/webhook/nango'
+      fullPath: '/webhook/nango'
+      preLoaderRoute: typeof WebhookNangoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callback/auth': {
+      id: '/callback/auth'
+      path: '/callback/auth'
+      fullPath: '/callback/auth'
+      preLoaderRoute: typeof CallbackAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sync/write': {
@@ -125,19 +172,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatCompletionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/callback/auth': {
-      id: '/api/callback/auth'
-      path: '/api/callback/auth'
-      fullPath: '/api/callback/auth'
-      preLoaderRoute: typeof ApiCallbackAuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiCallbackAuthRoute: ApiCallbackAuthRoute,
+  IntegrationRoute: IntegrationRoute,
+  CallbackAuthRoute: CallbackAuthRoute,
+  WebhookNangoRoute: WebhookNangoRoute,
   ApiChatCompletionsRoute: ApiChatCompletionsRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,
   ApiSyncWriteRoute: ApiSyncWriteRoute,

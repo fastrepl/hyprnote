@@ -22,6 +22,7 @@ import { useLeftSidebar } from "@hypr/utils/contexts";
 import * as persisted from "../../store/tinybase/persisted";
 import { useTabs } from "../../store/zustand/tabs";
 import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../store/zustand/tabs";
+import { type TabItem, TabItemBase } from "./shared";
 
 export function MainContent() {
   const { tabs, currentTab } = useTabs();
@@ -236,55 +237,6 @@ const TabItemFolderSpecific: TabItem = ({ tab, handleClose, handleSelect }) => {
     />
   );
 };
-
-type TabItem = (props: {
-  tab: Tab;
-  handleClose: (tab: Tab) => void;
-  handleSelect: (tab: Tab) => void;
-}) => React.ReactNode;
-
-function TabItemBase(
-  { icon, title, active, handleClose, handleSelect }: {
-    icon: React.ReactNode;
-    title: string;
-    active: boolean;
-    handleClose: () => void;
-    handleSelect: () => void;
-  },
-) {
-  return (
-    <div
-      className={clsx([
-        "flex items-center gap-2 min-w-[100px] max-w-[200px]",
-        "border-x rounded px-3 py-1.5",
-        active
-          ? "border-border bg-background text-foreground"
-          : "border-transparent bg-muted/50 hover:bg-muted text-muted-foreground",
-      ])}
-    >
-      <button
-        onClick={() => handleSelect()}
-        className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0"
-      >
-        <span className="flex-shrink-0">
-          {icon}
-        </span>
-        <span className="truncate">{title}</span>
-      </button>
-      <button
-        onClick={() => handleClose()}
-        className={clsx([
-          "text-xs flex-shrink-0",
-          active
-            ? "text-muted-foreground hover:text-foreground"
-            : "opacity-0 pointer-events-none",
-        ])}
-      >
-        ✕
-      </button>
-    </div>
-  );
-}
 
 function TabContent({ tab }: { tab: Tab }) {
   if (tab.type === "sessions") {

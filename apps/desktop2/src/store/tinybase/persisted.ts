@@ -34,7 +34,7 @@ import { id } from "../../utils";
 import * as internal from "./internal";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "./localPersister";
 import { createLocalSynchronizer } from "./localSynchronizer";
-import { InferTinyBaseSchema, InferTinyBaseSchemaSchema, jsonObject } from "./shared";
+import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const STORE_ID = "persisted";
 
@@ -99,6 +99,8 @@ export const configSchema = baseConfigSchema.omit({ id: true }).extend({
 export const chatGroupSchema = baseChatGroupSchema.omit({ id: true }).extend({ created_at: z.string() });
 export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
   created_at: z.string(),
+  metadata: jsonObject(z.any()),
+  parts: jsonObject(z.any()),
 });
 
 export type Human = z.infer<typeof humanSchema>;
@@ -116,6 +118,11 @@ export type Config = z.infer<typeof configSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
+export type SessionStorage = ToStorageType<typeof sessionSchema>;
+export type TemplateStorage = ToStorageType<typeof templateSchema>;
+export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
+export type ConfigStorage = ToStorageType<typeof configSchema>;
+
 const SCHEMA = {
   value: {} as const satisfies ValuesSchema,
   table: {
@@ -124,7 +131,7 @@ const SCHEMA = {
       created_at: { type: "string" },
       name: { type: "string" },
       parent_folder_id: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof folderSchema>,
+    } satisfies InferTinyBaseSchema<typeof folderSchema>,
     sessions: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -134,24 +141,24 @@ const SCHEMA = {
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
       transcript: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof sessionSchema>,
+    } satisfies InferTinyBaseSchema<typeof sessionSchema>,
     humans: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
       email: { type: "string" },
       org_id: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof humanSchema>,
+    } satisfies InferTinyBaseSchema<typeof humanSchema>,
     organizations: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof organizationSchema>,
+    } satisfies InferTinyBaseSchema<typeof organizationSchema>,
     calendars: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof calendarSchema>,
+    } satisfies InferTinyBaseSchema<typeof calendarSchema>,
     events: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -159,31 +166,31 @@ const SCHEMA = {
       title: { type: "string" },
       started_at: { type: "string" },
       ended_at: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof eventSchema>,
+    } satisfies InferTinyBaseSchema<typeof eventSchema>,
     mapping_event_participant: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       event_id: { type: "string" },
       human_id: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof mappingEventParticipantSchema>,
+    } satisfies InferTinyBaseSchema<typeof mappingEventParticipantSchema>,
     tags: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       name: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof tagSchema>,
+    } satisfies InferTinyBaseSchema<typeof tagSchema>,
     mapping_tag_session: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       tag_id: { type: "string" },
       session_id: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof mappingTagSessionSchema>,
+    } satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
     templates: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       title: { type: "string" },
       description: { type: "string" },
       sections: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof templateSchema>,
+    } satisfies InferTinyBaseSchema<typeof templateSchema>,
     configs: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -201,12 +208,12 @@ const SCHEMA = {
       ai_api_base: { type: "string" },
       ai_api_key: { type: "string" },
       ai_specificity: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof configSchema>,
+    } satisfies InferTinyBaseSchema<typeof configSchema>,
     chat_groups: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       title: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof chatGroupSchema>,
+    } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
     chat_messages: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -215,7 +222,7 @@ const SCHEMA = {
       content: { type: "string" },
       metadata: { type: "string" },
       parts: { type: "string" },
-    } satisfies InferTinyBaseSchemaSchema<typeof chatMessageSchema>,
+    } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -352,7 +359,46 @@ export const StoreComponent = () => {
     [],
   )!;
 
-  const queries = useCreateQueries(store, (store) => createQueries(store), [store2])!;
+  const queries = useCreateQueries(
+    store,
+    (store) =>
+      createQueries(store)
+        .setQueryDefinition(
+          QUERIES.eventsWithoutSession,
+          "events",
+          ({ select, join, where }) => {
+            select("title");
+            select("started_at");
+            select("ended_at");
+            select("calendar_id");
+
+            join("sessions", (_getCell, rowId) => {
+              let id: string | undefined;
+              store.forEachRow("sessions", (sessionRowId, _forEachCell) => {
+                if (store.getCell("sessions", sessionRowId, "event_id") === rowId) {
+                  id = sessionRowId;
+                }
+              });
+              return id;
+            });
+            where((getTableCell) => getTableCell("sessions", "event_id") === undefined);
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.sessionsWithMaybeEvent,
+          "sessions",
+          ({ select, join }) => {
+            select("title");
+            select("created_at");
+            select("event_id");
+            select("folder_id");
+
+            join("events", "event_id").as("event");
+            select("event", "started_at").as("event_started_at");
+          },
+        ),
+    [store2],
+  )!;
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
@@ -414,7 +460,10 @@ export const StoreComponent = () => {
   return null;
 };
 
-export const QUERIES = {};
+export const QUERIES = {
+  eventsWithoutSession: "eventsWithoutSession",
+  sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
+};
 
 export const METRICS = {
   totalHumans: "totalHumans",
@@ -456,7 +505,7 @@ export const useConfig = () => {
     ai_api_base: undefined,
     ai_api_key: undefined,
     ai_specificity: "3",
-  } satisfies InferTinyBaseSchema<typeof configSchema>;
+  } satisfies ToStorageType<typeof configSchema>;
 
   return { id: config_id, config: defaultConfig };
 };

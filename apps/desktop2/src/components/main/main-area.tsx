@@ -1,7 +1,7 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "date-fns";
-import { CalendarIcon, CogIcon, NotebookIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
+import { CalendarIcon, CogIcon, FileTextIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback } from "react";
 
@@ -10,8 +10,7 @@ import NoteEditor from "@hypr/tiptap/editor";
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import TitleInput from "@hypr/ui/components/block/title-input";
-import { Button } from "@hypr/ui/components/ui/button";
-import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
+import { useLeftSidebar } from "@hypr/utils/contexts";
 import * as persisted from "../../store/tinybase/persisted";
 import { useTabs } from "../../store/zustand/tabs";
 import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../store/zustand/tabs";
@@ -33,7 +32,6 @@ export function MainContent() {
 
 export function MainHeader() {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  //const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
   const { openNew } = useTabs();
 
@@ -476,7 +474,7 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
   return (
     <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-      <NotebookIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
+      <FileTextIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
       <div className="flex-1 text-xs text-neutral-800 truncate">
         {session.title}
       </div>

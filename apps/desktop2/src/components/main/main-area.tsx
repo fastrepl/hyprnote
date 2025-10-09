@@ -6,7 +6,6 @@ import { Reorder } from "motion/react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
-import { CalendarDay } from "@hypr/ui/components/block/calendar-day";
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
 import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
@@ -319,18 +318,26 @@ function TabContentCalendarDay({ day }: { day: string }) {
     persisted.STORE_ID,
   );
 
-  const events = (eventIds ?? []).map((rowId) => {
-    const event = persisted.UI.useRow("events", rowId, persisted.STORE_ID);
-    return {
-      id: rowId,
-      title: event.title ?? "",
-    };
-  });
+  const sessionIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.sessionByDateWithEvent,
+    day,
+    persisted.STORE_ID,
+  );
 
-  const dayNumber = format(new Date(day), "d");
-  const isToday = format(new Date(), "yyyy-MM-dd") === day;
-  const dayOfWeek = getDay(new Date(day));
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  return (
+    <div>
+      {eventIds.map((eventId) => <TabContentCalendarDay2 key={eventId} eventId={eventId} />)}
+      {sessionIds.map((sessionId) => <TabContentCalendarDay3 key={sessionId} sessionId={sessionId} />)}
+    </div>
+  );
+}
 
-  return <CalendarDay dayNumber={dayNumber} isToday={isToday} isWeekend={isWeekend} events={events} />;
+function TabContentCalendarDay2({ eventId }: { eventId: string }) {
+  const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
+  return <div>{event.title}</div>;
+}
+
+function TabContentCalendarDay3({ sessionId }: { sessionId: string }) {
+  const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  return <div>{session.title}</div>;
 }

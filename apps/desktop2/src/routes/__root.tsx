@@ -15,7 +15,7 @@ function Component() {
     <AuthProvider>
       <Outlet />
       <Suspense>
-        <TanStackRouterDevtools position="bottom-right" initialIsOpen={false} />
+        <TanStackRouterDevtools position="bottom-left" initialIsOpen={false} />
         <TinybaseInspector />
       </Suspense>
     </AuthProvider>

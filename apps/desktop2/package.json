@@ -34,6 +34,7 @@
     "motion": "^11.18.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hotkeys-hook": "^4.6.2",
     "tinybase": "^6.7.0",
     "zod": "^4.1.12",
     "zustand": "^5.0.8"

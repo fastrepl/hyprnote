@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { FloatingChatButton } from "../../../components/floating-chat-button";
-import { LeftSidebar } from "../../../components/main/left-sidebar";
-import { MainContent, MainHeader } from "../../../components/main/main-area";
+import { MainContent } from "../../../components/main/body";
+import { LeftSidebar } from "../../../components/main/sidebar";
 
 export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,
@@ -24,10 +24,7 @@ function Component() {
         </>
       )}
       <ResizablePanel>
-        <div className="flex flex-col h-full">
-          <MainHeader />
-          <MainContent />
-        </div>
+        <MainContent />
       </ResizablePanel>
       <FloatingChatButton />
     </ResizablePanelGroup>

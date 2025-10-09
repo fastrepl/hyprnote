@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
-import { Chat } from "../../../components/chat";
+import { useLeftSidebar } from "@hypr/utils/contexts";
+import { FloatingChatButton } from "../../../components/floating-chat-button";
 import { LeftSidebar } from "../../../components/main/left-sidebar";
 import { MainContent, MainHeader } from "../../../components/main/main-area";
 
@@ -11,7 +11,6 @@ export const Route = createFileRoute("/app/main/_layout/")({
 });
 
 function Component() {
-  const { isExpanded: isRightPanelExpanded } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded } = useLeftSidebar();
 
   return (
@@ -27,21 +26,10 @@ function Component() {
       <ResizablePanel>
         <div className="flex flex-col h-full">
           <MainHeader />
-          {isRightPanelExpanded
-            ? (
-              <ResizablePanelGroup direction="horizontal">
-                <ResizablePanel defaultSize={60} minSize={30}>
-                  <MainContent />
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={40} minSize={30}>
-                  <Chat />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            )
-            : <MainContent />}
+          <MainContent />
         </div>
       </ResizablePanel>
+      <FloatingChatButton />
     </ResizablePanelGroup>
   );
 }

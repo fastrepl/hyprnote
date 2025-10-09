@@ -7,10 +7,9 @@ import { Reorder } from "motion/react";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
-import { ChatPanelButton } from "@hypr/ui/components/block/chat-panel-button";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import TitleInput from "@hypr/ui/components/block/title-input";
-import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
+import { useLeftSidebar } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
 import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../types";
@@ -31,7 +30,7 @@ export function MainHeader() {
   const navigate = useNavigate();
 
   const { openNew } = useTabs();
-  const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  //const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
 
   const handleClickSettings = () => {
@@ -79,11 +78,6 @@ export function MainHeader() {
           className="cursor-pointer h-5 w-5 text-muted-foreground hover:text-foreground"
         />
       </div>
-
-      <ChatPanelButton
-        isExpanded={isRightPanelExpanded}
-        togglePanel={toggleRightPanel}
-      />
     </header>
   );
 }

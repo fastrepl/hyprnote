@@ -2,8 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
-import { Chat } from "../../../components/chat";
+import { useLeftSidebar } from "@hypr/utils/contexts";
+import { FloatingChatButton } from "../../../components/floating-chat-button";
 import { LeftSidebar } from "../../../components/main/left-sidebar";
 import { MainContent, MainHeader } from "../../../components/main/main-area";
 import { isSameTab, tabSchema } from "../../../types";
@@ -74,37 +74,28 @@ export const Route = createFileRoute("/app/main/_layout/")({
 
 function Component() {
   const { tabs } = Route.useLoaderData();
-  const { isExpanded: isRightPanelExpanded } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded } = useLeftSidebar();
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-full">
-      {isLeftPanelExpanded && (
-        <>
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
-            <LeftSidebar />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-        </>
-      )}
-      <ResizablePanel>
-        <div className="flex flex-col h-full">
-          <MainHeader />
-          {isRightPanelExpanded
-            ? (
-              <ResizablePanelGroup direction="horizontal">
-                <ResizablePanel defaultSize={60} minSize={30}>
-                  <MainContent tabs={tabs} />
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={40} minSize={30}>
-                  <Chat />
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            )
-            : <MainContent tabs={tabs} />}
-        </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <>
+      <ResizablePanelGroup direction="horizontal" className="h-full">
+        {isLeftPanelExpanded && (
+          <>
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+              <LeftSidebar />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+          </>
+        )}
+        
+        <ResizablePanel>
+          <div className="flex flex-col h-full">
+            <MainHeader />
+            <MainContent tabs={tabs} />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      <FloatingChatButton />
+    </>
   );
 }

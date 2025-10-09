@@ -1,48 +1,61 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useRouteContext } from "@tanstack/react-router";
 import { clsx } from "clsx";
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "date-fns";
 import { CalendarIcon, CogIcon, NotebookIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 import { Reorder } from "motion/react";
+import { useCallback } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import NoteEditor from "@hypr/tiptap/editor";
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import TitleInput from "@hypr/ui/components/block/title-input";
-import { useLeftSidebar } from "@hypr/utils/contexts";
-import { useTabs } from "../../hooks/useTabs";
-import * as persisted from "../../tinybase/store/persisted";
-import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../types";
+import { Button } from "@hypr/ui/components/ui/button";
+import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
+import * as persisted from "../../store/tinybase/persisted";
+import { useTabs } from "../../store/zustand/tabs";
+import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../store/zustand/tabs";
 
-export function MainContent({ tabs }: { tabs: Tab[] }) {
-  const activeTab = tabs.find((t) => t.active)!;
+export function MainContent() {
+  const { tabs, currentTab } = useTabs();
+
+  if (!currentTab) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col">
       <TabsHeader tabs={tabs} />
-      <TabContent tab={activeTab} />
+      <TabContent tab={currentTab} />
     </div>
   );
 }
 
 export function MainHeader() {
-  const search = useSearch({ strict: false });
-  const navigate = useNavigate();
-
-  const { openNew } = useTabs();
-  // const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
+  const { openNew } = useTabs();
 
-  const handleClickSettings = () => {
+  const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
-  };
+  }, []);
 
-  const handleClickNewNote = () => {
-    navigate({
-      to: "/app/main",
-      search: { ...search, new: true },
+  const handleClickNewNote = useCallback(() => {
+    if (!persistedStore || !internalStore) {
+      return;
+    }
+
+    const sessionId = crypto.randomUUID();
+    const user_id = internalStore.getValue("user_id");
+
+    persistedStore.setRow("sessions", sessionId, {
+      title: "new",
+      user_id,
+      created_at: new Date().toISOString(),
     });
-  };
+    openNew({ id: sessionId, type: "sessions", active: true });
+  }, [persistedStore, internalStore, openNew]);
 
   return (
     <header

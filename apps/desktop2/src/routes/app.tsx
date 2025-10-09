@@ -1,7 +1,7 @@
 import { OngoingSessionProvider2 } from "@hypr/utils/contexts";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-import { useCloudPersister } from "../tinybase/cloudPersister";
+import { useCloudPersister } from "../store/tinybase/cloudPersister";
 
 export const Route = createFileRoute("/app")({
   component: Component,

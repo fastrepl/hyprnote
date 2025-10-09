@@ -2,12 +2,12 @@ import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 import { useCell, useRowIds } from "tinybase/ui-react";
 
-import * as persisted from "../../tinybase/store/persisted";
+import * as persisted from "../../store/tinybase/persisted";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { useTabs } from "../../hooks/useTabs";
-import { Tab } from "../../types";
+import { useTabs } from "../../store/zustand/tabs";
+import { type Tab } from "../../store/zustand/tabs";
 import { InteractiveButton } from "../interactive-button";
 
 export function LeftSidebar() {

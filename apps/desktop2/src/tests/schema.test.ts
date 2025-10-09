@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { z } from "zod";
-import { jsonObject } from "../tinybase/shared";
+import { jsonObject } from "../store/tinybase/shared";
 
 describe("jsonObject", () => {
   test("with it", () => {

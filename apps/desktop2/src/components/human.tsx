@@ -1,5 +1,5 @@
 import { useValidatedRow } from "../hooks/useValidatedRow";
-import * as persisted from "../tinybase/store/persisted";
+import * as persisted from "../store/tinybase/persisted";
 
 export function Human({ id }: { id: string }) {
   const human = persisted.UI.useRow("humans", id, persisted.STORE_ID);

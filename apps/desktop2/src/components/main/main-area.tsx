@@ -1,7 +1,7 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { clsx } from "clsx";
-import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from "date-fns";
-import { CalendarIcon, CogIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
+import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "date-fns";
+import { CalendarIcon, CogIcon, NotebookIcon, PanelLeftOpenIcon, PencilIcon, StickyNoteIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -282,7 +282,7 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
   const monthStart = startOfMonth(tab.month);
   const monthEnd = endOfMonth(tab.month);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((day) => format(day, "yyyy-MM-dd"));
-  const startDayOfWeek = getDay(monthStart); // 0 = Sunday, 6 = Saturday
+  const startDayOfWeek = getDay(monthStart); 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const handlePreviousMonth = () => {
@@ -306,12 +306,13 @@ function TabContentCalendar({ tab }: { tab: Tab }) {
       onNextMonth={handleNextMonth}
       onToday={handleToday}
     >
-      {days.map((day) => <TabContentCalendarDay key={day} day={day} />)}
+      {days.map((day) => <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />)}
     </CalendarStructure>
   );
 }
 
-function TabContentCalendarDay({ day }: { day: string }) {
+function TabContentCalendarDay({ day, isCurrentMonth }: { day: string, isCurrentMonth: boolean }) {
+
   const eventIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.eventsByDate,
     day,
@@ -324,20 +325,73 @@ function TabContentCalendarDay({ day }: { day: string }) {
     persisted.STORE_ID,
   );
 
+  const dayNumber = format(new Date(day), "d");
+  const isToday = format(new Date(), "yyyy-MM-dd") === day;
+  const dayOfWeek = getDay(new Date(day));
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; 
+
   return (
-    <div>
-      {eventIds.map((eventId) => <TabContentCalendarDay2 key={eventId} eventId={eventId} />)}
-      {sessionIds.map((sessionId) => <TabContentCalendarDay3 key={sessionId} sessionId={sessionId} />)}
+    <div
+      className={clsx([
+        "h-32 relative flex flex-col border-b border-neutral-200",
+        isWeekend ? "bg-neutral-50" : "bg-white",
+      ])}
+    >
+      <div className="flex items-center justify-end px-1 text-sm h-8">
+        <div className={clsx("flex items-end gap-1", isToday && "items-center")}>
+          <div
+            className={clsx(
+              isToday && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center",
+            )}
+          >
+            <span
+              className={clsx(
+                isToday
+                  ? "text-white font-medium"
+                  : !isCurrentMonth
+                  ? "text-neutral-400"
+                  : isWeekend
+                  ? "text-neutral-500"
+                  : "text-neutral-700",
+              )}
+            >
+              {dayNumber}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden flex flex-col px-1">
+        <div className="space-y-1">
+          {eventIds.map((eventId) => <TabContentCalendarDayEvents key={eventId} eventId={eventId} />)}
+          {sessionIds.map((sessionId) => <TabContentCalendarDaySessions key={sessionId} sessionId={sessionId} />)}
+        </div>
+      </div>
     </div>
-  );
+  )
 }
 
-function TabContentCalendarDay2({ eventId }: { eventId: string }) {
+function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
   const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
-  return <div>{event.title}</div>;
+
+  return (
+    <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
+        <CalendarIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
+        <div className="flex-1 text-xs text-neutral-800 truncate">
+          {event.title}
+        </div>
+      </div>
+  ); 
 }
 
-function TabContentCalendarDay3({ sessionId }: { sessionId: string }) {
+function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
-  return <div>{session.title}</div>;
+  return (
+    <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
+        <NotebookIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
+        <div className="flex-1 text-xs text-neutral-800 truncate">
+          {session.title}
+        </div>
+      </div>
+  ); 
 }

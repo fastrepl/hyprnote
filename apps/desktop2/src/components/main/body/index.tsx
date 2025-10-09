@@ -29,6 +29,7 @@ function TabsHeader({ tabs }: { tabs: Tab[] }) {
 
   return (
     <div
+      data-tauri-drag-region
       className={clsx([
         "w-full border-b overflow-x-auto h-11",
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",

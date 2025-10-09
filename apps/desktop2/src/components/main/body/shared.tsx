@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 
-import { type Tab } from "../../store/zustand/tabs";
+import { type Tab } from "../../../store/zustand/tabs";
 
 export type TabItem = (props: {
   tab: Tab;

@@ -3,8 +3,8 @@ import { StickyNoteIcon } from "lucide-react";
 import NoteEditor from "@hypr/tiptap/editor";
 import { TabHeader } from "@hypr/ui/components/block/tab-header";
 import TitleInput from "@hypr/ui/components/block/title-input";
-import * as persisted from "../../store/tinybase/persisted";
-import { rowIdfromTab, type Tab } from "../../store/zustand/tabs";
+import * as persisted from "../../../store/tinybase/persisted";
+import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {

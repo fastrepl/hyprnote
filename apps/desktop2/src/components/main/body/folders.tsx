@@ -1,8 +1,8 @@
 import { FolderIcon, StickyNoteIcon } from "lucide-react";
 
-import * as persisted from "../../store/tinybase/persisted";
-import { type Tab } from "../../store/zustand/tabs";
-import { useTabs } from "../../store/zustand/tabs";
+import * as persisted from "../../../store/tinybase/persisted";
+import { type Tab } from "../../../store/zustand/tabs";
+import { useTabs } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemFolder: TabItem = ({ tab, handleClose, handleSelect }) => {

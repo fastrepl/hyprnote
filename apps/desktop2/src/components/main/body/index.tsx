@@ -1,6 +1,6 @@
 import { Reorder } from "motion/react";
 
-import { type Tab, uniqueIdfromTab, useTabs } from "../../store/zustand/tabs";
+import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentEvent, TabItemEvent } from "./events";

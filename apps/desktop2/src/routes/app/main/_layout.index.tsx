@@ -4,7 +4,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/c
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { FloatingChatButton } from "../../../components/floating-chat-button";
 import { MainContent } from "../../../components/main/body";
-import { LeftSidebar } from "../../../components/main/left-sidebar";
+import { LeftSidebar } from "../../../components/main/sidebar";
 
 export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,

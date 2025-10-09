@@ -1,8 +1,8 @@
 import { UserIcon } from "lucide-react";
 import { type TabItem, TabItemBase } from "./shared";
 
-import * as persisted from "../../store/tinybase/persisted";
-import { type Tab } from "../../store/zustand/tabs";
+import * as persisted from "../../../store/tinybase/persisted";
+import { type Tab } from "../../../store/zustand/tabs";
 
 export const TabItemHuman: TabItem = ({ tab, handleClose, handleSelect }) => {
   if (tab.type !== "humans") {

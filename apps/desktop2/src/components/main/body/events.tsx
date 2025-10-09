@@ -1,7 +1,7 @@
 import { CalendarIcon } from "lucide-react";
 
-import * as persisted from "../../store/tinybase/persisted";
-import { rowIdfromTab, type Tab } from "../../store/zustand/tabs";
+import * as persisted from "../../../store/tinybase/persisted";
+import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemEvent: TabItem = ({ tab, handleClose, handleSelect }) => {

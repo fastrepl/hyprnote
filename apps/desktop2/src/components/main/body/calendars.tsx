@@ -3,8 +3,8 @@ import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, 
 import { CalendarIcon, FileTextIcon } from "lucide-react";
 
 import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
-import * as persisted from "../../store/tinybase/persisted";
-import { type Tab, useTabs } from "../../store/zustand/tabs";
+import * as persisted from "../../../store/tinybase/persisted";
+import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemCalendar: TabItem = ({ tab, handleClose, handleSelect }) => {

@@ -33,7 +33,7 @@ export function MainContent() {
 
 export function MainHeader() {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
+  //const { isExpanded: isRightPanelExpanded, togglePanel: toggleRightPanel } = useRightPanel();
   const { isExpanded: isLeftPanelExpanded, togglePanel: toggleLeftPanel } = useLeftSidebar();
   const { openNew } = useTabs();
 

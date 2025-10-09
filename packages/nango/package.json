@@ -1,0 +1,17 @@
+{
+  "name": "@hypr/nango",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0"
+  },
+  "scripts": {
+    "compile": "nango compile",
+    "dev": "nango dev"
+  },
+  "devDependencies": {
+    "nango": "0.69.2",
+    "zod": "4.0.5"
+  }
+}

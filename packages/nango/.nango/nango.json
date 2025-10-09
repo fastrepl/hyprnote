@@ -1,0 +1,63 @@
+[
+  {
+    "providerConfigKey": "github",
+    "actions": [
+      {
+        "type": "action",
+        "description": "Create an issue in GitHub",
+        "endpoint": {
+          "method": "POST",
+          "path": "/example/github/issues",
+          "group": "Issues"
+        },
+        "input": "ActionInput_github_createIssue",
+        "name": "createIssue",
+        "output": [
+          "ActionOutput_github_createIssue"
+        ],
+        "scopes": [],
+        "usedModels": [
+          "ActionInput_github_createIssue",
+          "ActionOutput_github_createIssue"
+        ],
+        "version": "1.0.0"
+      }
+    ],
+    "syncs": [
+      {
+        "type": "sync",
+        "description": "Fetches the Github issues from all a user's repositories.",
+        "auto_start": true,
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/example/github/issues",
+            "group": "Issues"
+          }
+        ],
+        "input": "SyncMetadata_github_fetchIssues",
+        "name": "fetchIssues",
+        "output": [
+          "GithubIssue"
+        ],
+        "runs": "every hour",
+        "scopes": [],
+        "sync_type": "full",
+        "track_deletes": false,
+        "usedModels": [
+          "GithubIssue",
+          "SyncMetadata_github_fetchIssues"
+        ],
+        "version": "1.0.0",
+        "webhookSubscriptions": []
+      }
+    ],
+    "onEventScripts": {
+      "post-connection-creation": [],
+      "pre-connection-deletion": [
+        "pre-connection-deletion"
+      ],
+      "validate-connection": []
+    }
+  }
+]

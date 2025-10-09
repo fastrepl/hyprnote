@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.3",
-    "@supabase/supabase-js": "^2.58.0",
+    "@supabase/supabase-js": "^2.74.0",
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.1.14",
     "drizzle-orm": "^0.44.6",
@@ -20,9 +20,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.2.3",
-    "vite": "^6.3.5",
+    "@cloudflare/vite-plugin": "^1.13.11",
+    "vite": "^6.3.6",
     "vite-ssr-components": "^0.5.1",
-    "wrangler": "^4.17.0"
+    "wrangler": "^4.42.1"
   }
 }

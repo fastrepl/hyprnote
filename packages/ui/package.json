@@ -45,13 +45,13 @@
     "react-hotkeys-hook": "^4.6.2",
     "react-resizable-panels": "^2.1.9",
     "sonner": "^1.7.4",
-    "zod": "^4.1.11"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.90.2",
     "@types/node": "^22.18.8",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
     "postcss": "^8.5.6",

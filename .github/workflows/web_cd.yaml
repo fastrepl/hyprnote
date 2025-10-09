@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "apps/api/**"
+      - "apps/web/**"
     branches:
       - main
 jobs:
@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
-      - run: pnpm -F @hypr/api run build
-      - run: pnpm -F @hypr/api run deploy
+      - run: pnpm -F @hypr/web run build
+      - run: pnpm -F @hypr/web run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

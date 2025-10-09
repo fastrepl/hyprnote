@@ -20,7 +20,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { useLeftSidebar, useRightPanel } from "@hypr/utils/contexts";
 import { useTabs } from "../../hooks/useTabs";
 import * as persisted from "../../tinybase/store/persisted";
-import { rowIdfromTab, Tab, uniqueIdfromTab } from "../../types";
+import { rowIdfromTab, type Tab, uniqueIdfromTab } from "../../types";
 
 export function MainContent({ tabs }: { tabs: Tab[] }) {
   const activeTab = tabs.find((t) => t.active)!;

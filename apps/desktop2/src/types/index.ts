@@ -13,31 +13,34 @@ export type Context = {
   ongoingSessionStore: OngoingSessionStore2;
 };
 
-export const tabSchema = z.union([
-  z.object({
+const baseTabSchema = z.object({
+  active: z.boolean(),
+});
+
+export const tabSchema = z.discriminatedUnion("type", [
+  baseTabSchema.extend({
     type: z.literal("sessions" satisfies typeof TABLES[number]),
-    active: z.boolean(),
     id: z.string(),
   }),
-  z.object({
+  baseTabSchema.extend({
     type: z.literal("events" satisfies typeof TABLES[number]),
-    active: z.boolean(),
     id: z.string(),
   }),
-  z.object({
+  baseTabSchema.extend({
     type: z.literal("humans" satisfies typeof TABLES[number]),
-    active: z.boolean(),
     id: z.string(),
   }),
-  z.object({
+  baseTabSchema.extend({
     type: z.literal("organizations" satisfies typeof TABLES[number]),
-    active: z.boolean(),
     id: z.string(),
   }),
-  z.object({
+  baseTabSchema.extend({
     type: z.literal("calendars" satisfies typeof TABLES[number]),
-    active: z.boolean(),
     month: z.coerce.date(),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("folders" satisfies typeof TABLES[number]),
+    id: z.string().nullable(),
   }),
 ]);
 
@@ -55,6 +58,11 @@ export const rowIdfromTab = (tab: Tab): string => {
       return tab.id;
     case "calendars":
       throw new Error("invalid_resource");
+    case "folders":
+      if (!tab.id) {
+        throw new Error("invalid_resource");
+      }
+      return tab.id;
   }
 };
 
@@ -70,6 +78,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `organizations-${tab.id}`;
     case "calendars":
       return `calendars-${tab.month.getFullYear()}-${tab.month.getMonth()}`;
+    case "folders":
+      return `folders-${tab.id ?? "all"}`;
   }
 };
 

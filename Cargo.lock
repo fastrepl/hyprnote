@@ -4016,6 +4016,7 @@ dependencies = [
  "tauri-plugin-local-stt",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-process",
  "tauri-plugin-sentry",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",

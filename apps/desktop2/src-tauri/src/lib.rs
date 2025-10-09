@@ -49,6 +49,7 @@ pub async fn main() {
         .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())

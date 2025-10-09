@@ -17,7 +17,7 @@ function Component() {
     <ResizablePanelGroup direction="horizontal" className="h-full">
       {isLeftPanelExpanded && (
         <>
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+          <ResizablePanel defaultSize={30} minSize={25} maxSize={40}>
             <LeftSidebar />
           </ResizablePanel>
           <ResizableHandle withHandle />

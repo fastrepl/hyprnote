@@ -380,8 +380,8 @@ export const StoreComponent = () => {
                 }
               });
               return id;
-            });
-            where((getTableCell) => getTableCell("sessions", "event_id") === undefined);
+            }).as("session");
+            where((getTableCell) => !getTableCell("session", "user_id"));
           },
         )
         .setQueryDefinition(

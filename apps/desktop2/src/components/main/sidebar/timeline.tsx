@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
-import { differenceInDays, format, isPast } from "date-fns";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { differenceInDays, format, formatDistanceToNowStrict, isPast } from "date-fns";
+import { useMemo } from "react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import * as persisted from "../../../store/tinybase/persisted";
@@ -8,168 +8,58 @@ import { Tab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
 import { InteractiveButton } from "../../interactive-button";
 
-type TimelineItem = {
-  id: string;
-  type: "future-event" | "session";
-  title: string;
-  timestamp: string;
-  date: string;
-  eventId?: string;
-};
+type TimelineItem =
+  | { type: "event"; id: string; date: string; data: persisted.Event }
+  | { type: "session"; id: string; date: string; data: persisted.Session };
 
 export function TimelineView() {
-  const eventsWithoutSessionTable = persisted.UI.useResultTable(
-    persisted.QUERIES.eventsWithoutSession,
-    persisted.STORE_ID,
-  );
-  const sessionsWithMaybeEventTable = persisted.UI.useResultTable(
-    persisted.QUERIES.sessionsWithMaybeEvent,
-    persisted.STORE_ID,
-  );
-
-  const allItems = useMemo(() => {
-    const items: TimelineItem[] = [];
-
-    if (eventsWithoutSessionTable) {
-      Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
-        const eventStartTime = new Date(String(row.started_at || ""));
-
-        if (!isPast(eventStartTime)) {
-          items.push({
-            id: eventId,
-            type: "future-event",
-            title: String(row.title || ""),
-            timestamp: String(row.started_at || ""),
-            date: format(eventStartTime, "yyyy-MM-dd"),
-            eventId,
-          });
-        }
-      });
-    }
-
-    if (sessionsWithMaybeEventTable) {
-      Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
-        const timestamp = row.event_started_at
-          ? String(row.event_started_at)
-          : String(row.created_at || "");
-
-        items.push({
-          id: sessionId,
-          type: "session",
-          title: String(row.title || ""),
-          timestamp,
-          date: format(new Date(timestamp), "yyyy-MM-dd"),
-          eventId: row.event_id ? String(row.event_id) : undefined,
-        });
-      });
-    }
-
-    items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-    return items;
-  }, [eventsWithoutSessionTable, sessionsWithMaybeEventTable]);
-
-  const groupedItems = useMemo(() => {
-    const groups: Record<string, TimelineItem[]> = {};
-    allItems.forEach((item) => {
-      if (!groups[item.date]) {
-        groups[item.date] = [];
-      }
-      groups[item.date].push(item);
-    });
-    return groups;
-  }, [allItems]);
-
-  const sortedDates = useMemo(() => {
-    return Object.keys(groupedItems).sort((a, b) => b.localeCompare(a));
-  }, [groupedItems]);
-
-  const [visibleCount, setVisibleCount] = useState(20);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + 20, allItems.length));
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [allItems.length]);
-
-  const visibleItems = useMemo(() => {
-    return allItems.slice(0, visibleCount);
-  }, [allItems, visibleCount]);
-
-  const visibleDates = useMemo(() => {
-    const dates = new Set(visibleItems.map((item) => item.date));
-    return sortedDates.filter((date) => dates.has(date));
-  }, [visibleItems, sortedDates]);
+  const { groupedItems, sortedDates } = useTimelineData();
 
   return (
-    <div ref={scrollRef} className="flex flex-col flex-1 overflow-y-auto">
-      {visibleDates.map((date) => (
+    <div className="flex flex-col flex-1 overflow-y-auto">
+      {sortedDates.map((date) => (
         <div key={date}>
-          <DateHeader date={date} />
-          {groupedItems[date]
-            .filter((item) => visibleItems.includes(item))
-            .map((item) => (
-              <TimelineItem
-                key={`${item.type}-${item.id}`}
-                item={item}
-              />
-            ))}
+          <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-2 py-2">
+            <DateHeader date={date} />
+          </div>
+          {groupedItems[date].map((item) => (
+            <TimelineItemComponent
+              key={`${item.type}-${item.id}`}
+              item={item}
+            />
+          ))}
         </div>
       ))}
-      <div ref={sentinelRef} className="h-4" />
     </div>
   );
 }
 
 function DateHeader({ date }: { date: string }) {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const daysDiff = differenceInDays(new Date(today), new Date(date));
+  const d = new Date(date);
+  const daysDiff = differenceInDays(new Date(), d);
 
   let label: string;
-  if (daysDiff === 0) {
-    label = "Today";
-  } else if (daysDiff === 1) {
-    label = "Yesterday";
-  } else if (daysDiff === -1) {
-    label = "Tomorrow";
-  } else if (daysDiff > 1 && daysDiff <= 7) {
-    label = `${daysDiff} days ago`;
-  } else if (daysDiff < -1 && daysDiff >= -7) {
-    label = `in ${Math.abs(daysDiff)} days`;
+  if (daysDiff < 30) {
+    label = formatDistanceToNowStrict(d, { addSuffix: true, unit: "day" });
   } else {
-    label = format(new Date(date), "MMM d, yyyy");
+    label = formatDistanceToNowStrict(d, { addSuffix: true, unit: "month" });
   }
 
-  return (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-2 py-2">
-      <div className="text-base font-bold text-gray-900">{label}</div>
-    </div>
-  );
+  return <div className="text-base font-bold text-gray-900">{label}</div>;
 }
 
-function TimelineItem({ item }: { item: TimelineItem }) {
+function TimelineItemComponent({ item }: { item: TimelineItem }) {
   const { currentTab, openCurrent, openNew } = useTabs();
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
+  const title = item.data.title || "";
+  const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;
+  const eventId = item.type === "event" ? item.id : (item.data.event_id || undefined);
+
   const handleClick = () => {
-    if (item.type === "future-event") {
+    if (item.type === "event") {
       // Future event: Create session if doesn't exist, link to event, open it
-      handleFutureEventClick(false);
+      handleEventClick(false);
     } else {
       // Session: Just open the session tab
       const tab: Tab = { id: item.id, type: "sessions", active: false };
@@ -178,16 +68,16 @@ function TimelineItem({ item }: { item: TimelineItem }) {
   };
 
   const handleCmdClick = () => {
-    if (item.type === "future-event") {
-      handleFutureEventClick(true);
+    if (item.type === "event") {
+      handleEventClick(true);
     } else {
       const tab: Tab = { id: item.id, type: "sessions", active: false };
       openNew(tab);
     }
   };
 
-  const handleFutureEventClick = (openInNewTab: boolean) => {
-    if (!item.eventId || !store) {
+  const handleEventClick = (openInNewTab: boolean) => {
+    if (!eventId || !store) {
       return;
     }
 
@@ -195,7 +85,7 @@ function TimelineItem({ item }: { item: TimelineItem }) {
     let existingSessionId: string | null = null;
 
     Object.entries(sessions).forEach(([sessionId, session]) => {
-      if (session.event_id === item.eventId) {
+      if (session.event_id === eventId) {
         existingSessionId = sessionId;
       }
     });
@@ -210,8 +100,8 @@ function TimelineItem({ item }: { item: TimelineItem }) {
     } else {
       const sessionId = id();
       store.setRow("sessions", sessionId, {
-        event_id: item.eventId,
-        title: item.title,
+        event_id: eventId,
+        title: title,
         created_at: new Date().toISOString(),
       });
       const tab: Tab = { id: sessionId, type: "sessions", active: false };
@@ -223,7 +113,17 @@ function TimelineItem({ item }: { item: TimelineItem }) {
     }
   };
 
-  const active = currentTab?.type === "sessions" && currentTab?.id === item.id;
+  // TODO: not ideal
+  const active = currentTab?.type === "sessions" && (
+    (item.type === "session" && currentTab.id === item.id)
+    || (item.type === "event" && item.id === eventId && (() => {
+      if (!store) {
+        return false;
+      }
+      const session = store.getRow("sessions", currentTab.id);
+      return session?.event_id === eventId;
+    })())
+  );
 
   const contextMenu = (
     <>
@@ -233,7 +133,7 @@ function TimelineItem({ item }: { item: TimelineItem }) {
     </>
   );
 
-  const displayTime = item.timestamp ? format(new Date(item.timestamp), "HH:mm") : "";
+  const displayTime = timestamp ? format(new Date(timestamp), "HH:mm") : "";
 
   return (
     <InteractiveButton
@@ -246,9 +146,67 @@ function TimelineItem({ item }: { item: TimelineItem }) {
       ])}
     >
       <div className="flex flex-col gap-0.5">
-        <div className="text-sm font-normal truncate">{item.title}</div>
+        <div className="text-sm font-normal truncate">{title}</div>
         {displayTime && <div className="text-xs text-gray-500">{displayTime}</div>}
       </div>
     </InteractiveButton>
   );
+}
+
+function useTimelineData() {
+  const eventsWithoutSessionTable = persisted.UI.useResultTable(
+    persisted.QUERIES.eventsWithoutSession,
+    persisted.STORE_ID,
+  );
+  const sessionsWithMaybeEventTable = persisted.UI.useResultTable(
+    persisted.QUERIES.sessionsWithMaybeEvent,
+    persisted.STORE_ID,
+  );
+
+  return useMemo(() => {
+    const items: TimelineItem[] = [];
+    const seenEvents = new Set<string>();
+
+    eventsWithoutSessionTable && Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
+      const eventStartTime = new Date(String(row.started_at || ""));
+      if (!isPast(eventStartTime)) {
+        items.push({
+          type: "event",
+          id: eventId,
+          date: format(eventStartTime, "yyyy-MM-dd"),
+          data: row as unknown as persisted.Event,
+        });
+        seenEvents.add(eventId);
+      }
+    });
+
+    sessionsWithMaybeEventTable && Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
+      const eventId = row.event_id ? String(row.event_id) : undefined;
+      if (eventId && seenEvents.has(eventId)) {
+        return;
+      }
+
+      const timestamp = String(row.event_started_at || row.created_at || "");
+      items.push({
+        type: "session",
+        id: sessionId,
+        date: format(new Date(timestamp), "yyyy-MM-dd"),
+        data: row as unknown as persisted.Session,
+      });
+    });
+
+    items.sort((a, b) => {
+      const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;
+      const timeB = b.type === "event" ? b.data.started_at : b.data.created_at;
+      return new Date(timeB).getTime() - new Date(timeA).getTime();
+    });
+
+    const groupedItems = items.reduce<Record<string, TimelineItem[]>>((groups, item) => {
+      (groups[item.date] ||= []).push(item);
+      return groups;
+    }, {});
+
+    const sortedDates = Object.keys(groupedItems).sort((a, b) => b.localeCompare(a));
+    return { groupedItems, sortedDates };
+  }, [eventsWithoutSessionTable, sessionsWithMaybeEventTable]);
 }

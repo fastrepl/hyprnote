@@ -14,7 +14,7 @@ export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
   return (
     <TabItemBase
       icon={<StickyNoteIcon className="w-4 h-4" />}
-      title={title ?? ""}
+      title={title ?? "Untitled"}
       active={tab.active}
       handleClose={() => handleClose(tab)}
       handleSelect={() => handleSelect(tab)}

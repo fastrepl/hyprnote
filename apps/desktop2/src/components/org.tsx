@@ -1,4 +1,4 @@
-import * as persisted from "../tinybase/store/persisted";
+import * as persisted from "../store/tinybase/persisted";
 
 import { useValidatedRow } from "../hooks/useValidatedRow";
 

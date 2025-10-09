@@ -6,20 +6,15 @@ import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { Provider, useStores } from "tinybase/ui-react";
 
-import { V1 } from "./tinybase/seed";
-import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./tinybase/store/internal";
-import {
-  type Store as MemoryStore,
-  STORE_ID as STORE_ID_MEMORY,
-  StoreComponent as StoreComponentMemory,
-} from "./tinybase/store/memory";
+import { V1 } from "./store/seed";
+import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./store/tinybase/internal";
 import {
   METRICS,
   type Store as PersistedStore,
   STORE_ID as STORE_ID_PERSISTED,
   StoreComponent as StoreComponentPersisted,
   UI,
-} from "./tinybase/store/persisted";
+} from "./store/tinybase/persisted";
 
 import { createOngoingSessionStore2 } from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
@@ -38,12 +33,11 @@ function App() {
   const stores = useStores();
 
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
-  const memoryStore = stores[STORE_ID_MEMORY] as unknown as MemoryStore;
   const internalStore = stores[STORE_ID_INTERNAL] as unknown as InternalStore;
 
   const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED);
 
-  if (!persistedStore || !memoryStore || !internalStore) {
+  if (!persistedStore || !internalStore) {
     return null;
   }
 
@@ -63,7 +57,6 @@ function App() {
       router={router}
       context={{
         persistedStore,
-        memoryStore,
         internalStore,
         ongoingSessionStore,
       }}
@@ -79,7 +72,6 @@ if (!rootElement.innerHTML) {
       <Provider>
         <App />
         <StoreComponentPersisted />
-        <StoreComponentMemory />
       </Provider>
     </StrictMode>,
   );

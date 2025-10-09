@@ -17,7 +17,7 @@ import type {
   Tag,
   Template,
   TemplateSection,
-} from "./store/persisted";
+} from "./tinybase/persisted";
 
 interface MockConfig {
   organizations: number;

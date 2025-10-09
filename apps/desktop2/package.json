@@ -35,7 +35,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tinybase": "^6.7.0",
-    "zod": "^4.1.12"
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.0.0",

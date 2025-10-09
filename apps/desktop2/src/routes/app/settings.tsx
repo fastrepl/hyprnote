@@ -5,7 +5,7 @@ import { z } from "zod";
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { useAuth } from "../../auth";
 import { useValidatedRow } from "../../hooks/useValidatedRow";
-import * as persisted from "../../tinybase/store/persisted";
+import * as persisted from "../../store/tinybase/persisted";
 
 const TABS = ["general", "calendar", "account"] as const;
 

@@ -1,8 +1,8 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
 import { createMergeableStore, type MergeableStore, type TablesSchema, ValuesSchema } from "tinybase/with-schemas";
 
-import { createLocalPersister } from "../localPersister";
-import { createLocalSynchronizer } from "../localSynchronizer";
+import { createLocalPersister } from "./localPersister";
+import { createLocalSynchronizer } from "./localSynchronizer";
 
 export const STORE_ID = "internal";
 

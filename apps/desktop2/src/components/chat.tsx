@@ -1,20 +1,7 @@
-import { useCallback } from "react";
-
-import * as memory from "../tinybase/store/memory";
-import * as persisted from "../tinybase/store/persisted";
+import * as persisted from "../store/tinybase/persisted";
 import { id } from "../utils";
 
 export function Chat() {
-  const currentChatGroupId = memory.useCurrentChatGroupId();
-  const chatGroupIds = persisted.UI.useSortedRowIds("chat_groups", "created_at", false, 0, 5, persisted.STORE_ID);
-
-  const setCurrentChatGroupId = memory.UI.useSetValueCallback(
-    "current_chat_group_id",
-    (e: string) => e,
-    [],
-    memory.STORE_ID,
-  );
-
   const handleAddMessage = persisted.UI.useSetRowCallback(
     "chat_messages",
     id(),
@@ -27,111 +14,23 @@ export function Chat() {
     persisted.STORE_ID,
   );
 
-  const handleSubmitMessage = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const message = formData.get("message");
-    if (message) {
-      handleAddMessage({
-        user_id: "TODO",
-        chat_group_id: currentChatGroupId,
-        role: "user",
-        content: "TODO",
-        metadata: "TODO",
-        parts: JSON.stringify([]),
-        created_at: new Date().toISOString(),
-      });
-    }
-  }, [handleAddMessage, currentChatGroupId]);
-
-  const messageIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.chatMessagesByGroup,
-    currentChatGroupId,
-    persisted.STORE_ID,
-  );
-
-  if (!currentChatGroupId || !messageIds?.length) {
-    return (
-      <div className="h-full flex flex-col bg-gray-100">
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="flex flex-col gap-2">
-            {chatGroupIds?.map((chatGroupId) => (
-              <ChatGroup
-                key={chatGroupId}
-                id={chatGroupId}
-                handleClick={() => setCurrentChatGroupId(chatGroupId)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-300 p-4">
-          <form onSubmit={handleSubmitMessage}>
-            <textarea
-              name="message"
-              placeholder="Type a message..."
-              className="w-full border border-gray-300 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-            <button className="mt-2 border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">
-              Send
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full flex flex-col border border-gray-300 rounded">
-      <div className="border-b border-gray-300 p-2">
-        <button
-          onClick={() => setCurrentChatGroupId("")}
-          className="border border-gray-300 rounded px-3 py-1 hover:bg-gray-100"
-        >
-          reset
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {messageIds?.map((messageId) => <ChatMessage key={messageId} messageId={messageId} />)}
-      </div>
-
-      <div className="border-t border-gray-300 p-4">
-        <form onSubmit={handleSubmitMessage} className="flex flex-col gap-2">
-          <textarea
-            name="message"
-            placeholder="Type a message..."
-            className="w-full border border-gray-300 rounded p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={3}
-          />
-          <button className="self-end border border-gray-300 rounded px-4 py-2 hover:bg-gray-100">
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function ChatGroup({ id, handleClick }: { id: string; handleClick: () => void }) {
-  const chatGroup = persisted.UI.useRow("chat_groups", id, persisted.STORE_ID);
-
-  return (
-    <div className="p-2 rounded bg-gray-50" onClick={handleClick}>
-      <div className="text-xs text-gray-500 mb-1">{chatGroup?.title}</div>
-    </div>
-  );
-}
-
-function ChatMessage({ messageId }: { messageId: string }) {
-  const message = persisted.UI.useRow("chat_messages", messageId, persisted.STORE_ID);
-
-  return (
-    <div className="p-2 rounded bg-gray-50">
-      <div className="text-xs text-gray-500 mb-1">{message?.role}</div>
-      <div>{message?.content}</div>
+      TODO
+      <button
+        onClick={() =>
+          handleAddMessage({
+            user_id: id(),
+            chat_group_id: id(),
+            content: "Hello, world!",
+            created_at: new Date().toISOString(),
+            role: "user",
+            parts: [{ type: "text", text: "Hello, world!" }],
+            metadata: {},
+          })}
+      >
+        Add Message
+      </button>
     </div>
   );
 }

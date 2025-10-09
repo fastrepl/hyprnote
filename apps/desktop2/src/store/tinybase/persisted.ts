@@ -31,10 +31,10 @@ import {
   transcriptSchema,
 } from "@hypr/db";
 import { id } from "../../utils";
-import { createLocalPersister, LOCAL_PERSISTER_ID } from "../localPersister";
-import { createLocalSynchronizer } from "../localSynchronizer";
-import { InferTinyBaseSchema, InferTinyBaseSchemaSchema, jsonObject } from "../shared";
 import * as internal from "./internal";
+import { createLocalPersister, LOCAL_PERSISTER_ID } from "./localPersister";
+import { createLocalSynchronizer } from "./localSynchronizer";
+import { InferTinyBaseSchema, InferTinyBaseSchemaSchema, jsonObject } from "./shared";
 
 export const STORE_ID = "persisted";
 

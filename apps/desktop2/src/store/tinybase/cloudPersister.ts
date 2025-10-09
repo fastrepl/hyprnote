@@ -1,9 +1,9 @@
 import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
 import { useCallback } from "react";
 
-import { useAuth } from "../auth";
-import * as internal from "./store/internal";
-import * as persisted from "./store/persisted";
+import { useAuth } from "../../auth";
+import * as internal from "./internal";
+import * as persisted from "./persisted";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 

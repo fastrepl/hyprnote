@@ -20,6 +20,11 @@ export const tabSchema = z.union([
     id: z.string(),
   }),
   z.object({
+    type: z.literal("events" satisfies typeof TABLES[number]),
+    active: z.boolean(),
+    id: z.string(),
+  }),
+  z.object({
     type: z.literal("humans" satisfies typeof TABLES[number]),
     active: z.boolean(),
     id: z.string(),
@@ -42,6 +47,8 @@ export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
       return tab.id;
+    case "events":
+      return tab.id;
     case "humans":
       return tab.id;
     case "organizations":
@@ -55,6 +62,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":
       return `sessions-${tab.id}`;
+    case "events":
+      return `events-${tab.id}`;
     case "humans":
       return `humans-${tab.id}`;
     case "organizations":

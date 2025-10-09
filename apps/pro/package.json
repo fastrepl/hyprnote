@@ -13,7 +13,7 @@
     "@modelcontextprotocol/sdk": "^1.19.1",
     "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
-    "exa-js": "^1.9.3",
+    "exa-js": "^1.10.0",
     "hono": "^4.9.10",
     "hono-rate-limiter": "^0.4.2",
     "zod": "^3.25.76"

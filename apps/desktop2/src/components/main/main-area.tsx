@@ -406,7 +406,7 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
   );
 
   const sessionIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionByDateWithEvent,
+    persisted.INDEXES.sessionByDateWithoutEvent,
     day,
     persisted.STORE_ID,
   );

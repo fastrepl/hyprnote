@@ -372,7 +372,7 @@ export const StoreComponent = () => {
         (a, b) => String(a).localeCompare(String(b)),
       )
       .setIndexDefinition(
-        INDEXES.sessionByDateWithEvent,
+        INDEXES.sessionByDateWithoutEvent,
         "sessions",
         (getCell) => {
           if (getCell("event_id")) {
@@ -427,7 +427,7 @@ export const INDEXES = {
   sessionsByFolder: "sessionsByFolder",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
-  sessionByDateWithEvent: "sessionByDateWithEvent",
+  sessionByDateWithoutEvent: "sessionByDateWithoutEvent",
   tagsByName: "tagsByName",
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",

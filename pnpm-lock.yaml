@@ -382,6 +382,9 @@ importers:
       '@hypr/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@hypr/plugin-analytics':
+        specifier: workspace:*
+        version: link:../../plugins/analytics
       '@hypr/plugin-db2':
         specifier: workspace:*
         version: link:../../plugins/db2
@@ -406,6 +409,9 @@ importers:
       '@t3-oss/env-core':
         specifier: ^0.13.8
         version: 0.13.8(typescript@5.8.3)(zod@4.1.12)
+      '@tanstack/react-query':
+        specifier: ^5.90.2
+        version: 5.90.2(react@19.2.0)
       '@tanstack/react-router':
         specifier: ^1.132.47
         version: 1.132.47(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -430,6 +436,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ^2.9.0
         version: 2.9.0
+      '@wavesurfer/react':
+        specifier: ^1.0.11
+        version: 1.0.11(react@19.2.0)(wavesurfer.js@7.11.0)
       '@xstate/store':
         specifier: ^3.9.3
         version: 3.9.3(react@19.2.0)(solid-js@1.9.7)
@@ -457,6 +466,9 @@ importers:
       tinybase:
         specifier: ^6.7.0
         version: 6.7.0(postgres@3.4.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(ws@8.18.3)
+      wavesurfer.js:
+        specifier: ^7.11.0
+        version: 7.11.0
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -5446,6 +5458,12 @@ packages:
 
   '@vitest/utils@3.2.4':
     resolution: {integrity: sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA==}
+
+  '@wavesurfer/react@1.0.11':
+    resolution: {integrity: sha512-DRpaA3MRTKy4Jby12xvoHASa+w31FZtxaqanXcJjfqNqfamkKi8VJfRnz+Uub9LkpdgoAc3g5SuZF75lEcGgzQ==}
+    peerDependencies:
+      react: ^18.2.0 || ^19.0.0
+      wavesurfer.js: '>=7.7.14'
 
   '@wdio/cli@8.46.0':
     resolution: {integrity: sha512-ZT7z4buheFtoXmL8/EPyrspXSwrVRKUI27GLY34hGOjHAhry4dTJ1ODC5ARs0PbuM//yJcJb8q18wa+2xGqf3w==}
@@ -11849,6 +11867,9 @@ packages:
     resolution: {integrity: sha512-c5EGNOiyxxV5qmTtAB7rbiXxi1ooX1pQKMLX/MIabJjRA0SJBQOjKF+KSVfHkr9U1cADPon0mRiVe/riyaiDUA==}
     engines: {node: '>=10.13.0'}
 
+  wavesurfer.js@7.11.0:
+    resolution: {integrity: sha512-LOGdIBIKv/roYuQYClhoqhwbIdQL1GfobLnS2vx0heoLD9lu57OUHWE2DIsCNXBvCsmmbkUvJq9W8bPLPbikGw==}
+
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
@@ -17128,6 +17149,11 @@ snapshots:
       '@vitest/pretty-format': 3.2.4
       loupe: 3.2.1
       tinyrainbow: 2.0.0
+
+  '@wavesurfer/react@1.0.11(react@19.2.0)(wavesurfer.js@7.11.0)':
+    dependencies:
+      react: 19.2.0
+      wavesurfer.js: 7.11.0
 
   '@wdio/cli@8.46.0':
     dependencies:
@@ -25085,6 +25111,8 @@ snapshots:
     dependencies:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
+
+  wavesurfer.js@7.11.0: {}
 
   wcwidth@1.0.1:
     dependencies:

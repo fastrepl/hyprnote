@@ -49,9 +49,20 @@ export function ProfileSection() {
   }, [openNew, closeMenu]);
 
   const handleClickContacts = useCallback(() => {
-    console.log("Contacts");
+    openNew({
+      type: "contacts",
+      active: true,
+      state: {
+        selectedOrganization: null,
+        selectedPerson: null,
+        editingPerson: null,
+        editingOrg: null,
+        showNewOrg: false,
+        sortOption: "alphabetical",
+      },
+    });
     closeMenu();
-  }, [closeMenu]);
+  }, [openNew, closeMenu]);
 
   const handleClickDailyNote = useCallback(() => {
     console.log("Daily note");

@@ -9,10 +9,10 @@ type State = {
 };
 
 type Actions =
-  & TabUpdator
+  & TabUpdater
   & TabStateUpdater;
 
-type TabUpdator = {
+type TabUpdater = {
   setTabs: (tabs: Tab[]) => void;
   openCurrent: (tab: Tab) => void;
   openNew: (tab: Tab) => void;
@@ -22,6 +22,7 @@ type TabUpdator = {
 };
 
 type TabStateUpdater = {
+  updateContactsTabState: (tab: Tab, state: Extract<Tab, { type: "contacts" }>["state"]) => void;
   updateSessionTabState: (tab: Tab, state: Extract<Tab, { type: "sessions" }>["state"]) => void;
 };
 
@@ -30,37 +31,42 @@ type Store = State & Actions;
 export const useTabs = create<Store>((set, get, _store) => ({
   currentTab: null,
   tabs: [],
-  setTabs: (tabs) => set({ tabs, currentTab: tabs.find((t) => t.active) || null }),
+  setTabs: (tabs) => {
+    const tabsWithDefaults = tabs.map(t => tabSchema.parse(t));
+    set({ tabs: tabsWithDefaults, currentTab: tabsWithDefaults.find((t) => t.active) || null });
+  },
   openCurrent: (newTab) => {
     const { tabs } = get();
+    const tabWithDefaults = tabSchema.parse(newTab);
     const existingTabIdx = tabs.findIndex((t) => t.active);
 
     if (existingTabIdx === -1) {
       const nextTabs = tabs
-        .filter((t) => !isSameTab(t, newTab))
+        .filter((t) => !isSameTab(t, tabWithDefaults))
         .map((t) => ({ ...t, active: false }))
-        .concat([{ ...newTab, active: true }]);
-      set({ tabs: nextTabs, currentTab: newTab });
+        .concat([{ ...tabWithDefaults, active: true }]);
+      set({ tabs: nextTabs, currentTab: tabWithDefaults });
     } else {
       const nextTabs = tabs
         .map((t, idx) =>
           idx === existingTabIdx
-            ? { ...newTab, active: true }
-            : isSameTab(t, newTab)
+            ? { ...tabWithDefaults, active: true }
+            : isSameTab(t, tabWithDefaults)
             ? null
             : { ...t, active: false }
         )
         .filter((t): t is Tab => t !== null);
-      set({ tabs: nextTabs, currentTab: newTab });
+      set({ tabs: nextTabs, currentTab: tabWithDefaults });
     }
   },
   openNew: (tab) => {
     const { tabs } = get();
+    const tabWithDefaults = tabSchema.parse(tab);
     const nextTabs = tabs
-      .filter((t) => !isSameTab(t, tab))
+      .filter((t) => !isSameTab(t, tabWithDefaults))
       .map((t) => ({ ...t, active: false }))
-      .concat([{ ...tab, active: true }]);
-    set({ tabs: nextTabs, currentTab: tab });
+      .concat([{ ...tabWithDefaults, active: true }]);
+    set({ tabs: nextTabs, currentTab: tabWithDefaults });
   },
   select: (tab) => {
     const { tabs } = get();
@@ -99,6 +105,19 @@ export const useTabs = create<Store>((set, get, _store) => ({
       : currentTab;
     set({ tabs: nextTabs, currentTab: nextCurrentTab });
   },
+  updateContactsTabState: (tab, state) => {
+    const { tabs, currentTab } = get();
+    const nextTabs = tabs.map((t) =>
+      isSameTab(t, tab) && t.type === "contacts"
+        ? { ...t, state }
+        : t
+    );
+
+    const nextCurrentTab = currentTab && isSameTab(currentTab, tab) && currentTab.type === "contacts"
+      ? { ...currentTab, state }
+      : currentTab;
+    set({ tabs: nextTabs, currentTab: nextCurrentTab });
+  },
 }));
 
 const baseTabSchema = z.object({
@@ -114,6 +133,24 @@ export const tabSchema = z.discriminatedUnion("type", [
     }).default({ editor: "raw" }),
   }),
   baseTabSchema.extend({
+    type: z.literal("contacts"),
+    state: z.object({
+      selectedOrganization: z.string().nullable().default(null),
+      selectedPerson: z.string().nullable().default(null),
+      editingPerson: z.string().nullable().default(null),
+      editingOrg: z.string().nullable().default(null),
+      showNewOrg: z.boolean().default(false),
+      sortOption: z.enum(["alphabetical", "oldest", "newest"]).default("alphabetical"),
+    }).default({
+      selectedOrganization: null,
+      selectedPerson: null,
+      editingPerson: null,
+      editingOrg: null,
+      showNewOrg: false,
+      sortOption: "alphabetical",
+    }),
+  }),
+  baseTabSchema.extend({
     type: z.literal("events" satisfies typeof TABLES[number]),
     id: z.string(),
   }),
@@ -126,12 +163,13 @@ export const tabSchema = z.discriminatedUnion("type", [
     id: z.string(),
   }),
   baseTabSchema.extend({
-    type: z.literal("calendars" satisfies typeof TABLES[number]),
-    month: z.coerce.date(),
-  }),
-  baseTabSchema.extend({
     type: z.literal("folders" satisfies typeof TABLES[number]),
     id: z.string().nullable(),
+  }),
+
+  baseTabSchema.extend({
+    type: z.literal("calendars"),
+    month: z.coerce.date(),
   }),
 ]);
 
@@ -148,6 +186,7 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "organizations":
       return tab.id;
     case "calendars":
+    case "contacts":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -169,6 +208,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `organizations-${tab.id}`;
     case "calendars":
       return `calendars-${tab.month.getFullYear()}-${tab.month.getMonth()}`;
+    case "contacts":
+      return `contacts`;
     case "folders":
       return `folders-${tab.id ?? "all"}`;
   }

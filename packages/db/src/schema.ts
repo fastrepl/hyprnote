@@ -15,6 +15,9 @@ export const humans = pgTable(TABLE_HUMANS, {
   name: text("name").notNull(),
   email: text("email").notNull(),
   org_id: uuid("org_id").notNull(),
+  job_title: text("job_title"),
+  linkedin_username: text("linkedin_username"),
+  is_user: boolean("is_user"),
 });
 
 export const TABLE_ORGANIZATIONS = "organizations";

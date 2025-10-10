@@ -18,10 +18,10 @@ export function TabItemBase(
   },
 ) {
   return (
-    <button
+    <div
       onClick={handleSelect}
       className={clsx([
-        "flex items-center gap-2",
+        "flex items-center gap-2 cursor-pointer",
         "min-w-[100px] max-w-[200px] h-full px-2",
         active
           ? "border-border bg-background text-foreground"
@@ -48,6 +48,6 @@ export function TabItemBase(
       >
         ✕
       </button>
-    </button>
+    </div>
   );
 }

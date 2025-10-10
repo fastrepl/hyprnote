@@ -30,7 +30,7 @@ function NotSureAboutThis() {
       const user_id = internalStore?.getValue("user_id");
       const sessionId = id();
       persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-      openNew({ id: sessionId, type: "sessions", active: true });
+      openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
     }
   }, [currentTab]);
 

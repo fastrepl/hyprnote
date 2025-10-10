@@ -8,13 +8,21 @@ type State = {
   tabs: Tab[];
 };
 
-type Actions = {
+type Actions =
+  & TabUpdator
+  & TabStateUpdater;
+
+type TabUpdator = {
   setTabs: (tabs: Tab[]) => void;
   openCurrent: (tab: Tab) => void;
   openNew: (tab: Tab) => void;
   select: (tab: Tab) => void;
   close: (tab: Tab) => void;
   reorder: (tabs: Tab[]) => void;
+};
+
+type TabStateUpdater = {
+  updateSessionTabState: (tab: Tab, state: Extract<Tab, { type: "sessions" }>["state"]) => void;
 };
 
 type Store = State & Actions;
@@ -79,6 +87,18 @@ export const useTabs = create<Store>((set, get, _store) => ({
     const currentTab = tabs.find((t) => t.active) || null;
     set({ tabs, currentTab });
   },
+  updateSessionTabState: (tab, state) => {
+    const { tabs, currentTab } = get();
+    const nextTabs = tabs.map((t) =>
+      isSameTab(t, tab) && t.type === "sessions"
+        ? { ...t, state }
+        : t
+    );
+    const nextCurrentTab = currentTab && isSameTab(currentTab, tab) && currentTab.type === "sessions"
+      ? { ...currentTab, state }
+      : currentTab;
+    set({ tabs: nextTabs, currentTab: nextCurrentTab });
+  },
 }));
 
 const baseTabSchema = z.object({
@@ -89,6 +109,9 @@ export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
     type: z.literal("sessions" satisfies typeof TABLES[number]),
     id: z.string(),
+    state: z.object({
+      editor: z.enum(["raw", "enhanced", "transcript"]).default("raw"),
+    }).default({ editor: "raw" }),
   }),
   baseTabSchema.extend({
     type: z.literal("events" satisfies typeof TABLES[number]),

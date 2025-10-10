@@ -206,7 +206,7 @@ function FolderSessionItem({ sessionId }: { sessionId: string }) {
   return (
     <div
       className="flex items-center gap-2 px-3 py-2 border rounded-md hover:bg-muted cursor-pointer"
-      onClick={() => openCurrent({ type: "sessions", id: sessionId, active: true })}
+      onClick={() => openCurrent({ type: "sessions", id: sessionId, active: true, state: { editor: "raw" } })}
     >
       <StickyNoteIcon className="w-4 h-4 text-muted-foreground" />
       <span className="text-sm">{session.title}</span>

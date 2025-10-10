@@ -16,10 +16,10 @@ export function TimelineView() {
   const { groupedItems, sortedDates } = useTimelineData();
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto">
+    <div className="flex flex-col flex-1 overflow-y-auto bg-gray-50 rounded-lg">
       {sortedDates.map((date) => (
         <div key={date}>
-          <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-2 py-2">
+          <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
             <DateHeader date={date} />
           </div>
           {groupedItems[date].map((item) => (
@@ -58,11 +58,9 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
 
   const handleClick = () => {
     if (item.type === "event") {
-      // Future event: Create session if doesn't exist, link to event, open it
       handleEventClick(false);
     } else {
-      // Session: Just open the session tab
-      const tab: Tab = { id: item.id, type: "sessions", active: false };
+      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
       openCurrent(tab);
     }
   };
@@ -71,7 +69,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
     if (item.type === "event") {
       handleEventClick(true);
     } else {
-      const tab: Tab = { id: item.id, type: "sessions", active: false };
+      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
       openNew(tab);
     }
   };
@@ -91,7 +89,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
     });
 
     if (existingSessionId) {
-      const tab: Tab = { id: existingSessionId, type: "sessions", active: false };
+      const tab: Tab = { id: existingSessionId, type: "sessions", active: false, state: { editor: "raw" } };
       if (openInNewTab) {
         openNew(tab);
       } else {
@@ -104,7 +102,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
         title: title,
         created_at: new Date().toISOString(),
       });
-      const tab: Tab = { id: sessionId, type: "sessions", active: false };
+      const tab: Tab = { id: sessionId, type: "sessions", active: false, state: { editor: "raw" } };
       if (openInNewTab) {
         openNew(tab);
       } else {
@@ -141,7 +139,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
       onCmdClick={handleCmdClick}
       contextMenu={contextMenu}
       className={clsx([
-        "w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100",
+        "w-full text-left px-3 py-2 hover:bg-gray-100",
         active && "bg-blue-50",
       ])}
     >

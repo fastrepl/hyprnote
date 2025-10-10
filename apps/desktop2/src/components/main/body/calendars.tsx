@@ -97,6 +97,14 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
   ];
 
   const visibleItems = allItems.slice(0, visibleCount);
+  const hiddenItems = allItems.slice(visibleCount);
+
+  const hiddenEventIds = hiddenItems
+    .filter(item => item.type === "event")
+    .map(item => item.id);
+  const hiddenSessionIds = hiddenItems
+    .filter(item => item.type === "session")
+    .map(item => item.id);
 
   return (
     <div
@@ -140,8 +148,8 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
           {hiddenCount > 0 && (
             <TabContentCalendarDayMore
               day={day}
-              eventIds={eventIds}
-              sessionIds={sessionIds}
+              eventIds={hiddenEventIds}
+              sessionIds={hiddenSessionIds}
               hiddenCount={hiddenCount}
             />
           )}
@@ -161,7 +169,7 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     eventId,
     persisted.STORE_ID,
   );
-  const linkedSessionId = sessionIds[0]; // take the first linked session if any
+  const linkedSessionId = sessionIds[0];
   const linkedSession = persisted.UI.useRow("sessions", linkedSessionId || "dummy", persisted.STORE_ID);
 
   const handleClick = () => {

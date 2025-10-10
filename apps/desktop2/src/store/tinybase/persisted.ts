@@ -463,6 +463,8 @@ export const StoreComponent = () => {
 export const QUERIES = {
   eventsWithoutSession: "eventsWithoutSession",
   sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
+  visibleOrganizations: "visibleOrganizations",
+  visibleHumans: "visibleHumans",
 };
 
 export const METRICS = {

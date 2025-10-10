@@ -42,6 +42,7 @@ pub async fn main() {
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
+        .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_updater::Builder::new().build())

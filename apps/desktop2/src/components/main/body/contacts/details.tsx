@@ -1,4 +1,4 @@
-import { Building2, CircleMinus, FileText, Pencil, SearchIcon, TrashIcon, UserPlus } from "lucide-react";
+import { Building2, CircleMinus, FileText, Pencil, SearchIcon, TrashIcon } from "lucide-react";
 import React, { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -65,16 +65,6 @@ export function DetailsColumn({
                             <p className="text-sm text-neutral-500">{selectedPersonData.email}</p>
                           )}
                           {selectedPersonData.org_id && <OrganizationInfo organizationId={selectedPersonData.org_id} />}
-                          {!selectedPersonData.is_user && selectedPersonData.email && (
-                            <button
-                              onClick={() => {
-                              }}
-                              className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
-                            >
-                              <UserPlus className="h-3 w-3" />
-                              Recommend Hyprnote to {selectedPersonData.name}
-                            </button>
-                          )}
                         </div>
                         <div className="flex gap-2">
                           <button

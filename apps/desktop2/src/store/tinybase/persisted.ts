@@ -432,6 +432,7 @@ export const StoreComponent = () => {
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
+      .setIndexDefinition(INDEXES.sessionParticipantsBySession, "mapping_session_participant", "session_id")
       .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
       .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
@@ -503,6 +504,7 @@ export const METRICS = {
 
 export const INDEXES = {
   humansByOrg: "humansByOrg",
+  sessionParticipantsBySession: "sessionParticipantsBySession",
   foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
   eventsByCalendar: "eventsByCalendar",

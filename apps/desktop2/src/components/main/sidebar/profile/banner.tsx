@@ -8,36 +8,30 @@ export function Trial() {
   }, []);
 
   return (
-    <div
+    <button
+      onClick={handleClickTryPro}
       className={clsx(
-        "mx-4 mb-1.5",
+        "group",
+        "mx-4 mb-1.5 w-[calc(100%-2rem)]",
         "rounded-lg",
         "border border-slate-200",
-        "bg-slate-50",
+        "bg-white",
         "p-2.5",
+        "transition-colors hover:bg-slate-50",
+        "text-left",
       )}
     >
-      <div className={clsx("mb-1.5", "flex items-center gap-2")}>
-        <Zap className={clsx("h-4 w-4", "text-slate-700")} />
-        <span className={clsx("text-sm font-semibold text-slate-900")}>Try Hyprnote Pro</span>
+      <div className={clsx("mb-1.5", "flex items-center gap-1.5")}>
+        <Zap className={clsx("h-3.5 w-3.5 flex-shrink-0", "text-slate-700")} />
+        <span className={clsx("text-xs font-semibold text-slate-900")}>Hyprnote Pro</span>
       </div>
-      <button
-        onClick={handleClickTryPro}
-        className={clsx(
-          "flex w-full items-center justify-center gap-2",
-          "rounded-md",
-          "bg-slate-900",
-          "px-3 py-1.5",
-          "text-sm font-semibold text-white",
-          "transition-colors hover:bg-slate-800",
-        )}
-      >
-        <span>Free Trial for a Week</span>
-        <ArrowRight className={clsx("h-3.5 w-3.5")} />
-      </button>
-      <div className={clsx("mt-1.5", "text-center", "text-xs text-slate-500")}>
-        Experience smarter meetings with free trial.
+      <div className={clsx("mb-1.5", "text-[11px] leading-snug text-slate-600")}>
+        Free trial for smarter meetings
       </div>
-    </div>
+      <div className={clsx("flex items-center gap-1", "text-xs font-medium text-slate-900")}>
+        <span>Start Trial</span>
+        <ArrowRight className={clsx("h-3 w-3 flex-shrink-0", "transition-transform group-hover:translate-x-0.5")} />
+      </div>
+    </button>
   );
 }

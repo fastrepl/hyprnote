@@ -38,7 +38,12 @@ import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shar
 
 export const STORE_ID = "persisted";
 
-export const humanSchema = baseHumanSchema.omit({ id: true }).extend({ created_at: z.string() });
+export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  job_title: z.preprocess(val => val ?? undefined, z.string().optional()),
+  linkedin_username: z.preprocess(val => val ?? undefined, z.string().optional()),
+  is_user: z.preprocess(val => val ?? undefined, z.boolean().optional()),
+});
 
 export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   created_at: z.string(),
@@ -148,6 +153,9 @@ const SCHEMA = {
       name: { type: "string" },
       email: { type: "string" },
       org_id: { type: "string" },
+      job_title: { type: "string" },
+      linkedin_username: { type: "string" },
+      is_user: { type: "boolean" },
     } satisfies InferTinyBaseSchema<typeof humanSchema>,
     organizations: {
       user_id: { type: "string" },
@@ -395,6 +403,27 @@ export const StoreComponent = () => {
 
             join("events", "event_id").as("event");
             select("event", "started_at").as("event_started_at");
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleHumans,
+          "humans",
+          ({ select }) => {
+            select("name");
+            select("email");
+            select("org_id");
+            select("job_title");
+            select("linkedin_username");
+            select("is_user");
+            select("created_at");
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleOrganizations,
+          "organizations",
+          ({ select }) => {
+            select("name");
+            select("created_at");
           },
         ),
     [store2],

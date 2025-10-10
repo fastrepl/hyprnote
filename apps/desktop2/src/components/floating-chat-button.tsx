@@ -2,6 +2,7 @@ import { MessageCircle, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../store/tinybase/persisted";
 import { id } from "../utils";
@@ -29,7 +30,7 @@ export function FloatingChatButton() {
         <div
           className={cn(
             "fixed bottom-4 right-4 z-40",
-            "w-[440px] max-h-[calc(100vh-120px)] h-[600px]",
+            "w-[440px] h-[600px] max-h-[calc(100vh-120px)]",
             "bg-white rounded-2xl shadow-2xl",
             "border border-neutral-200",
             "flex flex-col",
@@ -41,12 +42,21 @@ export function FloatingChatButton() {
               <MessageCircle className="w-5 h-5 text-neutral-700" />
               <h3 className="font-semibold text-neutral-900">Ask Hyprnote anything</h3>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-neutral-400 hover:text-neutral-600 text-xl leading-none"
-            >
-              ×
-            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => windowsCommands.windowShow({ type: "chat", value: id() })}
+                className="text-neutral-400 hover:text-neutral-600 text-xl leading-none"
+              >
+                !
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-neutral-400 hover:text-neutral-600 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">

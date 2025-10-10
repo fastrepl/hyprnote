@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FileText, FolderOpen, Settings, Users } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Trial } from "./banner";

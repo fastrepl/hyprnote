@@ -9,6 +9,8 @@ pub enum AppWindow {
     Settings,
     #[serde(rename = "auth")]
     Auth,
+    #[serde(rename = "chat")]
+    Chat(String),
 }
 
 impl std::fmt::Display for AppWindow {
@@ -17,6 +19,7 @@ impl std::fmt::Display for AppWindow {
             Self::Main => write!(f, "main"),
             Self::Settings => write!(f, "settings"),
             Self::Auth => write!(f, "auth"),
+            Self::Chat(id) => write!(f, "chat-{}", id),
         }
     }
 }
@@ -30,6 +33,13 @@ impl std::str::FromStr for AppWindow {
             "settings" => return Ok(Self::Settings),
             "auth" => return Ok(Self::Auth),
             _ => {}
+        }
+
+        if let Some((prefix, id)) = s.split_once('-') {
+            match prefix {
+                "chat" => return Ok(Self::Chat(id.to_string())),
+                _ => {}
+            }
         }
 
         Err(strum::ParseError::VariantNotFound)
@@ -73,6 +83,7 @@ impl WindowImpl for AppWindow {
             Self::Main => "Hyprnote".into(),
             Self::Settings => "Settings".into(),
             Self::Auth => "Auth".into(),
+            Self::Chat(id) => format!("Chat - {}", id),
         }
     }
 
@@ -111,6 +122,19 @@ impl WindowImpl for AppWindow {
                     .window_builder(app, "/app/auth")
                     .resizable(false)
                     .min_inner_size(400.0, 600.0)
+                    .build()?;
+
+                let desired_size = LogicalSize::new(400.0, 600.0);
+                window.set_size(LogicalSize::new(1.0, 1.0))?;
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                window.set_size(desired_size)?;
+                window
+            }
+            Self::Chat(id) => {
+                let window = self
+                    .window_builder(app, format!("/app/chat/{}", id))
+                    .resizable(false)
+                    .min_inner_size(440.0, 500.0)
                     .build()?;
 
                 let desired_size = LogicalSize::new(400.0, 600.0);

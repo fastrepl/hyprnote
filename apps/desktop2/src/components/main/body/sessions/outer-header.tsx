@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { type Event, EventChip } from "@hypr/ui/components/block/event-chip";
-import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
+import { Participant, ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../store/zustand/tabs";
 
@@ -13,7 +13,9 @@ export function OuterHeader(
 ) {
   const [eventSearchQuery, setEventSearchQuery] = useState("");
   const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [participantSearchQuery, setParticipantSearchQuery] = useState("");
+  const [participantSearchResults, setParticipantSearchResults] = useState<Participant[]>([]);
+  const [isEventSearching, setIsEventSearching] = useState(false);
 
   const eventRow = persisted.UI.useRow(
     "events",
@@ -39,7 +41,7 @@ export function OuterHeader(
     }
 
     const searchEvents = async () => {
-      setIsSearching(true);
+      setIsEventSearching(true);
 
       try {
         const results: Event[] = [];
@@ -92,7 +94,7 @@ export function OuterHeader(
         results.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
         setEventSearchResults(results.slice(0, 20));
       } finally {
-        setIsSearching(false);
+        setIsEventSearching(false);
       }
     };
 
@@ -141,7 +143,7 @@ export function OuterHeader(
           searchQuery={eventSearchQuery}
           onSearchChange={setEventSearchQuery}
           searchResults={eventSearchResults}
-          isSearching={isSearching}
+          isSearching={isEventSearching}
         />
 
         <ParticipantsChip

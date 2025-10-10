@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { type Event, EventChip } from "@hypr/ui/components/block/event-chip";
 import { Participant, ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
+import { useQuery } from "../../../../hooks/useQuery";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../store/zustand/tabs";
 
@@ -12,7 +13,6 @@ export function OuterHeader(
   },
 ) {
   const [eventSearchQuery, setEventSearchQuery] = useState("");
-  const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
   const [participantSearchQuery, setParticipantSearchQuery] = useState("");
   const [participantSearchResults, setParticipantSearchResults] = useState<Participant[]>([]);
 
@@ -34,16 +34,14 @@ export function OuterHeader(
     }
     : null;
 
-  useEffect(() => {
-    if (!store) {
-      return;
-    }
-
-    const searchEvents = async () => {
+  const eventSearch = useQuery({
+    enabled: !!store,
+    deps: [store, eventSearchQuery] as const,
+    queryFn: async (store, query) => {
       const results: Event[] = [];
       const now = new Date();
 
-      store.forEachRow("events", (rowId, forEachCell) => {
+      store!.forEachRow("events", (rowId, forEachCell) => {
         let title: string | undefined;
         let started_at: string | undefined;
         let ended_at: string | undefined;
@@ -72,8 +70,8 @@ export function OuterHeader(
         }
 
         if (
-          eventSearchQuery && title
-          && !title.toLowerCase().includes(eventSearchQuery.toLowerCase())
+          query && title
+          && !title.toLowerCase().includes(query.toLowerCase())
         ) {
           return;
         }
@@ -88,12 +86,9 @@ export function OuterHeader(
       });
 
       results.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
-      setEventSearchResults(results.slice(0, 20));
-    };
-
-    const timeoutId = setTimeout(searchEvents, 300);
-    return () => clearTimeout(timeoutId);
-  }, [eventSearchQuery, store]);
+      return results.slice(0, 20);
+    },
+  });
 
   return (
     <div className="flex items-center justify-between">
@@ -135,7 +130,7 @@ export function OuterHeader(
           }}
           searchQuery={eventSearchQuery}
           onSearchChange={setEventSearchQuery}
-          searchResults={eventSearchResults}
+          searchResults={eventSearch.data ?? []}
         />
 
         <ParticipantsChip

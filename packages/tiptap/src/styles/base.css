@@ -5,8 +5,6 @@
   hyphens: auto;
   padding-bottom: 24px;
   caret-color: #374151;
-  padding-left: 2rem;
-  padding-right: 2rem;
 
   :first-child {
     margin-top: 0;

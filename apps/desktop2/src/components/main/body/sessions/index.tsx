@@ -62,6 +62,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
         shouldShowTab={true}
         shouldShowEnhancedTab={false}
       />
+      <div className="py-1"></div>
       <NoteEditor
         initialContent={sessionRow.raw_md ?? ""}
         handleChange={(e) => handleEditRawMd(e)}

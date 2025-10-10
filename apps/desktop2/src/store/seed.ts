@@ -9,7 +9,7 @@ import type {
   Event,
   Folder,
   Human,
-  MappingEventParticipant,
+  mappingSessionParticipant,
   MappingTagSession,
   Organization,
   Schemas,
@@ -184,14 +184,14 @@ const createFolder = (parentFolderId?: string) => ({
   } satisfies Folder,
 });
 
-const createMappingEventParticipant = (event_id: string, human_id: string) => ({
+const createmappingSessionParticipant = (session_id: string, human_id: string) => ({
   id: id(),
   data: {
     user_id: USER_ID,
-    event_id,
+    session_id,
     human_id,
     created_at: faker.date.recent({ days: 30 }).toISOString(),
-  } satisfies MappingEventParticipant,
+  } satisfies mappingSessionParticipant,
 });
 
 const createTag = () => ({
@@ -344,7 +344,7 @@ const generateMockData = (config: MockConfig) => {
   const folders: Record<string, Folder> = {};
   const sessions: Record<string, SessionStorage> = {};
   const events: Record<string, Event> = {};
-  const mapping_event_participant: Record<string, MappingEventParticipant> = {};
+  const mapping_session_participant: Record<string, mappingSessionParticipant> = {};
   const tags: Record<string, Tag> = {};
   const mapping_tag_session: Record<string, MappingTagSession> = {};
   const templates: Record<string, TemplateStorage> = {};
@@ -399,9 +399,6 @@ const generateMockData = (config: MockConfig) => {
       const event = createEvent(calendar_id);
       events[event.id] = event.data;
       eventsByHuman[humanId].push(event);
-
-      const mapping = createMappingEventParticipant(event.id, humanId);
-      mapping_event_participant[mapping.id] = mapping.data;
     });
   });
 
@@ -461,6 +458,18 @@ const generateMockData = (config: MockConfig) => {
     });
   });
 
+  // Add participants to sessions
+  sessionIds.forEach((sessionId) => {
+    // Each session has 1-4 participants
+    const participantCount = faker.number.int({ min: 1, max: 4 });
+    const selectedHumans = faker.helpers.arrayElements(humanIds, participantCount);
+
+    selectedHumans.forEach((humanId) => {
+      const mapping = createmappingSessionParticipant(sessionId, humanId);
+      mapping_session_participant[mapping.id] = mapping.data;
+    });
+  });
+
   sessionIds.forEach((sessionId) => {
     const shouldTag = faker.datatype.boolean({ probability: 0.6 });
     if (shouldTag) {
@@ -495,7 +504,7 @@ const generateMockData = (config: MockConfig) => {
     folders,
     sessions,
     events,
-    mapping_event_participant,
+    mapping_session_participant,
     tags,
     mapping_tag_session,
     templates,
@@ -535,6 +544,7 @@ export const V1 = (() => {
   const totalHumans = Object.keys(data.humans).length;
   const totalOrganizations = Object.keys(data.organizations).length;
   const totalUsers = Object.values(data.humans).filter((h) => h.is_user).length;
+  const totalParticipantMappings = Object.keys(data.mapping_session_participant).length;
 
   console.log("=== Seed Data Statistics ===");
   console.log(`Total Organizations: ${totalOrganizations}`);
@@ -544,6 +554,7 @@ export const V1 = (() => {
   console.log(`Total Sessions: ${totalSessions}`);
   console.log(`Events without Session: ${eventsWithoutSession}`);
   console.log(`Sessions without Event: ${sessionsWithoutEvent}`);
+  console.log(`Total Session-Participant Mappings: ${totalParticipantMappings}`);
 
   return data;
 })();

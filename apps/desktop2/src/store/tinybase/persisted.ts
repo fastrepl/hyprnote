@@ -20,7 +20,7 @@ import {
   eventSchema as baseEventSchema,
   folderSchema as baseFolderSchema,
   humanSchema as baseHumanSchema,
-  mappingEventParticipantSchema as baseMappingEventParticipantSchema,
+  mappingSessionParticipantSchema as baseMappingSessionParticipantSchema,
   mappingTagSessionSchema as baseMappingTagSessionSchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
@@ -67,7 +67,7 @@ export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
-export const mappingEventParticipantSchema = baseMappingEventParticipantSchema.omit({ id: true }).extend({
+export const mappingSessionParticipantSchema = baseMappingSessionParticipantSchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
@@ -114,7 +114,7 @@ export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
-export type MappingEventParticipant = z.infer<typeof mappingEventParticipantSchema>;
+export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
 export type Template = z.infer<typeof templateSchema>;
@@ -175,12 +175,12 @@ const SCHEMA = {
       started_at: { type: "string" },
       ended_at: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof eventSchema>,
-    mapping_event_participant: {
+    mapping_session_participant: {
       user_id: { type: "string" },
       created_at: { type: "string" },
-      event_id: { type: "string" },
+      session_id: { type: "string" },
       human_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof mappingEventParticipantSchema>,
+    } satisfies InferTinyBaseSchema<typeof mappingSessionParticipantSchema>,
     tags: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -329,16 +329,16 @@ export const StoreComponent = () => {
           "parent_folder_id",
         )
         .setRelationshipDefinition(
-          "eventParticipantToHuman",
-          "mapping_event_participant",
+          "sessionParticipantToHuman",
+          "mapping_session_participant",
           "humans",
           "human_id",
         )
         .setRelationshipDefinition(
-          "eventParticipantToEvent",
-          "mapping_event_participant",
-          "events",
-          "event_id",
+          "sessionParticipantToSession",
+          "mapping_session_participant",
+          "sessions",
+          "session_id",
         )
         .setRelationshipDefinition(
           "eventToCalendar",

@@ -24,8 +24,8 @@ export function TabItemBase(
         "flex items-center gap-2 cursor-pointer",
         "min-w-[100px] max-w-[200px] h-full px-2",
         active
-          ? "border-border bg-background text-foreground"
-          : "border-transparent bg-muted/50 hover:bg-muted text-muted-foreground",
+          ? "bg-background text-foreground rounded-lg border"
+          : "bg-muted/50 hover:bg-muted text-muted-foreground rounded-lg border",
       ])}
     >
       <div className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0">

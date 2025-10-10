@@ -20,7 +20,7 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col p-1 gap-2">
       <Header tabs={tabs} />
       <Content tab={currentTab} />
     </div>
@@ -36,13 +36,13 @@ function Header({ tabs }: { tabs: Tab[] }) {
       data-tauri-drag-region
       className={clsx([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-        "w-full border-b overflow-x-auto h-11",
+        "w-full overflow-x-auto h-11",
         !isExpanded && "pl-[72px]",
       ])}
     >
       <div className="flex w-max h-full items-end">
         {!isExpanded && (
-          <div className="flex items-center justify-center h-full px-3 border-r sticky left-0 bg-white z-20">
+          <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
             <PanelLeftOpenIcon
               className="h-5 w-5 cursor-pointer"
               onClick={() => setIsExpanded(true)}
@@ -64,7 +64,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
               value={tab}
               as="div"
               style={{ position: "relative" }}
-              className="h-full border-r border-t z-10"
+              className="h-full z-10"
               layoutScroll
             >
               <TabItem tab={tab} handleClose={close} handleSelect={select} />

@@ -50,21 +50,23 @@ export const CalendarStructure = ({
           </Button>
         </div>
       </div>
-      <div className="grid grid-cols-7 divide-x divide-neutral-200">
-        {weekDays.map((day) => (
-          <div
-            key={day}
-            className="text-center text-sm font-medium text-muted-foreground p-2"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 divide-x divide-neutral-200 h-full grid-rows-6 gap-0">
-        {Array.from({ length: startDayOfWeek }).map((_, i) => (
-          <div key={`empty-${i}`} className="border-b border-neutral-200" />
-        ))}
-        {children}
+      <div className="h-full">
+        <div className="grid grid-cols-7 border-b border-neutral-200">
+          {weekDays.map((day) => (
+            <div
+              key={day}
+              className="text-center text-sm font-medium text-muted-foreground p-2"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 divide-x divide-neutral-200 h-[calc(100%-48px)] grid-rows-6 gap-0">
+          {Array.from({ length: startDayOfWeek }).map((_, i) => (
+            <div key={`empty-${i}`} className="border-b border-neutral-200" />
+          ))}
+          {children}
+        </div>
       </div>
     </div>
   );

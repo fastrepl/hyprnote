@@ -1,39 +1,37 @@
 import { useEffect } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 
 interface TabHeaderProps {
-  isEnhancing?: boolean;
+  tab: Tab;
   onVisibilityChange?: (isVisible: boolean) => void;
-  currentTab: "raw" | "enhanced" | "transcript";
-  onTabChange: (tab: "raw" | "enhanced" | "transcript") => void;
   isCurrentlyRecording: boolean;
   shouldShowTab: boolean;
   shouldShowEnhancedTab: boolean;
 }
 
 export const InnerHeader = ({
-  isEnhancing,
+  tab,
   onVisibilityChange,
-  onTabChange,
-  currentTab,
   isCurrentlyRecording,
   shouldShowTab,
   shouldShowEnhancedTab,
 }: TabHeaderProps) => {
-  useEffect(() => {
-    // when enhancement starts (immediately after recording ends) -> switch to enhanced note
-    if (isEnhancing) {
-      onTabChange("enhanced");
-    }
-  }, [isEnhancing]);
+  const { updateSessionTabState } = useTabs();
+
+  const currentTab = tab.type === "sessions" ? (tab.state.editor ?? "raw") : "raw";
+
+  const handleTabChange = (view: "raw" | "enhanced" | "transcript") => {
+    updateSessionTabState(tab, { editor: view });
+  };
 
   // set default tab to 'raw' for blank notes (no meeting session)
   useEffect(() => {
-    if (!shouldShowTab) {
-      onTabChange("raw");
+    if (!shouldShowTab && tab.type === "sessions") {
+      updateSessionTabState(tab, { editor: "raw" });
     }
-  }, [shouldShowTab, onTabChange]);
+  }, [shouldShowTab, tab, updateSessionTabState]);
 
   // notify parent when visibility changes
   useEffect(() => {
@@ -58,7 +56,7 @@ export const InnerHeader = ({
             {/* Enhanced Note Tab - show when session ended OR transcript exists OR enhanced memo exists */}
             {shouldShowEnhancedTab && (
               <button
-                onClick={() => onTabChange("enhanced")}
+                onClick={() => handleTabChange("enhanced")}
                 className={cn(
                   "relative px-2 py-2 text-xs pl-1 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
                   currentTab === "enhanced"
@@ -71,7 +69,7 @@ export const InnerHeader = ({
             )}
 
             <button
-              onClick={() => onTabChange("raw")}
+              onClick={() => handleTabChange("raw")}
               className={cn(
                 "relative py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
                 shouldShowEnhancedTab ? "pl-3 px-4" : "pl-1 px-2",
@@ -85,7 +83,7 @@ export const InnerHeader = ({
 
             {/* Transcript Tab - always show */}
             <button
-              onClick={() => onTabChange("transcript")}
+              onClick={() => handleTabChange("transcript")}
               className={cn(
                 "relative px-4 py-2 text-xs pl-3 font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
                 currentTab === "transcript"

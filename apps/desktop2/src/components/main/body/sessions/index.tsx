@@ -1,4 +1,5 @@
 import { StickyNoteIcon } from "lucide-react";
+import { useMemo } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import * as persisted from "../../../../store/tinybase/persisted";
@@ -25,6 +26,11 @@ export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
 export function TabContentNote({ tab }: { tab: Tab }) {
   const sessionId = rowIdfromTab(tab);
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+
+  const editorKey = useMemo(
+    () => `session-${sessionId}-raw`,
+    [sessionId],
+  );
 
   const handleEditTitle = persisted.UI.useSetRowCallback(
     "sessions",
@@ -54,16 +60,15 @@ export function TabContentNote({ tab }: { tab: Tab }) {
         onChange={(e) => handleEditTitle(e.target.value)}
       />
       <InnerHeader
-        isEnhancing={false}
+        tab={tab}
         onVisibilityChange={() => {}}
-        currentTab="raw"
-        onTabChange={() => {}}
         isCurrentlyRecording={false}
         shouldShowTab={true}
         shouldShowEnhancedTab={false}
       />
       <div className="py-1"></div>
       <NoteEditor
+        key={editorKey}
         initialContent={sessionRow.raw_md ?? ""}
         handleChange={(e) => handleEditRawMd(e)}
         mentionConfig={{

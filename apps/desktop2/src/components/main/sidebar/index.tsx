@@ -26,8 +26,10 @@ export function LeftSidebar() {
         />
       </header>
 
-      <TimelineView />
-      <ProfileSection />
+      <div className="flex flex-col flex-1 overflow-hidden p-2 gap-2">
+        <TimelineView />
+        <ProfileSection />
+      </div>
     </div>
   );
 }

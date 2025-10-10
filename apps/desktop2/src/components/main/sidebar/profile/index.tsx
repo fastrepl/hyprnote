@@ -70,6 +70,7 @@ export function ProfileSection() {
     <div ref={profileRef}>
       <div
         className={clsx(
+          "bg-gray-50 rounded-lg overflow-hidden",
           isExpanded
             ? "shadow-[rgba(0,0,0,0.1)_0px_-4px_10px_0px]"
             : "shadow-[rgba(0,0,0,0.05)_0px_-2px_6px_0px]",
@@ -111,13 +112,13 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         "text-left",
         "transition-all duration-300",
         "hover:bg-gray-100",
-        isExpanded && "bg-gray-50",
+        isExpanded && "bg-gray-100",
       )}
       onClick={onClick}
     >
       <div
         className={clsx(
-          "flex h-8 w-8 flex-shrink-0 items-center justify-center",
+          "hidden sm:flex h-8 w-8 flex-shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-gray-400",
           "bg-gradient-to-br from-indigo-400 to-purple-500",
@@ -137,6 +138,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
       <div className={clsx("flex items-center gap-1.5")}>
         <span
           className={clsx(
+            "hidden md:inline-block",
             "rounded-full",
             "border border-slate-900",
             "bg-white",

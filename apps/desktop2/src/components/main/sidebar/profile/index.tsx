@@ -1,8 +1,9 @@
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FileText, FolderOpen, Settings, Users } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { useHotkeys } from "react-hotkeys-hook";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Trial } from "./banner";
 import { NotificationsItem } from "./notification";
@@ -10,28 +11,52 @@ import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
 export function ProfileSection() {
+  const profileRef = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const { openNew } = useTabs();
 
+  const closeMenu = useCallback(() => {
+    setIsExpanded(false);
+  }, []);
+
+  useHotkeys("esc", closeMenu, [closeMenu]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [closeMenu]);
+
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
-  }, []);
+    closeMenu();
+  }, [closeMenu]);
 
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null, active: true });
-  }, [openNew]);
+    closeMenu();
+  }, [openNew, closeMenu]);
 
   const handleClickCalendar = useCallback(() => {
     openNew({ type: "calendars", month: new Date(), active: true });
-  }, [openNew]);
+    closeMenu();
+  }, [openNew, closeMenu]);
 
   const handleClickContacts = useCallback(() => {
     console.log("Contacts");
-  }, []);
+    closeMenu();
+  }, [closeMenu]);
 
   const handleClickDailyNote = useCallback(() => {
     console.log("Daily note");
-  }, []);
+    closeMenu();
+  }, [closeMenu]);
 
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
@@ -42,7 +67,7 @@ export function ProfileSection() {
   ];
 
   return (
-    <div>
+    <div ref={profileRef}>
       <div
         className={clsx(
           isExpanded

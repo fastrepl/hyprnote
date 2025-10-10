@@ -9,6 +9,7 @@ import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
+import { FloatingRegenerateButton } from "./floating-regenerate-button";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
   const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
@@ -51,7 +52,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col px-4 py-1 rounded-lg border h-full overflow-hidden">
+    <div className="flex flex-col px-4 py-1 rounded-lg border h-full overflow-hidden relative">
       <div className="py-1">
         <OuterHeader
           sessionRow={sessionRow}
@@ -88,6 +89,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
         />
       </div>
       {showAudioPlayer && <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />}
+      <FloatingRegenerateButton />
     </div>
   );
 }

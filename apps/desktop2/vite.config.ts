@@ -10,6 +10,13 @@ export default defineConfig(async () => ({
     tanstackRouter({ target: "react", autoCodeSplitting: false }),
     react(),
   ],
+  resolve: {
+    alias: process.env.NODE_ENV === "development"
+      ? {
+        "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
+      }
+      : {},
+  },
   ...tauri,
 }));
 

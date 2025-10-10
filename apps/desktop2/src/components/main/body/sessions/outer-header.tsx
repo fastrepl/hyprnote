@@ -1,82 +1,13 @@
-import { StickyNoteIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import NoteEditor from "@hypr/tiptap/editor";
-import { TabHeader } from "@hypr/ui/components/block/tab-header";
-import TitleInput from "@hypr/ui/components/block/title-input";
-import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
+import * as persisted from "../../../../store/tinybase/persisted";
+import { useTabs } from "../../../../store/zustand/tabs";
 import { EventChip, type Event } from "@hypr/ui/components/block/event-chip";
-import * as persisted from "../../../store/tinybase/persisted";
-import { rowIdfromTab, type Tab, useTabs } from "../../../store/zustand/tabs";
-import { type TabItem, TabItemBase } from "./shared";
+import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 
-export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
-  const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
-
-  return (
-    <TabItemBase
-      icon={<StickyNoteIcon className="w-4 h-4" />}
-      title={title ?? ""}
-      active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
-    />
-  );
-};
-
-export function TabContentNote({ tab }: { tab: Tab }) {
-  const sessionId = rowIdfromTab(tab);
-  const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
-
-  const handleEditTitle = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, title: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  const handleEditRawMd = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, raw_md: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  return (
-    <div className="flex flex-col gap-2 px-2 pt-2">
-      <TabContentNoteHeader sessionRow={sessionRow} />
-
-      <TitleInput
-        editable={true}
-        value={sessionRow.title ?? ""}
-        onChange={(e) => handleEditTitle(e.target.value)}
-      />
-      <TabHeader
-        isEnhancing={false}
-        onVisibilityChange={() => {}}
-        currentTab="raw"
-        onTabChange={() => {}}
-        isCurrentlyRecording={false}
-        shouldShowTab={true}
-        shouldShowEnhancedTab={false}
-      />
-      <NoteEditor
-        initialContent={sessionRow.raw_md ?? ""}
-        handleChange={(e) => handleEditRawMd(e)}
-        mentionConfig={{
-          trigger: "@",
-          handleSearch: async () => {
-            return [];
-          },
-        }}
-      />
-    </div>
-  );
-}
-
-function TabContentNoteHeader({ sessionRow }: { sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">> }) {
+export function OuterHeader(
+  { sessionRow }: { sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">> },
+) {
   const [eventSearchQuery, setEventSearchQuery] = useState("");
   const [eventActiveTab, setEventActiveTab] = useState<"event" | "date">("event");
   const [eventPopoverOpen, setEventPopoverOpen] = useState(false);
@@ -102,8 +33,10 @@ function TabContentNoteHeader({ sessionRow }: { sessionRow: ReturnType<typeof pe
           />
         )}
       </div>
-      
-      <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-3">
+        <DateTimeButton sessionRow={sessionRow} />
+        <ParticipantsButton sessionRow={sessionRow} />
         <EventChip
           event={event}
           date={sessionRow.created_at || new Date().toISOString()}
@@ -161,6 +94,10 @@ function TabContentNoteHeader({ sessionRow }: { sessionRow: ReturnType<typeof pe
           searchResults={[]}
           allowMutate={true}
         />
+        {sessionRow.event_id && <RecordingButton sessionRow={sessionRow} />}
+        <ListenButton sessionRow={sessionRow} />
+        {shouldShowShareButton(sessionRow) && <ShareButton sessionRow={sessionRow} />}
+        <OthersButton sessionRow={sessionRow} />
       </div>
     </div>
   );
@@ -197,6 +134,7 @@ function TabContentNoteHeaderFolderChain({ title, folderId }: { title: string; f
 
 function TabContentNoteHeaderFolder({ folderId }: { folderId: string }) {
   const folderName = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
+
   const { openNew } = useTabs();
   const handleClick = useCallback(() => {
     openNew({ type: "folders", id: folderId, active: true });
@@ -212,3 +150,61 @@ function TabContentNoteHeaderFolder({ folderId }: { folderId: string }) {
   );
 }
 
+// Helper function to determine if share button should be shown
+function shouldShowShareButton(_sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>) {
+  // Add your condition here
+  return false;
+}
+
+// Button Components
+type SessionRowProp = {
+  sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
+};
+
+function DateTimeButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="text-xs">
+      📅 Today (Fri)
+    </button>
+  );
+}
+
+function ParticipantsButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="text-xs">
+      👤 John Jeong + 4
+    </button>
+  );
+}
+
+function RecordingButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="text-xs">
+      🎙️ 02:27
+    </button>
+  );
+}
+
+function ListenButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="px-2 py-1 bg-black text-white rounded text-xs">
+      🔴 Start listening
+    </button>
+  );
+}
+
+function ShareButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="text-xs">
+      Share
+    </button>
+  );
+}
+
+function OthersButton({ sessionRow: _sessionRow }: SessionRowProp) {
+  return (
+    <button className="text-xs">
+      •••
+    </button>
+  );
+}

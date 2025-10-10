@@ -5,7 +5,7 @@ import { id } from "../utils";
 import type {
   Calendar,
   ChatGroup,
-  ChatMessage,
+  ChatMessageStorage,
   Event,
   Folder,
   Human,
@@ -13,10 +13,10 @@ import type {
   MappingTagSession,
   Organization,
   Schemas,
-  Session,
+  SessionStorage,
   Tag,
-  Template,
   TemplateSection,
+  TemplateStorage,
 } from "./tinybase/persisted";
 
 interface MockConfig {
@@ -132,7 +132,7 @@ const generateTranscript = () => {
   return { words };
 };
 
-const createSession = (eventId?: string, folderId?: string) => {
+const createSession = (eventId?: string, folderId?: string): { id: string; data: SessionStorage } => {
   const title = generateTitle();
   const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
   const enhanced_md = generateEnhancedMarkdown();
@@ -147,8 +147,8 @@ const createSession = (eventId?: string, folderId?: string) => {
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       event_id: eventId,
       folder_id: folderId,
-      transcript: generateTranscript(),
-    } satisfies Session,
+      transcript: JSON.stringify(generateTranscript()),
+    },
   };
 };
 
@@ -200,7 +200,7 @@ const createMappingTagSession = (tag_id: string, session_id: string) => ({
   } satisfies MappingTagSession,
 });
 
-const createTemplate = () => {
+const createTemplate = (): { id: string; data: TemplateStorage } => {
   const sectionCount = faker.number.int({ min: 2, max: 5 });
   const sections: TemplateSection[] = Array.from({ length: sectionCount }, () => ({
     title: faker.lorem.words({ min: 2, max: 4 }),
@@ -213,9 +213,9 @@ const createTemplate = () => {
       user_id: USER_ID,
       title: faker.lorem.words({ min: 2, max: 5 }),
       description: faker.lorem.sentence(),
-      sections,
+      sections: JSON.stringify(sections),
       created_at: faker.date.past({ years: 1 }).toISOString(),
-    } satisfies Template,
+    },
   };
 };
 
@@ -228,7 +228,10 @@ const createChatGroup = () => ({
   } satisfies ChatGroup,
 });
 
-const createChatMessage = (chat_group_id: string, role: "user" | "assistant") => ({
+const createChatMessage = (
+  chat_group_id: string,
+  role: "user" | "assistant",
+): { id: string; data: ChatMessageStorage } => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -236,9 +239,9 @@ const createChatMessage = (chat_group_id: string, role: "user" | "assistant") =>
     role,
     content: faker.lorem.sentences({ min: 1, max: 3 }),
     created_at: faker.date.recent({ days: 30 }).toISOString(),
-    metadata: {},
-    parts: [],
-  } satisfies ChatMessage,
+    metadata: JSON.stringify({}),
+    parts: JSON.stringify([]),
+  },
 });
 
 const createEvent = (calendar_id: string) => {
@@ -313,18 +316,18 @@ const createEvent = (calendar_id: string) => {
 };
 
 const generateMockData = (config: MockConfig) => {
-  const organizations: Record<string, any> = {};
-  const humans: Record<string, any> = {};
-  const calendars: Record<string, any> = {};
-  const folders: Record<string, any> = {};
-  const sessions: Record<string, any> = {};
-  const events: Record<string, any> = {};
-  const mapping_event_participant: Record<string, any> = {};
-  const tags: Record<string, any> = {};
-  const mapping_tag_session: Record<string, any> = {};
-  const templates: Record<string, any> = {};
-  const chat_groups: Record<string, any> = {};
-  const chat_messages: Record<string, any> = {};
+  const organizations: Record<string, Organization> = {};
+  const humans: Record<string, Human> = {};
+  const calendars: Record<string, Calendar> = {};
+  const folders: Record<string, Folder> = {};
+  const sessions: Record<string, SessionStorage> = {};
+  const events: Record<string, Event> = {};
+  const mapping_event_participant: Record<string, MappingEventParticipant> = {};
+  const tags: Record<string, Tag> = {};
+  const mapping_tag_session: Record<string, MappingTagSession> = {};
+  const templates: Record<string, TemplateStorage> = {};
+  const chat_groups: Record<string, ChatGroup> = {};
+  const chat_messages: Record<string, ChatMessageStorage> = {};
 
   const orgIds = Array.from({ length: config.organizations }, () => {
     const org = createOrganization();
@@ -352,7 +355,7 @@ const generateMockData = (config: MockConfig) => {
     });
   });
 
-  const eventsByHuman: Record<string, Array<{ id: string; data: any }>> = {};
+  const eventsByHuman: Record<string, Array<{ id: string; data: Event }>> = {};
   humanIds.forEach((humanId) => {
     const eventCount = faker.number.int({
       min: config.eventsPerHuman.min,
@@ -411,7 +414,7 @@ const generateMockData = (config: MockConfig) => {
 
     const humanEvents = eventsByHuman[humanId] || [];
     const endedEvents = humanEvents.filter(
-      (e) => new Date(e.data.endsAt) < now,
+      (e) => new Date(e.data.ended_at) < now,
     );
 
     Array.from({ length: sessionCount }, () => {
@@ -472,10 +475,37 @@ const generateMockData = (config: MockConfig) => {
 
 faker.seed(123);
 
-export const V1 = generateMockData({
-  organizations: 5,
-  humansPerOrg: { min: 3, max: 8 },
-  sessionsPerHuman: { min: 2, max: 6 },
-  eventsPerHuman: { min: 1, max: 5 },
-  calendarsPerUser: 3,
-}) satisfies Tables<Schemas[0]>;
+export const V1 = (() => {
+  const data = generateMockData({
+    organizations: 5,
+    humansPerOrg: { min: 3, max: 8 },
+    sessionsPerHuman: { min: 2, max: 6 },
+    eventsPerHuman: { min: 1, max: 5 },
+    calendarsPerUser: 3,
+  }) satisfies Tables<Schemas[0]>;
+
+  const totalEvents = Object.keys(data.events).length;
+  const totalSessions = Object.keys(data.sessions).length;
+
+  const sessionEventIds = new Set(
+    Object.values(data.sessions)
+      .map((s) => s.event_id)
+      .filter((id) => !!id),
+  );
+
+  const eventsWithoutSession = Object.keys(data.events).filter(
+    (eventId) => !sessionEventIds.has(eventId),
+  ).length;
+
+  const sessionsWithoutEvent = Object.values(data.sessions).filter(
+    (s) => !s.event_id,
+  ).length;
+
+  console.log("=== Seed Data Statistics ===");
+  console.log(`Total Events: ${totalEvents}`);
+  console.log(`Total Sessions: ${totalSessions}`);
+  console.log(`Events without Session: ${eventsWithoutSession}`);
+  console.log(`Sessions without Event: ${sessionsWithoutEvent}`);
+
+  return data;
+})();

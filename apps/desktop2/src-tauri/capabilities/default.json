@@ -27,6 +27,7 @@
     "analytics:default",
     "updater:default",
     "deep-link:default",
-    "store:default"
+    "store:default",
+    "process:default"
   ]
 }

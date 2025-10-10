@@ -27,7 +27,7 @@ type InferCellSchema<T> = T extends string | undefined ? { type: "string"; defau
   : T extends object ? { type: "string" }
   : never;
 
-export type InferTinyBaseSchemaSchema<T> = T extends { _output: infer Output } ? {
+export type InferTinyBaseSchema<T> = T extends { _output: infer Output } ? {
     [K in keyof Omit<Output, "id">]: InferCellSchema<Output[K]>;
   }
   : never;
@@ -42,7 +42,7 @@ type TransformForSchema<T> = T extends string | undefined ? string | undefined
   : T extends object ? string
   : T;
 
-export type InferTinyBaseSchema<T> = T extends { _output: infer Output } ? {
+export type ToStorageType<T> = T extends { _output: infer Output } ? {
     [K in keyof Omit<Output, "id">]: TransformForSchema<Output[K]>;
   }
   : never;

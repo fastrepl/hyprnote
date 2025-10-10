@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import * as persisted from "../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -9,8 +9,9 @@ export function OuterHeader(
   { sessionRow }: { sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">> },
 ) {
   const [eventSearchQuery, setEventSearchQuery] = useState("");
-  const [eventActiveTab, setEventActiveTab] = useState<"event" | "date">("event");
-  const [eventPopoverOpen, setEventPopoverOpen] = useState(false);
+  const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
+
+  console.log("sessionRow", sessionRow);
   
   // Always call the hook, but use a dummy ID when there's no event_id
   const eventRow = persisted.UI.useRow(
@@ -18,6 +19,8 @@ export function OuterHeader(
     sessionRow.event_id || "dummy-event-id", 
     persisted.STORE_ID
   );
+
+  console.log("eventRow", eventRow);
   
   // Only use the event data if we have a real event_id
   const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at ? {
@@ -27,6 +30,13 @@ export function OuterHeader(
     end_date: eventRow.ended_at,
     calendar_id: eventRow.calendar_id ?? undefined,
   } : null;
+
+  useEffect(() => {
+    if (event) {
+      setEventSearchResults([event]);
+    }
+  }, [event]);
+
 
   return (
     <div className="flex items-center justify-between">
@@ -47,15 +57,12 @@ export function OuterHeader(
           isNarrow={false}
           onEventSelect={(eventId) => {
             console.log("Select event:", eventId);
-            setEventPopoverOpen(false);
           }}
           onEventDetach={() => {
             console.log("Detach event");
-            setEventPopoverOpen(false);
           }}
           onDateChange={(date) => {
             console.log("Change date:", date);
-            setEventPopoverOpen(false);
           }}
           onJoinMeeting={(meetingLink) => {
             console.log("Join meeting:", meetingLink);
@@ -65,12 +72,8 @@ export function OuterHeader(
           }}
           searchQuery={eventSearchQuery}
           onSearchChange={setEventSearchQuery}
-          searchResults={[]}
+          searchResults={eventSearchResults}
           isSearching={false}
-          activeTab={eventActiveTab}
-          onTabChange={setEventActiveTab}
-          isPopoverOpen={eventPopoverOpen}
-          onPopoverChange={setEventPopoverOpen}
         />
         
         <ParticipantsChip 

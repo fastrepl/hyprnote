@@ -1,9 +1,9 @@
 import { CalendarIcon, SpeechIcon, VideoIcon, XIcon, SearchIcon } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 // Simple date formatting utilities
 const formatDate = (date: Date, format: string): string => {
@@ -63,10 +63,6 @@ export interface EventChipProps {
   onSearchChange?: (query: string) => void;
   searchResults?: Event[];
   isSearching?: boolean;
-  activeTab?: "event" | "date";
-  onTabChange?: (tab: "event" | "date") => void;
-  isPopoverOpen?: boolean;
-  onPopoverChange?: (open: boolean) => void;
   formatRelativeDate?: (date: string) => string;
 }
 
@@ -84,57 +80,70 @@ export function EventChip({
   onSearchChange,
   searchResults = [],
   isSearching = false,
-  activeTab = "event",
-  onTabChange,
-  isPopoverOpen = false,
-  onPopoverChange,
   formatRelativeDate = (d) => formatDate(new Date(d), "MMM d"),
 }: EventChipProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"event" | "date">("event");
+  
   const getIcon = () => {
     if (event?.meetingLink) return <VideoIcon size={14} />;
     if (event) return <SpeechIcon size={14} />;
     return <CalendarIcon size={14} />;
   };
 
+  // Wrapper functions to handle closing popover after actions
+  const handleEventSelect = (eventId: string) => {
+    onEventSelect?.(eventId);
+    setIsOpen(false);
+  };
+
+  const handleEventDetach = () => {
+    onEventDetach?.();
+    setIsOpen(false);
+  };
+
+  const handleDateChange = (date: Date) => {
+    onDateChange?.(date);
+    setIsOpen(false);
+  };
+
   return (
-    <Popover open={isPopoverOpen} onOpenChange={onPopoverChange}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex flex-row items-center gap-2 rounded-md cursor-pointer",
-                  isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5",
-                  "hover:bg-neutral-100"
-                )}
-              >
-                <span className="flex-shrink-0 text-neutral-500">{getIcon()}</span>
-                {!isVeryNarrow && (
-                  <p className="text-xs truncate text-neutral-500">
-                    {formatRelativeDate(event?.start_date || date)}
-                  </p>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {formatDate(new Date(event?.start_date || date), "EEE, MMM d, yyyy") + ' at ' + formatDate(new Date(event?.start_date || date), "h:mm a")}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div
+          className={cn(
+            "flex flex-row items-center gap-2 rounded-md cursor-pointer",
+            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5",
+            "hover:bg-neutral-100"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          title={formatDate(new Date(event?.start_date || date), "EEE, MMM d, yyyy") + ' at ' + formatDate(new Date(event?.start_date || date), "h:mm a")}
+        >
+          <span className="flex-shrink-0 text-neutral-500">{getIcon()}</span>
+          {!isVeryNarrow && (
+            <p className="text-xs truncate text-neutral-500">
+              {formatRelativeDate(event?.start_date || date)}
+            </p>
+          )}
+        </div>
       </PopoverTrigger>
 
       <PopoverContent align="start" className="shadow-lg w-80 relative">
         {event ? (
           <EventDetails
             event={event}
-            onDetach={onEventDetach}
+            onDetach={handleEventDetach}
             onJoinMeeting={onJoinMeeting}
             onViewInCalendar={onViewInCalendar}
             formatRelativeDate={formatRelativeDate}
           />
         ) : (
-          <Tabs value={activeTab} onValueChange={(v) => onTabChange?.(v as "event" | "date")}>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "event" | "date")}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="event">Add Event</TabsTrigger>
               <TabsTrigger value="date">Change Date</TabsTrigger>
@@ -145,7 +154,7 @@ export function EventChip({
                 searchQuery={searchQuery}
                 onSearchChange={onSearchChange}
                 searchResults={searchResults}
-                onEventSelect={onEventSelect}
+                onEventSelect={handleEventSelect}
                 isSearching={isSearching}
               />
             </TabsContent>
@@ -153,7 +162,7 @@ export function EventChip({
             <TabsContent value="date" className="mt-4">
               <DatePicker
                 currentDate={date}
-                onDateChange={onDateChange}
+                onDateChange={handleDateChange}
               />
             </TabsContent>
           </Tabs>
@@ -301,13 +310,19 @@ function DatePicker({
   currentDate: string;
   onDateChange?: (date: Date) => void;
 }) {
+  const [selectedDate, setSelectedDate] = useState(currentDate);
+  
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dateStr = e.target.value;
     if (dateStr) {
-      const newDate = new Date(dateStr);
-      if (!isNaN(newDate.getTime())) {
-        onDateChange?.(newDate);
-      }
+      setSelectedDate(dateStr);
+    }
+  };
+
+  const handleSave = () => {
+    const newDate = new Date(selectedDate);
+    if (!isNaN(newDate.getTime())) {
+      onDateChange?.(newDate);
     }
   };
 
@@ -315,14 +330,14 @@ function DatePicker({
     <div className="space-y-4">
       <input
         type="date"
-        value={formatDate(new Date(currentDate), "yyyy-MM-dd")}
+        value={formatDate(new Date(selectedDate), "yyyy-MM-dd")}
         onChange={handleDateChange}
         max={formatDate(new Date(), "yyyy-MM-dd")}
         className="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none"
       />
       
       <Button
-        onClick={() => onDateChange?.(new Date(currentDate))}
+        onClick={handleSave}
         className="w-full"
       >
         Save Date

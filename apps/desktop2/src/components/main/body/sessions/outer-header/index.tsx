@@ -9,9 +9,11 @@ import { RecordingButton } from "./recording";
 import { ShareButton } from "./share";
 
 export function OuterHeader(
-  { sessionRow, sessionId }: {
+  { sessionRow, sessionId, onToggleAudioPlayer, isAudioPlayerVisible }: {
     sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
     sessionId: string;
+    onToggleAudioPlayer: () => void;
+    isAudioPlayerVisible: boolean;
   },
 ) {
   const currentUserId = persisted.UI.useCell("configs", "singleton", "user_id", persisted.STORE_ID) as
@@ -38,7 +40,11 @@ export function OuterHeader(
           sessionId={sessionId}
           currentUserId={currentUserId}
         />
-        <RecordingButton sessionRow={sessionRow} />
+        <RecordingButton
+          sessionRow={sessionRow}
+          onToggle={onToggleAudioPlayer}
+          isActive={isAudioPlayerVisible}
+        />
         <ListenButton sessionRow={sessionRow} />
         <ShareButton sessionRow={sessionRow} />
         <OthersButton sessionRow={sessionRow} />

@@ -1,5 +1,5 @@
 import { StickyNoteIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import * as persisted from "../../../../store/tinybase/persisted";
@@ -27,6 +27,7 @@ export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
 export function TabContentNote({ tab }: { tab: Tab }) {
   const sessionId = rowIdfromTab(tab);
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
   const editorKey = useMemo(
     () => `session-${sessionId}-raw`,
@@ -50,36 +51,43 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col px-4 py-1">
-      <div className="py-1">
-        <OuterHeader sessionRow={sessionRow} sessionId={sessionId} />
-      </div>
+    <div className="flex flex-col h-[calc(100vh-44px)] w-full">
+      <div className="flex flex-col px-4 py-1 flex-1 overflow-auto">
+        <div className="py-1">
+          <OuterHeader
+            sessionRow={sessionRow}
+            sessionId={sessionId}
+            onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
+            isAudioPlayerVisible={showAudioPlayer}
+          />
+        </div>
 
-      <TitleInput
-        editable={true}
-        value={sessionRow.title ?? ""}
-        onChange={(e) => handleEditTitle(e.target.value)}
-      />
-      <InnerHeader
-        tab={tab}
-        onVisibilityChange={() => {}}
-        isCurrentlyRecording={false}
-        shouldShowTab={true}
-        shouldShowEnhancedTab={false}
-      />
-      <div className="py-1"></div>
-      <NoteEditor
-        key={editorKey}
-        initialContent={sessionRow.raw_md ?? ""}
-        handleChange={(e) => handleEditRawMd(e)}
-        mentionConfig={{
-          trigger: "@",
-          handleSearch: async () => {
-            return [];
-          },
-        }}
-      />
-      <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />
+        <TitleInput
+          editable={true}
+          value={sessionRow.title ?? ""}
+          onChange={(e) => handleEditTitle(e.target.value)}
+        />
+        <InnerHeader
+          tab={tab}
+          onVisibilityChange={() => {}}
+          isCurrentlyRecording={false}
+          shouldShowTab={true}
+          shouldShowEnhancedTab={false}
+        />
+        <div className="py-1"></div>
+        <NoteEditor
+          key={editorKey}
+          initialContent={sessionRow.raw_md ?? ""}
+          handleChange={(e) => handleEditRawMd(e)}
+          mentionConfig={{
+            trigger: "@",
+            handleSearch: async () => {
+              return [];
+            },
+          }}
+        />
+      </div>
+      {showAudioPlayer && <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />}
     </div>
   );
 }

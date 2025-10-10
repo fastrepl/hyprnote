@@ -137,8 +137,8 @@ function ParticipantList({
 }) {
   return (
     <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto pr-1">
-      {participants.map((group) => (
-        <div key={group.organization?.id || "no-org"} className="flex flex-col gap-1.5">
+      {participants.map((group, index) => (
+        <div key={group.organization?.id ?? `no-org-${index}`} className="flex flex-col gap-1.5">
           <div className="text-xs font-medium text-neutral-400 truncate">
             {group.organization?.name || "No organization"}
           </div>
@@ -149,7 +149,8 @@ function ParticipantList({
                 participant={participant}
                 currentUserId={currentUserId}
                 onClick={() => onParticipantClick?.(participant)}
-                onRemove={() => onParticipantRemove?.(participant.id)}
+                onRemove={() =>
+                  onParticipantRemove?.(participant.id)}
                 allowRemove={allowMutate}
               />
             ))}

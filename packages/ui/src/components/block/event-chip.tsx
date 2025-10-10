@@ -1,11 +1,11 @@
 import { CalendarIcon, SearchIcon, SpeechIcon, VideoIcon, XIcon } from "lucide-react";
 import { useState } from "react";
+
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
-// Simple date formatting utilities
 const formatDate = (date: Date, format: string): string => {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
@@ -25,12 +25,7 @@ const formatDate = (date: Date, format: string): string => {
     "p": `${date.getHours() % 12 || 12}:${pad(date.getMinutes())} ${date.getHours() >= 12 ? "PM" : "AM"}`,
   };
 
-  let result = format;
-  Object.entries(replacements).forEach(([key, value]) => {
-    result = result.replace(new RegExp(key, "g"), value);
-  });
-
-  return result;
+  return format.replace(/yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g, (token) => replacements[token]);
 };
 
 const isSameDay = (date1: Date, date2: Date): boolean => {
@@ -69,7 +64,6 @@ export function EventChip({
   event,
   date,
   isVeryNarrow = false,
-  isNarrow = false,
   onEventSelect,
   onEventDetach,
   onDateChange,

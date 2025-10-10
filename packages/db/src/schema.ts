@@ -59,10 +59,10 @@ export const calendars = pgTable(TABLE_CALENDARS, {
   name: text("name").notNull(),
 });
 
-export const TABLE_MAPPING_EVENT_PARTICIPANT = "mapping_event_participant";
-export const mappingEventParticipant = pgTable(TABLE_MAPPING_EVENT_PARTICIPANT, {
+export const TABLE_MAPPING_SESSION_PARTICIPANT = "mapping_session_participant";
+export const mappingSessionParticipant = pgTable(TABLE_MAPPING_SESSION_PARTICIPANT, {
   ...SHARED,
-  event_id: uuid("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
   human_id: uuid("human_id").notNull().references(() => humans.id, { onDelete: "cascade" }),
 });
 
@@ -139,7 +139,7 @@ export const folderSchema = createSelectSchema(folders);
 export const eventSchema = createSelectSchema(events);
 export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);
-export const mappingEventParticipantSchema = createSelectSchema(mappingEventParticipant);
+export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
 export const templateSchema = createSelectSchema(templates);

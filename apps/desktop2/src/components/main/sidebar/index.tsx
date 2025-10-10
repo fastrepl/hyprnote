@@ -14,19 +14,19 @@ export function LeftSidebar() {
         data-tauri-drag-region
         className={clsx([
           "flex flex-row shrink-0",
-          "flex w-full items-center justify-between min-h-11 py-1 px-2 border-b",
-          "border-border bg-neutral-50",
-          "pl-[72px]",
+          "flex w-full items-center justify-between min-h-11 py-1 mt-1 ml-1",
+          "rounded-lg",
+          "pl-[72px] bg-neutral-50",
         ])}
       >
         <div className="flex-1" />
         <PanelLeftCloseIcon
           onClick={toggleLeftPanel}
-          className="cursor-pointer h-5 w-5"
+          className="cursor-pointer h-5 w-5 mr-2"
         />
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden p-2 gap-2">
+      <div className="flex flex-col flex-1 overflow-hidden p-1 gap-2">
         <TimelineView />
         <ProfileSection />
       </div>

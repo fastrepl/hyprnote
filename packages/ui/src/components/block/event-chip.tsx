@@ -258,7 +258,7 @@ function EventSearch({
   onSearchChange?: (query: string) => void;
   searchResults: Event[];
   onEventSelect?: (eventId: string) => void;
-  isSearching: boolean;
+  isSearching?: boolean;
 }) {
   return (
     <div>
@@ -279,7 +279,7 @@ function EventSearch({
         </div>
       ) : searchResults.length === 0 ? (
         <div className="p-4 text-center text-sm text-neutral-500">
-          No past events found.
+          {searchQuery ? "No matching events found." : "No past events available."}
         </div>
       ) : (
         <div className="max-h-60 overflow-y-auto">

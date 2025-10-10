@@ -6,13 +6,15 @@ import { EventChip, type Event } from "@hypr/ui/components/block/event-chip";
 import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 
 export function OuterHeader(
-  { sessionRow }: { sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">> },
+  { sessionRow, sessionId }: { 
+    sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
+    sessionId: string;
+  },
 ) {
   const [eventSearchQuery, setEventSearchQuery] = useState("");
   const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  console.log("sessionRow", sessionRow);
-  
   // Always call the hook, but use a dummy ID when there's no event_id
   const eventRow = persisted.UI.useRow(
     "events", 
@@ -20,7 +22,8 @@ export function OuterHeader(
     persisted.STORE_ID
   );
 
-  console.log("eventRow", eventRow);
+  // Get the store to search events
+  const store = persisted.UI.useStore(persisted.STORE_ID);
   
   // Only use the event data if we have a real event_id
   const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at ? {
@@ -31,11 +34,60 @@ export function OuterHeader(
     calendar_id: eventRow.calendar_id ?? undefined,
   } : null;
 
+  // Search for past events when query changes
   useEffect(() => {
-    if (event) {
-      setEventSearchResults([event]);
-    }
-  }, [event]);
+    if (!store) return;
+    
+    const searchEvents = async () => {
+      setIsSearching(true);
+      
+      try {
+        const results: Event[] = [];
+        const now = new Date();
+        
+        // Get all events from the store
+        store.forEachRow("events", (rowId, row) => {
+          const eventData = row as unknown as persisted.Event;
+          if (!eventData.started_at || !eventData.ended_at) return;
+          
+          const eventEndDate = new Date(eventData.ended_at);
+          
+          // Only include past events (ended before now)
+          if (eventEndDate >= now) return;
+          
+          // Filter by search query (case-insensitive)
+          if (eventSearchQuery && 
+              !eventData.title?.toLowerCase().includes(eventSearchQuery.toLowerCase())) {
+            return;
+          }
+          
+          results.push({
+            id: rowId,
+            name: eventData.title ?? "",
+            start_date: eventData.started_at,
+            end_date: eventData.ended_at,
+            calendar_id: eventData.calendar_id ?? undefined,
+          });
+        });
+        
+        // Sort by start date (most recent first)
+        results.sort((a, b) => 
+          new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+        );
+
+        console.log("past events results", results);
+        
+        // Limit to 20 results
+        setEventSearchResults(results.slice(0, 20));
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    
+    // Debounce the search
+    const timeoutId = setTimeout(searchEvents, 300);
+    return () => clearTimeout(timeoutId);
+  }, [eventSearchQuery, store]);
 
 
   return (
@@ -56,24 +108,30 @@ export function OuterHeader(
           isVeryNarrow={false}
           isNarrow={false}
           onEventSelect={(eventId) => {
-            console.log("Select event:", eventId);
+            if (store) {
+              store.setCell("sessions", sessionId, "event_id", eventId);
+            }
           }}
           onEventDetach={() => {
-            console.log("Detach event");
+            if (store) {
+              store.delCell("sessions", sessionId, "event_id");
+            }
           }}
           onDateChange={(date) => {
-            console.log("Change date:", date);
+            if (store) {
+              store.setCell("sessions", sessionId, "created_at", date.toISOString());
+            }
           }}
           onJoinMeeting={(meetingLink) => {
-            console.log("Join meeting:", meetingLink);
+            window.open(meetingLink, '_blank');
           }}
           onViewInCalendar={() => {
-            console.log("View in calendar");
+            // TODO: Implement view in calendar functionality
           }}
           searchQuery={eventSearchQuery}
           onSearchChange={setEventSearchQuery}
           searchResults={eventSearchResults}
-          isSearching={false}
+          isSearching={isSearching}
         />
         
         <ParticipantsChip 

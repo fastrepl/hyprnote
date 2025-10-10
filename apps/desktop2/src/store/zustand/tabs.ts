@@ -8,13 +8,20 @@ type State = {
   tabs: Tab[];
 };
 
-type Actions = {
+type Actions =
+  & TabUpdator
+  & TabStateUpdater;
+
+type TabUpdator = {
   setTabs: (tabs: Tab[]) => void;
   openCurrent: (tab: Tab) => void;
   openNew: (tab: Tab) => void;
   select: (tab: Tab) => void;
   close: (tab: Tab) => void;
   reorder: (tabs: Tab[]) => void;
+};
+
+type TabStateUpdater = {
   updateSessionTabState: (tab: Tab, state: Extract<Tab, { type: "sessions" }>["state"]) => void;
 };
 

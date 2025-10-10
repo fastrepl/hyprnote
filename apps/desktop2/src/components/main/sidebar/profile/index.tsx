@@ -49,7 +49,18 @@ export function ProfileSection() {
   }, [openNew, closeMenu]);
 
   const handleClickContacts = useCallback(() => {
-    openNew({ type: "contacts", active: true });
+    openNew({
+      type: "contacts",
+      active: true,
+      state: {
+        selectedOrganization: null,
+        selectedPerson: null,
+        editingPerson: null,
+        editingOrg: null,
+        showNewOrg: false,
+        sortOption: "alphabetical",
+      },
+    });
     closeMenu();
   }, [openNew, closeMenu]);
 

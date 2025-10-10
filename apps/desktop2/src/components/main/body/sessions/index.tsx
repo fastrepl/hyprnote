@@ -7,6 +7,7 @@ import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
 import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
+import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
@@ -78,6 +79,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
           },
         }}
       />
+      <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />
     </div>
   );
 }

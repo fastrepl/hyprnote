@@ -9,7 +9,7 @@ import { ChatTrigger } from "./trigger";
 export function Chat() {
   const [isOpen, setIsOpen] = useState(false);
 
-  useHotkeys("esc", () => setIsOpen(false));
+  useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
 
   const handleAddMessage = persisted.UI.useSetRowCallback(
     "chat_messages",
@@ -25,7 +25,13 @@ export function Chat() {
 
   return (
     <>
-      <ChatBody isOpen={isOpen} onClose={() => setIsOpen(false)} handleAddMessage={handleAddMessage} />
+      <ChatBody
+        // TODO
+        currentChatId={id()}
+        isOpen={isOpen}
+        handleClose={() => setIsOpen(false)}
+        handleAddMessage={handleAddMessage}
+      />
       {!isOpen && <ChatTrigger onClick={() => setIsOpen(true)} />}
     </>
   );

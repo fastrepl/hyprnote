@@ -5,11 +5,11 @@ import NoteEditor from "@hypr/tiptap/editor";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
+import { FloatingRegenerateButton } from "./floating-regenerate-button";
 import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
-import { FloatingRegenerateButton } from "./floating-regenerate-button";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
   const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);

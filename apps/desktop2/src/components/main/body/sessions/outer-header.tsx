@@ -12,11 +12,16 @@ export function OuterHeader(
   const [eventActiveTab, setEventActiveTab] = useState<"event" | "date">("event");
   const [eventPopoverOpen, setEventPopoverOpen] = useState(false);
   
-  // Get event data if there's an event_id
-  const eventRow = sessionRow.event_id ? persisted.UI.useRow("events", sessionRow.event_id, persisted.STORE_ID) : null;
+  // Always call the hook, but use a dummy ID when there's no event_id
+  const eventRow = persisted.UI.useRow(
+    "events", 
+    sessionRow.event_id || "dummy-event-id", 
+    persisted.STORE_ID
+  );
   
-  const event: Event | null = eventRow && eventRow.started_at && eventRow.ended_at ? {
-    id: sessionRow.event_id!,
+  // Only use the event data if we have a real event_id
+  const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at ? {
+    id: sessionRow.event_id,
     name: eventRow.title ?? "",
     start_date: eventRow.started_at,
     end_date: eventRow.ended_at,
@@ -35,8 +40,6 @@ export function OuterHeader(
       </div>
 
       <div className="flex items-center gap-3">
-        <DateTimeButton sessionRow={sessionRow} />
-        <ParticipantsButton sessionRow={sessionRow} />
         <EventChip
           event={event}
           date={sessionRow.created_at || new Date().toISOString()}
@@ -160,22 +163,6 @@ function shouldShowShareButton(_sessionRow: ReturnType<typeof persisted.UI.useRo
 type SessionRowProp = {
   sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
 };
-
-function DateTimeButton({ sessionRow: _sessionRow }: SessionRowProp) {
-  return (
-    <button className="text-xs">
-      📅 Today (Fri)
-    </button>
-  );
-}
-
-function ParticipantsButton({ sessionRow: _sessionRow }: SessionRowProp) {
-  return (
-    <button className="text-xs">
-      👤 John Jeong + 4
-    </button>
-  );
-}
 
 function RecordingButton({ sessionRow: _sessionRow }: SessionRowProp) {
   return (

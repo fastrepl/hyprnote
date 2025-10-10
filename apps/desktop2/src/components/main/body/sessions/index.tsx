@@ -51,7 +51,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col px-4 py-1 rounded-lg border">
+    <div className="flex flex-col px-4 py-1 rounded-lg border h-full">
       <div className="py-1">
         <OuterHeader
           sessionRow={sessionRow}

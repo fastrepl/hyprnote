@@ -146,7 +146,7 @@ function Header() {
     <header
       data-tauri-drag-region
       className={clsx([
-        "flex w-full items-center justify-center min-h-11 py-1 px-2 border-b",
+        "flex w-full items-center justify-center min-h-8 py-1 px-2 border-b",
         "border-border bg-neutral-50",
       ])}
     >

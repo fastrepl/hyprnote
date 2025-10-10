@@ -54,7 +54,7 @@ impl AppWindow {
                 .decorations(true)
                 .hidden_title(true)
                 .theme(Some(tauri::Theme::Light))
-                .traffic_light_position(tauri::LogicalPosition::new(18.0, 24.0))
+                .traffic_light_position(tauri::LogicalPosition::new(12.0, 18.0))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 

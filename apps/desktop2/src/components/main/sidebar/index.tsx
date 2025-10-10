@@ -9,12 +9,12 @@ export function LeftSidebar() {
   const { togglePanel: toggleLeftPanel } = useLeftSidebar();
 
   return (
-    <div className="h-full border-r w-full flex flex-col overflow-hidden">
+    <div className="h-full w-full flex flex-col overflow-hidden">
       <header
         data-tauri-drag-region
         className={clsx([
           "flex flex-row shrink-0",
-          "flex w-full items-center justify-between min-h-11 py-1 mt-1 ml-1",
+          "flex w-full items-center justify-between min-h-8 py-1 mt-1 ml-1",
           "rounded-lg",
           "pl-[72px] bg-neutral-50",
         ])}

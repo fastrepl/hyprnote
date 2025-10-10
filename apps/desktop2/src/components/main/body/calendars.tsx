@@ -113,7 +113,7 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
         isWeekend ? "bg-neutral-50" : "bg-white",
       ])}
     >
-      <div className="flex items-center justify-end px-1 text-sm h-8">
+      <div className="flex items-center justify-end px-1 text-sm ">
         <div className={clsx("flex items-end gap-1", isToday && "items-center")}>
           <div
             className={clsx(

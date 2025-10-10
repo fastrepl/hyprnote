@@ -20,9 +20,11 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col p-1 gap-2">
+    <div className="flex flex-col p-1 gap-1 h-full">
       <Header tabs={tabs} />
-      <Content tab={currentTab} />
+      <div className="flex-1 overflow-auto">
+        <Content tab={currentTab} />
+      </div>
     </div>
   );
 }
@@ -36,7 +38,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       data-tauri-drag-region
       className={clsx([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-        "w-full overflow-x-auto h-11",
+        "w-full overflow-x-auto h-8",
         !isExpanded && "pl-[72px]",
       ])}
     >

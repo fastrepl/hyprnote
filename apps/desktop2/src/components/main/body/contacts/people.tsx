@@ -62,7 +62,7 @@ export function PeopleColumn({
                 selectedPerson === person.id && "bg-neutral-100",
               )}
             >
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+              <div className="flex-shrink-0 w-8  rounded-full bg-neutral-200 flex items-center justify-center">
                 <span className="text-xs font-medium text-neutral-600">
                   {getInitials(person.name || person.email)}
                 </span>

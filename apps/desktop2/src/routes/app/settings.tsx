@@ -25,7 +25,7 @@ function Component() {
   return (
     <div className="flex h-full">
       <div className="w-60 border-r flex flex-col">
-        <div data-tauri-drag-region className="h-11" />
+        <div data-tauri-drag-region className="h-8" />
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {TABS.map((tab) => (
             <button
@@ -45,7 +45,7 @@ function Component() {
       <div className="flex-1 flex h-full w-full flex-col overflow-hidden">
         <header
           data-tauri-drag-region
-          className="h-11 w-full flex items-center justify-between border-b px-2"
+          className="h-8 w-full flex items-center justify-between border-b px-2"
         >
           <div className="w-40"></div>
           <h1 data-tauri-drag-region className="text-md font-semibold capitalize">{search.tab}</h1>

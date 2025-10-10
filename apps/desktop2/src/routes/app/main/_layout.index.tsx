@@ -20,7 +20,7 @@ function Component() {
           <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
             <LeftSidebar />
           </ResizablePanel>
-          <ResizableHandle withHandle />
+          <ResizableHandle withHandle className="invisible" />
         </>
       )}
       <ResizablePanel>

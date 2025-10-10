@@ -69,7 +69,7 @@ function TabContentFolderTopLevel() {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 rounded-lg border">
       <h2 className="text-lg font-semibold">All Folders</h2>
       <div className="grid grid-cols-4 gap-4">
         {topLevelFolderIds?.map((folderId) => <FolderCard key={folderId} folderId={folderId} />)}
@@ -123,7 +123,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 rounded-lg border">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
       {(childFolderIds?.length ?? 0) > 0 && (

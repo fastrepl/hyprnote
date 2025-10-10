@@ -134,7 +134,7 @@ function ContactView({ tab }: { tab: Tab }) {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full rounded-lg border">
       <OrganizationsColumn
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}

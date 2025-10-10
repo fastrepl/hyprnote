@@ -21,8 +21,8 @@ export const CalendarStructure = ({
   children,
 }: CalendarStructureProps) => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 pb-2 flex items-center relative">
+    <div className="flex flex-col h-full rounded-lg border">
+      <div className="p-4 pb-2 flex items-center relative ">
         <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">{monthLabel}</div>
         <div className="flex h-fit rounded-md overflow-clip border border-neutral-200 ml-auto">
           <Button

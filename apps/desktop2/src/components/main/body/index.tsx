@@ -1,11 +1,12 @@
 import clsx from "clsx";
+import { PanelLeftOpenIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { PanelLeftOpenIcon } from "lucide-react";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
+import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
@@ -81,20 +82,21 @@ function TabItem(
   if (tab.type === "sessions") {
     return <TabItemNote tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
-
   if (tab.type === "events") {
     return <TabItemEvent tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
+  if (tab.type === "folders") {
+    return <TabItemFolder tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
+  if (tab.type === "humans") {
+    return <TabItemHuman tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
 
   if (tab.type === "calendars") {
     return <TabItemCalendar tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
-  if (tab.type === "folders") {
-    return <TabItemFolder tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
-  }
-
-  if (tab.type === "humans") {
-    return <TabItemHuman tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  if (tab.type === "contacts") {
+    return <TabItemContact tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
 
   return null;
@@ -104,21 +106,21 @@ function Content({ tab }: { tab: Tab }) {
   if (tab.type === "sessions") {
     return <TabContentNote tab={tab} />;
   }
-
   if (tab.type === "events") {
     return <TabContentEvent tab={tab} />;
+  }
+  if (tab.type === "folders") {
+    return <TabContentFolder tab={tab} />;
+  }
+  if (tab.type === "humans") {
+    return <TabContentHuman tab={tab} />;
   }
 
   if (tab.type === "calendars") {
     return <TabContentCalendar tab={tab} />;
   }
-
-  if (tab.type === "folders") {
-    return <TabContentFolder tab={tab} />;
-  }
-
-  if (tab.type === "humans") {
-    return <TabContentHuman tab={tab} />;
+  if (tab.type === "contacts") {
+    return <TabContentContact tab={tab} />;
   }
 
   return null;

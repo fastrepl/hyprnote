@@ -6,7 +6,7 @@
   "identifier": "com.hyprnote2.dev",
   "build": {
     "beforeDevCommand": "pnpm -F desktop2 dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:1422",
     "beforeBuildCommand": "pnpm -F desktop2 build",
     "frontendDist": "../dist"
   },

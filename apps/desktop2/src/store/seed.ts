@@ -38,10 +38,27 @@ const createOrganization = () => ({
   } satisfies Organization,
 });
 
-const createHuman = (org_id: string) => {
+const createHuman = (org_id: string, isUser = false) => {
   const sex = faker.person.sexType();
   const firstName = faker.person.firstName(sex);
   const lastName = faker.person.lastName();
+
+  const jobTitles = [
+    "Software Engineer",
+    "Product Manager",
+    "Designer",
+    "Engineering Manager",
+    "CEO",
+    "CTO",
+    "VP of Engineering",
+    "Data Scientist",
+    "Marketing Manager",
+    "Sales Director",
+    "Account Executive",
+    "Customer Success Manager",
+    "Operations Manager",
+    "HR Manager",
+  ];
 
   return {
     id: id(),
@@ -49,6 +66,11 @@ const createHuman = (org_id: string) => {
       user_id: USER_ID,
       name: `${firstName} ${lastName}`,
       email: faker.internet.email({ firstName, lastName }),
+      job_title: faker.helpers.arrayElement(jobTitles),
+      linkedin_username: faker.datatype.boolean({ probability: 0.7 })
+        ? `${firstName.toLowerCase()}${lastName.toLowerCase()}`
+        : undefined,
+      is_user: isUser,
       created_at: faker.date.past({ years: 1 }).toISOString(),
       org_id,
     } satisfies Human,
@@ -342,6 +364,15 @@ const generateMockData = (config: MockConfig) => {
   });
 
   const humanIds: string[] = [];
+
+  // Create the current user first (in the first organization)
+  if (orgIds.length > 0) {
+    const currentUser = createHuman(orgIds[0], true);
+    humans[currentUser.id] = currentUser.data;
+    humanIds.push(currentUser.id);
+  }
+
+  // Create other humans
   orgIds.forEach((orgId) => {
     const humanCount = faker.number.int({
       min: config.humansPerOrg.min,
@@ -349,7 +380,7 @@ const generateMockData = (config: MockConfig) => {
     });
 
     Array.from({ length: humanCount }, () => {
-      const human = createHuman(orgId);
+      const human = createHuman(orgId, false);
       humans[human.id] = human.data;
       humanIds.push(human.id);
     });
@@ -477,8 +508,8 @@ faker.seed(123);
 
 export const V1 = (() => {
   const data = generateMockData({
-    organizations: 5,
-    humansPerOrg: { min: 3, max: 8 },
+    organizations: 8,
+    humansPerOrg: { min: 5, max: 12 },
     sessionsPerHuman: { min: 2, max: 6 },
     eventsPerHuman: { min: 1, max: 5 },
     calendarsPerUser: 3,
@@ -501,7 +532,14 @@ export const V1 = (() => {
     (s) => !s.event_id,
   ).length;
 
+  const totalHumans = Object.keys(data.humans).length;
+  const totalOrganizations = Object.keys(data.organizations).length;
+  const totalUsers = Object.values(data.humans).filter((h) => h.is_user).length;
+
   console.log("=== Seed Data Statistics ===");
+  console.log(`Total Organizations: ${totalOrganizations}`);
+  console.log(`Total Humans: ${totalHumans}`);
+  console.log(`Current User(s): ${totalUsers}`);
   console.log(`Total Events: ${totalEvents}`);
   console.log(`Total Sessions: ${totalSessions}`);
   console.log(`Events without Session: ${eventsWithoutSession}`);

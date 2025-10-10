@@ -184,8 +184,10 @@ export function UpdateChecker() {
     updateStore.trigger.setInstalling();
 
     try {
-      await update.install();
-      await relaunch();
+      if (process.env.NODE_ENV !== "development") {
+        await update.install();
+        await relaunch();
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Installation failed";
       updateStore.trigger.checkError({ error: errorMessage });

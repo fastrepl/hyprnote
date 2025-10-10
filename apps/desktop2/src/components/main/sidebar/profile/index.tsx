@@ -82,9 +82,6 @@ export function ProfileSection() {
       <div
         className={clsx(
           "bg-gray-50 rounded-lg overflow-hidden",
-          isExpanded
-            ? "shadow-[rgba(0,0,0,0.1)_0px_-4px_10px_0px]"
-            : "shadow-[rgba(0,0,0,0.05)_0px_-2px_6px_0px]",
         )}
       >
         <div

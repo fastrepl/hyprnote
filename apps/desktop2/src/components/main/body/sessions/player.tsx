@@ -28,7 +28,7 @@ export function AudioPlayer({ url }: { url: string }) {
   const duration = wavesurfer?.getDuration() || 0;
 
   return (
-    <div className="w-full bg-black border-t border-gray-800">
+    <div className="absolute bottom-0 left-0 right-0 w-full bg-black border-t border-gray-800 z-50">
       <div className="flex items-center gap-4 px-6 py-4 w-full max-w-full">
         <button
           onClick={onPlayPause}

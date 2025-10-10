@@ -20,7 +20,7 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col p-1 gap-1 h-full">
+    <div className="flex flex-col p-1 gap-1 h-full relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />

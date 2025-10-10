@@ -139,8 +139,9 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
       onCmdClick={handleCmdClick}
       contextMenu={contextMenu}
       className={clsx([
-        "w-full text-left px-3 py-2 hover:bg-gray-100",
-        active && "bg-blue-50",
+        "w-full text-left px-3 py-2 rounded-lg",
+        active && "bg-gray-200",
+        !active && "hover:bg-gray-100",
       ])}
     >
       <div className="flex flex-col gap-0.5">

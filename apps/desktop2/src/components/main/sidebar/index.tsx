@@ -26,7 +26,7 @@ export function LeftSidebar() {
         />
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden p-1 gap-2">
+      <div className="flex flex-col flex-1 overflow-hidden p-1 gap-1">
         <TimelineView />
         <ProfileSection />
       </div>

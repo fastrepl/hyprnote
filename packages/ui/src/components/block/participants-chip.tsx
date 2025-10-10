@@ -86,7 +86,7 @@ export function ParticipantsChip({
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="shadow-lg w-80" align="start">
+      <PopoverContent className="shadow-lg w-80" align="end">
         {participants.length === 0 && allowMutate ? (
           <AddParticipantInput
             value={searchQuery}

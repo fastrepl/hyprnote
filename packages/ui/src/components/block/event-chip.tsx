@@ -133,7 +133,7 @@ export function EventChip({
         </div>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="shadow-lg w-80 relative">
+      <PopoverContent align="end" className="shadow-lg w-80 relative">
         {event ? (
           <EventDetails
             event={event}

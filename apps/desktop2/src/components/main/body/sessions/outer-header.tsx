@@ -15,17 +15,14 @@ export function OuterHeader(
   const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Always call the hook, but use a dummy ID when there's no event_id
   const eventRow = persisted.UI.useRow(
     "events", 
     sessionRow.event_id || "dummy-event-id", 
     persisted.STORE_ID
   );
 
-  // Get the store to search events
   const store = persisted.UI.useStore(persisted.STORE_ID);
   
-  // Only use the event data if we have a real event_id
   const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at ? {
     id: sessionRow.event_id,
     name: eventRow.title ?? "",
@@ -34,7 +31,6 @@ export function OuterHeader(
     calendar_id: eventRow.calendar_id ?? undefined,
   } : null;
 
-  // Search for past events when query changes
   useEffect(() => {
     if (!store) return;
     
@@ -45,46 +41,48 @@ export function OuterHeader(
         const results: Event[] = [];
         const now = new Date();
         
-        // Get all events from the store
-        store.forEachRow("events", (rowId, row) => {
-          const eventData = row as unknown as persisted.Event;
-          if (!eventData.started_at || !eventData.ended_at) return;
+        store.forEachRow("events", (rowId, forEachCell) => {
+          let title: string | undefined;
+          let started_at: string | undefined;
+          let ended_at: string | undefined;
+          let calendar_id: string | undefined;
           
-          const eventEndDate = new Date(eventData.ended_at);
+          forEachCell((cellId, cell) => {
+            if (cellId === "title") title = cell as string;
+            else if (cellId === "started_at") started_at = cell as string;
+            else if (cellId === "ended_at") ended_at = cell as string;
+            else if (cellId === "calendar_id") calendar_id = cell as string;
+          });
           
-          // Only include past events (ended before now)
+          if (!started_at || !ended_at) return;
+          
+          const eventEndDate = new Date(ended_at);
+          
           if (eventEndDate >= now) return;
           
-          // Filter by search query (case-insensitive)
-          if (eventSearchQuery && 
-              !eventData.title?.toLowerCase().includes(eventSearchQuery.toLowerCase())) {
+          if (eventSearchQuery && title && 
+              !title.toLowerCase().includes(eventSearchQuery.toLowerCase())) {
             return;
           }
           
           results.push({
             id: rowId,
-            name: eventData.title ?? "",
-            start_date: eventData.started_at,
-            end_date: eventData.ended_at,
-            calendar_id: eventData.calendar_id ?? undefined,
+            name: title ?? "",
+            start_date: started_at,
+            end_date: ended_at,
+            calendar_id: calendar_id,
           });
         });
         
-        // Sort by start date (most recent first)
         results.sort((a, b) => 
           new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
-        );
-
-        console.log("past events results", results);
-        
-        // Limit to 20 results
+        );        
         setEventSearchResults(results.slice(0, 20));
       } finally {
         setIsSearching(false);
       }
     };
     
-    // Debounce the search
     const timeoutId = setTimeout(searchEvents, 300);
     return () => clearTimeout(timeoutId);
   }, [eventSearchQuery, store]);

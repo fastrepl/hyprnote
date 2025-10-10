@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { type Event, EventChip } from "@hypr/ui/components/block/event-chip";
+import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { EventChip, type Event } from "@hypr/ui/components/block/event-chip";
-import { ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 
 export function OuterHeader(
-  { sessionRow, sessionId }: { 
+  { sessionRow, sessionId }: {
     sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
     sessionId: string;
   },
@@ -16,55 +16,70 @@ export function OuterHeader(
   const [isSearching, setIsSearching] = useState(false);
 
   const eventRow = persisted.UI.useRow(
-    "events", 
-    sessionRow.event_id || "dummy-event-id", 
-    persisted.STORE_ID
+    "events",
+    sessionRow.event_id || "dummy-event-id",
+    persisted.STORE_ID,
   );
 
   const store = persisted.UI.useStore(persisted.STORE_ID);
-  
-  const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at ? {
-    id: sessionRow.event_id,
-    name: eventRow.title ?? "",
-    start_date: eventRow.started_at,
-    end_date: eventRow.ended_at,
-    calendar_id: eventRow.calendar_id ?? undefined,
-  } : null;
+
+  const event: Event | null = sessionRow.event_id && eventRow && eventRow.started_at && eventRow.ended_at
+    ? {
+      id: sessionRow.event_id,
+      name: eventRow.title ?? "",
+      start_date: eventRow.started_at,
+      end_date: eventRow.ended_at,
+      calendar_id: eventRow.calendar_id ?? undefined,
+    }
+    : null;
 
   useEffect(() => {
-    if (!store) return;
-    
+    if (!store) {
+      return;
+    }
+
     const searchEvents = async () => {
       setIsSearching(true);
-      
+
       try {
         const results: Event[] = [];
         const now = new Date();
-        
+
         store.forEachRow("events", (rowId, forEachCell) => {
           let title: string | undefined;
           let started_at: string | undefined;
           let ended_at: string | undefined;
           let calendar_id: string | undefined;
-          
+
           forEachCell((cellId, cell) => {
-            if (cellId === "title") title = cell as string;
-            else if (cellId === "started_at") started_at = cell as string;
-            else if (cellId === "ended_at") ended_at = cell as string;
-            else if (cellId === "calendar_id") calendar_id = cell as string;
+            if (cellId === "title") {
+              title = cell as string;
+            } else if (cellId === "started_at") {
+              started_at = cell as string;
+            } else if (cellId === "ended_at") {
+              ended_at = cell as string;
+            } else if (cellId === "calendar_id") {
+              calendar_id = cell as string;
+            }
           });
-          
-          if (!started_at || !ended_at) return;
-          
-          const eventEndDate = new Date(ended_at);
-          
-          if (eventEndDate >= now) return;
-          
-          if (eventSearchQuery && title && 
-              !title.toLowerCase().includes(eventSearchQuery.toLowerCase())) {
+
+          if (!started_at || !ended_at) {
             return;
           }
-          
+
+          const eventEndDate = new Date(ended_at);
+
+          if (eventEndDate >= now) {
+            return;
+          }
+
+          if (
+            eventSearchQuery && title
+            && !title.toLowerCase().includes(eventSearchQuery.toLowerCase())
+          ) {
+            return;
+          }
+
           results.push({
             id: rowId,
             name: title ?? "",
@@ -73,20 +88,17 @@ export function OuterHeader(
             calendar_id: calendar_id,
           });
         });
-        
-        results.sort((a, b) => 
-          new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
-        );        
+
+        results.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
         setEventSearchResults(results.slice(0, 20));
       } finally {
         setIsSearching(false);
       }
     };
-    
+
     const timeoutId = setTimeout(searchEvents, 300);
     return () => clearTimeout(timeoutId);
   }, [eventSearchQuery, store]);
-
 
   return (
     <div className="flex items-center justify-between">
@@ -121,7 +133,7 @@ export function OuterHeader(
             }
           }}
           onJoinMeeting={(meetingLink) => {
-            window.open(meetingLink, '_blank');
+            window.open(meetingLink, "_blank");
           }}
           onViewInCalendar={() => {
             // TODO: Implement view in calendar functionality
@@ -131,8 +143,8 @@ export function OuterHeader(
           searchResults={eventSearchResults}
           isSearching={isSearching}
         />
-        
-        <ParticipantsChip 
+
+        <ParticipantsChip
           participants={[]}
           currentUserId={"placeholder"}
           isVeryNarrow={false}

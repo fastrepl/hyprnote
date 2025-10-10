@@ -1,5 +1,5 @@
-import { cn } from "../../lib/utils";
 import { CircleMinus, CornerDownLeft, Linkedin, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
+import { cn } from "../../lib/utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
@@ -50,23 +50,25 @@ export function ParticipantsChip({
   allowMutate = true,
 }: ParticipantsChipProps) {
   const count = participants.reduce((acc, group) => acc + group.participants.length, 0);
-  
+
   const getButtonText = () => {
     if (count === 0) {
       return isVeryNarrow ? "Add" : isNarrow ? "Add people" : "Add participants";
     }
-    
+
     if (isVeryNarrow || isNarrow) {
       return count.toString();
     }
-    
+
     const firstParticipant = participants.find(g => g.participants.length > 0)?.participants[0];
-    if (!firstParticipant) return "Add participants";
-    
+    if (!firstParticipant) {
+      return "Add participants";
+    }
+
     if (firstParticipant.id === currentUserId && !firstParticipant.full_name) {
       return "You";
     }
-    
+
     return firstParticipant.full_name || "??";
   };
 
@@ -80,41 +82,41 @@ export function ParticipantsChip({
         >
           <Users2Icon size={14} className="flex-shrink-0 text-neutral-500" />
           <span className="truncate text-neutral-500">{getButtonText()}</span>
-          {count > 1 && !isVeryNarrow && !isNarrow && (
-            <span className="text-neutral-400">+ {count - 1}</span>
-          )}
+          {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg w-80" align="end">
-        {participants.length === 0 && allowMutate ? (
-          <AddParticipantInput
-            value={searchQuery}
-            onChange={onSearchChange}
-            onSubmit={onParticipantAdd}
-            searchResults={searchResults}
-            onSelectResult={onParticipantSelect}
-          />
-        ) : (
-          <div className="flex flex-col gap-3">
-            <ParticipantList
-              participants={participants}
-              currentUserId={currentUserId}
-              onParticipantClick={onParticipantClick}
-              onParticipantRemove={onParticipantRemove}
-              allowMutate={allowMutate}
+        {participants.length === 0 && allowMutate
+          ? (
+            <AddParticipantInput
+              value={searchQuery}
+              onChange={onSearchChange}
+              onSubmit={onParticipantAdd}
+              searchResults={searchResults}
+              onSelectResult={onParticipantSelect}
             />
-            {allowMutate && (
-              <AddParticipantInput
-                value={searchQuery}
-                onChange={onSearchChange}
-                onSubmit={onParticipantAdd}
-                searchResults={searchResults}
-                onSelectResult={onParticipantSelect}
+          )
+          : (
+            <div className="flex flex-col gap-3">
+              <ParticipantList
+                participants={participants}
+                currentUserId={currentUserId}
+                onParticipantClick={onParticipantClick}
+                onParticipantRemove={onParticipantRemove}
+                allowMutate={allowMutate}
               />
-            )}
-          </div>
-        )}
+              {allowMutate && (
+                <AddParticipantInput
+                  value={searchQuery}
+                  onChange={onSearchChange}
+                  onSubmit={onParticipantAdd}
+                  searchResults={searchResults}
+                  onSelectResult={onParticipantSelect}
+                />
+              )}
+            </div>
+          )}
       </PopoverContent>
     </Popover>
   );
@@ -190,7 +192,7 @@ function ParticipantItem({
           <div
             className={cn(
               "absolute inset-0 flex items-center justify-center transition-opacity",
-              allowRemove && "group-hover:opacity-0"
+              allowRemove && "group-hover:opacity-0",
             )}
           >
             <Avatar className="size-7">
@@ -215,9 +217,7 @@ function ParticipantItem({
           <span className="text-sm font-medium text-neutral-700 truncate">
             {participant.full_name || (participant.id === currentUserId ? "You" : "Unknown")}
           </span>
-          {participant.job_title && (
-            <span className="text-xs text-neutral-400 truncate">{participant.job_title}</span>
-          )}
+          {participant.job_title && <span className="text-xs text-neutral-400 truncate">{participant.job_title}</span>}
         </div>
       </div>
 

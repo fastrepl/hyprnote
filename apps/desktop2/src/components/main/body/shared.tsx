@@ -18,7 +18,8 @@ export function TabItemBase(
   },
 ) {
   return (
-    <div
+    <button
+      onClick={handleSelect}
       className={clsx([
         "flex items-center gap-2",
         "min-w-[100px] max-w-[200px] h-full px-2",
@@ -27,17 +28,17 @@ export function TabItemBase(
           : "border-transparent bg-muted/50 hover:bg-muted text-muted-foreground",
       ])}
     >
-      <button
-        onClick={() => handleSelect()}
-        className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0"
-      >
+      <div className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0">
         <span className="flex-shrink-0">
           {icon}
         </span>
         <span className="truncate">{title}</span>
-      </button>
+      </div>
       <button
-        onClick={() => handleClose()}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClose();
+        }}
         className={clsx([
           "text-xs flex-shrink-0",
           active
@@ -47,6 +48,6 @@ export function TabItemBase(
       >
         ✕
       </button>
-    </div>
+    </button>
   );
 }

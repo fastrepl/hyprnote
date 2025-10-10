@@ -4,8 +4,11 @@ import "./styles/globals.css";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { Provider, useStores } from "tinybase/ui-react";
+import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
+import { createManager } from "tinytick";
+import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
 
+import { TaskManager } from "./components/task-manager";
 import { V1 } from "./store/seed";
 import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./store/tinybase/internal";
 import {
@@ -64,15 +67,28 @@ function App() {
   );
 }
 
+function AppWithTiny() {
+  const manager = useCreateManager(() => {
+    return createManager().start();
+  });
+
+  return (
+    <TinyTickProvider manager={manager}>
+      <TinyBaseProvider>
+        <App />
+        <StoreComponentPersisted />
+        <TaskManager />
+      </TinyBaseProvider>
+    </TinyTickProvider>
+  );
+}
+
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <Provider>
-        <App />
-        <StoreComponentPersisted />
-      </Provider>
+      <AppWithTiny />
     </StrictMode>,
   );
 }

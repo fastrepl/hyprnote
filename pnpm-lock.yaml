@@ -466,6 +466,9 @@ importers:
       tinybase:
         specifier: ^6.7.0
         version: 6.7.0(postgres@3.4.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(ws@8.18.3)
+      tinytick:
+        specifier: ^1.2.8
+        version: 1.2.8
       wavesurfer.js:
         specifier: ^7.11.0
         version: 7.11.0
@@ -11233,6 +11236,9 @@ packages:
   tinyspy@4.0.4:
     resolution: {integrity: sha512-azl+t0z7pw/z958Gy9svOTuzqIk6xq+NSheJzn5MMWtWTFywIacg2wUlzKFGtt3cthx0r2SxMK0yzJOR0IES7Q==}
     engines: {node: '>=14.0.0'}
+
+  tinytick@1.2.8:
+    resolution: {integrity: sha512-tT7/2EIfUcQN4yjREOx7xwL85pooPYg9vahoPcY9/sGdfurR/cp/bgfxlAAKQnIoXjcD8peYhqa6NS3em2PioA==}
 
   tippy.js@6.3.7:
     resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}
@@ -24332,6 +24338,8 @@ snapshots:
   tinyrainbow@2.0.0: {}
 
   tinyspy@4.0.4: {}
+
+  tinytick@1.2.8: {}
 
   tippy.js@6.3.7:
     dependencies:

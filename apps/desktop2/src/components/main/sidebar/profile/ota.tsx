@@ -4,7 +4,6 @@ import { createStore } from "@xstate/store";
 import { useSelector } from "@xstate/store/react";
 import { clsx } from "clsx";
 import { AlertCircle, CheckCircle, Download, Loader2, RefreshCw, X } from "lucide-react";
-import { useEffect } from "react";
 
 import { MenuItem } from "./shared";
 
@@ -112,30 +111,32 @@ const updateStore = createStore({
   },
 });
 
+export const checkForUpdate = async () => {
+  updateStore.trigger.setState({ state: "checking" });
+
+  try {
+    const update = await check();
+    updateStore.trigger.checkSuccess({ update });
+
+    if (!update) {
+      setTimeout(() => {
+        const currentState = updateStore.getSnapshot().context.state;
+        if (currentState === "noUpdate") {
+          updateStore.trigger.reset();
+        }
+      }, 2000);
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Failed to check for updates";
+    updateStore.trigger.checkError({ error: errorMessage });
+  }
+};
+
 export function UpdateChecker() {
   const snapshot = useSelector(updateStore, (state) => state.context);
   const { state, update, error, downloadProgress } = snapshot;
 
-  const handleCheckForUpdate = async () => {
-    updateStore.trigger.setState({ state: "checking" });
-
-    try {
-      const update = await check();
-      updateStore.trigger.checkSuccess({ update });
-
-      if (!update) {
-        setTimeout(() => {
-          const currentState = updateStore.getSnapshot().context.state;
-          if (currentState === "noUpdate") {
-            updateStore.trigger.reset();
-          }
-        }, 2000);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to check for updates";
-      updateStore.trigger.checkError({ error: errorMessage });
-    }
-  };
+  const handleCheckForUpdate = () => checkForUpdate();
 
   const handleStartDownload = async () => {
     if (!update) {
@@ -197,16 +198,6 @@ export function UpdateChecker() {
   const handleRetry = () => {
     handleCheckForUpdate();
   };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (updateStore.getSnapshot().context.state === "idle") {
-        handleCheckForUpdate();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   if (state === "checking") {
     return (

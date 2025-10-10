@@ -49,9 +49,9 @@ export function ProfileSection() {
   }, [openNew, closeMenu]);
 
   const handleClickContacts = useCallback(() => {
-    console.log("Contacts");
+    openNew({ type: "contacts", active: true });
     closeMenu();
-  }, [closeMenu]);
+  }, [openNew, closeMenu]);
 
   const handleClickDailyNote = useCallback(() => {
     console.log("Daily note");

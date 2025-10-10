@@ -126,12 +126,15 @@ export const tabSchema = z.discriminatedUnion("type", [
     id: z.string(),
   }),
   baseTabSchema.extend({
-    type: z.literal("calendars" satisfies typeof TABLES[number]),
-    month: z.coerce.date(),
-  }),
-  baseTabSchema.extend({
     type: z.literal("folders" satisfies typeof TABLES[number]),
     id: z.string().nullable(),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("contacts"),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("calendars"),
+    month: z.coerce.date(),
   }),
 ]);
 
@@ -148,6 +151,7 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "organizations":
       return tab.id;
     case "calendars":
+    case "contacts":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -169,6 +173,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `organizations-${tab.id}`;
     case "calendars":
       return `calendars-${tab.month.getFullYear()}-${tab.month.getMonth()}`;
+    case "contacts":
+      return `contacts`;
     case "folders":
       return `folders-${tab.id ?? "all"}`;
   }

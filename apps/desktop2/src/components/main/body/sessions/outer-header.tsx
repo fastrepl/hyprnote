@@ -15,7 +15,6 @@ export function OuterHeader(
   const [eventSearchResults, setEventSearchResults] = useState<Event[]>([]);
   const [participantSearchQuery, setParticipantSearchQuery] = useState("");
   const [participantSearchResults, setParticipantSearchResults] = useState<Participant[]>([]);
-  const [isEventSearching, setIsEventSearching] = useState(false);
 
   const eventRow = persisted.UI.useRow(
     "events",
@@ -41,61 +40,55 @@ export function OuterHeader(
     }
 
     const searchEvents = async () => {
-      setIsEventSearching(true);
+      const results: Event[] = [];
+      const now = new Date();
 
-      try {
-        const results: Event[] = [];
-        const now = new Date();
+      store.forEachRow("events", (rowId, forEachCell) => {
+        let title: string | undefined;
+        let started_at: string | undefined;
+        let ended_at: string | undefined;
+        let calendar_id: string | undefined;
 
-        store.forEachRow("events", (rowId, forEachCell) => {
-          let title: string | undefined;
-          let started_at: string | undefined;
-          let ended_at: string | undefined;
-          let calendar_id: string | undefined;
-
-          forEachCell((cellId, cell) => {
-            if (cellId === "title") {
-              title = cell as string;
-            } else if (cellId === "started_at") {
-              started_at = cell as string;
-            } else if (cellId === "ended_at") {
-              ended_at = cell as string;
-            } else if (cellId === "calendar_id") {
-              calendar_id = cell as string;
-            }
-          });
-
-          if (!started_at || !ended_at) {
-            return;
+        forEachCell((cellId, cell) => {
+          if (cellId === "title") {
+            title = cell as string;
+          } else if (cellId === "started_at") {
+            started_at = cell as string;
+          } else if (cellId === "ended_at") {
+            ended_at = cell as string;
+          } else if (cellId === "calendar_id") {
+            calendar_id = cell as string;
           }
-
-          const eventEndDate = new Date(ended_at);
-
-          if (eventEndDate >= now) {
-            return;
-          }
-
-          if (
-            eventSearchQuery && title
-            && !title.toLowerCase().includes(eventSearchQuery.toLowerCase())
-          ) {
-            return;
-          }
-
-          results.push({
-            id: rowId,
-            name: title ?? "",
-            start_date: started_at,
-            end_date: ended_at,
-            calendar_id: calendar_id,
-          });
         });
 
-        results.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
-        setEventSearchResults(results.slice(0, 20));
-      } finally {
-        setIsEventSearching(false);
-      }
+        if (!started_at || !ended_at) {
+          return;
+        }
+
+        const eventEndDate = new Date(ended_at);
+
+        if (eventEndDate >= now) {
+          return;
+        }
+
+        if (
+          eventSearchQuery && title
+          && !title.toLowerCase().includes(eventSearchQuery.toLowerCase())
+        ) {
+          return;
+        }
+
+        results.push({
+          id: rowId,
+          name: title ?? "",
+          start_date: started_at,
+          end_date: ended_at,
+          calendar_id: calendar_id,
+        });
+      });
+
+      results.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+      setEventSearchResults(results.slice(0, 20));
     };
 
     const timeoutId = setTimeout(searchEvents, 300);
@@ -143,7 +136,6 @@ export function OuterHeader(
           searchQuery={eventSearchQuery}
           onSearchChange={setEventSearchQuery}
           searchResults={eventSearchResults}
-          isSearching={isEventSearching}
         />
 
         <ParticipantsChip

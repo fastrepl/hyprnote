@@ -62,7 +62,6 @@ export interface EventChipProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
   searchResults?: Event[];
-  isSearching?: boolean;
   formatRelativeDate?: (date: string) => string;
 }
 
@@ -79,7 +78,6 @@ export function EventChip({
   searchQuery = "",
   onSearchChange,
   searchResults = [],
-  isSearching = false,
   formatRelativeDate = (d) => formatDate(new Date(d), "MMM d"),
 }: EventChipProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -162,7 +160,6 @@ export function EventChip({
                   onSearchChange={onSearchChange}
                   searchResults={searchResults}
                   onEventSelect={handleEventSelect}
-                  isSearching={isSearching}
                 />
               </TabsContent>
 
@@ -259,13 +256,11 @@ function EventSearch({
   onSearchChange,
   searchResults,
   onEventSelect,
-  isSearching,
 }: {
   searchQuery: string;
   onSearchChange?: (query: string) => void;
   searchResults: Event[];
   onEventSelect?: (eventId: string) => void;
-  isSearching?: boolean;
 }) {
   return (
     <div>
@@ -280,13 +275,7 @@ function EventSearch({
         />
       </div>
 
-      {isSearching
-        ? (
-          <div className="p-4 text-center text-sm text-neutral-500">
-            Loading events...
-          </div>
-        )
-        : searchResults.length === 0
+      {searchResults.length === 0
         ? (
           <div className="p-4 text-center text-sm text-neutral-500">
             {searchQuery ? "No matching events found." : "No past events available."}

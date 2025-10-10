@@ -1,5 +1,5 @@
 import { StickyNoteIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
 import * as persisted from "../../../../store/tinybase/persisted";
@@ -7,6 +7,7 @@ import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
 import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
+import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
@@ -26,6 +27,7 @@ export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
 export function TabContentNote({ tab }: { tab: Tab }) {
   const sessionId = rowIdfromTab(tab);
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
   const editorKey = useMemo(
     () => `session-${sessionId}-raw`,
@@ -51,7 +53,12 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   return (
     <div className="flex flex-col px-4 py-1 rounded-lg border">
       <div className="py-1">
-        <OuterHeader sessionRow={sessionRow} sessionId={sessionId} />
+        <OuterHeader
+          sessionRow={sessionRow}
+          sessionId={sessionId}
+          onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
+          isAudioPlayerVisible={showAudioPlayer}
+        />
       </div>
 
       <TitleInput
@@ -78,6 +85,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
           },
         }}
       />
+      {showAudioPlayer && <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />}
     </div>
   );
 }

@@ -51,16 +51,10 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-44px)] w-full">
-      <div className="flex flex-col px-4 py-1 flex-1 overflow-auto">
-        <div className="py-1">
-          <OuterHeader
-            sessionRow={sessionRow}
-            sessionId={sessionId}
-            onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
-            isAudioPlayerVisible={showAudioPlayer}
-          />
-        </div>
+    <div className="flex flex-col px-4 py-1 rounded-lg border">
+      <div className="py-1">
+        <OuterHeader sessionRow={sessionRow} sessionId={sessionId} />
+      </div>
 
         <TitleInput
           editable={true}

@@ -81,19 +81,19 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
 
   const HEADER_HEIGHT = 32;
   const EVENT_HEIGHT = 20;
-  const CELL_HEIGHT = 128; 
+  const CELL_HEIGHT = 128;
   const availableHeight = CELL_HEIGHT - HEADER_HEIGHT;
   const maxPossibleEvents = Math.floor(availableHeight / EVENT_HEIGHT);
-  
+
   const totalItems = eventIds.length + sessionIds.length;
-  const visibleCount = totalItems > maxPossibleEvents 
-    ? maxPossibleEvents - 1  
+  const visibleCount = totalItems > maxPossibleEvents
+    ? maxPossibleEvents - 1
     : totalItems;
   const hiddenCount = totalItems - visibleCount;
 
   const allItems = [
-    ...eventIds.map(id => ({ type: 'event' as const, id })),
-    ...sessionIds.map(id => ({ type: 'session' as const, id })),
+    ...eventIds.map(id => ({ type: "event" as const, id })),
+    ...sessionIds.map(id => ({ type: "session" as const, id })),
   ];
 
   const visibleItems = allItems.slice(0, visibleCount);
@@ -131,18 +131,18 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
 
       <div className="flex-1 overflow-hidden flex flex-col px-1">
         <div className="space-y-1">
-          {visibleItems.map((item) => 
-            item.type === 'event' 
+          {visibleItems.map((item) =>
+            item.type === "event"
               ? <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
               : <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
           )}
-          
+
           {hiddenCount > 0 && (
-            <TabContentCalendarDayMore 
-              day={day} 
-              eventIds={eventIds} 
-              sessionIds={sessionIds} 
-              hiddenCount={hiddenCount} 
+            <TabContentCalendarDayMore
+              day={day}
+              eventIds={eventIds}
+              sessionIds={sessionIds}
+              hiddenCount={hiddenCount}
             />
           )}
         </div>
@@ -155,7 +155,7 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
   const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
   const [open, setOpen] = useState(false);
   const { openNew } = useTabs();
-  
+
   const sessionIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.sessionsByEvent,
     eventId,
@@ -163,10 +163,10 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
   );
   const linkedSessionId = sessionIds[0]; // take the first linked session if any
   const linkedSession = persisted.UI.useRow("sessions", linkedSessionId || "dummy", persisted.STORE_ID);
-  
+
   const handleClick = () => {
     setOpen(false);
-    
+
     if (linkedSessionId) {
       openNew({ type: "sessions", id: linkedSessionId, active: false, state: { editor: "raw" } });
     } else {
@@ -175,10 +175,12 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
   };
 
   const formatEventTime = () => {
-    if (!event.started_at || !event.ended_at) return "";
+    if (!event.started_at || !event.ended_at) {
+      return "";
+    }
     const start = new Date(event.started_at);
     const end = new Date(event.ended_at);
-    
+
     const formatTime = (date: Date) => {
       const hours = date.getHours();
       const minutes = date.getMinutes();
@@ -186,12 +188,12 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
       const displayHours = hours % 12 || 12;
       return `${displayHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
     };
-    
+
     const formatDate = (date: Date) => {
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       return `${months[date.getMonth()]} ${date.getDate()}`;
     };
-    
+
     const isSameDay = start.toDateString() === end.toDateString();
     if (isSameDay) {
       return `${formatDate(start)}, ${formatTime(start)} - ${formatTime(end)}`;
@@ -213,11 +215,11 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
         <div className="font-semibold text-lg text-neutral-800 mb-2">
           {event.title || "Untitled Event"}
         </div>
-        
+
         <p className="text-sm text-neutral-600 mb-4">
           {formatEventTime()}
         </p>
-        
+
         {linkedSessionId
           ? (
             <div
@@ -250,9 +252,9 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
   const [open, setOpen] = useState(false);
   const { openNew } = useTabs();
-  
+
   const event = persisted.UI.useRow("events", session.event_id || "dummy", persisted.STORE_ID);
-  
+
   const handleClick = () => {
     setOpen(false);
     openNew({ type: "sessions", id: sessionId, active: false, state: { editor: "raw" } });
@@ -265,8 +267,10 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
     const minutes = created.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
     const displayHours = hours % 12 || 12;
-    
-    return `Created: ${months[created.getMonth()]} ${created.getDate()}, ${displayHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+
+    return `Created: ${months[created.getMonth()]} ${created.getDate()}, ${displayHours}:${
+      minutes.toString().padStart(2, "0")
+    } ${ampm}`;
   };
 
   return (
@@ -283,11 +287,11 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
         <h3 className="font-semibold text-lg mb-2">
           {event && session.event_id ? event.title : session.title || "Untitled"}
         </h3>
-        
+
         <p className="text-sm mb-4 text-neutral-600">
           {formatSessionTime()}
         </p>
-        
+
         <div
           className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
           onClick={handleClick}
@@ -302,15 +306,15 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   );
 }
 
-function TabContentCalendarDayMore({ 
-  day, 
-  eventIds, 
-  sessionIds, 
-  hiddenCount 
-}: { 
-  day: string; 
-  eventIds: string[]; 
-  sessionIds: string[]; 
+function TabContentCalendarDayMore({
+  day,
+  eventIds,
+  sessionIds,
+  hiddenCount,
+}: {
+  day: string;
+  eventIds: string[];
+  sessionIds: string[];
   hiddenCount: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -322,7 +326,7 @@ function TabContentCalendarDayMore({
           +{hiddenCount} more
         </div>
       </PopoverTrigger>
-      <PopoverContent 
+      <PopoverContent
         className="w-80 p-4 max-h-96 space-y-2 overflow-y-auto bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0"
         align="start"
       >
@@ -331,12 +335,8 @@ function TabContentCalendarDayMore({
         </div>
 
         <div className="space-y-1">
-          {eventIds.map((eventId) => (
-            <TabContentCalendarDayEvents key={eventId} eventId={eventId} />
-          ))}
-          {sessionIds.map((sessionId) => (
-            <TabContentCalendarDaySessions key={sessionId} sessionId={sessionId} />
-          ))}
+          {eventIds.map((eventId) => <TabContentCalendarDayEvents key={eventId} eventId={eventId} />)}
+          {sessionIds.map((sessionId) => <TabContentCalendarDaySessions key={sessionId} sessionId={sessionId} />)}
         </div>
       </PopoverContent>
     </Popover>

@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+## Conditional Tailwind ClassNames
+
+- Use `cn` (import with `import { cn } from "@hypr/ui/lib/utils"`). It is similar to `clsx`. Always pass an array.

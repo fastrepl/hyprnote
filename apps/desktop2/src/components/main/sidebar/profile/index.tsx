@@ -1,9 +1,9 @@
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FileText, FolderOpen, Settings, Users } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { useHotkeys } from "react-hotkeys-hook";
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Trial } from "./banner";
 import { NotificationsItem } from "./notification";
@@ -11,7 +11,6 @@ import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
 export function ProfileSection() {
-  const profileRef = useRef<HTMLDivElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const { openNew } = useTabs();
 
@@ -19,19 +18,7 @@ export function ProfileSection() {
     setIsExpanded(false);
   }, []);
 
-  useHotkeys("esc", closeMenu, [closeMenu]);
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        closeMenu();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [closeMenu]);
+  const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
 
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });

@@ -52,6 +52,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_destroy,
             commands::window_navigate,
             commands::window_emit_navigate,
+            commands::window_is_exists,
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
         ])

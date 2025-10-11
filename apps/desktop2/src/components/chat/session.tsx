@@ -1,12 +1,13 @@
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import * as persisted from "../../store/tinybase/persisted";
 import { CustomChatTransport } from "../../transport";
 import { id } from "../../utils";
 
 interface ChatSessionProps {
+  sessionId: string;
   chatGroupId?: string;
   onFinish: (message: UIMessage) => void;
   children: (props: {
@@ -15,16 +16,13 @@ interface ChatSessionProps {
     status: "submitted" | "streaming" | "ready" | "error";
     error?: Error;
   }) => ReactNode;
-  queuedMessage?: UIMessage | null;
-  onConsumeQueuedMessage?: () => void;
 }
 
 export function ChatSession({
+  sessionId,
   chatGroupId,
   onFinish,
   children,
-  queuedMessage,
-  onConsumeQueuedMessage,
 }: ChatSessionProps) {
   const [transport] = useState(() => new CustomChatTransport());
   const store = persisted.UI.useStore(persisted.STORE_ID);
@@ -44,9 +42,6 @@ export function ChatSession({
     for (const messageId of messageIds) {
       const row = store.getRow("chat_messages", messageId);
       if (row) {
-        if (queuedMessage && queuedMessage.id === messageId) {
-          continue;
-        }
         loaded.push({
           id: messageId as string,
           role: row.role as "user" | "assistant",
@@ -56,7 +51,7 @@ export function ChatSession({
       }
     }
     return loaded;
-  }, [store, messageIds, chatGroupId, queuedMessage]);
+  }, [store, messageIds, chatGroupId]);
 
   const handleFinish = useCallback(
     ({ message }: { message: UIMessage }) => {
@@ -68,22 +63,13 @@ export function ChatSession({
   );
 
   const { messages, sendMessage, status, error } = useChat({
-    id: chatGroupId ?? "new",
+    id: sessionId,
     messages: initialMessages,
     generateId: () => id(),
     transport,
     onError: console.error,
     onFinish: handleFinish,
   });
-
-  useEffect(() => {
-    if (!queuedMessage || !chatGroupId || status !== "ready") {
-      return;
-    }
-
-    sendMessage(queuedMessage);
-    onConsumeQueuedMessage?.();
-  }, [queuedMessage, chatGroupId, status, sendMessage, onConsumeQueuedMessage]);
 
   return <>{children({ messages, sendMessage, status, error })}</>;
 }

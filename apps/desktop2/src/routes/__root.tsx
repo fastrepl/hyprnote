@@ -15,14 +15,13 @@ function Component() {
     <AuthProvider>
       <Outlet />
       <Suspense>
-        <TanStackRouterDevtools position="top-right" initialIsOpen={false} />
         <TinybaseInspector />
       </Suspense>
     </AuthProvider>
   );
 }
 
-const TanStackRouterDevtools = process.env.NODE_ENV === "production"
+export const TanStackRouterDevtools = process.env.NODE_ENV === "production"
   ? () => null
   : lazy(() =>
     import("@tanstack/react-router-devtools").then((res) => ({

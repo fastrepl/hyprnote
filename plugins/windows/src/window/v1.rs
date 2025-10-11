@@ -133,7 +133,7 @@ impl WindowImpl for AppWindow {
             Self::Chat(id) => {
                 let window = self
                     .window_builder(app, format!("/app/chat/{}", id))
-                    .resizable(false)
+                    .resizable(true)
                     .min_inner_size(440.0, 500.0)
                     .build()?;
 

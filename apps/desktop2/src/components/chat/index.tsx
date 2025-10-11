@@ -1,196 +1,89 @@
-import type { UIMessage } from "ai";
 import { motion } from "motion/react";
 import { Resizable } from "re-resizable";
-import { useCallback, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
-import { id } from "../../utils";
 
-import type { ChatMessage, ChatMessageStorage } from "../../store/tinybase/persisted";
-import * as persisted from "../../store/tinybase/persisted";
-
-import { ChatBody } from "./body";
-import { ChatHeader } from "./header";
-import { ChatMessageInput } from "./input";
-import { ChatSession } from "./session";
 import { ChatTrigger } from "./trigger";
+import { ChatView } from "./view";
 
-export function Chat() {
+export function ChatFloatingButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | undefined>(undefined);
-  const [sessionKey, setSessionKey] = useState(() => id());
-  const [isResizing, setIsResizing] = useState(false);
-  const chatRef = useAutoCloser(() => setIsOpen(false), { esc: isOpen, outside: false });
-  const constraintsRef = useRef<HTMLDivElement>(null);
 
+  useAutoCloser(() => setIsOpen(false), { esc: isOpen, outside: false });
   useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
 
-  const { user_id } = persisted.useConfig();
+  if (!isOpen) {
+    return <ChatTrigger onClick={() => setIsOpen(true)} />;
+  }
 
-  const createChatGroup = persisted.UI.useSetRowCallback(
-    "chat_groups",
-    (p: { groupId: string; title: string }) => p.groupId,
-    (p: { groupId: string; title: string }) => ({
-      user_id,
-      created_at: new Date().toISOString(),
-      title: p.title,
-    }),
-    [user_id],
-    persisted.STORE_ID,
+  return (
+    <ResizableAndDraggableContainer>
+      <ChatView onClose={() => setIsOpen(false)} />
+    </ResizableAndDraggableContainer>
   );
+}
 
-  const createChatMessage = persisted.UI.useSetRowCallback(
-    "chat_messages",
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
-    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
-      user_id,
-      chat_group_id: p.chat_group_id,
-      content: p.content,
-      created_at: new Date().toISOString(),
-      role: p.role,
-      metadata: JSON.stringify(p.metadata),
-      parts: JSON.stringify(p.parts),
-    } satisfies ChatMessageStorage),
-    [user_id],
-    persisted.STORE_ID,
-  );
-
-  const handleFinish = useCallback(
-    (message: UIMessage) => {
-      if (!currentChatGroupId) {
-        return;
-      }
-
-      const content = message.parts
-        .filter((p) => p.type === "text")
-        .map((p) => (p.type === "text" ? p.text : ""))
-        .join("");
-
-      createChatMessage({
-        id: message.id,
-        chat_group_id: currentChatGroupId,
-        content,
-        role: "assistant",
-        parts: message.parts,
-        metadata: message.metadata,
-      });
-    },
-    [currentChatGroupId, createChatMessage],
-  );
-
-  const handleSendMessage = useCallback(
-    (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
-      let groupId = currentChatGroupId;
-
-      const messageId = id();
-      const uiMessage: UIMessage = { id: messageId, role: "user", parts, metadata: {} };
-
-      if (!groupId) {
-        groupId = id();
-        createChatGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
-        setCurrentChatGroupId(groupId);
-      }
-
-      createChatMessage({ id: messageId, chat_group_id: groupId, content, role: "user", parts, metadata: {} });
-      sendMessage(uiMessage);
-    },
-    [currentChatGroupId, createChatGroup, createChatMessage],
-  );
-
-  const handleNewChat = useCallback(() => {
-    setCurrentChatGroupId(undefined);
-    setSessionKey(id());
-  }, []);
-
+function ResizableAndDraggableContainer({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [isResizing, setIsResizing] = useState(false);
+  const constraintsRef = useRef<HTMLDivElement>(null);
   return (
     <>
       <div ref={constraintsRef} className="fixed inset-0 pointer-events-none" />
-      {isOpen
-        ? (
-          <motion.div
-            drag={!isResizing}
-            dragMomentum
-            dragElastic={0}
-            dragConstraints={constraintsRef}
-            dragTransition={{ power: 0.2, timeConstant: 200 }}
-            initial={{ x: window.innerWidth - 440 - 16, y: window.innerHeight - 600 - 16 }}
-            className="fixed z-40 pointer-events-auto"
-          >
-            <Resizable
-              defaultSize={{ width: 440, height: 600 }}
-              minWidth={300}
-              minHeight={400}
-              maxWidth={window.innerWidth - 32}
-              maxHeight={window.innerHeight - 32}
-              bounds="window"
-              onResizeStart={() => setIsResizing(true)}
-              onResizeStop={() => setIsResizing(false)}
-              className={cn(
-                "bg-white rounded-2xl shadow-2xl",
-                "border border-neutral-200",
-                "flex flex-col",
-              )}
-              handleClasses={{
-                top: "hover:bg-blue-500/20 transition-colors",
-                right: "hover:bg-blue-500/20 transition-colors",
-                bottom: "hover:bg-blue-500/20 transition-colors",
-                left: "hover:bg-blue-500/20 transition-colors",
-                topRight: "hover:bg-blue-500/20 transition-colors",
-                bottomRight: "hover:bg-blue-500/20 transition-colors",
-                bottomLeft: "hover:bg-blue-500/20 transition-colors",
-                topLeft: "hover:bg-blue-500/20 transition-colors",
-              }}
-              handleStyles={{
-                top: { height: "4px", top: 0 },
-                right: { width: "4px", right: 0 },
-                bottom: { height: "4px", bottom: 0 },
-                left: { width: "4px", left: 0 },
-                topRight: { width: "12px", height: "12px", top: 0, right: 0 },
-                bottomRight: { width: "12px", height: "12px", bottom: 0, right: 0 },
-                bottomLeft: { width: "12px", height: "12px", bottom: 0, left: 0 },
-                topLeft: { width: "12px", height: "12px", top: 0, left: 0 },
-              }}
-            >
-              <div ref={chatRef} className="flex flex-col h-full">
-                <div className="cursor-move select-none">
-                  <ChatHeader
-                    currentChatGroupId={currentChatGroupId}
-                    onNewChat={handleNewChat}
-                    onSelectChat={(id) => {
-                      setCurrentChatGroupId(id);
-                      setSessionKey(id);
-                    }}
-                    handleClose={() => setIsOpen(false)}
-                  />
-                </div>
-                <ChatSession
-                  key={sessionKey}
-                  sessionId={sessionKey}
-                  chatGroupId={currentChatGroupId}
-                  onFinish={handleFinish}
-                >
-                  {({ messages, sendMessage, status, error }) => (
-                    <>
-                      {error && (
-                        <div className="px-4 py-2 bg-red-50 border-b border-red-200">
-                          <p className="text-xs text-red-600">{error.message}</p>
-                        </div>
-                      )}
-                      <ChatBody messages={messages} />
-                      <ChatMessageInput
-                        onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
-                        disabled={status !== "ready"}
-                      />
-                    </>
-                  )}
-                </ChatSession>
-              </div>
-            </Resizable>
-          </motion.div>
-        )
-        : <ChatTrigger onClick={() => setIsOpen(true)} />}
+      <motion.div
+        drag={!isResizing}
+        dragMomentum
+        dragElastic={0}
+        dragConstraints={constraintsRef}
+        dragTransition={{ power: 0.2, timeConstant: 200 }}
+        initial={{ x: window.innerWidth - 440 - 16, y: window.innerHeight - 600 - 16 }}
+        className="fixed z-40 pointer-events-auto"
+      >
+        <Resizable
+          defaultSize={{ width: 440, height: 600 }}
+          minWidth={300}
+          minHeight={400}
+          maxWidth={window.innerWidth - 32}
+          maxHeight={window.innerHeight - 32}
+          bounds="window"
+          onResizeStart={() => setIsResizing(true)}
+          onResizeStop={() => setIsResizing(false)}
+          className={cn(
+            "bg-white rounded-2xl shadow-2xl",
+            "border border-neutral-200",
+            "flex flex-col",
+          )}
+          handleClasses={{
+            top: "hover:bg-blue-500/20 transition-colors",
+            right: "hover:bg-blue-500/20 transition-colors",
+            bottom: "hover:bg-blue-500/20 transition-colors",
+            left: "hover:bg-blue-500/20 transition-colors",
+            topRight: "hover:bg-blue-500/20 transition-colors",
+            bottomRight: "hover:bg-blue-500/20 transition-colors",
+            bottomLeft: "hover:bg-blue-500/20 transition-colors",
+            topLeft: "hover:bg-blue-500/20 transition-colors",
+          }}
+          handleStyles={{
+            top: { height: "4px", top: 0 },
+            right: { width: "4px", right: 0 },
+            bottom: { height: "4px", bottom: 0 },
+            left: { width: "4px", left: 0 },
+            topRight: { width: "12px", height: "12px", top: 0, right: 0 },
+            bottomRight: { width: "12px", height: "12px", bottom: 0, right: 0 },
+            bottomLeft: { width: "12px", height: "12px", bottom: 0, left: 0 },
+            topLeft: { width: "12px", height: "12px", top: 0, left: 0 },
+          }}
+        >
+          {children}
+        </Resizable>
+      </motion.div>
     </>
   );
 }

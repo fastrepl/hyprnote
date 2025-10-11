@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { Chat } from "../../../components/chat";
+import { ChatFloatingButton } from "../../../components/chat";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
 
@@ -26,7 +26,7 @@ function Component() {
       <ResizablePanel>
         <Body />
       </ResizablePanel>
-      <Chat />
+      <ChatFloatingButton />
     </ResizablePanelGroup>
   );
 }

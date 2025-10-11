@@ -45,8 +45,8 @@ export function ChatSession({
         loaded.push({
           id: messageId as string,
           role: row.role as "user" | "assistant",
-          parts: JSON.parse(row.parts as string),
-          metadata: JSON.parse(row.metadata as string),
+          parts: JSON.parse(row.parts ?? "[]"),
+          metadata: JSON.parse(row.metadata ?? "{}"),
         });
       }
     }

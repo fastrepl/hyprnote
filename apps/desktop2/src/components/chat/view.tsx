@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ChatMessage, ChatMessageStorage } from "../../store/tinybase/persisted";
 import * as persisted from "../../store/tinybase/persisted";
@@ -25,6 +25,11 @@ export function ChatView({
   isWindow?: boolean;
 }) {
   const [sessionKey, setSessionKey] = useState(() => chatGroupId || id());
+  const chatGroupIdRef = useRef<string | undefined>(chatGroupId);
+
+  useEffect(() => {
+    chatGroupIdRef.current = chatGroupId;
+  }, [chatGroupId]);
 
   const { user_id } = persisted.useConfig();
 
@@ -59,7 +64,8 @@ export function ChatView({
   const handleFinish = useCallback(
     (message: UIMessage) => {
       console.log("handleFinish", message);
-      if (!chatGroupId) {
+      const groupId = chatGroupIdRef.current;
+      if (!groupId) {
         return;
       }
       console.log("handleFinish", message);
@@ -71,25 +77,26 @@ export function ChatView({
 
       createChatMessage({
         id: message.id,
-        chat_group_id: chatGroupId,
+        chat_group_id: groupId,
         content,
         role: "assistant",
         parts: message.parts,
         metadata: message.metadata,
       });
     },
-    [chatGroupId, createChatMessage],
+    [createChatMessage],
   );
 
   const handleSendMessage = useCallback(
     (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
-      let groupId = chatGroupId;
+      let groupId = chatGroupIdRef.current;
 
       const messageId = id();
       const uiMessage: UIMessage = { id: messageId, role: "user", parts, metadata: {} };
 
       if (!groupId) {
         groupId = id();
+        chatGroupIdRef.current = groupId;
         createChatGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
         setChatGroupId(groupId);
         onChatGroupChange?.(groupId);
@@ -98,10 +105,11 @@ export function ChatView({
       createChatMessage({ id: messageId, chat_group_id: groupId, content, role: "user", parts, metadata: {} });
       sendMessage(uiMessage);
     },
-    [chatGroupId, createChatGroup, createChatMessage, onChatGroupChange],
+    [createChatGroup, createChatMessage, onChatGroupChange],
   );
 
   const handleNewChat = useCallback(() => {
+    chatGroupIdRef.current = undefined;
     setChatGroupId(undefined);
     setSessionKey(id());
     onChatGroupChange?.(undefined);
@@ -109,6 +117,7 @@ export function ChatView({
 
   const handleSelectChat = useCallback(
     (chatGroupId: string) => {
+      chatGroupIdRef.current = chatGroupId;
       setChatGroupId(chatGroupId);
       setSessionKey(chatGroupId);
       onChatGroupChange?.(chatGroupId);

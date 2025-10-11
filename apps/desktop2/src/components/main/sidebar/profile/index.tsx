@@ -67,7 +67,7 @@ export function ProfileSection() {
   const handleClickDailyNote = useCallback(() => {
     openNew({ type: "daily", date: new Date(), active: true });
     closeMenu();
-  }, [closeMenu]);
+  }, [openNew, closeMenu]);
 
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },

@@ -542,5 +542,5 @@ export const useConfig = () => {
     ai_specificity: "3",
   } satisfies ToStorageType<typeof configSchema>;
 
-  return { id: config_id, config: defaultConfig };
+  return { id: config_id, user_id, config: defaultConfig };
 };

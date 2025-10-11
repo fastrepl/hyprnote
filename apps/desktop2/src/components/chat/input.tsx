@@ -1,33 +1,35 @@
 import { SendIcon } from "lucide-react";
+import { useState } from "react";
 
-import * as persisted from "../../store/tinybase/persisted";
-import { id } from "../../utils";
+export function ChatMessageInput({ onSendMessage }: { onSendMessage: (content: string, parts: any[]) => void }) {
+  const [inputValue, setInputValue] = useState("");
 
-export function ChatMessageInput({ handleAddMessage }: { handleAddMessage: (message: persisted.ChatMessage) => void }) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) {
+      return;
+    }
+
+    onSendMessage(inputValue, [{ type: "text", text: inputValue }]);
+    setInputValue("");
+  };
+
   return (
     <form
       className="p-4 border-t border-neutral-200 flex items-center gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleAddMessage({
-          user_id: id(),
-          chat_group_id: id(),
-          content: "Hello, world!",
-          created_at: new Date().toISOString(),
-          role: "user",
-          parts: [{ type: "text", text: "Hello, world!" }],
-          metadata: {},
-        });
-      }}
+      onSubmit={handleSubmit}
     >
       <input
         type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         placeholder="Ask & search about anything, or be creative!"
         className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
         type="submit"
-        className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+        disabled={!inputValue.trim()}
+        className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <SendIcon className="size-4" />
       </button>

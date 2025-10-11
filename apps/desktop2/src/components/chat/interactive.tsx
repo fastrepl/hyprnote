@@ -1,12 +1,11 @@
 import { motion, type PanInfo } from "motion/react";
 import { Resizable } from "re-resizable";
-import type { ReactNode } from "react";
-import { useCallback, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 
-const EDGE_THRESHOLD = 30;
-const PUSH_DURATION = 600;
+const EDGE_THRESHOLD = 10;
+const PUSH_DURATION = 1000;
 const MOVEMENT_TOLERANCE = 2;
 
 export function InteractiveContainer(
@@ -25,9 +24,21 @@ export function InteractiveContainer(
   const [isResizing, setIsResizing] = useState(false);
   const [isPushingEdge, setIsPushingEdge] = useState(false);
 
+  const defaultPosition = {
+    x: window.innerWidth - width - 16,
+    y: window.innerHeight - height - 16,
+  };
+
   const constraintsRef = useRef<HTMLDivElement>(null);
   const pushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastPositionRef = useRef({ x: 0, y: 0 });
+  const sizeRef = useRef({ width, height });
+  const positionRef = useRef(defaultPosition);
+  const dragOriginRef = useRef(defaultPosition);
+  const lastPositionRef = useRef(defaultPosition);
+
+  useEffect(() => {
+    sizeRef.current = { width, height };
+  }, [width, height]);
 
   const clearPushTimeout = useCallback(() => {
     if (pushTimeoutRef.current) {
@@ -37,21 +48,34 @@ export function InteractiveContainer(
     setIsPushingEdge(false);
   }, []);
 
+  const handleDragStart = useCallback(() => {
+    dragOriginRef.current = positionRef.current;
+    lastPositionRef.current = positionRef.current;
+    clearPushTimeout();
+  }, [clearPushTimeout]);
+
   const handleDrag = useCallback(
     (_event: unknown, info: PanInfo) => {
-      const { x, y } = info.point;
+      const currentPosition = {
+        x: dragOriginRef.current.x + info.offset.x,
+        y: dragOriginRef.current.y + info.offset.y,
+      };
+      positionRef.current = currentPosition;
+
+      const { width: containerWidth, height: containerHeight } = sizeRef.current;
+
       const { innerWidth, innerHeight } = window;
 
-      const atRightEdge = x + width > innerWidth - EDGE_THRESHOLD;
-      const atLeftEdge = x < EDGE_THRESHOLD;
-      const atTopEdge = y < EDGE_THRESHOLD;
-      const atBottomEdge = y + height > innerHeight - EDGE_THRESHOLD;
+      const atRightEdge = currentPosition.x + containerWidth > innerWidth - EDGE_THRESHOLD;
+      const atLeftEdge = currentPosition.x < EDGE_THRESHOLD;
+      const atTopEdge = currentPosition.y < EDGE_THRESHOLD;
+      const atBottomEdge = currentPosition.y + containerHeight > innerHeight - EDGE_THRESHOLD;
 
       const atAnyEdge = atRightEdge || atLeftEdge || atTopEdge || atBottomEdge;
 
       if (atAnyEdge) {
-        const dx = x - lastPositionRef.current.x;
-        const dy = y - lastPositionRef.current.y;
+        const dx = currentPosition.x - lastPositionRef.current.x;
+        const dy = currentPosition.y - lastPositionRef.current.y;
         const stillPushing = (atRightEdge && dx > 0)
           || (atLeftEdge && dx < 0)
           || (atTopEdge && dy < 0)
@@ -73,14 +97,26 @@ export function InteractiveContainer(
         clearPushTimeout();
       }
 
-      lastPositionRef.current = { x, y };
+      lastPositionRef.current = currentPosition;
     },
     [onPopOut, clearPushTimeout],
   );
 
   const handleDragEnd = useCallback(() => {
     clearPushTimeout();
+    dragOriginRef.current = positionRef.current;
   }, [clearPushTimeout]);
+
+  const handleResizeStop = useCallback(
+    (_event: unknown, _direction: unknown, elementRef: HTMLElement) => {
+      sizeRef.current = {
+        width: elementRef.offsetWidth,
+        height: elementRef.offsetHeight,
+      };
+      setIsResizing(false);
+    },
+    [],
+  );
 
   return (
     <>
@@ -91,20 +127,21 @@ export function InteractiveContainer(
         dragElastic={0}
         dragConstraints={constraintsRef}
         dragTransition={{ power: 0.2, timeConstant: 200 }}
-        initial={{ x: window.innerWidth - width - 16, y: window.innerHeight - height - 16 }}
+        initial={defaultPosition}
         className="fixed z-40 pointer-events-auto"
+        onDragStart={handleDragStart}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
         <Resizable
           defaultSize={{ width: width, height: height }}
-          minWidth={300}
-          minHeight={400}
+          minWidth={width / 2}
+          minHeight={height / 2}
           maxWidth={window.innerWidth - 32}
           maxHeight={window.innerHeight - 32}
           bounds="window"
           onResizeStart={() => setIsResizing(true)}
-          onResizeStop={() => setIsResizing(false)}
+          onResizeStop={handleResizeStop}
           className={cn([
             "bg-white rounded-2xl shadow-2xl",
             "border border-neutral-200",

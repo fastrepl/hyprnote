@@ -13,32 +13,44 @@ export function ChatHeader({
   onNewChat,
   onSelectChat,
   handleClose,
+  isWindow,
 }: {
   currentChatGroupId: string | undefined;
   onNewChat: () => void;
   onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
+  isWindow?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
+    <div
+      data-tauri-drag-region={isWindow}
+      className={clsx([
+        "flex items-center justify-between px-3 py-1 border-b border-neutral-200",
+        isWindow && "pl-[72px]",
+      ])}
+    >
       <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
 
       <div className="flex items-center gap-0.5">
-        <ChatActionButton
-          icon={<ExternalLink className="w-4 h-4" />}
-          onClick={() => windowsCommands.windowShow({ type: "chat", value: id() })}
-          title="Pop out chat"
-        />
         <ChatActionButton
           icon={<Plus className="w-4 h-4" />}
           onClick={onNewChat}
           title="New chat"
         />
-        <ChatActionButton
-          icon={<X className="w-4 h-4" />}
-          onClick={handleClose}
-          title="Close"
-        />
+        {!isWindow && (
+          <ChatActionButton
+            icon={<ExternalLink className="w-4 h-4" />}
+            onClick={() => windowsCommands.windowShow({ type: "chat", value: id() })}
+            title="Pop out chat"
+          />
+        )}
+        {!isWindow && (
+          <ChatActionButton
+            icon={<X className="w-4 h-4" />}
+            onClick={handleClose}
+            title="Close"
+          />
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import NoteEditor from "@hypr/tiptap/editor";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
+import { FloatingRegenerateButton } from "./floating-regenerate-button";
 import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
@@ -51,7 +52,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col px-4 py-1 rounded-lg border h-full">
+    <div className="flex flex-col px-4 py-1 rounded-lg border h-full overflow-hidden relative">
       <div className="py-1">
         <OuterHeader
           sessionRow={sessionRow}
@@ -74,18 +75,21 @@ export function TabContentNote({ tab }: { tab: Tab }) {
         shouldShowEnhancedTab={false}
       />
       <div className="py-1"></div>
-      <NoteEditor
-        key={editorKey}
-        initialContent={sessionRow.raw_md ?? ""}
-        handleChange={(e) => handleEditRawMd(e)}
-        mentionConfig={{
-          trigger: "@",
-          handleSearch: async () => {
-            return [];
-          },
-        }}
-      />
+      <div className="flex-1 overflow-auto">
+        <NoteEditor
+          key={editorKey}
+          initialContent={sessionRow.raw_md ?? ""}
+          handleChange={(e) => handleEditRawMd(e)}
+          mentionConfig={{
+            trigger: "@",
+            handleSearch: async () => {
+              return [];
+            },
+          }}
+        />
+      </div>
       {showAudioPlayer && <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />}
+      <FloatingRegenerateButton />
     </div>
   );
 }

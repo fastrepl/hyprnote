@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@hypr/utils/contexts";
+import { NewNoteButton } from "./new-note-button";
 import { ProfileSection } from "./profile";
 import { TimelineView } from "./timeline";
 
@@ -27,6 +28,7 @@ export function LeftSidebar() {
       </header>
 
       <div className="flex flex-col flex-1 overflow-hidden p-1 gap-1">
+        <NewNoteButton />
         <TimelineView />
         <ProfileSection />
       </div>

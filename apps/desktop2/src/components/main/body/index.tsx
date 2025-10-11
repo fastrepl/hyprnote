@@ -7,6 +7,7 @@ import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs"
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
+import { TabContentDaily, TabItemDaily } from "./daily";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
@@ -93,6 +94,9 @@ function TabItem(
   if (tab.type === "humans") {
     return <TabItemHuman tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
   }
+  if (tab.type === "daily") {
+    return <TabItemDaily tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  }
 
   if (tab.type === "calendars") {
     return <TabItemCalendar tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
@@ -116,6 +120,9 @@ function Content({ tab }: { tab: Tab }) {
   }
   if (tab.type === "humans") {
     return <TabContentHuman tab={tab} />;
+  }
+  if (tab.type === "daily") {
+    return <TabContentDaily tab={tab} />;
   }
 
   if (tab.type === "calendars") {

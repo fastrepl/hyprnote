@@ -4,8 +4,10 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
-import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
+
+import type { ChatMessage, ChatMessageStorage } from "../../store/tinybase/persisted";
+import * as persisted from "../../store/tinybase/persisted";
 
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
@@ -23,7 +25,7 @@ export function Chat() {
 
   const { user_id } = persisted.useConfig();
 
-  const createGroup = persisted.UI.useSetRowCallback(
+  const createChatGroup = persisted.UI.useSetRowCallback(
     "chat_groups",
     (p: { groupId: string; title: string }) => p.groupId,
     (p: { groupId: string; title: string }) => ({
@@ -35,18 +37,18 @@ export function Chat() {
     persisted.STORE_ID,
   );
 
-  const createMessage = persisted.UI.useSetRowCallback(
+  const createChatMessage = persisted.UI.useSetRowCallback(
     "chat_messages",
-    (p: { messageId: string; groupId: string; content: string; role: string; parts: any[] }) => p.messageId,
-    (p: { messageId: string; groupId: string; content: string; role: string; parts: any[] }) => ({
+    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
+    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
       user_id,
-      chat_group_id: p.groupId,
+      chat_group_id: p.chat_group_id,
       content: p.content,
       created_at: new Date().toISOString(),
       role: p.role,
-      metadata: JSON.stringify({}),
+      metadata: JSON.stringify(p.metadata),
       parts: JSON.stringify(p.parts),
-    }),
+    } satisfies ChatMessageStorage),
     [user_id],
     persisted.STORE_ID,
   );
@@ -62,15 +64,16 @@ export function Chat() {
         .map((p) => (p.type === "text" ? p.text : ""))
         .join("");
 
-      createMessage({
-        messageId: message.id,
-        groupId: currentChatGroupId,
+      createChatMessage({
+        id: message.id,
+        chat_group_id: currentChatGroupId,
         content,
         role: "assistant",
         parts: message.parts,
+        metadata: message.metadata,
       });
     },
-    [currentChatGroupId, createMessage],
+    [currentChatGroupId, createChatMessage],
   );
 
   const handleSendMessage = useCallback(
@@ -82,14 +85,14 @@ export function Chat() {
 
       if (!groupId) {
         groupId = id();
-        createGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
+        createChatGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
         setCurrentChatGroupId(groupId);
       }
 
-      createMessage({ messageId, groupId, content, role: "user", parts });
+      createChatMessage({ id: messageId, chat_group_id: groupId, content, role: "user", parts, metadata: {} });
       sendMessage(uiMessage);
     },
-    [currentChatGroupId, createGroup, createMessage],
+    [currentChatGroupId, createChatGroup, createChatMessage],
   );
 
   const handleNewChat = useCallback(() => {
@@ -131,7 +134,7 @@ export function Chat() {
                 <>
                   {error && (
                     <div className="px-4 py-2 bg-red-50 border-b border-red-200">
-                      <p className="text-xs text-red-600">Error: {error.message}</p>
+                      <p className="text-xs text-red-600">{error.message}</p>
                     </div>
                   )}
                   <ChatBody messages={messages} />

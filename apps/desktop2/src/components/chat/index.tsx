@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
@@ -13,21 +13,59 @@ import { ChatTrigger } from "./trigger";
 
 export function Chat() {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | undefined>(undefined);
   const chatRef = useAutoCloser(() => setIsOpen(false), isOpen);
 
   useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
 
-  const handleAddMessage = persisted.UI.useSetRowCallback(
-    "chat_messages",
-    id(),
-    (row: persisted.ChatMessage) => ({
-      ...row,
-      metadata: JSON.stringify(row.metadata),
-      parts: JSON.stringify(row.parts),
-    } satisfies persisted.ChatMessage),
-    [],
+  const { user_id } = persisted.useConfig();
+
+  const createGroup = persisted.UI.useSetRowCallback(
+    "chat_groups",
+    (p: { groupId: string; title: string }) => p.groupId,
+    (p: { groupId: string; title: string }) => ({
+      user_id,
+      created_at: new Date().toISOString(),
+      title: p.title,
+    }),
+    [user_id],
     persisted.STORE_ID,
   );
+
+  const createMessage = persisted.UI.useSetRowCallback(
+    "chat_messages",
+    (p: { messageId: string; groupId: string; content: string; parts: any[] }) => p.messageId,
+    (p: { messageId: string; groupId: string; content: string; parts: any[] }) => ({
+      user_id,
+      chat_group_id: p.groupId,
+      content: p.content,
+      created_at: new Date().toISOString(),
+      role: "user",
+      metadata: JSON.stringify({}),
+      parts: JSON.stringify(p.parts),
+    }),
+    [user_id],
+    persisted.STORE_ID,
+  );
+
+  const handleSendMessage = useCallback(
+    (content: string, parts: any[]) => {
+      let groupId = currentChatGroupId;
+
+      if (!groupId) {
+        groupId = id();
+        createGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
+        setCurrentChatGroupId(groupId);
+      }
+
+      createMessage({ messageId: id(), groupId, content, parts });
+    },
+    [currentChatGroupId, createGroup, createMessage],
+  );
+
+  const handleNewChat = useCallback(() => {
+    setCurrentChatGroupId(undefined);
+  }, []);
 
   return (
     <>
@@ -44,9 +82,14 @@ export function Chat() {
               "animate-in slide-in-from-bottom-4 fade-in duration-200",
             )}
           >
-            <ChatHeader currentChatId={id()} handleClose={() => setIsOpen(false)} />
-            <ChatBody />
-            <ChatMessageInput handleAddMessage={handleAddMessage} />
+            <ChatHeader
+              currentChatGroupId={currentChatGroupId}
+              onNewChat={handleNewChat}
+              onSelectChat={setCurrentChatGroupId}
+              handleClose={() => setIsOpen(false)}
+            />
+            <ChatBody chatGroupId={currentChatGroupId} />
+            <ChatMessageInput onSendMessage={handleSendMessage} />
           </div>
         )
         : <ChatTrigger onClick={() => setIsOpen(true)} />}

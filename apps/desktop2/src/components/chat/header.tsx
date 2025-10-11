@@ -8,19 +8,19 @@ import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
 
 export function ChatHeader({
-  currentChatId,
+  currentChatGroupId,
+  onNewChat,
+  onSelectChat,
   handleClose,
 }: {
-  currentChatId: string;
+  currentChatGroupId: string | undefined;
+  onNewChat: () => void;
+  onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
 }) {
-  const handleNewChat = () => {
-    console.log("New chat");
-  };
-
   return (
     <div className="flex items-center justify-between p-4 border-b border-neutral-200">
-      <ChatGroups currentChatId={currentChatId} />
+      <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
 
       <div className="flex items-center gap-1">
         <button
@@ -31,7 +31,7 @@ export function ChatHeader({
           <ExternalLink className="w-4 h-4" />
         </button>
         <button
-          onClick={handleNewChat}
+          onClick={onNewChat}
           className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 rounded-lg transition-colors"
           title="New chat"
         >
@@ -48,10 +48,21 @@ export function ChatHeader({
     </div>
   );
 }
-function ChatGroups({ currentChatId }: { currentChatId: string }) {
+function ChatGroups({
+  currentChatGroupId,
+  onSelectChat,
+}: {
+  currentChatGroupId: string | undefined;
+  onSelectChat: (chatGroupId: string) => void;
+}) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const currentChatTitle = persisted.UI.useCell("chat_groups", currentChatId, "title", persisted.STORE_ID);
+  const currentChatTitle = persisted.UI.useCell(
+    "chat_groups",
+    currentChatGroupId || "",
+    "title",
+    persisted.STORE_ID,
+  );
   const recentChatGroupIds = persisted.UI.useSortedRowIds(
     "chat_groups",
     "created_at",
@@ -77,6 +88,10 @@ function ChatGroups({ currentChatId }: { currentChatId: string }) {
               <ChatGroupItem
                 key={groupId}
                 groupId={groupId}
+                onSelect={(id) => {
+                  onSelectChat(id);
+                  setIsDropdownOpen(false);
+                }}
               />
             ))}
           </div>
@@ -86,7 +101,7 @@ function ChatGroups({ currentChatId }: { currentChatId: string }) {
   );
 }
 
-function ChatGroupItem({ groupId }: { groupId: string }) {
+function ChatGroupItem({ groupId, onSelect }: { groupId: string; onSelect: (groupId: string) => void }) {
   const chatGroup = persisted.UI.useRow("chat_groups", groupId, persisted.STORE_ID);
 
   if (!chatGroup) {
@@ -94,7 +109,10 @@ function ChatGroupItem({ groupId }: { groupId: string }) {
   }
 
   return (
-    <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-50 transition-colors">
+    <button
+      onClick={() => onSelect(groupId)}
+      className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
+    >
       <div className="flex items-center justify-between">
         <span className="text-sm text-neutral-900 truncate">{chatGroup.title}</span>
         <span className="text-xs text-neutral-400">{formatDistanceToNow(new Date(chatGroup.created_at ?? ""))}</span>

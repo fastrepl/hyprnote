@@ -87,7 +87,19 @@ export function ChatSession({
     onError: console.error,
   });
 
-  const displayMessages = messages.length > 0 ? messages : initialMessages;
+  const displayMessages = useMemo(() => {
+    const messageMap = new Map<string, UIMessage>();
+
+    for (const msg of initialMessages) {
+      messageMap.set(msg.id, msg);
+    }
+
+    for (const msg of messages) {
+      messageMap.set(msg.id, msg);
+    }
+
+    return Array.from(messageMap.values());
+  }, [initialMessages, messages]);
 
   useEffect(() => {
     if (!chatGroupId || status !== "ready") {

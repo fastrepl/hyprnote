@@ -126,6 +126,7 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn window_close(&self, window: AppWindow) -> Result<(), crate::Error>;
     fn window_destroy(&self, window: AppWindow) -> Result<(), crate::Error>;
     fn window_is_focused(&self, window: AppWindow) -> Result<bool, crate::Error>;
+    fn window_is_exists(&self, window: AppWindow) -> Result<bool, crate::Error>;
 
     fn window_emit_navigate(
         &self,
@@ -233,5 +234,9 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
         path: impl AsRef<str>,
     ) -> Result<(), crate::Error> {
         window.navigate(self, path)
+    }
+
+    fn window_is_exists(&self, window: AppWindow) -> Result<bool, crate::Error> {
+        Ok(window.get(self).is_some())
     }
 }

@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
 import { Resizable } from "re-resizable";
 import type { ReactNode } from "react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
-
 import { ChatTrigger } from "./trigger";
 import { ChatView } from "./view";
 
@@ -16,8 +16,16 @@ export function ChatFloatingButton() {
   useAutoCloser(() => setIsOpen(false), { esc: isOpen, outside: false });
   useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
 
+  const handleClickTrigger = useCallback(async () => {
+    const isExists = await windowsCommands.windowIsExists({ type: "chat" });
+    if (isExists) {
+      windowsCommands.windowDestroy({ type: "chat" });
+    }
+    setIsOpen(true);
+  }, []);
+
   if (!isOpen) {
-    return <ChatTrigger onClick={() => setIsOpen(true)} />;
+    return <ChatTrigger onClick={handleClickTrigger} />;
   }
 
   return (

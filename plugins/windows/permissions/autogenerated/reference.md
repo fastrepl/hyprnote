@@ -8,6 +8,7 @@ Default permissions for the plugin
 - `allow-window-destroy`
 - `allow-window-navigate`
 - `allow-window-emit-navigate`
+- `allow-window-is-exists`
 - `allow-set-fake-window-bounds`
 - `allow-remove-fake-window`
 
@@ -120,6 +121,32 @@ Enables the window_emit_navigate command without any pre-configured scope.
 <td>
 
 Denies the window_emit_navigate command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:allow-window-is-exists`
+
+</td>
+<td>
+
+Enables the window_is_exists command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`windows:deny-window-is-exists`
+
+</td>
+<td>
+
+Denies the window_is_exists command without any pre-configured scope.
 
 </td>
 </tr>

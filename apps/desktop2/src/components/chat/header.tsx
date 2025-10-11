@@ -1,12 +1,11 @@
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ExternalLink, MessageCircle, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
 import * as persisted from "../../store/tinybase/persisted";
-import { id } from "../../utils";
 
 export function ChatHeader({
   currentChatGroupId,
@@ -21,6 +20,14 @@ export function ChatHeader({
   handleClose: () => void;
   isWindow?: boolean;
 }) {
+  const handleClickPopOut = useCallback(() => {
+    if (!isWindow) {
+      // TODO: emit event
+      windowsCommands.windowShow({ type: "chat" });
+      handleClose();
+    }
+  }, [isWindow, currentChatGroupId, handleClose]);
+
   return (
     <div
       data-tauri-drag-region={isWindow}
@@ -40,7 +47,7 @@ export function ChatHeader({
         {!isWindow && (
           <ChatActionButton
             icon={<ExternalLink className="w-4 h-4" />}
-            onClick={() => windowsCommands.windowShow({ type: "chat", value: id() })}
+            onClick={handleClickPopOut}
             title="Pop out chat"
           />
         )}

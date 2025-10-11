@@ -1,5 +1,5 @@
-import { CalendarIcon, CheckSquare, Mail, Sun } from "lucide-react";
 import { format } from "date-fns";
+import { CalendarIcon, CheckSquare, Mail, Sun } from "lucide-react";
 
 import { type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
@@ -24,7 +24,7 @@ export function TabContentDaily({ tab }: { tab: Tab }) {
   return (
     <div className="h-full rounded-lg border bg-white p-6">
       <h1 className="text-2xl font-semibold mb-6">{format(tab.date, "MMM d, yyyy")}</h1>
-      
+
       <div className="grid grid-cols-2 gap-6">
         <div>
           <h2 className="text-lg font-semibold mb-4">Task</h2>

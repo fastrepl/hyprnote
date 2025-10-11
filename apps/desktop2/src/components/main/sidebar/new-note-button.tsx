@@ -1,5 +1,5 @@
-import { PencilIcon } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
+import { PencilIcon } from "lucide-react";
 import { useTabs } from "../../../store/zustand/tabs";
 
 export function NewNoteButton() {
@@ -24,4 +24,3 @@ export function NewNoteButton() {
     </Button>
   );
 }
-

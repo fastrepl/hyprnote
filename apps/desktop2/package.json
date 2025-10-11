@@ -44,6 +44,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hotkeys-hook": "^4.6.2",
+    "streamdown": "^1.4.0",
     "tinybase": "^6.7.0",
     "tinytick": "^1.2.8",
     "wavesurfer.js": "^7.11.0",

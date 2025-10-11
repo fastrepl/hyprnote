@@ -1,12 +1,18 @@
 import { SendIcon } from "lucide-react";
 import { useState } from "react";
 
-export function ChatMessageInput({ onSendMessage }: { onSendMessage: (content: string, parts: any[]) => void }) {
+export function ChatMessageInput({
+  onSendMessage,
+  disabled,
+}: {
+  onSendMessage: (content: string, parts: any[]) => void;
+  disabled?: boolean;
+}) {
   const [inputValue, setInputValue] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) {
+    if (!inputValue.trim() || disabled) {
       return;
     }
 
@@ -24,11 +30,12 @@ export function ChatMessageInput({ onSendMessage }: { onSendMessage: (content: s
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Ask & search about anything, or be creative!"
-        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        disabled={disabled}
+        className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <button
         type="submit"
-        disabled={!inputValue.trim()}
+        disabled={!inputValue.trim() || disabled}
         className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <SendIcon className="size-4" />

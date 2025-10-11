@@ -1,3 +1,4 @@
+import type { UIMessage } from "ai";
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -9,6 +10,7 @@ import { id } from "../../utils";
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
+import { ChatSession } from "./session";
 import { ChatTrigger } from "./trigger";
 
 export function Chat() {
@@ -34,13 +36,13 @@ export function Chat() {
 
   const createMessage = persisted.UI.useSetRowCallback(
     "chat_messages",
-    (p: { messageId: string; groupId: string; content: string; parts: any[] }) => p.messageId,
-    (p: { messageId: string; groupId: string; content: string; parts: any[] }) => ({
+    (p: { messageId: string; groupId: string; content: string; role: string; parts: any[] }) => p.messageId,
+    (p: { messageId: string; groupId: string; content: string; role: string; parts: any[] }) => ({
       user_id,
       chat_group_id: p.groupId,
       content: p.content,
       created_at: new Date().toISOString(),
-      role: "user",
+      role: p.role,
       metadata: JSON.stringify({}),
       parts: JSON.stringify(p.parts),
     }),
@@ -48,8 +50,30 @@ export function Chat() {
     persisted.STORE_ID,
   );
 
+  const handleFinish = useCallback(
+    (message: UIMessage) => {
+      if (!currentChatGroupId) {
+        return;
+      }
+
+      const content = message.parts
+        .filter((p) => p.type === "text")
+        .map((p) => (p.type === "text" ? p.text : ""))
+        .join("");
+
+      createMessage({
+        messageId: message.id,
+        groupId: currentChatGroupId,
+        content,
+        role: "assistant",
+        parts: message.parts,
+      });
+    },
+    [currentChatGroupId, createMessage],
+  );
+
   const handleSendMessage = useCallback(
-    (content: string, parts: any[]) => {
+    (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
       let groupId = currentChatGroupId;
 
       if (!groupId) {
@@ -58,7 +82,9 @@ export function Chat() {
         setCurrentChatGroupId(groupId);
       }
 
-      createMessage({ messageId: id(), groupId, content, parts });
+      const messageId = id();
+      createMessage({ messageId, groupId, content, role: "user", parts });
+      sendMessage({ id: messageId, role: "user", parts, metadata: {} });
     },
     [currentChatGroupId, createGroup, createMessage],
   );
@@ -88,8 +114,40 @@ export function Chat() {
               onSelectChat={setCurrentChatGroupId}
               handleClose={() => setIsOpen(false)}
             />
-            <ChatBody chatGroupId={currentChatGroupId} />
-            <ChatMessageInput onSendMessage={handleSendMessage} />
+            {currentChatGroupId
+              ? (
+                <ChatSession key={currentChatGroupId} chatGroupId={currentChatGroupId} onFinish={handleFinish}>
+                  {({ messages, sendMessage, status, error }) => (
+                    <>
+                      {error && (
+                        <div className="px-4 py-2 bg-red-50 border-b border-red-200">
+                          <p className="text-xs text-red-600">Error: {error.message}</p>
+                        </div>
+                      )}
+                      <ChatBody messages={messages} />
+                      <ChatMessageInput
+                        onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
+                        disabled={status !== "ready"}
+                      />
+                    </>
+                  )}
+                </ChatSession>
+              )
+              : (
+                <>
+                  <ChatBody messages={[]} />
+                  <ChatMessageInput
+                    onSendMessage={(content, parts) => {
+                      const groupId = id();
+                      createGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
+                      setCurrentChatGroupId(groupId);
+                      const messageId = id();
+                      createMessage({ messageId, groupId, content, role: "user", parts });
+                    }}
+                    disabled={false}
+                  />
+                </>
+              )}
           </div>
         )
         : <ChatTrigger onClick={() => setIsOpen(true)} />}

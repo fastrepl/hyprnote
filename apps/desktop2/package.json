@@ -12,6 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^1.0.19",
+    "@ai-sdk/react": "^2.0.68",
     "@electric-sql/client": "^1.0.14",
     "@hypr/db": "workspace:*",
     "@hypr/plugin-analytics": "workspace:*",
@@ -34,6 +36,7 @@
     "@tauri-apps/plugin-updater": "^2.9.0",
     "@wavesurfer/react": "^1.0.11",
     "@xstate/store": "^3.9.3",
+    "ai": "^5.0.61",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",

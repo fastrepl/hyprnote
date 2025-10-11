@@ -58,9 +58,11 @@ export function ChatView({
 
   const handleFinish = useCallback(
     (message: UIMessage) => {
+      console.log("handleFinish", message);
       if (!chatGroupId) {
         return;
       }
+      console.log("handleFinish", message);
 
       const content = message.parts
         .filter((p) => p.type === "text")

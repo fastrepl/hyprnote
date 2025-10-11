@@ -46,7 +46,11 @@ export function ChatFloatingButton() {
       width={window.innerWidth * 0.5}
       height={window.innerHeight * 0.8}
     >
-      <ChatView onClose={() => setIsOpen(false)} chatGroupId={chatGroupId} setChatGroupId={setChatGroupId} />
+      <ChatView
+        chatGroupId={chatGroupId}
+        setChatGroupId={setChatGroupId}
+        onClose={() => setIsOpen(false)}
+      />
     </InteractiveContainer>
   );
 }

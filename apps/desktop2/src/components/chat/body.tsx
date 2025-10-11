@@ -1,14 +1,23 @@
 import type { UIMessage } from "ai";
 import { MessageCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 export function ChatBody({ messages }: { messages: UIMessage[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   if (messages.length === 0) {
     return <ChatBodyEmpty />;
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto">
       <div className="flex flex-col">
         {messages.map((message) => <ChatBodyMessage key={message.id} message={message} />)}
       </div>

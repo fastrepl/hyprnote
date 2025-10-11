@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import * as persisted from "../../store/tinybase/persisted";
 import { CustomChatTransport } from "../../transport";
@@ -9,7 +9,6 @@ import { id } from "../../utils";
 interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
-  onFinish: (message: UIMessage) => void;
   children: (props: {
     messages: UIMessage[];
     sendMessage: (message: UIMessage) => void;
@@ -21,11 +20,28 @@ interface ChatSessionProps {
 export function ChatSession({
   sessionId,
   chatGroupId,
-  onFinish,
   children,
 }: ChatSessionProps) {
   const [transport] = useState(() => new CustomChatTransport());
   const store = persisted.UI.useStore(persisted.STORE_ID);
+
+  const { user_id } = persisted.useConfig();
+
+  const createChatMessage = persisted.UI.useSetRowCallback(
+    "chat_messages",
+    (p: Omit<persisted.ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
+    (p: Omit<persisted.ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
+      user_id,
+      chat_group_id: p.chat_group_id,
+      content: p.content,
+      created_at: new Date().toISOString(),
+      role: p.role,
+      metadata: JSON.stringify(p.metadata),
+      parts: JSON.stringify(p.parts),
+    } satisfies persisted.ChatMessageStorage),
+    [user_id],
+    persisted.STORE_ID,
+  );
 
   const messageIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.chatMessagesByGroup,
@@ -53,14 +69,15 @@ export function ChatSession({
     return loaded;
   }, [store, messageIds, chatGroupId]);
 
-  const handleFinish = useCallback(
-    ({ message }: { message: UIMessage }) => {
-      if (message.role === "assistant") {
-        onFinish(message);
-      }
-    },
-    [onFinish],
-  );
+  const initialAssistantMessages = useMemo(() => {
+    return initialMessages.filter((message) => message.role === "assistant");
+  }, [initialMessages]);
+
+  const persistedAssistantIds = useRef(new Set(initialAssistantMessages.map((message) => message.id)));
+
+  useEffect(() => {
+    persistedAssistantIds.current = new Set(initialAssistantMessages.map((message) => message.id));
+  }, [initialAssistantMessages]);
 
   const { messages, sendMessage, status, error } = useChat({
     id: sessionId,
@@ -68,10 +85,38 @@ export function ChatSession({
     generateId: () => id(),
     transport,
     onError: console.error,
-    onFinish: handleFinish,
   });
 
   const displayMessages = messages.length > 0 ? messages : initialMessages;
+
+  useEffect(() => {
+    if (!chatGroupId || status !== "ready") {
+      return;
+    }
+
+    const targetMessages = displayMessages;
+    for (const message of targetMessages) {
+      if (message.role !== "assistant" || persistedAssistantIds.current.has(message.id)) {
+        continue;
+      }
+
+      const content = message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("");
+
+      createChatMessage({
+        id: message.id,
+        chat_group_id: chatGroupId,
+        content,
+        role: "assistant",
+        parts: message.parts,
+        metadata: message.metadata,
+      });
+
+      persistedAssistantIds.current.add(message.id);
+    }
+  }, [chatGroupId, createChatMessage, displayMessages, status]);
 
   return <>{children({ messages: displayMessages, sendMessage, status, error })}</>;
 }

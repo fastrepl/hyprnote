@@ -61,32 +61,6 @@ export function ChatView({
     persisted.STORE_ID,
   );
 
-  const handleFinish = useCallback(
-    (message: UIMessage) => {
-      console.log("handleFinish", message);
-      const groupId = chatGroupIdRef.current;
-      if (!groupId) {
-        return;
-      }
-      console.log("handleFinish", message);
-
-      const content = message.parts
-        .filter((p) => p.type === "text")
-        .map((p) => (p.type === "text" ? p.text : ""))
-        .join("");
-
-      createChatMessage({
-        id: message.id,
-        chat_group_id: groupId,
-        content,
-        role: "assistant",
-        parts: message.parts,
-        metadata: message.metadata,
-      });
-    },
-    [createChatMessage],
-  );
-
   const handleSendMessage = useCallback(
     (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
       let groupId = chatGroupIdRef.current;
@@ -140,7 +114,6 @@ export function ChatView({
         key={sessionKey}
         sessionId={sessionKey}
         chatGroupId={chatGroupId}
-        onFinish={handleFinish}
       >
         {({ messages, sendMessage, status, error }) => (
           <>

@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import { MessageCircle } from "lucide-react";
+import { Streamdown } from "streamdown";
 
 export function ChatBody({ messages }: { messages: UIMessage[] }) {
   if (messages.length === 0) {
@@ -44,8 +45,16 @@ function ChatBodyMessage({ message }: { message: UIMessage }) {
             : "bg-neutral-100 text-neutral-900"
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap">{content}</p>
+        <Markdown content={content} />
       </div>
     </div>
+  );
+}
+
+function Markdown({ content }: { content: string }) {
+  return (
+    <Streamdown className="prose prose-sm dark:prose-invert max-w-none">
+      {content}
+    </Streamdown>
   );
 }

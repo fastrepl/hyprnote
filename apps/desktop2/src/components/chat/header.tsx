@@ -20,13 +20,12 @@ export function ChatHeader({
   handleClose: () => void;
   isWindow?: boolean;
 }) {
-  const handleClickPopOut = useCallback(() => {
+  const handleClickPopOut = useCallback(async () => {
     if (!isWindow) {
-      // TODO: emit event
-      windowsCommands.windowShow({ type: "chat" });
+      await windowsCommands.windowShow({ type: "chat" });
       handleClose();
     }
-  }, [isWindow, currentChatGroupId, handleClose]);
+  }, [isWindow, handleClose]);
 
   return (
     <div

@@ -27,7 +27,12 @@ export function LeftSidebar() {
         />
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden p-1 gap-1">
+      <div
+        className={clsx([
+          "flex flex-col flex-1 gap-1 overflow-hidden",
+          "p-1 pr-0",
+        ])}
+      >
         <NewNoteButton />
         <TimelineView />
         <ProfileSection />

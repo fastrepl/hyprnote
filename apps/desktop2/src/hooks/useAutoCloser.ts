@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-export function useAutoCloser(onClose: () => void, enabled = true) {
+export function useAutoCloser(onClose: () => void, {
+  esc = true,
+  outside = true,
+}: {
+  esc?: boolean;
+  outside?: boolean;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   const handleClose = useCallback(() => {
-    if (enabled) {
-      onClose();
-    }
-  }, [onClose, enabled]);
+    onClose();
+  }, [onClose]);
 
-  useHotkeys("esc", handleClose, { enabled }, [handleClose]);
+  useHotkeys("esc", handleClose, { enabled: esc }, [handleClose]);
 
   useEffect(() => {
-    if (!enabled) {
+    if (!outside) {
       return;
     }
 
@@ -27,7 +31,7 @@ export function useAutoCloser(onClose: () => void, enabled = true) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleClose, enabled]);
+  }, [handleClose, outside]);
 
   return ref;
 }

@@ -17,7 +17,6 @@ export function Chat() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentChatGroupId, setCurrentChatGroupId] = useState<string | undefined>(undefined);
   const [sessionKey, setSessionKey] = useState(() => id());
-  const [queuedMessage, setQueuedMessage] = useState<UIMessage | null>(null);
   const chatRef = useAutoCloser(() => setIsOpen(false), isOpen);
 
   useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
@@ -85,12 +84,10 @@ export function Chat() {
         groupId = id();
         createGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
         setCurrentChatGroupId(groupId);
-        setQueuedMessage(uiMessage);
-      } else {
-        sendMessage(uiMessage);
       }
 
       createMessage({ messageId, groupId, content, role: "user", parts });
+      sendMessage(uiMessage);
     },
     [currentChatGroupId, createGroup, createMessage],
   );
@@ -98,7 +95,6 @@ export function Chat() {
   const handleNewChat = useCallback(() => {
     setCurrentChatGroupId(undefined);
     setSessionKey(id());
-    setQueuedMessage(null);
   }, []);
 
   return (
@@ -122,16 +118,14 @@ export function Chat() {
               onSelectChat={(id) => {
                 setCurrentChatGroupId(id);
                 setSessionKey(id);
-                setQueuedMessage(null);
               }}
               handleClose={() => setIsOpen(false)}
             />
             <ChatSession
               key={sessionKey}
+              sessionId={sessionKey}
               chatGroupId={currentChatGroupId}
               onFinish={handleFinish}
-              queuedMessage={queuedMessage}
-              onConsumeQueuedMessage={() => setQueuedMessage(null)}
             >
               {({ messages, sendMessage, status, error }) => (
                 <>

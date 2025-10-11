@@ -31,7 +31,11 @@ export function ChatFloatingButton() {
   }
 
   return (
-    <InteractiveContainer onPopOut={handlePopOut} width={440} height={600}>
+    <InteractiveContainer
+      onPopOut={handlePopOut}
+      width={window.innerWidth * 0.5}
+      height={window.innerHeight * 0.8}
+    >
       <ChatView onClose={() => setIsOpen(false)} />
     </InteractiveContainer>
   );

@@ -13,9 +13,9 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
+import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppAuthRouteImport } from './routes/app/auth'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
-import { Route as AppChatIdRouteImport } from './routes/app/chat.$id'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
 const AppMainRouteImport = createFileRoute('/app/main')()
@@ -35,6 +35,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppChatRoute = AppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAuthRoute = AppAuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -43,11 +48,6 @@ const AppAuthRoute = AppAuthRouteImport.update({
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => AppMainRoute,
-} as any)
-const AppChatIdRoute = AppChatIdRouteImport.update({
-  id: '/chat/$id',
-  path: '/chat/$id',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
@@ -58,24 +58,24 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
+  '/app/chat': typeof AppChatRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/chat/$id': typeof AppChatIdRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/main/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
+  '/app/chat': typeof AppChatRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/chat/$id': typeof AppChatIdRoute
   '/app/main': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
+  '/app/chat': typeof AppChatRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/chat/$id': typeof AppChatIdRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
@@ -85,18 +85,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/app'
     | '/app/auth'
+    | '/app/chat'
     | '/app/settings'
-    | '/app/chat/$id'
     | '/app/main'
     | '/app/main/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/auth' | '/app/settings' | '/app/chat/$id' | '/app/main'
+  to: '/app' | '/app/auth' | '/app/chat' | '/app/settings' | '/app/main'
   id:
     | '__root__'
     | '/app'
     | '/app/auth'
+    | '/app/chat'
     | '/app/settings'
-    | '/app/chat/$id'
     | '/app/main'
     | '/app/main/_layout'
     | '/app/main/_layout/'
@@ -129,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/chat': {
+      id: '/app/chat'
+      path: '/chat'
+      fullPath: '/app/chat'
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/auth': {
       id: '/app/auth'
       path: '/auth'
@@ -142,13 +149,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
       parentRoute: typeof AppMainRoute
-    }
-    '/app/chat/$id': {
-      id: '/app/chat/$id'
-      path: '/chat/$id'
-      fullPath: '/app/chat/$id'
-      preLoaderRoute: typeof AppChatIdRouteImport
-      parentRoute: typeof AppRoute
     }
     '/app/main/_layout/': {
       id: '/app/main/_layout/'
@@ -185,15 +185,15 @@ const AppMainRouteWithChildren =
 
 interface AppRouteChildren {
   AppAuthRoute: typeof AppAuthRoute
+  AppChatRoute: typeof AppChatRoute
   AppSettingsRoute: typeof AppSettingsRoute
-  AppChatIdRoute: typeof AppChatIdRoute
   AppMainRoute: typeof AppMainRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAuthRoute: AppAuthRoute,
+  AppChatRoute: AppChatRoute,
   AppSettingsRoute: AppSettingsRoute,
-  AppChatIdRoute: AppChatIdRoute,
   AppMainRoute: AppMainRouteWithChildren,
 }
 

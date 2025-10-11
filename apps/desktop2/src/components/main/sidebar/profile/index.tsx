@@ -65,7 +65,7 @@ export function ProfileSection() {
   }, [openNew, closeMenu]);
 
   const handleClickDailyNote = useCallback(() => {
-    console.log("Daily note");
+    openNew({ type: "daily", date: new Date(), active: true });
     closeMenu();
   }, [closeMenu]);
 

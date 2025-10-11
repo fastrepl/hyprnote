@@ -21,7 +21,7 @@ export function TabItemBase(
     <div
       onClick={handleSelect}
       className={clsx([
-        "flex items-center gap-2 cursor-pointer",
+        "flex items-center gap-2 cursor-pointer group",
         "min-w-[100px] max-w-[200px] h-full px-2",
         active
           ? "bg-background text-foreground rounded-lg border"
@@ -40,10 +40,10 @@ export function TabItemBase(
           handleClose();
         }}
         className={clsx([
-          "text-xs flex-shrink-0",
+          "text-xs flex-shrink-0 transition-opacity",
           active
             ? "text-muted-foreground hover:text-foreground"
-            : "opacity-0 pointer-events-none",
+            : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground",
         ])}
       >
         ✕

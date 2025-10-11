@@ -1,3 +1,4 @@
+import type { LinkProps } from "@tanstack/react-router";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ExternalLink, MessageCircle, Plus, X } from "lucide-react";
@@ -20,12 +21,18 @@ export function ChatHeader({
   handleClose: () => void;
   isWindow?: boolean;
 }) {
-  const handleClickPopOut = useCallback(async () => {
-    if (!isWindow) {
-      await windowsCommands.windowShow({ type: "chat" });
+  const handleClickPopOut = useCallback(() => {
+    const url = { to: "/app/chat", search: { id: currentChatGroupId } } as const satisfies LinkProps;
+    windowsCommands.windowShow({ type: "chat" }).then(() => {
       handleClose();
-    }
-  }, [isWindow, handleClose]);
+      setTimeout(() => {
+        windowsCommands.windowEmitNavigate({ type: "chat" }, {
+          path: url.to,
+          search: url.search,
+        });
+      }, 1000);
+    });
+  }, [handleClose, currentChatGroupId]);
 
   return (
     <div

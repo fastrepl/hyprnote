@@ -3,7 +3,6 @@ import { scan } from "react-scan";
 
 import { useQuery } from "@tanstack/react-query";
 import { CatchNotFound, createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
-import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
@@ -78,19 +77,6 @@ function Component() {
   useEffect(() => {
     windowsInit();
     scan({ enabled: false });
-  }, []);
-
-  // Listen for debug events from control window
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-
-    listen<string>("debug", (event) => {
-      console.log(`[Control Debug] ${event.payload}`);
-    }).then((fn) => {
-      unlisten = fn;
-    });
-
-    return () => unlisten?.();
   }, []);
 
   return (

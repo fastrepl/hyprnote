@@ -1,6 +1,14 @@
-import { createRootRouteWithContext, ErrorComponentProps, NotFoundRouteProps, Outlet } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import {
+  createRootRouteWithContext,
+  ErrorComponentProps,
+  NotFoundRouteProps,
+  Outlet,
+  useNavigate,
+} from "@tanstack/react-router";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { lazy, Suspense, useEffect } from "react";
 
+import { events as windowsEvents } from "@hypr/plugin-windows/v1";
 import { AuthProvider } from "../auth";
 import type { Context } from "../types";
 
@@ -11,6 +19,8 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 });
 
 function Component() {
+  useNavigationEvents();
+
   return (
     <AuthProvider>
       <Outlet />
@@ -20,6 +30,26 @@ function Component() {
     </AuthProvider>
   );
 }
+
+const useNavigationEvents = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    const webview = getCurrentWebviewWindow();
+
+    windowsEvents.navigate(webview).listen(({ payload }) => {
+      navigate({ to: payload.path, search: payload.search ?? undefined });
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, [navigate]);
+};
 
 export const TanStackRouterDevtools = process.env.NODE_ENV === "production"
   ? () => null

@@ -1,13 +1,18 @@
+import type { UIMessage } from "ai";
 import { MessageCircle } from "lucide-react";
 
-import * as persisted from "../../store/tinybase/persisted";
-
-export function ChatBody({ chatGroupId }: { chatGroupId?: string }) {
-  if (!chatGroupId) {
+export function ChatBody({ messages }: { messages: UIMessage[] }) {
+  if (messages.length === 0) {
     return <ChatBodyEmpty />;
   }
 
-  return <ChatBodyMessages chatGroupId={chatGroupId} />;
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="flex flex-col">
+        {messages.map((message) => <ChatBodyMessage key={message.id} message={message} />)}
+      </div>
+    </div>
+  );
 }
 
 function ChatBodyEmpty() {
@@ -22,30 +27,13 @@ function ChatBodyEmpty() {
   );
 }
 
-function ChatBodyMessages({ chatGroupId }: { chatGroupId: string }) {
-  const messageIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.chatMessagesByGroup,
-    chatGroupId,
-    persisted.STORE_ID,
-  );
-
-  return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="flex flex-col">
-        {messageIds.map((messageId) => <ChatBodyMessage key={messageId} messageId={messageId} />)}
-      </div>
-    </div>
-  );
-}
-
-function ChatBodyMessage({ messageId }: { messageId: string }) {
-  const message = persisted.UI.useRow("chat_messages", messageId, persisted.STORE_ID);
-
-  if (!message) {
-    return null;
-  }
-
+function ChatBodyMessage({ message }: { message: UIMessage }) {
   const isUser = message.role === "user";
+
+  const content = message.parts
+    .filter((p) => p.type === "text")
+    .map((p) => (p.type === "text" ? p.text : ""))
+    .join("");
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} px-4 py-2`}>
@@ -56,7 +44,7 @@ function ChatBodyMessage({ messageId }: { messageId: string }) {
             : "bg-neutral-100 text-neutral-900"
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        <p className="text-sm whitespace-pre-wrap">{content}</p>
       </div>
     </div>
   );

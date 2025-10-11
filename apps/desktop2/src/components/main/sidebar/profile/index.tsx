@@ -18,7 +18,7 @@ export function ProfileSection() {
     setIsExpanded(false);
   }, []);
 
-  const profileRef = useAutoCloser(closeMenu, isExpanded);
+  const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
 
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });

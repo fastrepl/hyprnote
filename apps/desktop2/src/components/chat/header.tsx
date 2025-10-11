@@ -48,6 +48,7 @@ export function ChatHeader({
     </div>
   );
 }
+
 function ChatGroups({
   currentChatGroupId,
   onSelectChat,

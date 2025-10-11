@@ -12,18 +12,19 @@ import { ChatMessageInput } from "./input";
 import { ChatSession } from "./session";
 
 export function ChatView({
-  initialChatGroupId,
+  chatGroupId,
+  setChatGroupId,
   onChatGroupChange,
   onClose,
   isWindow = false,
 }: {
-  initialChatGroupId?: string;
+  chatGroupId?: string;
+  setChatGroupId: (chatGroupId: string | undefined) => void;
   onChatGroupChange?: (chatGroupId: string | undefined) => void;
   onClose?: () => void;
   isWindow?: boolean;
 }) {
-  const [currentChatGroupId, setCurrentChatGroupId] = useState<string | undefined>(initialChatGroupId);
-  const [sessionKey, setSessionKey] = useState(() => initialChatGroupId || id());
+  const [sessionKey, setSessionKey] = useState(() => chatGroupId || id());
 
   const { user_id } = persisted.useConfig();
 
@@ -57,7 +58,7 @@ export function ChatView({
 
   const handleFinish = useCallback(
     (message: UIMessage) => {
-      if (!currentChatGroupId) {
+      if (!chatGroupId) {
         return;
       }
 
@@ -68,19 +69,19 @@ export function ChatView({
 
       createChatMessage({
         id: message.id,
-        chat_group_id: currentChatGroupId,
+        chat_group_id: chatGroupId,
         content,
         role: "assistant",
         parts: message.parts,
         metadata: message.metadata,
       });
     },
-    [currentChatGroupId, createChatMessage],
+    [chatGroupId, createChatMessage],
   );
 
   const handleSendMessage = useCallback(
     (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
-      let groupId = currentChatGroupId;
+      let groupId = chatGroupId;
 
       const messageId = id();
       const uiMessage: UIMessage = { id: messageId, role: "user", parts, metadata: {} };
@@ -88,25 +89,25 @@ export function ChatView({
       if (!groupId) {
         groupId = id();
         createChatGroup({ groupId, title: content.slice(0, 50) + (content.length > 50 ? "..." : "") });
-        setCurrentChatGroupId(groupId);
+        setChatGroupId(groupId);
         onChatGroupChange?.(groupId);
       }
 
       createChatMessage({ id: messageId, chat_group_id: groupId, content, role: "user", parts, metadata: {} });
       sendMessage(uiMessage);
     },
-    [currentChatGroupId, createChatGroup, createChatMessage, onChatGroupChange],
+    [chatGroupId, createChatGroup, createChatMessage, onChatGroupChange],
   );
 
   const handleNewChat = useCallback(() => {
-    setCurrentChatGroupId(undefined);
+    setChatGroupId(undefined);
     setSessionKey(id());
     onChatGroupChange?.(undefined);
   }, [onChatGroupChange]);
 
   const handleSelectChat = useCallback(
     (chatGroupId: string) => {
-      setCurrentChatGroupId(chatGroupId);
+      setChatGroupId(chatGroupId);
       setSessionKey(chatGroupId);
       onChatGroupChange?.(chatGroupId);
     },
@@ -117,7 +118,7 @@ export function ChatView({
     <div className="flex flex-col h-full" data-tauri-drag-region>
       <div className={clsx(!isWindow && "cursor-move select-none")}>
         <ChatHeader
-          currentChatGroupId={currentChatGroupId}
+          currentChatGroupId={chatGroupId}
           onNewChat={handleNewChat}
           onSelectChat={handleSelectChat}
           handleClose={onClose || (() => {})}
@@ -127,7 +128,7 @@ export function ChatView({
       <ChatSession
         key={sessionKey}
         sessionId={sessionKey}
-        chatGroupId={currentChatGroupId}
+        chatGroupId={chatGroupId}
         onFinish={handleFinish}
       >
         {({ messages, sendMessage, status, error }) => (

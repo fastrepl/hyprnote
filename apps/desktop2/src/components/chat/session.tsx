@@ -71,5 +71,7 @@ export function ChatSession({
     onFinish: handleFinish,
   });
 
-  return <>{children({ messages, sendMessage, status, error })}</>;
+  const displayMessages = messages.length > 0 ? messages : initialMessages;
+
+  return <>{children({ messages: displayMessages, sendMessage, status, error })}</>;
 }

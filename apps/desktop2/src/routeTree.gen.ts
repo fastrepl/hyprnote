@@ -12,12 +12,14 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppAuthRouteImport } from './routes/app/auth'
+import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
+import { Route as AppSettingsLayoutIndexRouteImport } from './routes/app/settings/_layout.index'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
+const AppSettingsRouteImport = createFileRoute('/app/settings')()
 const AppMainRouteImport = createFileRoute('/app/main')()
 
 const AppRoute = AppRouteImport.update({
@@ -25,14 +27,14 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppMainRoute = AppMainRouteImport.update({
-  id: '/main',
-  path: '/main',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMainRoute = AppMainRouteImport.update({
+  id: '/main',
+  path: '/main',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChatRoute = AppChatRouteImport.update({
@@ -45,9 +47,18 @@ const AppAuthRoute = AppAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsLayoutRoute = AppSettingsLayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => AppMainRoute,
+} as any)
+const AppSettingsLayoutIndexRoute = AppSettingsLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppSettingsLayoutRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
@@ -59,26 +70,29 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
+  '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/main/': typeof AppMainLayoutIndexRoute
+  '/app/settings/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainLayoutIndexRoute
+  '/app/settings': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
+  '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/settings/_layout': typeof AppSettingsLayoutRouteWithChildren
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
+  '/app/settings/_layout/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,20 +100,23 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/auth'
     | '/app/chat'
-    | '/app/settings'
     | '/app/main'
+    | '/app/settings'
     | '/app/main/'
+    | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/auth' | '/app/chat' | '/app/settings' | '/app/main'
+  to: '/app' | '/app/auth' | '/app/chat' | '/app/main' | '/app/settings'
   id:
     | '__root__'
     | '/app'
     | '/app/auth'
     | '/app/chat'
-    | '/app/settings'
     | '/app/main'
     | '/app/main/_layout'
+    | '/app/settings'
+    | '/app/settings/_layout'
     | '/app/main/_layout/'
+    | '/app/settings/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -115,18 +132,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/main': {
-      id: '/app/main'
-      path: '/main'
-      fullPath: '/app/main'
-      preLoaderRoute: typeof AppMainRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/main': {
+      id: '/app/main'
+      path: '/main'
+      fullPath: '/app/main'
+      preLoaderRoute: typeof AppMainRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/chat': {
@@ -143,12 +160,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAuthRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/settings/_layout': {
+      id: '/app/settings/_layout'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsLayoutRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/app/main/_layout': {
       id: '/app/main/_layout'
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
       parentRoute: typeof AppMainRoute
+    }
+    '/app/settings/_layout/': {
+      id: '/app/settings/_layout/'
+      path: '/'
+      fullPath: '/app/settings/'
+      preLoaderRoute: typeof AppSettingsLayoutIndexRouteImport
+      parentRoute: typeof AppSettingsLayoutRoute
     }
     '/app/main/_layout/': {
       id: '/app/main/_layout/'
@@ -183,18 +214,41 @@ const AppMainRouteChildren: AppMainRouteChildren = {
 const AppMainRouteWithChildren =
   AppMainRoute._addFileChildren(AppMainRouteChildren)
 
+interface AppSettingsLayoutRouteChildren {
+  AppSettingsLayoutIndexRoute: typeof AppSettingsLayoutIndexRoute
+}
+
+const AppSettingsLayoutRouteChildren: AppSettingsLayoutRouteChildren = {
+  AppSettingsLayoutIndexRoute: AppSettingsLayoutIndexRoute,
+}
+
+const AppSettingsLayoutRouteWithChildren =
+  AppSettingsLayoutRoute._addFileChildren(AppSettingsLayoutRouteChildren)
+
+interface AppSettingsRouteChildren {
+  AppSettingsLayoutRoute: typeof AppSettingsLayoutRouteWithChildren
+}
+
+const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsLayoutRoute: AppSettingsLayoutRouteWithChildren,
+}
+
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
+  AppSettingsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAuthRoute: typeof AppAuthRoute
   AppChatRoute: typeof AppChatRoute
-  AppSettingsRoute: typeof AppSettingsRoute
   AppMainRoute: typeof AppMainRouteWithChildren
+  AppSettingsRoute: typeof AppSettingsRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAuthRoute: AppAuthRoute,
   AppChatRoute: AppChatRoute,
-  AppSettingsRoute: AppSettingsRoute,
   AppMainRoute: AppMainRouteWithChildren,
+  AppSettingsRoute: AppSettingsRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

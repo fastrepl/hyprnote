@@ -195,16 +195,16 @@ export function SessionParticipants({
       onParticipantClick={(participant) => {
         openNew({
           type: "contacts",
-          active: true, 
+          active: true,
           state: {
             selectedPerson: participant.id,
-            selectedOrganization: null, 
-            editingPerson: null, 
-            editingOrg: null, 
-            showNewOrg: false, 
+            selectedOrganization: null,
+            editingPerson: null,
+            editingOrg: null,
+            showNewOrg: false,
             sortOption: "alphabetical",
-          }
-        })
+          },
+        });
       }}
       onParticipantRemove={handleRemove}
       onParticipantAdd={handleAdd}

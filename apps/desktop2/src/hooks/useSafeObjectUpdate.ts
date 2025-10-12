@@ -3,7 +3,7 @@ import { z } from "zod";
 
 type FieldErrors<T> = Partial<Record<keyof T, string>>;
 
-export function useValidatedRow<T extends z.ZodObject<any>>(
+export function useSafeObjectUpdate<T extends z.ZodObject<any>>(
   schema: T,
   currentRow: Partial<z.infer<T>> | undefined,
   onUpdate: (row: z.infer<T>) => void,

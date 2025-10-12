@@ -1,16 +1,26 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
-import { createMergeableStore, type MergeableStore, type TablesSchema, ValuesSchema } from "tinybase/with-schemas";
+import { createMergeableStore, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
+import { z } from "zod";
 
 import { createLocalPersister } from "./localPersister";
 import { createLocalSynchronizer } from "./localSynchronizer";
+import type { InferTinyBaseSchema, ToStorageType } from "./shared";
+
+export const configSchema = z.object({
+  user_id: z.string(),
+  save_recordings: z.boolean().default(true),
+});
+
+export type Config = z.infer<typeof configSchema>;
+export type ConfigStorage = ToStorageType<typeof configSchema>;
 
 export const STORE_ID = "internal";
 
 export const SCHEMA = {
   value: {
     user_id: { type: "string" },
-    device_id: { type: "string" },
-  } as const satisfies ValuesSchema,
+    save_recordings: { type: "boolean" },
+  } as const satisfies InferTinyBaseSchema<typeof configSchema>,
   table: {
     changes: {
       row_id: { type: "string" },

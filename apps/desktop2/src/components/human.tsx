@@ -1,4 +1,4 @@
-import { useValidatedRow } from "../hooks/useValidatedRow";
+import { useSafeObjectUpdate } from "../hooks/useSafeObjectUpdate";
 import * as persisted from "../store/tinybase/persisted";
 
 export function Human({ id }: { id: string }) {
@@ -12,7 +12,7 @@ export function Human({ id }: { id: string }) {
     persisted.STORE_ID,
   );
 
-  const { setField, errors } = useValidatedRow(persisted.humanSchema, human, handleUpdate);
+  const { setField, errors } = useSafeObjectUpdate(persisted.humanSchema, human, handleUpdate);
 
   return (
     <div className="space-y-4 p-4">

@@ -8,8 +8,6 @@ import { ColumnHeader, type SortOption } from "./shared";
 export function OrganizationsColumn({
   selectedOrganization,
   setSelectedOrganization,
-  showNewOrg,
-  setShowNewOrg,
   editingOrg,
   setEditingOrg,
   handleEditOrganization,
@@ -18,17 +16,15 @@ export function OrganizationsColumn({
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
-  showNewOrg: boolean;
-  setShowNewOrg: (show: boolean) => void;
   editingOrg: string | null;
   setEditingOrg: (id: string | null) => void;
   handleEditOrganization: (id: string) => void;
   sortOption: SortOption;
   setSortOption: (option: SortOption) => void;
 }) {
-  const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
+  const [showNewOrg, setShowNewOrg] = useState(false);
 
-  const organizationIds = Object.keys(organizationsData);
+  const organizationIds = persisted.UI.useResultRowIds(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
 
   return (
     <div className="w-[200px] border-r border-neutral-200 flex flex-col">

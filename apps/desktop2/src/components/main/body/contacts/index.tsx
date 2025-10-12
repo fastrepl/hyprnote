@@ -44,7 +44,6 @@ function ContactView({ tab }: { tab: Tab }) {
     selectedPerson,
     editingPerson,
     editingOrg,
-    showNewOrg,
     sortOption,
     orgSortOption,
   } = tab.state;
@@ -63,10 +62,6 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const setEditingOrg = (value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, editingOrg: value });
-  };
-
-  const setShowNewOrg = (value: boolean) => {
-    updateContactsTabState(tab, { ...tab.state, showNewOrg: value });
   };
 
   const setSortOption = (value: "alphabetical" | "oldest" | "newest") => {
@@ -100,8 +95,6 @@ function ContactView({ tab }: { tab: Tab }) {
       <OrganizationsColumn
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}
-        showNewOrg={showNewOrg}
-        setShowNewOrg={setShowNewOrg}
         editingOrg={editingOrg}
         setEditingOrg={setEditingOrg}
         handleEditOrganization={handleEditOrganization}

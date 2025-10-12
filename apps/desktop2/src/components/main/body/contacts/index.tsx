@@ -1,5 +1,4 @@
 import { Contact2Icon } from "lucide-react";
-import { useMemo } from "react";
 
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -67,42 +66,6 @@ function ContactView({ tab }: { tab: Tab }) {
   };
 
   const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
-  const selectedPersonData = persisted.UI.useRow("humans", selectedPerson ?? "", persisted.STORE_ID);
-  const allSessions = persisted.UI.useTable("sessions", persisted.STORE_ID);
-
-  const mappingIdsByHuman = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionsByHuman,
-    selectedPerson ?? "",
-    persisted.STORE_ID,
-  );
-
-  const allMappings = persisted.UI.useTable("mapping_session_participant", persisted.STORE_ID);
-
-  const personSessions = useMemo(() => {
-    if (!mappingIdsByHuman || mappingIdsByHuman.length === 0) {
-      return [];
-    }
-
-    return mappingIdsByHuman
-      .map((mappingId: string) => {
-        const mapping = allMappings[mappingId];
-        if (!mapping || !mapping.session_id) {
-          return null;
-        }
-
-        const sessionId = mapping.session_id as string;
-        const session = allSessions[sessionId];
-        if (!session) {
-          return null;
-        }
-
-        return {
-          id: sessionId,
-          ...session,
-        };
-      })
-      .filter((session: any): session is NonNullable<typeof session> => session !== null);
-  }, [mappingIdsByHuman, allMappings, allSessions]);
 
   const organizations = Object.entries(organizationsData).map(([id, data]) => ({
     id,
@@ -147,11 +110,9 @@ function ContactView({ tab }: { tab: Tab }) {
       />
 
       <DetailsColumn
-        selectedPersonData={selectedPersonData}
-        editingPerson={editingPerson}
+        selectedHumanId={selectedPerson}
+        isEditing={editingPerson === selectedPerson}
         setEditingPerson={setEditingPerson}
-        organizations={organizations}
-        personSessions={personSessions}
         handleEditPerson={handleEditPerson}
         handleDeletePerson={handleDeletePerson}
         handleSessionClick={handleSessionClick}

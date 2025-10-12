@@ -43,7 +43,6 @@ function ContactView({ tab }: { tab: Tab }) {
     selectedOrganization,
     selectedPerson,
     editingPerson,
-    editingOrg,
     sortOption,
     orgSortOption,
   } = tab.state;
@@ -58,10 +57,6 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const setEditingPerson = (value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, editingPerson: value });
-  };
-
-  const setEditingOrg = (value: string | null) => {
-    updateContactsTabState(tab, { ...tab.state, editingOrg: value });
   };
 
   const setSortOption = (value: "alphabetical" | "oldest" | "newest") => {
@@ -80,10 +75,6 @@ function ContactView({ tab }: { tab: Tab }) {
     setEditingPerson(personId);
   };
 
-  const handleEditOrganization = (organizationId: string) => {
-    setEditingOrg(organizationId);
-  };
-
   const handleDeletePerson = persisted.UI.useDelRowCallback(
     "humans",
     (human_id: string) => human_id,
@@ -95,9 +86,6 @@ function ContactView({ tab }: { tab: Tab }) {
       <OrganizationsColumn
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}
-        editingOrg={editingOrg}
-        setEditingOrg={setEditingOrg}
-        handleEditOrganization={handleEditOrganization}
         sortOption={orgSortOption}
         setSortOption={setOrgSortOption}
       />

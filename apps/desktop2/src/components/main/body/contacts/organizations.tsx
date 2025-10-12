@@ -8,20 +8,15 @@ import { ColumnHeader, type SortOption } from "./shared";
 export function OrganizationsColumn({
   selectedOrganization,
   setSelectedOrganization,
-  editingOrg,
-  setEditingOrg,
-  handleEditOrganization,
   sortOption,
   setSortOption,
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
-  editingOrg: string | null;
-  setEditingOrg: (id: string | null) => void;
-  handleEditOrganization: (id: string) => void;
   sortOption: SortOption;
   setSortOption: (option: SortOption) => void;
 }) {
+  const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
 
   const organizationIds = persisted.UI.useResultRowIds(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
@@ -68,7 +63,7 @@ export function OrganizationsColumn({
                   organizationId={orgId}
                   isSelected={selectedOrganization === orgId}
                   setSelectedOrganization={setSelectedOrganization}
-                  handleEditOrganization={handleEditOrganization}
+                  handleEditOrganization={() => setEditingOrg(orgId)}
                 />
               )
           )}

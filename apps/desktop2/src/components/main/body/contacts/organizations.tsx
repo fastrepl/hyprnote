@@ -117,6 +117,9 @@ function OrganizationItem({
   handleEditOrganization: (id: string) => void;
 }) {
   const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
+  if (!organization) {
+    return null;
+  }
 
   return (
     <div

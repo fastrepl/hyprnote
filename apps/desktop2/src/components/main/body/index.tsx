@@ -37,7 +37,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
   return (
     <div
-      data-tauri-drag-region
       className={cn([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
         "w-full overflow-x-auto h-8",
@@ -45,7 +44,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       ])}
     >
       <div className="flex w-full h-full items-end gap-4">
-        <div className="flex items-end h-full flex-1 min-w-0">
+        <div data-tauri-drag-region className="flex items-end h-full flex-1 min-w-0">
           {!isExpanded && (
             <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
               <PanelLeftOpenIcon

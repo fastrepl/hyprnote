@@ -11,7 +11,7 @@ export function MenuItem(
   return (
     <button
       className={clsx(
-        "flex w-full items-center gap-2.5",
+        "flex w-full items-center gap-2.5 rounded-lg",
         "px-4 py-1.5",
         "text-sm text-black",
         "transition-colors hover:bg-slate-100",

@@ -44,6 +44,16 @@ pub async fn window_emit_navigate(
     Ok(())
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn window_is_exists(
+    app: tauri::AppHandle<tauri::Wry>,
+    window: AppWindow,
+) -> Result<bool, String> {
+    let exists = app.window_is_exists(window).map_err(|e| e.to_string())?;
+    Ok(exists)
+}
+
 async fn update_bounds(
     window: &tauri::Window,
     state: &tauri::State<'_, FakeWindowBounds>,

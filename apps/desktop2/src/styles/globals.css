@@ -4,6 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@source "../../node_modules/streamdown/dist/index.js";
+
 /* https://www.joshwcomeau.com/css/custom-css-reset/ */
 
 *,

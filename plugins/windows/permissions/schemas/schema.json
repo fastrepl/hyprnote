@@ -343,6 +343,18 @@
           "markdownDescription": "Denies the window_emit_navigate command without any pre-configured scope."
         },
         {
+          "description": "Enables the window_is_exists command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-window-is-exists",
+          "markdownDescription": "Enables the window_is_exists command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the window_is_exists command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-window-is-exists",
+          "markdownDescription": "Denies the window_is_exists command without any pre-configured scope."
+        },
+        {
           "description": "Enables the window_navigate command without any pre-configured scope.",
           "type": "string",
           "const": "allow-window-navigate",
@@ -367,10 +379,10 @@
           "markdownDescription": "Denies the window_show command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-exists`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-window-show`\n- `allow-window-destroy`\n- `allow-window-navigate`\n- `allow-window-emit-navigate`\n- `allow-window-is-exists`\n- `allow-set-fake-window-bounds`\n- `allow-remove-fake-window`"
         }
       ]
     }

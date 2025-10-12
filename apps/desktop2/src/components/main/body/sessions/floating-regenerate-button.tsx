@@ -3,8 +3,8 @@ import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
 const TEMPLATES = [
-  "Brainstorming",
   "1-on-1",
+  "Brainstorming",
   "User Interview",
   "Daily Standup",
   "Project Plan",
@@ -13,7 +13,6 @@ const TEMPLATES = [
   "Decision Log",
   "Key Insights",
   "Brainstorming",
-  "1-on-1",
 ];
 
 export function FloatingRegenerateButton() {

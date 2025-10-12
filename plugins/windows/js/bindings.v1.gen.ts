@@ -19,6 +19,9 @@ async windowNavigate(window: AppWindow, path: string) : Promise<null> {
 async windowEmitNavigate(window: AppWindow, event: Navigate) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|window_emit_navigate", { window, event });
 },
+async windowIsExists(window: AppWindow) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:windows|window_is_exists", { window });
+},
 async setFakeWindowBounds(name: string, bounds: OverlayBound) : Promise<null> {
     return await TAURI_INVOKE("plugin:windows|set_fake_window_bounds", { name, bounds });
 },
@@ -46,7 +49,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type AppWindow = { type: "main" } | { type: "settings" } | { type: "auth" }
+export type AppWindow = { type: "main" } | { type: "settings" } | { type: "auth" } | { type: "chat" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }

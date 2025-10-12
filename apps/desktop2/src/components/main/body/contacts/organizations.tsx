@@ -104,7 +104,7 @@ function EditOrganizationForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const name = persisted.UI.useCell("organizations", organization.id, "name", persisted.STORE_ID) as string;
+  const name = persisted.UI.useCell("organizations", organization.id, "name", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
     "organizations",

@@ -406,6 +406,9 @@ importers:
       '@hypr/utils':
         specifier: workspace:^
         version: link:../../packages/utils
+      '@orama/highlight':
+        specifier: ^0.1.9
+        version: 0.1.9
       '@orama/orama':
         specifier: ^3.1.15
         version: 3.1.15
@@ -3240,6 +3243,9 @@ packages:
     engines: {node: ^18.19.0 || >=20.6.0}
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
+
+  '@orama/highlight@0.1.9':
+    resolution: {integrity: sha512-eH4uZMea4R9x9vBFJyS/87oR4Y8oIKxF7e1SItJ9DhPlexZWMVZRlFYvHS1BM/563/dU240ct4ZaGHoYKiCkyQ==}
 
   '@orama/orama@3.1.15':
     resolution: {integrity: sha512-ltjr1WHlY+uqEKE0JG2G6Xn36mSQGmPdPGQedQyipekBdf0iAtp8oL9dckQRX8cP+nUfOZwwPWSu7km8gGciUg==}
@@ -14479,6 +14485,8 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 2.1.0(@opentelemetry/api@1.9.0)
+
+  '@orama/highlight@0.1.9': {}
 
   '@orama/orama@3.1.15': {}
 

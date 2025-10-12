@@ -39,12 +39,7 @@ function ContactView({ tab }: { tab: Tab }) {
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
   const { openNew } = useTabs();
 
-  const {
-    selectedOrganization,
-    selectedPerson,
-    sortOption,
-    orgSortOption,
-  } = tab.state;
+  const { selectedOrganization, selectedPerson } = tab.state;
 
   const setSelectedOrganization = (value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, selectedOrganization: value });
@@ -52,14 +47,6 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const setSelectedPerson = (value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, selectedPerson: value });
-  };
-
-  const setSortOption = (value: "alphabetical" | "oldest" | "newest") => {
-    updateContactsTabState(tab, { ...tab.state, sortOption: value });
-  };
-
-  const setOrgSortOption = (value: "alphabetical" | "oldest" | "newest") => {
-    updateContactsTabState(tab, { ...tab.state, orgSortOption: value });
   };
 
   const handleSessionClick = (_sessionId: string) => {
@@ -77,16 +64,12 @@ function ContactView({ tab }: { tab: Tab }) {
       <OrganizationsColumn
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}
-        sortOption={orgSortOption}
-        setSortOption={setOrgSortOption}
       />
 
       <PeopleColumn
         currentOrgId={selectedOrganization}
         currentHumanId={selectedPerson}
         setSelectedPerson={setSelectedPerson}
-        sortOption={sortOption}
-        setSortOption={setSortOption}
       />
 
       <DetailsColumn

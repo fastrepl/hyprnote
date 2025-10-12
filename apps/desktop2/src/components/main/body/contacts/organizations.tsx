@@ -8,16 +8,13 @@ import { ColumnHeader, type SortOption } from "./shared";
 export function OrganizationsColumn({
   selectedOrganization,
   setSelectedOrganization,
-  sortOption,
-  setSortOption,
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
-  sortOption: SortOption;
-  setSortOption: (option: SortOption) => void;
 }) {
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
 
   const organizationIds = persisted.UI.useResultRowIds(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
 

@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { ColumnHeader, getInitials, type SortOption } from "./shared";
@@ -6,15 +8,12 @@ export function PeopleColumn({
   currentOrgId,
   currentHumanId,
   setSelectedPerson,
-  sortOption,
-  setSortOption,
 }: {
   currentOrgId?: string | null;
   currentHumanId?: string | null;
   setSelectedPerson: (id: string | null) => void;
-  sortOption: SortOption;
-  setSortOption: (option: SortOption) => void;
 }) {
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
   const thisOrgHumanIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.humansByOrg,
     currentOrgId ?? "",

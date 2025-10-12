@@ -1,6 +1,7 @@
 import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import * as internal from "../../store/tinybase/internal";
 import type { ChatMessage, ChatMessageStorage } from "../../store/tinybase/persisted";
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
@@ -31,7 +32,7 @@ export function ChatView({
     chatGroupIdRef.current = chatGroupId;
   }, [chatGroupId]);
 
-  const { user_id } = persisted.useConfig();
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
   const createChatGroup = persisted.UI.useSetRowCallback(
     "chat_groups",

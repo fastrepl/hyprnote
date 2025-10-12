@@ -23,6 +23,18 @@ export const useUpdateGeneral = () => {
   return { value, handle };
 };
 
+export const useUpdateAI = (id: string) => {
+  const _value = internal.UI.useRow("ai", id, internal.STORE_ID);
+  const value: internal.AI = internal.aiSchema.parse(_value);
+
+  const cb = internal.UI.useSetPartialValuesCallback(
+    (row: Partial<internal.AI>) => ({ ...row } satisfies Partial<internal.AIStorage>),
+  );
+
+  const handle = useSafeObjectUpdate(internal.aiSchema, value, cb);
+  return { value, handle };
+};
+
 export const useUpdateTemplate = (id: string) => {
   const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
   const value: persisted.Template = persisted.templateSchema.parse(_value);

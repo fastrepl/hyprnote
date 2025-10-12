@@ -1,3 +1,4 @@
+import * as internal from "../../../../../store/tinybase/internal";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { SessionEvent } from "./event";
@@ -16,9 +17,7 @@ export function OuterHeader(
     isAudioPlayerVisible: boolean;
   },
 ) {
-  const currentUserId = persisted.UI.useCell("configs", "singleton", "user_id", persisted.STORE_ID) as
-    | string
-    | undefined;
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
   return (
     <div className="flex items-center justify-between">
@@ -38,7 +37,7 @@ export function OuterHeader(
         />
         <SessionParticipants
           sessionId={sessionId}
-          currentUserId={currentUserId}
+          currentUserId={user_id}
         />
         <RecordingButton
           sessionRow={sessionRow}

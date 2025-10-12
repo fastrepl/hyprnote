@@ -16,13 +16,16 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
+  current_llm_provider: z.string().default("hypr"),
+  current_stt_provider: z.string().default("hypr"),
 });
 
 export const aiSchema = z.object({
-  provider: z.string(),
-  api_base: z.string(),
+  base_url: z.string(),
   api_key: z.string(),
 });
+export type AI = z.infer<typeof aiSchema>;
+export type AIStorage = ToStorageType<typeof aiSchema>;
 
 export type General = z.infer<typeof generalSchema>;
 export type GeneralStorage = ToStorageType<typeof generalSchema>;
@@ -40,11 +43,12 @@ export const SCHEMA = {
     ai_language: { type: "string" },
     spoken_languages: { type: "string" },
     jargons: { type: "string" },
+    current_llm_provider: { type: "string" },
+    current_stt_provider: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
     ai: {
-      provider: { type: "string" },
-      api_base: { type: "string" },
+      base_url: { type: "string" },
       api_key: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiSchema>,
     changes: {

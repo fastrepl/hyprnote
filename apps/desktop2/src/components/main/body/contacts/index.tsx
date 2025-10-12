@@ -1,6 +1,5 @@
 import { Contact2Icon } from "lucide-react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
 import { DetailsColumn } from "./details";
@@ -65,13 +64,6 @@ function ContactView({ tab }: { tab: Tab }) {
     updateContactsTabState(tab, { ...tab.state, sortOption: value });
   };
 
-  const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
-
-  const organizations = Object.entries(organizationsData).map(([id, data]) => ({
-    id,
-    ...(data as any),
-  }));
-
   const handleSessionClick = (_sessionId: string) => {
     openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
   };
@@ -97,7 +89,6 @@ function ContactView({ tab }: { tab: Tab }) {
         setShowNewOrg={setShowNewOrg}
         editingOrg={editingOrg}
         setEditingOrg={setEditingOrg}
-        organizations={organizations}
         handleEditOrganization={handleEditOrganization}
       />
 

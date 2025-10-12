@@ -89,19 +89,23 @@ function ContactView({ tab }: { tab: Tab }) {
     if (!mappingIdsByHuman || mappingIdsByHuman.length === 0) {
       return [];
     }
-  
+
     return mappingIdsByHuman
       .map((mappingId: string) => {
         const mapping = allMappings[mappingId];
-        if (!mapping || !mapping.session_id) return null;
-        
+        if (!mapping || !mapping.session_id) {
+          return null;
+        }
+
         const sessionId = mapping.session_id as string;
         const session = allSessions[sessionId];
-        if (!session) return null;
-        
+        if (!session) {
+          return null;
+        }
+
         return {
           id: sessionId,
-          ...session
+          ...session,
         };
       })
       .filter((session: any): session is NonNullable<typeof session> => session !== null);
@@ -135,7 +139,7 @@ function ContactView({ tab }: { tab: Tab }) {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     }
   });
-  
+
   const handleSessionClick = (_sessionId: string) => {
     openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
   };

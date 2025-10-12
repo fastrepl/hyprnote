@@ -13,16 +13,7 @@ export function PeopleColumn({
   currentHumanId?: string | null;
   setSelectedPerson: (id: string | null) => void;
 }) {
-  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
-
-  const thisOrgHumanIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.humansByOrg,
-    currentOrgId ?? "",
-    persisted.STORE_ID,
-  );
-  const allHumanIds = persisted.UI.useRowIds("humans", persisted.STORE_ID);
-
-  const humanIds = currentOrgId ? thisOrgHumanIds : allHumanIds;
+  const { humanIds, sortOption, setSortOption } = useSortedHumanIds(currentOrgId);
 
   return (
     <div className="w-[250px] border-r border-neutral-200 flex flex-col">
@@ -47,6 +38,55 @@ export function PeopleColumn({
       </div>
     </div>
   );
+}
+
+function useSortedHumanIds(currentOrgId?: string | null) {
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+
+  const allAlphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleHumans,
+    "name",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const allNewestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleHumans,
+    "created_at",
+    true,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const allOldestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleHumans,
+    "created_at",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+
+  const thisOrgHumanIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.humansByOrg,
+    currentOrgId ?? "",
+    persisted.STORE_ID,
+  );
+
+  const humanIds = currentOrgId
+    ? (sortOption === "alphabetical"
+      ? allAlphabeticalIds
+      : sortOption === "newest"
+      ? allNewestIds
+      : allOldestIds).filter((id) => thisOrgHumanIds.includes(id))
+    : (sortOption === "alphabetical"
+      ? allAlphabeticalIds
+      : sortOption === "newest"
+      ? allNewestIds
+      : allOldestIds);
+
+  return { humanIds, sortOption, setSortOption };
 }
 
 function PersonItem({

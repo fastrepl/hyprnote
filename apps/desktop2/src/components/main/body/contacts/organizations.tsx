@@ -14,9 +14,7 @@ export function OrganizationsColumn({
 }) {
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
-  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
-
-  const organizationIds = persisted.UI.useResultRowIds(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
+  const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
 
   return (
     <div className="w-[200px] border-r border-neutral-200 flex flex-col">
@@ -68,6 +66,43 @@ export function OrganizationsColumn({
       </div>
     </div>
   );
+}
+
+function useSortedOrganizationIds() {
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+
+  const alphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "name",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const newestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "created_at",
+    true,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const oldestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "created_at",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+
+  const organizationIds = sortOption === "alphabetical"
+    ? alphabeticalIds
+    : sortOption === "newest"
+    ? newestIds
+    : oldestIds;
+
+  return { organizationIds, sortOption, setSortOption };
 }
 
 function OrganizationItem({

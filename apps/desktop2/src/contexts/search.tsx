@@ -1,3 +1,4 @@
+import { Highlight } from "@orama/highlight";
 import { create, insert, Orama, search as oramaSearch } from "@orama/orama";
 import { pluginQPS } from "@orama/plugin-qps";
 import { useRouteContext } from "@tanstack/react-router";
@@ -9,7 +10,9 @@ export interface SearchResult {
   id: string;
   type: SearchEntityType;
   title: string;
+  titleHighlighted: string;
   content: string;
+  contentHighlighted: string;
   metadata: Record<string, any>;
   score: number;
 }
@@ -43,70 +46,164 @@ interface SearchContextValue {
   loadMoreInGroup: (groupKey: string) => void;
 }
 
-function flattenTranscript(transcript: any): string {
-  if (!transcript) {
-    return "";
+interface SearchDocument {
+  id: string;
+  type: SearchEntityType;
+  title: string;
+  content: string;
+  metadata: string;
+}
+
+interface SearchHit {
+  score: number;
+  document: SearchDocument;
+}
+
+type SerializableObject = Record<string, unknown>;
+
+const ITEMS_PER_PAGE = 3;
+const LOAD_MORE_STEP = 5;
+const SCORE_PERCENTILE_THRESHOLD = 0.1;
+const SPACE_REGEX = /\s+/g;
+
+const GROUP_TITLES: Record<SearchEntityType, string> = {
+  session: "Sessions",
+  human: "People",
+  organization: "Organizations",
+};
+
+function safeParseJSON(value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value;
   }
 
   try {
-    const parsed = typeof transcript === "string" ? JSON.parse(transcript) : transcript;
-
-    if (Array.isArray(parsed)) {
-      return parsed.map((segment: any) => segment.text || segment.content || "").join(" ");
-    }
-
-    if (typeof parsed === "object") {
-      return Object.values(parsed)
-        .map((val) => {
-          if (typeof val === "string") {
-            return val;
-          }
-          if (typeof val === "object" && val) {
-            return flattenTranscript(val);
-          }
-          return "";
-        })
-        .join(" ");
-    }
-
-    return String(parsed);
+    return JSON.parse(value);
   } catch {
-    return String(transcript);
+    return value;
   }
 }
 
-function createSessionSearchableContent(row: any): string {
-  const parts = [
-    row.raw_md || "",
-    row.enhanced_md || "",
-    flattenTranscript(row.transcript),
-  ];
-  return parts.filter(Boolean).join(" ");
+function normalizeQuery(query: string): string {
+  return query.trim().replace(SPACE_REGEX, " ");
 }
 
-function createHumanSearchableContent(row: any): string {
-  return [row.email || "", row.job_title || "", row.linkedin_username || ""]
+function toTrimmedString(value: unknown): string {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  return "";
+}
+
+function mergeContent(parts: unknown[]): string {
+  return parts
+    .map(toTrimmedString)
     .filter(Boolean)
     .join(" ");
 }
 
+function parseMetadata(metadata: unknown): SerializableObject {
+  if (typeof metadata !== "string" || metadata.length === 0) {
+    return {};
+  }
+
+  const parsed = safeParseJSON(metadata);
+  if (typeof parsed === "object" && parsed !== null) {
+    return parsed as SerializableObject;
+  }
+
+  return {};
+}
+
+function flattenTranscript(transcript: unknown): string {
+  if (transcript == null) {
+    return "";
+  }
+
+  const parsed = safeParseJSON(transcript);
+
+  if (typeof parsed === "string") {
+    return parsed;
+  }
+
+  if (Array.isArray(parsed)) {
+    return mergeContent(
+      parsed.map((segment) => {
+        if (!segment) {
+          return "";
+        }
+
+        if (typeof segment === "string") {
+          return segment;
+        }
+
+        if (typeof segment === "object") {
+          const record = segment as Record<string, unknown>;
+          const preferred = record.text ?? record.content;
+          if (typeof preferred === "string") {
+            return preferred;
+          }
+
+          return flattenTranscript(Object.values(record));
+        }
+
+        return "";
+      }),
+    );
+  }
+
+  if (typeof parsed === "object" && parsed !== null) {
+    return mergeContent(Object.values(parsed).map((value) => flattenTranscript(value)));
+  }
+
+  return "";
+}
+
+function collectCells(
+  persistedStore: any,
+  table: string,
+  rowId: string,
+  fields: string[],
+): Record<string, unknown> {
+  return fields.reduce<Record<string, unknown>>((acc, field) => {
+    acc[field] = persistedStore.getCell(table, rowId, field);
+    return acc;
+  }, {});
+}
+
+function createSessionSearchableContent(row: Record<string, unknown>): string {
+  return mergeContent([
+    row.raw_md,
+    row.enhanced_md,
+    flattenTranscript(row.transcript),
+  ]);
+}
+
+function createHumanSearchableContent(row: Record<string, unknown>): string {
+  return mergeContent([row.email, row.job_title, row.linkedin_username]);
+}
+
 function indexSessions(db: Orama<any>, persistedStore: any): void {
+  const fields = [
+    "user_id",
+    "created_at",
+    "folder_id",
+    "event_id",
+    "title",
+    "raw_md",
+    "enhanced_md",
+    "transcript",
+  ];
+
   persistedStore.forEachRow("sessions", (rowId: string) => {
-    const row = {
-      user_id: persistedStore.getCell("sessions", rowId, "user_id"),
-      created_at: persistedStore.getCell("sessions", rowId, "created_at"),
-      folder_id: persistedStore.getCell("sessions", rowId, "folder_id"),
-      event_id: persistedStore.getCell("sessions", rowId, "event_id"),
-      title: persistedStore.getCell("sessions", rowId, "title"),
-      raw_md: persistedStore.getCell("sessions", rowId, "raw_md"),
-      enhanced_md: persistedStore.getCell("sessions", rowId, "enhanced_md"),
-      transcript: persistedStore.getCell("sessions", rowId, "transcript"),
-    };
+    const row = collectCells(persistedStore, "sessions", rowId, fields);
+    const title = toTrimmedString(row.title) || "Untitled";
 
     void insert(db, {
       id: rowId,
       type: "session",
-      title: (row.title as string) || "Untitled",
+      title,
       content: createSessionSearchableContent(row),
       metadata: JSON.stringify({
         created_at: row.created_at,
@@ -118,21 +215,24 @@ function indexSessions(db: Orama<any>, persistedStore: any): void {
 }
 
 function indexHumans(db: Orama<any>, persistedStore: any): void {
+  const fields = [
+    "name",
+    "email",
+    "org_id",
+    "job_title",
+    "linkedin_username",
+    "is_user",
+    "created_at",
+  ];
+
   persistedStore.forEachRow("humans", (rowId: string) => {
-    const row = {
-      name: persistedStore.getCell("humans", rowId, "name"),
-      email: persistedStore.getCell("humans", rowId, "email"),
-      org_id: persistedStore.getCell("humans", rowId, "org_id"),
-      job_title: persistedStore.getCell("humans", rowId, "job_title"),
-      linkedin_username: persistedStore.getCell("humans", rowId, "linkedin_username"),
-      is_user: persistedStore.getCell("humans", rowId, "is_user"),
-      created_at: persistedStore.getCell("humans", rowId, "created_at"),
-    };
+    const row = collectCells(persistedStore, "humans", rowId, fields);
+    const title = toTrimmedString(row.name) || "Unknown";
 
     void insert(db, {
       id: rowId,
       type: "human",
-      title: (row.name as string) || "Unknown",
+      title,
       content: createHumanSearchableContent(row),
       metadata: JSON.stringify({
         email: row.email,
@@ -145,16 +245,16 @@ function indexHumans(db: Orama<any>, persistedStore: any): void {
 }
 
 function indexOrganizations(db: Orama<any>, persistedStore: any): void {
+  const fields = ["name", "created_at"];
+
   persistedStore.forEachRow("organizations", (rowId: string) => {
-    const row = {
-      name: persistedStore.getCell("organizations", rowId, "name"),
-      created_at: persistedStore.getCell("organizations", rowId, "created_at"),
-    };
+    const row = collectCells(persistedStore, "organizations", rowId, fields);
+    const title = toTrimmedString(row.name) || "Unknown Organization";
 
     void insert(db, {
       id: rowId,
       type: "organization",
-      title: (row.name as string) || "Unknown Organization",
+      title,
       content: "",
       metadata: JSON.stringify({
         created_at: row.created_at,
@@ -162,9 +262,6 @@ function indexOrganizations(db: Orama<any>, persistedStore: any): void {
     });
   });
 }
-
-const ITEMS_PER_PAGE = 3;
-const SCORE_PERCENTILE_THRESHOLD = 0.1; // Keep top 90% of results
 
 function calculateDynamicThreshold(scores: number[]): number {
   if (scores.length === 0) {
@@ -177,7 +274,52 @@ function calculateDynamicThreshold(scores: number[]): number {
   return sortedScores[Math.min(thresholdIndex, sortedScores.length - 1)] || 0;
 }
 
-function groupSearchResults(hits: any[], visibleCounts: Map<string, number>): GroupedSearchResults {
+function createSearchResult(hit: SearchHit, query: string): SearchResult {
+  const highlighter = new Highlight();
+  const titleHighlighted = highlighter.highlight(hit.document.title, query);
+  const contentHighlighted = highlighter.highlight(hit.document.content, query);
+
+  return {
+    id: hit.document.id,
+    type: hit.document.type,
+    title: hit.document.title,
+    titleHighlighted: titleHighlighted.HTML,
+    content: hit.document.content,
+    contentHighlighted: contentHighlighted.HTML,
+    metadata: parseMetadata(hit.document.metadata),
+    score: hit.score,
+  };
+}
+
+function sortResultsByScore(a: SearchResult, b: SearchResult): number {
+  return b.score - a.score;
+}
+
+function toGroup(
+  type: SearchEntityType,
+  results: SearchResult[],
+  visibleCounts: Map<string, number>,
+): SearchGroup {
+  const visibleCount = visibleCounts.get(type) || ITEMS_PER_PAGE;
+  const topScore = results[0]?.score || 0;
+
+  return {
+    key: type,
+    type,
+    title: GROUP_TITLES[type],
+    results,
+    totalCount: results.length,
+    topScore,
+    visibleCount,
+    hasMore: results.length > visibleCount,
+  };
+}
+
+function groupSearchResults(
+  hits: SearchHit[],
+  query: string,
+  visibleCounts: Map<string, number>,
+): GroupedSearchResults {
   if (hits.length === 0) {
     return {
       groups: [],
@@ -186,74 +328,31 @@ function groupSearchResults(hits: any[], visibleCounts: Map<string, number>): Gr
     };
   }
 
-  // Calculate dynamic threshold
-  const allScores = hits.map((hit) => hit.score);
-  const maxScore = Math.max(...allScores);
-  const threshold = calculateDynamicThreshold(allScores);
+  const scores = hits.map((hit) => hit.score);
+  const maxScore = Math.max(...scores);
+  const threshold = calculateDynamicThreshold(scores);
 
-  // Filter hits by threshold and group by type
-  const filteredHits = hits.filter((hit) => hit.score >= threshold);
-  const groupedByType = new Map<SearchEntityType, SearchResult[]>();
+  const grouped = hits.reduce<Map<SearchEntityType, SearchResult[]>>((acc, hit) => {
+    if (hit.score < threshold) {
+      return acc;
+    }
 
-  filteredHits.forEach((hit) => {
-    const doc = hit.document as {
-      id: string;
-      type: SearchEntityType;
-      title: string;
-      content: string;
-      metadata: string;
-    };
+    const key = hit.document.type;
+    const list = acc.get(key) ?? [];
+    list.push(createSearchResult(hit, query));
+    acc.set(key, list);
+    return acc;
+  }, new Map());
 
-    const result: SearchResult = {
-      id: doc.id,
-      type: doc.type,
-      title: doc.title,
-      content: doc.content,
-      metadata: JSON.parse(doc.metadata),
-      score: hit.score,
-    };
+  const groups = Array.from(grouped.entries())
+    .map(([type, results]) => toGroup(type, results.sort(sortResultsByScore), visibleCounts))
+    .sort((a, b) => b.topScore - a.topScore);
 
-    const existing = groupedByType.get(doc.type) || [];
-    existing.push(result);
-    groupedByType.set(doc.type, existing);
-  });
-
-  // Sort results within each group by score
-  groupedByType.forEach((results) => {
-    results.sort((a, b) => b.score - a.score);
-  });
-
-  // Create group metadata with pagination
-  const groupMetadata: SearchGroup[] = [];
-
-  const typeLabels: Record<SearchEntityType, string> = {
-    session: "Sessions",
-    human: "People",
-    organization: "Organizations",
-  };
-
-  groupedByType.forEach((results, type) => {
-    const groupKey = type;
-    const visibleCount = visibleCounts.get(groupKey) || ITEMS_PER_PAGE;
-    const topScore = results[0]?.score || 0;
-
-    groupMetadata.push({
-      key: groupKey,
-      type,
-      title: typeLabels[type],
-      results,
-      totalCount: results.length,
-      topScore,
-      visibleCount,
-      hasMore: results.length > visibleCount,
-    });
-  });
-
-  groupMetadata.sort((a, b) => b.topScore - a.topScore);
+  const totalResults = groups.reduce((count, group) => count + group.totalCount, 0);
 
   return {
-    groups: groupMetadata,
-    totalResults: filteredHits.length,
+    groups,
+    totalResults,
     maxScore,
   };
 }
@@ -272,7 +371,15 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   const oramaInstance = useRef<Orama<any> | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSearchHits = useRef<any[]>([]);
+  const lastSearchHits = useRef<SearchHit[]>([]);
+  const lastSearchQuery = useRef<string>("");
+
+  const resetSearchState = useCallback(() => {
+    setResults(null);
+    setVisibleCounts(new Map());
+    lastSearchHits.current = [];
+    lastSearchQuery.current = "";
+  }, []);
 
   const createIndex = useCallback(async () => {
     if (!persistedStore || isIndexing) {
@@ -305,56 +412,58 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     }
   }, [persistedStore, isIndexing]);
 
-  const performSearch = useCallback(async (searchQuery: string) => {
-    // Preflight: normalize and validate query
-    const normalizedQuery = searchQuery.trim().replace(/\s+/g, " ");
+  const performSearch = useCallback(
+    async (searchQuery: string) => {
+      const normalizedQuery = normalizeQuery(searchQuery);
 
-    if (!oramaInstance.current || !normalizedQuery || normalizedQuery.length < 2) {
-      setResults(null);
-      setIsSearching(false);
-      lastSearchHits.current = [];
-      return;
-    }
+      if (!oramaInstance.current || normalizedQuery.length < 2) {
+        resetSearchState();
+        setIsSearching(false);
+        return;
+      }
 
-    setIsSearching(true);
+      setIsSearching(true);
 
-    try {
-      const searchResults = await oramaSearch(oramaInstance.current, {
-        term: normalizedQuery,
-        boost: {
-          title: 3,
-          content: 1,
-        },
-        limit: 100,
-        tolerance: 1,
-      });
+      try {
+        const searchResults = await oramaSearch(oramaInstance.current, {
+          term: normalizedQuery,
+          boost: {
+            title: 3,
+            content: 1,
+          },
+          limit: 100,
+          tolerance: 1,
+        });
 
-      lastSearchHits.current = searchResults.hits;
-      const grouped = groupSearchResults(searchResults.hits, visibleCounts);
-      setResults(grouped);
-    } catch (error) {
-      console.error("Search failed:", error);
-      setResults(null);
-      lastSearchHits.current = [];
-    } finally {
-      setIsSearching(false);
-    }
-  }, [visibleCounts]);
+        const hits = searchResults.hits as unknown as SearchHit[];
+        lastSearchHits.current = hits;
+        lastSearchQuery.current = normalizedQuery;
+        const grouped = groupSearchResults(hits, normalizedQuery, visibleCounts);
+        setResults(grouped);
+      } catch (error) {
+        console.error("Search failed:", error);
+        resetSearchState();
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [resetSearchState, visibleCounts],
+  );
 
   useEffect(() => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
-    if (query.trim()) {
-      debounceTimer.current = setTimeout(() => {
-        performSearch(query);
-      }, 300);
-    } else {
-      setResults(null);
+    const normalizedQuery = normalizeQuery(query);
+
+    if (normalizedQuery.length < 2) {
+      resetSearchState();
       setIsSearching(false);
-      setVisibleCounts(new Map());
-      lastSearchHits.current = [];
+    } else {
+      debounceTimer.current = setTimeout(() => {
+        void performSearch(normalizedQuery);
+      }, 300);
     }
 
     return () => {
@@ -362,12 +471,12 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [query, performSearch]);
+  }, [query, performSearch, resetSearchState]);
 
   const onFocus = useCallback(() => {
     setIsFocused(true);
     if (!oramaInstance.current) {
-      createIndex();
+      void createIndex();
     }
   }, [createIndex]);
 
@@ -377,17 +486,16 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   const loadMoreInGroup = useCallback((groupKey: string) => {
     setVisibleCounts((prev) => {
-      const newCounts = new Map(prev);
-      const currentCount = newCounts.get(groupKey) || ITEMS_PER_PAGE;
-      newCounts.set(groupKey, currentCount + 5);
+      const next = new Map(prev);
+      const currentCount = next.get(groupKey) || ITEMS_PER_PAGE;
+      next.set(groupKey, currentCount + LOAD_MORE_STEP);
 
-      // Re-group existing search results with new visible counts
-      if (lastSearchHits.current.length > 0) {
-        const grouped = groupSearchResults(lastSearchHits.current, newCounts);
+      if (lastSearchHits.current.length > 0 && lastSearchQuery.current) {
+        const grouped = groupSearchResults(lastSearchHits.current, lastSearchQuery.current, next);
         setResults(grouped);
       }
 
-      return newCounts;
+      return next;
     });
   }, []);
 

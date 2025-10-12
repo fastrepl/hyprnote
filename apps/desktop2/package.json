@@ -22,6 +22,7 @@
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
+    "@orama/highlight": "^0.1.9",
     "@orama/orama": "^3.1.15",
     "@orama/plugin-qps": "^3.1.15",
     "@sentry/react": "^8.55.0",

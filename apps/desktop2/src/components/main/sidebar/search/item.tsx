@@ -64,9 +64,12 @@ export function SearchResultItem({
       <Icon className={cn(["h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400"])} />
       <div className={cn(["flex-1 min-w-0"])}>
         <div className={cn(["flex items-center gap-2 mb-0.5"])}>
-          <div className={cn(["text-sm font-medium text-gray-900 truncate flex-1"])}>
-            {result.title}
-          </div>
+          <div
+            className={cn([
+              "text-sm font-medium text-gray-900 truncate flex-1 [&_mark]:bg-yellow-200 [&_mark]:text-gray-900",
+            ])}
+            dangerouslySetInnerHTML={{ __html: result.titleHighlighted }}
+          />
           <div
             className={cn([
               "flex-shrink-0",
@@ -77,9 +80,10 @@ export function SearchResultItem({
           />
         </div>
         {result.content && (
-          <div className={cn(["text-xs text-gray-500 truncate mt-0.5"])}>
-            {result.content.slice(0, 80)}...
-          </div>
+          <div
+            className={cn(["text-xs text-gray-500 truncate mt-0.5 [&_mark]:bg-yellow-200 [&_mark]:text-gray-700"])}
+            dangerouslySetInnerHTML={{ __html: result.contentHighlighted.slice(0, 200) }}
+          />
         )}
       </div>
     </button>

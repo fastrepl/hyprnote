@@ -5,6 +5,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as persisted from "../../../../store/tinybase/persisted";
+import { getInitials } from "./shared";
 
 export function DetailsColumn({
   selectedPersonData,
@@ -15,7 +16,6 @@ export function DetailsColumn({
   handleEditPerson,
   handleDeletePerson,
   handleSessionClick,
-  getInitials,
 }: {
   selectedPersonData: any;
   editingPerson: string | null;
@@ -25,7 +25,6 @@ export function DetailsColumn({
   handleEditPerson: (id: string) => void;
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
-  getInitials: (name: string | null) => string;
 }) {
   return (
     <div className="flex-1 flex flex-col">
@@ -161,18 +160,6 @@ function EditPersonForm({
   onCancel: () => void;
 }) {
   const personData = persisted.UI.useRow("humans", person.id, persisted.STORE_ID);
-
-  const getInitials = (name: string | null) => {
-    if (!name) {
-      return "?";
-    }
-    return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   if (!personData) {
     return null;

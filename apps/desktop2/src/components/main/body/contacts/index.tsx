@@ -1,5 +1,6 @@
 import { Contact2Icon } from "lucide-react";
 import { useMemo } from "react";
+
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
@@ -154,18 +155,6 @@ function ContactView({ tab }: { tab: Tab }) {
     // Handle delete person
   };
 
-  const getInitials = (name: string | null) => {
-    if (!name) {
-      return "?";
-    }
-    return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <div className="flex h-full rounded-lg border">
       <OrganizationsColumn
@@ -185,7 +174,6 @@ function ContactView({ tab }: { tab: Tab }) {
         setSelectedPerson={setSelectedPerson}
         sortOption={sortOption}
         setSortOption={setSortOption}
-        getInitials={getInitials}
       />
 
       <DetailsColumn
@@ -197,7 +185,6 @@ function ContactView({ tab }: { tab: Tab }) {
         handleEditPerson={handleEditPerson}
         handleDeletePerson={handleDeletePerson}
         handleSessionClick={handleSessionClick}
-        getInitials={getInitials}
       />
     </div>
   );

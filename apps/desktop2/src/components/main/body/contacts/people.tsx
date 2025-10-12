@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
+import { getInitials } from "./shared";
 
 export function PeopleColumn({
   displayPeople,
@@ -9,14 +10,12 @@ export function PeopleColumn({
   setSelectedPerson,
   sortOption,
   setSortOption,
-  getInitials,
 }: {
   displayPeople: any[];
   selectedPerson: string | null;
   setSelectedPerson: (id: string | null) => void;
   sortOption: "alphabetical" | "oldest" | "newest";
   setSortOption: (option: "alphabetical" | "oldest" | "newest") => void;
-  getInitials: (name: string | null) => string;
 }) {
   return (
     <div className="w-[250px] border-r border-neutral-200 flex flex-col">

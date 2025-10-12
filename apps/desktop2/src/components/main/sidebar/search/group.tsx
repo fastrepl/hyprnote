@@ -19,6 +19,7 @@ export function SearchResultGroup({
     <div className={cn(["mb-6"])}>
       <div
         className={cn([
+          "sticky top-0 z-10",
           "px-3 py-2 mb-2",
           "flex items-center gap-2",
           "bg-gray-50 rounded-lg",

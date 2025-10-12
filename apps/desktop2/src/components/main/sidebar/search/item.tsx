@@ -1,12 +1,25 @@
 import { Building2Icon, FileTextIcon, UserIcon } from "lucide-react";
+import { useCallback } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { type SearchResult } from "../../../../contexts/search";
+import { useTabs } from "../../../../store/zustand/tabs";
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
-  const handleClick = () => {
-    console.log("Search result clicked:", result);
-  };
+  const { openCurrent } = useTabs();
+  const handleClick = useCallback(() => {
+    switch (result.type) {
+      case "session":
+        openCurrent({ id: result.id, type: "sessions", active: true, state: { editor: "raw" } });
+        break;
+      case "human":
+        openCurrent({ id: result.id, type: "humans", active: true });
+        break;
+      case "organization":
+        openCurrent({ id: result.id, type: "organizations", active: true });
+        break;
+    }
+  }, [openCurrent, result.id, result.type]);
 
   const Icon = result.type === "session"
     ? FileTextIcon

@@ -21,7 +21,7 @@ export function SearchResults() {
   }
 
   return (
-    <div className={cn(["flex-1 overflow-y-auto"])}>
+    <div className={cn(["h-full overflow-y-auto"])}>
       <div className={cn(["px-3 py-3"])}>
         <div className={cn(["px-2 py-2 mb-4"])}>
           <p className={cn(["text-xs text-gray-500 font-medium"])}>

@@ -10,9 +10,9 @@ import { TimelineView } from "./timeline";
 
 export function LeftSidebar() {
   const { togglePanel: toggleLeftPanel } = useLeftSidebar();
-  const { query, isFocused } = useSearch();
+  const { query } = useSearch();
 
-  const showSearchResults = (query.trim() !== "" || isFocused) && query.trim() !== "";
+  const showSearchResults = query.trim() !== "";
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
@@ -34,12 +34,14 @@ export function LeftSidebar() {
 
       <div
         className={clsx([
-          "flex flex-col flex-1 gap-1 overflow-hidden",
-          "p-1 pr-0",
+          "flex flex-col flex-1 overflow-hidden",
+          "p-1 pr-0 gap-1",
         ])}
       >
         <NewNoteButton />
-        {showSearchResults ? <SearchResults /> : <TimelineView />}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {showSearchResults ? <SearchResults /> : <TimelineView />}
+        </div>
         <ProfileSection />
       </div>
     </div>

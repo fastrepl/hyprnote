@@ -1,5 +1,6 @@
 import { Contact2Icon } from "lucide-react";
 
+import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
 import { DetailsColumn } from "./details";
@@ -76,9 +77,11 @@ function ContactView({ tab }: { tab: Tab }) {
     setEditingOrg(organizationId);
   };
 
-  const handleDeletePerson = async (_personId: string) => {
-    // Handle delete person
-  };
+  const handleDeletePerson = persisted.UI.useDelRowCallback(
+    "humans",
+    (human_id: string) => human_id,
+    persisted.STORE_ID,
+  );
 
   return (
     <div className="flex h-full rounded-lg border">

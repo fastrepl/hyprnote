@@ -8,6 +8,7 @@ import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shar
 
 export const generalSchema = z.object({
   user_id: z.string(),
+  autostart: z.boolean().default(false),
   telemetry_consent: z.boolean().default(true),
   save_recordings: z.boolean().default(true),
   notification_event: z.boolean().default(true),
@@ -31,6 +32,7 @@ export const STORE_ID = "internal";
 export const SCHEMA = {
   value: {
     user_id: { type: "string" },
+    autostart: { type: "boolean" },
     save_recordings: { type: "boolean" },
     notification_event: { type: "boolean" },
     notification_detect: { type: "boolean" },

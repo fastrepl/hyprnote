@@ -1,10 +1,21 @@
-import { Highlight } from "@orama/highlight";
-import { create, insert, Orama, search as oramaSearch } from "@orama/orama";
-import { pluginQPS } from "@orama/plugin-qps";
 import { useRouteContext } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
+import { Highlight } from "@orama/highlight";
+import { create, insert, Orama, search as oramaSearch } from "@orama/orama";
+import { pluginQPS } from "@orama/plugin-qps";
+
 export type SearchEntityType = "session" | "human" | "organization";
+
+export interface SearchFilters {
+  created_at?: {
+    gte?: number;
+    lte?: number;
+    gt?: number;
+    lt?: number;
+    eq?: number;
+  };
+}
 
 export interface SearchResult {
   id: string;
@@ -13,6 +24,11 @@ export interface SearchResult {
   titleHighlighted: string;
   content: string;
   contentHighlighted: string;
+  created_at: number | null;
+  folder_id: string | null;
+  event_id: string | null;
+  org_id: string | null;
+  is_user: boolean | null;
   metadata: Record<string, any>;
   score: number;
 }
@@ -37,6 +53,8 @@ export interface GroupedSearchResults {
 interface SearchContextValue {
   query: string;
   setQuery: (query: string) => void;
+  filters: SearchFilters | null;
+  setFilters: (filters: SearchFilters | null) => void;
   results: GroupedSearchResults | null;
   isSearching: boolean;
   isFocused: boolean;
@@ -51,6 +69,11 @@ interface SearchDocument {
   type: SearchEntityType;
   title: string;
   content: string;
+  created_at: number | null;
+  folder_id: string | null;
+  event_id: string | null;
+  org_id: string | null;
+  is_user: boolean | null;
   metadata: string;
 }
 
@@ -184,6 +207,31 @@ function createHumanSearchableContent(row: Record<string, unknown>): string {
   return mergeContent([row.email, row.job_title, row.linkedin_username]);
 }
 
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return isNaN(parsed) ? null : parsed;
+  }
+  return null;
+}
+
+function toString(value: unknown): string | null {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  return null;
+}
+
+function toBoolean(value: unknown): boolean | null {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  return null;
+}
+
 function indexSessions(db: Orama<any>, persistedStore: any): void {
   const fields = [
     "user_id",
@@ -205,11 +253,12 @@ function indexSessions(db: Orama<any>, persistedStore: any): void {
       type: "session",
       title,
       content: createSessionSearchableContent(row),
-      metadata: JSON.stringify({
-        created_at: row.created_at,
-        folder_id: row.folder_id,
-        event_id: row.event_id,
-      }),
+      created_at: toNumber(row.created_at),
+      folder_id: toString(row.folder_id),
+      event_id: toString(row.event_id),
+      org_id: null,
+      is_user: null,
+      metadata: JSON.stringify({}),
     });
   });
 }
@@ -234,11 +283,14 @@ function indexHumans(db: Orama<any>, persistedStore: any): void {
       type: "human",
       title,
       content: createHumanSearchableContent(row),
+      created_at: toNumber(row.created_at),
+      folder_id: null,
+      event_id: null,
+      org_id: toString(row.org_id),
+      is_user: toBoolean(row.is_user),
       metadata: JSON.stringify({
         email: row.email,
-        org_id: row.org_id,
         job_title: row.job_title,
-        is_user: row.is_user,
       }),
     });
   });
@@ -256,11 +308,42 @@ function indexOrganizations(db: Orama<any>, persistedStore: any): void {
       type: "organization",
       title,
       content: "",
-      metadata: JSON.stringify({
-        created_at: row.created_at,
-      }),
+      created_at: toNumber(row.created_at),
+      folder_id: null,
+      event_id: null,
+      org_id: null,
+      is_user: null,
+      metadata: JSON.stringify({}),
     });
   });
+}
+
+function buildOramaFilters(filters: SearchFilters | null): Record<string, any> | undefined {
+  if (!filters || !filters.created_at) {
+    return undefined;
+  }
+
+  const createdAtConditions: Record<string, number> = {};
+
+  if (filters.created_at.gte !== undefined) {
+    createdAtConditions.gte = filters.created_at.gte;
+  }
+  if (filters.created_at.lte !== undefined) {
+    createdAtConditions.lte = filters.created_at.lte;
+  }
+  if (filters.created_at.gt !== undefined) {
+    createdAtConditions.gt = filters.created_at.gt;
+  }
+  if (filters.created_at.lt !== undefined) {
+    createdAtConditions.lt = filters.created_at.lt;
+  }
+  if (filters.created_at.eq !== undefined) {
+    createdAtConditions.eq = filters.created_at.eq;
+  }
+
+  return Object.keys(createdAtConditions).length > 0
+    ? { created_at: createdAtConditions }
+    : undefined;
 }
 
 function calculateDynamicThreshold(scores: number[]): number {
@@ -286,6 +369,11 @@ function createSearchResult(hit: SearchHit, query: string): SearchResult {
     titleHighlighted: titleHighlighted.HTML,
     content: hit.document.content,
     contentHighlighted: contentHighlighted.HTML,
+    created_at: hit.document.created_at,
+    folder_id: hit.document.folder_id,
+    event_id: hit.document.event_id,
+    org_id: hit.document.org_id,
+    is_user: hit.document.is_user,
     metadata: parseMetadata(hit.document.metadata),
     score: hit.score,
   };
@@ -363,6 +451,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const { persistedStore } = useRouteContext({ from: "__root__" });
 
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<SearchFilters | null>(null);
   const [results, setResults] = useState<GroupedSearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -389,12 +478,17 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setIsIndexing(true);
 
     try {
-      const db = await create({
+      const db = create({
         schema: {
           id: "string",
           type: "enum",
           title: "string",
           content: "string",
+          created_at: "number",
+          folder_id: "string",
+          event_id: "string",
+          org_id: "string",
+          is_user: "boolean",
           metadata: "string",
         } as const,
         plugins: [pluginQPS()],
@@ -413,7 +507,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   }, [persistedStore, isIndexing]);
 
   const performSearch = useCallback(
-    async (searchQuery: string) => {
+    async (searchQuery: string, searchFilters: SearchFilters | null) => {
       const normalizedQuery = normalizeQuery(searchQuery);
 
       if (!oramaInstance.current || normalizedQuery.length < 2) {
@@ -425,6 +519,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       setIsSearching(true);
 
       try {
+        const whereClause = buildOramaFilters(searchFilters);
+
         const searchResults = await oramaSearch(oramaInstance.current, {
           term: normalizedQuery,
           boost: {
@@ -433,6 +529,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
           },
           limit: 100,
           tolerance: 1,
+          ...(whereClause && { where: whereClause }),
         });
 
         const hits = searchResults.hits as unknown as SearchHit[];
@@ -462,7 +559,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       setIsSearching(false);
     } else {
       debounceTimer.current = setTimeout(() => {
-        void performSearch(normalizedQuery);
+        void performSearch(normalizedQuery, filters);
       }, 300);
     }
 
@@ -471,7 +568,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [query, performSearch, resetSearchState]);
+  }, [query, filters, performSearch, resetSearchState]);
 
   const onFocus = useCallback(() => {
     setIsFocused(true);
@@ -503,6 +600,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     () => ({
       query,
       setQuery,
+      filters,
+      setFilters,
       results,
       isSearching,
       isFocused,
@@ -511,7 +610,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       onBlur,
       loadMoreInGroup,
     }),
-    [query, results, isSearching, isFocused, isIndexing, onFocus, onBlur, loadMoreInGroup],
+    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur, loadMoreInGroup],
   );
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

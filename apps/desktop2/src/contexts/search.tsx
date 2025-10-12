@@ -1,4 +1,5 @@
 import { create, insert, Orama, search as oramaSearch } from "@orama/orama";
+import { pluginQPS } from "@orama/plugin-qps";
 import { useRouteContext } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
@@ -13,10 +14,21 @@ export interface SearchResult {
   score: number;
 }
 
+export interface SearchGroup {
+  key: string;
+  type: SearchEntityType;
+  title: string;
+  results: SearchResult[];
+  totalCount: number;
+  topScore: number;
+  visibleCount: number;
+  hasMore: boolean;
+}
+
 export interface GroupedSearchResults {
-  sessions: SearchResult[];
-  humans: SearchResult[];
-  organizations: SearchResult[];
+  groups: SearchGroup[];
+  totalResults: number;
+  maxScore: number;
 }
 
 interface SearchContextValue {
@@ -28,6 +40,7 @@ interface SearchContextValue {
   isIndexing: boolean;
   onFocus: () => void;
   onBlur: () => void;
+  loadMoreInGroup: (groupKey: string) => void;
 }
 
 function flattenTranscript(transcript: any): string {
@@ -150,14 +163,39 @@ function indexOrganizations(db: Orama<any>, persistedStore: any): void {
   });
 }
 
-function groupSearchResults(hits: any[]): GroupedSearchResults {
-  const grouped: GroupedSearchResults = {
-    sessions: [],
-    humans: [],
-    organizations: [],
-  };
+const ITEMS_PER_PAGE = 3;
+const SCORE_PERCENTILE_THRESHOLD = 0.1; // Keep top 90% of results
 
-  hits.forEach((hit) => {
+function calculateDynamicThreshold(scores: number[]): number {
+  if (scores.length === 0) {
+    return 0;
+  }
+
+  const sortedScores = [...scores].sort((a, b) => b - a);
+  const thresholdIndex = Math.floor(sortedScores.length * SCORE_PERCENTILE_THRESHOLD);
+
+  return sortedScores[Math.min(thresholdIndex, sortedScores.length - 1)] || 0;
+}
+
+function groupSearchResults(hits: any[], visibleCounts: Map<string, number>): GroupedSearchResults {
+  if (hits.length === 0) {
+    return {
+      groups: [],
+      totalResults: 0,
+      maxScore: 0,
+    };
+  }
+
+  // Calculate dynamic threshold
+  const allScores = hits.map((hit) => hit.score);
+  const maxScore = Math.max(...allScores);
+  const threshold = calculateDynamicThreshold(allScores);
+
+  // Filter hits by threshold and group by type
+  const filteredHits = hits.filter((hit) => hit.score >= threshold);
+  const groupedByType = new Map<SearchEntityType, SearchResult[]>();
+
+  filteredHits.forEach((hit) => {
     const doc = hit.document as {
       id: string;
       type: SearchEntityType;
@@ -175,16 +213,49 @@ function groupSearchResults(hits: any[]): GroupedSearchResults {
       score: hit.score,
     };
 
-    if (doc.type === "session") {
-      grouped.sessions.push(result);
-    } else if (doc.type === "human") {
-      grouped.humans.push(result);
-    } else if (doc.type === "organization") {
-      grouped.organizations.push(result);
-    }
+    const existing = groupedByType.get(doc.type) || [];
+    existing.push(result);
+    groupedByType.set(doc.type, existing);
   });
 
-  return grouped;
+  // Sort results within each group by score
+  groupedByType.forEach((results) => {
+    results.sort((a, b) => b.score - a.score);
+  });
+
+  // Create group metadata with pagination
+  const groupMetadata: SearchGroup[] = [];
+
+  const typeLabels: Record<SearchEntityType, string> = {
+    session: "Sessions",
+    human: "People",
+    organization: "Organizations",
+  };
+
+  groupedByType.forEach((results, type) => {
+    const groupKey = type;
+    const visibleCount = visibleCounts.get(groupKey) || ITEMS_PER_PAGE;
+    const topScore = results[0]?.score || 0;
+
+    groupMetadata.push({
+      key: groupKey,
+      type,
+      title: typeLabels[type],
+      results,
+      totalCount: results.length,
+      topScore,
+      visibleCount,
+      hasMore: results.length > visibleCount,
+    });
+  });
+
+  groupMetadata.sort((a, b) => b.topScore - a.topScore);
+
+  return {
+    groups: groupMetadata,
+    totalResults: filteredHits.length,
+    maxScore,
+  };
 }
 
 const SearchContext = createContext<SearchContextValue | null>(null);
@@ -197,9 +268,11 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isIndexing, setIsIndexing] = useState(false);
+  const [visibleCounts, setVisibleCounts] = useState<Map<string, number>>(new Map());
 
   const oramaInstance = useRef<Orama<any> | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSearchHits = useRef<any[]>([]);
 
   const createIndex = useCallback(async () => {
     if (!persistedStore || isIndexing) {
@@ -217,6 +290,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
           content: "string",
           metadata: "string",
         } as const,
+        plugins: [pluginQPS()],
       });
 
       indexSessions(db, persistedStore);
@@ -232,9 +306,13 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   }, [persistedStore, isIndexing]);
 
   const performSearch = useCallback(async (searchQuery: string) => {
-    if (!oramaInstance.current || !searchQuery.trim()) {
+    // Preflight: normalize and validate query
+    const normalizedQuery = searchQuery.trim().replace(/\s+/g, " ");
+
+    if (!oramaInstance.current || !normalizedQuery || normalizedQuery.length < 2) {
       setResults(null);
       setIsSearching(false);
+      lastSearchHits.current = [];
       return;
     }
 
@@ -242,23 +320,26 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const searchResults = await oramaSearch(oramaInstance.current, {
-        term: searchQuery,
+        term: normalizedQuery,
         boost: {
           title: 3,
           content: 1,
         },
-        limit: 50,
+        limit: 100,
+        tolerance: 1,
       });
 
-      const grouped = groupSearchResults(searchResults.hits);
+      lastSearchHits.current = searchResults.hits;
+      const grouped = groupSearchResults(searchResults.hits, visibleCounts);
       setResults(grouped);
     } catch (error) {
       console.error("Search failed:", error);
       setResults(null);
+      lastSearchHits.current = [];
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [visibleCounts]);
 
   useEffect(() => {
     if (debounceTimer.current) {
@@ -272,6 +353,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     } else {
       setResults(null);
       setIsSearching(false);
+      setVisibleCounts(new Map());
+      lastSearchHits.current = [];
     }
 
     return () => {
@@ -292,6 +375,22 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setIsFocused(false);
   }, []);
 
+  const loadMoreInGroup = useCallback((groupKey: string) => {
+    setVisibleCounts((prev) => {
+      const newCounts = new Map(prev);
+      const currentCount = newCounts.get(groupKey) || ITEMS_PER_PAGE;
+      newCounts.set(groupKey, currentCount + 5);
+
+      // Re-group existing search results with new visible counts
+      if (lastSearchHits.current.length > 0) {
+        const grouped = groupSearchResults(lastSearchHits.current, newCounts);
+        setResults(grouped);
+      }
+
+      return newCounts;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       query,
@@ -302,8 +401,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       isIndexing,
       onFocus,
       onBlur,
+      loadMoreInGroup,
     }),
-    [query, results, isSearching, isFocused, isIndexing, onFocus, onBlur],
+    [query, results, isSearching, isFocused, isIndexing, onFocus, onBlur, loadMoreInGroup],
   );
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

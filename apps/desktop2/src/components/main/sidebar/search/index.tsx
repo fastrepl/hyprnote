@@ -5,6 +5,12 @@ import { useSearch } from "../../../../contexts/search";
 import { SearchNoResults } from "./empty";
 import { SearchResultGroup } from "./group";
 
+const ICON_MAP = {
+  session: FileTextIcon,
+  human: UserIcon,
+  organization: Building2Icon,
+};
+
 export function SearchResults() {
   const { results, query } = useSearch();
 
@@ -12,11 +18,7 @@ export function SearchResults() {
     return null;
   }
 
-  const totalResults = results.sessions.length
-    + results.humans.length
-    + results.organizations.length;
-
-  if (totalResults === 0) {
+  if (results.totalResults === 0) {
     return <SearchNoResults />;
   }
 
@@ -25,27 +27,19 @@ export function SearchResults() {
       <div className={cn(["px-3 py-3"])}>
         <div className={cn(["px-2 py-2 mb-4"])}>
           <p className={cn(["text-xs text-gray-500 font-medium"])}>
-            {totalResults} result{totalResults !== 1 ? "s" : ""} for "{query}"
+            {results.totalResults} result{results.totalResults !== 1 ? "s" : ""} for "{query}"
           </p>
         </div>
 
-        <SearchResultGroup
-          title="Sessions"
-          results={results.sessions}
-          icon={FileTextIcon}
-        />
-
-        <SearchResultGroup
-          title="People"
-          results={results.humans}
-          icon={UserIcon}
-        />
-
-        <SearchResultGroup
-          title="Organizations"
-          results={results.organizations}
-          icon={Building2Icon}
-        />
+        {results.groups.map((group, index) => (
+          <SearchResultGroup
+            key={group.key}
+            group={group}
+            icon={ICON_MAP[group.type]}
+            rank={index + 1}
+            maxScore={results.maxScore}
+          />
+        ))}
       </div>
     </div>
   );

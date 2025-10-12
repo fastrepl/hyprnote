@@ -409,6 +409,9 @@ importers:
       '@orama/orama':
         specifier: ^3.1.15
         version: 3.1.15
+      '@orama/plugin-qps':
+        specifier: ^3.1.15
+        version: 3.1.15
       '@sentry/react':
         specifier: ^8.55.0
         version: 8.55.0(react@19.2.0)
@@ -3241,6 +3244,9 @@ packages:
   '@orama/orama@3.1.15':
     resolution: {integrity: sha512-ltjr1WHlY+uqEKE0JG2G6Xn36mSQGmPdPGQedQyipekBdf0iAtp8oL9dckQRX8cP+nUfOZwwPWSu7km8gGciUg==}
     engines: {node: '>= 20.0.0'}
+
+  '@orama/plugin-qps@3.1.15':
+    resolution: {integrity: sha512-KPULE9QdKeG2mCoI/GiDS0R4/SE7P5Jhk9nOSBou5XFx0c7V2smqebX9xxsxeICxJhSBbyc+yDS0ludTUS9eUg==}
 
   '@pivanov/utils@0.0.2':
     resolution: {integrity: sha512-q9CN0bFWxWgMY5hVVYyBgez1jGiLBa6I+LkG37ycylPhFvEGOOeaADGtUSu46CaZasPnlY8fCdVJZmrgKb1EPA==}
@@ -14475,6 +14481,10 @@ snapshots:
       '@opentelemetry/core': 2.1.0(@opentelemetry/api@1.9.0)
 
   '@orama/orama@3.1.15': {}
+
+  '@orama/plugin-qps@3.1.15':
+    dependencies:
+      '@orama/orama': 3.1.15
 
   '@pivanov/utils@0.0.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:

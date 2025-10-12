@@ -23,6 +23,7 @@
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@orama/orama": "^3.1.15",
+    "@orama/plugin-qps": "^3.1.15",
     "@sentry/react": "^8.55.0",
     "@supabase/supabase-js": "^2.75.0",
     "@t3-oss/env-core": "^0.13.8",

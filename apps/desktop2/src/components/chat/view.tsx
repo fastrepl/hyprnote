@@ -79,7 +79,7 @@ export function ChatView({
       createChatMessage({ id: messageId, chat_group_id: groupId, content, role: "user", parts, metadata: {} });
       sendMessage(uiMessage);
     },
-    [createChatGroup, createChatMessage, onChatGroupChange],
+    [createChatGroup, createChatMessage, setChatGroupId, onChatGroupChange],
   );
 
   const handleNewChat = useCallback(() => {

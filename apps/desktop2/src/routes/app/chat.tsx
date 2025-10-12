@@ -19,7 +19,7 @@ function Component() {
 
   const handleSetChatGroupId = useCallback((id: string | undefined) => {
     navigate({ to: "/app/chat", search: { id } });
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col h-screen bg-neutral-50">

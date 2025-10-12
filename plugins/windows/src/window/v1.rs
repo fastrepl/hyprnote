@@ -128,7 +128,7 @@ impl WindowImpl for AppWindow {
                 let window = self
                     .window_builder(app, "/app/chat")
                     .resizable(true)
-                    .min_inner_size(440.0, 500.0)
+                    .min_inner_size(400.0, 500.0)
                     .build()?;
 
                 let desired_size = LogicalSize::new(400.0, 600.0);

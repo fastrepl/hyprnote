@@ -12,6 +12,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppAuthRouteImport } from './routes/app/auth'
 import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
@@ -35,6 +36,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppMainRoute = AppMainRouteImport.update({
   id: '/main',
   path: '/main',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChatRoute = AppChatRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/main/': typeof AppMainLayoutIndexRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/auth': typeof AppAuthRoute
   '/app/chat': typeof AppChatRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
@@ -100,17 +109,25 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/auth'
     | '/app/chat'
+    | '/app/onboarding'
     | '/app/main'
     | '/app/settings'
     | '/app/main/'
     | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/auth' | '/app/chat' | '/app/main' | '/app/settings'
+  to:
+    | '/app'
+    | '/app/auth'
+    | '/app/chat'
+    | '/app/onboarding'
+    | '/app/main'
+    | '/app/settings'
   id:
     | '__root__'
     | '/app'
     | '/app/auth'
     | '/app/chat'
+    | '/app/onboarding'
     | '/app/main'
     | '/app/main/_layout'
     | '/app/settings'
@@ -144,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/chat': {
@@ -240,6 +264,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAuthRoute: typeof AppAuthRoute
   AppChatRoute: typeof AppChatRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppMainRoute: typeof AppMainRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
 }
@@ -247,6 +272,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAuthRoute: AppAuthRoute,
   AppChatRoute: AppChatRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppMainRoute: AppMainRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,
 }

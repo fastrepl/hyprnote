@@ -42,7 +42,6 @@ function ContactView({ tab }: { tab: Tab }) {
   const {
     selectedOrganization,
     selectedPerson,
-    editingPerson,
     sortOption,
     orgSortOption,
   } = tab.state;
@@ -55,10 +54,6 @@ function ContactView({ tab }: { tab: Tab }) {
     updateContactsTabState(tab, { ...tab.state, selectedPerson: value });
   };
 
-  const setEditingPerson = (value: string | null) => {
-    updateContactsTabState(tab, { ...tab.state, editingPerson: value });
-  };
-
   const setSortOption = (value: "alphabetical" | "oldest" | "newest") => {
     updateContactsTabState(tab, { ...tab.state, sortOption: value });
   };
@@ -69,10 +64,6 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const handleSessionClick = (_sessionId: string) => {
     openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
-  };
-
-  const handleEditPerson = (personId: string) => {
-    setEditingPerson(personId);
   };
 
   const handleDeletePerson = persisted.UI.useDelRowCallback(
@@ -100,9 +91,6 @@ function ContactView({ tab }: { tab: Tab }) {
 
       <DetailsColumn
         selectedHumanId={selectedPerson}
-        isEditing={editingPerson === selectedPerson}
-        setEditingPerson={setEditingPerson}
-        handleEditPerson={handleEditPerson}
         handleDeletePerson={handleDeletePerson}
         handleSessionClick={handleSessionClick}
       />

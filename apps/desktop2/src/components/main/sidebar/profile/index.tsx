@@ -42,9 +42,6 @@ export function ProfileSection() {
       state: {
         selectedOrganization: null,
         selectedPerson: null,
-        editingPerson: null,
-        editingOrg: null,
-        showNewOrg: false,
         sortOption: "alphabetical",
         orgSortOption: "alphabetical",
       },

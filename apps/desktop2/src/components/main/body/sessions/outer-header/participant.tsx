@@ -199,9 +199,6 @@ export function SessionParticipants({
           state: {
             selectedPerson: participant.id,
             selectedOrganization: null,
-            editingPerson: null,
-            editingOrg: null,
-            showNewOrg: false,
             sortOption: "alphabetical",
             orgSortOption: "alphabetical",
           },

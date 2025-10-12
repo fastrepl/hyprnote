@@ -9,19 +9,14 @@ import { getInitials } from "./shared";
 
 export function DetailsColumn({
   selectedHumanId,
-  isEditing,
-  setEditingPerson,
-  handleEditPerson,
   handleDeletePerson,
   handleSessionClick,
 }: {
   selectedHumanId?: string | null;
-  isEditing: boolean;
-  setEditingPerson: (id: string | null) => void;
-  handleEditPerson: (id: string) => void;
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
 }) {
+  const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const selectedPersonData = persisted.UI.useRow("humans", selectedHumanId ?? "", persisted.STORE_ID);
 
   const mappingIdsByHuman = persisted.UI.useSliceRowIds(
@@ -63,7 +58,7 @@ export function DetailsColumn({
     <div className="flex-1 flex flex-col">
       {selectedPersonData && selectedHumanId
         ? (
-          isEditing
+          editingPerson === selectedHumanId
             ? (
               <EditPersonForm
                 personId={selectedHumanId}
@@ -99,7 +94,7 @@ export function DetailsColumn({
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleEditPerson(selectedHumanId)}
+                            onClick={() => setEditingPerson(selectedHumanId)}
                             className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
                             title="Edit contact"
                           >

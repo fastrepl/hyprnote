@@ -111,8 +111,6 @@ function ContactView({ tab }: { tab: Tab }) {
       .filter((session: any): session is NonNullable<typeof session> => session !== null);
   }, [mappingIdsByHuman, allMappings, allSessions]);
 
-  console.log("personSessions", personSessions);
-
   // Convert to arrays for rendering
   const organizations = Object.entries(organizationsData).map(([id, data]) => ({
     id,

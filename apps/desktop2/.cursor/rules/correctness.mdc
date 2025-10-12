@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+- After some good amount of typescript change, run `pnpm -r typecheck`.

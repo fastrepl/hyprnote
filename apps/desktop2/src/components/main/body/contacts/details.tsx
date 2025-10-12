@@ -5,37 +5,63 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as persisted from "../../../../store/tinybase/persisted";
+import { getInitials } from "./shared";
 
 export function DetailsColumn({
-  selectedPersonData,
-  editingPerson,
-  setEditingPerson,
-  organizations,
-  personSessions,
-  handleEditPerson,
+  selectedHumanId,
   handleDeletePerson,
   handleSessionClick,
-  getInitials,
 }: {
-  selectedPersonData: any;
-  editingPerson: string | null;
-  setEditingPerson: (id: string | null) => void;
-  organizations: any[];
-  personSessions: any[];
-  handleEditPerson: (id: string) => void;
+  selectedHumanId?: string | null;
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
-  getInitials: (name: string | null) => string;
 }) {
+  const [editingPerson, setEditingPerson] = useState<string | null>(null);
+  const selectedPersonData = persisted.UI.useRow("humans", selectedHumanId ?? "", persisted.STORE_ID);
+
+  const mappingIdsByHuman = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.sessionsByHuman,
+    selectedHumanId ?? "",
+    persisted.STORE_ID,
+  );
+
+  const allMappings = persisted.UI.useTable("mapping_session_participant", persisted.STORE_ID);
+  const allSessions = persisted.UI.useTable("sessions", persisted.STORE_ID);
+
+  const personSessions = React.useMemo(() => {
+    if (!mappingIdsByHuman || mappingIdsByHuman.length === 0) {
+      return [];
+    }
+
+    return mappingIdsByHuman
+      .map((mappingId: string) => {
+        const mapping = allMappings[mappingId];
+        if (!mapping || !mapping.session_id) {
+          return null;
+        }
+
+        const sessionId = mapping.session_id as string;
+        const session = allSessions[sessionId];
+        if (!session) {
+          return null;
+        }
+
+        return {
+          id: sessionId,
+          ...session,
+        };
+      })
+      .filter((session: any): session is NonNullable<typeof session> => session !== null);
+  }, [mappingIdsByHuman, allMappings, allSessions]);
+
   return (
     <div className="flex-1 flex flex-col">
-      {selectedPersonData
+      {selectedPersonData && selectedHumanId
         ? (
-          editingPerson === selectedPersonData.id
+          editingPerson === selectedHumanId
             ? (
               <EditPersonForm
-                person={selectedPersonData}
-                organizations={organizations}
+                personId={selectedHumanId}
                 onSave={() => setEditingPerson(null)}
                 onCancel={() => setEditingPerson(null)}
               />
@@ -68,7 +94,7 @@ export function DetailsColumn({
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleEditPerson(selectedPersonData.id)}
+                            onClick={() => setEditingPerson(selectedHumanId)}
                             className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
                             title="Edit contact"
                           >
@@ -79,7 +105,7 @@ export function DetailsColumn({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                handleDeletePerson(selectedPersonData.id);
+                                handleDeletePerson(selectedHumanId);
                               }}
                               className="p-2 rounded-md hover:bg-red-50 transition-colors"
                               title="Delete contact"
@@ -150,29 +176,15 @@ function OrganizationInfo({ organizationId }: { organizationId: string }) {
 }
 
 function EditPersonForm({
-  person,
-  organizations: _organizations,
+  personId,
   onSave,
   onCancel,
 }: {
-  person: any;
-  organizations: any[];
+  personId: string;
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const personData = persisted.UI.useRow("humans", person.id, persisted.STORE_ID);
-
-  const getInitials = (name: string | null) => {
-    if (!name) {
-      return "?";
-    }
-    return name
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const personData = persisted.UI.useRow("humans", personId, persisted.STORE_ID);
 
   if (!personData) {
     return null;
@@ -215,18 +227,18 @@ function EditPersonForm({
         </div>
 
         <div className="border-t border-gray-200">
-          <EditPersonNameField personId={person.id} />
-          <EditPersonJobTitleField personId={person.id} />
+          <EditPersonNameField personId={personId} />
+          <EditPersonJobTitleField personId={personId} />
 
           <div className="flex items-center px-4 py-3 border-b border-gray-200">
             <div className="w-28 text-sm text-gray-500">Company</div>
             <div className="flex-1">
-              <EditPersonOrganizationSelector personId={person.id} />
+              <EditPersonOrganizationSelector personId={personId} />
             </div>
           </div>
 
-          <EditPersonEmailField personId={person.id} />
-          <EditPersonLinkedInField personId={person.id} />
+          <EditPersonEmailField personId={personId} />
+          <EditPersonLinkedInField personId={personId} />
         </div>
       </div>
     </div>

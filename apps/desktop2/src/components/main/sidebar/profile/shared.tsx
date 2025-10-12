@@ -11,15 +11,15 @@ export function MenuItem(
   return (
     <button
       className={clsx(
-        "flex w-full items-center gap-2.5",
+        "flex w-full items-center gap-2.5 rounded-lg",
         "px-4 py-1.5",
-        "text-sm text-slate-700",
-        "transition-colors hover:bg-slate-50",
+        "text-sm text-black",
+        "transition-colors hover:bg-slate-100",
       )}
       onClick={onClick}
     >
-      <Icon className={clsx("h-4 w-4 flex-shrink-0", "text-slate-400")} />
-      <span className={clsx("flex-1", "text-left font-medium")}>{label}</span>
+      <Icon className={clsx("h-4 w-4 flex-shrink-0", "text-black")} />
+      <span className={clsx("flex-1", "text-left")}>{label}</span>
       {badge && (
         typeof badge === "number"
           ? (
@@ -27,8 +27,8 @@ export function MenuItem(
               className={clsx(
                 "rounded-full",
                 "px-2 py-0.5",
-                "bg-red-50",
-                "text-xs font-semibold text-red-600",
+                "bg-red-500",
+                "text-xs font-semibold text-white",
               )}
             >
               {badge}

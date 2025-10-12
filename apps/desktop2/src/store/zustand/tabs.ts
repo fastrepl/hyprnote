@@ -137,17 +137,9 @@ export const tabSchema = z.discriminatedUnion("type", [
     state: z.object({
       selectedOrganization: z.string().nullable().default(null),
       selectedPerson: z.string().nullable().default(null),
-      editingPerson: z.string().nullable().default(null),
-      editingOrg: z.string().nullable().default(null),
-      showNewOrg: z.boolean().default(false),
-      sortOption: z.enum(["alphabetical", "oldest", "newest"]).default("alphabetical"),
     }).default({
       selectedOrganization: null,
       selectedPerson: null,
-      editingPerson: null,
-      editingOrg: null,
-      showNewOrg: false,
-      sortOption: "alphabetical",
     }),
   }),
   baseTabSchema.extend({

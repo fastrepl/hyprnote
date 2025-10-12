@@ -1,47 +1,37 @@
-import { Building2, CornerDownLeft, Pencil, Plus, User } from "lucide-react";
+import { Building2, CornerDownLeft, Pencil, User } from "lucide-react";
 import React, { useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
+import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({
   selectedOrganization,
   setSelectedOrganization,
-  showNewOrg,
-  setShowNewOrg,
-  editingOrg,
-  setEditingOrg,
-  organizations,
-  handleEditOrganization,
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
-  showNewOrg: boolean;
-  setShowNewOrg: (show: boolean) => void;
-  editingOrg: string | null;
-  setEditingOrg: (id: string | null) => void;
-  organizations: any[];
-  handleEditOrganization: (id: string) => void;
 }) {
+  const [editingOrg, setEditingOrg] = useState<string | null>(null);
+  const [showNewOrg, setShowNewOrg] = useState(false);
+  const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
+
   return (
     <div className="w-[200px] border-r border-neutral-200 flex flex-col">
-      <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between h-12">
-        <h3 className="text-xs font-medium text-neutral-600">Organizations</h3>
-        <button
-          onClick={() => setShowNewOrg(true)}
-          className="p-0.5 rounded hover:bg-neutral-100 transition-colors"
-        >
-          <Plus className="h-3 w-3 text-neutral-500" />
-        </button>
-      </div>
+      <ColumnHeader
+        title="Organizations"
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        onAdd={() => setShowNewOrg(true)}
+      />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
           <button
             onClick={() => setSelectedOrganization(null)}
-            className={cn(
+            className={cn([
               "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors",
               !selectedOrganization && "bg-neutral-100",
-            )}
+            ])}
           >
             <User className="h-4 w-4 text-neutral-500" />
             All People
@@ -52,41 +42,24 @@ export function OrganizationsColumn({
               onCancel={() => setShowNewOrg(false)}
             />
           )}
-          {organizations.map((org: any) =>
-            editingOrg === org.id
+          {organizationIds.map((orgId) =>
+            editingOrg === orgId
               ? (
                 <EditOrganizationForm
-                  key={org.id}
-                  organization={org}
+                  key={orgId}
+                  organizationId={orgId}
                   onSave={() => setEditingOrg(null)}
                   onCancel={() => setEditingOrg(null)}
                 />
               )
               : (
-                <div
-                  key={org.id}
-                  className={cn(
-                    "group relative rounded-md transition-colors",
-                    selectedOrganization === org.id && "bg-neutral-100",
-                  )}
-                >
-                  <button
-                    onClick={() => setSelectedOrganization(org.id)}
-                    className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
-                  >
-                    <Building2 className="h-4 w-4 text-neutral-500" />
-                    {org.name}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditOrganization(org.id);
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
-                  >
-                    <Pencil className="h-3 w-3 text-neutral-500" />
-                  </button>
-                </div>
+                <OrganizationItem
+                  key={orgId}
+                  organizationId={orgId}
+                  isSelected={selectedOrganization === orgId}
+                  setSelectedOrganization={setSelectedOrganization}
+                  handleEditOrganization={() => setEditingOrg(orgId)}
+                />
               )
           )}
         </div>
@@ -95,20 +68,100 @@ export function OrganizationsColumn({
   );
 }
 
+function useSortedOrganizationIds() {
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+
+  const alphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "name",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const newestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "created_at",
+    true,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const oldestIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "created_at",
+    false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+
+  const organizationIds = sortOption === "alphabetical"
+    ? alphabeticalIds
+    : sortOption === "newest"
+    ? newestIds
+    : oldestIds;
+
+  return { organizationIds, sortOption, setSortOption };
+}
+
+function OrganizationItem({
+  organizationId,
+  isSelected,
+  setSelectedOrganization,
+  handleEditOrganization,
+}: {
+  organizationId: string;
+  isSelected: boolean;
+  setSelectedOrganization: (id: string | null) => void;
+  handleEditOrganization: () => void;
+}) {
+  const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
+  if (!organization) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn([
+        "group relative rounded-md transition-colors",
+        isSelected && "bg-neutral-100",
+      ])}
+    >
+      <button
+        onClick={() => setSelectedOrganization(organizationId)}
+        className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
+      >
+        <Building2 className="h-4 w-4 text-neutral-500" />
+        {organization.name}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEditOrganization();
+        }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
+      >
+        <Pencil className="h-3 w-3 text-neutral-500" />
+      </button>
+    </div>
+  );
+}
+
 function EditOrganizationForm({
-  organization,
+  organizationId,
   onSave,
   onCancel,
 }: {
-  organization: any;
+  organizationId: string;
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const name = persisted.UI.useCell("organizations", organization.id, "name", persisted.STORE_ID) as string;
+  const name = persisted.UI.useCell("organizations", organizationId, "name", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
     "organizations",
-    organization.id,
+    organizationId,
     "name",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],

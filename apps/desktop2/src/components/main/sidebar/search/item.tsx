@@ -22,12 +22,12 @@ export function SearchResultItem({
   }, [openCurrent, result]);
 
   const sanitizedTitle = useMemo(
-    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: [] }),
+    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
     [result.titleHighlighted],
   );
 
   const sanitizedContent = useMemo(
-    () => DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: [] }),
+    () => DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
     [result.contentHighlighted],
   );
 

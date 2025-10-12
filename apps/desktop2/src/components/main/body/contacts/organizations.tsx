@@ -114,7 +114,7 @@ function OrganizationItem({
   organizationId: string;
   isSelected: boolean;
   setSelectedOrganization: (id: string | null) => void;
-  handleEditOrganization: (id: string) => void;
+  handleEditOrganization: () => void;
 }) {
   const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
   if (!organization) {
@@ -138,7 +138,7 @@ function OrganizationItem({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          handleEditOrganization(organizationId);
+          handleEditOrganization();
         }}
         className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
       >

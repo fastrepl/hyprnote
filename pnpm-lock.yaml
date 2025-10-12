@@ -466,6 +466,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dompurify:
+        specifier: ^3.2.7
+        version: 3.2.7
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.2.0)

@@ -1,5 +1,6 @@
+import DOMPurify from "dompurify";
 import { Building2Icon, FileTextIcon, UserIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { type SearchResult } from "../../../../contexts/search";
@@ -19,6 +20,16 @@ export function SearchResultItem({
       openCurrent(tab);
     }
   }, [openCurrent, result]);
+
+  const sanitizedTitle = useMemo(
+    () => DOMPurify.sanitize(result.titleHighlighted, { USE_PROFILES: { html: true } }),
+    [result.titleHighlighted],
+  );
+
+  const sanitizedContent = useMemo(
+    () => DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), { USE_PROFILES: { html: true } }),
+    [result.contentHighlighted],
+  );
 
   const Icon = result.type === "session"
     ? FileTextIcon
@@ -46,7 +57,7 @@ export function SearchResultItem({
             className={cn([
               "text-sm font-medium text-gray-900 truncate flex-1 [&_mark]:bg-yellow-200 [&_mark]:text-gray-900",
             ])}
-            dangerouslySetInnerHTML={{ __html: result.titleHighlighted }}
+            dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
           />
           <div
             className={cn([
@@ -60,7 +71,7 @@ export function SearchResultItem({
         {result.content && (
           <div
             className={cn(["text-xs text-gray-500 truncate mt-0.5 [&_mark]:bg-yellow-200 [&_mark]:text-gray-700"])}
-            dangerouslySetInnerHTML={{ __html: result.contentHighlighted.slice(0, 200) }}
+            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         )}
       </div>

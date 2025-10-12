@@ -16,6 +16,39 @@ export function Search() {
     inputRef.current?.focus();
   });
 
+  useHotkeys(
+    "down",
+    (event) => {
+      if (document.activeElement === inputRef.current) {
+        event.preventDefault();
+        console.log("down");
+      }
+    },
+    { enableOnFormTags: true },
+  );
+
+  useHotkeys(
+    "up",
+    (event) => {
+      if (document.activeElement === inputRef.current) {
+        event.preventDefault();
+        console.log("up");
+      }
+    },
+    { enableOnFormTags: true },
+  );
+
+  useHotkeys(
+    "enter",
+    (event) => {
+      if (document.activeElement === inputRef.current) {
+        event.preventDefault();
+        console.log("enter");
+      }
+    },
+    { enableOnFormTags: true },
+  );
+
   return (
     <div className="flex items-center h-full pl-4 flex-[0_1_260px] min-w-[160px] w-full">
       <div className="relative flex items-center w-full">

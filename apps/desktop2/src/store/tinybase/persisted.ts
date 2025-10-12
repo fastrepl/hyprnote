@@ -16,7 +16,6 @@ import {
   calendarSchema as baseCalendarSchema,
   chatGroupSchema as baseChatGroupSchema,
   chatMessageSchema as baseChatMessageSchema,
-  configSchema as baseConfigSchema,
   eventSchema as baseEventSchema,
   folderSchema as baseFolderSchema,
   humanSchema as baseHumanSchema,
@@ -30,7 +29,6 @@ import {
   templateSchema as baseTemplateSchema,
   transcriptSchema,
 } from "@hypr/db";
-import { id } from "../../utils";
 import * as internal from "./internal";
 import { createLocalPersister, LOCAL_PERSISTER_ID } from "./localPersister";
 import { createLocalSynchronizer } from "./localSynchronizer";
@@ -89,18 +87,6 @@ export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
   sections: jsonObject(z.array(templateSectionSchema)),
 });
 
-export const configSchema = baseConfigSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  spoken_languages: jsonObject(z.array(z.string())),
-  jargons: jsonObject(z.array(z.string())),
-  notification_ignored_platforms: jsonObject(z.array(z.string()).optional()),
-  save_recordings: z.preprocess(val => val ?? undefined, z.boolean().optional()),
-  selected_template_id: z.preprocess(val => val ?? undefined, z.string().optional()),
-  ai_api_base: z.preprocess(val => val ?? undefined, z.string().optional()),
-  ai_api_key: z.preprocess(val => val ?? undefined, z.string().optional()),
-  ai_specificity: z.preprocess(val => val ?? undefined, z.string().optional()),
-});
-
 export const chatGroupSchema = baseChatGroupSchema.omit({ id: true }).extend({ created_at: z.string() });
 export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
   created_at: z.string(),
@@ -119,14 +105,12 @@ export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
-export type Config = z.infer<typeof configSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
-export type ConfigStorage = ToStorageType<typeof configSchema>;
 
 const SCHEMA = {
   value: {} as const satisfies ValuesSchema,
@@ -199,24 +183,6 @@ const SCHEMA = {
       description: { type: "string" },
       sections: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof templateSchema>,
-    configs: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      autostart: { type: "boolean" },
-      display_language: { type: "string" },
-      spoken_languages: { type: "string" },
-      jargons: { type: "string" },
-      telemetry_consent: { type: "boolean" },
-      save_recordings: { type: "boolean" },
-      selected_template_id: { type: "string" },
-      summary_language: { type: "string" },
-      notification_before: { type: "boolean" },
-      notification_auto: { type: "boolean" },
-      notification_ignored_platforms: { type: "string" },
-      ai_api_base: { type: "string" },
-      ai_api_key: { type: "string" },
-      ai_specificity: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof configSchema>,
     chat_groups: {
       user_id: { type: "string" },
       created_at: { type: "string" },
@@ -516,31 +482,4 @@ export const INDEXES = {
   tagSessionsBySession: "tagSessionsBySession",
   tagSessionsByTag: "tagSessionsByTag",
   chatMessagesByGroup: "chatMessagesByGroup",
-};
-
-// TODO
-export const useConfig = () => {
-  const user_id = "0b28fde2-2f07-49da-946c-01fc4b94e9ae";
-  const config_id = id();
-
-  const defaultConfig = {
-    user_id,
-    created_at: new Date().toISOString(),
-    autostart: false,
-    display_language: "en",
-    telemetry_consent: true,
-    summary_language: "en",
-    notification_before: true,
-    notification_auto: true,
-    spoken_languages: JSON.stringify(["en"]),
-    jargons: JSON.stringify([]),
-    save_recordings: false,
-    selected_template_id: undefined,
-    notification_ignored_platforms: undefined,
-    ai_api_base: undefined,
-    ai_api_key: undefined,
-    ai_specificity: "3",
-  } satisfies ToStorageType<typeof configSchema>;
-
-  return { id: config_id, user_id, config: defaultConfig };
 };

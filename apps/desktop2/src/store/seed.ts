@@ -27,7 +27,7 @@ interface MockConfig {
   calendarsPerUser: number;
 }
 
-const USER_ID = id();
+const USER_ID = "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a";
 
 const createOrganization = () => ({
   id: id(),

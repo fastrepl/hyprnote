@@ -36,79 +36,115 @@ export const Route = createFileRoute("/app/settings/_layout")({
 
 function Component() {
   const search = Route.useSearch();
-  const navigate = Route.useNavigate();
 
-  const topTabs = TABS.filter((tab) => !info(tab).bottom);
-  const bottomTabs = TABS.filter((tab) => info(tab).bottom);
+  const group1Tabs = TABS.filter((tab) => info(tab).group === 1);
+  const group2Tabs = TABS.filter((tab) => info(tab).group === 2);
+  const group3Tabs = TABS.filter((tab) => info(tab).group === 3);
 
   return (
-    <div className="flex h-full">
-      <div className="w-60 border-r border-neutral-200 flex flex-col bg-neutral-50">
-        <div data-tauri-drag-region className="h-8" />
+    <div className={cn(["flex h-full"])}>
+      <div className={cn(["w-60 flex flex-col bg-white"])}>
+        <div
+          className={cn([
+            "flex-1 flex flex-col justify-between",
+            "overflow-y-auto",
+            "px-2 pb-2",
+          ])}
+        >
+          <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
 
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto py-4">
-          <div className="space-y-1 px-4">
-            {topTabs.map((tab) => {
-              const tabInfo = info(tab);
-              const Icon = tabInfo.icon;
-              return (
-                <button
-                  key={tab}
-                  className={cn([
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
-                    "text-neutral-700 hover:bg-neutral-100",
-                  ], [
-                    search.tab === tab && "bg-neutral-100 font-medium text-neutral-900",
-                  ])}
-                  onClick={() => navigate({ search: { tab } })}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{tabInfo.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="space-y-1 px-4">
-            {bottomTabs.map((tab) => {
-              const tabInfo = info(tab);
-              const Icon = tabInfo.icon;
-              return (
-                <button
-                  key={tab}
-                  className={cn([
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
-                    "text-neutral-700 hover:bg-neutral-100",
-                  ], [
-                    search.tab === tab && "bg-neutral-100 font-medium text-neutral-900",
-                  ])}
-                  onClick={() => navigate({ search: { tab } })}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{tabInfo.label}</span>
-                </button>
-              );
-            })}
+          <div>
+            <Group tabs={group2Tabs} activeTab={search.tab} />
+            <Group tabs={group3Tabs} activeTab={search.tab} />
           </div>
         </div>
       </div>
 
-      <div className="flex-1 flex h-full w-full flex-col overflow-hidden bg-white">
+      <div
+        className={cn([
+          "flex-1 flex flex-col",
+          "h-full w-full",
+          "overflow-hidden",
+          "bg-white",
+        ])}
+      >
         <header
           data-tauri-drag-region
-          className="h-8 w-full flex items-center justify-between border-b border-neutral-200 px-2"
+          className={cn([
+            "h-12 w-full",
+            "flex items-center justify-between",
+            "my-2 p-2",
+            "bg-gray-50 rounded-md",
+          ])}
         >
           <div className="w-40"></div>
-          <h1 data-tauri-drag-region className="text-md font-semibold capitalize">
+          <h1 data-tauri-drag-region className={cn(["text-md font-semibold capitalize"])}>
             {info(search.tab).label}
           </h1>
           <div className="w-40"></div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 w-full">
+        <div
+          className={cn([
+            "flex-1 w-full",
+            "overflow-y-auto",
+            "p-6 mb-2",
+            "border border-gray-200 rounded-md",
+          ])}
+        >
           <Outlet />
         </div>
       </div>
+    </div>
+  );
+}
+
+function Group(
+  {
+    tabs,
+    activeTab,
+    expandHeight = false,
+    includeTrafficLight = false,
+  }: {
+    tabs: (typeof TABS)[number][];
+    activeTab: typeof TABS[number];
+    expandHeight?: boolean;
+    includeTrafficLight?: boolean;
+  },
+) {
+  const navigate = Route.useNavigate();
+  return (
+    <div
+      className={cn([
+        "rounded-md bg-gray-50",
+        "px-2 py-2 my-2",
+        expandHeight && "flex-1",
+      ])}
+    >
+      {includeTrafficLight && <div data-tauri-drag-region className="h-9" />}
+      {tabs.map((tab) => {
+        const tabInfo = info(tab);
+        const Icon = tabInfo.icon;
+
+        return (
+          <button
+            key={tab}
+            className={cn([
+              "flex w-full items-center gap-3",
+              "rounded-md px-3 py-2.5",
+              "text-md text-gray-700",
+              "bg-gray-50 transition-colors",
+              activeTab === tab
+                ? "font-medium text-gray-900 bg-gray-200"
+                : "hover:bg-gray-100",
+            ])}
+            onClick={() => navigate({ search: { tab } })}
+          >
+            <Icon className="h-5 w-5" />
+            <span>{tabInfo.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -119,55 +155,55 @@ const info = (tab: typeof TABS[number]) => {
       return {
         label: "General",
         icon: Settings2,
-        bottom: false,
+        group: 1,
       };
     case "calendar":
       return {
         label: "Calendar",
         icon: CalendarDays,
-        bottom: false,
+        group: 1,
       };
     case "ai":
       return {
         label: "Hyprnote AI",
         icon: Sparkles,
-        bottom: false,
+        group: 1,
       };
     case "notifications":
       return {
         label: "Notifications",
         icon: Bell,
-        bottom: false,
+        group: 1,
       };
     case "integrations":
       return {
         label: "Integrations",
         icon: Puzzle,
-        bottom: false,
+        group: 1,
       };
     case "templates":
       return {
         label: "Templates",
         icon: BookText,
-        bottom: false,
+        group: 1,
       };
     case "feedback":
       return {
         label: "Feedback",
         icon: MessageCircleQuestion,
-        bottom: true,
+        group: 2,
       };
     case "developers":
       return {
         label: "Talk to developers",
         icon: Settings2,
-        bottom: true,
+        group: 2,
       };
     case "billing":
       return {
         label: "Billing",
         icon: CreditCard,
-        bottom: true,
+        group: 3,
       };
   }
 };

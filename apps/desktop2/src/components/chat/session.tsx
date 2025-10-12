@@ -2,6 +2,7 @@ import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
+import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
 import { CustomChatTransport } from "../../transport";
 import { id } from "../../utils";
@@ -25,7 +26,7 @@ export function ChatSession({
   const [transport] = useState(() => new CustomChatTransport());
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
-  const { user_id } = persisted.useConfig();
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
   const createChatMessage = persisted.UI.useSetRowCallback(
     "chat_messages",

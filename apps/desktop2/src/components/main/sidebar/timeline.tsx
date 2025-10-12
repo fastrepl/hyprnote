@@ -16,7 +16,7 @@ export function TimelineView() {
   const { groupedItems, sortedDates } = useTimelineData();
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto bg-gray-50 rounded-lg">
+    <div className="flex flex-col h-full overflow-y-auto bg-gray-50 rounded-lg">
       {sortedDates.map((date) => (
         <div key={date}>
           <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">

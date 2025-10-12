@@ -1,8 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 
+import * as internal from "../../../../../store/tinybase/internal";
+import * as persisted from "../../../../../store/tinybase/persisted";
+
 import { Participant, ParticipantGroup, ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 import { useQuery } from "../../../../../hooks/useQuery";
-import * as persisted from "../../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../../store/zustand/tabs";
 
 export function SessionParticipants({
@@ -14,6 +16,8 @@ export function SessionParticipants({
 }) {
   const [participantSearchQuery, setParticipantSearchQuery] = useState("");
   const { openNew } = useTabs();
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+
   const store = persisted.UI.useStore(persisted.STORE_ID);
   const indexes = persisted.UI.useIndexes(persisted.STORE_ID);
 
@@ -124,10 +128,9 @@ export function SessionParticipants({
     }
 
     const mappingId = crypto.randomUUID();
-    const userId = store.getCell("configs", "singleton", "user_id") as string;
 
     store.setRow("mapping_session_participant", mappingId, {
-      user_id: userId,
+      user_id,
       session_id: sessionId,
       human_id: participantId,
       created_at: new Date().toISOString(),
@@ -142,7 +145,6 @@ export function SessionParticipants({
     }
 
     const humanId = crypto.randomUUID();
-    const userId = store.getCell("configs", "singleton", "user_id") as string;
 
     let orgId: string | undefined;
 
@@ -161,14 +163,14 @@ export function SessionParticipants({
     if (!orgId) {
       orgId = crypto.randomUUID();
       store.setRow("organizations", orgId, {
-        user_id: userId,
+        user_id,
         name: "No organization",
         created_at: new Date().toISOString(),
       });
     }
 
     store.setRow("humans", humanId, {
-      user_id: userId,
+      user_id,
       name: query,
       email: "",
       org_id: orgId,
@@ -177,14 +179,14 @@ export function SessionParticipants({
 
     const mappingId = crypto.randomUUID();
     store.setRow("mapping_session_participant", mappingId, {
-      user_id: userId,
+      user_id,
       session_id: sessionId,
       human_id: humanId,
       created_at: new Date().toISOString(),
     });
 
     setParticipantSearchQuery("");
-  }, [store, sessionId]);
+  }, [store, sessionId, user_id]);
 
   return (
     <ParticipantsChip

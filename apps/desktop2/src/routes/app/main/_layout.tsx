@@ -1,7 +1,8 @@
-import { LeftSidebarProvider, RightPanelProvider } from "@hypr/utils/contexts";
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
 import { useEffect } from "react";
 
+import { LeftSidebarProvider, RightPanelProvider } from "@hypr/utils/contexts";
+import { SearchProvider } from "../../../contexts/search";
 import { useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
 
@@ -13,8 +14,10 @@ function Component() {
   return (
     <LeftSidebarProvider>
       <RightPanelProvider>
-        <NotSureAboutThis />
-        <Outlet />
+        <SearchProvider>
+          <NotSureAboutThis />
+          <Outlet />
+        </SearchProvider>
       </RightPanelProvider>
     </LeftSidebarProvider>
   );

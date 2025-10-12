@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Participant, ParticipantGroup, ParticipantsChip } from "@hypr/ui/components/block/participants-chip";
 import { useQuery } from "../../../../../hooks/useQuery";
 import * as persisted from "../../../../../store/tinybase/persisted";
+import { useTabs } from "../../../../../store/zustand/tabs";
 
 export function SessionParticipants({
   sessionId,
@@ -12,7 +13,7 @@ export function SessionParticipants({
   currentUserId: string | undefined;
 }) {
   const [participantSearchQuery, setParticipantSearchQuery] = useState("");
-
+  const { openNew } = useTabs();
   const store = persisted.UI.useStore(persisted.STORE_ID);
   const indexes = persisted.UI.useIndexes(persisted.STORE_ID);
 
@@ -192,7 +193,18 @@ export function SessionParticipants({
       isVeryNarrow={false}
       isNarrow={false}
       onParticipantClick={(participant) => {
-        console.log("Participant clicked:", participant);
+        openNew({
+          type: "contacts",
+          active: true, 
+          state: {
+            selectedPerson: participant.id,
+            selectedOrganization: null, 
+            editingPerson: null, 
+            editingOrg: null, 
+            showNewOrg: false, 
+            sortOption: "alphabetical",
+          }
+        })
       }}
       onParticipantRemove={handleRemove}
       onParticipantAdd={handleAdd}

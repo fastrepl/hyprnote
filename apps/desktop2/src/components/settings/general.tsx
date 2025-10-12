@@ -1,17 +1,14 @@
-import { useUpdateConfig } from "./shared";
+import { useUpdateGeneral } from "./shared";
 
 export function SettingsGeneral() {
-  const res = useUpdateConfig();
-  if (!res) {
-    return null;
-  }
-  const { value, handle } = res;
+  const { value, handle } = useUpdateGeneral();
 
   return (
     <div>
       <pre>{JSON.stringify(value, null, 2)}</pre>
       <input
         type="checkbox"
+        checked={value.save_recordings}
         onChange={(e) => handle.setField("save_recordings", e.target.checked)}
       />
     </div>

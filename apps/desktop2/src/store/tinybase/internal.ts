@@ -4,15 +4,27 @@ import { z } from "zod";
 
 import { createLocalPersister } from "./localPersister";
 import { createLocalSynchronizer } from "./localSynchronizer";
-import type { InferTinyBaseSchema, ToStorageType } from "./shared";
+import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
-export const configSchema = z.object({
+export const generalSchema = z.object({
   user_id: z.string(),
+  telemetry_consent: z.boolean().default(true),
   save_recordings: z.boolean().default(true),
+  notification_event: z.boolean().default(true),
+  notification_detect: z.boolean().default(true),
+  ai_language: z.string().default("en"),
+  spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
+  jargons: jsonObject(z.array(z.string()).default([])),
 });
 
-export type Config = z.infer<typeof configSchema>;
-export type ConfigStorage = ToStorageType<typeof configSchema>;
+export const aiSchema = z.object({
+  provider: z.string(),
+  api_base: z.string(),
+  api_key: z.string(),
+});
+
+export type General = z.infer<typeof generalSchema>;
+export type GeneralStorage = ToStorageType<typeof generalSchema>;
 
 export const STORE_ID = "internal";
 
@@ -20,8 +32,19 @@ export const SCHEMA = {
   value: {
     user_id: { type: "string" },
     save_recordings: { type: "boolean" },
-  } as const satisfies InferTinyBaseSchema<typeof configSchema>,
+    notification_event: { type: "boolean" },
+    notification_detect: { type: "boolean" },
+    telemetry_consent: { type: "boolean" },
+    ai_language: { type: "string" },
+    spoken_languages: { type: "string" },
+    jargons: { type: "string" },
+  } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
+    ai: {
+      provider: { type: "string" },
+      api_base: { type: "string" },
+      api_key: { type: "string" },
+    } as const satisfies InferTinyBaseSchema<typeof aiSchema>,
     changes: {
       row_id: { type: "string" },
       table: { type: "string" },

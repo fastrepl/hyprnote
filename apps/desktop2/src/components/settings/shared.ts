@@ -3,17 +3,23 @@ import * as persisted from "../../store/tinybase/persisted";
 
 import { useSafeObjectUpdate } from "../../hooks/useSafeObjectUpdate";
 
-export const useUpdateConfig = () => {
+export const useUpdateGeneral = () => {
   const _value = internal.UI.useValues(internal.STORE_ID);
-  const value: internal.Config = internal.configSchema.parse(_value);
+  const value: internal.General = internal.generalSchema.parse(_value);
 
   const cb = internal.UI.useSetPartialValuesCallback(
-    (row: Partial<internal.Config>) => ({ ...row } satisfies Partial<internal.ConfigStorage>),
+    (
+      row: Partial<internal.General>,
+    ) => ({
+      ...row,
+      spoken_languages: JSON.stringify(row.spoken_languages),
+      jargons: JSON.stringify(row.jargons),
+    } satisfies Partial<internal.GeneralStorage>),
     [],
     internal.STORE_ID,
   );
 
-  const handle = useSafeObjectUpdate(internal.configSchema, value, cb);
+  const handle = useSafeObjectUpdate(internal.generalSchema, value, cb);
   return { value, handle };
 };
 

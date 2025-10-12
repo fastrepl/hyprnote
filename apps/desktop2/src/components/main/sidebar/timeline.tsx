@@ -52,7 +52,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
   const { currentTab, openCurrent, openNew } = useTabs();
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
-  const title = item.data.title || "";
+  const title = item.data.title || "Untitled";
   const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;
   const eventId = item.type === "event" ? item.id : (item.data.event_id || undefined);
 

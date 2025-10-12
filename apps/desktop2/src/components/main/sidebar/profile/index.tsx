@@ -128,7 +128,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         />
       </div>
       <div className={clsx("min-w-0 flex-1")}>
-        <div className={clsx("text-sm font-semibold text-slate-900", "truncate")}>John Jeong</div>
+        <div className={clsx("text-sm text-black", "truncate")}>John Jeong</div>
       </div>
       <div className={clsx("flex items-center gap-1.5")}>
         <span

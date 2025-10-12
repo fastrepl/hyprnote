@@ -1,9 +1,9 @@
-import clsx from "clsx";
 import { PanelLeftOpenIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 
+import { cn } from "@hypr/ui/lib/utils";
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -11,6 +11,7 @@ import { TabContentDaily, TabItemDaily } from "./daily";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
+import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
@@ -37,43 +38,47 @@ function Header({ tabs }: { tabs: Tab[] }) {
   return (
     <div
       data-tauri-drag-region
-      className={clsx([
+      className={cn([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
         "w-full overflow-x-auto h-8",
         !isExpanded && "pl-[72px]",
       ])}
     >
-      <div className="flex w-max h-full items-end">
-        {!isExpanded && (
-          <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
-            <PanelLeftOpenIcon
-              className="h-5 w-5 cursor-pointer"
-              onClick={() => setIsExpanded(true)}
-            />
-          </div>
-        )}
+      <div className="flex w-full h-full items-end gap-4">
+        <div className="flex items-end h-full flex-1 min-w-0">
+          {!isExpanded && (
+            <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
+              <PanelLeftOpenIcon
+                className="h-5 w-5 cursor-pointer"
+                onClick={() => setIsExpanded(true)}
+              />
+            </div>
+          )}
 
-        <Reorder.Group
-          key={isExpanded ? "expanded" : "collapsed"}
-          as="div"
-          axis="x"
-          values={tabs}
-          onReorder={reorder}
-          className="flex w-max gap-1 h-full"
-        >
-          {tabs.map((tab) => (
-            <Reorder.Item
-              key={uniqueIdfromTab(tab)}
-              value={tab}
-              as="div"
-              style={{ position: "relative" }}
-              className="h-full z-10"
-              layoutScroll
-            >
-              <TabItem tab={tab} handleClose={close} handleSelect={select} />
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
+          <Reorder.Group
+            key={isExpanded ? "expanded" : "collapsed"}
+            as="div"
+            axis="x"
+            values={tabs}
+            onReorder={reorder}
+            className="flex w-max gap-1 h-full"
+          >
+            {tabs.map((tab) => (
+              <Reorder.Item
+                key={uniqueIdfromTab(tab)}
+                value={tab}
+                as="div"
+                style={{ position: "relative" }}
+                className="h-full z-10"
+                layoutScroll
+              >
+                <TabItem tab={tab} handleClose={close} handleSelect={select} />
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+        </div>
+
+        <Search />
       </div>
     </div>
   );

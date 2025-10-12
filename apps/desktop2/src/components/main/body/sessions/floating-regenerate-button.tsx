@@ -12,7 +12,6 @@ const TEMPLATES = [
   "Action Items",
   "Decision Log",
   "Key Insights",
-  "Brainstorming",
 ];
 
 export function FloatingRegenerateButton() {

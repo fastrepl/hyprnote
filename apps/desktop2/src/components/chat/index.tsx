@@ -13,7 +13,7 @@ export function ChatFloatingButton() {
   const [chatGroupId, setChatGroupId] = useState<string | undefined>(undefined);
 
   useAutoCloser(() => setIsOpen(false), { esc: isOpen, outside: false });
-  useHotkeys("meta+j", () => setIsOpen((prev) => !prev));
+  useHotkeys("mod+j", () => setIsOpen((prev) => !prev));
 
   const handleClickTrigger = useCallback(async () => {
     const isExists = await windowsCommands.windowIsExists({ type: "chat" });

@@ -2,12 +2,17 @@ import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@hypr/utils/contexts";
+import { useSearch } from "../../../contexts/search";
 import { NewNoteButton } from "./new-note-button";
 import { ProfileSection } from "./profile";
+import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
 
 export function LeftSidebar() {
   const { togglePanel: toggleLeftPanel } = useLeftSidebar();
+  const { query, isFocused } = useSearch();
+
+  const showSearchResults = (query.trim() !== "" || isFocused) && query.trim() !== "";
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden">
@@ -34,7 +39,7 @@ export function LeftSidebar() {
         ])}
       >
         <NewNoteButton />
-        <TimelineView />
+        {showSearchResults ? <SearchResults /> : <TimelineView />}
         <ProfileSection />
       </div>
     </div>

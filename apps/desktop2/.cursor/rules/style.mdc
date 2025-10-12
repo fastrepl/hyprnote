@@ -2,6 +2,6 @@
 alwaysApply: true
 ---
 
-## Conditional Tailwind ClassNames
+## Tailwind ClassNames
 
-- Use `cn` (import with `import { cn } from "@hypr/ui/lib/utils"`). It is similar to `clsx`. Always pass an array.
+- If there are many classNames and they have conditional logic, use `cn` (import it with `import { cn } from "@hypr/ui/lib/utils"`). It is similar to `clsx`. Always pass an array. Split by logical grouping.

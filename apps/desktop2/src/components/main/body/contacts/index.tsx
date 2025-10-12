@@ -67,16 +67,8 @@ function ContactView({ tab }: { tab: Tab }) {
   };
 
   const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
-  const humansData = persisted.UI.useResultTable(persisted.QUERIES.visibleHumans, persisted.STORE_ID);
   const selectedPersonData = persisted.UI.useRow("humans", selectedPerson ?? "", persisted.STORE_ID);
   const allSessions = persisted.UI.useTable("sessions", persisted.STORE_ID);
-
-  // Get humans by organization if one is selected
-  const humanIdsByOrg = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.humansByOrg,
-    selectedOrganization ?? "",
-    persisted.STORE_ID,
-  );
 
   const mappingIdsByHuman = persisted.UI.useSliceRowIds(
     persisted.INDEXES.sessionsByHuman,
@@ -112,32 +104,10 @@ function ContactView({ tab }: { tab: Tab }) {
       .filter((session: any): session is NonNullable<typeof session> => session !== null);
   }, [mappingIdsByHuman, allMappings, allSessions]);
 
-  // Convert to arrays for rendering
   const organizations = Object.entries(organizationsData).map(([id, data]) => ({
     id,
     ...(data as any),
   }));
-
-  const allHumans = Object.entries(humansData).map(([id, data]) => ({
-    id,
-    ...(data as any),
-  }));
-
-  // Filter humans by organization if selected
-  const displayPeople = selectedOrganization
-    ? allHumans.filter(h => humanIdsByOrg.includes(h.id))
-    : allHumans;
-
-  // Sort people based on selected option
-  const sortedPeople = [...displayPeople].sort((a: any, b: any) => {
-    if (sortOption === "alphabetical") {
-      return (a.name || a.email || "").localeCompare(b.name || b.email || "");
-    } else if (sortOption === "newest") {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    } else {
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    }
-  });
 
   const handleSessionClick = (_sessionId: string) => {
     openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
@@ -169,8 +139,8 @@ function ContactView({ tab }: { tab: Tab }) {
       />
 
       <PeopleColumn
-        displayPeople={sortedPeople}
-        selectedPerson={selectedPerson}
+        currentOrgId={selectedOrganization}
+        currentHumanId={selectedPerson}
         setSelectedPerson={setSelectedPerson}
         sortOption={sortOption}
         setSortOption={setSortOption}

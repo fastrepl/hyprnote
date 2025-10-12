@@ -203,6 +203,7 @@ export function SessionParticipants({
             editingOrg: null,
             showNewOrg: false,
             sortOption: "alphabetical",
+            orgSortOption: "alphabetical",
           },
         });
       }}

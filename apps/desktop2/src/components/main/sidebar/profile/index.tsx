@@ -46,6 +46,7 @@ export function ProfileSection() {
         editingOrg: null,
         showNewOrg: false,
         sortOption: "alphabetical",
+        orgSortOption: "alphabetical",
       },
     });
     closeMenu();

@@ -1,8 +1,9 @@
-import { Building2, CornerDownLeft, Pencil, Plus, User } from "lucide-react";
+import { Building2, CornerDownLeft, Pencil, User } from "lucide-react";
 import React, { useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
+import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({
   selectedOrganization,
@@ -12,6 +13,8 @@ export function OrganizationsColumn({
   editingOrg,
   setEditingOrg,
   handleEditOrganization,
+  sortOption,
+  setSortOption,
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
@@ -20,6 +23,8 @@ export function OrganizationsColumn({
   editingOrg: string | null;
   setEditingOrg: (id: string | null) => void;
   handleEditOrganization: (id: string) => void;
+  sortOption: SortOption;
+  setSortOption: (option: SortOption) => void;
 }) {
   const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
 
@@ -27,15 +32,12 @@ export function OrganizationsColumn({
 
   return (
     <div className="w-[200px] border-r border-neutral-200 flex flex-col">
-      <div className="px-3 py-2 border-b border-neutral-200 flex items-center justify-between h-12">
-        <h3 className="text-xs font-medium text-neutral-600">Organizations</h3>
-        <button
-          onClick={() => setShowNewOrg(true)}
-          className="p-0.5 rounded hover:bg-neutral-100 transition-colors"
-        >
-          <Plus className="h-3 w-3 text-neutral-500" />
-        </button>
-      </div>
+      <ColumnHeader
+        title="Organizations"
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+        onAdd={() => setShowNewOrg(true)}
+      />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
           <button

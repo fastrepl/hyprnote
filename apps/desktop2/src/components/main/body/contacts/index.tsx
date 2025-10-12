@@ -39,7 +39,15 @@ function ContactView({ tab }: { tab: Tab }) {
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
   const { openNew } = useTabs();
 
-  const { selectedOrganization, selectedPerson, editingPerson, editingOrg, showNewOrg, sortOption } = tab.state;
+  const {
+    selectedOrganization,
+    selectedPerson,
+    editingPerson,
+    editingOrg,
+    showNewOrg,
+    sortOption,
+    orgSortOption,
+  } = tab.state;
 
   const setSelectedOrganization = (value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, selectedOrganization: value });
@@ -63,6 +71,10 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const setSortOption = (value: "alphabetical" | "oldest" | "newest") => {
     updateContactsTabState(tab, { ...tab.state, sortOption: value });
+  };
+
+  const setOrgSortOption = (value: "alphabetical" | "oldest" | "newest") => {
+    updateContactsTabState(tab, { ...tab.state, orgSortOption: value });
   };
 
   const handleSessionClick = (_sessionId: string) => {
@@ -93,6 +105,8 @@ function ContactView({ tab }: { tab: Tab }) {
         editingOrg={editingOrg}
         setEditingOrg={setEditingOrg}
         handleEditOrganization={handleEditOrganization}
+        sortOption={orgSortOption}
+        setSortOption={setOrgSortOption}
       />
 
       <PeopleColumn

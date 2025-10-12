@@ -1,9 +1,12 @@
 import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { type SearchGroup } from "../../../../contexts/search";
-import { useSearch } from "../../../../contexts/search";
 import { SearchResultItem } from "./item";
+
+const ITEMS_PER_PAGE = 3;
+const LOAD_MORE_STEP = 5;
 
 export function SearchResultGroup({
   group,
@@ -16,13 +19,14 @@ export function SearchResultGroup({
   rank: number;
   maxScore: number;
 }) {
-  const { loadMoreInGroup } = useSearch();
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   if (group.totalCount === 0) {
     return null;
   }
 
-  const visibleResults = group.results.slice(0, group.visibleCount);
+  const visibleResults = group.results.slice(0, visibleCount);
+  const hasMore = group.totalCount > visibleCount;
   const isTopRanked = rank === 1;
 
   return (
@@ -65,9 +69,9 @@ export function SearchResultGroup({
       <div className={cn(["space-y-0.5 px-1"])}>
         {visibleResults.map((result) => <SearchResultItem key={result.id} result={result} maxScore={maxScore} />)}
       </div>
-      {group.hasMore && (
+      {hasMore && (
         <button
-          onClick={() => loadMoreInGroup(group.key)}
+          onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
           className={cn([
             "w-full mt-2 px-3 py-2",
             "flex items-center justify-center gap-2",

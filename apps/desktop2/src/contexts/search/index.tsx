@@ -24,11 +24,11 @@ export interface SearchResult {
   titleHighlighted: string;
   content: string;
   contentHighlighted: string;
-  created_at: number | null;
-  folder_id: string | null;
-  event_id: string | null;
-  org_id: string | null;
-  is_user: boolean | null;
+  created_at: number;
+  folder_id: string;
+  event_id: string;
+  org_id: string;
+  is_user: boolean;
   metadata: Record<string, any>;
   score: number;
 }
@@ -40,8 +40,6 @@ export interface SearchGroup {
   results: SearchResult[];
   totalCount: number;
   topScore: number;
-  visibleCount: number;
-  hasMore: boolean;
 }
 
 export interface GroupedSearchResults {
@@ -61,7 +59,6 @@ interface SearchContextValue {
   isIndexing: boolean;
   onFocus: () => void;
   onBlur: () => void;
-  loadMoreInGroup: (groupKey: string) => void;
 }
 
 interface SearchDocument {
@@ -69,11 +66,11 @@ interface SearchDocument {
   type: SearchEntityType;
   title: string;
   content: string;
-  created_at: number | null;
-  folder_id: string | null;
-  event_id: string | null;
-  org_id: string | null;
-  is_user: boolean | null;
+  created_at: number;
+  folder_id: string;
+  event_id: string;
+  org_id: string;
+  is_user: boolean;
   metadata: string;
 }
 
@@ -84,8 +81,6 @@ interface SearchHit {
 
 type SerializableObject = Record<string, unknown>;
 
-const ITEMS_PER_PAGE = 3;
-const LOAD_MORE_STEP = 5;
 const SCORE_PERCENTILE_THRESHOLD = 0.1;
 const SPACE_REGEX = /\s+/g;
 
@@ -207,29 +202,29 @@ function createHumanSearchableContent(row: Record<string, unknown>): string {
   return mergeContent([row.email, row.job_title, row.linkedin_username]);
 }
 
-function toNumber(value: unknown): number | null {
+function toNumber(value: unknown): number {
   if (typeof value === "number") {
     return value;
   }
   if (typeof value === "string") {
     const parsed = Number(value);
-    return isNaN(parsed) ? null : parsed;
+    return isNaN(parsed) ? 0 : parsed;
   }
-  return null;
+  return 0;
 }
 
-function toString(value: unknown): string | null {
+function toString(value: unknown): string {
   if (typeof value === "string" && value.length > 0) {
     return value;
   }
-  return null;
+  return "";
 }
 
-function toBoolean(value: unknown): boolean | null {
+function toBoolean(value: unknown): boolean {
   if (typeof value === "boolean") {
     return value;
   }
-  return null;
+  return false;
 }
 
 function indexSessions(db: Orama<any>, persistedStore: any): void {
@@ -256,8 +251,8 @@ function indexSessions(db: Orama<any>, persistedStore: any): void {
       created_at: toNumber(row.created_at),
       folder_id: toString(row.folder_id),
       event_id: toString(row.event_id),
-      org_id: null,
-      is_user: null,
+      org_id: "",
+      is_user: false,
       metadata: JSON.stringify({}),
     });
   });
@@ -284,8 +279,8 @@ function indexHumans(db: Orama<any>, persistedStore: any): void {
       title,
       content: createHumanSearchableContent(row),
       created_at: toNumber(row.created_at),
-      folder_id: null,
-      event_id: null,
+      folder_id: "",
+      event_id: "",
       org_id: toString(row.org_id),
       is_user: toBoolean(row.is_user),
       metadata: JSON.stringify({
@@ -309,10 +304,10 @@ function indexOrganizations(db: Orama<any>, persistedStore: any): void {
       title,
       content: "",
       created_at: toNumber(row.created_at),
-      folder_id: null,
-      event_id: null,
-      org_id: null,
-      is_user: null,
+      folder_id: "",
+      event_id: "",
+      org_id: "",
+      is_user: false,
       metadata: JSON.stringify({}),
     });
   });
@@ -386,9 +381,7 @@ function sortResultsByScore(a: SearchResult, b: SearchResult): number {
 function toGroup(
   type: SearchEntityType,
   results: SearchResult[],
-  visibleCounts: Map<string, number>,
 ): SearchGroup {
-  const visibleCount = visibleCounts.get(type) || ITEMS_PER_PAGE;
   const topScore = results[0]?.score || 0;
 
   return {
@@ -398,15 +391,12 @@ function toGroup(
     results,
     totalCount: results.length,
     topScore,
-    visibleCount,
-    hasMore: results.length > visibleCount,
   };
 }
 
 function groupSearchResults(
   hits: SearchHit[],
   query: string,
-  visibleCounts: Map<string, number>,
 ): GroupedSearchResults {
   if (hits.length === 0) {
     return {
@@ -433,7 +423,7 @@ function groupSearchResults(
   }, new Map());
 
   const groups = Array.from(grouped.entries())
-    .map(([type, results]) => toGroup(type, results.sort(sortResultsByScore), visibleCounts))
+    .map(([type, results]) => toGroup(type, results.sort(sortResultsByScore)))
     .sort((a, b) => b.topScore - a.topScore);
 
   const totalResults = groups.reduce((count, group) => count + group.totalCount, 0);
@@ -452,22 +442,17 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilters | null>(null);
-  const [results, setResults] = useState<GroupedSearchResults | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isIndexing, setIsIndexing] = useState(false);
-  const [visibleCounts, setVisibleCounts] = useState<Map<string, number>>(new Map());
+  const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const oramaInstance = useRef<Orama<any> | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSearchHits = useRef<SearchHit[]>([]);
-  const lastSearchQuery = useRef<string>("");
 
   const resetSearchState = useCallback(() => {
-    setResults(null);
-    setVisibleCounts(new Map());
-    lastSearchHits.current = [];
-    lastSearchQuery.current = "";
+    setSearchHits([]);
+    setSearchQuery("");
   }, []);
 
   const createIndex = useCallback(async () => {
@@ -507,8 +492,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   }, [persistedStore, isIndexing]);
 
   const performSearch = useCallback(
-    async (searchQuery: string, searchFilters: SearchFilters | null) => {
-      const normalizedQuery = normalizeQuery(searchQuery);
+    async (searchQueryInput: string, searchFilters: SearchFilters | null) => {
+      const normalizedQuery = normalizeQuery(searchQueryInput);
 
       if (!oramaInstance.current || normalizedQuery.length < 2) {
         resetSearchState();
@@ -533,10 +518,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         });
 
         const hits = searchResults.hits as unknown as SearchHit[];
-        lastSearchHits.current = hits;
-        lastSearchQuery.current = normalizedQuery;
-        const grouped = groupSearchResults(hits, normalizedQuery, visibleCounts);
-        setResults(grouped);
+        setSearchHits(hits);
+        setSearchQuery(normalizedQuery);
       } catch (error) {
         console.error("Search failed:", error);
         resetSearchState();
@@ -544,30 +527,18 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
         setIsSearching(false);
       }
     },
-    [resetSearchState, visibleCounts],
+    [resetSearchState],
   );
 
   useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
     const normalizedQuery = normalizeQuery(query);
 
     if (normalizedQuery.length < 2) {
       resetSearchState();
       setIsSearching(false);
     } else {
-      debounceTimer.current = setTimeout(() => {
-        void performSearch(normalizedQuery, filters);
-      }, 300);
+      void performSearch(normalizedQuery, filters);
     }
-
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
   }, [query, filters, performSearch, resetSearchState]);
 
   const onFocus = useCallback(() => {
@@ -581,20 +552,12 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     setIsFocused(false);
   }, []);
 
-  const loadMoreInGroup = useCallback((groupKey: string) => {
-    setVisibleCounts((prev) => {
-      const next = new Map(prev);
-      const currentCount = next.get(groupKey) || ITEMS_PER_PAGE;
-      next.set(groupKey, currentCount + LOAD_MORE_STEP);
-
-      if (lastSearchHits.current.length > 0 && lastSearchQuery.current) {
-        const grouped = groupSearchResults(lastSearchHits.current, lastSearchQuery.current, next);
-        setResults(grouped);
-      }
-
-      return next;
-    });
-  }, []);
+  const results = useMemo(() => {
+    if (searchHits.length === 0 || !searchQuery) {
+      return null;
+    }
+    return groupSearchResults(searchHits, searchQuery);
+  }, [searchHits, searchQuery]);
 
   const value = useMemo(
     () => ({
@@ -608,9 +571,8 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       isIndexing,
       onFocus,
       onBlur,
-      loadMoreInGroup,
     }),
-    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur, loadMoreInGroup],
+    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur],
   );
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

@@ -1,5 +1,5 @@
 import { Contact2Icon } from "lucide-react";
-
+import { useMemo } from "react";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
@@ -37,6 +37,7 @@ function ContactView({ tab }: { tab: Tab }) {
   }
 
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
+  const { openNew } = useTabs();
 
   const { selectedOrganization, selectedPerson, editingPerson, editingOrg, showNewOrg, sortOption } = tab.state;
 
@@ -67,6 +68,7 @@ function ContactView({ tab }: { tab: Tab }) {
   const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
   const humansData = persisted.UI.useResultTable(persisted.QUERIES.visibleHumans, persisted.STORE_ID);
   const selectedPersonData = persisted.UI.useRow("humans", selectedPerson ?? "", persisted.STORE_ID);
+  const allSessions = persisted.UI.useTable("sessions", persisted.STORE_ID);
 
   // Get humans by organization if one is selected
   const humanIdsByOrg = persisted.UI.useSliceRowIds(
@@ -74,6 +76,38 @@ function ContactView({ tab }: { tab: Tab }) {
     selectedOrganization ?? "",
     persisted.STORE_ID,
   );
+
+  const mappingIdsByHuman = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.sessionsByHuman,
+    selectedPerson ?? "",
+    persisted.STORE_ID,
+  );
+
+  const allMappings = persisted.UI.useTable("mapping_session_participant", persisted.STORE_ID);
+
+  const personSessions = useMemo(() => {
+    if (!mappingIdsByHuman || mappingIdsByHuman.length === 0) {
+      return [];
+    }
+  
+    return mappingIdsByHuman
+      .map((mappingId: string) => {
+        const mapping = allMappings[mappingId];
+        if (!mapping || !mapping.session_id) return null;
+        
+        const sessionId = mapping.session_id as string;
+        const session = allSessions[sessionId];
+        if (!session) return null;
+        
+        return {
+          id: sessionId,
+          ...session
+        };
+      })
+      .filter((session: any): session is NonNullable<typeof session> => session !== null);
+  }, [mappingIdsByHuman, allMappings, allSessions]);
+
+  console.log("personSessions", personSessions);
 
   // Convert to arrays for rendering
   const organizations = Object.entries(organizationsData).map(([id, data]) => ({
@@ -101,12 +135,9 @@ function ContactView({ tab }: { tab: Tab }) {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     }
   });
-
-  // Get sessions - for now just an empty array, we'll implement this later
-  const personSessions: any[] = [];
-
+  
   const handleSessionClick = (_sessionId: string) => {
-    // Handle session click
+    openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
   };
 
   const handleEditPerson = (personId: string) => {

@@ -14,6 +14,7 @@ export function PeopleColumn({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
+
   const thisOrgHumanIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.humansByOrg,
     currentOrgId ?? "",

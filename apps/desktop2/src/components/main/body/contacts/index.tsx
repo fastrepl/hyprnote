@@ -1,4 +1,5 @@
 import { Contact2Icon } from "lucide-react";
+import { useCallback } from "react";
 
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -41,17 +42,17 @@ function ContactView({ tab }: { tab: Tab }) {
 
   const { selectedOrganization, selectedPerson } = tab.state;
 
-  const setSelectedOrganization = (value: string | null) => {
+  const setSelectedOrganization = useCallback((value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, selectedOrganization: value });
-  };
+  }, [updateContactsTabState, tab]);
 
-  const setSelectedPerson = (value: string | null) => {
+  const setSelectedPerson = useCallback((value: string | null) => {
     updateContactsTabState(tab, { ...tab.state, selectedPerson: value });
-  };
+  }, [updateContactsTabState, tab]);
 
-  const handleSessionClick = (_sessionId: string) => {
-    openNew({ type: "sessions", id: _sessionId, active: true, state: { editor: "raw" } });
-  };
+  const handleSessionClick = useCallback((id: string) => {
+    openNew({ type: "sessions", id, active: true, state: { editor: "raw" } });
+  }, [openNew]);
 
   const handleDeletePerson = persisted.UI.useDelRowCallback(
     "humans",
@@ -65,13 +66,11 @@ function ContactView({ tab }: { tab: Tab }) {
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}
       />
-
       <PeopleColumn
         currentOrgId={selectedOrganization}
         currentHumanId={selectedPerson}
         setSelectedPerson={setSelectedPerson}
       />
-
       <DetailsColumn
         selectedHumanId={selectedPerson}
         handleDeletePerson={handleDeletePerson}

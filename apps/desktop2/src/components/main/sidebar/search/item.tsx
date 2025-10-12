@@ -3,22 +3,7 @@ import { useCallback } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { type SearchResult } from "../../../../contexts/search";
-import { useTabs } from "../../../../store/zustand/tabs";
-
-function getConfidenceLevel(score: number, maxScore: number): {
-  label: string;
-  color: string;
-} {
-  const normalizedScore = maxScore > 0 ? score / maxScore : 0;
-
-  if (normalizedScore >= 0.8) {
-    return { label: "High", color: "bg-green-500" };
-  } else if (normalizedScore >= 0.5) {
-    return { label: "Medium", color: "bg-yellow-500" };
-  } else {
-    return { label: "Low", color: "bg-gray-400" };
-  }
-}
+import { Tab, useTabs } from "../../../../store/zustand/tabs";
 
 export function SearchResultItem({
   result,
@@ -29,18 +14,11 @@ export function SearchResultItem({
 }) {
   const { openCurrent } = useTabs();
   const handleClick = useCallback(() => {
-    switch (result.type) {
-      case "session":
-        openCurrent({ id: result.id, type: "sessions", active: true, state: { editor: "raw" } });
-        break;
-      case "human":
-        openCurrent({ id: result.id, type: "humans", active: true });
-        break;
-      case "organization":
-        openCurrent({ id: result.id, type: "organizations", active: true });
-        break;
+    const tab = getTab(result);
+    if (tab) {
+      openCurrent(tab);
     }
-  }, [openCurrent, result.id, result.type]);
+  }, [openCurrent, result]);
 
   const Icon = result.type === "session"
     ? FileTextIcon
@@ -88,4 +66,33 @@ export function SearchResultItem({
       </div>
     </button>
   );
+}
+
+function getTab(result: SearchResult): Tab | null {
+  if (result.type === "session") {
+    return { type: "sessions", active: true, id: result.id, state: { editor: "raw" } };
+  }
+  if (result.type === "human") {
+    return { type: "humans", active: true, id: result.id };
+  }
+  if (result.type === "organization") {
+    return { type: "organizations", active: true, id: result.id };
+  }
+
+  return null;
+}
+
+function getConfidenceLevel(score: number, maxScore: number): {
+  label: string;
+  color: string;
+} {
+  const normalizedScore = maxScore > 0 ? score / maxScore : 0;
+
+  if (normalizedScore >= 0.8) {
+    return { label: "High", color: "bg-green-500" };
+  } else if (normalizedScore >= 0.5) {
+    return { label: "Medium", color: "bg-yellow-500" };
+  } else {
+    return { label: "Low", color: "bg-gray-400" };
+  }
 }

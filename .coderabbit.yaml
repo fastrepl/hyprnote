@@ -11,6 +11,7 @@ reviews:
     - "!**/*.gen.ts"
     - "!plugins/**/permissions/**"
     - "!**/README*"
+    - "!**/.cursor/**"
   path_instructions:
     - path: "**/*.{js,ts,tsx,rs}"
       instructions: |

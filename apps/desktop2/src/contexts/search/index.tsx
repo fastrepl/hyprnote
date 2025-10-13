@@ -495,7 +495,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     async (searchQueryInput: string, searchFilters: SearchFilters | null) => {
       const normalizedQuery = normalizeQuery(searchQueryInput);
 
-      if (!oramaInstance.current || normalizedQuery.length < 2) {
+      if (!oramaInstance.current || normalizedQuery.length < 1) {
         resetSearchState();
         setIsSearching(false);
         return;
@@ -533,7 +533,7 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const normalizedQuery = normalizeQuery(query);
 
-    if (normalizedQuery.length < 2) {
+    if (normalizedQuery.length < 1) {
       resetSearchState();
       setIsSearching(false);
     } else {

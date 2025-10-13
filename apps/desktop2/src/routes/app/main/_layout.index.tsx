@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
@@ -13,18 +12,9 @@ function Component() {
   const { isExpanded: isLeftPanelExpanded } = useLeftSidebar();
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-full">
-      {isLeftPanelExpanded && (
-        <>
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-            <LeftSidebar />
-          </ResizablePanel>
-          <ResizableHandle withHandle className="invisible" />
-        </>
-      )}
-      <ResizablePanel>
-        <Body />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <div className="flex h-full overflow-hidden">
+      {isLeftPanelExpanded && <LeftSidebar />}
+      <Body />
+    </div>
   );
 }

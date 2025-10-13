@@ -1,10 +1,12 @@
-import { PanelLeftOpenIcon } from "lucide-react";
+import { useRouteContext } from "@tanstack/react-router";
+import { PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
-
-import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
+import { useCallback } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useLeftSidebar } from "@hypr/utils/contexts";
+import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
+import { id } from "../../../utils";
 import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -23,7 +25,7 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col p-1 gap-1 h-full relative">
+    <div className="flex flex-col p-1 gap-1 h-full flex-1 relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
@@ -34,8 +36,23 @@ export function Body() {
 }
 
 function Header({ tabs }: { tabs: Tab[] }) {
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+
   const { isExpanded, setIsExpanded } = useLeftSidebar();
-  const { select, close, reorder } = useTabs();
+  const { select, close, reorder, openNew } = useTabs();
+
+  const handleNewNote = useCallback(() => {
+    const sessionId = id();
+    const user_id = internalStore?.getValue("user_id");
+
+    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+    openNew({
+      type: "sessions",
+      id: sessionId,
+      active: true,
+      state: { editor: "raw" },
+    });
+  }, [persistedStore, internalStore, openNew]);
 
   return (
     <div
@@ -77,6 +94,19 @@ function Header({ tabs }: { tabs: Tab[] }) {
               </Reorder.Item>
             ))}
           </Reorder.Group>
+          <button
+            onClick={handleNewNote}
+            className={cn([
+              "flex items-center justify-center",
+              "h-full",
+              "mx-1 px-1.5",
+              "border border-gray-400 rounded-lg",
+              "bg-white hover:bg-gray-50",
+              "transition-colors",
+            ])}
+          >
+            <PlusIcon className="h-4 w-4 text-gray-800 cursor-pointer" />
+          </button>
         </div>
 
         <Search />

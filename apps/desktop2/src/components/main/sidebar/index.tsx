@@ -3,7 +3,6 @@ import { PanelLeftCloseIcon } from "lucide-react";
 
 import { useLeftSidebar } from "@hypr/utils/contexts";
 import { useSearch } from "../../../contexts/search";
-import { NewNoteButton } from "./new-note-button";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
@@ -15,7 +14,7 @@ export function LeftSidebar() {
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden">
+    <div className="h-full w-full flex flex-col overflow-hidden w-64">
       <header
         data-tauri-drag-region
         className={clsx([
@@ -38,7 +37,6 @@ export function LeftSidebar() {
           "p-1 pr-0 gap-1",
         ])}
       >
-        <NewNoteButton />
         <div className="flex-1 min-h-0 overflow-hidden">
           {showSearchResults ? <SearchResults /> : <TimelineView />}
         </div>

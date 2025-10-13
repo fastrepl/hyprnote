@@ -391,6 +391,16 @@ export const StoreComponent = () => {
             select("name");
             select("created_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleTemplates,
+          "templates",
+          ({ select }) => {
+            select("title");
+            select("description");
+            select("sections");
+            select("created_at");
+          },
         ),
     [store2],
   )!;
@@ -463,6 +473,7 @@ export const QUERIES = {
   sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
+  visibleTemplates: "visibleTemplates",
 };
 
 export const METRICS = {

@@ -52,6 +52,10 @@ export function TabContentNote({ tab }: { tab: Tab }) {
     persisted.STORE_ID,
   );
 
+  const handleRegenerate = (templateId: string | null) => {
+    console.log("Regenerate clicked:", templateId);
+  };
+
   return (
     <AudioPlayerProvider url="/assets/audio.wav">
       <div className="flex flex-col h-full gap-1">
@@ -91,7 +95,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
               }}
             />
           </div>
-          <FloatingRegenerateButton />
+          <FloatingRegenerateButton onRegenerate={handleRegenerate} />
         </div>
         {showAudioPlayer && <AudioPlayer />}
       </div>

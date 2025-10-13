@@ -39,7 +39,7 @@ export function Body() {
 function Header({ tabs }: { tabs: Tab[] }) {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
 
-  const { isLeftSidebarExpanded, setIsLeftSidebarExpanded } = useShell();
+  const { leftsidebar } = useShell();
   const { select, close, reorder, openNew } = useTabs();
 
   const handleNewNote = useCallback(() => {
@@ -60,22 +60,22 @@ function Header({ tabs }: { tabs: Tab[] }) {
       className={cn([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
         "w-full overflow-x-auto h-8",
-        !isLeftSidebarExpanded && "pl-[72px]",
+        !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
       <div className="flex w-full h-full items-end gap-4">
         <div data-tauri-drag-region className="flex items-end h-full flex-1 min-w-0">
-          {!isLeftSidebarExpanded && (
+          {!leftsidebar.expanded && (
             <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
               <PanelLeftOpenIcon
                 className="h-5 w-5 cursor-pointer"
-                onClick={() => setIsLeftSidebarExpanded(true)}
+                onClick={() => leftsidebar.setExpanded(true)}
               />
             </div>
           )}
 
           <Reorder.Group
-            key={isLeftSidebarExpanded ? "expanded" : "collapsed"}
+            key={leftsidebar.expanded ? "expanded" : "collapsed"}
             as="div"
             axis="x"
             values={tabs}

@@ -59,9 +59,7 @@ export function useChatMode() {
   );
 
   const canHandleEvent = useCallback(
-    (eventType: ChatEvent["type"]): boolean => {
-      return VALID_TRANSITIONS[mode].has(eventType);
-    },
+    (eventType: ChatEvent["type"]): boolean => VALID_TRANSITIONS[mode].has(eventType),
     [mode],
   );
 

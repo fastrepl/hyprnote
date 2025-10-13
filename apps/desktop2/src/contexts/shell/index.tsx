@@ -4,9 +4,11 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useChatMode } from "./chat";
 
 interface ShellContextType {
-  isLeftSidebarExpanded: boolean;
-  setIsLeftSidebarExpanded: (v: boolean) => void;
-  toggleLeftSidebar: () => void;
+  leftsidebar: {
+    expanded: boolean;
+    setExpanded: (v: boolean) => void;
+    toggleExpanded: () => void;
+  };
   chat: ReturnType<typeof useChatMode>;
 }
 
@@ -35,9 +37,11 @@ export function ShellProvider({ children }: { children: React.ReactNode }) {
   return (
     <ShellContext.Provider
       value={{
-        isLeftSidebarExpanded,
-        setIsLeftSidebarExpanded,
-        toggleLeftSidebar,
+        leftsidebar: {
+          expanded: isLeftSidebarExpanded,
+          setExpanded: setIsLeftSidebarExpanded,
+          toggleExpanded: toggleLeftSidebar,
+        },
         chat,
       }}
     >

@@ -8,7 +8,7 @@ import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
 
 export function LeftSidebar() {
-  const { toggleLeftSidebar } = useShell();
+  const { leftsidebar } = useShell();
   const { query } = useSearch();
 
   const showSearchResults = query.trim() !== "";
@@ -26,7 +26,7 @@ export function LeftSidebar() {
       >
         <div className="flex-1" />
         <PanelLeftCloseIcon
-          onClick={toggleLeftSidebar}
+          onClick={leftsidebar.toggleExpanded}
           className="cursor-pointer h-5 w-5 mr-2"
         />
       </header>

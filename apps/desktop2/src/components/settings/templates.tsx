@@ -41,7 +41,7 @@ export function SettingsTemplates() {
         <h1 className="text-xl font-semibold mb-2">Your Templates</h1>
         <p className="text-sm text-gray-600">Select a template to enhance your meeting notes</p>
       </div>
-      
+
       <div className="space-y-3">
         {Object.entries(templates).map(([id, template]) => (
           <TemplateCard
@@ -92,9 +92,9 @@ function TemplateCard({
 
 function TemplateEditor({ id, onClose }: { id: string; onClose: () => void }) {
   const { value, handle } = useUpdateTemplate(id);
-  
+
   // Add IDs to sections for Reorder
-  const [sections, setSections] = useState(() => 
+  const [sections, setSections] = useState(() =>
     (value.sections || []).map((s: any) => ({ ...s, id: crypto.randomUUID() }))
   );
 
@@ -104,9 +104,7 @@ function TemplateEditor({ id, onClose }: { id: string; onClose: () => void }) {
   };
 
   const handleUpdateSection = (sectionId: string, field: "title" | "description", newValue: string) => {
-    const updatedSections = sections.map(s => 
-      s.id === sectionId ? { ...s, [field]: newValue } : s
-    );
+    const updatedSections = sections.map(s => s.id === sectionId ? { ...s, [field]: newValue } : s);
     setSections(updatedSections);
     handle.setField("sections", updatedSections.map(({ id, ...rest }) => rest));
   };
@@ -177,9 +175,7 @@ function TemplateEditor({ id, onClose }: { id: string; onClose: () => void }) {
           {sections.map((section) => (
             <Reorder.Item key={section.id} value={section}>
               <div className="group relative rounded-md border border-border bg-card p-2 transition-all">
-                <button
-                  className="absolute left-2 top-2 cursor-move opacity-30 hover:opacity-60 transition-opacity"
-                >
+                <button className="absolute left-2 top-2 cursor-move opacity-30 hover:opacity-60 transition-opacity">
                   <GripVertical className="h-4 w-4 text-muted-foreground" />
                 </button>
 
@@ -208,7 +204,7 @@ function TemplateEditor({ id, onClose }: { id: string; onClose: () => void }) {
             </Reorder.Item>
           ))}
         </Reorder.Group>
-        
+
         <Button
           variant="outline"
           size="sm"

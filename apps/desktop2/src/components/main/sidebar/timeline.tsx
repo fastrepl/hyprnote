@@ -112,7 +112,6 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
     }
   };
 
-  
   // TODO: not ideal
   const active = currentTab?.type === "sessions" && (
     (item.type === "session" && currentTab.id === item.id)

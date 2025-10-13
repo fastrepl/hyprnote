@@ -13,10 +13,49 @@ import { useUpdateGeneral } from "./shared";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
-  "es", "it", "ko", "pt", "en", "pl", "ca", "ja", "de", "ru", "nl", "fr", "id",
-  "uk", "tr", "ms", "sv", "zh", "fi", "no", "ro", "th", "vi", "sk", "ar", "cs",
-  "hr", "el", "sr", "da", "bg", "hu", "tl", "bs", "gl", "mk", "hi", "et", "sl",
-  "ta", "lv", "az", "he",
+  "es",
+  "it",
+  "ko",
+  "pt",
+  "en",
+  "pl",
+  "ca",
+  "ja",
+  "de",
+  "ru",
+  "nl",
+  "fr",
+  "id",
+  "uk",
+  "tr",
+  "ms",
+  "sv",
+  "zh",
+  "fi",
+  "no",
+  "ro",
+  "th",
+  "vi",
+  "sk",
+  "ar",
+  "cs",
+  "hr",
+  "el",
+  "sr",
+  "da",
+  "bg",
+  "hu",
+  "tl",
+  "bs",
+  "gl",
+  "mk",
+  "hi",
+  "et",
+  "sl",
+  "ta",
+  "lv",
+  "az",
+  "he",
 ];
 
 export function SettingsGeneral() {
@@ -25,7 +64,6 @@ export function SettingsGeneral() {
 
   return (
     <div className="flex flex-col gap-8 p-6">
-
       {/* App Section */}
       <div>
         <h2 className="text-xl font-semibold mb-4">App</h2>
@@ -152,7 +190,9 @@ export function SettingsGeneral() {
           {/* Custom Vocabulary */}
           <div>
             <h3 className="text-base font-medium mb-1">Custom vocabulary</h3>
-            <p className="text-sm text-gray-600 mb-3">Add jargons or industry/company-specific terms to improve transcription accuracy</p>
+            <p className="text-sm text-gray-600 mb-3">
+              Add jargons or industry/company-specific terms to improve transcription accuracy
+            </p>
             <Textarea
               value={(value.jargons ?? []).join(", ")}
               onChange={(e) => handle.setField("jargons", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}

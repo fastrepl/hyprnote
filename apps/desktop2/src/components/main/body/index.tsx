@@ -5,6 +5,7 @@ import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs"
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useLeftSidebar } from "@hypr/utils/contexts";
+import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentDaily, TabItemDaily } from "./daily";
@@ -13,7 +14,6 @@ import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
-import { ChatFloatingButton } from "../../chat";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();

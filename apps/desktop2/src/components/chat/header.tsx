@@ -18,16 +18,16 @@ export function ChatHeader({
   onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
 }) {
-  const { sendChatEvent, handleableChatEvents } = useShell();
+  const { chat } = useShell();
   return (
     <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
       <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
 
       <div className="flex items-center gap-0.5">
-        {handleableChatEvents.SHIFT && (
+        {chat.handleableEvents.SHIFT && (
           <ChatActionButton
             icon={<ExternalLink className="w-4 h-4" />}
-            onClick={() => sendChatEvent({ type: "SHIFT" })}
+            onClick={() => chat.sendEvent({ type: "SHIFT" })}
             title="Toggle"
           />
         )}
@@ -36,7 +36,7 @@ export function ChatHeader({
           onClick={onNewChat}
           title="New chat"
         />
-        {handleableChatEvents.CLOSE && (
+        {chat.handleableEvents.CLOSE && (
           <ChatActionButton
             icon={<X className="w-4 h-4" />}
             onClick={handleClose}

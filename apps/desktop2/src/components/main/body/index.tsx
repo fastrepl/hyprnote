@@ -19,7 +19,7 @@ import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();
-  const { chatMode } = useShell();
+  const { chat } = useShell();
 
   if (!currentTab) {
     return null;
@@ -31,7 +31,7 @@ export function Body() {
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
       </div>
-      {chatMode !== "RightPanelOpen" && <ChatFloatingButton />}
+      {chat.mode !== "RightPanelOpen" && <ChatFloatingButton />}
     </div>
   );
 }

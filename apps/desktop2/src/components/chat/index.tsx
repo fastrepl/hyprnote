@@ -11,16 +11,15 @@ import { ChatView } from "./view";
 export function ChatFloatingButton() {
   const [chatGroupId, setChatGroupId] = useState<string | undefined>(undefined);
 
-  const { chatMode, sendChatEvent } = useShell();
+  const { chat } = useShell();
+  const isOpen = chat.mode === "FloatingOpen";
 
-  const isOpen = chatMode === "FloatingOpen";
-
-  useAutoCloser(() => sendChatEvent({ type: "CLOSE" }), { esc: isOpen, outside: false });
+  useAutoCloser(() => chat.sendEvent({ type: "CLOSE" }), { esc: isOpen, outside: false });
   useHotkeys("mod+j", () => {
     if (isOpen) {
-      sendChatEvent({ type: "CLOSE" });
+      chat.sendEvent({ type: "CLOSE" });
     } else {
-      sendChatEvent({ type: "OPEN" });
+      chat.sendEvent({ type: "OPEN" });
     }
   });
 
@@ -29,8 +28,8 @@ export function ChatFloatingButton() {
     if (isExists) {
       windowsCommands.windowDestroy({ type: "chat" });
     }
-    sendChatEvent({ type: "OPEN" });
-  }, [sendChatEvent]);
+    chat.sendEvent({ type: "OPEN" });
+  }, [chat]);
 
   if (!isOpen) {
     return <ChatTrigger onClick={handleClickTrigger} />;
@@ -44,7 +43,7 @@ export function ChatFloatingButton() {
       <ChatView
         chatGroupId={chatGroupId}
         setChatGroupId={setChatGroupId}
-        onClose={() => sendChatEvent({ type: "CLOSE" })}
+        onClose={() => chat.sendEvent({ type: "CLOSE" })}
       />
     </InteractiveContainer>
   );

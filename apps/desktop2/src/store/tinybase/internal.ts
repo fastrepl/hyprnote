@@ -16,8 +16,8 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
-  current_llm_provider: z.string().default("hypr"),
-  current_stt_provider: z.string().default("hypr"),
+  current_llm_provider: z.string().default("hyprcloud"),
+  current_stt_provider: z.string().default("hyprlocal"),
 });
 
 export const aiSchema = z.object({

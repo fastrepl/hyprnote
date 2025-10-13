@@ -31,7 +31,6 @@ export function SettingsTemplates() {
   );
 
   const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
-  
 
   if (currentTemplate) {
     return <TemplateEditor id={currentTemplate} onClose={() => setCurrentTemplate(null)} />;

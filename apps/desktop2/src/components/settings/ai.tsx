@@ -5,23 +5,28 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "../../hooks/useQuery";
+import { useUpdateGeneral } from "./shared";
 
 export function SettingsAI() {
   const [activeTab, setActiveTab] = useState<"transcription" | "intelligence">("transcription");
+  const { value: generalValue } = useUpdateGeneral();
 
   return (
-    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
-      <TabsList className="mb-6 w-full grid grid-cols-2">
-        <TabsTrigger value="transcription">Transcription</TabsTrigger>
-        <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
-      </TabsList>
-      <TabsContent value="transcription" className="w-full">
-        <TranscriptionSettings />
-      </TabsContent>
-      <TabsContent value="intelligence" className="w-full">
-        <IntelligenceSettings />
-      </TabsContent>
-    </Tabs>
+    <div>
+      <pre>{JSON.stringify(generalValue, null, 2)}</pre>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
+        <TabsList className="mb-6 w-full grid grid-cols-2">
+          <TabsTrigger value="transcription">Transcription</TabsTrigger>
+          <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+        </TabsList>
+        <TabsContent value="transcription" className="w-full">
+          <TranscriptionSettings />
+        </TabsContent>
+        <TabsContent value="intelligence" className="w-full">
+          <IntelligenceSettings />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
@@ -122,12 +127,19 @@ function ProviderCard({
   name,
   configured,
   modelInUse,
+  handleSelectProvider,
 }: {
   name: string;
   configured?: boolean;
   modelInUse?: string;
+  handleSelectProvider?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+    handleSelectProvider?.();
+  };
 
   return (
     <div
@@ -138,7 +150,7 @@ function ProviderCard({
           : "border-gray-200 bg-white hover:border-gray-300",
       ])}
     >
-      <div className="p-4" onClick={() => setIsOpen(!isOpen)}>
+      <div className="p-4" onClick={handleClick}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="font-medium text-gray-900">{name}</span>

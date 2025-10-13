@@ -1,12 +1,13 @@
+import { useRouteContext } from "@tanstack/react-router";
 import { PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { useRouteContext } from "@tanstack/react-router";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
+import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentDaily, TabItemDaily } from "./daily";
@@ -29,6 +30,7 @@ export function Body() {
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
       </div>
+      <ChatFloatingButton />
     </div>
   );
 }

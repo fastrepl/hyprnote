@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { differenceInDays, format, formatDistanceToNowStrict, isPast } from "date-fns";
+import { ExternalLink, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
@@ -125,7 +126,12 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
 
   const contextMenu = (
     <>
-      <ContextMenuItem onClick={() => console.log("Delete:", item.type, item.id)}>
+      <ContextMenuItem onClick={() => handleCmdClick()}>
+        <ExternalLink className="w-4 h-4 mr-2" />
+        New Tab
+      </ContextMenuItem>
+      <ContextMenuItem className="text-red-500" onClick={() => console.log("Delete:", item.type, item.id)}>
+        <Trash2 className="w-4 h-4 mr-2 text-red-500" />
         Delete
       </ContextMenuItem>
     </>

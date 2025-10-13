@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { useLeftSidebar } from "@hypr/utils/contexts";
-import { ChatFloatingButton } from "../../../components/chat";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
 
@@ -16,7 +15,6 @@ function Component() {
     <div className="flex h-full overflow-hidden">
       {isLeftPanelExpanded && <LeftSidebar />}
       <Body />
-      <ChatFloatingButton />
     </div>
   );
 }

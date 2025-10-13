@@ -16,13 +16,14 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
-  current_llm_provider: z.string().default("hypr"),
-  current_stt_provider: z.string().default("hypr"),
+  current_llm_provider: z.string().default("hyprcloud"),
+  current_stt_provider: z.string().default("hyprlocal"),
 });
 
 export const aiSchema = z.object({
   base_url: z.string(),
   api_key: z.string(),
+  model_name: z.string(),
 });
 export type AI = z.infer<typeof aiSchema>;
 export type AIStorage = ToStorageType<typeof aiSchema>;
@@ -50,6 +51,7 @@ export const SCHEMA = {
     ai: {
       base_url: { type: "string" },
       api_key: { type: "string" },
+      model_name: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiSchema>,
     changes: {
       row_id: { type: "string" },

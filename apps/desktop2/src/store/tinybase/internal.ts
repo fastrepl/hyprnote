@@ -23,6 +23,7 @@ export const generalSchema = z.object({
 export const aiSchema = z.object({
   base_url: z.string(),
   api_key: z.string(),
+  model_name: z.string(),
 });
 export type AI = z.infer<typeof aiSchema>;
 export type AIStorage = ToStorageType<typeof aiSchema>;
@@ -50,6 +51,7 @@ export const SCHEMA = {
     ai: {
       base_url: { type: "string" },
       api_key: { type: "string" },
+      model_name: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiSchema>,
     changes: {
       row_id: { type: "string" },

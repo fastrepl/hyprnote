@@ -97,7 +97,7 @@ export function ChatView() {
       <ChatSession key={sessionKey} sessionId={sessionKey} chatGroupId={groupId}>
         {({ messages, sendMessage, status, error }) => (
           <>
-            <Error error={error} />
+            <ErrorDisplay error={error} />
             <ChatBody messages={messages} />
             <ChatMessageInput
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
@@ -110,7 +110,7 @@ export function ChatView() {
   );
 }
 
-function Error({ error }: { error?: Error | null }) {
+function ErrorDisplay({ error }: { error?: Error | null }) {
   if (!error) {
     return null;
   }

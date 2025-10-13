@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { useShell } from "../../contexts/shell";
@@ -13,13 +12,6 @@ export function ChatFloatingButton() {
   const isOpen = chat.mode === "FloatingOpen";
 
   useAutoCloser(() => chat.sendEvent({ type: "CLOSE" }), { esc: isOpen, outside: false });
-  useHotkeys("mod+j", () => {
-    if (isOpen) {
-      chat.sendEvent({ type: "CLOSE" });
-    } else {
-      chat.sendEvent({ type: "OPEN" });
-    }
-  });
 
   const handleClickTrigger = useCallback(async () => {
     const isExists = await windowsCommands.windowIsExists({ type: "chat" });

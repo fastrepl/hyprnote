@@ -1,19 +1,21 @@
-import { useAudioPlayerContext } from "../../../../../contexts/audio-player";
-import { type SessionRowProp } from "./types";
+import { CassetteTapeIcon } from "lucide-react";
 
-export function RecordingButton({
-  sessionRow: _sessionRow,
-  onToggle,
-  isActive,
-}: SessionRowProp & { onToggle: () => void; isActive: boolean }) {
+import { cn } from "@hypr/ui/lib/utils";
+import { useAudioPlayerContext } from "../../../../../contexts/audio-player";
+
+export function RecordingButton({ onToggle }: { onToggle: () => void }) {
   const { currentTime } = useAudioPlayerContext();
 
   return (
     <button
       onClick={onToggle}
-      className={`text-xs transition-opacity ${isActive ? "opacity-100" : "opacity-50 hover:opacity-75"}`}
+      className={cn([
+        "flex items-center gap-1",
+        "text-xs transition-opacity",
+      ])}
     >
-      🎙️ {formatTime(currentTime)}
+      <CassetteTapeIcon className="w-4 h-4" />
+      <span>{formatTime(currentTime)}</span>
     </button>
   );
 }

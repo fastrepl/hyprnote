@@ -10,11 +10,16 @@ import { RecordingButton } from "./recording";
 import { ShareButton } from "./share";
 
 export function OuterHeader(
-  { sessionRow, sessionId, onToggleAudioPlayer, isAudioPlayerVisible }: {
+  {
+    sessionRow,
+    sessionId,
+    isPlayerVisible,
+    onToggleAudioPlayer,
+  }: {
     sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
     sessionId: string;
+    isPlayerVisible: boolean;
     onToggleAudioPlayer: () => void;
-    isAudioPlayerVisible: boolean;
   },
 ) {
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
@@ -40,9 +45,8 @@ export function OuterHeader(
           currentUserId={user_id}
         />
         <RecordingButton
-          sessionRow={sessionRow}
-          onToggle={onToggleAudioPlayer}
-          isActive={isAudioPlayerVisible}
+          isPlayerVisible={isPlayerVisible}
+          handleClick={onToggleAudioPlayer}
         />
         <ListenButton sessionRow={sessionRow} />
         <ShareButton sessionRow={sessionRow} />

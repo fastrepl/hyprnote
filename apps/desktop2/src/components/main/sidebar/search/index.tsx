@@ -1,19 +1,24 @@
+import { SearchXIcon } from "lucide-react";
+
 import { cn } from "@hypr/ui/lib/utils";
-import { useSearch } from "../../../../contexts/search";
-import { SearchNoResults } from "./empty";
+import { type GroupedSearchResults, useSearch } from "../../../../contexts/search";
 import { SearchResultGroup } from "./group";
 
 export function SearchResults() {
-  const { results, query } = useSearch();
+  const { results, query, setQuery } = useSearch();
 
-  if (!query || !results) {
-    return null;
-  }
+  const empty = !query || !results || results.totalResults === 0;
 
-  if (results.totalResults === 0) {
-    return <SearchNoResults />;
-  }
+  return (
+    <div className={cn(["h-full rounded-md bg-gray-50"])}>
+      {empty
+        ? <SearchNoResults query={query} setQuery={setQuery} />
+        : <SearchYesResults results={results} query={query} />}
+    </div>
+  );
+}
 
+function SearchYesResults({ results, query }: { results: GroupedSearchResults; query: string }) {
   return (
     <div className={cn(["h-full overflow-y-auto"])}>
       <div className={cn(["px-3 py-3"])}>
@@ -24,6 +29,24 @@ export function SearchResults() {
         </div>
 
         {results.groups.map((group) => <SearchResultGroup key={group.key} group={group} />)}
+      </div>
+    </div>
+  );
+}
+
+function SearchNoResults({ query }: { query: string; setQuery: (query: string) => void }) {
+  return (
+    <div className={cn(["h-full flex items-center justify-center"])}>
+      <div className={cn(["text-center px-4 max-w-xs"])}>
+        <div className={cn(["flex justify-center mb-3"])}>
+          <SearchXIcon className={cn(["h-10 w-10 text-gray-300"])} />
+        </div>
+        <p className={cn(["text-sm font-medium text-gray-700"])}>
+          No results found for "{query}"
+        </p>
+        <p className={cn(["text-xs text-gray-500 mt-2 leading-relaxed underline"])}>
+          Help us improve search
+        </p>
       </div>
     </div>
   );

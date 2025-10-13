@@ -16,12 +16,7 @@ function Component() {
     <div className="flex h-full overflow-hidden">
       {leftsidebar.expanded && <LeftSidebar />}
       <Body />
-      {chat.mode === "RightPanelOpen" && (
-        <ChatView
-          setChatGroupId={() => {}}
-          onClose={() => chat.sendEvent({ type: "CLOSE" })}
-        />
-      )}
+      {chat.mode === "RightPanelOpen" && <ChatView />}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
@@ -9,8 +9,6 @@ import { ChatTrigger } from "./trigger";
 import { ChatView } from "./view";
 
 export function ChatFloatingButton() {
-  const [chatGroupId, setChatGroupId] = useState<string | undefined>(undefined);
-
   const { chat } = useShell();
   const isOpen = chat.mode === "FloatingOpen";
 
@@ -40,11 +38,7 @@ export function ChatFloatingButton() {
       width={window.innerWidth * 0.4}
       height={window.innerHeight * 0.7}
     >
-      <ChatView
-        chatGroupId={chatGroupId}
-        setChatGroupId={setChatGroupId}
-        onClose={() => chat.sendEvent({ type: "CLOSE" })}
-      />
+      <ChatView />
     </InteractiveContainer>
   );
 }

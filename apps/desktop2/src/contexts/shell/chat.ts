@@ -43,6 +43,7 @@ const VALID_TRANSITIONS: Record<ChatMode, Set<ChatEvent["type"]>> = {
 
 export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("RightPanelOpen");
+  const [groupId, setGroupId] = useState<string | undefined>(undefined);
 
   const actorRef = useMemo(() => {
     const actor = createActor(chatModeLogic);
@@ -77,5 +78,7 @@ export function useChatMode() {
     sendEvent,
     canHandleEvent,
     handleableEvents,
+    groupId,
+    setGroupId,
   };
 }

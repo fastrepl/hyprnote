@@ -1,4 +1,3 @@
-import { type LinkProps } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -23,28 +22,14 @@ export function ChatFloatingButton() {
     setIsOpen(true);
   }, []);
 
-  const handlePopOut = useCallback(() => {
-    const url = { to: "/app/chat", search: { id: chatGroupId } } as const satisfies LinkProps;
-    windowsCommands.windowShow({ type: "chat" }).then(() => {
-      setIsOpen(false);
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "chat" }, {
-          path: url.to,
-          search: url.search,
-        });
-      }, 1000);
-    });
-  }, [chatGroupId]);
-
   if (!isOpen) {
     return <ChatTrigger onClick={handleClickTrigger} />;
   }
 
   return (
     <InteractiveContainer
-      onPopOut={handlePopOut}
-      width={window.innerWidth * 0.5}
-      height={window.innerHeight * 0.8}
+      width={window.innerWidth * 0.4}
+      height={window.innerHeight * 0.7}
     >
       <ChatView
         chatGroupId={chatGroupId}

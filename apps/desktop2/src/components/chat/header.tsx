@@ -1,10 +1,8 @@
-import type { LinkProps } from "@tanstack/react-router";
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ExternalLink, MessageCircle, Plus, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ChevronDown, MessageCircle, Plus, X } from "lucide-react";
+import { useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
 import * as persisted from "../../store/tinybase/persisted";
 
@@ -13,35 +11,14 @@ export function ChatHeader({
   onNewChat,
   onSelectChat,
   handleClose,
-  isWindow,
 }: {
   currentChatGroupId: string | undefined;
   onNewChat: () => void;
   onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
-  isWindow?: boolean;
 }) {
-  const handleClickPopOut = useCallback(() => {
-    const url = { to: "/app/chat", search: { id: currentChatGroupId } } as const satisfies LinkProps;
-    windowsCommands.windowShow({ type: "chat" }).then(() => {
-      handleClose();
-      setTimeout(() => {
-        windowsCommands.windowEmitNavigate({ type: "chat" }, {
-          path: url.to,
-          search: url.search,
-        });
-      }, 1000);
-    });
-  }, [handleClose, currentChatGroupId]);
-
   return (
-    <div
-      data-tauri-drag-region={isWindow}
-      className={clsx([
-        "flex items-center justify-between px-3 py-1 border-b border-neutral-200",
-        isWindow && "pl-[72px]",
-      ])}
-    >
+    <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
       <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
 
       <div className="flex items-center gap-0.5">
@@ -50,20 +27,11 @@ export function ChatHeader({
           onClick={onNewChat}
           title="New chat"
         />
-        {!isWindow && (
-          <ChatActionButton
-            icon={<ExternalLink className="w-4 h-4" />}
-            onClick={handleClickPopOut}
-            title="Pop out chat"
-          />
-        )}
-        {!isWindow && (
-          <ChatActionButton
-            icon={<X className="w-4 h-4" />}
-            onClick={handleClose}
-            title="Close"
-          />
-        )}
+        <ChatActionButton
+          icon={<X className="w-4 h-4" />}
+          onClick={handleClose}
+          title="Close"
+        />
       </div>
     </div>
   );

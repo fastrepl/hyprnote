@@ -6,7 +6,6 @@ import type { ChatMessage, ChatMessageStorage } from "../../store/tinybase/persi
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
 
-import clsx from "clsx";
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
@@ -17,13 +16,11 @@ export function ChatView({
   setChatGroupId,
   onChatGroupChange,
   onClose,
-  isWindow = false,
 }: {
   chatGroupId?: string;
   setChatGroupId: (chatGroupId: string | undefined) => void;
   onChatGroupChange?: (chatGroupId: string | undefined) => void;
   onClose?: () => void;
-  isWindow?: boolean;
 }) {
   const [sessionKey, setSessionKey] = useState(() => chatGroupId || id());
   const chatGroupIdRef = useRef<string | undefined>(chatGroupId);
@@ -101,16 +98,13 @@ export function ChatView({
   );
 
   return (
-    <div className="flex flex-col h-full" data-tauri-drag-region>
-      <div className={clsx(!isWindow && "cursor-move select-none")}>
-        <ChatHeader
-          currentChatGroupId={chatGroupId}
-          onNewChat={handleNewChat}
-          onSelectChat={handleSelectChat}
-          handleClose={onClose || (() => {})}
-          isWindow={isWindow}
-        />
-      </div>
+    <div className="flex flex-col h-full">
+      <ChatHeader
+        currentChatGroupId={chatGroupId}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        handleClose={onClose || (() => {})}
+      />
       <ChatSession
         key={sessionKey}
         sessionId={sessionKey}

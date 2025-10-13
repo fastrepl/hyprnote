@@ -5,11 +5,11 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/ui/lib/utils";
 import { useQuery } from "../../hooks/useQuery";
-import { useUpdateAI, useUpdateGeneral } from "./shared";
+import { useUpdateGeneral } from "./shared";
 
 export function SettingsAI() {
   const [activeTab, setActiveTab] = useState<"transcription" | "intelligence">("transcription");
-  const { value: generalValue, handle: generalHandle } = useUpdateGeneral();
+  const { value: generalValue } = useUpdateGeneral();
 
   return (
     <div>

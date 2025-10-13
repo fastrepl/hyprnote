@@ -1,15 +1,7 @@
-import { Building2Icon, FileTextIcon, UserIcon } from "lucide-react";
-
 import { cn } from "@hypr/ui/lib/utils";
 import { useSearch } from "../../../../contexts/search";
 import { SearchNoResults } from "./empty";
 import { SearchResultGroup } from "./group";
-
-const ICON_MAP = {
-  session: FileTextIcon,
-  human: UserIcon,
-  organization: Building2Icon,
-};
 
 export function SearchResults() {
   const { results, query } = useSearch();
@@ -31,15 +23,7 @@ export function SearchResults() {
           </p>
         </div>
 
-        {results.groups.map((group, index) => (
-          <SearchResultGroup
-            key={group.key}
-            group={group}
-            icon={ICON_MAP[group.type]}
-            rank={index + 1}
-            maxScore={results.maxScore}
-          />
-        ))}
+        {results.groups.map((group) => <SearchResultGroup key={group.key} group={group} />)}
       </div>
     </div>
   );

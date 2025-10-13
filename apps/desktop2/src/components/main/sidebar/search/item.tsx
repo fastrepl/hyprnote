@@ -1,19 +1,15 @@
 import DOMPurify from "dompurify";
-import { Building2Icon, FileTextIcon, UserIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { type SearchResult } from "../../../../contexts/search";
+import * as persisted from "../../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../../store/zustand/tabs";
+import { getInitials } from "../../body/contacts/shared";
 
-export function SearchResultItem({
-  result,
-  maxScore,
-}: {
-  result: SearchResult;
-  maxScore: number;
-}) {
+export function SearchResultItem({ result }: { result: SearchResult }) {
   const { openCurrent } = useTabs();
+
   const handleClick = useCallback(() => {
     const tab = getTab(result);
     if (tab) {
@@ -21,6 +17,105 @@ export function SearchResultItem({
     }
   }, [openCurrent, result]);
 
+  if (result.type === "human") {
+    return <HumanSearchResultItem result={result} onClick={handleClick} />;
+  }
+
+  if (result.type === "organization") {
+    return <OrganizationSearchResultItem result={result} onClick={handleClick} />;
+  }
+
+  if (result.type === "session") {
+    return <SessionSearchResultItem result={result} onClick={handleClick} />;
+  }
+
+  return null;
+}
+
+function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
+  const organization = persisted.UI.useRow("organizations", result.org_id, persisted.STORE_ID);
+
+  const sanitizedTitle = useMemo(
+    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    [result.titleHighlighted],
+  );
+
+  const jobTitle = result.metadata?.job_title as string | undefined;
+  const orgName = organization?.name;
+
+  const subtitle = [jobTitle, orgName].filter(Boolean).join(", ");
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "w-full px-3 py-2.5",
+        "flex items-start gap-3",
+        "hover:bg-gray-50 active:bg-gray-100",
+        "rounded-lg transition-colors",
+        "text-left",
+      ])}
+    >
+      <div className={cn(["flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center"])}>
+        <span className={cn(["text-xs font-medium text-neutral-600"])}>
+          {getInitials(result.title)}
+        </span>
+      </div>
+      <div className={cn(["flex-1 min-w-0"])}>
+        <div
+          className={cn(["text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold"])}
+          dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
+        />
+        {subtitle && (
+          <div className={cn(["text-xs text-gray-500 truncate mt-0.5"])}>
+            {subtitle}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function OrganizationSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
+  const humanIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.humansByOrg,
+    result.id,
+    persisted.STORE_ID,
+  );
+
+  const sanitizedTitle = useMemo(
+    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    [result.titleHighlighted],
+  );
+
+  const memberCount = humanIds.length;
+  const memberText = memberCount === 1 ? "1 person" : `${memberCount} people`;
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "w-full px-3 py-2.5",
+        "flex items-start gap-3",
+        "hover:bg-gray-50 active:bg-gray-100",
+        "rounded-lg transition-colors",
+        "text-left",
+      ])}
+    >
+      <div className={cn(["flex-1 min-w-0"])}>
+        <div
+          className={cn(["text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold"])}
+          dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
+        />
+        <div className={cn(["text-xs text-gray-500 truncate mt-0.5"])}>
+          {memberText}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function SessionSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
   const sanitizedTitle = useMemo(
     () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
     [result.titleHighlighted],
@@ -31,50 +126,59 @@ export function SearchResultItem({
     [result.contentHighlighted],
   );
 
-  const Icon = result.type === "session"
-    ? FileTextIcon
-    : result.type === "human"
-    ? UserIcon
-    : Building2Icon;
+  const createdAt = new Date(result.created_at);
+  const now = new Date();
+  const diffMs = now.getTime() - createdAt.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  const confidence = getConfidenceLevel(result.score, maxScore);
+  let timeAgo: string;
+  if (diffDays === 0) {
+    timeAgo = "Today";
+  } else if (diffDays === 1) {
+    timeAgo = "Yesterday";
+  } else if (diffDays < 7) {
+    timeAgo = createdAt.toLocaleDateString("en-US", { weekday: "long" });
+  } else if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    timeAgo = weeks === 1 ? "a week ago" : `${weeks} weeks ago`;
+  } else if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    timeAgo = months === 1 ? "a month ago" : `${months} months ago`;
+  } else {
+    const years = Math.floor(diffDays / 365);
+    timeAgo = years === 1 ? "a year ago" : `${years} years ago`;
+  }
 
   return (
     <button
-      onClick={handleClick}
+      onClick={onClick}
       className={cn([
         "w-full px-3 py-2.5",
-        "flex items-start gap-3",
+        "flex flex-col gap-1",
         "hover:bg-gray-50 active:bg-gray-100",
         "rounded-lg transition-colors",
         "text-left",
+        "min-w-0",
       ])}
     >
-      <Icon className={cn(["h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400"])} />
-      <div className={cn(["flex-1 min-w-0"])}>
-        <div className={cn(["flex items-center gap-2 mb-0.5"])}>
-          <div
-            className={cn([
-              "text-sm font-medium text-gray-900 truncate flex-1 [&_mark]:bg-yellow-200 [&_mark]:text-gray-900",
-            ])}
-            dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
-          />
-          <div
-            className={cn([
-              "flex-shrink-0",
-              "w-1.5 h-1.5 rounded-full",
-              confidence.color,
-            ])}
-            title={`${confidence.label} relevance`}
-          />
-        </div>
-        {result.content && (
-          <div
-            className={cn(["text-xs text-gray-500 truncate mt-0.5 [&_mark]:bg-yellow-200 [&_mark]:text-gray-700"])}
-            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-          />
-        )}
+      <div
+        className={cn([
+          "text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+          "w-full",
+        ])}
+        dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
+      />
+      <div className={cn(["text-xs text-gray-500"])}>
+        {timeAgo}
       </div>
+      {result.content && (
+        <div
+          className={cn([
+            "text-xs text-gray-500 line-clamp-2 [&_mark]:bg-transparent [&_mark]:font-semibold [&_mark]:text-gray-900",
+          ])}
+          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+        />
+      )}
     </button>
   );
 }
@@ -91,19 +195,4 @@ function getTab(result: SearchResult): Tab | null {
   }
 
   return null;
-}
-
-function getConfidenceLevel(score: number, maxScore: number): {
-  label: string;
-  color: string;
-} {
-  const normalizedScore = maxScore > 0 ? score / maxScore : 0;
-
-  if (normalizedScore >= 0.8) {
-    return { label: "High", color: "bg-green-500" };
-  } else if (normalizedScore >= 0.5) {
-    return { label: "Medium", color: "bg-yellow-500" };
-  } else {
-    return { label: "Low", color: "bg-gray-400" };
-  }
 }

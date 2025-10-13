@@ -13,6 +13,7 @@ import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { ChatFloatingButton } from "../../chat";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();
@@ -27,6 +28,7 @@ export function Body() {
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
       </div>
+      <ChatFloatingButton />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { Plus, X } from "lucide-react";
+import { AlertTriangle, Check, Link2, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -163,6 +163,39 @@ export function SettingsGeneral() {
               className="w-full resize-none"
               rows={3}
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Permissions Section */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Permissions</h2>
+        <div className="space-y-4">
+          {/* Microphone Access - Granted */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-base font-medium mb-1">Microphone access</h3>
+              <p className="text-sm text-gray-600">Thanks for granting permission for system audio</p>
+            </div>
+            <div className="px-4 py-2 border rounded-lg bg-gray-50 flex items-center gap-2">
+              <Check className="w-4 h-4 text-gray-600" />
+              <span className="text-sm text-gray-600">Access Granted</span>
+            </div>
+          </div>
+
+          {/* System Audio Access - Not Granted */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <h3 className="text-base font-medium text-red-500">System audio access</h3>
+              </div>
+              <p className="text-sm text-red-500">Oops! You need to grant access to use Hyprnote</p>
+            </div>
+            <Button className="bg-black hover:bg-neutral-800 text-white flex items-center gap-2">
+              <Link2 className="w-4 h-4" />
+              Grant Permission
+            </Button>
           </div>
         </div>
       </div>

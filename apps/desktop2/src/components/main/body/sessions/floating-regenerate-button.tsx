@@ -1,25 +1,16 @@
-import { Button } from "@hypr/ui/components/ui/button";
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
-const TEMPLATES = [
-  "1-on-1",
-  "Brainstorming",
-  "User Interview",
-  "Daily Standup",
-  "Project Plan",
-  "Meeting Notes",
-  "Action Items",
-  "Decision Log",
-  "Key Insights",
-];
+import { Button } from "@hypr/ui/components/ui/button";
+import * as persisted from "../../../../store/tinybase/persisted";
 
-export function FloatingRegenerateButton() {
+export function FloatingRegenerateButton({ onRegenerate }: { onRegenerate: (templateId: string | null) => void }) {
   const [showTemplates, setShowTemplates] = useState(false);
+
+  const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-      {/* White card - slides up from behind */}
       <div
         className={`absolute left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border px-6 pb-14 transition-all duration-300 overflow-visible ${
           showTemplates
@@ -32,16 +23,16 @@ export function FloatingRegenerateButton() {
       >
         <div className={`transition-opacity duration-200 ${showTemplates ? "opacity-100" : "opacity-0"}`}>
           <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
-            {TEMPLATES.map((template) => (
+            {Object.entries(templates).map(([templateId, template]) => (
               <button
-                key={template}
+                key={templateId}
                 className="text-center py-2 hover:bg-neutral-100 rounded transition-colors text-base"
                 onClick={() => {
-                  console.log("Template clicked:", template);
                   setShowTemplates(false);
+                  onRegenerate(templateId);
                 }}
               >
-                {template}
+                {template.title}
               </button>
             ))}
           </div>
@@ -54,14 +45,14 @@ export function FloatingRegenerateButton() {
         </div>
       </div>
 
-      {/* Black button - always on top */}
       <Button
         className="relative bg-black hover:bg-neutral-800 text-white px-4 py-2 rounded-lg shadow-lg"
         style={{ zIndex: 10 }}
         onMouseEnter={() => setShowTemplates(true)}
         onMouseLeave={() => setShowTemplates(false)}
         onClick={() => {
-          console.log("regenerate clicked");
+          setShowTemplates(false);
+          onRegenerate(null);
         }}
       >
         <SparklesIcon className="w-4 h-4 mr-2" />

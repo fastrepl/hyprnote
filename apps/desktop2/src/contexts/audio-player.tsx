@@ -34,9 +34,9 @@ export function AudioPlayerProvider({ children, url }: AudioPlayerProviderProps)
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const registerContainer = (el: HTMLDivElement | null) => {
-    setContainer(el);
-  };
+  const registerContainer = useCallback((el: HTMLDivElement | null) => {
+    setContainer((prev) => (prev === el ? prev : el));
+  }, []);
 
   useEffect(() => {
     if (!container) {

@@ -25,8 +25,6 @@ export function SettingsGeneral() {
 
   return (
     <div className="flex flex-col gap-8 p-6">
-      {/* Debug JSON */}
-      <pre className="text-xs bg-gray-100 p-2 rounded">{JSON.stringify(value, null, 2)}</pre>
 
       {/* App Section */}
       <div>

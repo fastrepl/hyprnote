@@ -1,8 +1,28 @@
 import { MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import Editor from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
+
+function tiptapJsonToText(json: any): string {
+  if (!json || typeof json !== "object") {
+    return "";
+  }
+
+  if (json.type === "text") {
+    return json.text || "";
+  }
+
+  if (json.type === "mention") {
+    return `@${json.attrs?.label || json.attrs?.id || ""}`;
+  }
+
+  if (json.content && Array.isArray(json.content)) {
+    return json.content.map(tiptapJsonToText).join("");
+  }
+
+  return "";
+}
 
 export function ChatMessageInput({
   onSendMessage,
@@ -11,34 +31,35 @@ export function ChatMessageInput({
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean;
 }) {
-  const [content, setContent] = useState("");
   const editorRef = useRef<{ editor: any }>(null);
 
-  const handleSubmit = () => {
-    const text = editorRef.current?.editor?.getText().trim();
+  const handleSubmit = useCallback(() => {
+    const json = editorRef.current?.editor?.getJSON();
+    const text = tiptapJsonToText(json).trim();
+
     if (!text || disabled) {
       return;
     }
 
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
-    setContent("");
-  };
+  }, [disabled, onSendMessage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
+        e.stopPropagation();
         handleSubmit();
       }
     };
 
     const editorEl = editorRef.current?.editor?.view?.dom;
     if (editorEl) {
-      editorEl.addEventListener("keydown", handleKeyDown);
-      return () => editorEl.removeEventListener("keydown", handleKeyDown);
+      editorEl.addEventListener("keydown", handleKeyDown, true);
+      return () => editorEl.removeEventListener("keydown", handleKeyDown, true);
     }
-  }, [content, disabled]);
+  }, [handleSubmit]);
 
   return (
     <div
@@ -59,12 +80,12 @@ export function ChatMessageInput({
         <div className={cn(["flex-1 min-w-0"])}>
           <Editor
             ref={editorRef}
-            handleChange={setContent}
+            handleChange={() => {}}
             initialContent=""
             editable={!disabled}
             mentionConfig={{
               trigger: "@",
-              handleSearch: async () => [],
+              handleSearch: async () => [{ id: "123", type: "human", label: "John Doe" }],
             }}
           />
         </div>

@@ -13,10 +13,12 @@ export function OuterHeader(
   {
     sessionRow,
     sessionId,
+    isPlayerVisible,
     onToggleAudioPlayer,
   }: {
     sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
     sessionId: string;
+    isPlayerVisible: boolean;
     onToggleAudioPlayer: () => void;
   },
 ) {
@@ -43,7 +45,8 @@ export function OuterHeader(
           currentUserId={user_id}
         />
         <RecordingButton
-          onToggle={onToggleAudioPlayer}
+          isPlayerVisible={isPlayerVisible}
+          handleClick={onToggleAudioPlayer}
         />
         <ListenButton sessionRow={sessionRow} />
         <ShareButton sessionRow={sessionRow} />

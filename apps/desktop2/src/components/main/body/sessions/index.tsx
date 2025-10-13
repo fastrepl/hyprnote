@@ -58,6 +58,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
         <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
           <div className="py-1">
             <OuterHeader
+              isPlayerVisible={showAudioPlayer}
               sessionRow={sessionRow}
               sessionId={sessionId}
               onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}

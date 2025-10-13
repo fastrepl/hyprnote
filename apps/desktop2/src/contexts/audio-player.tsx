@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 
 interface AudioPlayerContextValue {
@@ -8,6 +8,8 @@ interface AudioPlayerContextValue {
   currentTime: number;
   duration: number;
   togglePlay: () => void;
+  play: () => void;
+  pause: () => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
@@ -91,9 +93,17 @@ export function AudioPlayerProvider({ children, url }: AudioPlayerProviderProps)
     };
   }, [container, url]);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     wavesurfer?.playPause();
-  };
+  }, [wavesurfer]);
+
+  const play = useCallback(() => {
+    wavesurfer?.play();
+  }, [wavesurfer]);
+
+  const pause = useCallback(() => {
+    wavesurfer?.pause();
+  }, [wavesurfer]);
 
   return (
     <AudioPlayerContext.Provider
@@ -104,6 +114,8 @@ export function AudioPlayerProvider({ children, url }: AudioPlayerProviderProps)
         currentTime,
         duration,
         togglePlay,
+        play,
+        pause,
       }}
     >
       {children}

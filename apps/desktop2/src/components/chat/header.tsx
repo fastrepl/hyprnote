@@ -1,9 +1,9 @@
-import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, ExternalLink, MessageCircle, Plus, X } from "lucide-react";
+import { ChevronDown, MessageCircle, PanelRightIcon, PictureInPicture2Icon, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
+import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../contexts/shell";
 import * as persisted from "../../store/tinybase/persisted";
 
@@ -21,28 +21,28 @@ export function ChatHeader({
   const { chat } = useShell();
   return (
     <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
-      <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
-
-      <div className="flex items-center gap-0.5">
-        {chat.handleableEvents.SHIFT && (
-          <ChatActionButton
-            icon={<ExternalLink className="w-4 h-4" />}
-            onClick={() => chat.sendEvent({ type: "SHIFT" })}
-            title="Toggle"
-          />
-        )}
+      <div className="flex items-center">
+        <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
         <ChatActionButton
           icon={<Plus className="w-4 h-4" />}
           onClick={onNewChat}
           title="New chat"
         />
-        {chat.handleableEvents.CLOSE && (
-          <ChatActionButton
-            icon={<X className="w-4 h-4" />}
-            onClick={handleClose}
-            title="Close"
-          />
-        )}
+      </div>
+
+      <div className="flex items-center gap-0.5">
+        <ChatActionButton
+          icon={chat.mode === "RightPanelOpen"
+            ? <PictureInPicture2Icon className="w-4 h-4" />
+            : <PanelRightIcon className="w-4 h-4" />}
+          onClick={() => chat.sendEvent({ type: "SHIFT" })}
+          title="Toggle"
+        />
+        <ChatActionButton
+          icon={<X className="w-4 h-4" />}
+          onClick={handleClose}
+          title="Close"
+        />
       </div>
     </div>
   );
@@ -60,7 +60,7 @@ function ChatActionButton({
   return (
     <button
       onClick={onClick}
-      className="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all active:scale-95"
+      className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all active:scale-95"
       title={title}
     >
       {icon}
@@ -101,7 +101,7 @@ function ChatGroups({
             {currentChatTitle || "Ask Hyprnote anything"}
           </h3>
           <ChevronDown
-            className={clsx([
+            className={cn([
               "w-3.5 h-3.5 text-neutral-400 transition-transform duration-200",
               isDropdownOpen && "rotate-180",
             ])}
@@ -163,7 +163,7 @@ function ChatGroupItem({
   return (
     <button
       onClick={() => onSelect(groupId)}
-      className={clsx([
+      className={cn([
         "w-full text-left px-2.5 py-1.5 rounded-md transition-all group",
         isActive ? "bg-neutral-100 shadow-sm" : "hover:bg-neutral-50 active:bg-neutral-100",
       ])}
@@ -171,14 +171,19 @@ function ChatGroupItem({
       <div className="flex items-center gap-2.5">
         <div className="flex-shrink-0">
           <MessageCircle
-            className={clsx([
+            className={cn([
               "w-3.5 h-3.5 transition-colors",
               isActive ? "text-neutral-700" : "text-neutral-400 group-hover:text-neutral-600",
             ])}
           />
         </div>
         <div className="flex-1 min-w-0">
-          <div className={clsx(["text-sm font-medium truncate", isActive ? "text-neutral-900" : "text-neutral-700"])}>
+          <div
+            className={cn([
+              "text-sm font-medium truncate",
+              isActive ? "text-neutral-900" : "text-neutral-700",
+            ])}
+          >
             {chatGroup.title}
           </div>
           <div className="text-[11px] text-neutral-500 mt-0.5">

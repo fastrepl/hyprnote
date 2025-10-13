@@ -35,12 +35,6 @@ const chatModeLogic = fromTransition(
   "RightPanelOpen" as ChatMode,
 );
 
-const VALID_TRANSITIONS: Record<ChatMode, Set<ChatEvent["type"]>> = {
-  RightPanelOpen: new Set(["CLOSE", "SHIFT"]),
-  FloatingClosed: new Set(["OPEN"]),
-  FloatingOpen: new Set(["CLOSE", "SHIFT"]),
-};
-
 export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("RightPanelOpen");
   const [groupId, setGroupId] = useState<string | undefined>(undefined);
@@ -59,25 +53,9 @@ export function useChatMode() {
     [actorRef],
   );
 
-  const canHandleEvent = useCallback(
-    (eventType: ChatEvent["type"]): boolean => VALID_TRANSITIONS[mode].has(eventType),
-    [mode],
-  );
-
-  const handleableEvents = useMemo(
-    (): Record<ChatEvent["type"], boolean> => ({
-      OPEN: canHandleEvent("OPEN"),
-      CLOSE: canHandleEvent("CLOSE"),
-      SHIFT: canHandleEvent("SHIFT"),
-    }),
-    [canHandleEvent],
-  );
-
   return {
     mode,
     sendEvent,
-    canHandleEvent,
-    handleableEvents,
     groupId,
     setGroupId,
   };

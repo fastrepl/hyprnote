@@ -93,14 +93,11 @@ export function ChatView() {
         onSelectChat={handleSelectChat}
         handleClose={() => chat.sendEvent({ type: "CLOSE" })}
       />
+
       <ChatSession key={sessionKey} sessionId={sessionKey} chatGroupId={groupId}>
         {({ messages, sendMessage, status, error }) => (
           <>
-            {error && (
-              <div className="px-4 py-2 bg-red-50 border-b border-red-200">
-                <p className="text-xs text-red-600">{error.message}</p>
-              </div>
-            )}
+            <Error error={error} />
             <ChatBody messages={messages} />
             <ChatMessageInput
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
@@ -109,6 +106,18 @@ export function ChatView() {
           </>
         )}
       </ChatSession>
+    </div>
+  );
+}
+
+function Error({ error }: { error?: Error | null }) {
+  if (!error) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 py-2 bg-red-50 border-b border-red-200">
+      <p className="text-xs text-red-600">{error.message}</p>
     </div>
   );
 }

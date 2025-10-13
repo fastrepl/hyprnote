@@ -19,8 +19,15 @@ export function ChatHeader({
   handleClose: () => void;
 }) {
   const { chat } = useShell();
+
   return (
-    <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
+    <div
+      data-tauri-drag-region={chat.mode === "RightPanelOpen"}
+      className={cn([
+        "flex items-center justify-between px-3 py-0.5 border-b border-neutral-200",
+        chat.mode === "RightPanelOpen" && "border mt-1 mr-1 rounded-md",
+      ])}
+    >
       <div className="flex items-center">
         <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
         <ChatActionButton

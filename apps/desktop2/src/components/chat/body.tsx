@@ -3,8 +3,12 @@ import { MessageCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
+import { cn } from "@hypr/ui/lib/utils";
+import { useShell } from "../../contexts/shell";
+
 export function ChatBody({ messages }: { messages: UIMessage[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { chat } = useShell();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -17,7 +21,13 @@ export function ChatBody({ messages }: { messages: UIMessage[] }) {
   }
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto">
+    <div
+      ref={scrollRef}
+      className={cn([
+        "flex-1 overflow-y-auto",
+        chat.mode === "RightPanelOpen" && "border mt-1 mr-1 rounded-md rounded-b-none",
+      ])}
+    >
       <div className="flex flex-col">
         {messages.map((message) => <ChatBodyMessage key={message.id} message={message} />)}
       </div>

@@ -385,6 +385,9 @@ importers:
       '@electric-sql/client':
         specifier: ^1.0.14
         version: 1.0.14
+      '@huggingface/languages':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@hypr/db':
         specifier: workspace:*
         version: link:../../packages/db

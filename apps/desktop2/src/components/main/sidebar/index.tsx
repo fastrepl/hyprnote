@@ -1,14 +1,14 @@
 import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
-import { useLeftSidebar } from "@hypr/utils/contexts";
 import { useSearch } from "../../../contexts/search";
+import { useShell } from "../../../contexts/shell";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
 
 export function LeftSidebar() {
-  const { togglePanel: toggleLeftPanel } = useLeftSidebar();
+  const { toggleLeftSidebar } = useShell();
   const { query } = useSearch();
 
   const showSearchResults = query.trim() !== "";
@@ -26,7 +26,7 @@ export function LeftSidebar() {
       >
         <div className="flex-1" />
         <PanelLeftCloseIcon
-          onClick={toggleLeftPanel}
+          onClick={toggleLeftSidebar}
           className="cursor-pointer h-5 w-5 mr-2"
         />
       </header>

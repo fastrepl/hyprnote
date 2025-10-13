@@ -1,20 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { useLeftSidebar } from "@hypr/utils/contexts";
+import { ChatView } from "../../../components/chat/view";
 import { Body } from "../../../components/main/body";
 import { LeftSidebar } from "../../../components/main/sidebar";
+import { useShell } from "../../../contexts/shell";
 
 export const Route = createFileRoute("/app/main/_layout/")({
   component: Component,
 });
 
 function Component() {
-  const { isExpanded: isLeftPanelExpanded } = useLeftSidebar();
+  const { isLeftSidebarExpanded, isRightPanelExpanded } = useShell();
 
   return (
     <div className="flex h-full overflow-hidden">
-      {isLeftPanelExpanded && <LeftSidebar />}
+      {isLeftSidebarExpanded && <LeftSidebar />}
       <Body />
+      {isRightPanelExpanded && <ChatView setChatGroupId={() => {}} />}
     </div>
   );
 }

@@ -23,6 +23,7 @@ export function SettingsTemplates() {
     (store) =>
       createQueries(store).setQueryDefinition(USER_TEMPLATE_QUERY, "templates", ({ select, where }) => {
         select("title");
+        select("description");
         select("sections");
         where("user_id", user_id ?? "");
       }),
@@ -30,6 +31,7 @@ export function SettingsTemplates() {
   );
 
   const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
+  
 
   if (currentTemplate) {
     return <TemplateEditor id={currentTemplate} onClose={() => setCurrentTemplate(null)} />;
@@ -48,7 +50,7 @@ export function SettingsTemplates() {
             key={id}
             id={id}
             title={(template as any).title || "Untitled"}
-            description="Create and customize your meeting notes"
+            description={(template as any).description || ""}
             onEdit={() => setCurrentTemplate(id)}
           />
         ))}

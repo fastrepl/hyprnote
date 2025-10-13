@@ -10,13 +10,18 @@ export const Route = createFileRoute("/app/main/_layout/")({
 });
 
 function Component() {
-  const { isLeftSidebarExpanded, isRightPanelExpanded } = useShell();
+  const { isLeftSidebarExpanded, chatMode, sendChatEvent } = useShell();
 
   return (
     <div className="flex h-full overflow-hidden">
       {isLeftSidebarExpanded && <LeftSidebar />}
       <Body />
-      {isRightPanelExpanded && <ChatView setChatGroupId={() => {}} />}
+      {chatMode === "RightPanelOpen" && (
+        <ChatView
+          setChatGroupId={() => {}}
+          onClose={() => sendChatEvent({ type: "CLOSE" })}
+        />
+      )}
     </div>
   );
 }

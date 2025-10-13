@@ -1,9 +1,10 @@
 import clsx from "clsx";
 import { formatDistanceToNow } from "date-fns";
-import { ChevronDown, MessageCircle, Plus, X } from "lucide-react";
+import { ChevronDown, ExternalLink, MessageCircle, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
+import { useShell } from "../../contexts/shell";
 import * as persisted from "../../store/tinybase/persisted";
 
 export function ChatHeader({
@@ -17,21 +18,31 @@ export function ChatHeader({
   onSelectChat: (chatGroupId: string) => void;
   handleClose: () => void;
 }) {
+  const { sendChatEvent, handleableChatEvents } = useShell();
   return (
     <div className="flex items-center justify-between px-3 py-1 border-b border-neutral-200">
       <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
 
       <div className="flex items-center gap-0.5">
+        {handleableChatEvents.SHIFT && (
+          <ChatActionButton
+            icon={<ExternalLink className="w-4 h-4" />}
+            onClick={() => sendChatEvent({ type: "SHIFT" })}
+            title="Toggle"
+          />
+        )}
         <ChatActionButton
           icon={<Plus className="w-4 h-4" />}
           onClick={onNewChat}
           title="New chat"
         />
-        <ChatActionButton
-          icon={<X className="w-4 h-4" />}
-          onClick={handleClose}
-          title="Close"
-        />
+        {handleableChatEvents.CLOSE && (
+          <ChatActionButton
+            icon={<X className="w-4 h-4" />}
+            onClick={handleClose}
+            title="Close"
+          />
+        )}
       </div>
     </div>
   );

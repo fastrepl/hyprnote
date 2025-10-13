@@ -2,25 +2,35 @@ import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { useShell } from "../../contexts/shell";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
 import { InteractiveContainer } from "./interactive";
 import { ChatTrigger } from "./trigger";
 import { ChatView } from "./view";
 
 export function ChatFloatingButton() {
-  const [isOpen, setIsOpen] = useState(false);
   const [chatGroupId, setChatGroupId] = useState<string | undefined>(undefined);
 
-  useAutoCloser(() => setIsOpen(false), { esc: isOpen, outside: false });
-  useHotkeys("mod+j", () => setIsOpen((prev) => !prev));
+  const { chatMode, sendChatEvent } = useShell();
+
+  const isOpen = chatMode === "FloatingOpen";
+
+  useAutoCloser(() => sendChatEvent({ type: "CLOSE" }), { esc: isOpen, outside: false });
+  useHotkeys("mod+j", () => {
+    if (isOpen) {
+      sendChatEvent({ type: "CLOSE" });
+    } else {
+      sendChatEvent({ type: "OPEN" });
+    }
+  });
 
   const handleClickTrigger = useCallback(async () => {
     const isExists = await windowsCommands.windowIsExists({ type: "chat" });
     if (isExists) {
       windowsCommands.windowDestroy({ type: "chat" });
     }
-    setIsOpen(true);
-  }, []);
+    sendChatEvent({ type: "OPEN" });
+  }, [sendChatEvent]);
 
   if (!isOpen) {
     return <ChatTrigger onClick={handleClickTrigger} />;
@@ -34,7 +44,7 @@ export function ChatFloatingButton() {
       <ChatView
         chatGroupId={chatGroupId}
         setChatGroupId={setChatGroupId}
-        onClose={() => setIsOpen(false)}
+        onClose={() => sendChatEvent({ type: "CLOSE" })}
       />
     </InteractiveContainer>
   );

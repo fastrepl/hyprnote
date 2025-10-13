@@ -1,10 +1,6 @@
 import { cn } from "@hypr/ui/lib/utils";
 
-export function ChatTrigger({
-  onClick,
-}: {
-  onClick: () => void;
-}) {
+export function ChatTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}

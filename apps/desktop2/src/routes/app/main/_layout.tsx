@@ -1,8 +1,8 @@
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import { LeftSidebarProvider, RightPanelProvider } from "@hypr/utils/contexts";
 import { SearchProvider } from "../../../contexts/search";
+import { ShellProvider } from "../../../contexts/shell";
 import { useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
 
@@ -12,14 +12,12 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   return (
-    <LeftSidebarProvider>
-      <RightPanelProvider>
-        <SearchProvider>
-          <NotSureAboutThis />
-          <Outlet />
-        </SearchProvider>
-      </RightPanelProvider>
-    </LeftSidebarProvider>
+    <ShellProvider>
+      <SearchProvider>
+        <Outlet />
+        <NotSureAboutThis />
+      </SearchProvider>
+    </ShellProvider>
   );
 }
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import Editor from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
+import { useShell } from "../../contexts/shell";
 
 function tiptapJsonToText(json: any): string {
   if (!json || typeof json !== "object") {
@@ -32,6 +33,7 @@ export function ChatMessageInput({
   disabled?: boolean;
 }) {
   const editorRef = useRef<{ editor: any }>(null);
+  const { chat } = useShell();
 
   const handleSubmit = useCallback(() => {
     const json = editorRef.current?.editor?.getJSON();
@@ -63,14 +65,13 @@ export function ChatMessageInput({
 
   return (
     <div
-      className={cn([
-        "px-3 py-2 border-t border-neutral-200",
-      ])}
+      className={cn([chat.mode !== "RightPanelOpen" && "p-0.5"])}
     >
       <div
         className={cn([
           "flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-xl",
           "focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500",
+          chat.mode === "RightPanelOpen" && "rounded-t-none mb-1 mr-1 border-t-0",
         ])}
       >
         <button className={cn(["text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"])}>

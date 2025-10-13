@@ -1,20 +1,20 @@
 import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
-import { useLeftSidebar } from "@hypr/utils/contexts";
 import { useSearch } from "../../../contexts/search";
+import { useShell } from "../../../contexts/shell";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
 
 export function LeftSidebar() {
-  const { togglePanel: toggleLeftPanel } = useLeftSidebar();
+  const { leftsidebar } = useShell();
   const { query } = useSearch();
 
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden w-64">
+    <div className="h-full flex flex-col overflow-hidden w-[220px] shrink-0">
       <header
         data-tauri-drag-region
         className={clsx([
@@ -26,7 +26,7 @@ export function LeftSidebar() {
       >
         <div className="flex-1" />
         <PanelLeftCloseIcon
-          onClick={toggleLeftPanel}
+          onClick={leftsidebar.toggleExpanded}
           className="cursor-pointer h-5 w-5 mr-2"
         />
       </header>

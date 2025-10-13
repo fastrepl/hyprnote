@@ -4,7 +4,7 @@ import { Reorder } from "motion/react";
 import { useCallback } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
-import { useLeftSidebar } from "@hypr/utils/contexts";
+import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
 import { ChatFloatingButton } from "../../chat";
@@ -19,6 +19,7 @@ import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();
+  const { chat } = useShell();
 
   if (!currentTab) {
     return null;
@@ -30,7 +31,7 @@ export function Body() {
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
       </div>
-      <ChatFloatingButton />
+      {chat.mode !== "RightPanelOpen" && <ChatFloatingButton />}
     </div>
   );
 }
@@ -38,7 +39,7 @@ export function Body() {
 function Header({ tabs }: { tabs: Tab[] }) {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
 
-  const { isExpanded, setIsExpanded } = useLeftSidebar();
+  const { leftsidebar } = useShell();
   const { select, close, reorder, openNew } = useTabs();
 
   const handleNewNote = useCallback(() => {
@@ -59,22 +60,22 @@ function Header({ tabs }: { tabs: Tab[] }) {
       className={cn([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
         "w-full overflow-x-auto h-8",
-        !isExpanded && "pl-[72px]",
+        !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
       <div className="flex w-full h-full items-end gap-4">
         <div data-tauri-drag-region className="flex items-end h-full flex-1 min-w-0">
-          {!isExpanded && (
+          {!leftsidebar.expanded && (
             <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
               <PanelLeftOpenIcon
                 className="h-5 w-5 cursor-pointer"
-                onClick={() => setIsExpanded(true)}
+                onClick={() => leftsidebar.setExpanded(true)}
               />
             </div>
           )}
 
           <Reorder.Group
-            key={isExpanded ? "expanded" : "collapsed"}
+            key={leftsidebar.expanded ? "expanded" : "collapsed"}
             as="div"
             axis="x"
             values={tabs}

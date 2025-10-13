@@ -18,6 +18,7 @@
     "@hypr/db": "workspace:*",
     "@hypr/plugin-analytics": "workspace:*",
     "@hypr/plugin-db2": "workspace:*",
+    "@hypr/plugin-local-stt": "workspace:*",
     "@hypr/plugin-windows": "workspace:*",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
@@ -53,6 +54,7 @@
     "tinybase": "^6.7.1",
     "tinytick": "^1.2.8",
     "wavesurfer.js": "^7.11.0",
+    "xstate": "^5.23.0",
     "zod": "^4.1.12",
     "zustand": "^5.0.8"
   },

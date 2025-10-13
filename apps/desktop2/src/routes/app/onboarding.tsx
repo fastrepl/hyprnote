@@ -11,6 +11,7 @@ const STEPS = ["welcome", "permissions", "calendars"] as const;
 
 const validateSearch = z.object({
   step: z.enum(STEPS).default("welcome"),
+  local: z.boolean().default(false),
 });
 
 export const Route = createFileRoute("/app/onboarding")({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/app/onboarding")({
 });
 
 function Component() {
-  const { step } = Route.useSearch();
+  const { step, local } = Route.useSearch();
 
   if (step === "welcome") {
     return (
@@ -43,7 +44,7 @@ function Component() {
   if (step === "calendars") {
     return (
       <NavigationContainer>
-        <Calendars />
+        <Calendars local={local} />
       </NavigationContainer>
     );
   }
@@ -73,7 +74,7 @@ function Welcome() {
       </TextAnimate>
 
       <PushableButton
-        onClick={goNext}
+        onClick={() => goNext({ local: false })}
         className="w-full max-w-sm mb-4 hover:underline decoration-gray-100"
       >
         Get Started
@@ -83,11 +84,12 @@ function Welcome() {
         className={cn([
           "flex flex-row gap-1 items-center",
           "text-gray-400 hover:text-gray-800 transition-colors",
-          "cursor-help",
         ])}
       >
-        <p className="text-sm underline">Or proceed without an account</p>
-        <CircleQuestionMarkIcon className="w-4 h-4" />
+        <button className="text-sm underline" onClick={() => goNext({ local: true })}>
+          Or proceed without an account
+        </button>
+        <CircleQuestionMarkIcon className="w-4 h-4 cursor-help" />
       </div>
     </div>
   );
@@ -103,11 +105,11 @@ function Permissions() {
   );
 }
 
-function Calendars() {
+function Calendars({ local }: { local: boolean }) {
   const { goNext } = useOnboarding();
   return (
     <div>
-      <p>Calendars</p>
+      <p>Calendars {local ? "Local" : "Cloud"}</p>
       <button onClick={goNext}>Next</button>
     </div>
   );
@@ -150,8 +152,9 @@ function NavigationContainer({ children }: { children: React.ReactNode }) {
 }
 
 function useOnboarding() {
-  const { step } = Route.useSearch();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const { step } = search;
 
   const previous = STEPS?.[STEPS.indexOf(step) - 1] as typeof STEPS[number] | undefined;
   const next = STEPS?.[STEPS.indexOf(step) + 1] as typeof STEPS[number] | undefined;
@@ -161,16 +164,16 @@ function useOnboarding() {
       return;
     }
 
-    navigate({ to: "/app/onboarding", search: { step: previous } });
-  }, [step, navigate]);
+    navigate({ to: "/app/onboarding", search: { ...search, step: previous } });
+  }, [search, navigate]);
 
-  const goNext = useCallback(() => {
+  const goNext = useCallback((params?: Omit<typeof Route.useSearch, "step">) => {
     if (!next) {
       throw navigate({ to: "/app/main" });
     }
 
-    navigate({ to: "/app/onboarding", search: { step: next } });
-  }, [step, navigate]);
+    navigate({ to: "/app/onboarding", search: { ...search, step: next, ...(params ?? {}) } });
+  }, [search, navigate]);
 
   return {
     step,

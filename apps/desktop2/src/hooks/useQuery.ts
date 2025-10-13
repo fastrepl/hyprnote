@@ -5,6 +5,7 @@ export const useQuery = <T, TDeps extends readonly unknown[] = readonly []>(
     & {
       enabled?: boolean;
       deps?: TDeps;
+      refetchInterval?: number;
     }
     & (
       TDeps extends readonly [] ? { queryFn: () => Promise<T> }
@@ -31,7 +32,12 @@ export const useQuery = <T, TDeps extends readonly unknown[] = readonly []>(
     };
 
     execute();
-  }, [params.enabled, ...(params.deps ?? [])]);
+
+    if (params.refetchInterval) {
+      const intervalId = setInterval(execute, params.refetchInterval);
+      return () => clearInterval(intervalId);
+    }
+  }, [params.enabled, params.refetchInterval, ...(params.deps ?? [])]);
 
   return {
     data,

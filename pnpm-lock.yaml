@@ -394,6 +394,9 @@ importers:
       '@hypr/plugin-db2':
         specifier: workspace:*
         version: link:../../plugins/db2
+      '@hypr/plugin-local-stt':
+        specifier: workspace:*
+        version: link:../../plugins/local-stt
       '@hypr/plugin-windows':
         specifier: workspace:*
         version: link:../../plugins/windows
@@ -499,6 +502,9 @@ importers:
       wavesurfer.js:
         specifier: ^7.11.0
         version: 7.11.0
+      xstate:
+        specifier: ^5.23.0
+        version: 5.23.0
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -12126,6 +12132,9 @@ packages:
 
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
+
+  xstate@5.23.0:
+    resolution: {integrity: sha512-jo126xWXkU6ySQ91n51+H2xcgnMuZcCQpQoD3FQ79d32a6RQvryRh8rrDHnH4WDdN/yg5xNjlIRol9ispMvzeg==}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -25487,6 +25496,8 @@ snapshots:
       js-yaml: 3.14.1
 
   xmlchars@2.2.0: {}
+
+  xstate@5.23.0: {}
 
   xtend@4.0.2: {}
 

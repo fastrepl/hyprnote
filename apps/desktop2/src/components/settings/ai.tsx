@@ -1,9 +1,10 @@
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/ui/lib/utils";
+import { useQuery } from "../../hooks/useQuery";
 
 export function SettingsAI() {
   const [activeTab, setActiveTab] = useState<"transcription" | "intelligence">("transcription");
@@ -25,18 +26,28 @@ export function SettingsAI() {
 }
 
 function TranscriptionSettings() {
+  const parakeet2 = useQuery({
+    queryFn: () => localSttCommands.isModelDownloaded("am-parakeet-v2"),
+    refetchInterval: 1500,
+  });
+
+  const parakeet3 = useQuery({
+    queryFn: () => localSttCommands.isModelDownloaded("am-parakeet-v3"),
+    refetchInterval: 1500,
+  });
+
   return (
     <div className="space-y-8">
       <Section title="On-device models" description="Local transcription models">
         <ModelCard
           name="Parakeet-2"
           description="For English-only conversations"
-          status="downloaded"
+          status={JSON.stringify(parakeet2.data)}
         />
         <ModelCard
           name="Parakeet-3"
           description="For European languages"
-          status="available"
+          status={JSON.stringify(parakeet3.data)}
         />
       </Section>
 
@@ -86,15 +97,12 @@ function ModelCard({
 }: {
   name: string;
   description: string;
-  status: "available" | "downloaded";
+  status: string;
 }) {
   return (
     <div
       className={cn([
         "p-4 rounded-lg border-2 transition-all cursor-pointer",
-        status === "downloaded"
-          ? "border-blue-500 bg-blue-50/50"
-          : "border-dashed border-gray-200 bg-white hover:border-gray-300",
       ])}
     >
       <div className="flex items-center justify-between gap-4">
@@ -103,17 +111,7 @@ function ModelCard({
           <p className="text-sm text-gray-500 mt-0.5">{description}</p>
         </div>
         <div className="flex-shrink-0">
-          {status === "downloaded"
-            ? (
-              <span className="text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1.5 rounded">
-                Model Downloaded
-              </span>
-            )
-            : (
-              <Button size="sm" variant="outline" className="text-xs">
-                Download Model
-              </Button>
-            )}
+          <pre className="text-xs text-gray-500 whitespace-pre-wrap">{status}</pre>
         </div>
       </div>
     </div>

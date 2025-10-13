@@ -1,51 +1,28 @@
-import { useWavesurfer } from "@wavesurfer/react";
 import { Pause, Play } from "lucide-react";
-import { useCallback, useRef } from "react";
+import { useAudioPlayerContext } from "../../../../contexts/audio-player";
 
-export function AudioPlayer({ url }: { url: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const { wavesurfer, isPlaying, currentTime } = useWavesurfer({
-    container: containerRef,
-    height: 60,
-    waveColor: "#666666",
-    progressColor: "#333333",
-    cursorColor: "#ffffff",
-    cursorWidth: 2,
-    barWidth: 3,
-    barGap: 2,
-    barRadius: 3,
-    url,
-    dragToSeek: true,
-    hideScrollbar: true,
-    normalize: true,
-  });
-
-  const onPlayPause = useCallback(() => {
-    wavesurfer?.playPause();
-  }, [wavesurfer]);
-
-  const duration = wavesurfer?.getDuration() || 0;
+export function AudioPlayer() {
+  const { registerContainer, isPlaying, currentTime, duration, togglePlay } = useAudioPlayerContext();
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 w-full bg-black border-t border-gray-800 z-50">
-      <div className="flex items-center gap-4 px-6 py-4 w-full max-w-full">
+    <div className="absolute bottom-0 left-0 right-0 w-full bg-zinc-50 border-t border-zinc-200 z-50">
+      <div className="flex items-center gap-2.5 px-4 py-2 w-full max-w-full">
         <button
-          onClick={onPlayPause}
-          className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors flex-shrink-0"
+          onClick={togglePlay}
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-white border border-zinc-200 hover:bg-zinc-100 transition-colors flex-shrink-0 shadow-sm"
         >
           {isPlaying
-            ? <Pause className="w-6 h-6 text-white" fill="currentColor" />
-            : <Play className="w-6 h-6 text-white" fill="currentColor" />}
+            ? <Pause className="w-4 h-4 text-zinc-900" fill="currentColor" />
+            : <Play className="w-4 h-4 text-zinc-900" fill="currentColor" />}
         </button>
 
-        <div className="flex items-center gap-2 text-sm text-gray-400 flex-shrink-0 min-w-[100px]">
+        <div className="flex items-center gap-1.5 text-xs text-zinc-600 flex-shrink-0 min-w-[85px]">
           <span>{formatTime(currentTime)}</span>
           <span>/</span>
           <span>{formatTime(duration)}</span>
         </div>
 
-        <div ref={containerRef} className="flex-1 min-w-0" style={{ minHeight: "60px", width: "100%" }} />
+        <div ref={registerContainer} className="flex-1 min-w-0" style={{ minHeight: "30px", width: "100%" }} />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { StickyNoteIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import NoteEditor from "@hypr/tiptap/editor";
+import { AudioPlayerProvider } from "../../../../contexts/audio-player";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
@@ -52,44 +53,46 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex flex-col px-4 py-1 rounded-lg border h-full overflow-hidden relative">
-      <div className="py-1">
-        <OuterHeader
-          sessionRow={sessionRow}
-          sessionId={sessionId}
-          onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
-          isAudioPlayerVisible={showAudioPlayer}
-        />
-      </div>
+    <AudioPlayerProvider url="/assets/audio.wav">
+      <div className="flex flex-col px-4 py-1 rounded-lg border h-full overflow-hidden relative">
+        <div className="py-1">
+          <OuterHeader
+            sessionRow={sessionRow}
+            sessionId={sessionId}
+            onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
+            isAudioPlayerVisible={showAudioPlayer}
+          />
+        </div>
 
-      <TitleInput
-        editable={true}
-        value={sessionRow.title ?? ""}
-        onChange={(e) => handleEditTitle(e.target.value)}
-      />
-      <InnerHeader
-        tab={tab}
-        onVisibilityChange={() => {}}
-        isCurrentlyRecording={false}
-        shouldShowTab={true}
-        shouldShowEnhancedTab={false}
-      />
-      <div className="py-1"></div>
-      <div className="flex-1 overflow-auto">
-        <NoteEditor
-          key={editorKey}
-          initialContent={sessionRow.raw_md ?? ""}
-          handleChange={(e) => handleEditRawMd(e)}
-          mentionConfig={{
-            trigger: "@",
-            handleSearch: async () => {
-              return [];
-            },
-          }}
+        <TitleInput
+          editable={true}
+          value={sessionRow.title ?? ""}
+          onChange={(e) => handleEditTitle(e.target.value)}
         />
+        <InnerHeader
+          tab={tab}
+          onVisibilityChange={() => {}}
+          isCurrentlyRecording={false}
+          shouldShowTab={true}
+          shouldShowEnhancedTab={false}
+        />
+        <div className="py-1"></div>
+        <div className="flex-1 overflow-auto">
+          <NoteEditor
+            key={editorKey}
+            initialContent={sessionRow.raw_md ?? ""}
+            handleChange={(e) => handleEditRawMd(e)}
+            mentionConfig={{
+              trigger: "@",
+              handleSearch: async () => {
+                return [];
+              },
+            }}
+          />
+        </div>
+        {showAudioPlayer && <AudioPlayer />}
+        <FloatingRegenerateButton />
       </div>
-      {showAudioPlayer && <AudioPlayer url="https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav" />}
-      <FloatingRegenerateButton />
-    </div>
+    </AudioPlayerProvider>
   );
 }

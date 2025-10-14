@@ -44,7 +44,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
 
   const { leftsidebar } = useShell();
-  const { select, close, reorder, openNew } = useTabs();
+  const { select, close, reorder, openNew, goBack, goNext, canGoBack, canGoNext } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const setTabRef = useScrollActiveTabIntoView(tabs);
 
@@ -79,30 +79,46 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
       <div className="flex items-center h-full shrink-0">
         <button
+          onClick={goBack}
+          disabled={!canGoBack}
           className={cn([
             "flex items-center justify-center",
             "h-full",
             "px-1.5",
             "rounded-lg",
-            "hover:bg-gray-50",
             "transition-colors",
-            "group",
+            canGoBack && ["hover:bg-gray-50", "group"],
+            !canGoBack && "cursor-not-allowed",
           ])}
         >
-          <ArrowLeftIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+          <ArrowLeftIcon
+            className={cn([
+              "h-4 w-4",
+              canGoBack && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
+              !canGoBack && ["text-black/30", "cursor-not-allowed"],
+            ])}
+          />
         </button>
         <button
+          onClick={goNext}
+          disabled={!canGoNext}
           className={cn([
             "flex items-center justify-center",
             "h-full",
             "px-1.5",
             "rounded-lg",
-            "hover:bg-gray-50",
             "transition-colors",
-            "group",
+            canGoNext && ["hover:bg-gray-50", "group"],
+            !canGoNext && "cursor-not-allowed",
           ])}
         >
-          <ArrowRightIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+          <ArrowRightIcon
+            className={cn([
+              "h-4 w-4",
+              canGoNext && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
+              !canGoNext && ["text-black/30", "cursor-not-allowed"],
+            ])}
+          />
         </button>
       </div>
 

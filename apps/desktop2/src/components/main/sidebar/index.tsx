@@ -14,29 +14,23 @@ export function LeftSidebar() {
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0">
+    <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0 gap-1">
       <header
         data-tauri-drag-region
         className={clsx([
           "flex flex-row shrink-0",
-          "flex w-full items-center justify-between min-h-8 py-1 mt-1 ml-1",
+          "flex w-full items-center justify-end h-9 py-1",
           "rounded-lg",
-          "pl-[72px] bg-neutral-50",
+          "pl-[72px] bg-color1",
         ])}
       >
-        <div className="flex-1" />
         <PanelLeftCloseIcon
           onClick={leftsidebar.toggleExpanded}
           className="cursor-pointer h-5 w-5 mr-2"
         />
       </header>
 
-      <div
-        className={clsx([
-          "flex flex-col flex-1 overflow-hidden",
-          "p-1 pr-0 gap-1",
-        ])}
-      >
+      <div className="flex flex-col flex-1 overflow-hidden gap-1">
         <div className="flex-1 min-h-0 overflow-hidden">
           {showSearchResults ? <SearchResults /> : <TimelineView />}
         </div>

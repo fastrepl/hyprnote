@@ -5,7 +5,6 @@ import { useCallback, useState } from "react";
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { scrollTabsToEnd } from "../../../../utils/tabs-scroll";
 import { Trial } from "./banner";
 import { NotificationsItem } from "./notification";
 import { UpdateChecker } from "./ota";
@@ -28,13 +27,11 @@ export function ProfileSection() {
 
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null, active: true });
-    scrollTabsToEnd();
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickCalendar = useCallback(() => {
     openNew({ type: "calendars", month: new Date(), active: true });
-    scrollTabsToEnd();
     closeMenu();
   }, [openNew, closeMenu]);
 
@@ -47,13 +44,11 @@ export function ProfileSection() {
         selectedPerson: null,
       },
     });
-    scrollTabsToEnd();
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickDailyNote = useCallback(() => {
     openNew({ type: "daily", date: new Date(), active: true });
-    scrollTabsToEnd();
     closeMenu();
   }, [openNew, closeMenu]);
 

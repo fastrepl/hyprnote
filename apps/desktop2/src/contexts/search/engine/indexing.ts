@@ -2,7 +2,7 @@ import { insert } from "@orama/orama";
 
 import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
 import type { Index } from "./types";
-import { collectCells, toBoolean, toNumber, toString, toTrimmedString } from "./utils";
+import { collectCells, toNumber, toTrimmedString } from "./utils";
 
 export function indexSessions(db: Index, persistedStore: any): void {
   const fields = [
@@ -26,11 +26,6 @@ export function indexSessions(db: Index, persistedStore: any): void {
       title,
       content: createSessionSearchableContent(row),
       created_at: toNumber(row.created_at),
-      folder_id: toString(row.folder_id),
-      event_id: toString(row.event_id),
-      org_id: "",
-      is_user: false,
-      metadata: JSON.stringify({}),
     });
   });
 }
@@ -56,14 +51,6 @@ export function indexHumans(db: Index, persistedStore: any): void {
       title,
       content: createHumanSearchableContent(row),
       created_at: toNumber(row.created_at),
-      folder_id: "",
-      event_id: "",
-      org_id: toString(row.org_id),
-      is_user: toBoolean(row.is_user),
-      metadata: JSON.stringify({
-        email: row.email,
-        job_title: row.job_title,
-      }),
     });
   });
 }
@@ -81,11 +68,6 @@ export function indexOrganizations(db: Index, persistedStore: any): void {
       title,
       content: "",
       created_at: toNumber(row.created_at),
-      folder_id: "",
-      event_id: "",
-      org_id: "",
-      is_user: false,
-      metadata: JSON.stringify({}),
     });
   });
 }

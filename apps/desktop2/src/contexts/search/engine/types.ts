@@ -8,16 +8,11 @@ export const SEARCH_SCHEMA = {
   title: "string",
   content: "string",
   created_at: "number",
-  folder_id: "string",
-  event_id: "string",
-  org_id: "string",
-  is_user: "boolean",
-  metadata: "string",
 } as const;
 
 export type Index = Orama<typeof SEARCH_SCHEMA>;
 
-export interface SearchFilters {
+export type SearchFilters = {
   created_at?: {
     gte?: number;
     lte?: number;
@@ -25,27 +20,22 @@ export interface SearchFilters {
     lt?: number;
     eq?: number;
   };
-}
+};
 
-export interface SearchDocument {
+export type SearchDocument = {
   id: string;
   type: SearchEntityType;
   title: string;
   content: string;
   created_at: number;
-  folder_id: string;
-  event_id: string;
-  org_id: string;
-  is_user: boolean;
-  metadata: string;
-}
+};
 
-export interface SearchHit {
+export type SearchHit = {
   score: number;
   document: SearchDocument;
-}
+};
 
-export interface SearchEngineContextValue {
+export type SearchEngineContextValue = {
   search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
   isIndexing: boolean;
-}
+};

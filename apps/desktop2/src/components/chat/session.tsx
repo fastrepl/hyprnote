@@ -13,6 +13,8 @@ interface ChatSessionProps {
   children: (props: {
     messages: UIMessage[];
     sendMessage: (message: UIMessage) => void;
+    regenerate: () => void;
+    stop: () => void;
     status: ChatStatus;
     error?: Error;
   }) => ReactNode;
@@ -80,7 +82,7 @@ export function ChatSession({
     persistedAssistantIds.current = new Set(initialAssistantMessages.map((message) => message.id));
   }, [initialAssistantMessages]);
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, regenerate, stop, status, error } = useChat({
     id: sessionId,
     messages: initialMessages,
     generateId: () => id(),
@@ -88,27 +90,12 @@ export function ChatSession({
     onError: console.error,
   });
 
-  const displayMessages = useMemo(() => {
-    const messageMap = new Map<string, UIMessage>();
-
-    for (const msg of initialMessages) {
-      messageMap.set(msg.id, msg);
-    }
-
-    for (const msg of messages) {
-      messageMap.set(msg.id, msg);
-    }
-
-    return Array.from(messageMap.values());
-  }, [initialMessages, messages]);
-
   useEffect(() => {
     if (!chatGroupId || status !== "ready") {
       return;
     }
 
-    const targetMessages = displayMessages;
-    for (const message of targetMessages) {
+    for (const message of messages) {
       if (message.role !== "assistant" || persistedAssistantIds.current.has(message.id)) {
         continue;
       }
@@ -129,7 +116,7 @@ export function ChatSession({
 
       persistedAssistantIds.current.add(message.id);
     }
-  }, [chatGroupId, createChatMessage, displayMessages, status]);
+  }, [chatGroupId, createChatMessage, messages, status]);
 
-  return <>{children({ messages: displayMessages, sendMessage, status, error })}</>;
+  return <>{children({ messages, sendMessage, regenerate, stop, status, error })}</>;
 }

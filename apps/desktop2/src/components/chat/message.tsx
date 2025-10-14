@@ -1,5 +1,5 @@
 import type { UIMessage, UIMessagePart } from "ai";
-import { BrainIcon, ChevronRight, Loader2, SearchIcon } from "lucide-react";
+import { BrainIcon, ChevronRight, Loader2, RotateCcw, SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
@@ -9,7 +9,7 @@ import type { ToolPartType, Tools } from "../../chat/tools";
 
 type Part = UIMessagePart<{}, Tools>;
 
-export function ChatBodyMessage({ message }: { message: UIMessage }) {
+export function ChatBodyMessage({ message, handleReload }: { message: UIMessage; handleReload?: () => void }) {
   const isUser = message.role === "user";
 
   return (
@@ -23,9 +23,26 @@ export function ChatBodyMessage({ message }: { message: UIMessage }) {
         className={cn([
           "max-w-[80%] rounded-2xl px-4 py-2",
           isUser ? "bg-blue-100 text-gray-800" : "bg-gray-100 text-gray-800",
+          !isUser && "relative group",
         ])}
       >
         {message.parts.map((part, i) => <Part key={i} part={part as Part} />)}
+        {!isUser && handleReload && (
+          <button
+            onClick={handleReload}
+            className={cn([
+              "absolute -top-1 -right-1",
+              "opacity-0 group-hover:opacity-100",
+              "transition-opacity",
+              "p-1 rounded-full",
+              "bg-gray-200 hover:bg-gray-300",
+              "text-gray-600 hover:text-gray-800",
+            ])}
+            aria-label="Reload message"
+          >
+            <RotateCcw className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -58,10 +75,13 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
     .replace(/^#+\s*/gm, "")
     .trim();
 
+  const streaming = part.state !== "done";
+
   return (
     <Disclosure
       icon={<BrainIcon className="w-3 h-3" />}
       title={cleanTitle}
+      disabled={streaming}
     >
       <div className="text-sm text-gray-500 whitespace-pre-wrap">
         {part.text}
@@ -121,7 +141,7 @@ function ToolSearchSessions({ part }: { part: Extract<Part, { type: "tool-search
 
   return (
     <Disclosure
-      icon={disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : <SearchIcon className="w-3 h-3" />}
+      icon={<SearchIcon className="w-3 h-3" />}
       title={getTitle()}
       disabled={disabled}
     >
@@ -147,9 +167,7 @@ function Disclosure(
     <details
       className={cn([
         "group px-2 py-1 my-2 border rounded-md transition-colors",
-        disabled
-          ? ["opacity-50 cursor-not-allowed border-gray-200"]
-          : ["cursor-pointer border-gray-200 hover:border-gray-300"],
+        "cursor-pointer border-gray-200 hover:border-gray-300",
       ])}
     >
       <summary
@@ -159,13 +177,9 @@ function Disclosure(
           "select-none list-none marker:hidden",
           "flex items-center gap-2",
         ])}
-        onClick={(e) => {
-          if (disabled) {
-            e.preventDefault();
-          }
-        }}
       >
-        {icon && <span className="flex-shrink-0">{icon}</span>}
+        {disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+        {(!disabled && icon) && <span className="flex-shrink-0">{icon}</span>}
         <span
           className={cn([
             "flex-1 truncate",

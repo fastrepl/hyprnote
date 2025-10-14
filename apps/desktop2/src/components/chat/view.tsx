@@ -95,9 +95,15 @@ export function ChatView() {
       />
 
       <ChatSession key={stableSessionId} sessionId={stableSessionId} chatGroupId={groupId}>
-        {({ messages, sendMessage, status, error }) => (
+        {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <>
-            <ChatBody messages={messages} status={status} error={error} />
+            <ChatBody
+              messages={messages}
+              status={status}
+              error={error}
+              onReload={regenerate}
+              onStop={stop}
+            />
             <ChatMessageInput
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
               disabled={status !== "ready"}

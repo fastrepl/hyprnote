@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { differenceInDays, differenceInMonths, format, isPast, startOfDay } from "date-fns";
+import { differenceInCalendarMonths, differenceInDays, format, isPast, startOfDay } from "date-fns";
 import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -215,8 +215,8 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
   const now = startOfDay(new Date());
   const targetDay = startOfDay(date);
   const daysDiff = differenceInDays(targetDay, now);
-
   const sortKey = targetDay.getTime();
+  const absDays = Math.abs(daysDiff);
 
   if (daysDiff === 0) {
     return { label: "Today", sortKey };
@@ -230,56 +230,57 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
     return { label: "Tomorrow", sortKey };
   }
 
-  if (daysDiff >= -6 && daysDiff <= -2) {
-    const absDays = Math.abs(daysDiff);
-    return { label: `${absDays} days ago`, sortKey };
-  }
-
-  if (daysDiff >= 2 && daysDiff <= 6) {
-    return { label: `in ${daysDiff} days`, sortKey };
-  }
-
-  if (daysDiff >= -27 && daysDiff <= -7) {
-    const weeks = Math.round(Math.abs(daysDiff) / 7);
-    const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
-    const weekSortKey = weekStart.getTime();
-
-    if (weeks === 1) {
-      return { label: "a week ago", sortKey: weekSortKey };
+  if (daysDiff < 0) {
+    if (absDays <= 6) {
+      return { label: `${absDays} days ago`, sortKey };
     }
-    return { label: `${weeks} weeks ago`, sortKey: weekSortKey };
+
+    if (absDays <= 27) {
+      const weeks = Math.max(1, Math.round(absDays / 7));
+      const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
+      const weekSortKey = weekStart.getTime();
+
+      return {
+        label: weeks === 1 ? "a week ago" : `${weeks} weeks ago`,
+        sortKey: weekSortKey,
+      };
+    }
+
+    let months = Math.abs(differenceInCalendarMonths(targetDay, now));
+    if (months === 0) {
+      months = 1;
+    }
+    const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+    return {
+      label: months === 1 ? "a month ago" : `${months} months ago`,
+      sortKey: monthStart.getTime(),
+    };
   }
 
-  if (daysDiff >= 7 && daysDiff <= 27) {
-    const weeks = Math.round(daysDiff / 7);
+  if (absDays <= 6) {
+    return { label: `in ${absDays} days`, sortKey };
+  }
+
+  if (absDays <= 27) {
+    const weeks = Math.max(1, Math.round(absDays / 7));
     const weekStart = startOfDay(new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000));
     const weekSortKey = weekStart.getTime();
 
-    if (weeks === 1) {
-      return { label: "next week", sortKey: weekSortKey };
-    }
-    return { label: `in ${weeks} weeks`, sortKey: weekSortKey };
+    return {
+      label: weeks === 1 ? "next week" : `in ${weeks} weeks`,
+      sortKey: weekSortKey,
+    };
   }
 
-  if (daysDiff < -27) {
-    const months = Math.abs(differenceInMonths(targetDay, now));
-    const monthStart = new Date(now.getFullYear(), now.getMonth() - months, 1);
-    const monthSortKey = monthStart.getTime();
-
-    if (months === 1) {
-      return { label: "a month ago", sortKey: monthSortKey };
-    }
-    return { label: `${months} months ago`, sortKey: monthSortKey };
+  let months = differenceInCalendarMonths(targetDay, now);
+  if (months === 0) {
+    months = 1;
   }
-
-  const months = differenceInMonths(targetDay, now);
-  const monthStart = new Date(now.getFullYear(), now.getMonth() + months, 1);
-  const monthSortKey = monthStart.getTime();
-
-  if (months === 1) {
-    return { label: "next month", sortKey: monthSortKey };
-  }
-  return { label: `in ${months} months`, sortKey: monthSortKey };
+  const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+  return {
+    label: months === 1 ? "next month" : `in ${months} months`,
+    sortKey: monthStart.getTime(),
+  };
 }
 
 function useTimelineData() {

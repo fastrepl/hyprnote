@@ -7,13 +7,18 @@ import { type Store as PersistedStore } from "../../../store/tinybase/persisted"
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
 import { createHumanListener, createOrganizationListener, createSessionListener } from "./listeners";
-import type { Index, SearchEngineContextValue, SearchFilters, SearchHit } from "./types";
+import type { Index, SearchFilters, SearchHit } from "./types";
 import { SEARCH_SCHEMA } from "./types";
 import { normalizeQuery } from "./utils";
 
 export type { SearchEntityType, SearchFilters, SearchHit } from "./types";
 
-const SearchEngineContext = createContext<SearchEngineContextValue | null>(null);
+const SearchEngineContext = createContext<
+  {
+    search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
+    isIndexing: boolean;
+  } | null
+>(null);
 
 export function SearchEngineProvider({ children, store }: { children: React.ReactNode; store?: PersistedStore }) {
   const [isIndexing, setIsIndexing] = useState(true);

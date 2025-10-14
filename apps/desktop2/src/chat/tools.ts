@@ -1,7 +1,10 @@
 import { z } from "zod";
 
+import { searchFiltersSchema } from "../contexts/search/engine/types";
+import type { SearchFilters, SearchHit } from "../contexts/search/engine/types";
+
 export interface ToolDependencies {
-  search: (query: string, filters?: Record<string, any>) => Promise<any[]>;
+  search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
 }
 
 export const toolFactories = {
@@ -9,11 +12,12 @@ export const toolFactories = {
     description: "Search for sessions (meeting notes) using keywords. Returns relevant sessions with their content.",
     parameters: z.object({
       query: z.string().describe("The search query to find relevant sessions"),
+      filters: searchFiltersSchema.optional().describe("Optional filters for the search query"),
     }),
-    execute: async (params: { query: string }) => {
-      const hits = await deps.search(params.query);
+    execute: async (params: { query: string; filters?: SearchFilters }) => {
+      const hits = await deps.search(params.query, params.filters || null);
 
-      const results = hits.slice(0, 10).map((hit: any) => ({
+      const results = hits.slice(0, 5).map((hit) => ({
         id: hit.document.id,
         title: hit.document.title,
         content: hit.document.content.slice(0, 500),

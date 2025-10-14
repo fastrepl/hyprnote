@@ -1,7 +1,7 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
@@ -41,6 +41,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
   const { leftsidebar } = useShell();
   const { select, close, reorder, openNew } = useTabs();
+  const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleNewNote = useCallback(() => {
     const sessionId = id();
@@ -53,94 +54,114 @@ function Header({ tabs }: { tabs: Tab[] }) {
       active: true,
       state: { editor: "raw" },
     });
+
+    // Scroll to the end to show the newly created tab
+    setTimeout(() => {
+      if (tabsScrollContainerRef.current) {
+        tabsScrollContainerRef.current.scrollTo({
+          left: tabsScrollContainerRef.current.scrollWidth,
+          behavior: "smooth",
+        });
+      }
+    }, 0);
   }, [persistedStore, internalStore, openNew]);
 
   return (
     <div
       className={cn([
-        "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-        "w-full overflow-x-auto overflow-y-hidden h-9",
+        "w-full h-9 flex items-end",
         !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
-      <div className="flex w-full h-full items-end gap-4">
-        <div data-tauri-drag-region className="flex items-end h-full flex-1 min-w-0">
-          {!leftsidebar.expanded && (
-            <div className="flex items-center justify-center h-full px-3 sticky left-0 bg-white z-20">
-              <PanelLeftOpenIcon
-                className="h-5 w-5 cursor-pointer"
-                onClick={() => leftsidebar.setExpanded(true)}
-              />
-            </div>
-          )}
-
-          <div className="flex items-center h-full">
-            <button
-              className={cn([
-                "flex items-center justify-center",
-                "h-full",
-                "px-1.5",
-                "rounded-lg",
-                "hover:bg-gray-50",
-                "transition-colors",
-                "group",
-              ])}
-            >
-              <ArrowLeftIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
-            </button>
-            <button
-              className={cn([
-                "flex items-center justify-center",
-                "h-full",
-                "px-1.5",
-                "rounded-lg",
-                "hover:bg-gray-50",
-                "transition-colors",
-                "group",
-              ])}
-            >
-              <ArrowRightIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
-            </button>
-          </div>
-
-          <Reorder.Group
-            key={leftsidebar.expanded ? "expanded" : "collapsed"}
-            as="div"
-            axis="x"
-            values={tabs}
-            onReorder={reorder}
-            className="flex w-max gap-1 h-full"
-          >
-            {tabs.map((tab) => (
-              <Reorder.Item
-                key={uniqueIdfromTab(tab)}
-                value={tab}
-                as="div"
-                style={{ position: "relative" }}
-                className="h-full z-10"
-                layoutScroll
-              >
-                <TabItem tab={tab} handleClose={close} handleSelect={select} />
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-          <button
-            onClick={handleNewNote}
-            className={cn([
-              "flex items-center justify-center",
-              "h-full",
-              "mx-1 px-1.5",
-              "rounded-lg",
-              "bg-white hover:bg-gray-50",
-              "transition-colors",
-            ])}
-          >
-            <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
-          </button>
+      {/* Left sidebar toggle - pinned to far left */}
+      {!leftsidebar.expanded && (
+        <div className="flex items-center justify-center h-full px-3 shrink-0 bg-white z-20">
+          <PanelLeftOpenIcon
+            className="h-5 w-5 cursor-pointer"
+            onClick={() => leftsidebar.setExpanded(true)}
+          />
         </div>
+      )}
 
-        <Search />
+      {/* Navigation arrows - pinned to left */}
+      <div className="flex items-center h-full shrink-0">
+        <button
+          className={cn([
+            "flex items-center justify-center",
+            "h-full",
+            "px-1.5",
+            "rounded-lg",
+            "hover:bg-gray-50",
+            "transition-colors",
+            "group",
+          ])}
+        >
+          <ArrowLeftIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+        </button>
+        <button
+          className={cn([
+            "flex items-center justify-center",
+            "h-full",
+            "px-1.5",
+            "rounded-lg",
+            "hover:bg-gray-50",
+            "transition-colors",
+            "group",
+          ])}
+        >
+          <ArrowRightIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+        </button>
       </div>
+
+      {/* Scrollable tabs area */}
+      <div
+        ref={tabsScrollContainerRef}
+        data-tauri-drag-region
+        className={cn([
+          "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+          "flex-1 min-w-0 overflow-x-auto overflow-y-hidden h-full",
+        ])}
+      >
+        <Reorder.Group
+          key={leftsidebar.expanded ? "expanded" : "collapsed"}
+          as="div"
+          axis="x"
+          values={tabs}
+          onReorder={reorder}
+          className="flex w-max gap-1 h-full"
+        >
+          {tabs.map((tab) => (
+            <Reorder.Item
+              key={uniqueIdfromTab(tab)}
+              value={tab}
+              as="div"
+              style={{ position: "relative" }}
+              className="h-full z-10"
+              layoutScroll
+            >
+              <TabItem tab={tab} handleClose={close} handleSelect={select} />
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+      </div>
+
+      <button
+        onClick={handleNewNote}
+        className={cn([
+          "flex items-center justify-center",
+          "h-full",
+          "px-1.5",
+          "rounded-lg",
+          "bg-white hover:bg-gray-50",
+          "transition-colors",
+          "shrink-0",
+        ])}
+      >
+        <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
+      </button>
+
+      {/* Search - pinned to far right */}
+      <Search />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { useShell } from "../../contexts/shell";
 import * as internal from "../../store/tinybase/internal";
@@ -14,6 +14,8 @@ import { ChatSession } from "./session";
 export function ChatView() {
   const { chat } = useShell();
   const { groupId, setGroupId } = chat;
+
+  const stableSessionId = useStableSessionId(groupId);
 
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
@@ -83,8 +85,6 @@ export function ChatView() {
     [setGroupId],
   );
 
-  const sessionKey = groupId ?? "new-chat";
-
   return (
     <div className="flex flex-col h-full">
       <ChatHeader
@@ -94,7 +94,7 @@ export function ChatView() {
         handleClose={() => chat.sendEvent({ type: "CLOSE" })}
       />
 
-      <ChatSession key={sessionKey} sessionId={sessionKey} chatGroupId={groupId}>
+      <ChatSession key={stableSessionId} sessionId={stableSessionId} chatGroupId={groupId}>
         {({ messages, sendMessage, status, error }) => (
           <>
             <ErrorDisplay error={error} />
@@ -120,4 +120,24 @@ function ErrorDisplay({ error }: { error?: Error | null }) {
       <p className="text-xs text-red-600">{error.message}</p>
     </div>
   );
+}
+
+function useStableSessionId(groupId: string | undefined) {
+  const sessionIdRef = useRef<string | null>(null);
+  const lastGroupIdRef = useRef<string | undefined>(groupId);
+
+  if (sessionIdRef.current === null) {
+    sessionIdRef.current = groupId ?? id();
+  }
+
+  if (groupId !== lastGroupIdRef.current) {
+    const prev = lastGroupIdRef.current;
+    lastGroupIdRef.current = groupId;
+
+    if (prev !== undefined || groupId === undefined) {
+      sessionIdRef.current = groupId ?? id();
+    }
+  }
+
+  return sessionIdRef.current;
 }

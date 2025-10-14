@@ -2,9 +2,9 @@ import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
+import { CustomChatTransport } from "../../chat/transport";
 import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
-import { CustomChatTransport } from "../../transport";
 import { id } from "../../utils";
 
 interface ChatSessionProps {

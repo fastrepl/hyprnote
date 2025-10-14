@@ -1,5 +1,6 @@
-import { differenceInCalendarMonths, differenceInDays, format, isPast, startOfDay } from "date-fns";
+import { differenceInCalendarMonths, differenceInDays, isPast, startOfDay } from "date-fns";
 
+import { format } from "@hypr/utils/datetime";
 import type * as persisted from "../store/tinybase/persisted";
 
 export type TimelineEventRow = {
@@ -120,7 +121,12 @@ export function buildTimelineBuckets({
 
   eventsWithoutSessionTable
     && Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
-      const eventStartTime = new Date(String(row.started_at || ""));
+      const rawTimestamp = String(row.started_at ?? "");
+      const eventStartTime = new Date(rawTimestamp);
+
+      if (isNaN(eventStartTime.getTime())) {
+        return;
+      }
 
       if (!isPast(eventStartTime)) {
         items.push({
@@ -140,11 +146,17 @@ export function buildTimelineBuckets({
         return;
       }
 
-      const timestamp = String(row.event_started_at || row.created_at || "");
+      const rawTimestamp = String(row.event_started_at ?? row.created_at ?? "");
+      const date = new Date(rawTimestamp);
+
+      if (isNaN(date.getTime())) {
+        return;
+      }
+
       items.push({
         type: "session",
         id: sessionId,
-        date: format(new Date(timestamp), "yyyy-MM-dd"),
+        date: format(date, "yyyy-MM-dd"),
         data: row as unknown as persisted.Session,
       });
     });
@@ -152,7 +164,11 @@ export function buildTimelineBuckets({
   items.sort((a, b) => {
     const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;
     const timeB = b.type === "event" ? b.data.started_at : b.data.created_at;
-    return new Date(timeB).getTime() - new Date(timeA).getTime();
+    const dateA = new Date(String(timeA ?? ""));
+    const dateB = new Date(String(timeB ?? ""));
+    const timeAValue = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+    const timeBValue = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+    return timeBValue - timeAValue;
   });
 
   const bucketMap = new Map<string, { sortKey: number; precision: TimelinePrecision; items: TimelineItem[] }>();

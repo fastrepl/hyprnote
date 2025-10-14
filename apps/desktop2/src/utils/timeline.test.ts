@@ -1,3 +1,5 @@
+process.env.TZ = "UTC";
+
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {

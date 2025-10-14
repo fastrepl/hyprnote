@@ -1,92 +1,60 @@
 import { clsx } from "clsx";
-import { differenceInCalendarMonths, differenceInDays, format, isPast, startOfDay } from "date-fns";
 import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import * as persisted from "../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
+import { buildTimelineBuckets } from "../../../utils/timeline";
+import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../utils/timeline";
 import { InteractiveButton } from "../../interactive-button";
-
-type TimelineItem =
-  | { type: "event"; id: string; date: string; data: persisted.Event }
-  | { type: "session"; id: string; date: string; data: persisted.Session };
-
-type TimelinePrecision = "time" | "date";
-
-type TimelineBucket = {
-  label: string;
-  precision: TimelinePrecision;
-  items: TimelineItem[];
-};
 
 export function TimelineView() {
   const buckets = useTimelineData();
-  const todaySectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isTodayVisible, setIsTodayVisible] = useState(true);
-  const [isScrolledPastToday, setIsScrolledPastToday] = useState(false);
-
-  const hasToday = buckets.some(bucket => bucket.label === "Today");
-
-  useEffect(() => {
-    const section = todaySectionRef.current;
-    const container = containerRef.current;
-    if (section && container) {
-      container.scrollTo({ top: section.offsetTop });
-    }
-  }, []);
-
-  useEffect(() => {
-    const section = todaySectionRef.current;
-    const container = containerRef.current;
-    if (!section || !container) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const containerRect = container.getBoundingClientRect();
-        const sectionRect = section.getBoundingClientRect();
-
-        setIsTodayVisible(entry.isIntersecting);
-        setIsScrolledPastToday(sectionRect.top < containerRect.top);
-      },
-      { root: container, threshold: 0.1 },
-    );
-
-    observer.observe(section);
-
-    return () => observer.disconnect();
-  }, [buckets]);
-
-  const scrollToToday = useCallback(() => {
-    const section = todaySectionRef.current;
-    const container = containerRef.current;
-    if (section && container) {
-      container.scrollTo({ top: section.offsetTop, behavior: "smooth" });
-    }
-  }, []);
+  const currentTime = useCurrentTime();
+  const {
+    containerRef,
+    isTodayVisible,
+    isScrolledPastToday,
+    scrollToToday,
+    hasToday,
+    setCurrentTimeIndicatorRef,
+  } = useTimelineScroll(buckets);
 
   return (
     <div className="relative h-full">
       <div ref={containerRef} className="flex flex-col h-full overflow-y-auto bg-gray-50 rounded-lg">
-        {buckets.map((bucket) => (
-          <div key={bucket.label} ref={bucket.label === "Today" ? todaySectionRef : undefined}>
-            <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
-              <DateHeader label={bucket.label} />
+        {buckets.map((bucket) => {
+          const isToday = bucket.label === "Today";
+
+          return (
+            <div key={bucket.label}>
+              <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
+                <DateHeader label={bucket.label} />
+              </div>
+              {isToday
+                ? (
+                  <TodayBucket
+                    items={bucket.items}
+                    precision={bucket.precision}
+                    currentTime={currentTime}
+                    registerIndicator={setCurrentTimeIndicatorRef}
+                  />
+                )
+                : (
+                  bucket.items.map((item) => (
+                    <TimelineItemComponent
+                      key={`${item.type}-${item.id}`}
+                      item={item}
+                      precision={bucket.precision}
+                    />
+                  ))
+                )}
             </div>
-            {bucket.items.map((item) => (
-              <TimelineItemComponent
-                key={`${item.type}-${item.id}`}
-                item={item}
-                precision={bucket.precision}
-              />
-            ))}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {hasToday && !isTodayVisible && (
@@ -105,6 +73,76 @@ export function TimelineView() {
       )}
     </div>
   );
+}
+
+function useTimelineScroll(buckets: TimelineBucket[]) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isTodayVisible, setIsTodayVisible] = useState(true);
+  const [isScrolledPastToday, setIsScrolledPastToday] = useState(false);
+  const [indicatorNode, setIndicatorNode] = useState<HTMLDivElement | null>(null);
+
+  const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
+
+  const setCurrentTimeIndicatorRef = useCallback((node: HTMLDivElement | null) => {
+    setIndicatorNode(prevNode => (prevNode === node ? prevNode : node));
+  }, []);
+
+  const scrollToToday = useCallback(() => {
+    const container = containerRef.current;
+    if (!container || !indicatorNode) {
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const indicatorRect = indicatorNode.getBoundingClientRect();
+    const indicatorCenter = indicatorRect.top - containerRect.top + container.scrollTop + (indicatorRect.height / 2);
+    const targetScrollTop = Math.max(indicatorCenter - (container.clientHeight / 2), 0);
+    container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
+  }, [indicatorNode]);
+
+  useEffect(() => {
+    if (!hasToday) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      scrollToToday();
+    });
+  }, [hasToday, scrollToToday]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+
+    if (!container || !indicatorNode) {
+      setIsTodayVisible(true);
+      setIsScrolledPastToday(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const containerRect = container.getBoundingClientRect();
+        const indicatorRect = indicatorNode.getBoundingClientRect();
+
+        setIsTodayVisible(entry.isIntersecting);
+        setIsScrolledPastToday(indicatorRect.top < containerRect.top);
+      },
+      { root: container, threshold: 0.1 },
+    );
+
+    observer.observe(indicatorNode);
+
+    return () => observer.disconnect();
+  }, [indicatorNode]);
+
+  return {
+    containerRef,
+    isTodayVisible,
+    isScrolledPastToday,
+    scrollToToday,
+    hasToday,
+    setCurrentTimeIndicatorRef,
+  };
 }
 
 function DateHeader({ label }: { label: string }) {
@@ -208,14 +246,16 @@ function TimelineItemComponent({ item, precision }: { item: TimelineItem; precis
       return "";
     }
 
-    const time = format(date, "HH:mm");
+    const time = date.toLocaleTimeString([], { hour: "numeric", minute: "numeric" });
 
     if (precision === "time") {
       return time;
     }
 
     const sameYear = date.getFullYear() === new Date().getFullYear();
-    const dateStr = format(date, sameYear ? "MMM d" : "MMM d, yyyy");
+    const dateStr = sameYear
+      ? date.toLocaleDateString([], { month: "short", day: "numeric" })
+      : date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
     return `${dateStr}, ${time}`;
   }, [timestamp, precision]);
 
@@ -238,83 +278,65 @@ function TimelineItemComponent({ item, precision }: { item: TimelineItem; precis
   );
 }
 
-function getBucketInfo(date: Date): { label: string; sortKey: number; precision: TimelinePrecision } {
-  const now = startOfDay(new Date());
-  const targetDay = startOfDay(date);
-  const daysDiff = differenceInDays(targetDay, now);
-  const sortKey = targetDay.getTime();
-  const absDays = Math.abs(daysDiff);
+function TodayBucket({
+  items,
+  precision,
+  currentTime,
+  registerIndicator,
+}: {
+  items: TimelineItem[];
+  precision: TimelinePrecision;
+  currentTime: Date;
+  registerIndicator: (node: HTMLDivElement | null) => void;
+}) {
+  const entries = useMemo(
+    () => items.map((timelineItem) => ({ item: timelineItem, timestamp: getItemTimestamp(timelineItem) })),
+    [items],
+  );
 
-  if (daysDiff === 0) {
-    return { label: "Today", sortKey, precision: "time" };
-  }
+  const currentTimeMs = currentTime.getTime();
 
-  if (daysDiff === -1) {
-    return { label: "Yesterday", sortKey, precision: "time" };
-  }
+  const indicatorIndex = useMemo(() => {
+    for (let index = 0; index < entries.length; index += 1) {
+      const timestamp = entries[index].timestamp;
 
-  if (daysDiff === 1) {
-    return { label: "Tomorrow", sortKey, precision: "time" };
-  }
+      if (!timestamp) {
+        return index;
+      }
 
-  if (daysDiff < 0) {
-    if (absDays <= 6) {
-      return { label: `${absDays} days ago`, sortKey, precision: "time" };
+      if (timestamp.getTime() < currentTimeMs) {
+        return index;
+      }
     }
 
-    if (absDays <= 27) {
-      const weeks = Math.max(1, Math.round(absDays / 7));
-      const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
-      const weekSortKey = weekStart.getTime();
+    return entries.length;
+  }, [entries, currentTimeMs]);
 
-      return {
-        label: weeks === 1 ? "a week ago" : `${weeks} weeks ago`,
-        sortKey: weekSortKey,
-        precision: "date",
-      };
-    }
-
-    let months = Math.abs(differenceInCalendarMonths(targetDay, now));
-    if (months === 0) {
-      months = 1;
-    }
-    const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
-    return {
-      label: months === 1 ? "a month ago" : `${months} months ago`,
-      sortKey: monthStart.getTime(),
-      precision: "date",
-    };
+  if (entries.length === 0) {
+    return (
+      <>
+        <CurrentTimeIndicator ref={registerIndicator} />
+        <div className="px-3 py-4 text-sm text-gray-400 text-center">
+          No items today
+        </div>
+      </>
+    );
   }
 
-  if (absDays <= 6) {
-    return { label: `in ${absDays} days`, sortKey, precision: "time" };
-  }
-
-  if (absDays <= 27) {
-    const weeks = Math.max(1, Math.round(absDays / 7));
-    const weekStart = startOfDay(new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000));
-    const weekSortKey = weekStart.getTime();
-
-    return {
-      label: weeks === 1 ? "next week" : `in ${weeks} weeks`,
-      sortKey: weekSortKey,
-      precision: "date",
-    };
-  }
-
-  let months = differenceInCalendarMonths(targetDay, now);
-  if (months === 0) {
-    months = 1;
-  }
-  const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
-  return {
-    label: months === 1 ? "next month" : `in ${months} months`,
-    sortKey: monthStart.getTime(),
-    precision: "date",
-  };
+  return (
+    <>
+      {entries.map((entry, index) => (
+        <Fragment key={`${entry.item.type}-${entry.item.id}`}>
+          {index === indicatorIndex && <CurrentTimeIndicator ref={registerIndicator} />}
+          <TimelineItemComponent item={entry.item} precision={precision} />
+        </Fragment>
+      ))}
+      {indicatorIndex === entries.length && <CurrentTimeIndicator ref={registerIndicator} />}
+    </>
+  );
 }
 
-function useTimelineData() {
+function useTimelineData(): TimelineBucket[] {
   const eventsWithoutSessionTable = persisted.UI.useResultTable(
     persisted.QUERIES.eventsWithoutSession,
     persisted.STORE_ID,
@@ -324,58 +346,52 @@ function useTimelineData() {
     persisted.STORE_ID,
   );
 
-  return useMemo(() => {
-    const items: TimelineItem[] = [];
-    const seenEvents = new Set<string>();
-
-    eventsWithoutSessionTable && Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
-      const eventStartTime = new Date(String(row.started_at || ""));
-      if (!isPast(eventStartTime)) {
-        items.push({
-          type: "event",
-          id: eventId,
-          date: format(eventStartTime, "yyyy-MM-dd"),
-          data: row as unknown as persisted.Event,
-        });
-        seenEvents.add(eventId);
-      }
-    });
-
-    sessionsWithMaybeEventTable && Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
-      const eventId = row.event_id ? String(row.event_id) : undefined;
-      if (eventId && seenEvents.has(eventId)) {
-        return;
-      }
-
-      const timestamp = String(row.event_started_at || row.created_at || "");
-      items.push({
-        type: "session",
-        id: sessionId,
-        date: format(new Date(timestamp), "yyyy-MM-dd"),
-        data: row as unknown as persisted.Session,
-      });
-    });
-
-    items.sort((a, b) => {
-      const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;
-      const timeB = b.type === "event" ? b.data.started_at : b.data.created_at;
-      return new Date(timeB).getTime() - new Date(timeA).getTime();
-    });
-
-    const bucketMap = new Map<string, { sortKey: number; precision: TimelinePrecision; items: TimelineItem[] }>();
-
-    items.forEach((item) => {
-      const itemDate = new Date(item.date);
-      const bucket = getBucketInfo(itemDate);
-
-      if (!bucketMap.has(bucket.label)) {
-        bucketMap.set(bucket.label, { sortKey: bucket.sortKey, precision: bucket.precision, items: [] });
-      }
-      bucketMap.get(bucket.label)!.items.push(item);
-    });
-
-    return Array.from(bucketMap.entries())
-      .sort((a, b) => b[1].sortKey - a[1].sortKey)
-      .map(([label, value]) => ({ label, items: value.items, precision: value.precision } satisfies TimelineBucket));
-  }, [eventsWithoutSessionTable, sessionsWithMaybeEventTable]);
+  return useMemo(
+    () =>
+      buildTimelineBuckets({
+        eventsWithoutSessionTable,
+        sessionsWithMaybeEventTable,
+      }),
+    [eventsWithoutSessionTable, sessionsWithMaybeEventTable],
+  );
 }
+
+function useCurrentTime() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const update = () => setNow(new Date());
+    update();
+    const interval = window.setInterval(update, 60_000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  return now;
+}
+
+function getItemTimestamp(item: TimelineItem): Date | null {
+  const value = item.type === "event" ? item.data.started_at : item.data.created_at;
+
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+const CurrentTimeIndicator = forwardRef<HTMLDivElement>((_, ref) => (
+  <div ref={ref} className="px-3 py-2" aria-hidden>
+    <div className="h-px bg-red-500" />
+  </div>
+));
+
+CurrentTimeIndicator.displayName = "CurrentTimeIndicator";

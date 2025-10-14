@@ -1,5 +1,5 @@
 import { useRouteContext } from "@tanstack/react-router";
-import { PanelLeftOpenIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback } from "react";
 
@@ -26,7 +26,7 @@ export function Body() {
   }
 
   return (
-    <div className="flex flex-col p-1 gap-1 h-full flex-1 relative">
+    <div className="flex flex-col gap-1 h-full flex-1 relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
         <Content tab={currentTab} />
@@ -59,7 +59,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     <div
       className={cn([
         "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-        "w-full overflow-x-auto h-8",
+        "w-full overflow-x-auto overflow-y-hidden h-9",
         !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
@@ -73,6 +73,35 @@ function Header({ tabs }: { tabs: Tab[] }) {
               />
             </div>
           )}
+
+          <div className="flex items-center h-full">
+            <button
+              className={cn([
+                "flex items-center justify-center",
+                "h-full",
+                "px-1.5",
+                "rounded-lg",
+                "hover:bg-gray-50",
+                "transition-colors",
+                "group",
+              ])}
+            >
+              <ArrowLeftIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+            </button>
+            <button
+              className={cn([
+                "flex items-center justify-center",
+                "h-full",
+                "px-1.5",
+                "rounded-lg",
+                "hover:bg-gray-50",
+                "transition-colors",
+                "group",
+              ])}
+            >
+              <ArrowRightIcon className="h-4 w-4 text-color3 cursor-pointer group-hover:text-black" />
+            </button>
+          </div>
 
           <Reorder.Group
             key={leftsidebar.expanded ? "expanded" : "collapsed"}

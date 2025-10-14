@@ -1,26 +1,16 @@
 import { Highlight } from "@orama/highlight";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import type { SearchEntityType, SearchFilters, SearchHit } from "./engine";
+import type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./engine";
 import { useSearchEngine } from "./engine";
 
 export type { SearchEntityType, SearchFilters } from "./engine";
 
-export interface SearchResult {
-  id: string;
-  type: SearchEntityType;
-  title: string;
+export type SearchResult = SearchDocument & {
   titleHighlighted: string;
-  content: string;
   contentHighlighted: string;
-  created_at: number;
-  folder_id: string;
-  event_id: string;
-  org_id: string;
-  is_user: boolean;
-  metadata: Record<string, any>;
   score: number;
-}
+};
 
 export interface SearchGroup {
   key: string;
@@ -50,8 +40,6 @@ interface SearchUIContextValue {
   onBlur: () => void;
 }
 
-type SerializableObject = Record<string, unknown>;
-
 const SCORE_PERCENTILE_THRESHOLD = 0.1;
 
 const GROUP_TITLES: Record<SearchEntityType, string> = {
@@ -59,31 +47,6 @@ const GROUP_TITLES: Record<SearchEntityType, string> = {
   human: "People",
   organization: "Organizations",
 };
-
-function safeParseJSON(value: unknown): unknown {
-  if (typeof value !== "string") {
-    return value;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
-}
-
-function parseMetadata(metadata: unknown): SerializableObject {
-  if (typeof metadata !== "string" || metadata.length === 0) {
-    return {};
-  }
-
-  const parsed = safeParseJSON(metadata);
-  if (typeof parsed === "object" && parsed !== null) {
-    return parsed as SerializableObject;
-  }
-
-  return {};
-}
 
 function calculateDynamicThreshold(scores: number[]): number {
   if (scores.length === 0) {
@@ -109,11 +72,6 @@ function createSearchResult(hit: SearchHit, query: string): SearchResult {
     content: hit.document.content,
     contentHighlighted: contentHighlighted.HTML,
     created_at: hit.document.created_at,
-    folder_id: hit.document.folder_id,
-    event_id: hit.document.event_id,
-    org_id: hit.document.org_id,
-    is_user: hit.document.is_user,
-    metadata: parseMetadata(hit.document.metadata),
     score: hit.score,
   };
 }

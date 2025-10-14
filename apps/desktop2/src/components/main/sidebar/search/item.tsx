@@ -33,17 +33,10 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
 }
 
 function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
-  const organization = persisted.UI.useRow("organizations", result.org_id, persisted.STORE_ID);
-
   const sanitizedTitle = useMemo(
     () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
     [result.titleHighlighted],
   );
-
-  const jobTitle = result.metadata?.job_title as string | undefined;
-  const orgName = organization?.name;
-
-  const subtitle = [jobTitle, orgName].filter(Boolean).join(", ");
 
   return (
     <button
@@ -66,11 +59,6 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
           className={cn(["text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold"])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
-        {subtitle && (
-          <div className={cn(["text-xs text-gray-500 truncate mt-0.5"])}>
-            {subtitle}
-          </div>
-        )}
       </div>
     </button>
   );

@@ -11,7 +11,7 @@ import type { Index, SearchFilters, SearchHit } from "./types";
 import { SEARCH_SCHEMA } from "./types";
 import { normalizeQuery } from "./utils";
 
-export type { SearchEntityType, SearchFilters, SearchHit } from "./types";
+export type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./types";
 
 const SearchEngineContext = createContext<
   {

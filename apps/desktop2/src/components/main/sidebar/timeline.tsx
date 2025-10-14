@@ -1,8 +1,9 @@
 import { clsx } from "clsx";
-import { differenceInDays, format, formatDistanceToNowStrict, isPast } from "date-fns";
-import { ExternalLink, Trash2 } from "lucide-react";
-import { useMemo } from "react";
+import { differenceInDays, differenceInMonths, format, isPast, startOfDay } from "date-fns";
+import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import * as persisted from "../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../store/zustand/tabs";
@@ -14,38 +15,90 @@ type TimelineItem =
   | { type: "session"; id: string; date: string; data: persisted.Session };
 
 export function TimelineView() {
-  const { groupedItems, sortedDates } = useTimelineData();
+  const buckets = useTimelineData();
+  const todaySectionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isTodayVisible, setIsTodayVisible] = useState(true);
+  const [isScrolledPastToday, setIsScrolledPastToday] = useState(false);
+
+  const hasToday = buckets.some(bucket => bucket.label === "Today");
+
+  useEffect(() => {
+    const section = todaySectionRef.current;
+    const container = containerRef.current;
+    if (section && container) {
+      container.scrollTo({ top: section.offsetTop });
+    }
+  }, []);
+
+  useEffect(() => {
+    const section = todaySectionRef.current;
+    const container = containerRef.current;
+    if (!section || !container) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const containerRect = container.getBoundingClientRect();
+        const sectionRect = section.getBoundingClientRect();
+
+        setIsTodayVisible(entry.isIntersecting);
+        setIsScrolledPastToday(sectionRect.top < containerRect.top);
+      },
+      { root: container, threshold: 0.1 },
+    );
+
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, [buckets]);
+
+  const scrollToToday = useCallback(() => {
+    const section = todaySectionRef.current;
+    const container = containerRef.current;
+    if (section && container) {
+      container.scrollTo({ top: section.offsetTop, behavior: "smooth" });
+    }
+  }, []);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-gray-50 rounded-lg">
-      {sortedDates.map((date) => (
-        <div key={date}>
-          <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
-            <DateHeader date={date} />
+    <div className="relative h-full">
+      <div ref={containerRef} className="flex flex-col h-full overflow-y-auto bg-gray-50 rounded-lg">
+        {buckets.map((bucket) => (
+          <div key={bucket.label} ref={bucket.label === "Today" ? todaySectionRef : undefined}>
+            <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
+              <DateHeader label={bucket.label} />
+            </div>
+            {bucket.items.map((item) => (
+              <TimelineItemComponent
+                key={`${item.type}-${item.id}`}
+                item={item}
+              />
+            ))}
           </div>
-          {groupedItems[date].map((item) => (
-            <TimelineItemComponent
-              key={`${item.type}-${item.id}`}
-              item={item}
-            />
-          ))}
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {hasToday && !isTodayVisible && (
+        <Button
+          onClick={scrollToToday}
+          size="sm"
+          className={clsx([
+            "absolute left-1/2 transform -translate-x-1/2 rounded-full shadow-lg bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 z-40 flex items-center gap-1",
+            isScrolledPastToday ? "top-2" : "bottom-2",
+          ])}
+          variant="outline"
+        >
+          <CalendarIcon size={14} />
+          <span className="text-xs">Go to Today</span>
+        </Button>
+      )}
     </div>
   );
 }
 
-function DateHeader({ date }: { date: string }) {
-  const d = new Date(date);
-  const daysDiff = differenceInDays(new Date(), d);
-
-  let label: string;
-  if (daysDiff < 30) {
-    label = formatDistanceToNowStrict(d, { addSuffix: true, unit: "day" });
-  } else {
-    label = formatDistanceToNowStrict(d, { addSuffix: true, unit: "month" });
-  }
-
+function DateHeader({ label }: { label: string }) {
   return <div className="text-base font-bold text-gray-900">{label}</div>;
 }
 
@@ -158,6 +211,77 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
   );
 }
 
+function getBucketInfo(date: Date): { label: string; sortKey: number } {
+  const now = startOfDay(new Date());
+  const targetDay = startOfDay(date);
+  const daysDiff = differenceInDays(targetDay, now);
+
+  const sortKey = targetDay.getTime();
+
+  if (daysDiff === 0) {
+    return { label: "Today", sortKey };
+  }
+
+  if (daysDiff === -1) {
+    return { label: "Yesterday", sortKey };
+  }
+
+  if (daysDiff === 1) {
+    return { label: "Tomorrow", sortKey };
+  }
+
+  if (daysDiff >= -6 && daysDiff <= -2) {
+    const absDays = Math.abs(daysDiff);
+    return { label: `${absDays} days ago`, sortKey };
+  }
+
+  if (daysDiff >= 2 && daysDiff <= 6) {
+    return { label: `in ${daysDiff} days`, sortKey };
+  }
+
+  if (daysDiff >= -27 && daysDiff <= -7) {
+    const weeks = Math.round(Math.abs(daysDiff) / 7);
+    const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
+    const weekSortKey = weekStart.getTime();
+
+    if (weeks === 1) {
+      return { label: "a week ago", sortKey: weekSortKey };
+    }
+    return { label: `${weeks} weeks ago`, sortKey: weekSortKey };
+  }
+
+  if (daysDiff >= 7 && daysDiff <= 27) {
+    const weeks = Math.round(daysDiff / 7);
+    const weekStart = startOfDay(new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000));
+    const weekSortKey = weekStart.getTime();
+
+    if (weeks === 1) {
+      return { label: "next week", sortKey: weekSortKey };
+    }
+    return { label: `in ${weeks} weeks`, sortKey: weekSortKey };
+  }
+
+  if (daysDiff < -27) {
+    const months = Math.abs(differenceInMonths(targetDay, now));
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - months, 1);
+    const monthSortKey = monthStart.getTime();
+
+    if (months === 1) {
+      return { label: "a month ago", sortKey: monthSortKey };
+    }
+    return { label: `${months} months ago`, sortKey: monthSortKey };
+  }
+
+  const months = differenceInMonths(targetDay, now);
+  const monthStart = new Date(now.getFullYear(), now.getMonth() + months, 1);
+  const monthSortKey = monthStart.getTime();
+
+  if (months === 1) {
+    return { label: "next month", sortKey: monthSortKey };
+  }
+  return { label: `in ${months} months`, sortKey: monthSortKey };
+}
+
 function useTimelineData() {
   const eventsWithoutSessionTable = persisted.UI.useResultTable(
     persisted.QUERIES.eventsWithoutSession,
@@ -206,12 +330,20 @@ function useTimelineData() {
       return new Date(timeB).getTime() - new Date(timeA).getTime();
     });
 
-    const groupedItems = items.reduce<Record<string, TimelineItem[]>>((groups, item) => {
-      (groups[item.date] ||= []).push(item);
-      return groups;
-    }, {});
+    const bucketMap = new Map<string, { sortKey: number; items: TimelineItem[] }>();
 
-    const sortedDates = Object.keys(groupedItems).sort((a, b) => b.localeCompare(a));
-    return { groupedItems, sortedDates };
+    items.forEach((item) => {
+      const itemDate = new Date(item.date);
+      const bucket = getBucketInfo(itemDate);
+
+      if (!bucketMap.has(bucket.label)) {
+        bucketMap.set(bucket.label, { sortKey: bucket.sortKey, items: [] });
+      }
+      bucketMap.get(bucket.label)!.items.push(item);
+    });
+
+    return Array.from(bucketMap.entries())
+      .sort((a, b) => b[1].sortKey - a[1].sortKey)
+      .map(([label, value]) => ({ label, items: value.items }));
   }, [eventsWithoutSessionTable, sessionsWithMaybeEventTable]);
 }

@@ -13,7 +13,13 @@ export function RecordingButton({
   return (
     <button
       onClick={handleClick}
-      className="w-[80px] border border-gray-400 rounded-md px-2 py-0.5"
+      className={cn([
+        "rounded-lg px-3.5 py-1.5",
+        "shadow-[inset_0_0_0_1px_rgb(156_163_175)]",
+        "flex items-center justify-center gap-1.5 shrink-0",
+        "text-xs transition-opacity",
+        "hover:bg-gray-100",
+      ])}
     >
       {isPlayerVisible ? <WhilePlaying /> : <ClickToPlay />}
     </button>
@@ -24,7 +30,7 @@ function ClickToPlay() {
   return (
     <div
       className={cn([
-        "flex items-center justify-center gap-1",
+        "flex items-center justify-center gap-1.5",
         "text-xs transition-opacity",
       ])}
     >
@@ -40,7 +46,7 @@ function WhilePlaying() {
   return (
     <div
       className={cn([
-        "flex items-center justify-center gap-1",
+        "flex items-center justify-center gap-1.5",
         "text-xs transition-opacity",
       ])}
     >

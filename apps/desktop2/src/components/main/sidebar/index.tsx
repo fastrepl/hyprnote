@@ -14,7 +14,7 @@ export function LeftSidebar() {
   const showSearchResults = query.trim() !== "";
 
   return (
-    <div className="h-full flex flex-col overflow-hidden w-[220px] shrink-0">
+    <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0">
       <header
         data-tauri-drag-region
         className={clsx([

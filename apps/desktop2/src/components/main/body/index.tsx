@@ -24,6 +24,7 @@ export function Body() {
   const { chat } = useShell();
 
   useTabCloseHotkey();
+  useTabSelectHotkeys();
 
   if (!currentTab) {
     return null;
@@ -247,6 +248,31 @@ const useTabCloseHotkey = () => {
     },
     { enableOnFormTags: true },
     [tabs, currentTab, close],
+  );
+};
+
+const useTabSelectHotkeys = () => {
+  const { tabs, select } = useTabs();
+
+  useHotkeys(
+    ["mod+1", "mod+2", "mod+3", "mod+4", "mod+5", "mod+6", "mod+7", "mod+8", "mod+9"],
+    (event) => {
+      const key = event.key;
+
+      const targetIndex = key === "9"
+        ? tabs.length - 1
+        : Number.parseInt(key, 10) - 1;
+
+      const target = tabs[targetIndex];
+      if (!target) {
+        return;
+      }
+
+      event.preventDefault();
+      select(target);
+    },
+    { enableOnFormTags: true },
+    [tabs, select],
   );
 };
 

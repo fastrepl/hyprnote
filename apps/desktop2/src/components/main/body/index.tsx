@@ -1,7 +1,9 @@
 import { useRouteContext } from "@tanstack/react-router";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
@@ -19,8 +21,28 @@ import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
-  const { tabs, currentTab } = useTabs();
+  const { tabs, currentTab, close } = useTabs();
   const { chat } = useShell();
+
+  useHotkeys(
+    "mod+w",
+    async (e) => {
+      e.preventDefault();
+
+      if (tabs.length > 1) {
+        // If more than one tab, close the current tab
+        if (currentTab) {
+          close(currentTab);
+        }
+      } else if (tabs.length === 1) {
+        // If only one tab left, close the window
+        const appWindow = getCurrentWebviewWindow();
+        await appWindow.close();
+      }
+    },
+    { enableOnFormTags: true },
+    [tabs, currentTab, close],
+  );
 
   if (!currentTab) {
     return null;

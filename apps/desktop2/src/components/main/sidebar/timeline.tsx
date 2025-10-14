@@ -20,7 +20,7 @@ export function TimelineView() {
     <div className="flex flex-col h-full overflow-y-auto bg-color1 rounded-lg">
       {sortedDates.map((date) => (
         <div key={date}>
-          <div className="sticky top-0 z-30 px-2 py-1">
+          <div className="sticky top-0 z-30 px-2 py-1 bg-color1">
             <DateHeader date={date} />
           </div>
           {groupedItems[date].map((item) => (

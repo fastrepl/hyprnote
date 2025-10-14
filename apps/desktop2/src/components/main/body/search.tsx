@@ -1,5 +1,5 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
@@ -8,6 +8,7 @@ import { useSearch } from "../../../contexts/search/ui";
 export function Search() {
   const { query, setQuery, isSearching, isIndexing, onFocus, onBlur } = useSearch();
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const showLoading = isSearching || isIndexing;
 
@@ -49,9 +50,24 @@ export function Search() {
     { enableOnFormTags: true },
   );
 
+  const handleFocus = () => {
+    setIsFocused(true);
+    onFocus();
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    onBlur();
+  };
+
   return (
-    <div className="flex items-center h-full pl-4 flex-[0_1_260px] min-w-[160px] w-full">
-      <div className="relative flex items-center w-full">
+    <div
+      className={cn([
+        "flex items-center h-full pl-4 transition-all duration-300",
+        isFocused ? "w-[240px]" : "w-[200px]",
+      ])}
+    >
+      <div className="relative flex items-center w-full h-full">
         {showLoading
           ? <Loader2Icon className={cn(["h-4 w-4 absolute left-3 text-gray-400 animate-spin"])} />
           : <SearchIcon className={cn(["h-4 w-4 absolute left-3 text-gray-400"])} />}
@@ -61,14 +77,14 @@ export function Search() {
           placeholder="Search anything..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={onFocus}
-          onBlur={onBlur}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className={cn([
             "text-sm",
-            "w-full pl-9 py-2",
+            "w-full pl-9 h-full",
             query ? "pr-9" : "pr-4",
-            "rounded-lg bg-gray-100 border-0",
-            "focus:outline-none focus:bg-gray-200",
+            "rounded-lg bg-gray-100 border border-transparent",
+            "focus:outline-none focus:bg-gray-200 focus:border-black",
           ])}
         />
         {query && (

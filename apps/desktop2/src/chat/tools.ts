@@ -10,3 +10,16 @@ export const searchSessionsTool = tool({
     return { results: [] };
   },
 });
+
+export const tools = {
+  search_sessions: searchSessionsTool,
+};
+
+export type Tools = {
+  [K in keyof typeof tools]: {
+    input: Parameters<NonNullable<(typeof tools)[K]["execute"]>>[0];
+    output: Awaited<ReturnType<NonNullable<(typeof tools)[K]["execute"]>>>;
+  };
+};
+
+export type ToolPartType = `tool-${keyof Tools}`;

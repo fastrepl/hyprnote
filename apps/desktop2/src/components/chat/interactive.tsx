@@ -25,8 +25,6 @@ export function InteractiveContainer(
         defaultSize={{ width, height }}
         minWidth={width / 2}
         minHeight={height / 2}
-        maxWidth={window.innerWidth - 32}
-        maxHeight={window.innerHeight - 32}
         bounds="window"
         enable={{
           top: false,

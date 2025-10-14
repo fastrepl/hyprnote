@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
 import { CustomChatTransport } from "../../chat/transport";
 import * as internal from "../../store/tinybase/internal";
@@ -23,7 +23,7 @@ export function ChatSession({
   chatGroupId,
   children,
 }: ChatSessionProps) {
-  const [transport] = useState(() => new CustomChatTransport());
+  const transport = useMemo(() => new CustomChatTransport(), []);
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
   const { user_id } = internal.UI.useValues(internal.STORE_ID);

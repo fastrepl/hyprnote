@@ -1,10 +1,12 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { ChatRequestOptions, ChatTransport, UIMessage, UIMessageChunk } from "ai";
-import { convertToModelMessages, streamText } from "ai";
+import { convertToModelMessages, stepCountIs, streamText } from "ai";
+
+import { searchSessionsTool } from "./tools";
 
 const provider = createOpenAICompatible({
-  name: "lmstudio",
-  baseURL: "http://localhost:1234/v1",
+  name: "openrouter",
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 export class CustomChatTransport implements ChatTransport<UIMessage> {
@@ -18,11 +20,15 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       & { trigger: "submit-message" | "regenerate-message"; messageId: string | undefined }
       & ChatRequestOptions,
   ): Promise<ReadableStream<UIMessageChunk>> {
-    const model = provider.chatModel("local-model");
+    const model = provider.chatModel("openai/gpt-5-mini");
+    const tools = this.getTools();
 
     const result = streamText({
       model,
       messages: convertToModelMessages(options.messages),
+
+      tools,
+      stopWhen: stepCountIs(5),
       abortSignal: options.abortSignal,
     });
 
@@ -36,5 +42,11 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
 
   async reconnectToStream(): Promise<ReadableStream<UIMessageChunk> | null> {
     return null;
+  }
+
+  private getTools(): Parameters<typeof streamText>[0]["tools"] {
+    return {
+      search_sessions: searchSessionsTool,
+    };
   }
 }

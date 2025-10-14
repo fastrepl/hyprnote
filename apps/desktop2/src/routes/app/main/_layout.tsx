@@ -20,7 +20,7 @@ function Component() {
 
   return (
     <ShellProvider>
-      <SearchEngineProvider persistedStore={persistedStore}>
+      <SearchEngineProvider store={persistedStore}>
         <SearchUIProvider>
           <ToolRegistryProvider>
             <ToolRegistration />

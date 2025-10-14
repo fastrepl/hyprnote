@@ -1,10 +1,12 @@
-import type { ChatStatus, UIMessage } from "ai";
+import type { ChatStatus } from "ai";
 import { Loader2, MessageCircle, RotateCcw, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
+import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
 import { ChatBodyMessage } from "./message";
+import { hasRenderableContent } from "./shared";
 
 export function ChatBody({
   messages,
@@ -13,7 +15,7 @@ export function ChatBody({
   onReload,
   onStop,
 }: {
-  messages: UIMessage[];
+  messages: HyprUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
@@ -60,15 +62,16 @@ function ChatBodyNonEmpty({
   onReload,
   onStop,
 }: {
-  messages: UIMessage[];
+  messages: HyprUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
   onStop?: () => void;
 }) {
   const showErrorState = status === "error" && error;
+  const lastMessage = messages[messages.length - 1];
   const showLoadingState = (status === "submitted" || status === "streaming")
-    && messages[messages.length - 1]?.role !== "assistant";
+    && (lastMessage?.role !== "assistant" || !hasRenderableContent(lastMessage));
 
   let lastAssistantIndex = -1;
   for (let i = messages.length - 1; i >= 0; i--) {

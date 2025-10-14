@@ -1,4 +1,5 @@
-import type { UIMessage, UIMessagePart } from "ai";
+import type { UIMessagePart } from "ai";
+import { formatDistanceToNow } from "date-fns";
 import { BrainIcon, ChevronRight, Loader2, RotateCcw, SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
@@ -6,11 +7,21 @@ import { Streamdown } from "streamdown";
 import { cn } from "@hypr/ui/lib/utils";
 
 import type { ToolPartType, Tools } from "../../chat/tools";
+import type { HyprUIMessage } from "../../chat/types";
+import { hasRenderableContent } from "./shared";
 
 type Part = UIMessagePart<{}, Tools>;
 
-export function ChatBodyMessage({ message, handleReload }: { message: UIMessage; handleReload?: () => void }) {
+export function ChatBodyMessage({ message, handleReload }: { message: HyprUIMessage; handleReload?: () => void }) {
   const isUser = message.role === "user";
+
+  const shouldShowTimestamp = message.metadata?.createdAt
+    ? (Date.now() - message.metadata.createdAt) >= 60000
+    : false;
+
+  if (!hasRenderableContent(message)) {
+    return null;
+  }
 
   return (
     <div
@@ -19,29 +30,36 @@ export function ChatBodyMessage({ message, handleReload }: { message: UIMessage;
         isUser ? "justify-end" : "justify-start",
       ])}
     >
-      <div
-        className={cn([
-          "max-w-[80%] rounded-2xl px-4 py-2",
-          isUser ? "bg-blue-100 text-gray-800" : "bg-gray-100 text-gray-800",
-          !isUser && "relative group",
-        ])}
-      >
-        {message.parts.map((part, i) => <Part key={i} part={part as Part} />)}
-        {!isUser && handleReload && (
-          <button
-            onClick={handleReload}
-            className={cn([
-              "absolute -top-1 -right-1",
-              "opacity-0 group-hover:opacity-100",
-              "transition-opacity",
-              "p-1 rounded-full",
-              "bg-gray-200 hover:bg-gray-300",
-              "text-gray-600 hover:text-gray-800",
-            ])}
-            aria-label="Reload message"
-          >
-            <RotateCcw className="w-3 h-3" />
-          </button>
+      <div className="flex flex-col max-w-[80%]">
+        <div
+          className={cn([
+            "rounded-2xl px-4 py-2",
+            isUser ? "bg-blue-100 text-gray-800" : "bg-gray-100 text-gray-800",
+            !isUser && "relative group",
+          ])}
+        >
+          {message.parts.map((part, i) => <Part key={i} part={part as Part} />)}
+          {!isUser && handleReload && (
+            <button
+              onClick={handleReload}
+              className={cn([
+                "absolute -top-1 -right-1",
+                "opacity-0 group-hover:opacity-100",
+                "transition-opacity",
+                "p-1 rounded-full",
+                "bg-gray-200 hover:bg-gray-300",
+                "text-gray-600 hover:text-gray-800",
+              ])}
+              aria-label="Reload message"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        {shouldShowTimestamp && message.metadata?.createdAt && (
+          <div className="text-xs text-gray-400 mt-1 px-2">
+            {formatDistanceToNow(message.metadata.createdAt, { addSuffix: true })}
+          </div>
         )}
       </div>
     </div>
@@ -67,20 +85,18 @@ function Part({ part }: { part: Part }) {
 }
 
 function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
-  const firstSentence = part.text.split(/[.!?]\s/)[0] + ".";
-  const cleanTitle = firstSentence
-    .replace(/^"([^"]*)"/, "$1")
-    .replace(/\*\*/g, "")
-    .replace(/`/g, "")
-    .replace(/^#+\s*/gm, "")
+  const cleaned = part.text
+    .replace(/[\n`*#"]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 
   const streaming = part.state !== "done";
+  const title = streaming ? cleaned.slice(-150) : cleaned;
 
   return (
     <Disclosure
       icon={<BrainIcon className="w-3 h-3" />}
-      title={cleanTitle}
+      title={title}
       disabled={streaming}
     >
       <div className="text-sm text-gray-500 whitespace-pre-wrap">

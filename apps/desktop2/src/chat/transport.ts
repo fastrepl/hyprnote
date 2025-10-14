@@ -1,21 +1,21 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import type { ChatRequestOptions, ChatTransport, UIMessage, UIMessageChunk } from "ai";
-import { convertToModelMessages, stepCountIs, streamText } from "ai";
+import type { ChatRequestOptions, ChatTransport, UIMessageChunk } from "ai";
+import { convertToModelMessages, smoothStream, stepCountIs, streamText } from "ai";
 
 import { searchSessionsTool } from "./tools";
+import type { HyprUIMessage } from "./types";
 
 const provider = createOpenAICompatible({
   name: "openrouter",
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: "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",
 });
 
-export class CustomChatTransport implements ChatTransport<UIMessage> {
+export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   async sendMessages(
     options:
       & {
         chatId: string;
-        messages: UIMessage[];
+        messages: HyprUIMessage[];
         abortSignal: AbortSignal | undefined;
       }
       & { trigger: "submit-message" | "regenerate-message"; messageId: string | undefined }
@@ -27,15 +27,21 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     const result = streamText({
       model,
       messages: convertToModelMessages(options.messages),
-
+      experimental_transform: smoothStream({ chunking: "word" }),
       tools,
       stopWhen: stepCountIs(5),
       abortSignal: options.abortSignal,
     });
 
     return result.toUIMessageStream({
+      originalMessages: options.messages,
+      messageMetadata: ({ part }) => {
+        if (part.type === "start") {
+          return { createdAt: Date.now() };
+        }
+      },
       onError: (error) => {
-        console.error("Stream error:", error);
+        console.error(error);
         return error instanceof Error ? error.message : String(error);
       },
     });

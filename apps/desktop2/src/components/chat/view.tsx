@@ -1,6 +1,6 @@
-import type { UIMessage } from "ai";
 import { useCallback, useRef } from "react";
 
+import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
 import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
@@ -48,9 +48,9 @@ export function ChatView() {
   );
 
   const handleSendMessage = useCallback(
-    (content: string, parts: any[], sendMessage: (message: UIMessage) => void) => {
+    (content: string, parts: any[], sendMessage: (message: HyprUIMessage) => void) => {
       const messageId = id();
-      const uiMessage: UIMessage = { id: messageId, role: "user", parts, metadata: {} };
+      const uiMessage: HyprUIMessage = { id: messageId, role: "user", parts, metadata: { createdAt: Date.now() } };
 
       let currentGroupId = groupId;
       if (!currentGroupId) {
@@ -66,7 +66,7 @@ export function ChatView() {
         content,
         role: "user",
         parts,
-        metadata: {},
+        metadata: { createdAt: Date.now() },
       });
 
       sendMessage(uiMessage);

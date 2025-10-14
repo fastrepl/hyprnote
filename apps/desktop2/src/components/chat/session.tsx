@@ -1,8 +1,9 @@
 import { useChat } from "@ai-sdk/react";
-import type { ChatStatus, UIMessage } from "ai";
+import type { ChatStatus } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
 import { CustomChatTransport } from "../../chat/transport";
+import type { HyprUIMessage } from "../../chat/types";
 import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
@@ -11,8 +12,8 @@ interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
   children: (props: {
-    messages: UIMessage[];
-    sendMessage: (message: UIMessage) => void;
+    messages: HyprUIMessage[];
+    sendMessage: (message: HyprUIMessage) => void;
     regenerate: () => void;
     stop: () => void;
     status: ChatStatus;
@@ -52,12 +53,12 @@ export function ChatSession({
     persisted.STORE_ID,
   );
 
-  const initialMessages = useMemo((): UIMessage[] => {
+  const initialMessages = useMemo((): HyprUIMessage[] => {
     if (!store || !chatGroupId) {
       return [];
     }
 
-    const loaded: UIMessage[] = [];
+    const loaded: HyprUIMessage[] = [];
     for (const messageId of messageIds) {
       const row = store.getRow("chat_messages", messageId);
       if (row) {

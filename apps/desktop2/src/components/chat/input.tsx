@@ -69,9 +69,9 @@ export function ChatMessageInput({
     >
       <div
         className={cn([
-          "flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-xl",
+          "flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-md",
           "focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500",
-          chat.mode === "RightPanelOpen" && "rounded-t-none mb-1 mr-1 border-t-0",
+          chat.mode === "RightPanelOpen" && "rounded-t-none border-t-0",
         ])}
       >
         <button className={cn(["text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"])}>

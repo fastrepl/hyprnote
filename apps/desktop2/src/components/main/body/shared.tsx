@@ -23,9 +23,8 @@ export function TabItemBase(
       className={clsx([
         "flex items-center gap-2 cursor-pointer group",
         "min-w-[100px] max-w-[200px] h-full px-2",
-        active
-          ? "bg-background text-foreground rounded-lg border"
-          : "bg-muted/50 hover:bg-muted text-muted-foreground rounded-lg border",
+        "bg-color1 rounded-lg border",
+        active ? "text-black border-black" : "text-color3 border-transparent",
       ])}
     >
       <div className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0">
@@ -42,8 +41,8 @@ export function TabItemBase(
         className={clsx([
           "text-xs flex-shrink-0 transition-opacity",
           active
-            ? "text-muted-foreground hover:text-foreground"
-            : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground",
+            ? "text-color4"
+            : "opacity-0 group-hover:opacity-100 text-color3",
         ])}
       >
         ✕

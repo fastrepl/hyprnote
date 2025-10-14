@@ -16,8 +16,9 @@ function Component() {
   const isChatOpen = chat.mode === "RightPanelOpen";
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full overflow-hidden p-1 gap-1">
       {leftsidebar.expanded && <LeftSidebar />}
+
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 overflow-hidden flex"
@@ -29,7 +30,7 @@ function Component() {
         {isChatOpen && (
           <>
             <ResizableHandle className="w-0" />
-            <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
+            <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="pl-1">
               <ChatView />
             </ResizablePanel>
           </>

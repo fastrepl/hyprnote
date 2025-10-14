@@ -97,8 +97,7 @@ export function ChatView() {
       <ChatSession key={stableSessionId} sessionId={stableSessionId} chatGroupId={groupId}>
         {({ messages, sendMessage, status, error }) => (
           <>
-            <ErrorDisplay error={error} />
-            <ChatBody messages={messages} />
+            <ChatBody messages={messages} status={status} error={error} />
             <ChatMessageInput
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
               disabled={status !== "ready"}
@@ -106,18 +105,6 @@ export function ChatView() {
           </>
         )}
       </ChatSession>
-    </div>
-  );
-}
-
-function ErrorDisplay({ error }: { error?: Error | null }) {
-  if (!error) {
-    return null;
-  }
-
-  return (
-    <div className="px-4 py-2 bg-red-50 border-b border-red-200">
-      <p className="text-xs text-red-600">{error.message}</p>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { searchSessionsTool } from "./tools";
 const provider = createOpenAICompatible({
   name: "openrouter",
   baseURL: "https://openrouter.ai/api/v1",
+  apiKey: "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",
 });
 
 export class CustomChatTransport implements ChatTransport<UIMessage> {

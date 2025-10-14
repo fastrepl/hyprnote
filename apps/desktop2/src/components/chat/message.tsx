@@ -1,5 +1,5 @@
 import type { UIMessage, UIMessagePart } from "ai";
-import { BrainIcon, ChevronRight, SearchIcon } from "lucide-react";
+import { BrainIcon, ChevronRight, Loader2, SearchIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Streamdown } from "streamdown";
 
@@ -86,48 +86,84 @@ function Tool({ part }: { part: Extract<Part, { type: ToolPartType }> }) {
 }
 
 function ToolSearchSessions({ part }: { part: Extract<Part, { type: "tool-search_sessions" }> }) {
+  const getTitle = () => {
+    if (part.state === "input-streaming") {
+      return "Preparing search...";
+    }
+    if (part.state === "input-available") {
+      return `Searching for: ${part.input.query}`;
+    }
+    if (part.state === "output-available") {
+      return `Searched for: ${part.input.query}`;
+    }
+    if (part.state === "output-error") {
+      return part.input ? `Search failed: ${part.input.query}` : "Search failed";
+    }
+    return "Search";
+  };
+
+  const getChildren = () => {
+    if (part.state === "output-available" && part.output) {
+      return (
+        <pre className="text-xs overflow-auto">
+          {JSON.stringify(part.output, null, 2)}
+        </pre>
+      );
+    }
+    if (part.state === "output-error") {
+      return <div className="text-sm text-red-500">Error: {part.errorText}</div>;
+    }
+
+    return null;
+  };
+
+  const disabled = part.state === "input-streaming" || part.state === "input-available";
+
   return (
-    <div className="text-sm text-gray-500">
-      {part.state === "input-streaming" && <div>Preparing search...</div>}
-      {part.state === "input-available" && <div>Searching for: {part.input.query}</div>}
-      {part.state === "output-available" && (
-        <Disclosure
-          icon={<SearchIcon className="w-3 h-3" />}
-          title={`Searched for: ${part.input.query}`}
-        >
-          {part.output && (
-            <pre className="text-xs overflow-auto bg-gray-50 p-2 rounded">
-              {JSON.stringify(part.output, null, 2)}
-            </pre>
-          )}
-        </Disclosure>
-      )}
-      {part.state === "output-error" && (
-        <div className="text-red-500">
-          Error: {part.errorText}
-          {part.input && <div>Query: {part.input.query}</div>}
-        </div>
-      )}
-    </div>
+    <Disclosure
+      icon={disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : <SearchIcon className="w-3 h-3" />}
+      title={getTitle()}
+      disabled={disabled}
+    >
+      {getChildren()}
+    </Disclosure>
   );
 }
 
-function Disclosure({ icon, title, children }: { icon?: ReactNode; title: ReactNode; children: ReactNode }) {
+function Disclosure(
+  {
+    icon,
+    title,
+    children,
+    disabled,
+  }: {
+    icon: ReactNode;
+    title: ReactNode;
+    children: ReactNode;
+    disabled?: boolean;
+  },
+) {
   return (
     <details
       className={cn([
-        "group cursor-pointer",
-        "px-2 py-1 my-2",
-        "border border-gray-200 rounded-md",
-        "hover:border-gray-300 transition-colors",
+        "group px-2 py-1 my-2 border rounded-md transition-colors",
+        disabled
+          ? ["opacity-50 cursor-not-allowed border-gray-200"]
+          : ["cursor-pointer border-gray-200 hover:border-gray-300"],
       ])}
     >
       <summary
         className={cn([
+          "w-full",
           "text-xs text-gray-500",
           "select-none list-none marker:hidden",
           "flex items-center gap-2",
         ])}
+        onClick={(e) => {
+          if (disabled) {
+            e.preventDefault();
+          }
+        }}
       >
         {icon && <span className="flex-shrink-0">{icon}</span>}
         <span
@@ -140,7 +176,7 @@ function Disclosure({ icon, title, children }: { icon?: ReactNode; title: ReactN
         </span>
         <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform group-open:rotate-90" />
       </summary>
-      <div className="mt-3 pt-3 border-t border-gray-200">
+      <div className="mt-1 pt-2 px-1 border-t border-gray-200">
         {children}
       </div>
     </details>

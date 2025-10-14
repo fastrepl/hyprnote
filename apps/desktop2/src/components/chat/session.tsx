@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
+import type { ChatStatus, UIMessage } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
 import { CustomChatTransport } from "../../chat/transport";
@@ -13,7 +13,7 @@ interface ChatSessionProps {
   children: (props: {
     messages: UIMessage[];
     sendMessage: (message: UIMessage) => void;
-    status: "submitted" | "streaming" | "ready" | "error";
+    status: ChatStatus;
     error?: Error;
   }) => ReactNode;
 }

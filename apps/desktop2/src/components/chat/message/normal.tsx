@@ -2,15 +2,14 @@ import { formatDistanceToNow } from "date-fns";
 import { BrainIcon, RotateCcw } from "lucide-react";
 import { Streamdown } from "streamdown";
 
-import { cn } from "@hypr/ui/lib/utils";
 import type { ToolPartType } from "../../../chat/tools";
 import type { HyprUIMessage } from "../../../chat/types";
 import { hasRenderableContent } from "../shared";
-import { Disclosure } from "./shared";
+import { ActionButton, Disclosure, MessageBubble, MessageContainer } from "./shared";
 import { Tool } from "./tool";
 import type { Part } from "./types";
 
-export function ChatBodyMessage({ message, handleReload }: { message: HyprUIMessage; handleReload?: () => void }) {
+export function NormalMessage({ message, handleReload }: { message: HyprUIMessage; handleReload?: () => void }) {
   const isUser = message.role === "user";
 
   const shouldShowTimestamp = message.metadata?.createdAt
@@ -22,45 +21,29 @@ export function ChatBodyMessage({ message, handleReload }: { message: HyprUIMess
   }
 
   return (
-    <div
-      className={cn([
-        "flex px-4 py-2",
-        isUser ? "justify-end" : "justify-start",
-      ])}
-    >
+    <MessageContainer align={isUser ? "end" : "start"}>
       <div className="flex flex-col max-w-[80%]">
-        <div
-          className={cn([
-            "rounded-2xl px-4 py-2",
-            isUser ? "bg-blue-100 text-gray-800" : "bg-gray-100 text-gray-800",
-            !isUser && "relative group",
-          ])}
+        <MessageBubble
+          variant={isUser ? "user" : "assistant"}
+          withActionButton={!isUser && !!handleReload}
         >
           {message.parts.map((part, i) => <Part key={i} part={part as Part} />)}
           {!isUser && handleReload && (
-            <button
+            <ActionButton
               onClick={handleReload}
-              className={cn([
-                "absolute -top-1 -right-1",
-                "opacity-0 group-hover:opacity-100",
-                "transition-opacity",
-                "p-1 rounded-full",
-                "bg-gray-200 hover:bg-gray-300",
-                "text-gray-600 hover:text-gray-800",
-              ])}
-              aria-label="Reload message"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
+              variant="default"
+              icon={RotateCcw}
+              label="Reload message"
+            />
           )}
-        </div>
+        </MessageBubble>
         {shouldShowTimestamp && message.metadata?.createdAt && (
           <div className="text-xs text-gray-400 mt-1 px-2">
             {formatDistanceToNow(message.metadata.createdAt, { addSuffix: true })}
           </div>
         )}
       </div>
-    </div>
+    </MessageContainer>
   );
 }
 

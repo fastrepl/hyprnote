@@ -1,11 +1,13 @@
 import type { ChatStatus } from "ai";
-import { Loader2, MessageCircle, RotateCcw, X } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
-import { ChatBodyMessage } from "./message";
+import { ErrorMessage } from "./message/error";
+import { LoadingMessage } from "./message/loading";
+import { NormalMessage } from "./message/normal";
 import { hasRenderableContent } from "./shared";
 
 export function ChatBody({
@@ -95,7 +97,7 @@ function ChatBodyNonEmpty({
   return (
     <div className="flex flex-col">
       {messages.map((message, index) => (
-        <ChatBodyMessage
+        <NormalMessage
           key={message.id}
           message={message}
           handleReload={message.role === "assistant" && index === lastAssistantIndex && onReload ? onReload : undefined}
@@ -103,71 +105,6 @@ function ChatBodyNonEmpty({
       ))}
       {showLoadingState && <LoadingMessage onCancelAndRetry={onStop && onReload ? handleCancelAndRetry : undefined} />}
       {showErrorState && <ErrorMessage error={error} onRetry={onReload} />}
-    </div>
-  );
-}
-
-function LoadingMessage({ onCancelAndRetry }: { onCancelAndRetry?: () => void }) {
-  return (
-    <div className="flex px-4 py-2 justify-start">
-      <div
-        className={cn([
-          "max-w-[80%] rounded-2xl px-4 py-2 bg-gray-100 text-gray-800",
-          onCancelAndRetry && "relative group",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-sm">Thinking...</span>
-        </div>
-        {onCancelAndRetry && (
-          <button
-            onClick={onCancelAndRetry}
-            className={cn([
-              "absolute -top-1 -right-1",
-              "opacity-0 group-hover:opacity-100",
-              "transition-opacity",
-              "p-1 rounded-full",
-              "bg-gray-200 hover:bg-gray-300",
-              "text-gray-600 hover:text-gray-800",
-            ])}
-            aria-label="Cancel and retry"
-          >
-            <X className="w-3 h-3" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ErrorMessage({ error, onRetry }: { error: Error; onRetry?: () => void }) {
-  return (
-    <div className="flex px-4 py-2 justify-start">
-      <div
-        className={cn([
-          "max-w-[80%] rounded-2xl px-4 py-2 bg-red-50 text-red-600 border border-red-200",
-          onRetry && "relative group",
-        ])}
-      >
-        <p className="text-sm">{error.message}</p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className={cn([
-              "absolute -top-1 -right-1",
-              "opacity-0 group-hover:opacity-100",
-              "transition-opacity",
-              "p-1 rounded-full",
-              "bg-red-100 hover:bg-red-200",
-              "text-red-600 hover:text-red-800",
-            ])}
-            aria-label="Retry"
-          >
-            <RotateCcw className="w-3 h-3" />
-          </button>
-        )}
-      </div>
     </div>
   );
 }

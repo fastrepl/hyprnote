@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
+import { useToolRegistry } from "../../contexts/tool";
 import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
@@ -26,7 +27,8 @@ export function ChatSession({
   chatGroupId,
   children,
 }: ChatSessionProps) {
-  const transport = useMemo(() => new CustomChatTransport(), []);
+  const registry = useToolRegistry();
+  const transport = useMemo(() => new CustomChatTransport(registry), [registry]);
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
   const { user_id } = internal.UI.useValues(internal.STORE_ID);

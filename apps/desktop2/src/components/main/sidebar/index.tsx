@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
-import { useSearch } from "../../../contexts/search";
+import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";

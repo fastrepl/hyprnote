@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { cn } from "@hypr/ui/lib/utils";
-import { useSearch } from "../../../contexts/search";
+import { useSearch } from "../../../contexts/search/ui";
 
 export function Search() {
   const { query, setQuery, isSearching, isIndexing, onFocus, onBlur } = useSearch();

@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
-import { type SearchResult } from "../../../../contexts/search";
+import { type SearchResult } from "../../../../contexts/search/ui";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";

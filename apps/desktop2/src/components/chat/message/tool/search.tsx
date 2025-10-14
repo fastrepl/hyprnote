@@ -1,5 +1,14 @@
 import { SearchIcon } from "lucide-react";
 
+import { Card, CardContent } from "@hypr/ui/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@hypr/ui/components/ui/carousel";
+import * as persisted from "../../../../store/tinybase/persisted";
 import { Disclosure } from "../shared";
 import { ToolRenderer } from "../types";
 
@@ -36,14 +45,39 @@ const getTitle = (part: Part) => {
   return "Search";
 };
 
-const RenderContent = ({ part }: { part: Part }) => {
+function RenderContent({ part }: { part: Part }) {
   if (part.state === "output-available" && part.output && "results" in part.output) {
     const { results } = part.output;
 
+    if (!results || results.length === 0) {
+      return (
+        <div className="text-xs text-muted-foreground flex justify-center items-center py-2">
+          No results found
+        </div>
+      );
+    }
+
     return (
-      <pre className="text-xs overflow-auto">
-            {JSON.stringify(results, null, 2)}
-      </pre>
+      <div className="relative -mx-1">
+        <Carousel
+          className="w-full"
+          opts={{ align: "start" }}
+        >
+          <CarouselContent className="-ml-2">
+            {results.map((result: any, index: number) => (
+              <CarouselItem key={result.id || index} className="pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
+                <Card className="h-full">
+                  <CardContent className="px-2 py-1 h-12">
+                    <RenderSession sessionId={result.id} />
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="-left-4 h-6 w-6 bg-gray-100 hover:bg-gray-200" />
+          <CarouselNext className="-right-4 h-6 w-6 bg-gray-100 hover:bg-gray-200" />
+        </Carousel>
+      </div>
     );
   }
 
@@ -52,4 +86,13 @@ const RenderContent = ({ part }: { part: Part }) => {
   }
 
   return null;
-};
+}
+
+function RenderSession({ sessionId }: { sessionId: string }) {
+  const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  return (
+    <div className="text-xs line-clamp-1">
+      {session.title || "Untitled"}
+    </div>
+  );
+}

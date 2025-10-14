@@ -2,7 +2,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
-import { type SearchGroup } from "../../../../contexts/search";
+import { type SearchGroup } from "../../../../contexts/search/ui";
 import { SearchResultItem } from "./item";
 
 const ITEMS_PER_PAGE = 3;

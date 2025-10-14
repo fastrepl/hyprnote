@@ -14,6 +14,14 @@ type TimelineItem =
   | { type: "event"; id: string; date: string; data: persisted.Event }
   | { type: "session"; id: string; date: string; data: persisted.Session };
 
+type TimelinePrecision = "time" | "date";
+
+type TimelineBucket = {
+  label: string;
+  precision: TimelinePrecision;
+  items: TimelineItem[];
+};
+
 export function TimelineView() {
   const buckets = useTimelineData();
   const todaySectionRef = useRef<HTMLDivElement>(null);
@@ -74,6 +82,7 @@ export function TimelineView() {
               <TimelineItemComponent
                 key={`${item.type}-${item.id}`}
                 item={item}
+                precision={bucket.precision}
               />
             ))}
           </div>
@@ -102,7 +111,7 @@ function DateHeader({ label }: { label: string }) {
   return <div className="text-base font-bold text-gray-900">{label}</div>;
 }
 
-function TimelineItemComponent({ item }: { item: TimelineItem }) {
+function TimelineItemComponent({ item, precision }: { item: TimelineItem; precision: TimelinePrecision }) {
   const { currentTab, openCurrent, openNew } = useTabs();
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
@@ -189,8 +198,26 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
       </ContextMenuItem>
     </>
   );
+  const displayTime = useMemo(() => {
+    if (!timestamp) {
+      return "";
+    }
 
-  const displayTime = timestamp ? format(new Date(timestamp), "HH:mm") : "";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    const time = format(date, "HH:mm");
+
+    if (precision === "time") {
+      return time;
+    }
+
+    const sameYear = date.getFullYear() === new Date().getFullYear();
+    const dateStr = format(date, sameYear ? "MMM d" : "MMM d, yyyy");
+    return `${dateStr}, ${time}`;
+  }, [timestamp, precision]);
 
   return (
     <InteractiveButton
@@ -211,7 +238,7 @@ function TimelineItemComponent({ item }: { item: TimelineItem }) {
   );
 }
 
-function getBucketInfo(date: Date): { label: string; sortKey: number } {
+function getBucketInfo(date: Date): { label: string; sortKey: number; precision: TimelinePrecision } {
   const now = startOfDay(new Date());
   const targetDay = startOfDay(date);
   const daysDiff = differenceInDays(targetDay, now);
@@ -219,20 +246,20 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
   const absDays = Math.abs(daysDiff);
 
   if (daysDiff === 0) {
-    return { label: "Today", sortKey };
+    return { label: "Today", sortKey, precision: "time" };
   }
 
   if (daysDiff === -1) {
-    return { label: "Yesterday", sortKey };
+    return { label: "Yesterday", sortKey, precision: "time" };
   }
 
   if (daysDiff === 1) {
-    return { label: "Tomorrow", sortKey };
+    return { label: "Tomorrow", sortKey, precision: "time" };
   }
 
   if (daysDiff < 0) {
     if (absDays <= 6) {
-      return { label: `${absDays} days ago`, sortKey };
+      return { label: `${absDays} days ago`, sortKey, precision: "time" };
     }
 
     if (absDays <= 27) {
@@ -243,6 +270,7 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
       return {
         label: weeks === 1 ? "a week ago" : `${weeks} weeks ago`,
         sortKey: weekSortKey,
+        precision: "date",
       };
     }
 
@@ -254,11 +282,12 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
     return {
       label: months === 1 ? "a month ago" : `${months} months ago`,
       sortKey: monthStart.getTime(),
+      precision: "date",
     };
   }
 
   if (absDays <= 6) {
-    return { label: `in ${absDays} days`, sortKey };
+    return { label: `in ${absDays} days`, sortKey, precision: "time" };
   }
 
   if (absDays <= 27) {
@@ -269,6 +298,7 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
     return {
       label: weeks === 1 ? "next week" : `in ${weeks} weeks`,
       sortKey: weekSortKey,
+      precision: "date",
     };
   }
 
@@ -280,6 +310,7 @@ function getBucketInfo(date: Date): { label: string; sortKey: number } {
   return {
     label: months === 1 ? "next month" : `in ${months} months`,
     sortKey: monthStart.getTime(),
+    precision: "date",
   };
 }
 
@@ -331,20 +362,20 @@ function useTimelineData() {
       return new Date(timeB).getTime() - new Date(timeA).getTime();
     });
 
-    const bucketMap = new Map<string, { sortKey: number; items: TimelineItem[] }>();
+    const bucketMap = new Map<string, { sortKey: number; precision: TimelinePrecision; items: TimelineItem[] }>();
 
     items.forEach((item) => {
       const itemDate = new Date(item.date);
       const bucket = getBucketInfo(itemDate);
 
       if (!bucketMap.has(bucket.label)) {
-        bucketMap.set(bucket.label, { sortKey: bucket.sortKey, items: [] });
+        bucketMap.set(bucket.label, { sortKey: bucket.sortKey, precision: bucket.precision, items: [] });
       }
       bucketMap.get(bucket.label)!.items.push(item);
     });
 
     return Array.from(bucketMap.entries())
       .sort((a, b) => b[1].sortKey - a[1].sortKey)
-      .map(([label, value]) => ({ label, items: value.items }));
+      .map(([label, value]) => ({ label, items: value.items, precision: value.precision } satisfies TimelineBucket));
   }, [eventsWithoutSessionTable, sessionsWithMaybeEventTable]);
 }

@@ -21,28 +21,10 @@ import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
-  const { tabs, currentTab, close } = useTabs();
+  const { tabs, currentTab } = useTabs();
   const { chat } = useShell();
 
-  useHotkeys(
-    "mod+w",
-    async (e) => {
-      e.preventDefault();
-
-      if (tabs.length > 1) {
-        // If more than one tab, close the current tab
-        if (currentTab) {
-          close(currentTab);
-        }
-      } else if (tabs.length === 1) {
-        // If only one tab left, close the window
-        const appWindow = getCurrentWebviewWindow();
-        await appWindow.close();
-      }
-    },
-    { enableOnFormTags: true },
-    [tabs, currentTab, close],
-  );
+  useTabCloseHotkey();
 
   if (!currentTab) {
     return null;
@@ -237,3 +219,23 @@ function Content({ tab }: { tab: Tab }) {
 
   return null;
 }
+
+const useTabCloseHotkey = () => {
+  const { tabs, currentTab, close } = useTabs();
+
+  useHotkeys(
+    "mod+w",
+    async (e) => {
+      e.preventDefault();
+
+      if (currentTab && tabs.length > 1) {
+        close(currentTab);
+      } else {
+        const appWindow = getCurrentWebviewWindow();
+        await appWindow.close();
+      }
+    },
+    { enableOnFormTags: true },
+    [tabs, currentTab, close],
+  );
+};

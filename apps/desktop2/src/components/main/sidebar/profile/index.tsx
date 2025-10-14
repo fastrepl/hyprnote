@@ -64,7 +64,7 @@ export function ProfileSection() {
     <div ref={profileRef}>
       <div
         className={clsx(
-          "bg-gray-50 rounded-lg overflow-hidden",
+          "bg-color1 rounded-lg overflow-hidden",
         )}
       >
         <div
@@ -98,12 +98,11 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
     <button
       className={clsx(
         "flex w-full items-center gap-2.5",
-        "border-t border-slate-100",
         "px-4 py-2",
         "text-left",
         "transition-all duration-300",
         "hover:bg-gray-100",
-        isExpanded && "bg-gray-100",
+        isExpanded && "bg-color1 border-t border-slate-100",
       )}
       onClick={onClick}
     >

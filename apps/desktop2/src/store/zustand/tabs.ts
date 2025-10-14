@@ -3,14 +3,23 @@ import { create } from "zustand";
 
 import { TABLES } from "../tinybase/persisted";
 
+type TabHistory = {
+  stack: Tab[];
+  currentIndex: number;
+};
+
 type State = {
   currentTab: Tab | null;
   tabs: Tab[];
+  history: Map<string, TabHistory>;
+  canGoBack: boolean;
+  canGoNext: boolean;
 };
 
 type Actions =
   & TabUpdater
-  & TabStateUpdater;
+  & TabStateUpdater
+  & TabNavigator;
 
 type TabUpdater = {
   setTabs: (tabs: Tab[]) => void;
@@ -26,59 +35,136 @@ type TabStateUpdater = {
   updateSessionTabState: (tab: Tab, state: Extract<Tab, { type: "sessions" }>["state"]) => void;
 };
 
+type TabNavigator = {
+  goBack: () => void;
+  goNext: () => void;
+};
+
 type Store = State & Actions;
+
+const ACTIVE_TAB_SLOT_ID = "active-tab-history";
+
+const getSlotId = (tab: Tab): string => {
+  return tab.active ? ACTIVE_TAB_SLOT_ID : `inactive-${uniqueIdfromTab(tab)}`;
+};
+
+const computeHistoryFlags = (
+  history: Map<string, TabHistory>,
+  currentTab: Tab | null,
+): { canGoBack: boolean; canGoNext: boolean } => {
+  if (!currentTab) {
+    return { canGoBack: false, canGoNext: false };
+  }
+  const slotId = getSlotId(currentTab);
+  const tabHistory = history.get(slotId);
+  if (!tabHistory) {
+    return { canGoBack: false, canGoNext: false };
+  }
+  return {
+    canGoBack: tabHistory.currentIndex > 0,
+    canGoNext: tabHistory.currentIndex < tabHistory.stack.length - 1,
+  };
+};
+
+const pushHistory = (history: Map<string, TabHistory>, tab: Tab): Map<string, TabHistory> => {
+  const newHistory = new Map(history);
+  const slotId = getSlotId(tab);
+  const existing = newHistory.get(slotId);
+
+  if (existing) {
+    const newStack = existing.stack.slice(0, existing.currentIndex + 1);
+    newStack.push(tab);
+    newHistory.set(slotId, { stack: newStack, currentIndex: newStack.length - 1 });
+  } else {
+    newHistory.set(slotId, { stack: [tab], currentIndex: 0 });
+  }
+
+  return newHistory;
+};
+
+const updateHistoryCurrent = (history: Map<string, TabHistory>, tab: Tab): Map<string, TabHistory> => {
+  const newHistory = new Map(history);
+  const slotId = getSlotId(tab);
+  const existing = newHistory.get(slotId);
+
+  if (existing && existing.currentIndex >= 0) {
+    const newStack = [...existing.stack];
+    newStack[existing.currentIndex] = tab;
+    newHistory.set(slotId, { ...existing, stack: newStack });
+  }
+
+  return newHistory;
+};
 
 export const useTabs = create<Store>((set, get, _store) => ({
   currentTab: null,
   tabs: [],
+  history: new Map(),
+  canGoBack: false,
+  canGoNext: false,
   setTabs: (tabs) => {
     const tabsWithDefaults = tabs.map(t => tabSchema.parse(t));
-    set({ tabs: tabsWithDefaults, currentTab: tabsWithDefaults.find((t) => t.active) || null });
+    const currentTab = tabsWithDefaults.find((t) => t.active) || null;
+    const history = new Map<string, TabHistory>();
+
+    tabsWithDefaults.forEach((tab) => {
+      if (tab.active) {
+        history.set(getSlotId(tab), { stack: [tab], currentIndex: 0 });
+      }
+    });
+
+    const flags = computeHistoryFlags(history, currentTab);
+    set({ tabs: tabsWithDefaults, currentTab, history, ...flags });
   },
   openCurrent: (newTab) => {
-    const { tabs } = get();
+    const { tabs, history } = get();
     const tabWithDefaults = tabSchema.parse(newTab);
+    const activeTab = { ...tabWithDefaults, active: true };
     const existingTabIdx = tabs.findIndex((t) => t.active);
 
-    if (existingTabIdx === -1) {
-      const nextTabs = tabs
+    const nextTabs = existingTabIdx === -1
+      ? tabs
         .filter((t) => !isSameTab(t, tabWithDefaults))
         .map((t) => ({ ...t, active: false }))
-        .concat([{ ...tabWithDefaults, active: true }]);
-      set({ tabs: nextTabs, currentTab: tabWithDefaults });
-    } else {
-      const nextTabs = tabs
+        .concat([activeTab])
+      : tabs
         .map((t, idx) =>
           idx === existingTabIdx
-            ? { ...tabWithDefaults, active: true }
+            ? activeTab
             : isSameTab(t, tabWithDefaults)
             ? null
             : { ...t, active: false }
         )
         .filter((t): t is Tab => t !== null);
-      set({ tabs: nextTabs, currentTab: tabWithDefaults });
-    }
+
+    const nextHistory = pushHistory(history, activeTab);
+    const flags = computeHistoryFlags(nextHistory, activeTab);
+    set({ tabs: nextTabs, currentTab: activeTab, history: nextHistory, ...flags });
   },
   openNew: (tab) => {
-    const { tabs } = get();
+    const { tabs, history } = get();
     const tabWithDefaults = tabSchema.parse(tab);
+    const activeTab = { ...tabWithDefaults, active: true };
     const nextTabs = tabs
       .filter((t) => !isSameTab(t, tabWithDefaults))
       .map((t) => ({ ...t, active: false }))
-      .concat([{ ...tabWithDefaults, active: true }]);
-    set({ tabs: nextTabs, currentTab: tabWithDefaults });
+      .concat([activeTab]);
+    const nextHistory = pushHistory(history, activeTab);
+    const flags = computeHistoryFlags(nextHistory, activeTab);
+    set({ tabs: nextTabs, currentTab: activeTab, history: nextHistory, ...flags });
   },
   select: (tab) => {
-    const { tabs } = get();
+    const { tabs, history } = get();
     const nextTabs = tabs.map((t) => ({ ...t, active: isSameTab(t, tab) }));
-    set({ tabs: nextTabs, currentTab: tab });
+    const flags = computeHistoryFlags(history, tab);
+    set({ tabs: nextTabs, currentTab: tab, ...flags });
   },
   close: (tab) => {
-    const { tabs } = get();
+    const { tabs, history } = get();
     const remainingTabs = tabs.filter((t) => !isSameTab(t, tab));
 
     if (remainingTabs.length === 0) {
-      return set({ tabs: [], currentTab: null });
+      return set({ tabs: [], currentTab: null, canGoBack: false, canGoNext: false });
     }
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
@@ -87,14 +173,22 @@ export const useTabs = create<Store>((set, get, _store) => ({
       : remainingTabs.length - 1;
 
     const nextTabs = remainingTabs.map((t, idx) => ({ ...t, active: idx === nextActiveIndex }));
-    set({ tabs: nextTabs, currentTab: nextTabs[nextActiveIndex] });
+    const nextCurrentTab = nextTabs[nextActiveIndex];
+
+    const nextHistory = new Map(history);
+    nextHistory.delete(getSlotId(tab));
+
+    const flags = computeHistoryFlags(nextHistory, nextCurrentTab);
+    set({ tabs: nextTabs, currentTab: nextCurrentTab, history: nextHistory, ...flags });
   },
   reorder: (tabs) => {
+    const { history } = get();
     const currentTab = tabs.find((t) => t.active) || null;
-    set({ tabs, currentTab });
+    const flags = computeHistoryFlags(history, currentTab);
+    set({ tabs, currentTab, ...flags });
   },
   updateSessionTabState: (tab, state) => {
-    const { tabs, currentTab } = get();
+    const { tabs, currentTab, history } = get();
     const nextTabs = tabs.map((t) =>
       isSameTab(t, tab) && t.type === "sessions"
         ? { ...t, state }
@@ -103,10 +197,15 @@ export const useTabs = create<Store>((set, get, _store) => ({
     const nextCurrentTab = currentTab && isSameTab(currentTab, tab) && currentTab.type === "sessions"
       ? { ...currentTab, state }
       : currentTab;
-    set({ tabs: nextTabs, currentTab: nextCurrentTab });
+
+    const nextHistory = nextCurrentTab && isSameTab(nextCurrentTab, tab)
+      ? updateHistoryCurrent(history, nextCurrentTab)
+      : history;
+
+    set({ tabs: nextTabs, currentTab: nextCurrentTab, history: nextHistory });
   },
   updateContactsTabState: (tab, state) => {
-    const { tabs, currentTab } = get();
+    const { tabs, currentTab, history } = get();
     const nextTabs = tabs.map((t) =>
       isSameTab(t, tab) && t.type === "contacts"
         ? { ...t, state }
@@ -116,7 +215,58 @@ export const useTabs = create<Store>((set, get, _store) => ({
     const nextCurrentTab = currentTab && isSameTab(currentTab, tab) && currentTab.type === "contacts"
       ? { ...currentTab, state }
       : currentTab;
-    set({ tabs: nextTabs, currentTab: nextCurrentTab });
+
+    const nextHistory = nextCurrentTab && isSameTab(nextCurrentTab, tab)
+      ? updateHistoryCurrent(history, nextCurrentTab)
+      : history;
+
+    set({ tabs: nextTabs, currentTab: nextCurrentTab, history: nextHistory });
+  },
+  goBack: () => {
+    const { tabs, history, currentTab } = get();
+    if (!currentTab) {
+      return;
+    }
+
+    const slotId = getSlotId(currentTab);
+    const tabHistory = history.get(slotId);
+    if (!tabHistory || tabHistory.currentIndex === 0) {
+      return;
+    }
+
+    const prevIndex = tabHistory.currentIndex - 1;
+    const prevTab = tabHistory.stack[prevIndex];
+
+    const nextTabs = tabs.map((t) => t.active ? prevTab : t);
+
+    const nextHistory = new Map(history);
+    nextHistory.set(slotId, { ...tabHistory, currentIndex: prevIndex });
+
+    const flags = computeHistoryFlags(nextHistory, prevTab);
+    set({ tabs: nextTabs, currentTab: prevTab, history: nextHistory, ...flags });
+  },
+  goNext: () => {
+    const { tabs, history, currentTab } = get();
+    if (!currentTab) {
+      return;
+    }
+
+    const slotId = getSlotId(currentTab);
+    const tabHistory = history.get(slotId);
+    if (!tabHistory || tabHistory.currentIndex >= tabHistory.stack.length - 1) {
+      return;
+    }
+
+    const nextIndex = tabHistory.currentIndex + 1;
+    const nextTab = tabHistory.stack[nextIndex];
+
+    const nextTabs = tabs.map((t) => t.active ? nextTab : t);
+
+    const nextHistory = new Map(history);
+    nextHistory.set(slotId, { ...tabHistory, currentIndex: nextIndex });
+
+    const flags = computeHistoryFlags(nextHistory, nextTab);
+    set({ tabs: nextTabs, currentTab: nextTab, history: nextHistory, ...flags });
   },
 }));
 

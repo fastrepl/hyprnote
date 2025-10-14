@@ -63,7 +63,7 @@ export function Search() {
   return (
     <div
       className={cn([
-        "flex items-center h-full pl-4 transition-all duration-300",
+        "flex items-center h-full transition-all duration-300",
         isFocused ? "w-[240px]" : "w-[200px]",
       ])}
     >

@@ -48,7 +48,7 @@ export const InnerHeader = ({
   return (
     <div className="relative">
       {/* Tab container */}
-      <div className="bg-white">
+      <div className="bg-white px-2">
         <div className="flex">
           <div className="flex border-b border-neutral-100 w-full">
             {/* Raw Note Tab */}

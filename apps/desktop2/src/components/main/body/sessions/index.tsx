@@ -59,16 +59,13 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   return (
     <AudioPlayerProvider url="/assets/audio.wav">
       <div className="flex flex-col h-full gap-1">
-        <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
-          <div className="py-1">
-            <OuterHeader
-              isPlayerVisible={showAudioPlayer}
-              sessionRow={sessionRow}
-              sessionId={sessionId}
-              onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
-            />
-          </div>
-
+        <div className="flex flex-col p-2 rounded-lg border flex-1 overflow-hidden relative gap-1">
+          <OuterHeader
+            isPlayerVisible={showAudioPlayer}
+            sessionRow={sessionRow}
+            sessionId={sessionId}
+            onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
+          />
           <TitleInput
             editable={true}
             value={sessionRow.title ?? ""}
@@ -81,8 +78,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
             shouldShowTab={true}
             shouldShowEnhancedTab={false}
           />
-          <div className="py-1"></div>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-y-auto pt-3 px-2">
             <NoteEditor
               key={editorKey}
               initialContent={sessionRow.raw_md ?? ""}

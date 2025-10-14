@@ -54,7 +54,7 @@ export function TitleInput({
       value={value}
       placeholder={getPlaceholder()}
       className={cn(
-        "w-full transition-opacity duration-200",
+        "w-full transition-opacity duration-200 px-2",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
       )}

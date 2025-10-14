@@ -101,12 +101,12 @@ function Header({ tabs }: { tabs: Tab[] }) {
               "flex items-center justify-center",
               "h-full",
               "mx-1 px-1.5",
-              "border border-gray-400 rounded-lg",
+              "rounded-lg",
               "bg-white hover:bg-gray-50",
               "transition-colors",
             ])}
           >
-            <PlusIcon className="h-4 w-4 text-gray-800 cursor-pointer" />
+            <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
           </button>
         </div>
 

@@ -49,9 +49,9 @@ describe("timeline utils", () => {
     const eventsWithoutSessionTable: EventsWithoutSessionTable = {
       "event-1": {
         title: "Future Event",
-        started_at: "2024-01-20T16:00:00.000Z",
-        ended_at: "2024-01-20T17:00:00.000Z",
-        created_at: "2024-01-10T15:00:00.000Z",
+        started_at: "2024-01-18T12:00:00.000Z",
+        ended_at: "2024-01-18T13:00:00.000Z",
+        created_at: "2024-01-10T12:00:00.000Z",
         calendar_id: "cal-1",
         user_id: "user-1",
       },
@@ -60,9 +60,9 @@ describe("timeline utils", () => {
     const sessionsWithMaybeEventTable: SessionsWithMaybeEventTable = {
       "session-1": {
         title: "Linked Session",
-        created_at: "2024-01-10T16:00:00.000Z",
+        created_at: "2024-01-10T12:00:00.000Z",
         event_id: "event-1",
-        event_started_at: "2024-01-20T16:00:00.000Z",
+        event_started_at: "2024-01-18T12:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
         enhanced_md: "",
@@ -70,7 +70,7 @@ describe("timeline utils", () => {
       },
       "session-2": {
         title: "Standalone Session",
-        created_at: "2024-01-14T15:00:00.000Z",
+        created_at: "2024-01-14T12:00:00.000Z",
         user_id: "user-1",
         raw_md: "",
         enhanced_md: "",
@@ -81,7 +81,7 @@ describe("timeline utils", () => {
     const buckets = buildTimelineBuckets({ eventsWithoutSessionTable, sessionsWithMaybeEventTable });
 
     const futureBucket = buckets[0];
-    expect(futureBucket.label).toBe("in 6 days");
+    expect(futureBucket.label).toBe("in 3 days");
     expect(futureBucket.items).toHaveLength(1);
     expect(futureBucket.items[0]).toMatchObject({ type: "event", id: "event-1" });
 

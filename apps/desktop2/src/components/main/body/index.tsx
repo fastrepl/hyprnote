@@ -1,12 +1,13 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
+import { scrollTabsToEnd, setTabsScrollContainer } from "../../../utils/tabs-scroll";
 import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -43,6 +44,11 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const { select, close, reorder, openNew } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setTabsScrollContainer(tabsScrollContainerRef.current);
+    return () => setTabsScrollContainer(null);
+  }, []);
+
   const handleNewNote = useCallback(() => {
     const sessionId = id();
     const user_id = internalStore?.getValue("user_id");
@@ -55,15 +61,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
       state: { editor: "raw" },
     });
 
-    // Scroll to the end to show the newly created tab
-    setTimeout(() => {
-      if (tabsScrollContainerRef.current) {
-        tabsScrollContainerRef.current.scrollTo({
-          left: tabsScrollContainerRef.current.scrollWidth,
-          behavior: "smooth",
-        });
-      }
-    }, 0);
+    scrollTabsToEnd();
   }, [persistedStore, internalStore, openNew]);
 
   return (

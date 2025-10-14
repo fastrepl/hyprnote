@@ -102,7 +102,7 @@ function ChatGroups({
   return (
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 hover:bg-neutral-100/60 active:bg-neutral-100 px-2 py-1.5 rounded-lg transition-all group focus:outline-none">
+        <button className="flex items-center gap-2 hover:bg-neutral-100/60 active:bg-neutral-100 px-2 py-1.5 rounded-lg transition-all group focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1">
           <MessageCircle className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
           <h3 className="font-medium text-neutral-700 text-xs truncate">
             {currentChatTitle || "Ask Hyprnote anything"}

@@ -37,7 +37,7 @@ export function ChatBody({
       ref={scrollRef}
       className={cn([
         "flex-1 overflow-y-auto",
-        chat.mode === "RightPanelOpen" && "border mt-1 mr-1 rounded-md rounded-b-none",
+        chat.mode === "RightPanelOpen" && "border mt-1 rounded-md rounded-b-none",
       ])}
     >
       {messages.length === 0

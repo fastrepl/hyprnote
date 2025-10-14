@@ -24,8 +24,8 @@ export function ChatHeader({
     <div
       data-tauri-drag-region={chat.mode === "RightPanelOpen"}
       className={cn([
-        "flex items-center justify-between px-3 py-0.5 border-b border-neutral-200",
-        chat.mode === "RightPanelOpen" && "border mt-1 mr-1 rounded-md",
+        "flex items-center justify-between px-1 py-0.5 border-b border-neutral-200 h-9",
+        chat.mode === "RightPanelOpen" && "border rounded-md",
       ])}
     >
       <div className="flex items-center">
@@ -102,7 +102,7 @@ function ChatGroups({
   return (
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 hover:bg-neutral-100/60 active:bg-neutral-100 px-2 py-1.5 rounded-lg transition-all group">
+        <button className="flex items-center gap-2 hover:bg-neutral-100/60 active:bg-neutral-100 px-2 py-1.5 rounded-lg transition-all group focus:outline-none">
           <MessageCircle className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
           <h3 className="font-medium text-neutral-700 text-xs truncate">
             {currentChatTitle || "Ask Hyprnote anything"}

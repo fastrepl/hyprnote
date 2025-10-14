@@ -9,7 +9,6 @@ import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
-import { scrollTabsToEnd, setTabsScrollContainer } from "../../../utils/tabs-scroll";
 import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -49,11 +48,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const setTabRef = useScrollActiveTabIntoView(tabs);
 
-  useEffect(() => {
-    setTabsScrollContainer(tabsScrollContainerRef.current);
-    return () => setTabsScrollContainer(null);
-  }, []);
-
   const handleNewNote = useCallback(() => {
     const sessionId = id();
     const user_id = internalStore?.getValue("user_id");
@@ -65,8 +59,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
       active: true,
       state: { editor: "raw" },
     });
-
-    scrollTabsToEnd();
   }, [persistedStore, internalStore, openNew]);
 
   return (

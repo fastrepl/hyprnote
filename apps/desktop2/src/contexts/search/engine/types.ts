@@ -1,4 +1,21 @@
+import { Orama } from "@orama/orama";
+
 export type SearchEntityType = "session" | "human" | "organization";
+
+export const SEARCH_SCHEMA = {
+  id: "string",
+  type: "enum",
+  title: "string",
+  content: "string",
+  created_at: "number",
+  folder_id: "string",
+  event_id: "string",
+  org_id: "string",
+  is_user: "boolean",
+  metadata: "string",
+} as const;
+
+export type Index = Orama<typeof SEARCH_SCHEMA>;
 
 export interface SearchFilters {
   created_at?: {

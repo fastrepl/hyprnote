@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import { create, Orama, search as oramaSearch } from "@orama/orama";
+import { create, search as oramaSearch } from "@orama/orama";
 import { pluginQPS } from "@orama/plugin-qps";
 
 import { type Store as PersistedStore } from "../../../store/tinybase/persisted";
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
 import { createHumanListener, createOrganizationListener, createSessionListener } from "./listeners";
-import type { SearchEngineContextValue, SearchFilters, SearchHit } from "./types";
+import type { Index, SearchEngineContextValue, SearchFilters, SearchHit } from "./types";
+import { SEARCH_SCHEMA } from "./types";
 import { normalizeQuery } from "./utils";
 
 export type { SearchEntityType, SearchFilters, SearchHit } from "./types";
@@ -16,7 +17,7 @@ const SearchEngineContext = createContext<SearchEngineContextValue | null>(null)
 
 export function SearchEngineProvider({ children, store }: { children: React.ReactNode; store?: PersistedStore }) {
   const [isIndexing, setIsIndexing] = useState(true);
-  const oramaInstance = useRef<Orama<any> | null>(null);
+  const oramaInstance = useRef<Index | null>(null);
   const listenerIds = useRef<string[]>([]);
 
   useEffect(() => {
@@ -29,18 +30,7 @@ export function SearchEngineProvider({ children, store }: { children: React.Reac
 
       try {
         const db = create({
-          schema: {
-            id: "string",
-            type: "enum",
-            title: "string",
-            content: "string",
-            created_at: "number",
-            folder_id: "string",
-            event_id: "string",
-            org_id: "string",
-            is_user: "boolean",
-            metadata: "string",
-          } as const,
+          schema: SEARCH_SCHEMA,
           plugins: [pluginQPS()],
         });
 
@@ -110,7 +100,7 @@ export function SearchEngineProvider({ children, store }: { children: React.Reac
           ...(whereClause && { where: whereClause }),
         });
 
-        return searchResults.hits as unknown as SearchHit[];
+        return searchResults.hits as SearchHit[];
       } catch (error) {
         console.error("Search failed:", error);
         return [];

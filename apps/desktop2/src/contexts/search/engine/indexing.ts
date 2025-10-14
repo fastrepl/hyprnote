@@ -1,9 +1,10 @@
-import { insert, Orama } from "@orama/orama";
+import { insert } from "@orama/orama";
 
 import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
+import type { Index } from "./types";
 import { collectCells, toBoolean, toNumber, toString, toTrimmedString } from "./utils";
 
-export function indexSessions(db: Orama<any>, persistedStore: any): void {
+export function indexSessions(db: Index, persistedStore: any): void {
   const fields = [
     "user_id",
     "created_at",
@@ -34,7 +35,7 @@ export function indexSessions(db: Orama<any>, persistedStore: any): void {
   });
 }
 
-export function indexHumans(db: Orama<any>, persistedStore: any): void {
+export function indexHumans(db: Index, persistedStore: any): void {
   const fields = [
     "name",
     "email",
@@ -67,7 +68,7 @@ export function indexHumans(db: Orama<any>, persistedStore: any): void {
   });
 }
 
-export function indexOrganizations(db: Orama<any>, persistedStore: any): void {
+export function indexOrganizations(db: Index, persistedStore: any): void {
   const fields = ["name", "created_at"];
 
   persistedStore.forEachRow("organizations", (rowId: string) => {

@@ -1,11 +1,12 @@
-import { Orama, remove, update } from "@orama/orama";
-
+import { remove, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
+
 import { Schemas } from "../../../store/tinybase/persisted";
 import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
+import type { Index } from "./types";
 import { collectCells, toBoolean, toNumber, toString, toTrimmedString } from "./utils";
 
-export function createSessionListener(index: Orama<any>): RowListener<Schemas, "sessions", null, any> {
+export function createSessionListener(index: Index): RowListener<Schemas, "sessions", null, any> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("sessions", rowId);
@@ -45,7 +46,7 @@ export function createSessionListener(index: Orama<any>): RowListener<Schemas, "
   };
 }
 
-export function createHumanListener(index: Orama<any>): RowListener<Schemas, "humans", null, any> {
+export function createHumanListener(index: Index): RowListener<Schemas, "humans", null, any> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("humans", rowId);
@@ -87,7 +88,7 @@ export function createHumanListener(index: Orama<any>): RowListener<Schemas, "hu
   };
 }
 
-export function createOrganizationListener(index: Orama<any>): RowListener<Schemas, "organizations", null, any> {
+export function createOrganizationListener(index: Index): RowListener<Schemas, "organizations", null, any> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("organizations", rowId);

@@ -47,6 +47,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
   const { select, close, reorder, openNew } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
+  const setTabRef = useScrollActiveTabIntoView(tabs);
 
   useEffect(() => {
     setTabsScrollContainer(tabsScrollContainerRef.current);
@@ -134,6 +135,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
               key={uniqueIdfromTab(tab)}
               value={tab}
               as="div"
+              ref={(el) => setTabRef(tab, el)}
               style={{ position: "relative" }}
               className="h-full z-10"
               layoutScroll
@@ -239,3 +241,32 @@ const useTabCloseHotkey = () => {
     [tabs, currentTab, close],
   );
 };
+
+function useScrollActiveTabIntoView(tabs: Tab[]) {
+  const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  useEffect(() => {
+    const activeTab = tabs.find((tab) => tab.active);
+    if (activeTab) {
+      const tabKey = uniqueIdfromTab(activeTab);
+      const tabElement = tabRefsMap.current.get(tabKey);
+      if (tabElement) {
+        tabElement.scrollIntoView({
+          behavior: "smooth",
+          inline: "nearest",
+          block: "nearest",
+        });
+      }
+    }
+  }, [tabs]);
+
+  const setTabRef = useCallback((tab: Tab, el: HTMLDivElement | null) => {
+    if (el) {
+      tabRefsMap.current.set(uniqueIdfromTab(tab), el);
+    } else {
+      tabRefsMap.current.delete(uniqueIdfromTab(tab));
+    }
+  }, []);
+
+  return setTabRef;
+}

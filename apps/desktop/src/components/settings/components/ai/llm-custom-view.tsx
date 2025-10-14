@@ -3,6 +3,9 @@ import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useEffect } from "react";
 
+import { Trans } from "@lingui/react/macro";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
 import {
   Form,
   FormControl,
@@ -13,8 +16,10 @@ import {
   FormMessage,
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
 
@@ -44,6 +49,60 @@ const openrouterModels = [
   "moonshotai/kimi-k2",
   "mistralai/mistral-small-3.2-24b-instruct",
 ];
+
+interface SearchableModelSelectProps {
+  models: string[];
+  value?: string;
+  placeholder: string;
+  onValueChange: (value: string) => void;
+}
+
+function SearchableModelSelect({ models, value, placeholder, onValueChange }: SearchableModelSelectProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-label={value ? `Selected model: ${value}` : placeholder}
+          className="w-full justify-between"
+        >
+          {value || placeholder}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popper-anchor-width)] p-0">
+        <Command>
+          <CommandInput placeholder={`Search ${models.length} models...`} />
+          <CommandEmpty><Trans>No model found.</Trans></CommandEmpty>
+          <CommandGroup className="max-h-64 overflow-auto">
+            {models.map((model) => (
+              <CommandItem
+                key={model}
+                value={model}
+                onSelect={() => {
+                  onValueChange(model);
+                  setOpen(false);
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    value === model ? "opacity-100" : "opacity-0",
+                  )}
+                />
+                {model}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function LLMCustomView({
   customLLMEnabled,
@@ -533,21 +592,12 @@ export function LLMCustomView({
                             Model
                           </FormLabel>
                           <FormControl>
-                            <Select
+                            <SearchableModelSelect
+                              models={openrouterModels}
                               value={field.value}
+                              placeholder="Select OpenRouter model"
                               onValueChange={field.onChange}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select OpenRouter model" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {openrouterModels.map((model) => (
-                                  <SelectItem key={model} value={model}>
-                                    {model}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -661,21 +711,12 @@ export function LLMCustomView({
                               )
                               : othersModels.data && othersModels.data.length > 0
                               ? (
-                                <Select
+                                <SearchableModelSelect
+                                  models={othersModels.data}
                                   value={field.value}
+                                  placeholder="Select model"
                                   onValueChange={field.onChange}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select model" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {othersModels.data.map((model) => (
-                                      <SelectItem key={model} value={model}>
-                                        {model}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                />
                               )
                               : (
                                 <Input

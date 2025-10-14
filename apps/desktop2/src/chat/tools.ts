@@ -9,7 +9,10 @@ export interface ToolDependencies {
 
 export const toolFactories = {
   search_sessions: (deps: ToolDependencies) => ({
-    description: "Search for sessions (meeting notes) using keywords. Returns relevant sessions with their content.",
+    description: `
+    Search for sessions (meeting notes) using query and filters.
+    Returns relevant sessions with their content.
+    `.trim(),
     parameters: z.object({
       query: z.string().describe("The search query to find relevant sessions"),
       filters: searchFiltersSchema.optional().describe("Optional filters for the search query"),

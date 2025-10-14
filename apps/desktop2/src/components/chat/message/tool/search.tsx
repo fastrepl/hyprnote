@@ -1,4 +1,5 @@
 import { SearchIcon } from "lucide-react";
+import { useCallback } from "react";
 
 import { Card, CardContent } from "@hypr/ui/components/ui/card";
 import {
@@ -9,6 +10,7 @@ import {
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
 import * as persisted from "../../../../store/tinybase/persisted";
+import { useTabs } from "../../../../store/zustand/tabs";
 import { Disclosure } from "../shared";
 import { ToolRenderer } from "../types";
 
@@ -66,8 +68,8 @@ function RenderContent({ part }: { part: Part }) {
           <CarouselContent className="-ml-2">
             {results.map((result: any, index: number) => (
               <CarouselItem key={result.id || index} className="pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
-                <Card className="h-full">
-                  <CardContent className="px-2 py-1 h-12">
+                <Card className="h-full bg-gray-50">
+                  <CardContent className="px-2 py-0.5">
                     <RenderSession sessionId={result.id} />
                   </CardContent>
                 </Card>
@@ -90,9 +92,25 @@ function RenderContent({ part }: { part: Part }) {
 
 function RenderSession({ sessionId }: { sessionId: string }) {
   const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const { openNew } = useTabs();
+
+  const handleClick = useCallback(() => {
+    openNew({
+      type: "sessions",
+      id: sessionId,
+      active: true,
+      state: { editor: "raw" },
+    });
+  }, [openNew, sessionId]);
+
   return (
-    <div className="text-xs line-clamp-1">
-      {session.title || "Untitled"}
+    <div className="text-xs flex flex-col gap-1" onClick={handleClick}>
+      <span className="font-medium truncate">
+        {session.title || "Untitled"}
+      </span>
+      <span className="text-muted-foreground truncate">
+        {session.enhanced_md ?? session.raw_md}
+      </span>
     </div>
   );
 }

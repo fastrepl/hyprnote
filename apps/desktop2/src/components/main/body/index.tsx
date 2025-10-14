@@ -71,7 +71,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
-      {/* Left sidebar toggle - pinned to far left */}
       {!leftsidebar.expanded && (
         <div className="flex items-center justify-center h-full px-3 shrink-0 bg-white z-20">
           <PanelLeftOpenIcon
@@ -81,7 +80,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </div>
       )}
 
-      {/* Navigation arrows - pinned to left */}
       <div className="flex items-center h-full shrink-0">
         <button
           className={cn([
@@ -111,7 +109,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </button>
       </div>
 
-      {/* Scrollable tabs area */}
       <div
         ref={tabsScrollContainerRef}
         data-tauri-drag-region
@@ -158,7 +155,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
         <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
       </button>
 
-      {/* Search - pinned to far right */}
       <Search />
     </div>
   );

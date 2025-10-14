@@ -1,10 +1,11 @@
 import { insert } from "@orama/orama";
 
+import { type Store as PersistedStore } from "../../../store/tinybase/persisted";
 import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";
 
-export function indexSessions(db: Index, persistedStore: any): void {
+export function indexSessions(db: Index, store: PersistedStore): void {
   const fields = [
     "user_id",
     "created_at",
@@ -16,8 +17,8 @@ export function indexSessions(db: Index, persistedStore: any): void {
     "transcript",
   ];
 
-  persistedStore.forEachRow("sessions", (rowId: string) => {
-    const row = collectCells(persistedStore, "sessions", rowId, fields);
+  store.forEachRow("sessions", (rowId: string, _forEachCell) => {
+    const row = collectCells(store, "sessions", rowId, fields);
     const title = toTrimmedString(row.title) || "Untitled";
 
     void insert(db, {
@@ -30,7 +31,7 @@ export function indexSessions(db: Index, persistedStore: any): void {
   });
 }
 
-export function indexHumans(db: Index, persistedStore: any): void {
+export function indexHumans(db: Index, store: PersistedStore): void {
   const fields = [
     "name",
     "email",
@@ -41,8 +42,8 @@ export function indexHumans(db: Index, persistedStore: any): void {
     "created_at",
   ];
 
-  persistedStore.forEachRow("humans", (rowId: string) => {
-    const row = collectCells(persistedStore, "humans", rowId, fields);
+  store.forEachRow("humans", (rowId: string, _forEachCell) => {
+    const row = collectCells(store, "humans", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown";
 
     void insert(db, {
@@ -55,11 +56,11 @@ export function indexHumans(db: Index, persistedStore: any): void {
   });
 }
 
-export function indexOrganizations(db: Index, persistedStore: any): void {
+export function indexOrganizations(db: Index, store: PersistedStore): void {
   const fields = ["name", "created_at"];
 
-  persistedStore.forEachRow("organizations", (rowId: string) => {
-    const row = collectCells(persistedStore, "organizations", rowId, fields);
+  store.forEachRow("organizations", (rowId: string, _forEachCell) => {
+    const row = collectCells(store, "organizations", rowId, fields);
     const title = toTrimmedString(row.name) || "Unknown Organization";
 
     void insert(db, {

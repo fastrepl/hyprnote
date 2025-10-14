@@ -103,6 +103,10 @@ function RenderSession({ sessionId }: { sessionId: string }) {
     });
   }, [openNew, sessionId]);
 
+  if (!session) {
+    return <div className="text-xs text-muted-foreground italic">Session unavailable</div>;
+  }
+
   return (
     <div className="text-xs flex flex-col gap-1" onClick={handleClick}>
       <span className="font-medium truncate">

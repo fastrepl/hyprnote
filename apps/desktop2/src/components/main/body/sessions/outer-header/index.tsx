@@ -26,14 +26,7 @@ export function OuterHeader(
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {sessionRow.folder_id && (
-          <FolderChain
-            title={sessionRow.title ?? ""}
-            folderId={sessionRow.folder_id}
-          />
-        )}
-      </div>
+      <FolderChain sessionId={sessionId} />
 
       <div className="flex items-center gap-3">
         <SessionEvent

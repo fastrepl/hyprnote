@@ -2,11 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { type Tab, useTabs } from ".";
 import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
-
-const expectTabState = (tab: Tab | null, partial: Partial<Tab>) => {
-  expect(tab).not.toBeNull();
-  expect(tab).toMatchObject(partial);
-};
+import "./test-matchers";
 
 describe("State Updater Actions", () => {
   beforeEach(() => {
@@ -22,9 +18,8 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ id: "s1", state: { editor: "enhanced" } });
-      expectTabState(state.currentTab, { id: "s1", state: { editor: "enhanced" } });
-      const stack = state.history.get("active-tab-history")?.stack;
-      expect(stack && stack[stack.length - 1]).toMatchObject({ state: { editor: "enhanced" } });
+      expect(state).toHaveCurrentTab({ id: "s1", state: { editor: "enhanced" } });
+      expect(state).toHaveLastHistoryEntry({ state: { editor: "enhanced" } });
     });
 
     test("updates only matching tab instances", () => {
@@ -37,8 +32,7 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ id: "s", state: { editor: "enhanced" } });
       expect(state.tabs[1]).toMatchObject({ id: "active", state: { editor: "raw" } });
-      const stack = state.history.get("active-tab-history")?.stack;
-      expect(stack && stack[stack.length - 1]).toMatchObject({ id: "active", state: { editor: "raw" } });
+      expect(state).toHaveLastHistoryEntry({ id: "active", state: { editor: "raw" } });
     });
 
     test("no-op when tab types mismatch", () => {
@@ -68,9 +62,8 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expectTabState(state.currentTab, { state: newContactsState });
-      const stack = state.history.get("active-tab-history")?.stack;
-      expect(stack && stack[stack.length - 1]).toMatchObject({ state: newContactsState });
+      expect(state).toHaveCurrentTab({ state: newContactsState });
+      expect(state).toHaveLastHistoryEntry({ state: newContactsState });
     });
 
     test("only matching contacts tab receives update", () => {
@@ -83,8 +76,7 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
       expect(state.tabs[1]).toMatchObject({ state: { editor: "raw" } });
-      const stack = state.history.get("active-tab-history")?.stack;
-      expect(stack && stack[stack.length - 1]).toMatchObject({ id: "s" });
+      expect(state).toHaveLastHistoryEntry({ id: "s" });
     });
 
     test("updates all contacts tabs sharing identity even when instance differs", () => {

@@ -2,15 +2,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { type Tab, useTabs } from ".";
 import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
+import "./test-matchers";
 
 const isSessionsTab = (tab: Tab): tab is Extract<Tab, { type: "sessions" }> => tab.type === "sessions";
-
-const expectTabs = (tabs: Tab[], expected: Array<Partial<Tab>>) => {
-  expect(tabs).toHaveLength(expected.length);
-  expected.forEach((partial, index) => {
-    expect(tabs[index]).toMatchObject(partial);
-  });
-};
 
 describe("Basic Tab Actions", () => {
   beforeEach(() => {
@@ -27,15 +21,14 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().setTabs(rawTabs);
 
     const state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "b", active: true });
-    expectTabs(state.tabs, [
+    expect(state).toHaveCurrentTab({ id: "b", active: true });
+    expect(state).toMatchTabsInOrder([
       { id: "a", active: false },
       { id: "b", active: true },
       { type: "contacts", active: false },
     ]);
-    expect(state.history.get("active-tab-history")?.stack).toHaveLength(1);
-    expect(state.canGoBack).toBe(false);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveHistoryLength(1);
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 
   test("openCurrent replaces duplicates of same tab and activates new instance", () => {
@@ -48,13 +41,12 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().openCurrent(newActive);
 
     const state = useTabs.getState();
-    expectTabs(state.tabs, [
+    expect(state).toMatchTabsInOrder([
       { id: "other", active: false },
       { id: "target", active: true },
     ]);
-    const stack = state.history.get("active-tab-history")?.stack;
-    expect(stack && stack[stack.length - 1]).toMatchObject({ id: "target" });
-    expect(state.canGoBack).toBe(false);
+    expect(state).toHaveLastHistoryEntry({ id: "target" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 
   test("openCurrent closes existing active tab via lifecycle handlers", () => {
@@ -79,11 +71,11 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().openNew(createSessionTab({ id: "dup", active: false }));
 
     const state = useTabs.getState();
-    expectTabs(state.tabs, [
+    expect(state).toMatchTabsInOrder([
       { id: "dup", active: true },
     ]);
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(state.history.get("active-tab-history")?.stack).toHaveLength(1);
+    expect(state).toHaveHistoryLength(1);
   });
 
   test("select toggles active flag without changing history", () => {
@@ -100,11 +92,11 @@ describe("Basic Tab Actions", () => {
     expect(state.currentTab.id).toBe("b");
     const target = state.tabs.find((t) => isSessionsTab(t) && t.id === "b");
     expect(target?.active).toBe(true);
-    expectTabs(state.tabs, [
+    expect(state).toMatchTabsInOrder([
       { id: "a", active: false },
       { id: "b", active: true },
     ]);
-    expect(state.history.get("active-tab-history")?.stack).toHaveLength(1);
+    expect(state).toHaveHistoryLength(1);
   });
 
   test("close removes tab, picks fallback active, updates history", () => {
@@ -115,13 +107,12 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().close(active);
 
     const state = useTabs.getState();
-    expectTabs(state.tabs, [
+    expect(state).toMatchTabsInOrder([
       { id: "next", active: true },
     ]);
-    expect(state.currentTab).toMatchObject({ id: "next" });
+    expect(state).toHaveCurrentTab({ id: "next" });
     expect(state.history.size).toBe(0);
-    expect(state.canGoBack).toBe(false);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 
   test("close last tab empties store", () => {
@@ -133,8 +124,7 @@ describe("Basic Tab Actions", () => {
     const state = useTabs.getState();
     expect(state.tabs).toHaveLength(0);
     expect(state.currentTab).toBeNull();
-    expect(state.canGoBack).toBe(false);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 
   test("reorder keeps current tab and flags consistent", () => {
@@ -145,11 +135,11 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().reorder([other, { ...active, active: true }]);
 
     const state = useTabs.getState();
-    expectTabs(state.tabs, [
+    expect(state).toMatchTabsInOrder([
       { id: "other", active: false },
       { id: "active", active: true },
     ]);
-    expect(state.currentTab).toMatchObject({ id: "active" });
-    expect(state.canGoBack).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "active" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 });

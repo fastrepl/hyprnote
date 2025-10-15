@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { type Tab, useTabs } from ".";
+import "./test-matchers";
 
 describe("Tab History Navigation", () => {
   beforeEach(() => {
@@ -28,27 +29,23 @@ describe("Tab History Navigation", () => {
 
     useTabs.getState().openCurrent(tab1);
     let state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-1" });
-    expect(state.canGoBack).toBe(false);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-1" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
 
     useTabs.getState().openCurrent(tab2);
     state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-2" });
-    expect(state.canGoBack).toBe(true);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-2" });
+    expect(state).toHaveNavigationState({ canGoBack: true, canGoNext: false });
 
     useTabs.getState().goBack();
     state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-1" });
-    expect(state.canGoBack).toBe(false);
-    expect(state.canGoNext).toBe(true);
+    expect(state).toHaveCurrentTab({ id: "session-1" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: true });
 
     useTabs.getState().goNext();
     state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-2" });
-    expect(state.canGoBack).toBe(true);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-2" });
+    expect(state).toHaveNavigationState({ canGoBack: true, canGoNext: false });
   });
 
   test("truncate forward history: tab1 -> tab2 -> goBack -> tab3", () => {
@@ -76,15 +73,14 @@ describe("Tab History Navigation", () => {
     useTabs.getState().goBack();
 
     let state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-1" });
-    expect(state.canGoNext).toBe(true);
+    expect(state).toHaveCurrentTab({ id: "session-1" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: true });
 
     useTabs.getState().openCurrent(tab3);
 
     state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-3" });
-    expect(state.canGoBack).toBe(true);
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-3" });
+    expect(state).toHaveNavigationState({ canGoBack: true, canGoNext: false });
   });
 
   test("boundary: cannot go back at start", () => {
@@ -99,8 +95,8 @@ describe("Tab History Navigation", () => {
     useTabs.getState().goBack();
 
     const state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-1" });
-    expect(state.canGoBack).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-1" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
   });
 
   test("boundary: cannot go forward at end", () => {
@@ -122,8 +118,8 @@ describe("Tab History Navigation", () => {
     useTabs.getState().goNext();
 
     const state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "session-2" });
-    expect(state.canGoNext).toBe(false);
+    expect(state).toHaveCurrentTab({ id: "session-2" });
+    expect(state).toHaveNavigationState({ canGoBack: true, canGoNext: false });
   });
 
   test("openCurrent with active:false in input should still track history", () => {
@@ -133,7 +129,7 @@ describe("Tab History Navigation", () => {
       active: false,
       state: { editor: "raw" },
     });
-    expect(useTabs.getState().canGoBack).toBe(false);
+    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
 
     useTabs.getState().openCurrent({
       type: "sessions",
@@ -141,11 +137,11 @@ describe("Tab History Navigation", () => {
       active: false,
       state: { editor: "raw" },
     });
-    expect(useTabs.getState().canGoBack).toBe(true);
+    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: true, canGoNext: false });
 
     useTabs.getState().goBack();
     const state = useTabs.getState();
-    expect(state.currentTab).toMatchObject({ id: "tab-1" });
-    expect(state.canGoNext).toBe(true);
+    expect(state).toHaveCurrentTab({ id: "tab-1" });
+    expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: true });
   });
 });

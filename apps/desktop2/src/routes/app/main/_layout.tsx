@@ -21,9 +21,18 @@ function Component() {
 
   useEffect(() => {
     return registerOnClose((tab) => {
-      console.log(tab);
+      if (tab.type === "sessions" && persistedStore) {
+        const row = persistedStore.getRow("sessions", tab.id);
+        if (!row) {
+          return;
+        }
+
+        if (!row.title && !row.raw_md && !row.enhanced_md) {
+          persistedStore.delRow("sessions", tab.id);
+        }
+      }
     });
-  }, [registerOnClose]);
+  }, [persistedStore, registerOnClose]);
 
   return (
     <ShellProvider>

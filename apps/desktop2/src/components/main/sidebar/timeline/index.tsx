@@ -1,15 +1,16 @@
 import { clsx } from "clsx";
 import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
-import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
-import * as persisted from "../../../store/tinybase/persisted";
-import { Tab, useTabs } from "../../../store/zustand/tabs";
-import { id } from "../../../utils";
-import { buildTimelineBuckets } from "../../../utils/timeline";
-import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../utils/timeline";
-import { InteractiveButton } from "../../interactive-button";
+import * as persisted from "../../../../store/tinybase/persisted";
+import { Tab, useTabs } from "../../../../store/zustand/tabs";
+import { id } from "../../../../utils";
+import { buildTimelineBuckets } from "../../../../utils/timeline";
+import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
+import { InteractiveButton } from "../../../interactive-button";
+import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
@@ -356,22 +357,6 @@ function useTimelineData(): TimelineBucket[] {
   );
 }
 
-function useCurrentTime() {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const update = () => setNow(new Date());
-    update();
-    const interval = window.setInterval(update, 60_000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, []);
-
-  return now;
-}
-
 function getItemTimestamp(item: TimelineItem): Date | null {
   const value = item.type === "event" ? item.data.started_at : item.data.created_at;
 
@@ -387,11 +372,3 @@ function getItemTimestamp(item: TimelineItem): Date | null {
 
   return date;
 }
-
-const CurrentTimeIndicator = forwardRef<HTMLDivElement>((_, ref) => (
-  <div ref={ref} className="px-3 py-2" aria-hidden>
-    <div className="h-px bg-red-500" />
-  </div>
-));
-
-CurrentTimeIndicator.displayName = "CurrentTimeIndicator";

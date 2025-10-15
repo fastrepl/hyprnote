@@ -9,6 +9,7 @@ describe("Tab Lifecycle", () => {
       history: new Map(),
       canGoBack: false,
       canGoNext: false,
+      onCloseHandlers: new Set(),
     });
   });
 

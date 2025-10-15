@@ -107,6 +107,7 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
       return set({
         tabs: [] as Tab[],
         currentTab: null,
+        history: new Map(),
         canGoBack: false,
         canGoNext: false,
       } as Partial<T>);

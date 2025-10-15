@@ -17,6 +17,22 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore } = useRouteContext({ from: "__root__" });
+  const { registerOnClose } = useTabs();
+
+  useEffect(() => {
+    return registerOnClose((tab) => {
+      if (tab.type === "sessions" && persistedStore) {
+        const row = persistedStore.getRow("sessions", tab.id);
+        if (!row) {
+          return;
+        }
+
+        if (!row.title && !row.raw_md && !row.enhanced_md) {
+          persistedStore.delRow("sessions", tab.id);
+        }
+      }
+    });
+  }, [persistedStore, registerOnClose]);
 
   return (
     <ShellProvider>

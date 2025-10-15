@@ -1,9 +1,10 @@
+import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStores } from "tinybase/ui-react";
 
 import { cn } from "@hypr/ui/lib/utils";
 import { METRICS, type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED, UI } from "../store/tinybase/persisted";
-import { type SeedDefinition, seeds } from "./seed/index";
+import { SeedDefinition, seeds } from "./seed/index";
 
 declare global {
   interface Window {
@@ -16,7 +17,6 @@ declare global {
 
 export function Devtool() {
   const [open, setOpen] = useState(false);
-  const [lastSeedId, setLastSeedId] = useState<string | null>(null);
   const autoSeedRef = useRef(false);
 
   const stores = useStores();
@@ -43,7 +43,6 @@ export function Devtool() {
     }
     autoSeedRef.current = true;
     seed.run(persistedStore);
-    setLastSeedId(seed.id);
   }, [humansCount, persistedStore]);
 
   useEffect(() => {
@@ -58,7 +57,6 @@ export function Devtool() {
         const target = id ? seeds.find(item => item.id === id) : seeds[0];
         if (target) {
           target.run(persistedStore);
-          setLastSeedId(target.id);
         }
       },
       seeds: seeds.map(({ id, label }) => ({ id, label })),
@@ -81,7 +79,6 @@ export function Devtool() {
         return;
       }
       seed.run(persistedStore);
-      setLastSeedId(seed.id);
     },
     [persistedStore],
   );
@@ -97,7 +94,7 @@ export function Devtool() {
   return (
     <>
       <DevtoolTrigger open={open} onToggle={handleToggle} />
-      <DevtoolDrawer open={open} lastSeedId={lastSeedId} humansCount={humansCount} onSeed={handleSeed} />
+      <DevtoolDrawer open={open} onSeed={handleSeed} />
     </>
   );
 }
@@ -124,12 +121,7 @@ function DevtoolTrigger({ open, onToggle }: {
   );
 }
 
-function DevtoolDrawer({ open, lastSeedId, humansCount, onSeed }: {
-  open: boolean;
-  lastSeedId: string | null;
-  humansCount: number;
-  onSeed: (seed: SeedDefinition) => void;
-}) {
+function DevtoolDrawer({ open, onSeed }: { open: boolean; onSeed: (seed: SeedDefinition) => void }) {
   return (
     <aside
       className={cn([
@@ -149,27 +141,56 @@ function DevtoolDrawer({ open, lastSeedId, humansCount, onSeed }: {
         <div className="flex justify-between items-center text-sm font-semibold">
           <span>Hyprnote Devtool</span>
         </div>
-        <div className="flex flex-col gap-1.5">
-          {seeds.map(seed => (
-            <button
-              key={seed.id}
-              type="button"
-              className={cn([
-                "w-full px-2 py-1.5 rounded-md text-[11px] font-medium cursor-pointer transition-colors",
-                "border border-white/14",
-                lastSeedId === seed.id ? "bg-indigo-500/40" : "bg-white/8",
-              ])}
-              onClick={() => onSeed(seed)}
-            >
-              {seed.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-col gap-1 text-[10px] opacity-80">
-          <span>Rows: {humansCount} humans</span>
-          {lastSeedId && <span>Last: {lastSeedId}</span>}
-        </div>
+        <SeedList onSeed={onSeed} />
+        <NavigationList />
       </div>
     </aside>
+  );
+}
+
+function DevtoolSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <h2 className="text-sm font-semibold">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function NavigationList() {
+  return (
+    <DevtoolSection title="Navigation">
+      <nav className="flex flex-col gap-2 pl-2 text-sm">
+        <Link to="/app/onboarding" className="hover:underline">Onboarding</Link>
+        <Link to="/app/main" className="hover:underline">Main</Link>
+      </nav>
+    </DevtoolSection>
+  );
+}
+
+function SeedList({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
+  return (
+    <DevtoolSection title="Seeds">
+      <div className="flex flex-col gap-1.5">
+        {seeds.map(seed => <SeedButton key={seed.id} seed={seed} onClick={() => onSeed(seed)} />)}
+      </div>
+    </DevtoolSection>
+  );
+}
+
+function SeedButton({ seed, onClick }: { seed: SeedDefinition; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn([
+        "w-full px-2 py-1.5 rounded-md",
+        "text-[11px] font-medium",
+        "border border-white/14",
+        "cursor-pointer transition-colors",
+      ])}
+    >
+      {seed.label}
+    </button>
   );
 }

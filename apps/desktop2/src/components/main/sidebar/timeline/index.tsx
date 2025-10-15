@@ -74,7 +74,8 @@ export function TimelineView() {
           variant="outline"
           onClick={scrollToToday}
           className={clsx([
-            "flex items-center gap-1",
+            "group",
+            "relative",
             "absolute left-1/2 transform -translate-x-1/2",
             "bg-white hover:bg-gray-50",
             "border border-gray-200",
@@ -83,8 +84,17 @@ export function TimelineView() {
             isScrolledPastToday ? "top-2" : "bottom-2",
           ])}
         >
-          <CalendarIcon size={14} />
-          <span className="text-xs">Go to Today</span>
+          <div className="flex flex-row items-center gap-1">
+            <CalendarIcon size={14} />
+            <span className="text-xs">Go to Today</span>
+          </div>
+          <span
+            className={cn([
+              "absolute w-[80%] h-[1px]",
+              "bg-red-400 group-hover:bg-red-500",
+              isScrolledPastToday ? "bottom-1" : "top-1",
+            ])}
+          />
         </Button>
       )}
     </div>

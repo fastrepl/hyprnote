@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { type Tab, useTabs } from "./tabs";
+import { type Tab, useTabs } from ".";
 
 describe("Tab History Navigation", () => {
   beforeEach(() => {

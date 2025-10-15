@@ -14,12 +14,14 @@ type State = {
   history: Map<string, TabHistory>;
   canGoBack: boolean;
   canGoNext: boolean;
+  onCloseHandlers: Set<(tab: Tab) => void>;
 };
 
 type Actions =
   & TabUpdater
   & TabStateUpdater
-  & TabNavigator;
+  & TabNavigator
+  & TabLifecycle;
 
 type TabUpdater = {
   setTabs: (tabs: Tab[]) => void;
@@ -40,12 +42,36 @@ type TabNavigator = {
   goNext: () => void;
 };
 
+type TabLifecycle = {
+  registerOnClose: (handler: (tab: Tab) => void) => () => void;
+};
+
 type Store = State & Actions;
 
 const ACTIVE_TAB_SLOT_ID = "active-tab-history";
 
 const getSlotId = (tab: Tab): string => {
   return tab.active ? ACTIVE_TAB_SLOT_ID : `inactive-${uniqueIdfromTab(tab)}`;
+};
+
+const notifyTabClose = (
+  handlers: Set<(tab: Tab) => void>,
+  tab: Tab,
+): void => {
+  handlers.forEach((handler) => {
+    try {
+      handler(tab);
+    } catch (error) {
+      console.error("tab onClose handler failed", error);
+    }
+  });
+};
+
+const notifyTabsClose = (
+  handlers: Set<(tab: Tab) => void>,
+  tabs: Tab[],
+): void => {
+  tabs.forEach((tab) => notifyTabClose(handlers, tab));
 };
 
 const computeHistoryFlags = (
@@ -102,6 +128,7 @@ export const useTabs = create<Store>((set, get, _store) => ({
   history: new Map(),
   canGoBack: false,
   canGoNext: false,
+  onCloseHandlers: new Set(),
   setTabs: (tabs) => {
     const tabsWithDefaults = tabs.map(t => tabSchema.parse(t));
     const currentTab = tabsWithDefaults.find((t) => t.active) || null;
@@ -117,10 +144,22 @@ export const useTabs = create<Store>((set, get, _store) => ({
     set({ tabs: tabsWithDefaults, currentTab, history, ...flags });
   },
   openCurrent: (newTab) => {
-    const { tabs, history } = get();
+    const { tabs, history, onCloseHandlers } = get();
     const tabWithDefaults = tabSchema.parse(newTab);
     const activeTab = { ...tabWithDefaults, active: true };
     const existingTabIdx = tabs.findIndex((t) => t.active);
+
+    const tabsToClose: Tab[] = [];
+    if (existingTabIdx !== -1) {
+      tabsToClose.push(tabs[existingTabIdx]);
+    }
+    tabs.forEach((tab) => {
+      if (!tab.active && isSameTab(tab, tabWithDefaults)) {
+        tabsToClose.push(tab);
+      }
+    });
+
+    notifyTabsClose(onCloseHandlers, tabsToClose);
 
     const nextTabs = existingTabIdx === -1
       ? tabs
@@ -142,9 +181,11 @@ export const useTabs = create<Store>((set, get, _store) => ({
     set({ tabs: nextTabs, currentTab: activeTab, history: nextHistory, ...flags });
   },
   openNew: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, onCloseHandlers } = get();
     const tabWithDefaults = tabSchema.parse(tab);
     const activeTab = { ...tabWithDefaults, active: true };
+    const tabsToClose = tabs.filter((t) => isSameTab(t, tabWithDefaults));
+    notifyTabsClose(onCloseHandlers, tabsToClose);
     const nextTabs = tabs
       .filter((t) => !isSameTab(t, tabWithDefaults))
       .map((t) => ({ ...t, active: false }))
@@ -160,11 +201,18 @@ export const useTabs = create<Store>((set, get, _store) => ({
     set({ tabs: nextTabs, currentTab: tab, ...flags });
   },
   close: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, onCloseHandlers } = get();
     const remainingTabs = tabs.filter((t) => !isSameTab(t, tab));
 
+    notifyTabClose(onCloseHandlers, tab);
+
     if (remainingTabs.length === 0) {
-      return set({ tabs: [], currentTab: null, canGoBack: false, canGoNext: false });
+      return set({
+        tabs: [],
+        currentTab: null,
+        canGoBack: false,
+        canGoNext: false,
+      });
     }
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
@@ -179,7 +227,12 @@ export const useTabs = create<Store>((set, get, _store) => ({
     nextHistory.delete(getSlotId(tab));
 
     const flags = computeHistoryFlags(nextHistory, nextCurrentTab);
-    set({ tabs: nextTabs, currentTab: nextCurrentTab, history: nextHistory, ...flags });
+    set({
+      tabs: nextTabs,
+      currentTab: nextCurrentTab,
+      history: nextHistory,
+      ...flags,
+    });
   },
   reorder: (tabs) => {
     const { history } = get();
@@ -221,6 +274,18 @@ export const useTabs = create<Store>((set, get, _store) => ({
       : history;
 
     set({ tabs: nextTabs, currentTab: nextCurrentTab, history: nextHistory });
+  },
+  registerOnClose: (handler) => {
+    const { onCloseHandlers } = get();
+    const nextHandlers = new Set(onCloseHandlers);
+    nextHandlers.add(handler);
+    set({ onCloseHandlers: nextHandlers });
+    return () => {
+      const { onCloseHandlers: currentHandlers } = get();
+      const nextHandlers = new Set(currentHandlers);
+      nextHandlers.delete(handler);
+      set({ onCloseHandlers: nextHandlers });
+    };
   },
   goBack: () => {
     const { tabs, history, currentTab } = get();

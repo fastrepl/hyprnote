@@ -17,6 +17,13 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore } = useRouteContext({ from: "__root__" });
+  const { registerOnClose } = useTabs();
+
+  useEffect(() => {
+    return registerOnClose((tab) => {
+      console.log(tab);
+    });
+  }, [registerOnClose]);
 
   return (
     <ShellProvider>

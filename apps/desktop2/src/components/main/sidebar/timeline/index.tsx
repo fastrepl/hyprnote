@@ -1,25 +1,27 @@
 import { clsx } from "clsx";
 import { CalendarIcon } from "lucide-react";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { buildTimelineBuckets } from "../../../../utils/timeline";
 import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
+import { useAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
   const currentTime = useCurrentTime();
+  const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
+
   const {
     containerRef,
-    isTodayVisible,
-    isScrolledPastToday,
-    scrollToToday,
-    hasToday,
-    setCurrentTimeIndicatorRef,
-  } = useTimelineScroll(buckets);
+    isAnchorVisible: isTodayVisible,
+    isScrolledPastAnchor: isScrolledPastToday,
+    scrollToAnchor: scrollToToday,
+    registerAnchor: setCurrentTimeIndicatorRef,
+  } = useAnchor({ isAnchorActive: hasToday, autoScrollOnMount: true });
 
   return (
     <div className="relative h-full">
@@ -71,76 +73,6 @@ export function TimelineView() {
       )}
     </div>
   );
-}
-
-function useTimelineScroll(buckets: TimelineBucket[]) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isTodayVisible, setIsTodayVisible] = useState(true);
-  const [isScrolledPastToday, setIsScrolledPastToday] = useState(false);
-  const [indicatorNode, setIndicatorNode] = useState<HTMLDivElement | null>(null);
-
-  const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
-
-  const setCurrentTimeIndicatorRef = useCallback((node: HTMLDivElement | null) => {
-    setIndicatorNode(prevNode => (prevNode === node ? prevNode : node));
-  }, []);
-
-  const scrollToToday = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || !indicatorNode) {
-      return;
-    }
-
-    const containerRect = container.getBoundingClientRect();
-    const indicatorRect = indicatorNode.getBoundingClientRect();
-    const indicatorCenter = indicatorRect.top - containerRect.top + container.scrollTop + (indicatorRect.height / 2);
-    const targetScrollTop = Math.max(indicatorCenter - (container.clientHeight / 2), 0);
-    container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
-  }, [indicatorNode]);
-
-  useEffect(() => {
-    if (!hasToday) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      scrollToToday();
-    });
-  }, [hasToday, scrollToToday]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-
-    if (!container || !indicatorNode) {
-      setIsTodayVisible(true);
-      setIsScrolledPastToday(false);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const containerRect = container.getBoundingClientRect();
-        const indicatorRect = indicatorNode.getBoundingClientRect();
-
-        setIsTodayVisible(entry.isIntersecting);
-        setIsScrolledPastToday(indicatorRect.top < containerRect.top);
-      },
-      { root: container, threshold: 0.1 },
-    );
-
-    observer.observe(indicatorNode);
-
-    return () => observer.disconnect();
-  }, [indicatorNode]);
-
-  return {
-    containerRef,
-    isTodayVisible,
-    isScrolledPastToday,
-    scrollToToday,
-    hasToday,
-    setCurrentTimeIndicatorRef,
-  };
 }
 
 function DateHeader({ label }: { label: string }) {

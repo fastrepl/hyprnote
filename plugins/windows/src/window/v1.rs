@@ -3,6 +3,8 @@ use crate::WindowImpl;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, PartialEq, Eq, Hash)]
 #[serde(tag = "type", content = "value")]
 pub enum AppWindow {
+    #[serde(rename = "onboarding")]
+    Onboarding,
     #[serde(rename = "main")]
     Main,
     #[serde(rename = "settings")]
@@ -16,6 +18,7 @@ pub enum AppWindow {
 impl std::fmt::Display for AppWindow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Onboarding => write!(f, "onboarding"),
             Self::Main => write!(f, "main"),
             Self::Settings => write!(f, "settings"),
             Self::Auth => write!(f, "auth"),
@@ -29,6 +32,7 @@ impl std::str::FromStr for AppWindow {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "onboarding" => return Ok(Self::Onboarding),
             "main" => return Ok(Self::Main),
             "settings" => return Ok(Self::Settings),
             "auth" => return Ok(Self::Auth),
@@ -74,7 +78,8 @@ impl AppWindow {
 impl WindowImpl for AppWindow {
     fn title(&self) -> String {
         match self {
-            Self::Main => "Hyprnote".into(),
+            Self::Onboarding => "Onboarding".into(),
+            Self::Main => "Main".into(),
             Self::Settings => "Settings".into(),
             Self::Auth => "Auth".into(),
             Self::Chat => "Chat".into(),
@@ -88,6 +93,15 @@ impl WindowImpl for AppWindow {
         use tauri::LogicalSize;
 
         let window = match self {
+            Self::Onboarding => {
+                let builder = self
+                    .window_builder(app, "/app/onboarding")
+                    .resizable(false)
+                    .min_inner_size(400.0, 600.0);
+                let window = builder.build()?;
+                window.set_size(LogicalSize::new(400.0, 600.0))?;
+                window
+            }
             Self::Main => {
                 let builder = self
                     .window_builder(app, "/app/main")

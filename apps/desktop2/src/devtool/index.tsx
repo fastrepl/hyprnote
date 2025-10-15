@@ -1,8 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStores } from "tinybase/ui-react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { cn } from "@hypr/ui/lib/utils";
+import { useAutoCloser } from "../hooks/useAutoCloser";
 import { METRICS, type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED, UI } from "../store/tinybase/persisted";
 import { SeedDefinition, seeds } from "./seed/index";
 
@@ -73,6 +75,10 @@ export function Devtool() {
     setOpen(prev => !prev);
   }, []);
 
+  const handleClose = useCallback(() => {
+    setOpen(false);
+  }, []);
+
   const handleSeed = useCallback(
     (seed: SeedDefinition) => {
       if (!persistedStore) {
@@ -94,7 +100,7 @@ export function Devtool() {
   return (
     <>
       <DevtoolTrigger open={open} onToggle={handleToggle} />
-      <DevtoolDrawer open={open} onSeed={handleSeed} />
+      <DevtoolDrawer open={open} onClose={handleClose} onSeed={handleSeed} />
     </>
   );
 }
@@ -112,7 +118,7 @@ function DevtoolTrigger({ open, onToggle }: {
         "bg-[#121214]/90 border border-white/16",
         "text-[#f5f5f5] text-[11px] font-semibold",
         "flex items-center justify-center",
-        "cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
+        "cursor-pointer",
       ])}
       onClick={onToggle}
     >
@@ -121,7 +127,19 @@ function DevtoolTrigger({ open, onToggle }: {
   );
 }
 
-function DevtoolDrawer({ open, onSeed }: { open: boolean; onSeed: (seed: SeedDefinition) => void }) {
+function DevtoolDrawer(
+  {
+    open,
+    onClose,
+    onSeed,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    onSeed: (seed: SeedDefinition) => void;
+  },
+) {
+  const ref = useAutoCloser(onClose, { esc: true, outside: true });
+
   return (
     <aside
       className={cn([
@@ -130,11 +148,11 @@ function DevtoolDrawer({ open, onSeed }: { open: boolean; onSeed: (seed: SeedDef
       ])}
     >
       <div
+        ref={ref}
         className={cn([
           "h-full p-4 flex flex-col gap-4",
           "bg-[#121214]/95 backdrop-blur-xl",
           "border-l border-white/12",
-          "shadow-[-8px_0_32px_rgba(0,0,0,0.35)]",
           "text-[#f5f5f5]",
         ])}
       >
@@ -158,11 +176,21 @@ function DevtoolSection({ title, children }: { title: string; children: React.Re
 }
 
 function NavigationList() {
+  const navigate = useNavigate();
+
+  const handleShowMain = useCallback(() => {
+    windowsCommands.windowShow({ type: "main" });
+  }, [navigate]);
+
+  const handleShowOnboarding = useCallback(() => {
+    windowsCommands.windowShow({ type: "onboarding" });
+  }, [navigate]);
+
   return (
     <DevtoolSection title="Navigation">
-      <nav className="flex flex-col gap-2 pl-2 text-sm">
-        <Link to="/app/onboarding" className="hover:underline">Onboarding</Link>
-        <Link to="/app/main" className="hover:underline">Main</Link>
+      <nav className="flex flex-col gap-2 text-sm">
+        <button onClick={handleShowOnboarding} className="pl-2 text-left hover:underline">Onboarding</button>
+        <button onClick={handleShowMain} className="pl-2 text-left hover:underline">Main</button>
       </nav>
     </DevtoolSection>
   );

@@ -1,15 +1,12 @@
 import { clsx } from "clsx";
-import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import * as persisted from "../../../../store/tinybase/persisted";
-import { Tab, useTabs } from "../../../../store/zustand/tabs";
-import { id } from "../../../../utils";
 import { buildTimelineBuckets } from "../../../../utils/timeline";
 import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
-import { InteractiveButton } from "../../../interactive-button";
+import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
 
 export function TimelineView() {
@@ -148,135 +145,6 @@ function useTimelineScroll(buckets: TimelineBucket[]) {
 
 function DateHeader({ label }: { label: string }) {
   return <div className="text-base font-bold text-gray-900">{label}</div>;
-}
-
-function TimelineItemComponent({ item, precision }: { item: TimelineItem; precision: TimelinePrecision }) {
-  const { currentTab, openCurrent, openNew } = useTabs();
-  const store = persisted.UI.useStore(persisted.STORE_ID);
-
-  const title = item.data.title || "Untitled";
-  const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;
-  const eventId = item.type === "event" ? item.id : (item.data.event_id || undefined);
-
-  const handleClick = () => {
-    if (item.type === "event") {
-      handleEventClick(false);
-    } else {
-      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
-      openCurrent(tab);
-    }
-  };
-
-  const handleCmdClick = () => {
-    if (item.type === "event") {
-      handleEventClick(true);
-    } else {
-      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
-      openNew(tab);
-    }
-  };
-
-  const handleEventClick = (openInNewTab: boolean) => {
-    if (!eventId || !store) {
-      return;
-    }
-
-    const sessions = store.getTable("sessions");
-    let existingSessionId: string | null = null;
-
-    Object.entries(sessions).forEach(([sessionId, session]) => {
-      if (session.event_id === eventId) {
-        existingSessionId = sessionId;
-      }
-    });
-
-    if (existingSessionId) {
-      const tab: Tab = { id: existingSessionId, type: "sessions", active: false, state: { editor: "raw" } };
-      if (openInNewTab) {
-        openNew(tab);
-      } else {
-        openCurrent(tab);
-      }
-    } else {
-      const sessionId = id();
-      store.setRow("sessions", sessionId, {
-        event_id: eventId,
-        title: title,
-        created_at: new Date().toISOString(),
-      });
-      const tab: Tab = { id: sessionId, type: "sessions", active: false, state: { editor: "raw" } };
-      if (openInNewTab) {
-        openNew(tab);
-      } else {
-        openCurrent(tab);
-      }
-    }
-  };
-
-  // TODO: not ideal
-  const active = currentTab?.type === "sessions" && (
-    (item.type === "session" && currentTab.id === item.id)
-    || (item.type === "event" && item.id === eventId && (() => {
-      if (!store) {
-        return false;
-      }
-      const session = store.getRow("sessions", currentTab.id);
-      return session?.event_id === eventId;
-    })())
-  );
-
-  const contextMenu = (
-    <>
-      <ContextMenuItem onClick={() => handleCmdClick()}>
-        <ExternalLink className="w-4 h-4 mr-2" />
-        New Tab
-      </ContextMenuItem>
-      <ContextMenuItem className="text-red-500" onClick={() => console.log("Delete:", item.type, item.id)}>
-        <Trash2 className="w-4 h-4 mr-2 text-red-500" />
-        Delete
-      </ContextMenuItem>
-    </>
-  );
-  const displayTime = useMemo(() => {
-    if (!timestamp) {
-      return "";
-    }
-
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) {
-      return "";
-    }
-
-    const time = date.toLocaleTimeString([], { hour: "numeric", minute: "numeric" });
-
-    if (precision === "time") {
-      return time;
-    }
-
-    const sameYear = date.getFullYear() === new Date().getFullYear();
-    const dateStr = sameYear
-      ? date.toLocaleDateString([], { month: "short", day: "numeric" })
-      : date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
-    return `${dateStr}, ${time}`;
-  }, [timestamp, precision]);
-
-  return (
-    <InteractiveButton
-      onClick={handleClick}
-      onCmdClick={handleCmdClick}
-      contextMenu={contextMenu}
-      className={clsx([
-        "w-full text-left px-3 py-2 rounded-lg",
-        active && "bg-gray-200",
-        !active && "hover:bg-gray-100",
-      ])}
-    >
-      <div className="flex flex-col gap-0.5">
-        <div className="text-sm font-normal truncate">{title}</div>
-        {displayTime && <div className="text-xs text-gray-500">{displayTime}</div>}
-      </div>
-    </InteractiveButton>
-  );
 }
 
 function TodayBucket({

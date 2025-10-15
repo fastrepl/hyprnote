@@ -124,7 +124,7 @@ export const formatRelativeWithDay = (date: string | null | undefined, t?: strin
 
 export const timezone = () => {
   if (typeof window === "undefined") {
-    throw new Error("timezone is only available on browser");
+    return "UTC";
   }
 
   return Intl.DateTimeFormat().resolvedOptions().timeZone;

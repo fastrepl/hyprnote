@@ -1,11 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useStores } from "tinybase/ui-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
 import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../hooks/useAutoCloser";
-import { METRICS, type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED, UI } from "../store/tinybase/persisted";
+import { type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED } from "../store/tinybase/persisted";
 import { SeedDefinition, seeds } from "./seed/index";
 
 declare global {
@@ -19,33 +19,9 @@ declare global {
 
 export function Devtool() {
   const [open, setOpen] = useState(false);
-  const autoSeedRef = useRef(false);
 
   const stores = useStores();
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore | undefined;
-  const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED) || 0;
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) {
-      return;
-    }
-    if (!persistedStore) {
-      return;
-    }
-    if (humansCount > 0) {
-      autoSeedRef.current = false;
-      return;
-    }
-    if (autoSeedRef.current) {
-      return;
-    }
-    const seed = seeds[0];
-    if (!seed) {
-      return;
-    }
-    autoSeedRef.current = true;
-    seed.run(persistedStore);
-  }, [humansCount, persistedStore]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -99,16 +75,13 @@ export function Devtool() {
 
   return (
     <>
-      <DevtoolTrigger open={open} onToggle={handleToggle} />
+      {!open && <DevtoolTrigger onToggle={handleToggle} />}
       <DevtoolDrawer open={open} onClose={handleClose} onSeed={handleSeed} />
     </>
   );
 }
 
-function DevtoolTrigger({ open, onToggle }: {
-  open: boolean;
-  onToggle: () => void;
-}) {
+function DevtoolTrigger({ onToggle }: { onToggle: () => void }) {
   return (
     <button
       type="button"
@@ -122,7 +95,7 @@ function DevtoolTrigger({ open, onToggle }: {
       ])}
       onClick={onToggle}
     >
-      {open ? "×" : "Dev"}
+      Dev
     </button>
   );
 }
@@ -183,7 +156,9 @@ function NavigationList() {
   }, [navigate]);
 
   const handleShowOnboarding = useCallback(() => {
-    windowsCommands.windowShow({ type: "onboarding" });
+    windowsCommands.windowShow({ type: "onboarding" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "onboarding" }, { path: "/app/onboarding", search: {} });
+    });
   }, [navigate]);
 
   return (

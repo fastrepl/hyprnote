@@ -29,6 +29,7 @@
     "deep-link:default",
     "store:default",
     "process:default",
-    "local-stt:default"
+    "local-stt:default",
+    "dialog:default"
   ]
 }

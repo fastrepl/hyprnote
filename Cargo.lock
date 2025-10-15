@@ -4011,6 +4011,7 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
+ "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-listener",
  "tauri-plugin-local-stt",

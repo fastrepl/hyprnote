@@ -38,6 +38,7 @@ pub async fn main() {
 
     builder = builder
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_auth::init())
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_db2::init())

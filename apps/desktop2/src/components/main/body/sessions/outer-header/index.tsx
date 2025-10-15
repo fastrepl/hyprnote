@@ -28,7 +28,7 @@ export function OuterHeader(
     <div className="flex items-center justify-between">
       <FolderChain sessionId={sessionId} />
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <SessionEvent
           sessionRow={sessionRow}
           sessionId={sessionId}
@@ -42,8 +42,10 @@ export function OuterHeader(
           handleClick={onToggleAudioPlayer}
         />
         <ListenButton sessionRow={sessionRow} />
-        <ShareButton sessionRow={sessionRow} />
-        <OthersButton sessionRow={sessionRow} />
+        <div className="flex items-center">
+          <ShareButton sessionRow={sessionRow} />
+          <OthersButton sessionRow={sessionRow} />
+        </div>
       </div>
     </div>
   );

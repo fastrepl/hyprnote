@@ -1,4 +1,4 @@
-import { CircleMinus, CornerDownLeft, Linkedin, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
+import { CircleMinus, CornerDownLeft, LinkedinIcon, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -76,9 +76,10 @@ export function ParticipantsChip({
     <Popover>
       <PopoverTrigger>
         <div
-          className={`flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs ${
-            isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5"
-          }`}
+          className={cn(
+            "flex flex-row items-center gap-1 rounded-md hover:bg-neutral-100 text-xs py-1.5",
+            isVeryNarrow ? "px-1.5" : "px-2",
+          )}
         >
           <Users2Icon size={14} className="flex-shrink-0 text-neutral-500" />
           <span className="truncate text-neutral-500">{getButtonText()}</span>
@@ -238,7 +239,7 @@ function ParticipantItem({
             onClick={(e) => e.stopPropagation()}
             className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"
           >
-            <Linkedin className="size-3.5" />
+            <LinkedinIcon className="size-3.5" />
           </a>
         )}
       </div>

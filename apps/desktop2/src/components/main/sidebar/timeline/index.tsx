@@ -1,8 +1,10 @@
 import { clsx } from "clsx";
 import { CalendarIcon } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
+import type { ReactNode } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { buildTimelineBuckets } from "../../../../utils/timeline";
 import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
@@ -12,7 +14,6 @@ import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
-  const currentTime = useCurrentTime();
   const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
 
   const {
@@ -25,21 +26,31 @@ export function TimelineView() {
 
   return (
     <div className="relative h-full">
-      <div ref={containerRef} className="flex flex-col h-full overflow-y-auto bg-gray-50 rounded-lg">
+      <div
+        ref={containerRef}
+        className={cn([
+          "flex flex-col h-full overflow-y-auto",
+          "bg-gray-50 rounded-lg",
+        ])}
+      >
         {buckets.map((bucket) => {
           const isToday = bucket.label === "Today";
 
           return (
             <div key={bucket.label}>
-              <div className="sticky top-0 z-30 bg-gray-50 px-2 py-1">
-                <DateHeader label={bucket.label} />
+              <div
+                className={cn([
+                  "sticky top-0 z-30",
+                  "bg-gray-50 px-2 py-1",
+                ])}
+              >
+                <div className="text-base font-bold text-gray-900">{bucket.label}</div>
               </div>
               {isToday
                 ? (
                   <TodayBucket
                     items={bucket.items}
                     precision={bucket.precision}
-                    currentTime={currentTime}
                     registerIndicator={setCurrentTimeIndicatorRef}
                   />
                 )
@@ -59,13 +70,18 @@ export function TimelineView() {
 
       {hasToday && !isTodayVisible && (
         <Button
-          onClick={scrollToToday}
           size="sm"
+          variant="outline"
+          onClick={scrollToToday}
           className={clsx([
-            "absolute left-1/2 transform -translate-x-1/2 rounded-full shadow-lg bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 z-40 flex items-center gap-1",
+            "flex items-center gap-1",
+            "absolute left-1/2 transform -translate-x-1/2",
+            "bg-white hover:bg-gray-50",
+            "border border-gray-200",
+            "rounded-full shadow-lg",
+            "text-gray-700 z-40",
             isScrolledPastToday ? "top-2" : "bottom-2",
           ])}
-          variant="outline"
         >
           <CalendarIcon size={14} />
           <span className="text-xs">Go to Today</span>
@@ -75,66 +91,78 @@ export function TimelineView() {
   );
 }
 
-function DateHeader({ label }: { label: string }) {
-  return <div className="text-base font-bold text-gray-900">{label}</div>;
-}
-
 function TodayBucket({
   items,
   precision,
-  currentTime,
   registerIndicator,
 }: {
   items: TimelineItem[];
   precision: TimelinePrecision;
-  currentTime: Date;
   registerIndicator: (node: HTMLDivElement | null) => void;
 }) {
+  const currentTimeMs = useCurrentTime().getTime();
+
   const entries = useMemo(
-    () => items.map((timelineItem) => ({ item: timelineItem, timestamp: getItemTimestamp(timelineItem) })),
+    () =>
+      items.map((timelineItem) => ({
+        item: timelineItem,
+        timestamp: getItemTimestamp(timelineItem),
+      })),
     [items],
   );
 
-  const currentTimeMs = currentTime.getTime();
-
   const indicatorIndex = useMemo(() => {
-    for (let index = 0; index < entries.length; index += 1) {
-      const timestamp = entries[index].timestamp;
-
+    const index = entries.findIndex(({ timestamp }) => {
       if (!timestamp) {
-        return index;
+        return true;
       }
 
-      if (timestamp.getTime() < currentTimeMs) {
-        return index;
-      }
+      return timestamp.getTime() < currentTimeMs;
+    });
+
+    if (index === -1) {
+      return entries.length;
     }
 
-    return entries.length;
+    return index;
   }, [entries, currentTimeMs]);
 
-  if (entries.length === 0) {
-    return (
-      <>
-        <CurrentTimeIndicator ref={registerIndicator} />
-        <div className="px-3 py-4 text-sm text-gray-400 text-center">
-          No items today
-        </div>
-      </>
-    );
-  }
+  const renderedEntries = useMemo(() => {
+    if (entries.length === 0) {
+      return (
+        <>
+          <CurrentTimeIndicator ref={registerIndicator} />
+          <div className="px-3 py-4 text-sm text-gray-400 text-center">
+            No items today
+          </div>
+        </>
+      );
+    }
 
-  return (
-    <>
-      {entries.map((entry, index) => (
-        <Fragment key={`${entry.item.type}-${entry.item.id}`}>
-          {index === indicatorIndex && <CurrentTimeIndicator ref={registerIndicator} />}
-          <TimelineItemComponent item={entry.item} precision={precision} />
-        </Fragment>
-      ))}
-      {indicatorIndex === entries.length && <CurrentTimeIndicator ref={registerIndicator} />}
-    </>
-  );
+    const nodes: ReactNode[] = [];
+
+    entries.forEach((entry, index) => {
+      if (index === indicatorIndex) {
+        nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator" />);
+      }
+
+      nodes.push(
+        <TimelineItemComponent
+          key={`${entry.item.type}-${entry.item.id}`}
+          item={entry.item}
+          precision={precision}
+        />,
+      );
+    });
+
+    if (indicatorIndex === entries.length) {
+      nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator-end" />);
+    }
+
+    return <>{nodes}</>;
+  }, [entries, indicatorIndex, precision, registerIndicator]);
+
+  return renderedEntries;
 }
 
 function useTimelineData(): TimelineBucket[] {

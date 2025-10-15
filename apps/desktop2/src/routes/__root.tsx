@@ -26,6 +26,7 @@ function Component() {
       <Outlet />
       <Suspense>
         <TinybaseInspector />
+        <Devtool />
       </Suspense>
     </AuthProvider>
   );
@@ -68,5 +69,13 @@ const TinybaseInspector = process.env.NODE_ENV === "production"
       default: (
         props: React.ComponentProps<typeof res.Inspector>,
       ) => <res.Inspector {...props} />,
+    }))
+  );
+
+const Devtool = process.env.NODE_ENV === "production"
+  ? () => null
+  : lazy(() =>
+    import("../devtool/index").then(({ Devtool }) => ({
+      default: Devtool,
     }))
   );

@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
-import type { Tables } from "tinybase/with-schemas";
 
-import { id } from "../utils";
+import type { Store as PersistedStore } from "../../store/tinybase/persisted";
 import type {
   Calendar,
   ChatGroup,
@@ -12,14 +11,20 @@ import type {
   mappingSessionParticipant,
   MappingTagSession,
   Organization,
-  Schemas,
   SessionStorage,
   Tag,
   TemplateSection,
   TemplateStorage,
-} from "./tinybase/persisted";
+} from "../../store/tinybase/persisted";
+import { id } from "../../utils";
 
-interface MockConfig {
+export type SeedDefinition = {
+  id: string;
+  label: string;
+  run: (store: PersistedStore) => void;
+};
+
+export interface MockConfig {
   organizations: number;
   humansPerOrg: { min: number; max: number };
   sessionsPerHuman: { min: number; max: number };
@@ -27,9 +32,9 @@ interface MockConfig {
   calendarsPerUser: number;
 }
 
-const USER_ID = "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a";
+export const USER_ID = "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a";
 
-const createOrganization = () => ({
+export const createOrganization = () => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -38,7 +43,7 @@ const createOrganization = () => ({
   } satisfies Organization,
 });
 
-const createHuman = (org_id: string, isUser = false) => {
+export const createHuman = (org_id: string, isUser = false) => {
   const sex = faker.person.sexType();
   const firstName = faker.person.firstName(sex);
   const lastName = faker.person.lastName();
@@ -77,7 +82,7 @@ const createHuman = (org_id: string, isUser = false) => {
   };
 };
 
-const createCalendar = () => {
+export const createCalendar = () => {
   const template = faker.helpers.arrayElement([
     `${faker.commerce.product()} Meeting`,
     `${faker.commerce.product()} Sync`,
@@ -95,7 +100,7 @@ const createCalendar = () => {
   };
 };
 
-const generateTitle = () => {
+export const generateTitle = () => {
   const lengthConfig = faker.helpers.weightedArrayElement([
     { weight: 40, value: { min: 2, max: 4 } },
     { weight: 35, value: { min: 4, max: 6 } },
@@ -108,7 +113,7 @@ const generateTitle = () => {
   return faker.lorem.sentence(wordCount);
 };
 
-const generateEnhancedMarkdown = () => {
+export const generateEnhancedMarkdown = () => {
   const sections: string[] = [];
   const sectionCount = faker.number.int({ min: 3, max: 8 });
 
@@ -129,7 +134,7 @@ const generateEnhancedMarkdown = () => {
   return `# ${mainHeading}\n\n${sections.join("")}`;
 };
 
-const generateTranscript = () => {
+export const generateTranscript = () => {
   const wordCount = faker.number.int({ min: 50, max: 200 });
   const words: Array<{ speaker: string; text: string; start: string; end: string }> = [];
   const speakers = ["Speaker 1", "Speaker 2"];
@@ -154,7 +159,7 @@ const generateTranscript = () => {
   return { words };
 };
 
-const createSession = (eventId?: string, folderId?: string): { id: string; data: SessionStorage } => {
+export const createSession = (eventId?: string, folderId?: string): { id: string; data: SessionStorage } => {
   const title = generateTitle();
   const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
   const enhanced_md = generateEnhancedMarkdown();
@@ -174,7 +179,7 @@ const createSession = (eventId?: string, folderId?: string): { id: string; data:
   };
 };
 
-const createFolder = (parentFolderId?: string) => ({
+export const createFolder = (parentFolderId?: string) => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -184,7 +189,7 @@ const createFolder = (parentFolderId?: string) => ({
   } satisfies Folder,
 });
 
-const createmappingSessionParticipant = (session_id: string, human_id: string) => ({
+export const createmappingSessionParticipant = (session_id: string, human_id: string) => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -194,7 +199,7 @@ const createmappingSessionParticipant = (session_id: string, human_id: string) =
   } satisfies mappingSessionParticipant,
 });
 
-const createTag = () => ({
+export const createTag = () => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -212,7 +217,7 @@ const createTag = () => ({
   } satisfies Tag,
 });
 
-const createMappingTagSession = (tag_id: string, session_id: string) => ({
+export const createMappingTagSession = (tag_id: string, session_id: string) => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -222,7 +227,7 @@ const createMappingTagSession = (tag_id: string, session_id: string) => ({
   } satisfies MappingTagSession,
 });
 
-const createTemplate = (): { id: string; data: TemplateStorage } => {
+export const createTemplate = (): { id: string; data: TemplateStorage } => {
   const sectionCount = faker.number.int({ min: 2, max: 5 });
   const sections: TemplateSection[] = Array.from({ length: sectionCount }, () => ({
     title: faker.lorem.words({ min: 2, max: 4 }),
@@ -241,7 +246,7 @@ const createTemplate = (): { id: string; data: TemplateStorage } => {
   };
 };
 
-const createChatGroup = () => ({
+export const createChatGroup = () => ({
   id: id(),
   data: {
     user_id: USER_ID,
@@ -250,7 +255,7 @@ const createChatGroup = () => ({
   } satisfies ChatGroup,
 });
 
-const createChatMessage = (
+export const createChatMessage = (
   chat_group_id: string,
   role: "user" | "assistant",
 ): { id: string; data: ChatMessageStorage } => ({
@@ -266,7 +271,7 @@ const createChatMessage = (
   },
 });
 
-const createEvent = (calendar_id: string) => {
+export const createEvent = (calendar_id: string) => {
   const timePattern = faker.helpers.weightedArrayElement([
     { weight: 10, value: "past-recent" },
     { weight: 5, value: "past-older" },
@@ -337,7 +342,7 @@ const createEvent = (calendar_id: string) => {
   };
 };
 
-const generateMockData = (config: MockConfig) => {
+export const generateMockData = (config: MockConfig) => {
   const organizations: Record<string, Organization> = {};
   const humans: Record<string, Human> = {};
   const calendars: Record<string, Calendar> = {};
@@ -365,14 +370,12 @@ const generateMockData = (config: MockConfig) => {
 
   const humanIds: string[] = [];
 
-  // Create the current user first (in the first organization)
   if (orgIds.length > 0) {
     const currentUser = createHuman(orgIds[0], true);
     humans[currentUser.id] = currentUser.data;
     humanIds.push(currentUser.id);
   }
 
-  // Create other humans
   orgIds.forEach((orgId) => {
     const humanCount = faker.number.int({
       min: config.humansPerOrg.min,
@@ -458,9 +461,7 @@ const generateMockData = (config: MockConfig) => {
     });
   });
 
-  // Add participants to sessions
   sessionIds.forEach((sessionId) => {
-    // Each session has 1-4 participants
     const participantCount = faker.number.int({ min: 1, max: 4 });
     const selectedHumans = faker.helpers.arrayElements(humanIds, participantCount);
 
@@ -512,49 +513,3 @@ const generateMockData = (config: MockConfig) => {
     chat_messages,
   };
 };
-
-faker.seed(123);
-
-export const V1 = (() => {
-  const data = generateMockData({
-    organizations: 8,
-    humansPerOrg: { min: 5, max: 12 },
-    sessionsPerHuman: { min: 2, max: 6 },
-    eventsPerHuman: { min: 1, max: 5 },
-    calendarsPerUser: 3,
-  }) satisfies Tables<Schemas[0]>;
-
-  const totalEvents = Object.keys(data.events).length;
-  const totalSessions = Object.keys(data.sessions).length;
-
-  const sessionEventIds = new Set(
-    Object.values(data.sessions)
-      .map((s) => s.event_id)
-      .filter((id) => !!id),
-  );
-
-  const eventsWithoutSession = Object.keys(data.events).filter(
-    (eventId) => !sessionEventIds.has(eventId),
-  ).length;
-
-  const sessionsWithoutEvent = Object.values(data.sessions).filter(
-    (s) => !s.event_id,
-  ).length;
-
-  const totalHumans = Object.keys(data.humans).length;
-  const totalOrganizations = Object.keys(data.organizations).length;
-  const totalUsers = Object.values(data.humans).filter((h) => h.is_user).length;
-  const totalParticipantMappings = Object.keys(data.mapping_session_participant).length;
-
-  console.log("=== Seed Data Statistics ===");
-  console.log(`Total Organizations: ${totalOrganizations}`);
-  console.log(`Total Humans: ${totalHumans}`);
-  console.log(`Current User(s): ${totalUsers}`);
-  console.log(`Total Events: ${totalEvents}`);
-  console.log(`Total Sessions: ${totalSessions}`);
-  console.log(`Events without Session: ${eventsWithoutSession}`);
-  console.log(`Sessions without Event: ${sessionsWithoutEvent}`);
-  console.log(`Total Session-Participant Mappings: ${totalParticipantMappings}`);
-
-  return data;
-})();

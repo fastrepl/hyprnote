@@ -9,14 +9,11 @@ import { createManager } from "tinytick";
 import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
 
 import { TaskManager } from "./components/task-manager";
-import { V1 } from "./store/seed";
 import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./store/tinybase/internal";
 import {
-  METRICS,
   type Store as PersistedStore,
   STORE_ID as STORE_ID_PERSISTED,
   StoreComponent as StoreComponentPersisted,
-  UI,
 } from "./store/tinybase/persisted";
 
 import { createOngoingSessionStore2 } from "@hypr/utils/stores";
@@ -38,21 +35,8 @@ function App() {
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
   const internalStore = stores[STORE_ID_INTERNAL] as unknown as InternalStore;
 
-  const humansCount = UI.useMetric(METRICS.totalHumans, STORE_ID_PERSISTED);
-
   if (!persistedStore || !internalStore) {
     return null;
-  }
-
-  if (import.meta.env.DEV) {
-    // @ts-ignore
-    window.__dev = {
-      seed: () => persistedStore.setTables(V1),
-    };
-
-    if (!humansCount) {
-      persistedStore.setTables(V1);
-    }
   }
 
   return (

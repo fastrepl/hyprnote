@@ -11,39 +11,39 @@ describe("State Updater Actions", () => {
 
   describe("updateSessionTabState", () => {
     test("updates matching session tab and current tab state", () => {
-      const tab = createSessionTab({ id: "s1", active: true });
+      const tab = createSessionTab({ active: true });
       useTabs.getState().setTabs([tab]);
 
       useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
 
       const state = useTabs.getState();
-      expect(state.tabs[0]).toMatchObject({ id: "s1", state: { editor: "enhanced" } });
-      expect(state).toHaveCurrentTab({ id: "s1", state: { editor: "enhanced" } });
-      expect(state).toHaveLastHistoryEntry({ state: { editor: "enhanced" } });
+      expect(state.tabs[0]).toMatchObject({ id: tab.id, state: { editor: "enhanced" } });
+      expect(useTabs.getState()).toHaveCurrentTab({ id: tab.id, state: { editor: "enhanced" } });
+      expect(useTabs.getState()).toHaveLastHistoryEntry({ state: { editor: "enhanced" } });
     });
 
     test("updates only matching tab instances", () => {
-      const tab = createSessionTab({ id: "s", active: false });
-      const active = createSessionTab({ id: "active", active: true });
+      const tab = createSessionTab({ active: false });
+      const active = createSessionTab({ active: true });
       useTabs.getState().setTabs([tab, active]);
 
       useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
 
       const state = useTabs.getState();
-      expect(state.tabs[0]).toMatchObject({ id: "s", state: { editor: "enhanced" } });
-      expect(state.tabs[1]).toMatchObject({ id: "active", state: { editor: "raw" } });
-      expect(state).toHaveLastHistoryEntry({ id: "active", state: { editor: "raw" } });
+      expect(state.tabs[0]).toMatchObject({ id: tab.id, state: { editor: "enhanced" } });
+      expect(state.tabs[1]).toMatchObject({ id: active.id, state: { editor: "raw" } });
+      expect(useTabs.getState()).toHaveLastHistoryEntry({ id: active.id, state: { editor: "raw" } });
     });
 
     test("no-op when tab types mismatch", () => {
-      const session = createSessionTab({ id: "s", active: true });
+      const session = createSessionTab({ active: true });
       const contacts = createContactsTab();
       useTabs.getState().setTabs([session, contacts]);
 
       useTabs.getState().updateSessionTabState(contacts as Tab, { editor: "enhanced" } as any);
 
       const state = useTabs.getState();
-      expect(state.tabs[0]).toMatchObject({ id: "s", state: { editor: "raw" } });
+      expect(state.tabs[0]).toMatchObject({ id: session.id, state: { editor: "raw" } });
       expect(state.tabs[1]).toMatchObject({ type: "contacts" });
     });
   });
@@ -62,13 +62,13 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(state).toHaveCurrentTab({ state: newContactsState });
-      expect(state).toHaveLastHistoryEntry({ state: newContactsState });
+      expect(useTabs.getState()).toHaveCurrentTab({ state: newContactsState });
+      expect(useTabs.getState()).toHaveLastHistoryEntry({ state: newContactsState });
     });
 
     test("only matching contacts tab receives update", () => {
       const contacts = createContactsTab({ active: false });
-      const session = createSessionTab({ id: "s", active: true });
+      const session = createSessionTab({ active: true });
       useTabs.getState().setTabs([contacts, session]);
 
       useTabs.getState().updateContactsTabState(contacts, newContactsState);
@@ -76,7 +76,7 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
       expect(state.tabs[1]).toMatchObject({ state: { editor: "raw" } });
-      expect(state).toHaveLastHistoryEntry({ id: "s" });
+      expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session.id });
     });
 
     test("updates all contacts tabs sharing identity even when instance differs", () => {

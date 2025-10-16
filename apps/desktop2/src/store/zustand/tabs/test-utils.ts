@@ -3,9 +3,7 @@ import { type Tab, useTabs } from ".";
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
 
-let tabCounter = 0;
-
-const nextId = (prefix: string) => `${prefix}-${++tabCounter}`;
+const id = () => crypto.randomUUID();
 
 type SessionOverrides = Partial<Omit<SessionTab, "type" | "state">> & {
   state?: Partial<SessionTab["state"]>;
@@ -17,7 +15,7 @@ type ContactsOverrides = Partial<Omit<ContactsTab, "type" | "state">> & {
 
 export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab => ({
   type: "sessions",
-  id: overrides.id ?? nextId("session"),
+  id: overrides.id ?? id(),
   active: overrides.active ?? false,
   state: {
     editor: "raw",
@@ -36,7 +34,6 @@ export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTa
 });
 
 export const resetTabsStore = (): void => {
-  tabCounter = 0;
   useTabs.setState(() => ({
     currentTab: null,
     tabs: [],

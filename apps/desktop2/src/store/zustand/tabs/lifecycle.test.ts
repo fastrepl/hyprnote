@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Tab, useTabs } from ".";
+import { createSessionTab } from "./test-utils";
 
 describe("Tab Lifecycle", () => {
   beforeEach(() => {
@@ -14,12 +15,7 @@ describe("Tab Lifecycle", () => {
   });
 
   test("registerOnClose triggers handler when close removes tab", () => {
-    const tab: Tab = {
-      type: "sessions",
-      id: "session-1",
-      active: true,
-      state: { editor: "raw" },
-    };
+    const tab = createSessionTab({ active: true });
 
     const handler = vi.fn();
     useTabs.getState().openCurrent(tab);
@@ -27,25 +23,15 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().close(tab);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: "session-1", type: "sessions" }));
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab.id, type: "sessions" }));
 
     unregister();
     expect(useTabs.getState().onCloseHandlers.size).toBe(0);
   });
 
   test("registerOnClose triggers handler when openCurrent replaces tab", () => {
-    const tab1: Tab = {
-      type: "sessions",
-      id: "session-1",
-      active: true,
-      state: { editor: "raw" },
-    };
-    const tab2: Tab = {
-      type: "sessions",
-      id: "session-2",
-      active: true,
-      state: { editor: "raw" },
-    };
+    const tab1 = createSessionTab({ active: true });
+    const tab2 = createSessionTab({ active: true });
 
     const handler = vi.fn();
     useTabs.getState().openCurrent(tab1);
@@ -53,22 +39,12 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().openCurrent(tab2);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: "session-1", type: "sessions" }));
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab1.id, type: "sessions" }));
   });
 
   test("registerOnClose handler receives correct tab when multiple tabs close", () => {
-    const tab1: Tab = {
-      type: "sessions",
-      id: "session-1",
-      active: true,
-      state: { editor: "raw" },
-    };
-    const tab2: Tab = {
-      type: "sessions",
-      id: "session-2",
-      active: true,
-      state: { editor: "raw" },
-    };
+    const tab1 = createSessionTab({ active: true });
+    const tab2 = createSessionTab({ active: true });
 
     const closedTabs: Tab[] = [];
     const handler = vi.fn((tab: Tab) => closedTabs.push(tab));
@@ -79,6 +55,6 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().close(tab2);
 
     expect(closedTabs).toHaveLength(1);
-    expect(closedTabs[0]).toMatchObject({ id: "session-2", type: "sessions" });
+    expect(closedTabs[0]).toMatchObject({ id: tab2.id, type: "sessions" });
   });
 });

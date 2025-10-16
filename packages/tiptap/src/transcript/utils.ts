@@ -37,7 +37,7 @@ type SpeakerContent = {
 
 export const wordsToSpeakerChunks = (words: Word2[]): { words: Word2[]; speaker: SpeakerIdentity | null }[] => {
   return words.reduce<{ cur: SpeakerIdentity | null; acc: { words: Word2[]; speaker: SpeakerIdentity | null }[] }>(
-    (state, word, index) => {
+    (state, word, _index) => {
       const isFirst = state.acc.length === 0;
 
       const isSameSpeaker = (!state.cur && !word.speaker)

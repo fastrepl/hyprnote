@@ -1,19 +1,24 @@
 import { StickyNoteIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-import NoteEditor from "@hypr/tiptap/editor";
 import { AudioPlayerProvider } from "../../../../contexts/audio-player";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
 import { FloatingActionButtonn } from "./floating-action";
-import { InnerHeader } from "./inner-header";
+import { NoteInput } from "./note-input";
 import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem = (
-  { tab, handleCloseThis, handleSelectThis, handleCloseOthers, handleCloseAll },
+  {
+    tab,
+    handleCloseThis,
+    handleSelectThis,
+    handleCloseOthers,
+    handleCloseAll,
+  },
 ) => {
   const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
 
@@ -35,23 +40,10 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
-  const editorKey = useMemo(
-    () => `session-${sessionId}-raw`,
-    [sessionId],
-  );
-
   const handleEditTitle = persisted.UI.useSetRowCallback(
     "sessions",
     sessionId,
     (input: string, _store) => ({ ...sessionRow, title: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  const handleEditRawMd = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, raw_md: input }),
     [sessionRow],
     persisted.STORE_ID,
   );
@@ -76,29 +68,9 @@ export function TabContentNote({ tab }: { tab: Tab }) {
           <TitleInput
             editable={true}
             value={sessionRow.title ?? ""}
-            onChange={(e) => handleEditTitle(e.target.value)}
+            onChange={handleEditTitle}
           />
-          <InnerHeader
-            tab={tab}
-            onVisibilityChange={() => {}}
-            isCurrentlyRecording={false}
-            shouldShowTab={true}
-            shouldShowEnhancedTab={false}
-          />
-          <div className="py-1"></div>
-          <div className="flex-1 overflow-auto">
-            <NoteEditor
-              key={editorKey}
-              initialContent={sessionRow.raw_md ?? ""}
-              handleChange={(e) => handleEditRawMd(e)}
-              mentionConfig={{
-                trigger: "@",
-                handleSearch: async () => {
-                  return [];
-                },
-              }}
-            />
-          </div>
+          <NoteInput tab={tab} />
           <FloatingActionButtonn onRegenerate={handleRegenerate} />
         </div>
         {showAudioPlayer && <AudioPlayer />}

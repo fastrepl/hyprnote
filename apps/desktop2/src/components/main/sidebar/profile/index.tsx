@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { Calendar, ChevronUpIcon, FileText, FolderOpen, Settings, Users } from "lucide-react";
+import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
@@ -47,16 +47,10 @@ export function ProfileSection() {
     closeMenu();
   }, [openNew, closeMenu]);
 
-  const handleClickDailyNote = useCallback(() => {
-    openNew({ type: "daily", date: new Date(), active: true });
-    closeMenu();
-  }, [openNew, closeMenu]);
-
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
     { icon: Users, label: "Contacts", onClick: handleClickContacts },
     { icon: Calendar, label: "Calendar", onClick: handleClickCalendar },
-    { icon: FileText, label: "Daily note", onClick: handleClickDailyNote },
     { icon: Settings, label: "Settings", onClick: handleClickSettings },
   ];
 

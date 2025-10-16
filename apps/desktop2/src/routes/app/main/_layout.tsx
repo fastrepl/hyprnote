@@ -16,8 +16,8 @@ export const Route = createFileRoute("/app/main/_layout")({
 });
 
 function Component() {
-  const { persistedStore } = useRouteContext({ from: "__root__" });
-  const { registerOnClose } = useTabs();
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { registerOnClose, registerOnEmpty, currentTab, openNew } = useTabs();
 
   useEffect(() => {
     return registerOnClose((tab) => {
@@ -34,6 +34,21 @@ function Component() {
     });
   }, [persistedStore, registerOnClose]);
 
+  useEffect(() => {
+    const createDefaultSession = () => {
+      const user_id = internalStore?.getValue("user_id");
+      const sessionId = id();
+      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+      openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
+    };
+
+    if (!currentTab) {
+      createDefaultSession();
+    }
+
+    return registerOnEmpty(createDefaultSession);
+  }, [currentTab, persistedStore, internalStore, registerOnEmpty, openNew]);
+
   return (
     <ShellProvider>
       <SearchEngineProvider store={persistedStore}>
@@ -41,7 +56,6 @@ function Component() {
           <ToolRegistryProvider>
             <ToolRegistration />
             <Outlet />
-            <NotSureAboutThis />
           </ToolRegistryProvider>
         </SearchUIProvider>
       </SearchEngineProvider>
@@ -60,23 +74,6 @@ function ToolRegistration() {
       registry.register(key, factory(deps));
     });
   }, [registry, search]);
-
-  return null;
-}
-
-// TOOD
-function NotSureAboutThis() {
-  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { currentTab, openNew } = useTabs();
-
-  useEffect(() => {
-    if (!currentTab) {
-      const user_id = internalStore?.getValue("user_id");
-      const sessionId = id();
-      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-      openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
-    }
-  }, [currentTab]);
 
   return null;
 }

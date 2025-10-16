@@ -4,7 +4,7 @@ import type { LifecycleState } from "./lifecycle";
 import type { NavigationState } from "./navigation";
 import type { Tab, TabHistory } from "./schema";
 import { isSameTab, tabSchema } from "./schema";
-import { computeHistoryFlags, getSlotId, notifyTabClose, notifyTabsClose, pushHistory } from "./utils";
+import { computeHistoryFlags, getSlotId, notifyEmpty, notifyTabClose, notifyTabsClose, pushHistory } from "./utils";
 
 export type BasicState = {
   currentTab: Tab | null;
@@ -100,19 +100,21 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
     set({ tabs: nextTabs, currentTab: tab, ...flags } as Partial<T>);
   },
   close: (tab) => {
-    const { tabs, history, onCloseHandlers } = get();
+    const { tabs, history, onCloseHandlers, onEmptyHandlers } = get();
     const remainingTabs = tabs.filter((t) => !isSameTab(t, tab));
 
     notifyTabClose(onCloseHandlers, tab);
 
     if (remainingTabs.length === 0) {
-      return set({
+      set({
         tabs: [] as Tab[],
         currentTab: null,
         history: new Map(),
         canGoBack: false,
         canGoNext: false,
       } as Partial<T>);
+      notifyEmpty(onEmptyHandlers);
+      return;
     }
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
@@ -162,7 +164,7 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
     } as Partial<T>);
   },
   closeAll: () => {
-    const { tabs, onCloseHandlers } = get();
+    const { tabs, onCloseHandlers, onEmptyHandlers } = get();
     notifyTabsClose(onCloseHandlers, tabs);
     set({
       tabs: [],
@@ -171,5 +173,6 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
       canGoBack: false,
       canGoNext: false,
     } as unknown as Partial<T>);
+    notifyEmpty(onEmptyHandlers);
   },
 });

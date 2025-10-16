@@ -24,10 +24,16 @@ export function TimelineView() {
     anchorNode: todayAnchorNode,
   } = useAnchor();
 
+  const todayBucketLength = useMemo(() => {
+    const b = buckets.find(bucket => bucket.label === "Today");
+    return b?.items.length ?? 0;
+  }, [buckets]);
+
   useAutoScrollToAnchor({
     scrollFn: scrollToToday,
     isVisible: isTodayVisible,
     anchorNode: todayAnchorNode,
+    deps: [todayBucketLength],
   });
 
   return (

@@ -12,7 +12,6 @@ import { id } from "../../../utils";
 import { ChatFloatingButton } from "../../chat";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
-import { TabContentDaily, TabItemDaily } from "./daily";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
@@ -236,17 +235,6 @@ function TabItem(
       />
     );
   }
-  if (tab.type === "daily") {
-    return (
-      <TabItemDaily
-        tab={tab}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-      />
-    );
-  }
 
   if (tab.type === "calendars") {
     return (
@@ -286,9 +274,6 @@ function Content({ tab }: { tab: Tab }) {
   }
   if (tab.type === "humans") {
     return <TabContentHuman tab={tab} />;
-  }
-  if (tab.type === "daily") {
-    return <TabContentDaily tab={tab} />;
   }
 
   if (tab.type === "calendars") {

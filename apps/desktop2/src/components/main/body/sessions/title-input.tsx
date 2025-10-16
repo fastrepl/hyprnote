@@ -1,8 +1,14 @@
 import { cn } from "@hypr/ui/lib/utils";
 
 import * as persisted from "../../../../store/tinybase/persisted";
+import { type Tab } from "../../../../store/zustand/tabs";
 
-export function TitleInput({ sessionId }: { sessionId: string }) {
+export function TitleInput({ tab }: { tab: Tab }) {
+  if (tab.type !== "sessions") {
+    return null;
+  }
+
+  const { id: sessionId, state: { editor } } = tab;
   const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
 
   const handleEditTitle = persisted.UI.useSetPartialRowCallback(
@@ -15,7 +21,7 @@ export function TitleInput({ sessionId }: { sessionId: string }) {
 
   return (
     <input
-      id={`title-input-${sessionId}`}
+      id={`title-input-${sessionId}-${editor}`}
       placeholder="Untitled"
       type="text"
       onChange={(e) => handleEditTitle(e.target.value)}

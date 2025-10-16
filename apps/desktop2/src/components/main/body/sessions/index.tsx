@@ -48,7 +48,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
           <OuterHeader sessionId={tab.id} />
         </div>
 
-        <TitleInput sessionId={tab.id} />
+        <TitleInput tab={tab} />
         <NoteInput tab={tab} />
         <FloatingActionButton editorView={tab.state.editor} />
       </StandardTabWrapper>

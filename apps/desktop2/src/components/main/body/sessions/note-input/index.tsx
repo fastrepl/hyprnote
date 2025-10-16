@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
 
-import { type Word2 } from "@hypr/plugin-listener";
-import NoteEditor from "@hypr/tiptap/editor";
-import TranscriptEditor, { type SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
 import { cn } from "@hypr/ui/lib/utils";
-import { type Tab, useTabs } from "../../../../store/zustand/tabs";
+import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
+import { EnhancedEditor } from "./enhanced";
+import { RawEditor } from "./raw";
+import { TranscriptEditorWrapper } from "./transcript";
 
 type EditorView = "raw" | "enhanced" | "transcript";
 
@@ -52,59 +52,31 @@ export function NoteInput({
     }
   }, [shouldShowTab, tab, updateSessionTabState]);
 
-  const parseTranscript = (value: string): Word2[] | null => {
-    if (!value) {
-      return null;
-    }
-    try {
-      const parsed = JSON.parse(value);
-      return parsed.words ?? null;
-    } catch {
-      return null;
-    }
-  };
-
   const renderEditor = () => {
     switch (currentTab) {
       case "enhanced":
         return (
-          <NoteEditor
-            key={editorKey}
-            initialContent={enhancedValue}
-            handleChange={onEnhancedChange}
-            mentionConfig={{
-              trigger: "@",
-              handleSearch: async () => {
-                return [];
-              },
-            }}
+          <EnhancedEditor
+            editorKey={editorKey}
+            value={enhancedValue}
+            onChange={onEnhancedChange}
           />
         );
       case "transcript":
         return (
-          <TranscriptEditor
-            key={editorKey}
-            initialWords={parseTranscript(transcriptValue)}
-            editable={true}
-            onUpdate={(words) => {
-              onTranscriptChange(JSON.stringify({ words }));
-            }}
-            c={SpeakerSelector}
+          <TranscriptEditorWrapper
+            editorKey={editorKey}
+            value={transcriptValue}
+            onChange={onTranscriptChange}
           />
         );
       case "raw":
       default:
         return (
-          <NoteEditor
-            key={editorKey}
-            initialContent={rawValue}
-            handleChange={onRawChange}
-            mentionConfig={{
-              trigger: "@",
-              handleSearch: async () => {
-                return [];
-              },
-            }}
+          <RawEditor
+            editorKey={editorKey}
+            value={rawValue}
+            onChange={onRawChange}
           />
         );
     }
@@ -173,9 +145,4 @@ export function NoteInput({
       </div>
     </div>
   );
-}
-
-function SpeakerSelector({ speakerLabel, speakerIndex }: SpeakerViewInnerProps) {
-  const displayLabel = speakerLabel || `Speaker ${speakerIndex ?? 0}`;
-  return <span className="font-medium text-neutral-700">{displayLabel}</span>;
 }

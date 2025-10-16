@@ -57,32 +57,19 @@ impl Actor for SessionActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        use tauri_plugin_db::{DatabasePluginExt, UserDatabase};
-
         let session_id = args.session_id.clone();
-        let onboarding_session_id = UserDatabase::onboarding_session_id();
-        let onboarding = session_id == onboarding_session_id;
-        let user_id = args.app.db_user_id().await?.unwrap();
 
-        let config = args.app.db_get_config(&user_id).await?;
-        let record_enabled = config
-            .as_ref()
-            .is_none_or(|c| c.general.save_recordings.unwrap_or(true));
-        let languages = config.as_ref().map_or_else(
-            || vec![hypr_language::ISO639::En.into()],
-            |c| c.general.spoken_languages.clone(),
-        );
         let cancellation_token = CancellationToken::new();
-
-        if let Ok(Some(mut session)) = args.app.db_get_session(&args.session_id).await {
-            session.record_start = Some(chrono::Utc::now());
-            let _ = args.app.db_upsert_session(session).await;
-        }
 
         {
             use tauri_plugin_tray::TrayPluginExt;
             let _ = args.app.set_start_disabled(true);
         }
+
+        // TODO
+        let languages = vec![hypr_language::ISO639::En.into()];
+        let onboarding = false;
+        let record_enabled = false;
 
         let state = SessionState {
             app: args.app,
@@ -221,13 +208,6 @@ impl Actor for SessionActor {
 
         {
             Self::stop_all_actors().await;
-        }
-
-        use tauri_plugin_db::DatabasePluginExt;
-
-        if let Ok(Some(mut session)) = state.app.db_get_session(&state.session_id).await {
-            session.record_end = Some(chrono::Utc::now());
-            let _ = state.app.db_upsert_session(session).await;
         }
 
         {

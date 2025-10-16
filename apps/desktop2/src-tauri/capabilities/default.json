@@ -30,6 +30,7 @@
     "store:default",
     "process:default",
     "local-stt:default",
-    "dialog:default"
+    "dialog:default",
+    "listener:default"
   ]
 }

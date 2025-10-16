@@ -16,10 +16,10 @@ import {
   StoreComponent as StoreComponentPersisted,
 } from "./store/tinybase/persisted";
 
-import { createOngoingSessionStore2 } from "@hypr/utils/stores";
 import { routeTree } from "./routeTree.gen";
+import { createListenerStore } from "./store/zustand/listener";
 
-const ongoingSessionStore = createOngoingSessionStore2();
+const listenerStore = createListenerStore();
 
 const router = createRouter({ routeTree, context: undefined });
 
@@ -45,7 +45,7 @@ function App() {
       context={{
         persistedStore,
         internalStore,
-        ongoingSessionStore,
+        listenerStore,
       }}
     />
   );

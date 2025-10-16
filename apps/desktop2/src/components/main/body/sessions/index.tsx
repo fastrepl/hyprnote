@@ -34,23 +34,16 @@ export const TabItemNote: TabItem = (
   );
 };
 
-export function TabContentNote({ tab }: { tab: Tab }) {
-  if (tab.type !== "sessions") {
-    return null;
-  }
-
+export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   return (
     <AudioPlayer.Provider url="/assets/audio.wav">
-      <StandardTabWrapper
-        afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}
-      >
+      <StandardTabWrapper afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}>
         <div className="mt-0.5 mb-2">
           <OuterHeader sessionId={tab.id} />
         </div>
-
         <TitleInput tab={tab} />
         <NoteInput tab={tab} />
-        <FloatingActionButton editorView={tab.state.editor} />
+        <FloatingActionButton tab={tab} />
       </StandardTabWrapper>
     </AudioPlayer.Provider>
   );

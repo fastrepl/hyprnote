@@ -6,7 +6,7 @@ import { AudioPlayerProvider } from "../../../../contexts/audio-player";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
-import { FloatingRegenerateButton } from "./floating-regenerate-button";
+import { FloatingActionButtonn } from "./floating-action";
 import { InnerHeader } from "./inner-header";
 import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
@@ -95,7 +95,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
               }}
             />
           </div>
-          <FloatingRegenerateButton onRegenerate={handleRegenerate} />
+          <FloatingActionButtonn onRegenerate={handleRegenerate} />
         </div>
         {showAudioPlayer && <AudioPlayer />}
       </div>

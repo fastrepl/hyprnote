@@ -5,13 +5,25 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 
-export function FloatingRegenerateButton({ onRegenerate }: { onRegenerate: (templateId: string | null) => void }) {
+export function FloatingActionButtonn({
+  onRegenerate,
+}: {
+  onRegenerate: (templateId: string | null) => void;
+}) {
+  return (
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+      <RegenerateButton onRegenerate={onRegenerate} />
+    </div>
+  );
+}
+
+function RegenerateButton({ onRegenerate }: { onRegenerate: (templateId: string | null) => void }) {
   const [showTemplates, setShowTemplates] = useState(false);
 
   const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+    <div>
       <div
         className={cn([
           "absolute left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border",

@@ -1,18 +1,14 @@
 use bytes::Bytes;
-use std::collections::HashMap;
 use std::time::Duration;
 
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
-use owhisper_interface::{ControlMessage, MixedMessage, Word2};
+use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
-use crate::{
-    manager::{TranscriptManager, WordsByChannel},
-    SessionEvent,
-};
+use crate::SessionEvent;
 
 // Not too short to support non-realtime pipelines like whisper.cpp
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
@@ -29,15 +25,12 @@ pub enum ListenerMsg {
 #[derive(Clone)]
 pub struct ListenerArgs {
     pub app: tauri::AppHandle,
-    pub session_id: String,
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
-    pub partial_words_by_channel: WordsByChannel,
 }
 
 pub struct ListenerState {
     pub args: ListenerArgs,
-    pub manager: TranscriptManager,
     tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
@@ -67,16 +60,6 @@ impl Actor for ListenerActor {
             tracing::info!("{:?}", r);
         }
 
-        let current_timestamp_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
-
-        let manager = TranscriptManager::builder()
-            .with_manager_offset(current_timestamp_ms)
-            .with_existing_partial_words(args.partial_words_by_channel.clone())
-            .build();
-
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
 
         let state = ListenerState {
@@ -84,7 +67,6 @@ impl Actor for ListenerActor {
             tx,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
-            manager,
         };
 
         Ok(state)
@@ -114,58 +96,7 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(response) => {
-                let diff = state.manager.append(response);
-
-                let partial_words_by_channel: HashMap<usize, Vec<Word2>> = diff
-                    .partial_words
-                    .iter()
-                    .map(|(channel_idx, words)| {
-                        (
-                            *channel_idx,
-                            words
-                                .iter()
-                                .map(|w| Word2::from(w.clone()))
-                                .collect::<Vec<_>>(),
-                        )
-                    })
-                    .collect();
-
-                SessionEvent::PartialWords {
-                    words: partial_words_by_channel,
-                }
-                .emit(&state.args.app)?;
-
-                let final_words_by_channel: HashMap<usize, Vec<Word2>> = diff
-                    .final_words
-                    .iter()
-                    .map(|(channel_idx, words)| {
-                        (
-                            *channel_idx,
-                            words
-                                .iter()
-                                .map(|w| Word2::from(w.clone()))
-                                .collect::<Vec<_>>(),
-                        )
-                    })
-                    .collect();
-
-                update_session(
-                    &state.args.app,
-                    &state.args.session_id,
-                    final_words_by_channel
-                        .clone()
-                        .values()
-                        .flatten()
-                        .cloned()
-                        .collect(),
-                )
-                .await
-                .unwrap();
-
-                SessionEvent::FinalWords {
-                    words: final_words_by_channel,
-                }
-                .emit(&state.args.app)?;
+                SessionEvent::StreamResponse { response }.emit(&state.args.app)?;
             }
 
             ListenerMsg::StreamStartFailed(error) => {
@@ -286,22 +217,4 @@ async fn spawn_rx_task(
     });
 
     Ok((tx, rx_task, shutdown_tx))
-}
-
-async fn update_session<R: tauri::Runtime>(
-    app: &tauri::AppHandle<R>,
-    session_id: impl Into<String>,
-    words: Vec<Word2>,
-) -> Result<Vec<Word2>, crate::Error> {
-    use tauri_plugin_db::DatabasePluginExt;
-
-    let mut session = app
-        .db_get_session(session_id)
-        .await?
-        .ok_or(crate::Error::NoneSession)?;
-
-    session.words.extend(words);
-    app.db_upsert_session(session.clone()).await.unwrap();
-
-    Ok(session.words)
 }

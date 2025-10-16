@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
@@ -15,16 +13,14 @@ common_event_derives! {
         Inactive {},
         #[serde(rename = "running_active")]
         RunningActive {},
-        #[serde(rename = "finalWords")]
-        FinalWords { words: HashMap<usize, Vec<owhisper_interface::Word2>>},
-        #[serde(rename = "partialWords")]
-        PartialWords { words: HashMap<usize, Vec<owhisper_interface::Word2>>},
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
         #[serde(rename = "micMuted")]
         MicMuted { value: bool },
         #[serde(rename = "speakerMuted")]
         SpeakerMuted { value: bool },
+        #[serde(rename = "finalWords")]
+        StreamResponse { response: owhisper_interface::StreamResponse },
     }
 }
 

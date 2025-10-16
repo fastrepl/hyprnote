@@ -198,10 +198,7 @@ impl Actor for SessionActor {
                     Self::start_listener(
                         myself.get_cell(),
                         state,
-                        last_state.map(|s| ListenerArgs {
-                            partial_words_by_channel: s.manager.partial_words_by_channel,
-                            ..s.args
-                        }),
+                        last_state.map(|s| ListenerArgs { ..s.args }),
                     )
                     .await?;
                 } else {
@@ -370,10 +367,8 @@ impl SessionActor {
             ListenerActor,
             listener_args.unwrap_or(ListenerArgs {
                 app: session_state.app.clone(),
-                session_id: session_state.session_id.to_string(),
                 languages: session_state.languages.clone(),
                 onboarding: session_state.onboarding,
-                partial_words_by_channel: Default::default(),
             }),
             supervisor,
         )

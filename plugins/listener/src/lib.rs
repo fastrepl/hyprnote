@@ -7,7 +7,6 @@ mod error;
 mod events;
 mod ext;
 pub mod fsm;
-mod manager;
 
 pub use error::*;
 pub use events::*;

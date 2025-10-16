@@ -44,7 +44,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
       <StandardTabWrapper
         afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}
       >
-        <div className="py-1">
+        <div className="mt-0.5 mb-2">
           <OuterHeader sessionId={tab.id} />
         </div>
 

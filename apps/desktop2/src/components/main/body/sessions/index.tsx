@@ -48,30 +48,6 @@ export function TabContentNote({ tab }: { tab: Tab }) {
     persisted.STORE_ID,
   );
 
-  const handleEditRawMd = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, raw_md: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  const handleEditEnhancedMd = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, enhanced_md: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  const handleEditTranscript = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, transcript: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
   const handleRegenerate = (templateId: string | null) => {
     console.log("Regenerate clicked:", templateId);
   };
@@ -94,19 +70,7 @@ export function TabContentNote({ tab }: { tab: Tab }) {
             value={sessionRow.title ?? ""}
             onChange={handleEditTitle}
           />
-          <NoteInput
-            tab={tab}
-            sessionId={sessionId}
-            rawValue={sessionRow.raw_md ?? ""}
-            enhancedValue={sessionRow.enhanced_md ?? ""}
-            transcriptValue={sessionRow.transcript ?? ""}
-            onRawChange={handleEditRawMd}
-            onEnhancedChange={handleEditEnhancedMd}
-            onTranscriptChange={handleEditTranscript}
-            isCurrentlyRecording={false}
-            shouldShowTab={true}
-            shouldShowEnhancedTab={false}
-          />
+          <NoteInput tab={tab} />
           <FloatingActionButtonn onRegenerate={handleRegenerate} />
         </div>
         {showAudioPlayer && <AudioPlayer />}

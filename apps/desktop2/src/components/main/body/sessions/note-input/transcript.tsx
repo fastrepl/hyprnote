@@ -1,15 +1,23 @@
 import { type Word2 } from "@hypr/plugin-listener";
 import TranscriptEditor, { type SpeakerViewInnerProps } from "@hypr/tiptap/transcript";
 
+import * as persisted from "../../../../../store/tinybase/persisted";
+
 export function TranscriptEditorWrapper({
-  editorKey,
-  value,
-  onChange,
+  sessionId,
 }: {
-  editorKey: string;
-  value: string;
-  onChange: (value: string) => void;
+  sessionId: string;
 }) {
+  const value = persisted.UI.useCell("sessions", sessionId, "transcript", persisted.STORE_ID);
+
+  const handleTranscriptChange = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: Word2[]) => ({ transcript: JSON.stringify(input) }),
+    [],
+    persisted.STORE_ID,
+  );
+
   const parseTranscript = (value: string): Word2[] | null => {
     if (!value) {
       return null;
@@ -24,12 +32,10 @@ export function TranscriptEditorWrapper({
 
   return (
     <TranscriptEditor
-      key={editorKey}
-      initialWords={parseTranscript(value)}
+      key={`session-${sessionId}-transcript`}
+      initialWords={parseTranscript(value ?? "")}
       editable={true}
-      onUpdate={(words) => {
-        onChange(JSON.stringify({ words }));
-      }}
+      onUpdate={handleTranscriptChange}
       c={SpeakerSelector}
     />
   );

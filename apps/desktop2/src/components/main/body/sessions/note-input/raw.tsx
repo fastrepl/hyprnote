@@ -1,19 +1,23 @@
 import NoteEditor from "@hypr/tiptap/editor";
 
-export function RawEditor({
-  editorKey,
-  value,
-  onChange,
-}: {
-  editorKey: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
+import * as persisted from "../../../../../store/tinybase/persisted";
+
+export function RawEditor({ sessionId }: { sessionId: string }) {
+  const value = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
+
+  const handleRawChange = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ raw_md: input }),
+    [],
+    persisted.STORE_ID,
+  );
+
   return (
     <NoteEditor
-      key={editorKey}
-      initialContent={value}
-      handleChange={onChange}
+      key={`session-${sessionId}-raw`}
+      initialContent={value ?? ""}
+      handleChange={handleRawChange}
       mentionConfig={{
         trigger: "@",
         handleSearch: async () => {

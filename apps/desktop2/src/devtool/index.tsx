@@ -7,6 +7,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../hooks/useAutoCloser";
 import { type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED } from "../store/tinybase/persisted";
 import { SeedDefinition, seeds } from "./seed/index";
+import { TinyTickMonitor } from "./tinytick";
 
 declare global {
   interface Window {
@@ -132,6 +133,7 @@ function DevtoolDrawer(
         <div className="flex justify-between items-center text-sm font-semibold">
           <span>Hyprnote Devtool</span>
         </div>
+        <TinyTickMonitor />
         <SeedList onSeed={onSeed} />
         <NavigationList />
       </div>

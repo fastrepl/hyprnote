@@ -417,7 +417,16 @@ export const StoreComponent = () => {
         INDEXES.eventsByDate,
         "events",
         (getCell) => {
-          const d = new Date(getCell("started_at")!);
+          const cell = getCell("started_at");
+          if (!cell) {
+            return "";
+          }
+
+          const d = new Date(cell);
+          if (isNaN(d.getTime())) {
+            return "";
+          }
+
           return format(d, "yyyy-MM-dd");
         },
         "started_at",
@@ -432,7 +441,16 @@ export const StoreComponent = () => {
             return "";
           }
 
-          const d = new Date(getCell("created_at")!);
+          const cell = getCell("created_at");
+          if (!cell) {
+            return "";
+          }
+
+          const d = new Date(cell);
+          if (isNaN(d.getTime())) {
+            return "";
+          }
+
           return format(d, "yyyy-MM-dd");
         },
         "created_at",

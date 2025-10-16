@@ -128,7 +128,7 @@ export function buildTimelineBuckets({
         return;
       }
 
-      if (!isPast(eventStartTime)) {
+      if (eventStartTime && !isPast(eventStartTime)) {
         items.push({
           type: "event",
           id: eventId,
@@ -153,12 +153,14 @@ export function buildTimelineBuckets({
         return;
       }
 
-      items.push({
-        type: "session",
-        id: sessionId,
-        date: format(date, "yyyy-MM-dd"),
-        data: row as unknown as persisted.Session,
-      });
+      if (date) {
+        items.push({
+          type: "session",
+          id: sessionId,
+          date: format(date, "yyyy-MM-dd"),
+          data: row as unknown as persisted.Session,
+        });
+      }
     });
 
   items.sort((a, b) => {

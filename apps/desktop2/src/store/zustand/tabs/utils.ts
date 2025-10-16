@@ -27,6 +27,18 @@ export const notifyTabsClose = (
   tabs.forEach((tab) => notifyTabClose(handlers, tab));
 };
 
+export const notifyEmpty = (
+  handlers: Set<() => void>,
+): void => {
+  handlers.forEach((handler) => {
+    try {
+      handler();
+    } catch (error) {
+      console.error("tab onEmpty handler failed", error);
+    }
+  });
+};
+
 export const computeHistoryFlags = (
   history: Map<string, TabHistory>,
   currentTab: Tab | null,

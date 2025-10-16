@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type DependencyList, useCallback, useEffect, useRef, useState } from "react";
 
 export function useAnchor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,10 +62,12 @@ export function useAutoScrollToAnchor({
   scrollFn,
   isVisible,
   anchorNode,
+  deps = [],
 }: {
   scrollFn: () => void;
   isVisible: boolean;
   anchorNode: HTMLDivElement | null;
+  deps?: DependencyList;
 }) {
   const hasMountedRef = useRef(false);
   const prevAnchorNodeRef = useRef<HTMLDivElement | null>(null);
@@ -95,4 +97,14 @@ export function useAutoScrollToAnchor({
       }
     });
   }, [anchorNode, isVisible, scrollFn]);
+
+  useEffect(() => {
+    if (!anchorNode || isVisible) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      scrollFn();
+    });
+  }, deps);
 }

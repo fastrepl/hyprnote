@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 
+import { FolderIcon } from "lucide-react";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../../store/zustand/tabs";
 
@@ -17,6 +18,7 @@ export function FolderChain({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex items-center gap-1 text-sm text-muted-foreground">
+      {folderId && <FolderIcon className="w-3 h-3" />}
       {!folderId
         ? <RenderIfRootNotExist title={title} handleChangeTitle={handleChangeTitle} />
         : <RenderIfRootExist title={title} handleChangeTitle={handleChangeTitle} folderId={folderId} />}

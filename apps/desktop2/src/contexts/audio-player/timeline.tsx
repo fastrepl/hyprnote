@@ -1,9 +1,9 @@
 import { Pause, Play } from "lucide-react";
 
 import { cn } from "@hypr/ui/lib/utils";
-import { useAudioPlayerContext } from "../../../../contexts/audio-player";
+import { useAudioPlayerContext } from "./provider";
 
-export function AudioPlayer() {
+export function Timeline() {
   const { registerContainer, isPlaying, currentTime, duration, togglePlay } = useAudioPlayerContext();
 
   return (

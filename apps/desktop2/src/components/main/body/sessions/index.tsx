@@ -1,14 +1,12 @@
 import { StickyNoteIcon } from "lucide-react";
-import { useState } from "react";
 
-import { AudioPlayerProvider } from "../../../../contexts/audio-player";
+import AudioPlayer from "../../../../contexts/audio-player";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "../shared";
-import { FloatingActionButtonn } from "./floating-action";
+import { FloatingActionButtonn } from "./floating";
 import { NoteInput } from "./note-input";
 import { OuterHeader } from "./outer-header";
-import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
 
 export const TabItemNote: TabItem = (
@@ -38,7 +36,6 @@ export const TabItemNote: TabItem = (
 export function TabContentNote({ tab }: { tab: Tab }) {
   const sessionId = rowIdfromTab(tab);
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
-  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
   const handleEditTitle = persisted.UI.useSetRowCallback(
     "sessions",
@@ -53,16 +50,11 @@ export function TabContentNote({ tab }: { tab: Tab }) {
   };
 
   return (
-    <AudioPlayerProvider url="/assets/audio.wav">
+    <AudioPlayer.Provider url="/assets/audio.wav">
       <div className="flex flex-col h-full gap-1">
         <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
           <div className="py-1">
-            <OuterHeader
-              isPlayerVisible={showAudioPlayer}
-              sessionRow={sessionRow}
-              sessionId={sessionId}
-              onToggleAudioPlayer={() => setShowAudioPlayer(!showAudioPlayer)}
-            />
+            <OuterHeader sessionId={sessionId} />
           </div>
 
           <TitleInput
@@ -73,8 +65,8 @@ export function TabContentNote({ tab }: { tab: Tab }) {
           <NoteInput tab={tab} />
           <FloatingActionButtonn onRegenerate={handleRegenerate} />
         </div>
-        {showAudioPlayer && <AudioPlayer />}
+        <AudioPlayer.Timeline />
       </div>
-    </AudioPlayerProvider>
+    </AudioPlayer.Provider>
   );
 }

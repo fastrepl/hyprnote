@@ -5,12 +5,11 @@ import { useQuery } from "../../../../../hooks/useQuery";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 export function SessionEvent({
-  sessionRow,
   sessionId,
 }: {
-  sessionRow: ReturnType<typeof persisted.UI.useRow<"sessions">>;
   sessionId: string;
 }) {
+  const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
   const [eventSearchQuery, setEventSearchQuery] = useState("");
 
   const store = persisted.UI.useStore(persisted.STORE_ID);

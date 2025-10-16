@@ -159,12 +159,15 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </Reorder.Group>
       </div>
 
-      <div className="flex-1 flex h-full items-center justify-between">
+      <div
+        data-tauri-drag-region
+        className="flex-1 flex h-full items-center justify-between"
+      >
         <button
           onClick={handleNewNote}
           className={cn([
             "flex items-center justify-center h-full px-1.5 shrink-0",
-            "rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+            "rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer",
           ])}
         >
           <PlusIcon className="h-4 w-4 text-color3 " />

@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useAnchor({
-  isAnchorActive,
-  autoScrollOnMount,
-}: {
-  isAnchorActive: boolean;
-  autoScrollOnMount?: boolean;
-}) {
+export function useAnchor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAnchorVisible, setIsAnchorVisible] = useState(true);
   const [isScrolledPastAnchor, setIsScrolledPastAnchor] = useState(false);
@@ -28,16 +22,6 @@ export function useAnchor({
     const targetScrollTop = Math.max(anchorCenter - (container.clientHeight / 2), 0);
     container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
   }, [anchorNode]);
-
-  useEffect(() => {
-    if (!isAnchorActive || !autoScrollOnMount) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      scrollToAnchor();
-    });
-  }, [autoScrollOnMount, isAnchorActive, scrollToAnchor]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -69,7 +53,46 @@ export function useAnchor({
     isAnchorVisible,
     isScrolledPastAnchor,
     scrollToAnchor,
-    isAnchorActive,
     registerAnchor,
+    anchorNode,
   };
+}
+
+export function useAutoScrollToAnchor({
+  scrollFn,
+  isVisible,
+  anchorNode,
+}: {
+  scrollFn: () => void;
+  isVisible: boolean;
+  anchorNode: HTMLDivElement | null;
+}) {
+  const hasMountedRef = useRef(false);
+  const prevAnchorNodeRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (hasMountedRef.current) {
+      return;
+    }
+    hasMountedRef.current = true;
+
+    requestAnimationFrame(() => {
+      scrollFn();
+    });
+  }, [scrollFn]);
+
+  useEffect(() => {
+    if (!anchorNode || prevAnchorNodeRef.current === anchorNode) {
+      prevAnchorNodeRef.current = anchorNode;
+      return;
+    }
+
+    prevAnchorNodeRef.current = anchorNode;
+
+    requestAnimationFrame(() => {
+      if (!isVisible) {
+        scrollFn();
+      }
+    });
+  }, [anchorNode, isVisible, scrollFn]);
 }

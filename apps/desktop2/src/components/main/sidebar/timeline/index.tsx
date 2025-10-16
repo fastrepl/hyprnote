@@ -8,7 +8,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { buildTimelineBuckets } from "../../../../utils/timeline";
 import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
-import { useAnchor } from "./anchor";
+import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
 
@@ -22,7 +22,14 @@ export function TimelineView() {
     isScrolledPastAnchor: isScrolledPastToday,
     scrollToAnchor: scrollToToday,
     registerAnchor: setCurrentTimeIndicatorRef,
-  } = useAnchor({ isAnchorActive: hasToday, autoScrollOnMount: true });
+    anchorNode: todayAnchorNode,
+  } = useAnchor();
+
+  useAutoScrollToAnchor({
+    scrollFn: scrollToToday,
+    isVisible: isTodayVisible,
+    anchorNode: todayAnchorNode,
+  });
 
   return (
     <div className="relative h-full">

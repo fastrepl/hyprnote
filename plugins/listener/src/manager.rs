@@ -41,7 +41,7 @@ impl TranscriptManager {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, serde::Serialize)]
 pub struct Diff {
     pub partial_words: HashMap<usize, Vec<owhisper_interface::Word>>,
     pub final_words: HashMap<usize, Vec<owhisper_interface::Word>>,
@@ -241,53 +241,49 @@ mod tests {
             .collect()
     }
 
-    #[derive(Debug, serde::Serialize)]
-    struct TestDiff {
-        final_content: HashMap<usize, String>,
-        partial_content: HashMap<usize, String>,
-    }
+    macro_rules! test_transcript {
+        ($name:ident, $uuid:expr) => {
+            #[test]
+            #[allow(non_snake_case)]
+            fn $name() {
+                let mut manager = TranscriptManager::builder().build();
+                let items = get_items(
+                    &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("assets/raw")
+                        .join(concat!($uuid, ".jsonl")),
+                );
 
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        macro_rules! test_transcript {
-            ($name:ident, $uuid:expr) => {
-                #[test]
-                #[allow(non_snake_case)]
-                fn $name() {
-                    let mut manager = TranscriptManager::builder().build();
-                    let items = get_items(
-                        &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("assets/raw")
-                            .join(concat!($uuid, ".jsonl")),
-                    );
-
-                    let mut diffs = vec![];
-                    for item in items {
-                        let diff = manager.append(item);
-                        diffs.push(TestDiff {
-                            final_content: diff.final_content(),
-                            partial_content: diff.partial_content(),
-                        });
-                    }
-
-                    std::fs::write(
-                        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("assets/diff")
-                            .join(concat!($uuid, ".json")),
-                        serde_json::to_string_pretty(&diffs).unwrap(),
-                    )
-                    .unwrap();
+                let mut diffs = vec![];
+                for item in items {
+                    let diff = manager.append(item);
+                    diffs.push(diff);
                 }
-            };
-        }
 
-        test_transcript!(
-            test_f7952672_5d18_4f75_8aa0_74ab8b02dac3,
-            "f7952672-5d18-4f75-8aa0-74ab8b02dac3"
-        );
-
-        test_transcript!(test_council_011320_2022003V, "council_011320_2022003V");
+                std::fs::write(
+                    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("assets/diff")
+                        .join(concat!($uuid, ".json")),
+                    serde_json::to_string_pretty(&diffs).unwrap(),
+                )
+                .unwrap();
+            }
+        };
     }
+
+    test_transcript!(test_council_011320_2022003V, "council_011320_2022003V");
+
+    test_transcript!(
+        test_f7952672_5d18_4f75_8aa0_74ab8b02dac3,
+        "f7952672-5d18-4f75-8aa0-74ab8b02dac3"
+    );
+
+    test_transcript!(
+        test_14b0f420_81e0_4104_b16a_585f1b1b0b56,
+        "14b0f420-81e0-4104-b16a-585f1b1b0b56"
+    );
+
+    test_transcript!(
+        test_7a6ad933_4bad_48d1_96c2_c4346052b3cd,
+        "7a6ad933-4bad-48d1-96c2-c4346052b3cd"
+    );
 }

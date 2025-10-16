@@ -5,6 +5,7 @@ import { type Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
+import { FolderBreadcrumb } from "./shared/folder-breadcrumb";
 
 export const TabItemFolder: TabItem = (props) => {
   if (props.tab.type === "folders" && props.tab.id === null) {
@@ -172,47 +173,27 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
 function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
   const { openCurrent } = useTabs();
 
-  const folderIds = persisted.UI.useLinkedRowIds(
-    "folderToParentFolder",
-    folderId,
-    persisted.STORE_ID,
-  );
-
-  if (!folderIds || folderIds.length === 0) {
-    return null;
-  }
-
-  const folderChain = [...folderIds].reverse();
-
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-      <button
-        onClick={() => openCurrent({ type: "folders", id: null, active: true })}
-        className="hover:text-foreground"
-      >
-        Root
-      </button>
-      {folderChain.map((id) => {
-        const isLast = id === folderId;
-        return (
-          <div key={id} className="flex items-center gap-2">
-            <span>/</span>
-            <button
-              onClick={() => !isLast && openCurrent({ type: "folders", id, active: true })}
-              className={isLast ? "text-foreground font-medium" : "hover:text-foreground"}
-            >
-              <TabContentFolderBreadcrumbItem folderId={id} />
-            </button>
-          </div>
-        );
-      })}
-    </div>
+    <FolderBreadcrumb
+      folderId={folderId}
+      renderBefore={() => (
+        <button
+          onClick={() => openCurrent({ type: "folders", id: null, active: true })}
+          className="hover:text-foreground"
+        >
+          Root
+        </button>
+      )}
+      renderCrumb={({ id, name, isLast }) => (
+        <button
+          onClick={() => !isLast && openCurrent({ type: "folders", id, active: true })}
+          className={isLast ? "text-foreground font-medium" : "hover:text-foreground"}
+        >
+          {name}
+        </button>
+      )}
+    />
   );
-}
-
-function TabContentFolderBreadcrumbItem({ folderId }: { folderId: string }) {
-  const folderName = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
-  return <span>{folderName}</span>;
 }
 
 function FolderSessionItem({ sessionId }: { sessionId: string }) {

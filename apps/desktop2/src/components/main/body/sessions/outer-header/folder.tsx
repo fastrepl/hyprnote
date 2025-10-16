@@ -1,8 +1,8 @@
-import { useCallback } from "react";
-
 import { FolderIcon } from "lucide-react";
+
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../../store/zustand/tabs";
+import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
 
 export function FolderChain({ sessionId }: { sessionId: string }) {
   const folderId = persisted.UI.useCell("sessions", sessionId, "folder_id", persisted.STORE_ID);
@@ -37,16 +37,22 @@ function RenderIfRootExist(
     handleChangeTitle: (title: string) => void;
   },
 ) {
-  const folderIds = useFolderList(folderId);
+  const { openNew } = useTabs();
 
   return (
     <>
-      {folderIds.map((id, index) => (
-        <div key={id} className="flex items-center gap-1">
-          {index > 0 && <span>/</span>}
-          <FolderItem folderId={id} />
-        </div>
-      ))}
+      <FolderBreadcrumb
+        folderId={folderId}
+        renderSeparator={({ index }) => (index > 0 ? <span>/</span> : null)}
+        renderCrumb={({ id, name }) => (
+          <button
+            className="text-gray-500 hover:text-gray-700 hover:underline"
+            onClick={() => openNew({ type: "folders", id, active: true })}
+          >
+            {name}
+          </button>
+        )}
+      />
       <span>/</span>
       <TitleInput title={title} handleChangeTitle={handleChangeTitle} />
     </>
@@ -71,33 +77,6 @@ function RenderIfRootNotExist(
       <TitleInput title={title} handleChangeTitle={handleChangeTitle} />
     </>
   );
-}
-
-function FolderItem({ folderId }: { folderId: string }) {
-  const folderName = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
-
-  const { openNew } = useTabs();
-  const handleClick = useCallback(() => {
-    openNew({ type: "folders", id: folderId, active: true });
-  }, [openNew, folderId]);
-
-  return (
-    <button
-      className="text-gray-500 hover:text-gray-700 hover:underline"
-      onClick={handleClick}
-    >
-      {folderName}
-    </button>
-  );
-}
-
-function useFolderList(rootFolderId: string) {
-  const folderIds = persisted.UI.useLinkedRowIds(
-    "folderToParentFolder",
-    rootFolderId,
-    persisted.STORE_ID,
-  );
-  return [...folderIds].reverse();
 }
 
 function TitleInput({ title, handleChangeTitle }: { title: string; handleChangeTitle: (title: string) => void }) {

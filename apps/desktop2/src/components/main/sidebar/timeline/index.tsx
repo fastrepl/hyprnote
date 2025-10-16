@@ -1,7 +1,6 @@
 import { clsx } from "clsx";
 import { CalendarIcon } from "lucide-react";
-import { useMemo } from "react";
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";

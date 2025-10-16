@@ -10,11 +10,15 @@ export function useCurrentTime() {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const update = () => setNow(new Date());
+    const update = () => {
+      const now = new Date();
+      setNow(now);
+    };
+
     update();
 
-    const interval = window.setInterval(update, 60_000);
-    return () => window.clearInterval(interval);
+    const interval = setInterval(update, 60_000);
+    return () => clearInterval(interval);
   }, []);
 
   return now;

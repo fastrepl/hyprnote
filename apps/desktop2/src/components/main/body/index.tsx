@@ -20,7 +20,6 @@ import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();
-  const { chat } = useShell();
 
   useTabCloseHotkey();
   useTabSelectHotkeys();
@@ -33,9 +32,8 @@ export function Body() {
     <div className="flex flex-col gap-1 h-full flex-1 relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
-        <Content tab={currentTab} />
+        <ContentWrapper tab={currentTab} />
       </div>
-      {chat.mode !== "RightPanelOpen" && <ChatFloatingButton />}
     </div>
   );
 }
@@ -181,7 +179,13 @@ function Header({ tabs }: { tabs: Tab[] }) {
 }
 
 function TabItem(
-  { tab, handleClose, handleSelect, handleCloseOthersCallback, handleCloseAll }: {
+  {
+    tab,
+    handleClose,
+    handleSelect,
+    handleCloseOthersCallback,
+    handleCloseAll,
+  }: {
     tab: Tab;
     handleClose: (tab: Tab) => void;
     handleSelect: (tab: Tab) => void;
@@ -262,7 +266,7 @@ function TabItem(
   return null;
 }
 
-function Content({ tab }: { tab: Tab }) {
+function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "sessions") {
     return <TabContentNote tab={tab} />;
   }
@@ -275,7 +279,6 @@ function Content({ tab }: { tab: Tab }) {
   if (tab.type === "humans") {
     return <TabContentHuman tab={tab} />;
   }
-
   if (tab.type === "calendars") {
     return <TabContentCalendar tab={tab} />;
   }
@@ -284,6 +287,30 @@ function Content({ tab }: { tab: Tab }) {
   }
 
   return null;
+}
+
+function TabChatButton() {
+  const { chat } = useShell();
+
+  if (chat.mode === "RightPanelOpen") {
+    return null;
+  }
+
+  return <ChatFloatingButton />;
+}
+
+export function StandardTabWrapper(
+  { children, afterBorder }: { children: React.ReactNode; afterBorder?: React.ReactNode },
+) {
+  return (
+    <div className="flex flex-col h-full gap-1">
+      <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
+        {children}
+        <TabChatButton />
+      </div>
+      {afterBorder}
+    </div>
+  );
 }
 
 const useTabCloseHotkey = () => {

@@ -2,6 +2,7 @@ import { UserIcon } from "lucide-react";
 
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab } from "../../../store/zustand/tabs";
+import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemHuman: TabItem = ({
@@ -35,5 +36,9 @@ export function TabContentHuman({ tab }: { tab: Tab }) {
     throw new Error("non_human_tab");
   }
 
-  return <div>Human</div>;
+  return (
+    <StandardTabWrapper>
+      <div>Human</div>
+    </StandardTabWrapper>
+  );
 }

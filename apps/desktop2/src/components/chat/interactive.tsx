@@ -18,7 +18,7 @@ export function InteractiveContainer(
 
   return (
     <div
-      className="fixed z-40"
+      className="absolute z-10"
       style={{ right: 16, bottom: 16 }}
     >
       <Resizable

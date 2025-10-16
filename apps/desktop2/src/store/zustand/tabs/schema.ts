@@ -6,12 +6,15 @@ const baseTabSchema = z.object({
   active: z.boolean(),
 });
 
+export const editorViewSchema = z.enum(["raw", "enhanced", "transcript"]);
+export type EditorView = z.infer<typeof editorViewSchema>;
+
 export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
     type: z.literal("sessions" satisfies typeof TABLES[number]),
     id: z.string(),
     state: z.object({
-      editor: z.enum(["raw", "enhanced", "transcript"]).default("raw"),
+      editor: editorViewSchema.default("raw"),
     }).default({ editor: "raw" }),
   }),
   baseTabSchema.extend({

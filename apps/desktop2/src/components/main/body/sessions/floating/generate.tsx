@@ -1,14 +1,19 @@
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
-export function RegenerateButton({ onRegenerate }: { onRegenerate: (templateId: string | null) => void }) {
+import { FloatingButton } from "./shared";
+
+export function GenerateButton() {
   const [showTemplates, setShowTemplates] = useState(false);
 
   const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
+
+  const onRegenerate = (templateId: string | null) => {
+    console.log("Regenerate clicked:", templateId);
+  };
 
   return (
     <div>
@@ -49,8 +54,8 @@ export function RegenerateButton({ onRegenerate }: { onRegenerate: (templateId: 
         </div>
       </div>
 
-      <Button
-        className="relative bg-black hover:bg-neutral-800 text-white px-4 py-2 rounded-lg shadow-lg"
+      <FloatingButton
+        icon={<SparklesIcon className="w-4 h-4" />}
         style={{ zIndex: 10 }}
         onMouseEnter={() => setShowTemplates(true)}
         onMouseLeave={() => setShowTemplates(false)}
@@ -59,9 +64,8 @@ export function RegenerateButton({ onRegenerate }: { onRegenerate: (templateId: 
           onRegenerate(null);
         }}
       >
-        <SparklesIcon className="w-4 h-4 mr-2" />
         Regenerate
-      </Button>
+      </FloatingButton>
     </div>
   );
 }

@@ -3,8 +3,9 @@ import { StickyNoteIcon } from "lucide-react";
 import AudioPlayer from "../../../../contexts/audio-player";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
+import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
-import { FloatingActionButtonn } from "./floating";
+import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
 import { OuterHeader } from "./outer-header";
 import { TitleInput } from "./title-input";
@@ -34,39 +35,23 @@ export const TabItemNote: TabItem = (
 };
 
 export function TabContentNote({ tab }: { tab: Tab }) {
-  const sessionId = rowIdfromTab(tab);
-  const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
-
-  const handleEditTitle = persisted.UI.useSetRowCallback(
-    "sessions",
-    sessionId,
-    (input: string, _store) => ({ ...sessionRow, title: input }),
-    [sessionRow],
-    persisted.STORE_ID,
-  );
-
-  const handleRegenerate = (templateId: string | null) => {
-    console.log("Regenerate clicked:", templateId);
-  };
+  if (tab.type !== "sessions") {
+    return null;
+  }
 
   return (
     <AudioPlayer.Provider url="/assets/audio.wav">
-      <div className="flex flex-col h-full gap-1">
-        <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
-          <div className="py-1">
-            <OuterHeader sessionId={sessionId} />
-          </div>
-
-          <TitleInput
-            editable={true}
-            value={sessionRow.title ?? ""}
-            onChange={handleEditTitle}
-          />
-          <NoteInput tab={tab} />
-          <FloatingActionButtonn onRegenerate={handleRegenerate} />
+      <StandardTabWrapper
+        afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}
+      >
+        <div className="py-1">
+          <OuterHeader sessionId={tab.id} />
         </div>
-        <AudioPlayer.Timeline />
-      </div>
+
+        <TitleInput sessionId={tab.id} />
+        <NoteInput tab={tab} />
+        <FloatingActionButton editorView={tab.state.editor} />
+      </StandardTabWrapper>
     </AudioPlayer.Provider>
   );
 }

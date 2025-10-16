@@ -3,6 +3,7 @@ import { FolderIcon, StickyNoteIcon } from "lucide-react";
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
+import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemFolder: TabItem = (props) => {
@@ -70,13 +71,11 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
     return null;
   }
 
-  // If tab.id is null, show top-level folders
-  if (tab.id === null) {
-    return <TabContentFolderTopLevel />;
-  }
-
-  // If tab.id is a folder, show that folder's contents
-  return <TabContentFolderSpecific folderId={tab.id} />;
+  return (
+    <StandardTabWrapper>
+      {tab.id === null ? <TabContentFolderTopLevel /> : <TabContentFolderSpecific folderId={tab.id} />}
+    </StandardTabWrapper>
+  );
 }
 
 function TabContentFolderTopLevel() {
@@ -87,7 +86,7 @@ function TabContentFolderTopLevel() {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-lg border h-full">
+    <div className="flex flex-col gap-4 h-full">
       <h2 className="text-lg font-semibold">All Folders</h2>
       <div className="grid grid-cols-4 gap-4">
         {topLevelFolderIds?.map((folderId) => <FolderCard key={folderId} folderId={folderId} />)}
@@ -100,7 +99,6 @@ function FolderCard({ folderId }: { folderId: string }) {
   const folder = persisted.UI.useRow("folders", folderId, persisted.STORE_ID);
   const { openCurrent } = useTabs();
 
-  // Count children
   const childFolderIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.foldersByParent,
     folderId,
@@ -141,7 +139,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-lg border">
+    <div className="flex flex-col gap-4">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
       {(childFolderIds?.length ?? 0) > 0 && (

@@ -1,10 +1,9 @@
 import { cn } from "@hypr/ui/lib/utils";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
+import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { EnhancedEditor } from "./enhanced";
 import { RawEditor } from "./raw";
 import { TranscriptEditorWrapper } from "./transcript";
-
-type EditorView = "raw" | "enhanced" | "transcript";
 
 const EDITOR_TABS = [
   { view: "enhanced" as const, label: "Summary" },

@@ -3,6 +3,7 @@ import { useCallback } from "react";
 
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
+import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { DetailsColumn } from "./details";
 import { OrganizationsColumn } from "./organizations";
@@ -36,9 +37,9 @@ export function TabContentContact({ tab }: { tab: Tab }) {
   }
 
   return (
-    <div className="h-[calc(100vh-44px)]">
+    <StandardTabWrapper>
       <ContactView tab={tab} />
-    </div>
+    </StandardTabWrapper>
   );
 }
 
@@ -71,7 +72,7 @@ function ContactView({ tab }: { tab: Tab }) {
   );
 
   return (
-    <div className="flex h-full rounded-lg border">
+    <div className="flex h-full">
       <OrganizationsColumn
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}

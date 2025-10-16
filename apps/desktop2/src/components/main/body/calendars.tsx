@@ -7,6 +7,7 @@ import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure"
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
+import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemCalendar: TabItem = (
@@ -56,18 +57,20 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
   };
 
   return (
-    <CalendarStructure
-      monthLabel={format(tab.month, "MMMM yyyy")}
-      weekDays={weekDays}
-      startDayOfWeek={startDayOfWeek}
-      onPreviousMonth={handlePreviousMonth}
-      onNextMonth={handleNextMonth}
-      onToday={handleToday}
-    >
-      {days.map((day) => (
-        <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />
-      ))}
-    </CalendarStructure>
+    <StandardTabWrapper>
+      <CalendarStructure
+        monthLabel={format(tab.month, "MMMM yyyy")}
+        weekDays={weekDays}
+        startDayOfWeek={startDayOfWeek}
+        onPreviousMonth={handlePreviousMonth}
+        onNextMonth={handleNextMonth}
+        onToday={handleToday}
+      >
+        {days.map((day) => (
+          <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />
+        ))}
+      </CalendarStructure>
+    </StandardTabWrapper>
   );
 }
 

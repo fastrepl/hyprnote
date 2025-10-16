@@ -1,62 +1,30 @@
 import { cn } from "@hypr/ui/lib/utils";
-import { type KeyboardEvent, useEffect, useRef } from "react";
 
-export function TitleInput({
-  value,
-  onChange,
-  onNavigateToEditor,
-  editable,
-  isGenerating = false,
-  autoFocus = false,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onNavigateToEditor?: () => void;
-  editable?: boolean;
-  isGenerating?: boolean;
-  autoFocus?: boolean;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
+import * as persisted from "../../../../store/tinybase/persisted";
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
-      onNavigateToEditor?.();
-    }
-  };
+export function TitleInput({ sessionId }: { sessionId: string }) {
+  const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
 
-  const getPlaceholder = () => {
-    if (isGenerating) {
-      return "Generating title...";
-    }
-    return "Untitled";
-  };
-
-  useEffect(() => {
-    if (autoFocus && editable && !isGenerating && inputRef.current) {
-      const timeoutId = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 200);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [autoFocus, editable, isGenerating]);
+  const handleEditTitle = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (title: string) => ({ title }),
+    [],
+    persisted.STORE_ID,
+  );
 
   return (
     <input
-      ref={inputRef}
-      disabled={!editable || isGenerating}
-      id="note-title-input"
+      id={`title-input-${sessionId}`}
+      placeholder="Untitled"
       type="text"
-      onChange={(e) => onChange(e.target.value)}
-      value={value}
-      placeholder={getPlaceholder()}
+      onChange={(e) => handleEditTitle(e.target.value)}
+      value={title}
       className={cn(
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",
         "text-xl font-semibold placeholder:text-muted-foreground",
       )}
-      onKeyDown={handleKeyDown}
     />
   );
 }

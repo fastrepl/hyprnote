@@ -4,7 +4,13 @@ import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemHuman: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemHuman: TabItem = ({
+  tab,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
   if (tab.type !== "humans") {
     throw new Error("non_human_tab");
   }
@@ -16,8 +22,10 @@ export const TabItemHuman: TabItem = ({ tab, handleClose, handleSelect }) => {
       icon={<UserIcon className="w-4 h-4" />}
       title={title ?? "Human"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

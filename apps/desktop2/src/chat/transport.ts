@@ -5,11 +5,11 @@ import { convertToModelMessages, smoothStream, stepCountIs, streamText } from "a
 import { ToolRegistry } from "../contexts/tool";
 import type { HyprUIMessage } from "./types";
 
-const modelName = "google/gemini-2.5-flash-lite";
+const modelName = "qwen/qwen3-vl-8b-thinking";
 const provider = createOpenAICompatible({
   name: "openrouter",
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: "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",
+  apiKey: "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",
 });
 
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {

@@ -8,14 +8,24 @@ import { DetailsColumn } from "./details";
 import { OrganizationsColumn } from "./organizations";
 import { PeopleColumn } from "./people";
 
-export const TabItemContact: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemContact: TabItem = (
+  {
+    tab,
+    handleCloseThis,
+    handleSelectThis,
+    handleCloseOthers,
+    handleCloseAll,
+  },
+) => {
   return (
     <TabItemBase
       icon={<Contact2Icon className="w-4 h-4" />}
       title={"Contacts"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

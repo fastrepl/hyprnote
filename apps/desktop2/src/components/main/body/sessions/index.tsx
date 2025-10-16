@@ -12,7 +12,9 @@ import { OuterHeader } from "./outer-header";
 import { AudioPlayer } from "./player";
 import { TitleInput } from "./title-input";
 
-export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemNote: TabItem = (
+  { tab, handleCloseThis, handleSelectThis, handleCloseOthers, handleCloseAll },
+) => {
   const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
 
   return (
@@ -20,8 +22,10 @@ export const TabItemNote: TabItem = ({ tab, handleClose, handleSelect }) => {
       icon={<StickyNoteIcon className="w-4 h-4" />}
       title={title ?? "Untitled"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

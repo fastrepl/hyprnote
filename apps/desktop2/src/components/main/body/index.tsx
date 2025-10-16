@@ -45,7 +45,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
 
   const { leftsidebar } = useShell();
-  const { select, close, reorder, openNew, goBack, goNext, canGoBack, canGoNext } = useTabs();
+  const { select, close, reorder, openNew, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const setTabRef = useScrollActiveTabIntoView(tabs);
 
@@ -149,7 +149,13 @@ function Header({ tabs }: { tabs: Tab[] }) {
               className="h-full z-10"
               layoutScroll
             >
-              <TabItem tab={tab} handleClose={close} handleSelect={select} />
+              <TabItem
+                tab={tab}
+                handleClose={close}
+                handleSelect={select}
+                handleCloseOthersCallback={closeOthers}
+                handleCloseAll={closeAll}
+              />
             </Reorder.Item>
           ))}
         </Reorder.Group>
@@ -176,29 +182,93 @@ function Header({ tabs }: { tabs: Tab[] }) {
 }
 
 function TabItem(
-  { tab, handleClose, handleSelect }: { tab: Tab; handleClose: (tab: Tab) => void; handleSelect: (tab: Tab) => void },
+  { tab, handleClose, handleSelect, handleCloseOthersCallback, handleCloseAll }: {
+    tab: Tab;
+    handleClose: (tab: Tab) => void;
+    handleSelect: (tab: Tab) => void;
+    handleCloseOthersCallback: (tab: Tab) => void;
+    handleCloseAll: () => void;
+  },
 ) {
+  const handleCloseOthers = () => handleCloseOthersCallback(tab);
+
   if (tab.type === "sessions") {
-    return <TabItemNote tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemNote
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
   if (tab.type === "events") {
-    return <TabItemEvent tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemEvent
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
   if (tab.type === "folders") {
-    return <TabItemFolder tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemFolder
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
   if (tab.type === "humans") {
-    return <TabItemHuman tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemHuman
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
   if (tab.type === "daily") {
-    return <TabItemDaily tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemDaily
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
 
   if (tab.type === "calendars") {
-    return <TabItemCalendar tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemCalendar
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
   if (tab.type === "contacts") {
-    return <TabItemContact tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+    return (
+      <TabItemContact
+        tab={tab}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
   }
 
   return null;

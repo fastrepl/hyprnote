@@ -9,14 +9,24 @@ import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemCalendar: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemCalendar: TabItem = (
+  {
+    tab,
+    handleCloseThis,
+    handleSelectThis,
+    handleCloseOthers,
+    handleCloseAll,
+  },
+) => {
   return (
     <TabItemBase
       icon={<CalendarIcon className="w-4 h-4" />}
       title={"Calendar"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

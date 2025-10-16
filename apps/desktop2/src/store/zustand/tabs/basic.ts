@@ -18,6 +18,8 @@ export type BasicActions = {
   select: (tab: Tab) => void;
   close: (tab: Tab) => void;
   reorder: (tabs: Tab[]) => void;
+  closeOthers: (tab: Tab) => void;
+  closeAll: () => void;
 };
 
 export const createBasicSlice = <T extends BasicState & NavigationState & LifecycleState>(
@@ -137,5 +139,37 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
     const currentTab = tabs.find((t) => t.active) || null;
     const flags = computeHistoryFlags(history, currentTab);
     set({ tabs, currentTab, ...flags } as Partial<T>);
+  },
+  closeOthers: (tab) => {
+    const { tabs, history, onCloseHandlers } = get();
+    const tabsToClose = tabs.filter((t) => !isSameTab(t, tab));
+
+    notifyTabsClose(onCloseHandlers, tabsToClose);
+
+    const nextHistory = new Map(history);
+    tabsToClose.forEach((t) => {
+      nextHistory.delete(getSlotId(t));
+    });
+
+    const nextTabs = [{ ...tab, active: true }];
+    const nextCurrentTab = nextTabs[0];
+    const flags = computeHistoryFlags(nextHistory, nextCurrentTab);
+    set({
+      tabs: nextTabs,
+      currentTab: nextCurrentTab,
+      history: nextHistory,
+      ...flags,
+    } as Partial<T>);
+  },
+  closeAll: () => {
+    const { tabs, onCloseHandlers } = get();
+    notifyTabsClose(onCloseHandlers, tabs);
+    set({
+      tabs: [],
+      currentTab: null,
+      history: new Map(),
+      canGoBack: false,
+      canGoNext: false,
+    } as unknown as Partial<T>);
   },
 });

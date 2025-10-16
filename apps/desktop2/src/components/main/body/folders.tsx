@@ -5,31 +5,47 @@ import { type Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemFolder: TabItem = ({ tab, handleClose, handleSelect }) => {
-  if (tab.type === "folders" && tab.id === null) {
-    return <TabItemFolderAll tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+export const TabItemFolder: TabItem = (props) => {
+  if (props.tab.type === "folders" && props.tab.id === null) {
+    return <TabItemFolderAll {...props} />;
   }
 
-  if (tab.type === "folders" && tab.id !== null) {
-    return <TabItemFolderSpecific tab={tab} handleClose={handleClose} handleSelect={handleSelect} />;
+  if (props.tab.type === "folders" && props.tab.id !== null) {
+    return <TabItemFolderSpecific {...props} />;
   }
 
   return null;
 };
 
-const TabItemFolderAll: TabItem = ({ tab, handleClose, handleSelect }) => {
+const TabItemFolderAll: TabItem = (
+  {
+    tab,
+    handleCloseThis: handleCloseThis,
+    handleSelectThis: handleSelectThis,
+    handleCloseAll,
+    handleCloseOthers,
+  },
+) => {
   return (
     <TabItemBase
       icon={<FolderIcon className="w-4 h-4" />}
       title={"Folder"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };
 
-const TabItemFolderSpecific: TabItem = ({ tab, handleClose, handleSelect }) => {
+const TabItemFolderSpecific: TabItem = ({
+  tab,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
   if (tab.type !== "folders" || tab.id === null) {
     return null;
   }
@@ -41,8 +57,10 @@ const TabItemFolderSpecific: TabItem = ({ tab, handleClose, handleSelect }) => {
       icon={<FolderIcon className="w-4 h-4" />}
       title={folderName ?? ""}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

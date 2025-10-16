@@ -4,14 +4,24 @@ import { CalendarIcon, CheckSquare, Mail, Sun } from "lucide-react";
 import { type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemDaily: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemDaily: TabItem = (
+  {
+    tab,
+    handleCloseThis,
+    handleSelectThis,
+    handleCloseOthers,
+    handleCloseAll,
+  },
+) => {
   return (
     <TabItemBase
       icon={<Sun className="w-4 h-4" />}
       title={tab.type === "daily" ? format(tab.date, "MMM d, yyyy") : "Daily Note"}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

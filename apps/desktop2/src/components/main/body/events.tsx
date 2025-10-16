@@ -4,7 +4,15 @@ import * as persisted from "../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemEvent: TabItem = ({ tab, handleClose, handleSelect }) => {
+export const TabItemEvent: TabItem = (
+  {
+    tab,
+    handleCloseThis,
+    handleSelectThis,
+    handleCloseOthers,
+    handleCloseAll,
+  },
+) => {
   const title = persisted.UI.useCell("events", rowIdfromTab(tab), "title", persisted.STORE_ID);
 
   return (
@@ -12,8 +20,10 @@ export const TabItemEvent: TabItem = ({ tab, handleClose, handleSelect }) => {
       icon={<CalendarIcon className="w-4 h-4" />}
       title={title ?? ""}
       active={tab.active}
-      handleClose={() => handleClose(tab)}
-      handleSelect={() => handleSelect(tab)}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
     />
   );
 };

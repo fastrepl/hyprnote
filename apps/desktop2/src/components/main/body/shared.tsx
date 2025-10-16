@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import { X } from "lucide-react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { type Tab } from "../../../store/zustand/tabs";
@@ -31,6 +32,14 @@ export function TabItemBase(
     handleCloseAll,
   }: TabItemBaseProps,
 ) {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleCloseThis();
+    }
+  };
+
   const contextMenu = (
     <>
       <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
@@ -44,9 +53,10 @@ export function TabItemBase(
       asChild
       contextMenu={contextMenu}
       onClick={handleSelectThis}
+      onMouseDown={handleMouseDown}
       className={clsx([
         "flex items-center gap-2 cursor-pointer group",
-        "min-w-[100px] max-w-[200px] h-full px-2",
+        "w-48 h-full px-2",
         "bg-color1 rounded-lg border",
         active ? "text-black border-black" : "text-color3 border-transparent",
       ])}
@@ -61,13 +71,13 @@ export function TabItemBase(
           handleCloseThis();
         }}
         className={clsx([
-          "text-xs flex-shrink-0 transition-opacity",
+          "flex-shrink-0 transition-opacity",
           active
-            ? "text-color4"
+            ? "opacity-100 text-color4"
             : "opacity-0 group-hover:opacity-100 text-color3",
         ])}
       >
-        ✕
+        <X size={14} />
       </button>
     </InteractiveButton>
   );

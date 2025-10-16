@@ -5,6 +5,7 @@ interface InteractiveButtonProps {
   children: ReactNode;
   onClick?: () => void;
   onCmdClick?: () => void;
+  onMouseDown?: (e: MouseEvent<HTMLElement>) => void;
   contextMenu?: ReactNode;
   className?: string;
   disabled?: boolean;
@@ -15,6 +16,7 @@ export function InteractiveButton({
   children,
   onClick,
   onCmdClick,
+  onMouseDown,
   contextMenu,
   className,
   disabled,
@@ -40,7 +42,12 @@ export function InteractiveButton({
 
   if (!contextMenu) {
     return (
-      <Element onClick={handleClick} className={className} disabled={!asChild ? disabled : undefined}>
+      <Element
+        onClick={handleClick}
+        onMouseDown={onMouseDown}
+        className={className}
+        disabled={!asChild ? disabled : undefined}
+      >
         {children}
       </Element>
     );
@@ -49,7 +56,12 @@ export function InteractiveButton({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild={asChild}>
-        <Element onClick={handleClick} className={className} disabled={!asChild ? disabled : undefined}>
+        <Element
+          onClick={handleClick}
+          onMouseDown={onMouseDown}
+          className={className}
+          disabled={!asChild ? disabled : undefined}
+        >
           {children}
         </Element>
       </ContextMenuTrigger>

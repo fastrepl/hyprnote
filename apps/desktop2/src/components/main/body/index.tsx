@@ -23,6 +23,7 @@ export function Body() {
 
   useTabCloseHotkey();
   useTabSelectHotkeys();
+  useNewTabHotkeys();
 
   if (!currentTab) {
     return null;
@@ -325,7 +326,7 @@ const useTabCloseHotkey = () => {
         await appWindow.close();
       }
     },
-    { enableOnFormTags: true },
+    { enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, currentTab, close],
   );
 };
@@ -350,8 +351,38 @@ const useTabSelectHotkeys = () => {
       event.preventDefault();
       select(target);
     },
-    { enableOnFormTags: true },
+    { enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, select],
+  );
+};
+
+const useNewTabHotkeys = () => {
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { currentTab, close, openNew } = useTabs();
+
+  useHotkeys(
+    ["mod+n", "mod+t"],
+    (e) => {
+      e.preventDefault();
+
+      const sessionId = id();
+      const user_id = internalStore?.getValue("user_id");
+
+      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+
+      if (e.key === "n" && currentTab) {
+        close(currentTab);
+      }
+
+      openNew({
+        type: "sessions",
+        id: sessionId,
+        active: true,
+        state: { editor: "raw" },
+      });
+    },
+    { enableOnFormTags: true, enableOnContentEditable: true },
+    [persistedStore, internalStore, currentTab, close, openNew],
   );
 };
 

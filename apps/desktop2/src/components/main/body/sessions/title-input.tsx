@@ -1,14 +1,5 @@
 import { cn } from "@hypr/ui/lib/utils";
-import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
-
-interface TitleInputProps {
-  value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onNavigateToEditor?: () => void;
-  editable?: boolean;
-  isGenerating?: boolean;
-  autoFocus?: boolean;
-}
+import { type KeyboardEvent, useEffect, useRef } from "react";
 
 export function TitleInput({
   value,
@@ -17,7 +8,14 @@ export function TitleInput({
   editable,
   isGenerating = false,
   autoFocus = false,
-}: TitleInputProps) {
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onNavigateToEditor?: () => void;
+  editable?: boolean;
+  isGenerating?: boolean;
+  autoFocus?: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -50,7 +48,7 @@ export function TitleInput({
       disabled={!editable || isGenerating}
       id="note-title-input"
       type="text"
-      onChange={onChange}
+      onChange={(e) => onChange(e.target.value)}
       value={value}
       placeholder={getPlaceholder()}
       className={cn(

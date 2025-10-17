@@ -125,7 +125,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         data-tauri-drag-region
         className={cn([
           "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-          "flex-1 min-w-0 overflow-x-auto overflow-y-hidden h-full",
+          "w-fit overflow-x-auto overflow-y-hidden h-full",
         ])}
       >
         <Reorder.Group
@@ -158,22 +158,19 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </Reorder.Group>
       </div>
 
-      <button
-        onClick={handleNewNote}
-        className={cn([
-          "flex items-center justify-center",
-          "h-full",
-          "px-1.5",
-          "rounded-lg",
-          "bg-white hover:bg-gray-50",
-          "transition-colors",
-          "shrink-0",
-        ])}
-      >
-        <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
-      </button>
+      <div className="flex-1 flex h-full items-center justify-between">
+        <button
+          onClick={handleNewNote}
+          className={cn([
+            "flex items-center justify-center h-full px-1.5 shrink-0",
+            "rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+          ])}
+        >
+          <PlusIcon className="h-4 w-4 text-color3 " />
+        </button>
 
-      <Search />
+        <Search />
+      </div>
     </div>
   );
 }
@@ -303,8 +300,8 @@ export function StandardTabWrapper(
   { children, afterBorder }: { children: React.ReactNode; afterBorder?: React.ReactNode },
 ) {
   return (
-    <div className="flex flex-col h-full gap-1">
-      <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col p-2 rounded-lg border flex-1 overflow-hidden relative">
         {children}
         <TabChatButton />
       </div>

@@ -56,7 +56,6 @@ export function GenerateButton() {
 
       <FloatingButton
         icon={<SparklesIcon className="w-4 h-4" />}
-        style={{ zIndex: 10 }}
         onMouseEnter={() => setShowTemplates(true)}
         onMouseLeave={() => setShowTemplates(false)}
         onClick={() => {

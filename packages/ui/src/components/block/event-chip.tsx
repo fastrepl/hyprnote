@@ -87,7 +87,6 @@ export function EventChip({
     return <CalendarIcon size={14} />;
   };
 
-  // Wrapper functions to handle closing popover after actions
   const handleEventSelect = (eventId: string) => {
     onEventSelect?.(eventId);
     setIsOpen(false);
@@ -108,7 +107,7 @@ export function EventChip({
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "flex flex-row items-center gap-2 rounded-md cursor-pointer",
+            "flex flex-row items-center gap-1 rounded-md cursor-pointer",
             isVeryNarrow ? "px-1.5 py-1" : "px-2 py-1.5",
             "hover:bg-neutral-100",
           )}
@@ -121,9 +120,9 @@ export function EventChip({
           title={formatDate(new Date(event?.start_date || date), "EEE, MMM d, yyyy") + " at "
             + formatDate(new Date(event?.start_date || date), "h:mm a")}
         >
-          <span className="flex-shrink-0 text-neutral-500">{getIcon()}</span>
+          <span className="flex-shrink-0 text-color4">{getIcon()}</span>
           {!isVeryNarrow && (
-            <p className="text-xs truncate text-neutral-500">
+            <p className="text-xs truncate text-color4">
               {formatRelativeDate(event?.start_date || date)}
             </p>
           )}
@@ -212,7 +211,7 @@ function EventDetails({
       )}
 
       <div className="font-semibold pr-8">{event.name}</div>
-      <div className="text-sm text-neutral-500">{getDateString()}</div>
+      <div className="text-sm text-color4">{getDateString()}</div>
 
       <div className="flex gap-2">
         {event.meetingLink && onJoinMeeting && (
@@ -237,7 +236,7 @@ function EventDetails({
       </div>
 
       {event.note && (
-        <div className="border-t pt-2 text-sm text-neutral-600 whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
+        <div className="border-t pt-2 text-sm text-color4 whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
           {event.note}
         </div>
       )}
@@ -259,19 +258,19 @@ function EventSearch({
   return (
     <div>
       <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded-md bg-neutral-50 border border-neutral-200 mb-2">
-        <SearchIcon className="size-4 text-neutral-500 flex-shrink-0" />
+        <SearchIcon className="size-4 text-color4 flex-shrink-0" />
         <input
           type="text"
           placeholder="Search past events..."
           value={searchQuery}
           onChange={(e) => onSearchChange?.(e.target.value)}
-          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-color3"
         />
       </div>
 
       {searchResults.length === 0
         ? (
-          <div className="p-4 text-center text-sm text-neutral-500">
+          <div className="p-4 text-center text-sm text-color4">
             {searchQuery ? "No matching events found." : "No past events available."}
           </div>
         )
@@ -286,7 +285,7 @@ function EventSearch({
                 <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap w-full">
                   {event.name}
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-color4">
                   {formatDate(new Date(event.start_date), "MMM d, yyyy")}
                 </p>
               </button>

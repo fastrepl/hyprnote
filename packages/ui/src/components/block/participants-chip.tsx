@@ -81,9 +81,9 @@ export function ParticipantsChip({
             isVeryNarrow ? "px-1.5" : "px-2",
           )}
         >
-          <Users2Icon size={14} className="flex-shrink-0 text-neutral-500" />
-          <span className="truncate text-neutral-500">{getButtonText()}</span>
-          {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-neutral-400">+ {count - 1}</span>}
+          <Users2Icon size={14} className="flex-shrink-0 text-color4" />
+          <span className="truncate text-color4">{getButtonText()}</span>
+          {count > 1 && !isVeryNarrow && !isNarrow && <span className="text-color3">+ {count - 1}</span>}
         </div>
       </PopoverTrigger>
 
@@ -140,7 +140,7 @@ function ParticipantList({
     <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto pr-1">
       {participants.map((group, index) => (
         <div key={group.organization?.id ?? `no-org-${index}`} className="flex flex-col gap-1.5">
-          <div className="text-xs font-medium text-neutral-400 truncate">
+          <div className="text-xs font-medium text-color3 truncate">
             {group.organization?.name || "No organization"}
           </div>
           <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
@@ -198,7 +198,7 @@ function ParticipantItem({
             )}
           >
             <Avatar className="size-7">
-              <AvatarFallback className="text-xs bg-neutral-200 text-neutral-700 font-medium">
+              <AvatarFallback className="text-xs bg-neutral-200 text-color4 font-medium">
                 {participant.full_name ? getInitials(participant.full_name) : "?"}
               </AvatarFallback>
             </Avatar>
@@ -216,10 +216,10 @@ function ParticipantItem({
           )}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-sm font-medium text-neutral-700 truncate">
+          <span className="text-sm font-medium text-color4 truncate">
             {participant.full_name || (participant.id === currentUserId ? "You" : "Unknown")}
           </span>
-          {participant.job_title && <span className="text-xs text-neutral-400 truncate">{participant.job_title}</span>}
+          {participant.job_title && <span className="text-xs text-color3 truncate">{participant.job_title}</span>}
         </div>
       </div>
 
@@ -228,7 +228,7 @@ function ParticipantItem({
           <a
             href={`mailto:${participant.email}`}
             onClick={(e) => e.stopPropagation()}
-            className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"
+            className="text-color3 transition-colors hover:text-color4 p-1 rounded-full hover:bg-neutral-200"
           >
             <MailIcon className="size-3.5" />
           </a>
@@ -237,7 +237,7 @@ function ParticipantItem({
           <a
             href={`https://linkedin.com/in/${participant.linkedin_username}`}
             onClick={(e) => e.stopPropagation()}
-            className="text-neutral-400 transition-colors hover:text-neutral-600 p-1 rounded-full hover:bg-neutral-200"
+            className="text-color3 transition-colors hover:text-color4 p-1 rounded-full hover:bg-neutral-200"
           >
             <LinkedinIcon className="size-3.5" />
           </a>
@@ -271,18 +271,18 @@ function AddParticipantInput({
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
-          <SearchIcon className="size-4 text-neutral-500 flex-shrink-0" />
+          <SearchIcon className="size-4 text-color4 flex-shrink-0" />
           <input
             type="text"
             value={value}
             onChange={(e) => onChange?.(e.target.value)}
             placeholder="Find person"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-color3"
           />
           {value.trim() && (
             <button
               type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
+              className="text-color4 hover:text-color4 transition-colors flex-shrink-0"
             >
               <CornerDownLeft className="size-4" />
             </button>
@@ -300,7 +300,7 @@ function AddParticipantInput({
               >
                 <span className="font-medium truncate">{participant.full_name}</span>
                 {participant.organization?.name && (
-                  <span className="text-xs text-neutral-400 ml-auto">
+                  <span className="text-xs text-color3 ml-auto">
                     {participant.organization.name}
                   </span>
                 )}
@@ -311,8 +311,8 @@ function AddParticipantInput({
                 type="submit"
                 className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
               >
-                <span className="flex items-center gap-1 font-medium text-neutral-600">
-                  Create <span className="text-neutral-900">"{value.trim()}"</span>
+                <span className="flex items-center gap-1 font-medium text-color4">
+                  Create <span className="text-color4">"{value.trim()}"</span>
                 </span>
               </button>
             )}

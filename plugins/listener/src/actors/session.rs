@@ -25,18 +25,23 @@ pub enum SessionMsg {
     ChangeMicDevice(Option<String>),
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct SessionParams {
+    pub session_id: String,
+    pub languages: Vec<hypr_language::Language>,
+    pub onboarding: bool,
+    pub record_enabled: bool,
+}
+
 pub struct SessionArgs {
     pub app: tauri::AppHandle,
-    pub session_id: String,
+    pub params: SessionParams,
 }
 
 pub struct SessionState {
     app: tauri::AppHandle,
-    session_id: String,
-    languages: Vec<hypr_language::Language>,
-    onboarding: bool,
     token: CancellationToken,
-    record_enabled: bool,
+    params: SessionParams,
 }
 
 pub struct SessionActor;
@@ -57,8 +62,6 @@ impl Actor for SessionActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let session_id = args.session_id.clone();
-
         let cancellation_token = CancellationToken::new();
 
         {
@@ -66,18 +69,10 @@ impl Actor for SessionActor {
             let _ = args.app.set_start_disabled(true);
         }
 
-        // TODO
-        let languages = vec![hypr_language::ISO639::En.into()];
-        let onboarding = false;
-        let record_enabled = false;
-
         let state = SessionState {
             app: args.app,
-            session_id,
-            languages,
-            onboarding,
             token: cancellation_token,
-            record_enabled,
+            params: args.params,
         };
 
         {
@@ -215,12 +210,6 @@ impl Actor for SessionActor {
             let _ = state.app.set_start_disabled(false);
         }
 
-        #[cfg(feature = "v0")]
-        {
-            use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
-            let _ = state.app.window_hide(AppWindow::Control);
-        }
-
         SessionEvent::Inactive {}.emit(&state.app)?;
 
         Ok(())
@@ -236,7 +225,7 @@ impl SessionActor {
         Self::start_source(supervisor.clone(), state).await?;
         Self::start_listener(supervisor.clone(), state, None).await?;
 
-        if state.record_enabled {
+        if state.params.record_enabled {
             Self::start_recorder(supervisor, state).await?;
         }
 
@@ -260,7 +249,7 @@ impl SessionActor {
             SourceArgs {
                 token: state.token.clone(),
                 mic_device: None,
-                onboarding: state.onboarding,
+                onboarding: state.params.onboarding,
             },
             supervisor,
         )
@@ -317,7 +306,7 @@ impl SessionActor {
             RecorderActor,
             RecArgs {
                 app_dir: state.app.path().app_data_dir().unwrap(),
-                session_id: state.session_id.clone(),
+                session_id: state.params.session_id.clone(),
             },
             supervisor,
         )
@@ -347,8 +336,8 @@ impl SessionActor {
             ListenerActor,
             listener_args.unwrap_or(ListenerArgs {
                 app: session_state.app.clone(),
-                languages: session_state.languages.clone(),
-                onboarding: session_state.onboarding,
+                languages: session_state.params.languages.clone(),
+                onboarding: session_state.params.onboarding,
             }),
             supervisor,
         )

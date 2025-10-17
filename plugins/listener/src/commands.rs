@@ -1,4 +1,4 @@
-use crate::ListenerPluginExt;
+use crate::{actors::SessionParams, ListenerPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -129,9 +129,9 @@ pub async fn set_speaker_muted<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn start_session<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    session_id: String,
+    params: SessionParams,
 ) -> Result<(), String> {
-    app.start_session(session_id).await;
+    app.start_session(params).await;
     Ok(())
 }
 

@@ -12,7 +12,7 @@ use {
 };
 
 use crate::{
-    actors::{SessionActor, SessionArgs, SessionMsg},
+    actors::{SessionActor, SessionArgs, SessionMsg, SessionParams},
     SessionEvent,
 };
 
@@ -40,7 +40,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
-    fn start_session(&self, id: impl Into<String>) -> impl Future<Output = ()>;
+    fn start_session(&self, params: SessionParams) -> impl Future<Output = ()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -240,7 +240,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_session(&self, session_id: impl Into<String>) {
+    async fn start_session(&self, params: SessionParams) {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
@@ -249,7 +249,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             SessionActor,
             SessionArgs {
                 app: guard.app.clone(),
-                session_id: session_id.into(),
+                params,
             },
         )
         .await;

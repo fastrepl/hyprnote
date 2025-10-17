@@ -30,11 +30,9 @@ hypr-vad2 = { workspace = true }
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
-tauri-plugin-auth = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
-tauri-plugin-windows = { workspace = true, optional = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 

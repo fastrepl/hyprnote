@@ -74,7 +74,12 @@ export const createListenerStore = () => {
         );
       });
 
-      listenerCommands.startSession("").then(() => {
+      listenerCommands.startSession({
+        languages: ["en"],
+        onboarding: false,
+        record_enabled: false,
+        session_id: crypto.randomUUID(),
+      }).then(() => {
         set({ status: "running_active", loading: false });
       }).catch((error) => {
         console.error(error);

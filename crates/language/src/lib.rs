@@ -5,11 +5,16 @@ use std::str::FromStr;
 
 pub use codes_iso_639::part_1::LanguageCode as ISO639;
 
-#[derive(Debug, Clone, PartialEq, specta::Type, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, schemars::JsonSchema)]
 pub struct Language {
-    #[specta(type = String)]
     #[schemars(with = "String", regex(pattern = "^[a-zA-Z]{2}$"))]
     iso639: ISO639,
+}
+
+impl specta::Type for Language {
+    fn inline(_: &mut specta::TypeCollection, _: specta::Generics) -> specta::DataType {
+        specta::DataType::Primitive(specta::datatype::PrimitiveType::String)
+    }
 }
 
 impl Default for Language {

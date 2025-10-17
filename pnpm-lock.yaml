@@ -419,9 +419,6 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../ui
-      '@hypr/utils':
-        specifier: workspace:^
-        version: link:../utils
       '@remixicon/react':
         specifier: ^4.7.0
         version: 4.7.0(react@19.2.0)
@@ -733,12 +730,6 @@ importers:
         version: 2.8.0
 
   plugins/auth:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.8.0
-        version: 2.8.0
-
-  plugins/connector:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.8.0

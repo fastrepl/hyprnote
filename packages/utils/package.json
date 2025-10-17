@@ -1,12 +1,7 @@
 {
   "name": "@hypr/utils",
   "exports": {
-    ".": "./src/index.ts",
-    "./datetime": "./src/datetime.ts",
-    "./ai": "./src/ai.ts",
-    "./contexts": "./src/contexts/index.ts",
-    "./navigation": "./src/navigation.ts",
-    "./stores": "./src/stores/index.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "test": "vitest run"

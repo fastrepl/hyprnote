@@ -40,7 +40,7 @@ async stopServer(serverType: ServerType | null) : Promise<boolean> {
 async listSupportedModels() : Promise<SttModelInfo[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_models");
 },
-async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
+async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_languages", { model });
 },
 async getCustomBaseUrl() : Promise<string> {
@@ -81,7 +81,6 @@ async setCustomModel(model: SupportedSttModel) : Promise<null> {
 
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type Language = { iso639: string }
 export type Provider = "Local" | "Custom"
 export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external" | "custom"

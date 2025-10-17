@@ -231,6 +231,10 @@ export const StoreComponent = () => {
       const [changedTables, _changedValues] = store.getTransactionChanges();
 
       Object.entries(changedTables).forEach(([tableId, rows]) => {
+        if (!rows) {
+          return;
+        }
+
         Object.entries(rows).forEach(([rowId, cells]) => {
           const id = internal.rowIdOfChange(tableId, rowId);
 

@@ -76,7 +76,7 @@ export type Alternatives = { transcript: string; words: Word[]; confidence: numb
 export type Channel = { alternatives: Alternatives[] }
 export type Metadata = { request_id: string; model_info: ModelInfo; model_uuid: string }
 export type ModelInfo = { name: string; version: string; arch: string }
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean } | { type: "finalWords"; response: StreamResponse }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse }
 export type StreamResponse = { type: string; start: number; duration: number; is_final: boolean; speech_final: boolean; from_finalize: boolean; channel: Channel; metadata: Metadata; channel_index: number[] } | { request_id: string; created: string; duration: number; channels: number } | { type: string; channel: number[]; timestamp: number } | { type: string; channel: number[]; last_word_end: number }
 export type Word = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null; language: string | null }
 

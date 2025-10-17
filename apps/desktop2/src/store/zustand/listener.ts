@@ -59,6 +59,12 @@ export const createListenerStore = () => {
               draft.loading = false;
             })
           );
+        } else if (payload.type === "streamResponse") {
+          set((state) =>
+            mutate(state, (_draft) => {
+              console.log(payload.response);
+            })
+          );
         }
       }).then((unlisten) => {
         set((state) =>

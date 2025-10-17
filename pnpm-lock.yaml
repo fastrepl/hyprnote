@@ -789,15 +789,6 @@ importers:
         specifier: ^2.8.0
         version: 2.8.0
 
-  plugins/obsidian:
-    dependencies:
-      '@hypr/obsidian':
-        specifier: workspace:^
-        version: link:../../packages/obsidian
-      '@tauri-apps/api':
-        specifier: ^2.8.0
-        version: 2.8.0
-
   plugins/sfx:
     dependencies:
       '@tauri-apps/api':
@@ -811,12 +802,6 @@ importers:
         version: 2.8.0
 
   plugins/store2:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.8.0
-        version: 2.8.0
-
-  plugins/task:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.8.0

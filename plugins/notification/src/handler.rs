@@ -100,6 +100,14 @@ impl NotificationHandler {
                         "com.prakashjoshipax.VoiceInk",
                         "com.goodsnooze.macwhisper",
                         "com.descript.beachcube",
+                        "com.openai.chat",
+                        "com.anthropic.claudefordesktop",
+                        "com.raycast.macos",
+                        "com.apple.VoiceMemos",
+                        "com.exafunction.windsurf",
+                        "dev.zed.Zed",
+                        "com.microsoft.VSCode",
+                        "com.todesktop.230313mzl4w4u92",
                     ]
                     .contains(&app.id.as_str())
                 }) {

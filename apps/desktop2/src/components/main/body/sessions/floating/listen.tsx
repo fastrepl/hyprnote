@@ -1,5 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useState } from "react";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
@@ -39,6 +40,8 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
 
 function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const remote = useRemoteMeeting(tab.id);
+  const isNarrow = useMediaQuery("(max-width: 870px)");
+
   const start = useListener((state) => state.start);
 
   const handleClick = useCallback(() => {
@@ -54,7 +57,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
         onClick={handleClick}
         icon={<Icon icon="streamline-logos:zoom-logo-1-block" className="w-5 h-5 text-blue-300" />}
       >
-        Join Zoom & Start listening
+        {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
       </FloatingButton>
     );
   }
@@ -65,7 +68,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
         onClick={handleClick}
         icon={<Icon icon="logos:google-meet" className="w-5 h-5" />}
       >
-        Join Google Meet & Start listening
+        {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
       </FloatingButton>
     );
   }

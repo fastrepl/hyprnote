@@ -1,5 +1,6 @@
-import { CircleMinus, CornerDownLeft, LinkedinIcon, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
+import { CircleMinus, CornerDownLeft, MailIcon, SearchIcon, Users2Icon } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { LinkedInIcon } from "../icons/linkedin";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
@@ -239,7 +240,7 @@ function ParticipantItem({
             onClick={(e) => e.stopPropagation()}
             className="text-color3 transition-colors hover:text-color4 p-1 rounded-full hover:bg-neutral-200"
           >
-            <LinkedinIcon className="size-3.5" />
+            <LinkedInIcon className="size-3.5" />
           </a>
         )}
       </div>

@@ -57,9 +57,6 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop2
-      - uses: ./.github/actions/setup_protoc
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: ${{ matrix.platform }}

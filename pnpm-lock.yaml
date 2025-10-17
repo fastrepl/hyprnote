@@ -54,9 +54,6 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui
-      '@hypr/utils':
-        specifier: workspace:^
-        version: link:../../packages/utils
       '@iconify-icon/react':
         specifier: ^3.0.1
         version: 3.0.1(react@19.2.0)
@@ -673,9 +670,6 @@ importers:
       '@date-fns/tz':
         specifier: ^1.4.1
         version: 1.4.1
-      '@hypr/plugin-connector':
-        specifier: workspace:^
-        version: link:../../plugins/connector
       '@hypr/plugin-db':
         specifier: workspace:^
         version: link:../../plugins/db

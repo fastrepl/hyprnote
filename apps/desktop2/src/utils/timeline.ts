@@ -1,6 +1,6 @@
 import { differenceInCalendarMonths, differenceInDays, isPast, startOfDay } from "date-fns";
 
-import { format } from "@hypr/utils/datetime";
+import { format } from "date-fns";
 import type * as persisted from "../store/tinybase/persisted";
 
 export type TimelineEventRow = {

@@ -53,23 +53,21 @@ function Header(
   }
 
   return (
-    <div className="border-b border-neutral-100">
-      <div className="flex">
-        {editorTabs.map((view) => (
-          <button
-            key={view}
-            onClick={() => handleTabChange(view)}
-            className={cn([
-              "relative px-3 py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px flex items-center gap-1.5",
-              currentTab === view
-                ? ["text-neutral-900", "border-neutral-900"]
-                : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
-            ])}
-          >
-            {labelForEditorView(view)}
-          </button>
-        ))}
-      </div>
+    <div className="flex gap-4">
+      {editorTabs.map((view) => (
+        <button
+          key={view}
+          onClick={() => handleTabChange(view)}
+          className={cn([
+            "relative py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px",
+            currentTab === view
+              ? ["text-neutral-900", "border-neutral-900"]
+              : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+          ])}
+        >
+          {labelForEditorView(view)}
+        </button>
+      ))}
     </div>
   );
 }

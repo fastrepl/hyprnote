@@ -35,6 +35,7 @@ tauri-plugin-sentry = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 tauri-plugin-updater = { workspace = true }

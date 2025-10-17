@@ -31,6 +31,7 @@
     "process:default",
     "local-stt:default",
     "dialog:default",
-    "listener:default"
+    "listener:default",
+    "template:default"
   ]
 }

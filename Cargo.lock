@@ -3828,6 +3828,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-plugin-store2",
+ "tauri-plugin-template",
  "tauri-plugin-tracing",
  "tauri-plugin-tray",
  "tauri-plugin-updater",

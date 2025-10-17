@@ -7,53 +7,133 @@
 
 
 export const commands = {
-async listMicrophoneDevices() : Promise<string[]> {
-    return await TAURI_INVOKE("plugin:listener|list_microphone_devices");
+async listMicrophoneDevices() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|list_microphone_devices") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getCurrentMicrophoneDevice() : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:listener|get_current_microphone_device");
+async getCurrentMicrophoneDevice() : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_current_microphone_device") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setMicrophoneDevice(deviceName: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|set_microphone_device", { deviceName });
+async setMicrophoneDevice(deviceName: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|set_microphone_device", { deviceName }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async checkMicrophoneAccess() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:listener|check_microphone_access");
+async checkMicrophoneAccess() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|check_microphone_access") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async checkSystemAudioAccess() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:listener|check_system_audio_access");
+async checkSystemAudioAccess() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|check_system_audio_access") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async requestMicrophoneAccess() : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|request_microphone_access");
+async requestMicrophoneAccess() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|request_microphone_access") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async requestSystemAudioAccess() : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|request_system_audio_access");
+async requestSystemAudioAccess() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|request_system_audio_access") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async openMicrophoneAccessSettings() : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|open_microphone_access_settings");
+async openMicrophoneAccessSettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|open_microphone_access_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async openSystemAudioAccessSettings() : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|open_system_audio_access_settings");
+async openSystemAudioAccessSettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|open_system_audio_access_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getMicMuted() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:listener|get_mic_muted");
+async getMicMuted() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_mic_muted") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setMicMuted(muted: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|set_mic_muted", { muted });
+async setMicMuted(muted: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|set_mic_muted", { muted }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getSpeakerMuted() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:listener|get_speaker_muted");
+async getSpeakerMuted() : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_speaker_muted") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setSpeakerMuted(muted: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|set_speaker_muted", { muted });
+async setSpeakerMuted(muted: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|set_speaker_muted", { muted }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async startSession(params: SessionParams) : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|start_session", { params });
+async startSession(params: SessionParams) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|start_session", { params }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async stopSession() : Promise<null> {
-    return await TAURI_INVOKE("plugin:listener|stop_session");
+async stopSession() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|stop_session") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getState() : Promise<string> {
-    return await TAURI_INVOKE("plugin:listener|get_state");
+async getState() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_state") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

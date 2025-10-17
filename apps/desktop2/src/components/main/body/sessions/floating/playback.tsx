@@ -2,7 +2,7 @@ import { CassetteTapeIcon, PlayIcon, StopCircleIcon } from "lucide-react";
 import { useState } from "react";
 
 import { useAudioPlayer } from "../../../../../contexts/audio-player/provider";
-import { FloatingButton } from "./shared";
+import { FloatingButton, formatTime } from "./shared";
 
 export function PlaybackButton() {
   const { state } = useAudioPlayer();
@@ -48,10 +48,4 @@ function PlaybackButtonNonStopped() {
         : `${formatTime(time.current)} / ${formatTime(time.total)}`}
     </FloatingButton>
   );
-}
-
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }

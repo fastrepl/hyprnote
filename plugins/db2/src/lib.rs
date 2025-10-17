@@ -25,7 +25,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::execute_local::<tauri::Wry>,
             commands::execute_cloud::<tauri::Wry>,
         ])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {

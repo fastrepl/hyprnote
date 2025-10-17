@@ -21,7 +21,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             commands::todo::<tauri::Wry>,
         ])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {

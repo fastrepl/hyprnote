@@ -120,11 +120,9 @@ tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-mcp = { path = "plugins/mcp" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
-tauri-plugin-obsidian = { path = "plugins/obsidian" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
-tauri-plugin-task = { path = "plugins/task" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }

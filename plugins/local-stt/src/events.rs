@@ -1,9 +1,7 @@
-#[cfg(feature = "tauri-plugin-windows")]
 use tauri_plugin_windows::AppWindow;
 
 pub fn on_event<R: tauri::Runtime>(app: &tauri::AppHandle<R>, event: &tauri::RunEvent) {
     match event {
-        #[cfg(feature = "tauri-plugin-windows")]
         tauri::RunEvent::WindowEvent { label, event, .. } => {
             let hypr_window = match label.parse::<AppWindow>() {
                 Ok(window) => window,

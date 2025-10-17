@@ -52,7 +52,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_state::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![SessionEvent])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {

@@ -56,7 +56,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
         ])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {

@@ -33,7 +33,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::sync_calendars::<tauri::Wry>,
             commands::sync_events::<tauri::Wry>,
         ])
-        .error_handling(tauri_specta::ErrorHandlingMode::Throw)
+        .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
 pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {

@@ -14372,7 +14372,6 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-store",
  "tauri-plugin-store2",
- "tauri-plugin-task",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.17",
@@ -14468,24 +14467,6 @@ dependencies = [
  "tauri-plugin",
  "thiserror 1.0.69",
  "url",
-]
-
-[[package]]
-name = "tauri-plugin-obsidian"
-version = "0.1.0"
-dependencies = [
- "serde",
- "specta",
- "specta-typescript",
- "strum 0.26.3",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-store",
- "tauri-plugin-store2",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -14655,24 +14636,6 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
-]
-
-[[package]]
-name = "tauri-plugin-task"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "specta",
- "specta-typescript",
- "strum 0.26.3",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-store",
- "tauri-plugin-store2",
- "tauri-specta",
- "thiserror 2.0.17",
- "uuid",
 ]
 
 [[package]]

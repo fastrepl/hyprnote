@@ -3,11 +3,12 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useState } from "react";
 
+import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
-import { FloatingButton } from "./shared";
+import { FloatingButton, formatTime } from "./shared";
 
 type RemoteMeeting =
   | { type: "zoom"; url: string | null }
@@ -85,6 +86,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
 
 function DuringMeetingButton() {
   const stop = useListener((state) => state.stop);
+  const { amplitude, seconds } = useListener(({ amplitude, seconds }) => ({ amplitude, seconds }));
   const [hovered, setHovered] = useState(false);
 
   const handleMouseEnter = useCallback(() => setHovered(true), []);
@@ -101,9 +103,9 @@ function DuringMeetingButton() {
         {hovered
           ? "Stop listening"
           : (
-            <div className="flex items-center gap-4">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span>Listening...</span>
+            <div className="flex flex-row items-center gap-4">
+              <span className="text-gray-500 text-sm">{formatTime(seconds)}</span>
+              <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
             </div>
           )}
       </span>

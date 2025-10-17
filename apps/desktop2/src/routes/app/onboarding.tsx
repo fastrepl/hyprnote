@@ -105,13 +105,25 @@ function Permissions() {
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    queryFn: async () => {
+      const result = await listenerCommands.checkMicrophoneAccess();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
     refetchInterval: 1000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    queryFn: async () => {
+      const result = await listenerCommands.checkSystemAudioAccess();
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
     refetchInterval: 1000,
   });
 

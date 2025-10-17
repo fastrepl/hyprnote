@@ -1,9 +1,10 @@
-import { clsx } from "clsx";
-import { CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
-import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+
+import { clsx } from "clsx";
+import { ChevronDownIcon, ChevronUpIcon, ExternalLink, Trash2 } from "lucide-react";
+import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import * as persisted from "../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
@@ -62,13 +63,17 @@ export function TimelineView() {
           onClick={scrollToToday}
           size="sm"
           className={clsx([
-            "absolute left-1/2 transform -translate-x-1/2 rounded-full shadow-lg bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 z-40 flex items-center gap-1",
+            "absolute left-1/2 transform -translate-x-1/2",
+            "rounded-full bg-white hover:bg-gray-50",
+            "text-gray-700 border border-gray-200",
+            "z-40 flex items-center gap-1",
+            "shadow-[inset_0_-4px_6px_-1px_rgba(255,0,0,0.1),inset_0_-2px_4px_-2px_rgba(255,0,0,0.1)]",
             isScrolledPastToday ? "top-2" : "bottom-2",
           ])}
           variant="outline"
         >
-          <CalendarIcon size={14} />
-          <span className="text-xs">Go to Today</span>
+          {!isScrolledPastToday ? <ChevronDownIcon size={12} /> : <ChevronUpIcon size={12} />}
+          <span className="text-xs">Go back to now</span>
         </Button>
       )}
     </div>

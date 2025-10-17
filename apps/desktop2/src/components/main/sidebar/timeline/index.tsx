@@ -99,10 +99,8 @@ export function TimelineView() {
               : "shadow-[0_2px_8px_rgba(248,113,113,0.3)] hover:shadow-[0_2px_12px_rgba(239,68,68,0.4)]",
           ])}
         >
-          <div className="flex flex-row items-center gap-1">
-            <CalendarIcon size={14} />
-            <span className="text-xs">Go to Today</span>
-          </div>
+          <CalendarIcon size={14} />
+          <span className="text-xs">Go to Today</span>
         </Button>
       )}
     </div>

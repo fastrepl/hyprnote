@@ -1,19 +1,20 @@
-import { OngoingSessionProvider2 } from "@hypr/utils/contexts";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+
+import { ListenerProvider } from "../contexts/listener";
 
 export const Route = createFileRoute("/app")({
   component: Component,
-  loader: async ({ context: { ongoingSessionStore } }) => {
-    return { ongoingSessionStore: ongoingSessionStore! };
+  loader: async ({ context: { listenerStore } }) => {
+    return { listenerStore: listenerStore! };
   },
 });
 
 function Component() {
-  const { ongoingSessionStore } = Route.useLoaderData();
+  const { listenerStore } = Route.useLoaderData();
 
   return (
-    <OngoingSessionProvider2 store={ongoingSessionStore}>
+    <ListenerProvider store={listenerStore}>
       <Outlet />
-    </OngoingSessionProvider2>
+    </ListenerProvider>
   );
 }

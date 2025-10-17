@@ -8,7 +8,7 @@ import {
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
-import { events as windowsEvents } from "@hypr/plugin-windows/v1";
+import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import type { Context } from "../types";
 

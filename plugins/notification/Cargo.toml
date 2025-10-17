@@ -42,8 +42,3 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
 chrono = { workspace = true }
-
-[features]
-default = []
-v0 = ["tauri-plugin-windows", "tauri-plugin-windows/v0"]
-v1 = ["tauri-plugin-windows", "tauri-plugin-windows/v1"]

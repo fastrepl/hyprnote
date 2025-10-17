@@ -132,6 +132,9 @@ importers:
       motion:
         specifier: ^11.18.2
         version: 11.18.2(@emotion/is-prop-valid@0.8.8)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      mutative:
+        specifier: ^1.3.0
+        version: 1.3.0
       re-resizable:
         specifier: ^6.11.2
         version: 6.11.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

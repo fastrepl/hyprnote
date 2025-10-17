@@ -88,10 +88,6 @@ mod test {
 
     #[test]
     fn export_types() {
-        #[cfg(feature = "v1")]
-        const OUTPUT_FILE: &str = "./js/bindings.v1.gen.ts";
-
-        #[cfg(not(feature = "v1"))]
         const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
 
         make_specta_builder()

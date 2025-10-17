@@ -19,7 +19,7 @@ common_event_derives! {
         MicMuted { value: bool },
         #[serde(rename = "speakerMuted")]
         SpeakerMuted { value: bool },
-        #[serde(rename = "finalWords")]
+        #[serde(rename = "streamResponse")]
         StreamResponse { response: owhisper_interface::StreamResponse },
     }
 }

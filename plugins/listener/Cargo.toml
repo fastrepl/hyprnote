@@ -22,8 +22,6 @@ hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
-hypr-db-core = { workspace = true }
-hypr-db-user = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
 hypr-tcc = { workspace = true }
@@ -33,8 +31,6 @@ owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
 tauri-plugin-auth = { workspace = true }
-tauri-plugin-connector = { workspace = true }
-tauri-plugin-db = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
@@ -70,18 +66,3 @@ tracing = { workspace = true }
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
-
-[features]
-default = []
-v0 = [
-  "tauri-plugin-windows",
-  "tauri-plugin-windows/v0",
-  "tauri-plugin-local-stt/v0",
-  "tauri-plugin-tray/v0",
-]
-v1 = [
-  "tauri-plugin-windows",
-  "tauri-plugin-windows/v1",
-  "tauri-plugin-local-stt/v1",
-  "tauri-plugin-tray/v1",
-]

@@ -1,7 +1,7 @@
 import { ChevronDownIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { events as listenerEvents, type Word2 } from "@hypr/plugin-listener";
+import { events as listenerEvents, type Word } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
@@ -10,8 +10,8 @@ export function TranscriptView({ tab }: { tab: Tab }) {
   const sessionId = rowIdfromTab(tab);
   const sessionRow = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
 
-  const [finalWords, setFinalWords] = useState<Word2[]>([]);
-  const [partialWords, setPartialWords] = useState<Word2[]>([]);
+  const [finalWords, setFinalWords] = useState<Word[]>([]);
+  const [partialWords, setPartialWords] = useState<Word[]>([]);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -28,10 +28,10 @@ export function TranscriptView({ tab }: { tab: Tab }) {
 
     listenerEvents.sessionEvent.listen(({ payload }: { payload: any }) => {
       if (payload.type === "finalWords") {
-        const words = Object.values(payload.words).flat().filter((v): v is Word2 => !!v);
+        const words = Object.values(payload.words).flat().filter((v): v is Word => !!v);
         setFinalWords((existing) => [...existing, ...words]);
       } else if (payload.type === "partialWords") {
-        const words = Object.values(payload.words).flat().filter((v): v is Word2 => !!v);
+        const words = Object.values(payload.words).flat().filter((v): v is Word => !!v);
         setPartialWords(words);
       }
     }).then((fn: () => void) => {
@@ -93,12 +93,12 @@ export function TranscriptView({ tab }: { tab: Tab }) {
       >
         <div className="px-8 text-[15px] leading-relaxed break-all space-y-2">
           <span className="text-gray-800">
-            {finalWords.map(word => word.text).join(" ")}
+            {finalWords.map(word => word.word).join(" ")}
           </span>
           {partialWords.length > 0 && (
             <span className="text-gray-400">
               {" "}
-              {partialWords.map(word => word.text).join(" ")}
+              {partialWords.map(word => word.word).join(" ")}
             </span>
           )}
         </div>

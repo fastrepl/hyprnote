@@ -1,4 +1,4 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { useAuth } from "../../auth";
 

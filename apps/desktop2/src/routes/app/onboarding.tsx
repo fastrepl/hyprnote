@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { z } from "zod";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
-import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";

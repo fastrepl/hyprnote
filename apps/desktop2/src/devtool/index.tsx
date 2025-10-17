@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useStores } from "tinybase/ui-react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows/v1";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/ui/lib/utils";
 import { useAutoCloser } from "../hooks/useAutoCloser";
 import { type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED } from "../store/tinybase/persisted";

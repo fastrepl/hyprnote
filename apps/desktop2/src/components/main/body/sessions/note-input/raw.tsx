@@ -65,14 +65,14 @@ const PlaceHolderInner = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-gray-400">
+      <span className="text-[#e5e5e5]">
         Take notes or press <kbd>/</kbd> for commands.
       </span>
       <div className={cn("flex flex-row items-center gap-1", isNarrow && "hidden")}>
-        <span className="text-gray-400">You can also upload/drop an</span>
+        <span className="text-[#e5e5e5]">You can also upload/drop an</span>
         <button
           type="button"
-          className="text-gray-400 hover:text-gray-600 transition-colors underline"
+          className="text-gray-400 hover:text-gray-600 transition-colors underline decoration-dotted hover:decoration-solid"
           onClick={handleFileSelect}
         >
           audio file or transcript file.

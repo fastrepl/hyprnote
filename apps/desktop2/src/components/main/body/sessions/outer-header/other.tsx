@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,9 +80,9 @@ export function OthersButton(_: { sessionId: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="text-xs rounded-lg hover:bg-gray-200 size-7 flex items-center justify-center cursor-pointer">
+        <Button size="icon" variant="ghost">
           <MoreHorizontalIcon size={16} />
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={handleCopyLink}>

@@ -3,11 +3,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../store/zustand/tabs";
 
-export function TitleInput({ tab }: { tab: Tab }) {
-  if (tab.type !== "sessions") {
-    return null;
-  }
-
+export function TitleInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { id: sessionId, state: { editor } } = tab;
   const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
 

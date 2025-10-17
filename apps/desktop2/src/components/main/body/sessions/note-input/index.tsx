@@ -11,16 +11,12 @@ const EDITOR_TABS = [
   { view: "transcript" as const, label: "Transcript" },
 ];
 
-export function NoteInput({ tab }: { tab: Tab }) {
+export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { updateSessionTabState } = useTabs();
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });
   };
-
-  if (tab.type !== "sessions") {
-    return null;
-  }
 
   const sessionId = tab.id;
   const currentTab = tab.state.editor ?? "raw";

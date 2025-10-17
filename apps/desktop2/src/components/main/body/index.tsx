@@ -50,7 +50,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     const sessionId = id();
     const user_id = internalStore?.getValue("user_id");
 
-    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString(), title: "" });
     openNew({
       type: "sessions",
       id: sessionId,

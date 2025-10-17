@@ -42,7 +42,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto mt-1">
+      <div className="flex-1 overflow-auto mt-3">
         {currentTab === "enhanced" && <EnhancedEditor sessionId={sessionId} />}
         {currentTab === "raw" && <RawEditor sessionId={sessionId} />}
         {currentTab === "transcript" && <TranscriptEditorWrapper sessionId={sessionId} />}

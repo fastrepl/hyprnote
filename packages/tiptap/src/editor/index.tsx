@@ -6,6 +6,7 @@ import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor
 import { forwardRef, useEffect, useRef } from "react";
 
 import * as shared from "../shared";
+import type { PlaceholderFunction } from "../shared/extensions/placeholder";
 import { mention, type MentionConfig } from "./mention";
 
 export type { TiptapEditor };
@@ -16,10 +17,21 @@ interface EditorProps {
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
+  placeholderComponent?: PlaceholderFunction;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
-  ({ handleChange, initialContent, editable = true, setContentFromOutside = false, mentionConfig }, ref) => {
+  (
+    {
+      handleChange,
+      initialContent,
+      editable = true,
+      setContentFromOutside = false,
+      mentionConfig,
+      placeholderComponent,
+    },
+    ref,
+  ) => {
     const previousContentRef = useRef<HTMLContent>(initialContent);
 
     const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
@@ -32,7 +44,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
     const editor = useEditor({
       extensions: [
-        ...shared.extensions,
+        ...shared.getExtensions(placeholderComponent),
         Document,
         mention(mentionConfig),
       ],

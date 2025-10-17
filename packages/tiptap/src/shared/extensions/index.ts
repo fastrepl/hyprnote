@@ -1,20 +1,22 @@
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
-import { SearchAndReplace } from "../transcript/extensions/search-and-replace";
-import { AIHighlight } from "./ai-highlight";
-import { StreamingAnimation } from "./animation";
-import { ClipboardTextSerializer } from "./clipboard";
-import CustomListKeymap from "./custom-list-keymap";
-import { Hashtag } from "./hashtag";
+import { SearchAndReplace } from "../../transcript/extensions/search-and-replace";
+import { AIHighlight } from "../ai-highlight";
+import { StreamingAnimation } from "../animation";
+import { ClipboardTextSerializer } from "../clipboard";
+import CustomListKeymap from "../custom-list-keymap";
+import { Hashtag } from "../hashtag";
+import { Placeholder, type PlaceholderFunction } from "./placeholder";
 
-export const extensions = [
+export type { PlaceholderFunction };
+
+export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
   StarterKit.configure({
     heading: { levels: [1] },
     underline: false,
@@ -24,7 +26,7 @@ export const extensions = [
   Image,
   Underline,
   Placeholder.configure({
-    placeholder: ({ node }) => {
+    placeholder: placeholderComponent ?? (({ node }) => {
       if (node.type.name === "paragraph") {
         return "Start taking notes...";
       }
@@ -46,7 +48,7 @@ export const extensions = [
       }
 
       return "";
-    },
+    }),
     showOnlyWhenEditable: true,
   }),
   Hashtag,
@@ -96,3 +98,5 @@ export const extensions = [
     disableRegex: true,
   }),
 ];
+
+export const extensions = getExtensions();

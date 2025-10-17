@@ -23,10 +23,19 @@
   pointer-events: none;
   height: 0;
 }
+
 .ProseMirror .is-empty::before {
   content: attr(data-placeholder);
   float: left;
   color: #e5e5e5;
   pointer-events: none;
   height: 0;
+}
+
+.ProseMirror .react-placeholder-widget {
+  float: left;
+  pointer-events: auto;
+  user-select: none;
+  height: 0;
+  color: #e5e5e5;
 }

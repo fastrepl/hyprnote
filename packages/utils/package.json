@@ -3,9 +3,6 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "scripts": {
-    "test": "vitest run"
-  },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^1.0.22",
     "@date-fns/tz": "^1.4.1",

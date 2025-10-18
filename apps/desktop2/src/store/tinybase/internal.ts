@@ -1,5 +1,5 @@
 import * as _UI from "tinybase/ui-react/with-schemas";
-import { createMergeableStore, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
+import { createMergeableStore, createQueries, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
 import { createLocalPersister } from "./localPersister";
@@ -20,13 +20,15 @@ export const generalSchema = z.object({
   current_stt_provider: z.string().default("hyprlocal"),
 });
 
-export const aiSchema = z.object({
-  base_url: z.string(),
-  api_key: z.string(),
-  model_name: z.string(),
+export const aiProviderSchema = z.object({
+  type: z.enum(["stt", "llm"]),
+  model: z.string().min(1),
+  base_url: z.url(),
+  api_key: z.string().min(1),
 });
-export type AI = z.infer<typeof aiSchema>;
-export type AIStorage = ToStorageType<typeof aiSchema>;
+
+export type AIProvider = z.infer<typeof aiProviderSchema>;
+export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
 
 export type General = z.infer<typeof generalSchema>;
 export type GeneralStorage = ToStorageType<typeof generalSchema>;
@@ -48,11 +50,12 @@ export const SCHEMA = {
     current_stt_provider: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
-    ai: {
+    ai_providers: {
+      type: { type: "string" },
+      model: { type: "string" },
       base_url: { type: "string" },
       api_key: { type: "string" },
-      model_name: { type: "string" },
-    } as const satisfies InferTinyBaseSchema<typeof aiSchema>,
+    } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
     changes: {
       row_id: { type: "string" },
       table: { type: "string" },
@@ -71,8 +74,10 @@ const {
   useCreateMergeableStore,
   useCreatePersister,
   useCreateSynchronizer,
+  useCreateQueries,
   useProvideStore,
   useProvidePersister,
+  useProvideQueries,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -89,6 +94,7 @@ export const createStore = () => {
 
 export const useStore = () => {
   const store = useCreateMergeableStore(() => createStore());
+
   // TODO
   store.setValue("user_id", "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a");
 
@@ -111,10 +117,45 @@ export const useStore = () => {
     (persister) => persister.startAutoPersisting(),
   );
 
+  const queries = useCreateQueries(
+    store,
+    (store) =>
+      createQueries(store)
+        .setQueryDefinition(
+          QUERIES.llmProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("model");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "llm");
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.sttProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("model");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "stt");
+          },
+        ),
+    [],
+  )!;
+
   useProvideStore(STORE_ID, store);
   useProvidePersister(STORE_ID, localPersister);
+  useProvideQueries(STORE_ID, queries);
 
   return store;
 };
 
 export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;
+
+export const QUERIES = {
+  llmProviders: "llmProviders",
+  sttProviders: "sttProviders",
+};

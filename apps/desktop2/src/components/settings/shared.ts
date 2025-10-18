@@ -5,7 +5,7 @@ import { useSafeObjectUpdate } from "../../hooks/useSafeObjectUpdate";
 
 export const useUpdateGeneral = () => {
   const _value = internal.UI.useValues(internal.STORE_ID);
-  const value: internal.General = internal.generalSchema.parse(_value);
+  const value = internal.generalSchema.parse(_value);
 
   const cb = internal.UI.useSetPartialValuesCallback(
     (
@@ -23,21 +23,24 @@ export const useUpdateGeneral = () => {
   return { value, handle };
 };
 
-export const useUpdateAI = (id: string) => {
-  const _value = internal.UI.useRow("ai", id, internal.STORE_ID);
-  const value: internal.AI = internal.aiSchema.parse(_value);
+export const useUpdateAIProvider = (type: "llm" | "stt", id: string) => {
+  const _value = internal.UI.useRow("ai_providers", id, internal.STORE_ID);
+  const initialData = _value ? internal.aiProviderSchema.safeParse(_value).data : { type };
 
-  const cb = internal.UI.useSetPartialValuesCallback(
-    (row: Partial<internal.AI>) => ({ ...row } satisfies Partial<internal.AIStorage>),
+  const cb = internal.UI.useSetPartialRowCallback(
+    "ai_providers",
+    id,
+    (row: Partial<internal.AIProvider>) => ({ ...row } satisfies Partial<internal.AIProviderStorage>),
+    [id],
+    internal.STORE_ID,
   );
 
-  const handle = useSafeObjectUpdate(internal.aiSchema, value, cb);
-  return { value, handle };
+  return useSafeObjectUpdate(internal.aiProviderSchema, initialData, cb);
 };
 
 export const useUpdateTemplate = (id: string) => {
   const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
-  const value: persisted.Template = persisted.templateSchema.parse(_value);
+  const value = persisted.templateSchema.parse(_value);
 
   const cb = persisted.UI.useSetPartialRowCallback(
     "templates",

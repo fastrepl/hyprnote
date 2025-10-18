@@ -1,22 +1,78 @@
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
-import { useCallback, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { Trial } from "./banner";
-import { NotificationsItem } from "./notification";
+import { TryProBanner } from "./banner";
+import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
+type ProfileView = "main" | "notifications";
+
 export function ProfileSection() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [currentView, setCurrentView] = useState<ProfileView>("main");
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+  const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
+  const mainViewRef = useRef<HTMLDivElement | null>(null);
   const { openNew } = useTabs();
 
   const closeMenu = useCallback(() => {
     setIsExpanded(false);
   }, []);
+
+  const handleDismissBanner = useCallback(() => {
+    setIsBannerDismissed(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded && currentView !== "main") {
+      const timer = setTimeout(() => {
+        setCurrentView("main");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded, currentView]);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      setMainViewHeight(null);
+    }
+  }, [isExpanded]);
+
+  useLayoutEffect(() => {
+    if (!isExpanded || currentView !== "main") {
+      return;
+    }
+
+    const element = mainViewRef.current;
+    if (!element) {
+      return;
+    }
+
+    const updateHeight = () => {
+      const height = element.getBoundingClientRect().height;
+      if (height > 0) {
+        setMainViewHeight(height);
+      }
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isExpanded, currentView, isBannerDismissed]);
 
   const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
 
@@ -47,6 +103,14 @@ export function ProfileSection() {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickNotifications = useCallback(() => {
+    setCurrentView("notifications");
+  }, []);
+
+  const handleBackToMain = useCallback(() => {
+    setCurrentView("main");
+  }, []);
+
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
     { icon: Users, label: "Contacts", onClick: handleClickContacts },
@@ -67,18 +131,46 @@ export function ProfileSection() {
             isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
           )}
         >
-          <div className="overflow-hidden py-1.5">
-            <NotificationsItem />
-            <UpdateChecker />
+          <motion.div
+            className="overflow-hidden py-1.5"
+            layout
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <AnimatePresence mode="wait">
+              {currentView === "main"
+                ? (
+                  <motion.div
+                    key="main"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    ref={mainViewRef}
+                  >
+                    <NotificationsMenuHeader onClick={handleClickNotifications} />
+                    <UpdateChecker />
 
-            <div className="my-1.5 border-t border-slate-100" />
+                    <div className="my-1.5 border-t border-slate-100" />
 
-            {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
+                    {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
-            <div className="my-1.5 border-t border-slate-100" />
-
-            <Trial />
-          </div>
+                    <TryProBanner isDismissed={isBannerDismissed} onDismiss={handleDismissBanner} />
+                  </motion.div>
+                )
+                : (
+                  <motion.div
+                    key="notifications"
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 20, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    style={mainViewHeight ? { height: mainViewHeight } : undefined}
+                  >
+                    <NotificationsMenuContent onBack={handleBackToMain} />
+                  </motion.div>
+                )}
+            </AnimatePresence>
+          </motion.div>
         </div>
 
         <ProfileButton isExpanded={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />

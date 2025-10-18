@@ -142,7 +142,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
           onClick={handleNewNote}
           variant="ghost"
           size="icon"
-          className="text-color3"
+          className="text-neutral-500"
         >
           <PlusIcon size={16} />
         </Button>

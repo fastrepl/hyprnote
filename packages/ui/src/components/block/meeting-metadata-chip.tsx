@@ -121,7 +121,7 @@ export function MeetingMetadataChip({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          className="max-w-28 text-color4"
+          className="max-w-28 text-neutral-700"
           size="sm"
           variant="ghost"
           onClick={(e) => {
@@ -146,8 +146,8 @@ export function MeetingMetadataChip({
           {metadata.location && (
             <>
               <div className="flex items-center gap-2">
-                <MapPinIcon size={16} className="flex-shrink-0 text-color4" />
-                <span className="text-sm text-color4 truncate">
+                <MapPinIcon size={16} className="flex-shrink-0 text-neutral-700" />
+                <span className="text-sm text-neutral-700 truncate">
                   {metadata.location}
                 </span>
               </div>
@@ -159,8 +159,8 @@ export function MeetingMetadataChip({
             <>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <VideoIcon size={16} className="flex-shrink-0 text-color4" />
-                  <span className="text-sm text-color4 truncate">
+                  <VideoIcon size={16} className="flex-shrink-0 text-neutral-700" />
+                  <span className="text-sm text-neutral-700 truncate">
                     {getMeetingDomain(metadata.meeting_link)}
                   </span>
                 </div>
@@ -177,7 +177,7 @@ export function MeetingMetadataChip({
             </>
           )}
 
-          <p className="text-sm text-color4">
+          <p className="text-sm text-neutral-700">
             {formatDateRange(metadata.started_at, metadata.ended_at)}
           </p>
 
@@ -197,7 +197,7 @@ export function MeetingMetadataChip({
           {metadata.description && (
             <>
               <div className="border-t border-neutral-200" />
-              <div className="text-sm text-color4 whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
+              <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
                 {metadata.description}
               </div>
             </>
@@ -278,7 +278,7 @@ function ParticipantsSection({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-xs font-medium text-color3">Participants</div>
+      <div className="text-xs font-medium text-neutral-500">Participants</div>
 
       {/* Existing Participants Chips */}
       {participants.length > 0 && (
@@ -298,7 +298,7 @@ function ParticipantsSection({
       {/* Search Input */}
       <div className="relative">
         <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200 focus-within:border-neutral-300">
-          <SearchIcon className="size-4 text-color4 flex-shrink-0" />
+          <SearchIcon className="size-4 text-neutral-700 flex-shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -322,7 +322,7 @@ function ParticipantsSection({
                   handleSelectParticipant(searchResults[selectedIndex].id);
                 }
               }}
-              className="text-color4 hover:text-color4 transition-colors flex-shrink-0"
+              className="text-neutral-700 neutral-700transition-colors flex-shrink-0"
             >
               <CornerDownLeft className="size-4" />
             </button>
@@ -347,7 +347,7 @@ function ParticipantsSection({
                   >
                     <span className="font-medium truncate">{participant.full_name || "Unknown"}</span>
                     {participant.organization?.name && (
-                      <span className="text-xs text-color3 ml-2 flex-shrink-0">
+                      <span className="text-xs text-neutral-500 ml-2 flex-shrink-0">
                         {participant.organization.name}
                       </span>
                     )}
@@ -355,7 +355,7 @@ function ParticipantsSection({
                 ))
               )
               : (
-                <div className="px-3 py-2 text-sm text-color3 text-center">
+                <div className="px-3 py-2 text-sm text-neutral-500 text-center">
                   No matching participants found
                 </div>
               )}
@@ -387,26 +387,26 @@ function ParticipantChip({ participant, currentUserId, onClick, onRemove }: Part
     || (participant.id === currentUserId ? "You" : "Unknown");
 
   return (
-    <div className="group relative inline-flex items-center gap-1.5 px-2 py-1 bg-neutral-100 rounded-md hover:bg-neutral-200 transition-colors">
-      <div className="flex items-center gap-1.5 cursor-pointer" onClick={onClick}>
-        <Avatar className="size-5">
-          <AvatarFallback className="text-[10px] bg-neutral-200 text-color4 font-medium">
+    <div className="group relative inline-flex items-center gap-2 px-3 py-2 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors w-full">
+      <div className="flex flex-1 items-center gap-2 cursor-pointer" onClick={onClick}>
+        <Avatar className="size-7">
+          <AvatarFallback className="text-xs bg-neutral-200 text-neutral-700 font-medium">
             {participant.full_name ? getInitials(participant.full_name) : "?"}
           </AvatarFallback>
         </Avatar>
-        <span className="text-xs font-medium text-color4 max-w-[120px] truncate">
+        <span className="text-sm font-medium text-neutral-700 max-w-[140px] truncate">
           {displayName}
         </span>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {participant.email && (
           <a
             href={`mailto:${participant.email}`}
             onClick={(e) => e.stopPropagation()}
-            className="text-color3 transition-colors hover:text-color4 opacity-0 group-hover:opacity-100"
+            className="text-neutral-500 transition-colors hover:text-neutral-700 opacity-0 group-hover:opacity-100"
           >
-            <MailIcon className="size-3" />
+            <MailIcon className="size-4" />
           </a>
         )}
         {participant.linkedin_username && (
@@ -415,9 +415,9 @@ function ParticipantChip({ participant, currentUserId, onClick, onRemove }: Part
             onClick={(e) => e.stopPropagation()}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-color3 transition-colors hover:text-color4 opacity-0 group-hover:opacity-100"
+            className="text-neutral-500 transition-colors hover:text-neutral-700 opacity-0 group-hover:opacity-100"
           >
-            <LinkedInIcon className="size-3" />
+            <LinkedInIcon className="size-4" />
           </a>
         )}
         <button
@@ -427,7 +427,7 @@ function ParticipantChip({ participant, currentUserId, onClick, onRemove }: Part
           }}
           className="text-red-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
         >
-          <CircleMinus className="size-3.5" />
+          <CircleMinus className="size-4" />
         </button>
       </div>
     </div>

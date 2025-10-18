@@ -33,7 +33,7 @@ export function FolderChain({ sessionId }: { sessionId: string }) {
 
   return (
     <Breadcrumb className="ml-1.5">
-      <BreadcrumbList className="text-color4 text-xs">
+      <BreadcrumbList className="text-neutral-700 text-xs">
         {folderId && <FolderIcon className="w-3 h-3 mr-1" />}
         {!folderId
           ? <RenderIfRootNotExist title={title} handleChangeTitle={handleChangeTitle} sessionId={sessionId} />
@@ -106,7 +106,7 @@ function RenderIfRootNotExist(
     <>
       <BreadcrumbItem>
         <DropdownMenu>
-          <DropdownMenuTrigger className="text-color3 hover:text-color4 transition-colors outline-none">
+          <DropdownMenuTrigger className="text-neutral-500 hover:text-neutral-700 transition-colors outline-none">
             Select folder
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
@@ -143,7 +143,7 @@ function TitleInput({ title, handleChangeTitle }: { title: string; handleChangeT
     <input
       type="text"
       placeholder="Untitled"
-      className="truncate max-w-[80px] border-none bg-transparent text-color4 focus:outline-none focus:underline"
+      className="truncate max-w-[80px] border-none bg-transparent text-neutral-700 focus:outline-none focus:underline"
       value={title}
       onChange={(e) => handleChangeTitle(e.target.value)}
     />

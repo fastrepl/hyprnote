@@ -1,9 +1,10 @@
-import { clsx } from "clsx";
-import { CalendarIcon } from "lucide-react";
-import { type ReactNode, useMemo } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
+
+import { clsx } from "clsx";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { type ReactNode, useMemo } from "react";
+
 import * as persisted from "../../../../store/tinybase/persisted";
 import { buildTimelineBuckets } from "../../../../utils/timeline";
 import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
@@ -82,25 +83,20 @@ export function TimelineView() {
 
       {hasToday && !isTodayVisible && (
         <Button
-          size="sm"
-          variant="outline"
           onClick={scrollToToday}
+          size="sm"
           className={clsx([
-            "group",
-            "relative",
             "absolute left-1/2 transform -translate-x-1/2",
-            "bg-white hover:bg-gray-50",
-            "border border-gray-200",
-            "rounded-full shadow-lg",
-            "text-gray-700 z-40",
+            "rounded-full bg-white hover:bg-gray-50",
+            "text-gray-700 border border-gray-200",
+            "z-40 flex items-center gap-1",
+            "shadow-[inset_0_-4px_6px_-1px_rgba(255,0,0,0.1),inset_0_-2px_4px_-2px_rgba(255,0,0,0.1)]",
             isScrolledPastToday ? "top-2" : "bottom-2",
-            isScrolledPastToday
-              ? "shadow-[0_-2px_8px_rgba(248,113,113,0.3)] hover:shadow-[0_-2px_12px_rgba(239,68,68,0.4)]"
-              : "shadow-[0_2px_8px_rgba(248,113,113,0.3)] hover:shadow-[0_2px_12px_rgba(239,68,68,0.4)]",
           ])}
+          variant="outline"
         >
-          <CalendarIcon size={14} />
-          <span className="text-xs">Go to Today</span>
+          {!isScrolledPastToday ? <ChevronDownIcon size={12} /> : <ChevronUpIcon size={12} />}
+          <span className="text-xs">Go back to now</span>
         </Button>
       )}
     </div>

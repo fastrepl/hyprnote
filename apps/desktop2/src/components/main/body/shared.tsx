@@ -1,7 +1,9 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+
 import { clsx } from "clsx";
 import { X } from "lucide-react";
 
-import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";
 
@@ -56,16 +58,16 @@ export function TabItemBase(
       onMouseDown={handleMouseDown}
       className={clsx([
         "flex items-center gap-2 cursor-pointer group",
-        "w-48 h-full px-2",
+        "w-48 h-full pl-2 pr-1",
         "bg-color1 rounded-lg border",
         active ? "text-black border-black" : "text-color3 border-transparent",
       ])}
     >
-      <div className="flex flex-row items-center gap-1 text-sm flex-1 min-w-0">
+      <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
         <span className="flex-shrink-0">{icon}</span>
         <span className="truncate">{title}</span>
       </div>
-      <button
+      <Button
         onClick={(e) => {
           e.stopPropagation();
           handleCloseThis();
@@ -76,9 +78,11 @@ export function TabItemBase(
             ? "opacity-100 text-color4"
             : "opacity-0 group-hover:opacity-100 text-color3",
         ])}
+        size="icon"
+        variant="ghost"
       >
         <X size={14} />
-      </button>
+      </Button>
     </InteractiveButton>
   );
 }

@@ -1,3 +1,5 @@
+mod commands;
+
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -67,10 +69,7 @@ pub async fn main() {
     let specta_builder = make_specta_builder();
 
     let app = builder
-        .invoke_handler({
-            let handler = specta_builder.invoke_handler();
-            move |invoke| handler(invoke)
-        })
+        .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
             let app = app.handle().clone();
@@ -126,7 +125,9 @@ pub async fn main() {
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
-        .commands(tauri_specta::collect_commands![])
+        .commands(tauri_specta::collect_commands![
+            commands::parse_subtitle::<tauri::Wry>,
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 

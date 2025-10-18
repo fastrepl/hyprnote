@@ -1,11 +1,14 @@
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
+import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
+import { Effect, pipe } from "effect";
 import { forwardRef, useCallback } from "react";
 
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/ui/lib/utils";
 import * as persisted from "../../../../../store/tinybase/persisted";
+import { commands } from "../../../../../types/tauri.gen";
 
 export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
   ({ sessionId }, ref) => {
@@ -51,14 +54,39 @@ const PlaceHolderInner = () => {
   const handleFileSelect = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    selectFile({
-      title: "Upload Audio or Transcript",
-      multiple: false,
-      filters: [
-        { name: "Audio", extensions: ["wav", "mp3", "ogg"] },
-        { name: "Transcript", extensions: ["vtt", "srt"] },
-      ],
-    });
+    const program = pipe(
+      Effect.promise(() => downloadDir()),
+      Effect.flatMap((defaultPath) =>
+        Effect.promise(() =>
+          selectFile({
+            title: "Upload Audio or Transcript",
+            multiple: false,
+            directory: false,
+            defaultPath,
+            filters: [
+              { name: "Audio", extensions: ["wav", "mp3", "ogg"] },
+              { name: "Transcript", extensions: ["vtt", "srt"] },
+            ],
+          })
+        )
+      ),
+      Effect.flatMap((path) => {
+        if (!path) {
+          return Effect.void;
+        }
+
+        if (path.endsWith(".vtt") || path.endsWith(".srt")) {
+          return pipe(
+            Effect.promise(() => commands.parseSubtitle(path)),
+            Effect.tap((subtitle) => Effect.sync(() => console.log(subtitle))),
+          );
+        }
+
+        return Effect.void;
+      }),
+    );
+
+    Effect.runPromise(program);
   }, []);
 
   const isNarrow = useMediaQuery("(max-width: 768px)");

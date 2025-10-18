@@ -1,37 +1,99 @@
-import { clsx } from "clsx";
-import { ArrowRight, Zap } from "lucide-react";
-import { useCallback } from "react";
+import { X, Zap } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-export function Trial() {
-  const handleClickTryPro = useCallback(() => {
-    console.log("Try Hyprnote Pro");
-  }, []);
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
+
+export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean; onDismiss: () => void }) {
+  const handleDismiss = () => {
+    onDismiss();
+  };
+
+  const handleSignUp = () => {};
 
   return (
-    <button
-      onClick={handleClickTryPro}
-      className={clsx(
-        "group",
-        "mx-4 mb-1.5 w-[calc(100%-2rem)]",
-        "rounded-lg",
-        "border border-slate-200",
-        "bg-white",
-        "p-2.5",
-        "transition-colors hover:bg-slate-50",
-        "text-left",
+    <AnimatePresence mode="wait">
+      {!isDismissed && (
+        <motion.div
+          initial={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
+          animate={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
+          exit={{
+            opacity: 0,
+            height: 0,
+            y: 20,
+            scale: 0.95,
+            transition: { duration: 0.3, ease: "easeInOut" },
+          }}
+          className={cn([
+            "py-2 px-1",
+            "overflow-hidden",
+          ])}
+        >
+          <div
+            className={cn([
+              "relative rounded-lg overflow-hidden",
+              "bg-white border border-gray-200 shadow-sm",
+            ])}
+          >
+            <div className="relative p-5">
+              <button
+                onClick={handleDismiss}
+                className={cn([
+                  "absolute top-2.5 right-2.5",
+                  "p-1.5 rounded-md",
+                  "text-gray-400 hover:text-gray-600",
+                  "hover:bg-gray-100/80",
+                  "transition-colors duration-200",
+                ])}
+                aria-label="Dismiss banner"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-start gap-3.5 mb-5">
+                <div
+                  className={cn([
+                    "flex-shrink-0 w-11 h-11 rounded-xl",
+                    "bg-gray-900",
+                    "flex items-center justify-center",
+                  ])}
+                >
+                  <Zap className="w-5 h-5 text-white fill-white" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h3
+                    className={cn([
+                      "text-base font-bold text-gray-900",
+                      "mb-1.5",
+                    ])}
+                  >
+                    Try Hyprnote Pro
+                  </h3>
+                  <p
+                    className={cn([
+                      "text-xs text-gray-600 leading-relaxed",
+                    ])}
+                  >
+                    Experience smarter meetings
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSignUp}
+                className={cn([
+                  "w-full h-9",
+                  "bg-black hover:bg-gray-800",
+                  "text-sm font-medium text-white",
+                ])}
+              >
+                Start 2 week Free Trial
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       )}
-    >
-      <div className={clsx("mb-1.5", "flex items-center gap-1.5")}>
-        <Zap className={clsx("h-3.5 w-3.5 flex-shrink-0", "text-slate-700")} />
-        <span className={clsx("text-xs font-semibold text-slate-900")}>Hyprnote Pro</span>
-      </div>
-      <div className={clsx("mb-1.5", "text-[11px] leading-snug text-slate-600")}>
-        Free trial for smarter meetings
-      </div>
-      <div className={clsx("flex items-center gap-1", "text-xs font-medium text-slate-900")}>
-        <span>Start Trial</span>
-        <ArrowRight className={clsx("h-3 w-3 flex-shrink-0", "transition-transform group-hover:translate-x-0.5")} />
-      </div>
-    </button>
+    </AnimatePresence>
   );
 }

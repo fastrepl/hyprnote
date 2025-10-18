@@ -38,12 +38,14 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
   return (
     <AudioPlayer.Provider url="/assets/audio.wav">
       <StandardTabWrapper afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}>
-        <div className="mt-0.5 mb-2">
-          <OuterHeader sessionId={tab.id} />
+        <OuterHeader sessionId={tab.id} />
+        <div className="mt-3 px-2">
+          <TitleInput tab={tab} />
+          <div className="mt-2">
+            <NoteInput tab={tab} />
+          </div>
+          <FloatingActionButton tab={tab} />
         </div>
-        <TitleInput tab={tab} />
-        <NoteInput tab={tab} />
-        <FloatingActionButton tab={tab} />
       </StandardTabWrapper>
     </AudioPlayer.Provider>
   );

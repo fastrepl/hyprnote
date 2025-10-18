@@ -63,6 +63,12 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         },
         scrollThreshold: 32,
         scrollMargin: 32,
+        handleKeyDown: (_, event) => {
+          if ((event.metaKey || event.ctrlKey) && (event.key === "w" || event.key === "n" || event.key === "t")) {
+            return false;
+          }
+          return false;
+        },
       },
     });
 
@@ -97,6 +103,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && (e.key === "w" || e.key === "n" || e.key === "t")) {
+          return;
+        }
+
         if (e.key === "Backspace" && editor?.state.selection.empty) {
           const isAtStart = editor.state.selection.$head.pos === 0;
           if (isAtStart) {

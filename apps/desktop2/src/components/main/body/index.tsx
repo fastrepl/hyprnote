@@ -1,3 +1,6 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
+
 import { useRouteContext } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
@@ -5,7 +8,6 @@ import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
@@ -23,6 +25,7 @@ export function Body() {
 
   useTabCloseHotkey();
   useTabSelectHotkeys();
+  useNewTabHotkeys();
 
   if (!currentTab) {
     return null;
@@ -62,62 +65,35 @@ function Header({ tabs }: { tabs: Tab[] }) {
   return (
     <div
       className={cn([
-        "w-full h-9 flex items-end",
+        "w-full h-9 flex items-center",
         !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
       {!leftsidebar.expanded && (
-        <div className="flex items-center justify-center h-full px-3 shrink-0 bg-white z-20">
+        <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
           <PanelLeftOpenIcon
-            className="h-5 w-5 cursor-pointer"
-            onClick={() => leftsidebar.setExpanded(true)}
+            size={16}
           />
-        </div>
+        </Button>
       )}
 
       <div className="flex items-center h-full shrink-0">
-        <button
+        <Button
           onClick={goBack}
           disabled={!canGoBack}
-          className={cn([
-            "flex items-center justify-center",
-            "h-full",
-            "px-1.5",
-            "rounded-lg",
-            "transition-colors",
-            canGoBack && ["hover:bg-gray-50", "group"],
-            !canGoBack && "cursor-not-allowed",
-          ])}
+          variant="ghost"
+          size="icon"
         >
-          <ArrowLeftIcon
-            className={cn([
-              "h-4 w-4",
-              canGoBack && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
-              !canGoBack && ["text-black/30", "cursor-not-allowed"],
-            ])}
-          />
-        </button>
-        <button
+          <ArrowLeftIcon size={16} />
+        </Button>
+        <Button
           onClick={goNext}
           disabled={!canGoNext}
-          className={cn([
-            "flex items-center justify-center",
-            "h-full",
-            "px-1.5",
-            "rounded-lg",
-            "transition-colors",
-            canGoNext && ["hover:bg-gray-50", "group"],
-            !canGoNext && "cursor-not-allowed",
-          ])}
+          variant="ghost"
+          size="icon"
         >
-          <ArrowRightIcon
-            className={cn([
-              "h-4 w-4",
-              canGoNext && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
-              !canGoNext && ["text-black/30", "cursor-not-allowed"],
-            ])}
-          />
-        </button>
+          <ArrowRightIcon size={16} />
+        </Button>
       </div>
 
       <div
@@ -125,7 +101,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         data-tauri-drag-region
         className={cn([
           "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-          "flex-1 min-w-0 overflow-x-auto overflow-y-hidden h-full",
+          "w-fit overflow-x-auto overflow-y-hidden h-full",
         ])}
       >
         <Reorder.Group
@@ -158,22 +134,21 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </Reorder.Group>
       </div>
 
-      <button
-        onClick={handleNewNote}
-        className={cn([
-          "flex items-center justify-center",
-          "h-full",
-          "px-1.5",
-          "rounded-lg",
-          "bg-white hover:bg-gray-50",
-          "transition-colors",
-          "shrink-0",
-        ])}
+      <div
+        data-tauri-drag-region
+        className="flex-1 flex h-full items-center justify-between"
       >
-        <PlusIcon className="h-4 w-4 text-color3 cursor-pointer" />
-      </button>
+        <Button
+          onClick={handleNewNote}
+          variant="ghost"
+          size="icon"
+          className="text-color3"
+        >
+          <PlusIcon size={16} />
+        </Button>
 
-      <Search />
+        <Search />
+      </div>
     </div>
   );
 }
@@ -303,8 +278,8 @@ export function StandardTabWrapper(
   { children, afterBorder }: { children: React.ReactNode; afterBorder?: React.ReactNode },
 ) {
   return (
-    <div className="flex flex-col h-full gap-1">
-      <div className="flex flex-col px-4 py-1 rounded-lg border flex-1 overflow-hidden relative">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col p-2 rounded-lg border flex-1 overflow-hidden relative">
         {children}
         <TabChatButton />
       </div>
@@ -328,7 +303,7 @@ const useTabCloseHotkey = () => {
         await appWindow.close();
       }
     },
-    { enableOnFormTags: true },
+    { enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, currentTab, close],
   );
 };
@@ -353,8 +328,38 @@ const useTabSelectHotkeys = () => {
       event.preventDefault();
       select(target);
     },
-    { enableOnFormTags: true },
+    { enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, select],
+  );
+};
+
+const useNewTabHotkeys = () => {
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { currentTab, close, openNew } = useTabs();
+
+  useHotkeys(
+    ["mod+n", "mod+t"],
+    (e) => {
+      e.preventDefault();
+
+      const sessionId = id();
+      const user_id = internalStore?.getValue("user_id");
+
+      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+
+      if (e.key === "n" && currentTab) {
+        close(currentTab);
+      }
+
+      openNew({
+        type: "sessions",
+        id: sessionId,
+        active: true,
+        state: { editor: "raw" },
+      });
+    },
+    { enableOnFormTags: true, enableOnContentEditable: true },
+    [persistedStore, internalStore, currentTab, close, openNew],
   );
 };
 

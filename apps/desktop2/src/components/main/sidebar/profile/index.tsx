@@ -194,7 +194,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
     >
       <div
         className={clsx(
-          "hidden sm:flex  w-8 flex-shrink-0 items-center justify-center",
+          "flex size-8 flex-shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-gray-400",
           "bg-gradient-to-br from-indigo-400 to-purple-500",

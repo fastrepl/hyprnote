@@ -177,12 +177,9 @@ export function MeetingMetadataChip({
             </>
           )}
 
-          <div className="flex items-center gap-2">
-            <CalendarIcon size={16} className="flex-shrink-0 text-color4" />
-            <span className="text-sm text-color4">
-              {formatDateRange(metadata.started_at, metadata.ended_at)}
-            </span>
-          </div>
+          <p className="text-sm text-color4">
+            {formatDateRange(metadata.started_at, metadata.ended_at)}
+          </p>
 
           <div className="border-t border-neutral-200" />
 

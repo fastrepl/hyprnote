@@ -59,8 +59,8 @@ export function TabItemBase(
       className={clsx([
         "flex items-center gap-2 cursor-pointer group",
         "w-48 h-full pl-2 pr-1",
-        "bg-color1 rounded-lg border",
-        active ? "text-black border-black" : "text-color3 border-transparent",
+        "bg-neutral-50 rounded-lg border",
+        active ? "text-black border-black" : "text-neutral-500 border-transparent",
       ])}
     >
       <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
@@ -75,8 +75,8 @@ export function TabItemBase(
         className={clsx([
           "flex-shrink-0 transition-opacity",
           active
-            ? "opacity-100 text-color4"
-            : "opacity-0 group-hover:opacity-100 text-color3",
+            ? "opacity-100 text-neutral-700"
+            : "opacity-0 group-hover:opacity-100 text-neutral-500",
         ])}
         size="icon"
         variant="ghost"

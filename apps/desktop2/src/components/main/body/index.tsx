@@ -1,3 +1,6 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/ui/lib/utils";
+
 import { useRouteContext } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
@@ -5,7 +8,6 @@ import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
@@ -63,62 +65,35 @@ function Header({ tabs }: { tabs: Tab[] }) {
   return (
     <div
       className={cn([
-        "w-full h-9 flex items-end",
+        "w-full h-9 flex items-center",
         !leftsidebar.expanded && "pl-[72px]",
       ])}
     >
       {!leftsidebar.expanded && (
-        <div className="flex items-center justify-center h-full px-3 shrink-0 bg-white z-20">
+        <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
           <PanelLeftOpenIcon
-            className="h-5 w-5 cursor-pointer"
-            onClick={() => leftsidebar.setExpanded(true)}
+            size={16}
           />
-        </div>
+        </Button>
       )}
 
       <div className="flex items-center h-full shrink-0">
-        <button
+        <Button
           onClick={goBack}
           disabled={!canGoBack}
-          className={cn([
-            "flex items-center justify-center",
-            "h-full",
-            "px-1.5",
-            "rounded-lg",
-            "transition-colors",
-            canGoBack && ["hover:bg-gray-50", "group"],
-            !canGoBack && "cursor-not-allowed",
-          ])}
+          variant="ghost"
+          size="icon"
         >
-          <ArrowLeftIcon
-            className={cn([
-              "h-4 w-4",
-              canGoBack && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
-              !canGoBack && ["text-black/30", "cursor-not-allowed"],
-            ])}
-          />
-        </button>
-        <button
+          <ArrowLeftIcon size={16} />
+        </Button>
+        <Button
           onClick={goNext}
           disabled={!canGoNext}
-          className={cn([
-            "flex items-center justify-center",
-            "h-full",
-            "px-1.5",
-            "rounded-lg",
-            "transition-colors",
-            canGoNext && ["hover:bg-gray-50", "group"],
-            !canGoNext && "cursor-not-allowed",
-          ])}
+          variant="ghost"
+          size="icon"
         >
-          <ArrowRightIcon
-            className={cn([
-              "h-4 w-4",
-              canGoNext && ["text-black/70", "cursor-pointer", "group-hover:text-black"],
-              !canGoNext && ["text-black/30", "cursor-not-allowed"],
-            ])}
-          />
-        </button>
+          <ArrowRightIcon size={16} />
+        </Button>
       </div>
 
       <div
@@ -163,15 +138,14 @@ function Header({ tabs }: { tabs: Tab[] }) {
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        <button
+        <Button
           onClick={handleNewNote}
-          className={cn([
-            "flex items-center justify-center h-full px-1.5 shrink-0",
-            "rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer",
-          ])}
+          variant="ghost"
+          size="icon"
+          className="text-color3"
         >
-          <PlusIcon className="h-4 w-4 text-color3 " />
-        </button>
+          <PlusIcon size={16} />
+        </Button>
 
         <Search />
       </div>

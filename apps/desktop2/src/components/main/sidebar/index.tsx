@@ -1,3 +1,5 @@
+import { Button } from "@hypr/ui/components/ui/button";
+
 import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
@@ -24,10 +26,11 @@ export function LeftSidebar() {
           "pl-[72px] bg-color1",
         ])}
       >
-        <PanelLeftCloseIcon
-          onClick={leftsidebar.toggleExpanded}
-          className="cursor-pointer h-5 w-5 mr-2"
-        />
+        <Button size="icon" variant="ghost" onClick={leftsidebar.toggleExpanded}>
+          <PanelLeftCloseIcon
+            size={16}
+          />
+        </Button>
       </header>
 
       <div className="flex flex-col flex-1 overflow-hidden gap-1">

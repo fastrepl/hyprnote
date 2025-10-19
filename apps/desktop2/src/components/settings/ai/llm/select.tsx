@@ -3,7 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import * as internal from "../../../../store/tinybase/internal";
-import { ModelCombobox } from "../shared/model-combobox";
+import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
@@ -77,6 +77,7 @@ export function SelectProviderAndModel() {
             );
 
             const providerData = configuredProviders[form.getFieldValue("provider")];
+
             const baseUrl = typeof providerData?.base_url === "string"
               ? providerData.base_url
               : selectedProviderConfig?.baseUrl.value;
@@ -89,9 +90,13 @@ export function SelectProviderAndModel() {
                 <ModelCombobox
                   value={field.state.value}
                   onChange={(value) => field.handleChange(value)}
-                  baseUrl={baseUrl}
-                  apiKey={apiKey}
-                  fallbackModels={[]}
+                  listModels={() => {
+                    if (!baseUrl || !apiKey) {
+                      return [];
+                    }
+
+                    return openaiCompatibleListModels(baseUrl, apiKey);
+                  }}
                   disabled={!selectedProviderConfig}
                   placeholder="Select a model"
                 />

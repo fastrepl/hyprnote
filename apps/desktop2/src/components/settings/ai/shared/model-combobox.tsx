@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, CirclePlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -17,17 +17,13 @@ import { cn } from "@hypr/ui/lib/utils";
 export function ModelCombobox({
   value,
   onChange,
-  baseUrl,
-  apiKey,
-  fallbackModels,
+  listModels,
   disabled = false,
   placeholder = "Select a model",
 }: {
   value: string;
   onChange: (value: string) => void;
-  baseUrl?: string;
-  apiKey?: string;
-  fallbackModels: string[];
+  listModels: () => Promise<string[]> | string[];
   disabled?: boolean;
   placeholder?: string;
 }) {
@@ -35,34 +31,30 @@ export function ModelCombobox({
   const [query, setQuery] = useState("");
 
   const { data: fetchedModels, isLoading } = useQuery({
-    queryKey: ["models", baseUrl, apiKey],
-    queryFn: () => fetchModels(baseUrl!, apiKey),
-    enabled: !!baseUrl,
+    queryKey: ["models", listModels],
+    queryFn: async () => {
+      try {
+        const models = await listModels();
+        if (Array.isArray(models)) {
+          return models;
+        }
+      } catch (error) {
+        console.error("Error loading models:", error);
+      }
+      return [];
+    },
     staleTime: 5 * 60 * 1000,
   });
 
-  const availableModels = fetchedModels && fetchedModels.length > 0 ? fetchedModels : fallbackModels;
-
-  const options: string[] = availableModels;
-
-  const [canCreate, setCanCreate] = useState(true);
-  useEffect(() => {
-    const isAlreadyCreated = !options.some((option) => option === query);
-    setCanCreate(!!(query && isAlreadyCreated));
-  }, [query, options]);
+  const options: string[] = fetchedModels ?? [];
+  const trimmedQuery = query.trim();
+  const hasExactMatch = options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase());
+  const canSelectFreeform = trimmedQuery.length > 0 && !hasExactMatch;
 
   function handleSelect(option: string) {
     onChange(option);
     setOpen(false);
     setQuery("");
-  }
-
-  function handleCreate() {
-    if (query) {
-      onChange(query);
-      setOpen(false);
-      setQuery("");
-    }
   }
 
   return (
@@ -77,11 +69,7 @@ export function ModelCombobox({
           className="w-full font-normal bg-white"
         >
           {value && value.length > 0
-            ? (
-              <div className="truncate mr-auto">
-                {options.includes(value) ? value : value}
-              </div>
-            )
+            ? <div className="truncate mr-auto">{value}</div>
             : (
               <div className="text-slate-600 mr-auto">
                 {isLoading ? "Loading models..." : placeholder}
@@ -112,19 +100,20 @@ export function ModelCombobox({
             }}
           />
           <CommandEmpty className="flex pl-1 py-1 w-full">
-            {query && <CommandAddItem query={query} onCreate={() => handleCreate()} />}
+            <div className="py-1.5 pl-3 space-y-1 text-sm">
+              <p>No models available.</p>
+              <p>Type to select any value.</p>
+            </div>
           </CommandEmpty>
 
           <CommandList>
             <CommandGroup className="overflow-y-auto">
-              {options.length === 0 && !query && (
+              {options.length === 0 && !trimmedQuery && (
                 <div className="py-1.5 pl-8 space-y-1 text-sm">
                   <p>No models</p>
                   <p>Enter a value to create a new one</p>
                 </div>
               )}
-
-              {canCreate && <CommandAddItem query={query} onCreate={() => handleCreate()} />}
 
               {options.map((option) => (
                 <CommandItem
@@ -154,6 +143,30 @@ export function ModelCombobox({
                   {option}
                 </CommandItem>
               ))}
+
+              {canSelectFreeform && (
+                <CommandItem
+                  key={`freeform-${trimmedQuery}`}
+                  tabIndex={0}
+                  value={trimmedQuery}
+                  onSelect={() => {
+                    handleSelect(trimmedQuery);
+                  }}
+                  onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                    if (event.key === "Enter") {
+                      event.stopPropagation();
+                      handleSelect(trimmedQuery);
+                    }
+                  }}
+                  className={cn([
+                    "cursor-pointer",
+                    "focus:!bg-blue-200 hover:!bg-blue-200 aria-selected:bg-transparent",
+                  ])}
+                >
+                  <CirclePlus className="mr-2 h-4 w-4" />
+                  Select "{trimmedQuery}"
+                </CommandItem>
+              )}
             </CommandGroup>
           </CommandList>
         </Command>
@@ -162,40 +175,23 @@ export function ModelCombobox({
   );
 }
 
-function CommandAddItem({ query, onCreate }: { query: string; onCreate: () => void }) {
-  return (
-    <div
-      tabIndex={0}
-      onClick={onCreate}
-      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter") {
-          onCreate();
-        }
-      }}
-      className={cn([
-        "flex w-full text-blue-500 cursor-pointer text-sm px-2 py-1.5 rounded-sm items-center",
-        "hover:bg-blue-200 focus:!bg-blue-200 focus:outline-none",
-      ])}
-    >
-      <CirclePlus className="mr-2 h-4 w-4" />
-      Create "{query}"
-    </div>
-  );
-}
+export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string) => {
+  if (!baseUrl) {
+    return [];
+  }
 
-async function fetchModels(baseUrl: string, apiKey?: string): Promise<string[]> {
+  const headers: Record<string, string> = {};
+  if (apiKey) {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+  }
+
   try {
-    const headers: Record<string, string> = {};
-    if (apiKey) {
-      headers["Authorization"] = `Bearer ${apiKey}`;
-    }
-
     const response = await fetch(`${baseUrl}/models`, {
       headers,
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.statusText}`);
+      return [];
     }
 
     const data = await response.json();
@@ -210,7 +206,6 @@ async function fetchModels(baseUrl: string, apiKey?: string): Promise<string[]> 
 
     return [];
   } catch (error) {
-    console.error("Error fetching models:", error);
     return [];
   }
-}
+};

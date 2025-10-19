@@ -1,9 +1,10 @@
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { TryProBanner } from "./banner";
@@ -122,7 +123,7 @@ export function ProfileSection() {
     <div ref={profileRef}>
       <div
         className={clsx(
-          "bg-color1 rounded-lg overflow-hidden",
+          "bg-neutral-50 rounded-lg overflow-hidden",
         )}
       >
         <div
@@ -188,7 +189,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         "text-left",
         "transition-all duration-300",
         "hover:bg-gray-100",
-        isExpanded && "bg-color1 border-t border-slate-100",
+        isExpanded && "bg-neutral-50 border-t border-slate-100",
       )}
       onClick={onClick}
     >
@@ -205,13 +206,13 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnJeong"
           alt="Profile"
-          className={clsx("h-full w-full", "rounded-full")}
+          className="h-full w-full rounded-full"
         />
       </div>
-      <div className={clsx("min-w-0 flex-1")}>
-        <div className={clsx("text-sm text-black", "truncate")}>John Jeong</div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm text-black truncate">John Jeong</div>
       </div>
-      <div className={clsx("flex items-center gap-1.5")}>
+      <div className="flex items-center gap-1.5">
         <span
           className={clsx(
             "hidden md:inline-block",

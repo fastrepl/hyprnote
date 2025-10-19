@@ -24,6 +24,7 @@ export const v1Seed: SeedDefinition = {
   id: "v1",
   label: "Seed V1",
   run: (store: PersistedStore) => {
+    store.delTables();
     store.setTables(V1);
   },
 };

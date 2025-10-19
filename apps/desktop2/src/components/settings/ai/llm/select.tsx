@@ -72,32 +72,23 @@ export function SelectProviderAndModel() {
 
         <form.Field name="model">
           {(field) => {
-            const selectedProviderConfig = PROVIDERS.find(
-              (p) => p.id === form.getFieldValue("provider"),
-            );
+            const providerId = form.getFieldValue("provider");
+            const providerData = configuredProviders[providerId];
 
-            const providerData = configuredProviders[form.getFieldValue("provider")];
-
-            const baseUrl = typeof providerData?.base_url === "string"
-              ? providerData.base_url
-              : selectedProviderConfig?.baseUrl.value;
-            const apiKey = typeof providerData?.api_key === "string"
-              ? providerData.api_key
-              : undefined;
+            const listModels = () => {
+              if (!providerData?.base_url || !providerData?.api_key) {
+                return [];
+              }
+              return openaiCompatibleListModels(providerData.base_url, providerData.api_key);
+            };
 
             return (
               <div style={{ flex: 6 }}>
                 <ModelCombobox
                   value={field.state.value}
                   onChange={(value) => field.handleChange(value)}
-                  listModels={() => {
-                    if (!baseUrl || !apiKey) {
-                      return [];
-                    }
-
-                    return openaiCompatibleListModels(baseUrl, apiKey);
-                  }}
-                  disabled={!selectedProviderConfig}
+                  disabled={!providerData?.base_url || !providerData?.api_key}
+                  listModels={listModels}
                   placeholder="Select a model"
                 />
               </div>

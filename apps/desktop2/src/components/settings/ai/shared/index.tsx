@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
+import { type AnyFieldApi } from "@tanstack/react-form";
 import * as internal from "../../../../store/tinybase/internal";
 
 export * from "./model-combobox";
@@ -26,14 +27,14 @@ export function FormField({
   placeholder,
   type,
 }: {
-  field: any;
+  field: AnyFieldApi;
   label: string;
   icon: string;
   placeholder?: string;
   type?: string;
 }) {
-  const { errors } = field.state.meta;
-  const hasError = errors && errors.length > 0;
+  const { meta: { errors, isTouched, isDirty } } = field.state;
+  const hasError = isDirty && isTouched && errors && errors.length > 0;
   const errorMessage = hasError
     ? (typeof errors[0] === "string" ? errors[0] : (errors[0] as any)?.message || "Invalid value")
     : null;

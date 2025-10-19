@@ -48,12 +48,12 @@ function Component() {
           className={cn([
             "flex-1 flex flex-col justify-between",
             "overflow-y-auto",
-            "px-2 pb-2",
+            "px-1 mt-1",
           ])}
         >
           <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
 
-          <div>
+          <div className="mb-2">
             <Group tabs={group2Tabs} activeTab={search.tab} />
             <Group tabs={group3Tabs} activeTab={search.tab} />
           </div>
@@ -117,7 +117,7 @@ function Group(
     <div
       className={cn([
         "rounded-md bg-gray-50",
-        "px-2 py-2 my-2",
+        "p-2 mt-1",
         expandHeight && "flex-1",
       ])}
     >
@@ -132,7 +132,7 @@ function Group(
             className={cn([
               "flex w-full items-center gap-3",
               "rounded-md px-3 py-2.5",
-              "text-md text-gray-700",
+              "text-sm text-gray-700",
               "bg-gray-50 transition-colors",
               activeTab === tab
                 ? "font-medium text-gray-900 bg-gray-200"

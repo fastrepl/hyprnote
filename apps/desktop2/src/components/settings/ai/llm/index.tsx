@@ -5,10 +5,10 @@ import { Streamdown } from "streamdown";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
-import { aiProviderSchema } from "../../../store/tinybase/internal";
-import * as internal from "../../../store/tinybase/internal";
-import { ModelCombobox } from "./model-combobox";
-import { FormField, useProvider } from "./shared";
+import { aiProviderSchema } from "../../../../store/tinybase/internal";
+import * as internal from "../../../../store/tinybase/internal";
+import { FormField, useProvider } from "../shared";
+import { ModelCombobox } from "../shared/model-combobox";
 
 const PROVIDERS = [
   {

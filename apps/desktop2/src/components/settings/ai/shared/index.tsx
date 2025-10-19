@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
-import * as internal from "../../../store/tinybase/internal";
+import * as internal from "../../../../store/tinybase/internal";
 
 export function useProvider(id: string) {
   const providerRow = internal.UI.useRow("ai_providers", id, internal.STORE_ID);

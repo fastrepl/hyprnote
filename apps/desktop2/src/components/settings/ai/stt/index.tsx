@@ -10,15 +10,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@h
 import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
-import { useQuery } from "../../../hooks/useQuery";
-import * as internal from "../../../store/tinybase/internal";
-import { aiProviderSchema } from "../../../store/tinybase/internal";
+import { useQuery } from "../../../../hooks/useQuery";
+import * as internal from "../../../../store/tinybase/internal";
+import { aiProviderSchema } from "../../../../store/tinybase/internal";
 import {
   DOWNLOAD_MODEL_TASK_ID,
   registerDownloadProgressCallback,
   unregisterDownloadProgressCallback,
-} from "../../task-manager";
-import { FormField, useProvider } from "./shared";
+} from "../../../task-manager";
+import { FormField, useProvider } from "../shared";
 
 const CUSTOM_PROVIDERS = [
   {

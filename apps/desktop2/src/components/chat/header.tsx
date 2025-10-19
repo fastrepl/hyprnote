@@ -2,11 +2,11 @@ import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, MessageCircle, PanelRightIcon, PictureInPicture2Icon, Plus, X } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../contexts/shell";
 import * as persisted from "../../store/tinybase/persisted";
-import { Button } from "@hypr/ui/components/ui/button";
 
 export function ChatHeader({
   currentChatGroupId,

@@ -12,7 +12,8 @@ import { FloatingButton, formatTime } from "./shared";
 
 type RemoteMeeting =
   | { type: "zoom"; url: string | null }
-  | { type: "google-meet"; url: string | null };
+  | { type: "google-meet"; url: string | null }
+  | { type: "webex"; url: string | null };
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, loading, stop } = useListener((state) => ({
@@ -56,7 +57,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="streamline-logos:zoom-logo-1-block" className="w-5 h-5 text-blue-300" />}
+        icon={<img src="/assets/zoom.png" alt="Zoom" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
       </FloatingButton>
@@ -67,9 +68,20 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="logos:google-meet" className="w-5 h-5" />}
+        icon={<img src="/assets/meet.png" alt="Google Meet" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
+      </FloatingButton>
+    );
+  }
+
+  if (remote?.type === "webex") {
+    return (
+      <FloatingButton
+        onClick={handleClick}
+        icon={<img src="/assets/webex.png" alt="Webex" className="w-5 h-5" />}
+      >
+        {isNarrow ? "Join & Listen" : "Join Webex & Start listening"}
       </FloatingButton>
     );
   }
@@ -77,7 +89,6 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   return (
     <FloatingButton
       onClick={handleClick}
-      icon={<Icon icon="lucide:mic" className="w-5 h-5" />}
     >
       Start listening
     </FloatingButton>

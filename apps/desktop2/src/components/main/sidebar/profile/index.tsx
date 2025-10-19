@@ -1,9 +1,10 @@
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { TryProBanner } from "./banner";
@@ -122,7 +123,7 @@ export function ProfileSection() {
     <div ref={profileRef}>
       <div
         className={clsx(
-          "bg-color1 rounded-lg overflow-hidden",
+          "bg-neutral-50 rounded-lg overflow-hidden",
         )}
       >
         <div
@@ -150,7 +151,7 @@ export function ProfileSection() {
                     <NotificationsMenuHeader onClick={handleClickNotifications} />
                     <UpdateChecker />
 
-                    <div className="my-1.5 border-t border-slate-100" />
+                    <div className="my-1.5 border-t border-neutral-100" />
 
                     {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
@@ -188,13 +189,13 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         "text-left",
         "transition-all duration-300",
         "hover:bg-gray-100",
-        isExpanded && "bg-color1 border-t border-slate-100",
+        isExpanded && "bg-neutral-50 border-t border-neutral-100",
       )}
       onClick={onClick}
     >
       <div
         className={clsx(
-          "hidden sm:flex  w-8 flex-shrink-0 items-center justify-center",
+          "flex size-8 flex-shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-gray-400",
           "bg-gradient-to-br from-indigo-400 to-purple-500",
@@ -205,21 +206,21 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         <img
           src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnJeong"
           alt="Profile"
-          className={clsx("h-full w-full", "rounded-full")}
+          className="h-full w-full rounded-full"
         />
       </div>
-      <div className={clsx("min-w-0 flex-1")}>
-        <div className={clsx("text-sm text-black", "truncate")}>John Jeong</div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm text-black truncate">John Jeong</div>
       </div>
-      <div className={clsx("flex items-center gap-1.5")}>
+      <div className="flex items-center gap-1.5">
         <span
           className={clsx(
             "hidden md:inline-block",
             "rounded-full",
-            "border border-slate-900",
+            "border border-neutral-900",
             "bg-white",
             "px-2.5 py-0.5",
-            "text-[11px] font-medium text-slate-900",
+            "text-[11px] font-medium text-neutral-900",
           )}
         >
           Pro trial
@@ -228,7 +229,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
           className={clsx(
             "h-4 w-4",
             "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-slate-500" : "text-slate-400",
+            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
           )}
         />
       </div>

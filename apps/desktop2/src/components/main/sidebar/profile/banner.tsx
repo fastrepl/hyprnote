@@ -1,4 +1,4 @@
-import { X, Zap } from "lucide-react";
+import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -25,72 +25,44 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
             transition: { duration: 0.3, ease: "easeInOut" },
           }}
           className={cn([
-            "py-2 px-1",
             "overflow-hidden",
+            "px-1 py-2",
           ])}
         >
           <div
             className={cn([
-              "relative rounded-lg overflow-hidden",
-              "bg-white border border-gray-200 shadow-sm",
+              "relative group overflow-hidden rounded-lg",
+              "flex flex-col gap-3",
+              "bg-white border border-gray-200 shadow-sm p-4",
             ])}
           >
-            <div className="relative p-5">
-              <button
-                onClick={handleDismiss}
-                className={cn([
-                  "absolute top-2.5 right-2.5",
-                  "p-1.5 rounded-md",
-                  "text-gray-400 hover:text-gray-600",
-                  "hover:bg-gray-100/80",
-                  "transition-colors duration-200",
-                ])}
-                aria-label="Dismiss banner"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <Button
+              onClick={handleDismiss}
+              size="icon"
+              variant="ghost"
+              aria-label="Dismiss banner"
+              className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            >
+              <X className="w-4 h-4" />
+            </Button>
 
-              <div className="flex items-start gap-3.5 mb-5">
-                <div
-                  className={cn([
-                    "flex-shrink-0 w-11 h-11 rounded-xl",
-                    "bg-gray-900",
-                    "flex items-center justify-center",
-                  ])}
-                >
-                  <Zap className="w-5 h-5 text-white fill-white" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3
-                    className={cn([
-                      "text-base font-bold text-gray-900",
-                      "mb-1.5",
-                    ])}
-                  >
-                    Try Hyprnote Pro
-                  </h3>
-                  <p
-                    className={cn([
-                      "text-xs text-gray-600 leading-relaxed",
-                    ])}
-                  >
-                    Experience smarter meetings
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSignUp}
-                className={cn([
-                  "w-full h-9",
-                  "bg-black hover:bg-gray-800",
-                  "text-sm font-medium text-white",
-                ])}
-              >
-                Start 2 week Free Trial
-              </Button>
+            <div className="flex items-center gap-4">
+              <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-6" />
+              <h3 className="text-lg font-bold text-gray-900">
+                Try Hyprnote Pro
+              </h3>
             </div>
+
+            <p className="text-sm">
+              Sign up now and experience smarter meetings with a 1-week free trial of Hyprnote Pro.
+            </p>
+
+            <Button
+              onClick={handleSignUp}
+              className="w-full"
+            >
+              Start 1 week Free Trial
+            </Button>
           </div>
         </motion.div>
       )}

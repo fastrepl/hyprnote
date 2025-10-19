@@ -23,7 +23,7 @@ export function LeftSidebar() {
           "flex flex-row shrink-0",
           "flex w-full items-center justify-end h-9 py-1",
           "rounded-lg",
-          "pl-[72px] bg-color1",
+          "pl-[72px] bg-neutral-50",
         ])}
       >
         <Button size="icon" variant="ghost" onClick={leftsidebar.toggleExpanded}>

@@ -1,13 +1,7 @@
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@hypr/ui/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Separator } from "@hypr/ui/components/ui/separator";
 
 import { CircleMinus, Link2Icon, SearchIcon } from "lucide-react";
@@ -103,10 +97,8 @@ export function ShareButton(_: { sessionId: string }) {
                     type="button"
                     onClick={() => handleSelectPerson(person)}
                     className="flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full disabled:opacity-50"
-                    disabled={
-                      selectedPeople.some((p) => p.id === person.id)
-                      || invitedPeople.some((p) => p.id === person.id)
-                    }
+                    disabled={selectedPeople.some((p) => p.id === person.id)
+                      || invitedPeople.some((p) => p.id === person.id)}
                   >
                     <div className="flex items-center gap-2">
                       <Avatar className="size-6">
@@ -116,9 +108,7 @@ export function ShareButton(_: { sessionId: string }) {
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="font-medium truncate">{person.name}</span>
-                        {person.email && (
-                          <span className="text-xs text-neutral-500">{person.email}</span>
-                        )}
+                        {person.email && <span className="text-xs text-neutral-500">{person.email}</span>}
                       </div>
                     </div>
                   </button>
@@ -158,9 +148,7 @@ export function ShareButton(_: { sessionId: string }) {
                         <span className="text-sm font-medium text-neutral-700 truncate">
                           {person.name}
                         </span>
-                        {person.email && (
-                          <span className="text-xs text-neutral-500 truncate">{person.email}</span>
-                        )}
+                        {person.email && <span className="text-xs text-neutral-500 truncate">{person.email}</span>}
                       </div>
                     </div>
                   </div>
@@ -211,16 +199,13 @@ export function ShareButton(_: { sessionId: string }) {
                         <span className="text-sm font-medium text-neutral-700 truncate">
                           {person.name}
                         </span>
-                        {person.email && (
-                          <span className="text-xs text-neutral-500 truncate">{person.email}</span>
-                        )}
+                        {person.email && <span className="text-xs text-neutral-500 truncate">{person.email}</span>}
                       </div>
                     </div>
 
                     <Select
                       value={person.role}
-                      onValueChange={(value: "viewer" | "editor") =>
-                        handleRoleChange(person.id, value)}
+                      onValueChange={(value: "viewer" | "editor") => handleRoleChange(person.id, value)}
                     >
                       <SelectTrigger
                         className="w-[100px] h-8 text-xs focus:ring-0 focus:ring-offset-0"

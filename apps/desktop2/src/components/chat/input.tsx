@@ -1,8 +1,17 @@
-import { MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
-
 import Editor from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@hypr/ui/components/ui/select";
+
+import { MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useShell } from "../../contexts/shell";
 
 function tiptapJsonToText(json: any): string {
@@ -34,6 +43,7 @@ export function ChatMessageInput({
 }) {
   const editorRef = useRef<{ editor: any }>(null);
   const { chat } = useShell();
+  const [selectOpen, setSelectOpen] = useState(false);
 
   const handleSubmit = useCallback(() => {
     const json = editorRef.current?.editor?.getJSON();
@@ -65,23 +75,19 @@ export function ChatMessageInput({
 
   return (
     <div
-      className={cn([chat.mode !== "RightPanelOpen" && "p-0.5"])}
+      className={cn([chat.mode !== "RightPanelOpen" && "p-1"])}
     >
       <div
         className={cn([
-          "flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-md",
+          "flex flex-col border border-neutral-200 rounded-xl",
           "focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500",
           chat.mode === "RightPanelOpen" && "rounded-t-none border-t-0",
         ])}
       >
-        <button className={cn(["text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"])}>
-          <PaperclipIcon className="size-4" />
-        </button>
-
-        <div className={cn(["flex-1 min-w-0"])}>
+        <div className="flex-1 px-2 pt-2">
           <Editor
             ref={editorRef}
-            handleChange={() => {}}
+            handleChange={() => { }}
             initialContent=""
             editable={!disabled}
             mentionConfig={{
@@ -91,20 +97,59 @@ export function ChatMessageInput({
           />
         </div>
 
-        <button className={cn(["text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"])}>
-          <MicIcon className="size-4" />
-        </button>
+        <div className="flex items-center justify-between px-2 pb-2 -mt-4">
+          <div className="flex items-center">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-neutral-400 shrink-0"
+            >
+              <PaperclipIcon size={16} />
+            </Button>
 
-        <button
-          onClick={handleSubmit}
-          disabled={disabled}
-          className={cn([
-            "p-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors shrink-0",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-          ])}
-        >
-          <SendIcon className="size-4" />
-        </button>
+            <Select
+              open={selectOpen}
+              onOpenChange={(open) => {
+                setSelectOpen(open);
+                if (!open) {
+                  requestAnimationFrame(() => {
+                    editorRef.current?.editor?.commands.focus();
+                  });
+                }
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs border-0 focus:ring-0 focus:ring-offset-0 shadow-none hover:bg-accent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto</SelectItem>
+                <SelectItem value="all-notes">All Notes</SelectItem>
+                <SelectItem value="all-tabs">All Tabs</SelectItem>
+                <SelectItem value="current-tab">Current Tab</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-neutral-400"
+            >
+              <MicIcon size={16} />
+            </Button>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={disabled}
+              size="icon"
+              variant="ghost"
+              className={cn(disabled && "text-neutral-400")}
+            >
+              <SendIcon size={16} />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui
 import { cn } from "@hypr/ui/lib/utils";
 import { useShell } from "../../contexts/shell";
 import * as persisted from "../../store/tinybase/persisted";
+import { Button } from "@hypr/ui/components/ui/button";
 
 export function ChatHeader({
   currentChatGroupId,
@@ -31,13 +32,13 @@ export function ChatHeader({
       <div className="flex items-center">
         <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
         <ChatActionButton
-          icon={<Plus className="w-4 h-4" />}
+          icon={<Plus size={16} />}
           onClick={onNewChat}
           title="New chat"
         />
       </div>
 
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center">
         <ChatActionButton
           icon={chat.mode === "RightPanelOpen"
             ? <PictureInPicture2Icon className="w-4 h-4" />
@@ -46,7 +47,7 @@ export function ChatHeader({
           title="Toggle"
         />
         <ChatActionButton
-          icon={<X className="w-4 h-4" />}
+          icon={<X size={16} />}
           onClick={handleClose}
           title="Close"
         />
@@ -65,13 +66,14 @@ function ChatActionButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all active:scale-95"
       title={title}
+      size="icon"
+      variant="ghost"
     >
       {icon}
-    </button>
+    </Button>
   );
 }
 
@@ -102,7 +104,10 @@ function ChatGroups({
   return (
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 hover:bg-neutral-100/60 active:bg-neutral-100 px-2 py-1.5 rounded-lg transition-all group focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 h-auto px-2 py-1.5 group"
+        >
           <MessageCircle className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
           <h3 className="font-medium text-neutral-700 text-xs truncate">
             {currentChatTitle || "Ask Hyprnote anything"}
@@ -113,7 +118,7 @@ function ChatGroups({
               isDropdownOpen && "rotate-180",
             ])}
           />
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72 p-1.5">
         <div className="space-y-0.5">
@@ -168,14 +173,15 @@ function ChatGroupItem({
     : "";
 
   return (
-    <button
+    <Button
+      variant="ghost"
       onClick={() => onSelect(groupId)}
       className={cn([
-        "w-full text-left px-2.5 py-1.5 rounded-md transition-all group",
-        isActive ? "bg-neutral-100 shadow-sm" : "hover:bg-neutral-50 active:bg-neutral-100",
+        "w-full justify-start h-auto px-2.5 py-1.5 group",
+        isActive ? "bg-neutral-100 shadow-sm hover:bg-neutral-100" : "hover:bg-neutral-50 active:bg-neutral-100",
       ])}
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 w-full">
         <div className="flex-shrink-0">
           <MessageCircle
             className={cn([
@@ -184,7 +190,7 @@ function ChatGroupItem({
             ])}
           />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 text-left">
           <div
             className={cn([
               "text-sm font-medium truncate",
@@ -198,6 +204,6 @@ function ChatGroupItem({
           </div>
         </div>
       </div>
-    </button>
+    </Button>
   );
 }

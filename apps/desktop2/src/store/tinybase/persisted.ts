@@ -47,6 +47,9 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   created_at: z.string(),
   started_at: z.string(),
   ended_at: z.string(),
+  location: z.preprocess(val => val ?? undefined, z.string().optional()),
+  meeting_link: z.preprocess(val => val ?? undefined, z.string().optional()),
+  description: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
 export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({ created_at: z.string() });
@@ -158,6 +161,9 @@ const SCHEMA = {
       title: { type: "string" },
       started_at: { type: "string" },
       ended_at: { type: "string" },
+      location: { type: "string" },
+      meeting_link: { type: "string" },
+      description: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof eventSchema>,
     mapping_session_participant: {
       user_id: { type: "string" },

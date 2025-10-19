@@ -76,9 +76,9 @@ export function SessionMetadata({
       title: eventRow.title ?? "Untitled Event",
       started_at: eventRow.started_at,
       ended_at: eventRow.ended_at,
-      location: null, // TODO: Add location field to event schema
-      meeting_link: null, // TODO: Add meeting_link field to event schema
-      description: null, // TODO: Add description field to event schema
+      location: (eventRow.location as string | undefined) ?? null,
+      meeting_link: (eventRow.meeting_link as string | undefined) ?? null,
+      description: (eventRow.description as string | undefined) ?? null,
       participants,
     };
   }, [sessionRow.event_id, eventRow, store, participantMappingIds]);

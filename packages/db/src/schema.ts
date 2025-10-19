@@ -51,6 +51,9 @@ export const events = pgTable(TABLE_EVENTS, {
   title: text("title").notNull(),
   started_at: timestamp("started_at").notNull(),
   ended_at: timestamp("ended_at").notNull(),
+  location: text("location"),
+  meeting_link: text("meeting_link"),
+  description: text("description"),
 });
 
 export const TABLE_CALENDARS = "calendars";

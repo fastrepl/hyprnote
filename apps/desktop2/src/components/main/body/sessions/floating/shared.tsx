@@ -1,7 +1,6 @@
-import { type ReactNode } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
+
+import { type ReactNode } from "react";
 
 export function FloatingButton({
   icon,
@@ -18,17 +17,12 @@ export function FloatingButton({
 }) {
   return (
     <Button
-      className={cn([
-        "flex flex-row items-center justify-center gap-1",
-        "text-white bg-black hover:bg-neutral-800",
-        "px-4 py-2 rounded-lg shadow-lg",
-        "min-w-[170px] h-10",
-      ])}
+      className="shadow-lg"
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {icon && <span className="flex items-center flex-shrink-0 pt-1">{icon}</span>}
+      {icon || <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
       {children}
     </Button>
   );

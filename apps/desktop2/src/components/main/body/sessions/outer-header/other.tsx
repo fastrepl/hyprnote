@@ -105,7 +105,7 @@ export function OthersButton(_: { sessionId: string }) {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
-        <DropdownMenuItem onClick={handleToggleLock}>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
           <LockIcon />
           <span>Lock note</span>
           <Switch checked={isLocked} onCheckedChange={handleToggleLock} className="ml-auto" />

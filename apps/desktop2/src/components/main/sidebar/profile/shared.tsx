@@ -1,10 +1,11 @@
 import { clsx } from "clsx";
 
 export function MenuItem(
-  { icon: Icon, label, badge, onClick }: {
+  { icon: Icon, label, badge, suffixIcon: SuffixIcon, onClick }: {
     icon: any;
     label: string;
     badge?: number | React.ReactNode;
+    suffixIcon?: any;
     onClick: () => void;
   },
 ) {
@@ -14,7 +15,7 @@ export function MenuItem(
         "flex w-full items-center gap-2.5 rounded-lg",
         "px-4 py-1.5",
         "text-sm text-black",
-        "transition-colors hover:bg-slate-100",
+        "transition-colors hover:bg-neutral-100",
       )}
       onClick={onClick}
     >
@@ -36,6 +37,7 @@ export function MenuItem(
           )
           : badge
       )}
+      {SuffixIcon && <SuffixIcon className={clsx("h-4 w-4 flex-shrink-0", "text-neutral-400")} />}
     </button>
   );
 }

@@ -1,9 +1,11 @@
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { createStore } from "@xstate/store";
 import { useSelector } from "@xstate/store/react";
 import { clsx } from "clsx";
-import { AlertCircle, CheckCircle, Download, Loader2, RefreshCw, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
 
 import { MenuItem } from "./shared";
 
@@ -205,10 +207,10 @@ export function UpdateChecker() {
         className={clsx(
           "flex w-full items-center gap-2.5",
           "px-4 py-1.5",
-          "text-sm text-slate-700",
+          "text-sm text-neutral-700",
         )}
       >
-        <Loader2 className={clsx("h-4 w-4 flex-shrink-0 animate-spin", "text-slate-400")} />
+        <Spinner size={16} className="flex-shrink-0 text-neutral-400" />
         <span className={clsx("flex-1", "text-left font-medium")}>Checking for updates...</span>
       </div>
     );
@@ -220,7 +222,7 @@ export function UpdateChecker() {
         className={clsx(
           "flex w-full items-center gap-2.5",
           "px-4 py-1.5",
-          "text-sm text-slate-700",
+          "text-sm text-neutral-700",
         )}
       >
         <CheckCircle className={clsx("h-4 w-4 flex-shrink-0", "text-green-500")} />
@@ -269,9 +271,9 @@ export function UpdateChecker() {
 
   if (state === "downloading") {
     return (
-      <div className={clsx("flex w-full flex-col gap-2", "px-4 py-2", "text-sm text-slate-700")}>
+      <div className={clsx("flex w-full flex-col gap-2", "px-4 py-2", "text-sm text-neutral-700")}>
         <div className="flex items-center gap-2.5">
-          <Loader2 className={clsx("h-4 w-4 flex-shrink-0 animate-spin", "text-blue-500")} />
+          <Spinner size={16} className="flex-shrink-0 text-blue-500" />
           <span className={clsx("flex-1", "text-left font-medium")}>
             Downloading... {downloadProgress.percentage}%
           </span>
@@ -280,15 +282,15 @@ export function UpdateChecker() {
             className={clsx(
               "flex h-6 w-6 items-center justify-center",
               "rounded-full",
-              "hover:bg-slate-100",
+              "hover:bg-neutral-100",
               "transition-colors",
             )}
             title="Cancel download"
           >
-            <X className="h-4 w-4 text-slate-500" />
+            <X className="h-4 w-4 text-neutral-500" />
           </button>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
           <div
             className="h-full bg-blue-500 transition-all duration-300"
             style={{ width: `${downloadProgress.percentage}%` }}
@@ -315,10 +317,10 @@ export function UpdateChecker() {
         className={clsx(
           "flex w-full items-center gap-2.5",
           "px-4 py-1.5",
-          "text-sm text-slate-700",
+          "text-sm text-neutral-700",
         )}
       >
-        <Loader2 className={clsx("h-4 w-4 flex-shrink-0 animate-spin", "text-green-500")} />
+        <Spinner size={16} className="flex-shrink-0 text-green-500" />
         <span className={clsx("flex-1", "text-left font-medium")}>Installing...</span>
       </div>
     );

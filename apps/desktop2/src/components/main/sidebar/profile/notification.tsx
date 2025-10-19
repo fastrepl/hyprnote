@@ -1,5 +1,7 @@
+import { Button } from "@hypr/ui/components/ui/button";
+
 import { clsx } from "clsx";
-import { ArrowLeft, Bell, CheckCheck, MessageSquare } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, CheckCheck, MessageSquare } from "lucide-react";
 
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -11,6 +13,7 @@ export function NotificationsMenuHeader({ onClick }: { onClick: () => void }) {
       icon={Bell}
       label="Notifications"
       onClick={onClick}
+      suffixIcon={ArrowRight}
     />
   );
 }
@@ -37,22 +40,17 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 
 export function NotificationsMenuContent({ onBack }: { onBack: () => void }) {
   return (
-    <div className="h-full flex flex-col">
-      <button
-        onClick={onBack}
-        className={cn([
-          "flex w-full items-center gap-2.5 rounded-lg",
-          "px-4 py-1.5 mb-2",
-          "text-sm font-medium text-black",
-          "transition-colors hover:bg-slate-100",
-        ])}
-      >
-        <ArrowLeft className="h-4 w-4 flex-shrink-0" />
-        <span>Back</span>
-      </button>
-
-      <div className="px-4 py-1.5 mb-2">
-        <h3 className="text-sm font-semibold text-black">Notifications</h3>
+    <div className="h-full flex flex-col px-2">
+      <div className="flex w-full items-center gap-1 text-sm font-medium">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onBack}
+          className="shrink-0"
+        >
+          <ArrowLeft size={16} />
+        </Button>
+        Notifications
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-1">
@@ -66,8 +64,8 @@ export function NotificationsMenuContent({ onBack }: { onBack: () => void }) {
         {MOCK_NOTIFICATIONS.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Bell className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No notifications</p>
+              <Bell className="h-8 w-8 text-neutral-300 mx-auto mb-2" />
+              <p className="text-sm text-neutral-500">No notifications</p>
             </div>
           </div>
         )}
@@ -96,7 +94,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
         "flex w-full gap-3 rounded-lg",
         "px-4 py-2.5",
         "text-left",
-        "transition-colors hover:bg-slate-100",
+        "transition-colors hover:bg-neutral-100",
         !notification.read && "bg-blue-50/50",
       ])}
     >
@@ -131,10 +129,10 @@ function NotificationItem({ notification }: { notification: Notification }) {
           </p>
           {!notification.read && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />}
         </div>
-        <p className="text-xs text-slate-600 line-clamp-2 mb-1">
+        <p className="text-xs text-neutral-600 line-clamp-2 mb-1">
           {notification.description}
         </p>
-        <p className="text-xs text-slate-400">{notification.timestamp}</p>
+        <p className="text-xs text-neutral-400">{notification.timestamp}</p>
       </div>
     </button>
   );

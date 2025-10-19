@@ -10,7 +10,7 @@ export function SearchResults() {
   const empty = !query || !results || results.totalResults === 0;
 
   return (
-    <div className={cn(["h-full rounded-md bg-color1"])}>
+    <div className="h-full rounded-md bg-neutral-50">
       {empty
         ? <SearchNoResults query={query} setQuery={setQuery} />
         : <SearchYesResults results={results} query={query} />}

@@ -33,10 +33,7 @@ export function ConfigureProviders() {
         {CUSTOM_PROVIDERS.map((provider) => (
           <NonHyprProviderCard
             key={provider.id}
-            icon={provider.icon}
-            providerName={provider.displayName}
-            providerId={provider.id}
-            providerConfig={provider}
+            config={provider}
           />
         ))}
       </Accordion>
@@ -44,18 +41,8 @@ export function ConfigureProviders() {
   );
 }
 
-function NonHyprProviderCard({
-  providerName,
-  providerId,
-  icon,
-  providerConfig,
-}: {
-  providerName: string;
-  providerId: ProviderId;
-  icon: React.ReactNode;
-  providerConfig: typeof CUSTOM_PROVIDERS[number];
-}) {
-  const [provider, setProvider] = useProvider(providerId);
+function NonHyprProviderCard({ config }: { config: typeof CUSTOM_PROVIDERS[number] }) {
+  const [provider, setProvider] = useProvider(config.id);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -72,17 +59,23 @@ function NonHyprProviderCard({
 
   return (
     <AccordionItem
-      value={providerId}
+      disabled={config.disabled}
+      value={config.id}
       className={cn(["rounded-lg border-2 border-dashed bg-gray-50"])}
     >
-      <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
+      <AccordionTrigger
+        className={cn([
+          "capitalize gap-2 px-4",
+          config.disabled && "cursor-not-allowed opacity-30",
+        ])}
+      >
         <div className="flex items-center gap-2">
-          {icon}
-          <span>{providerName}</span>
+          {config.icon}
+          <span>{config.displayName}</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4">
-        <ProviderContext providerId={providerId} />
+        <ProviderContext providerId={config.id} />
         <form
           className="space-y-4"
           onSubmit={(e) => {
@@ -90,8 +83,8 @@ function NonHyprProviderCard({
             e.stopPropagation();
           }}
         >
-          {!providerConfig.baseUrl.immutable && (
-            <form.Field name="base_url" defaultValue={providerConfig.baseUrl.value}>
+          {!config.baseUrl.immutable && (
+            <form.Field name="base_url" defaultValue={config.baseUrl.value}>
               {(field) => (
                 <FormField
                   field={field}

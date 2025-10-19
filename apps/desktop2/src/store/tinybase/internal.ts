@@ -2,8 +2,8 @@ import * as _UI from "tinybase/ui-react/with-schemas";
 import { createMergeableStore, createQueries, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
+import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import { createLocalPersister } from "./localPersister";
-import { createLocalSynchronizer } from "./localSynchronizer";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const generalSchema = z.object({
@@ -80,6 +80,7 @@ const {
   useProvideStore,
   useProvidePersister,
   useProvideQueries,
+  useProvideSynchronizer,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -100,11 +101,11 @@ export const useStore = () => {
   // TODO
   store.setValue("user_id", "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a");
 
-  useCreateSynchronizer(
+  const synchronizer = useCreateSynchronizer(
     store,
-    async (store) => createLocalSynchronizer(store),
+    async (store) => createBroadcastChannelSynchronizer(store, "hypr-internal-sync"),
     [],
-    (sync) => sync.startSync(),
+    (sync) => sync.startSync().then(console.log).catch(console.error),
   );
 
   const localPersister = useCreatePersister(
@@ -149,6 +150,7 @@ export const useStore = () => {
   useProvideStore(STORE_ID, store);
   useProvidePersister(STORE_ID, localPersister);
   useProvideQueries(STORE_ID, queries);
+  useProvideSynchronizer(STORE_ID, synchronizer);
 
   return store;
 };

@@ -4,8 +4,6 @@ import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 import { commands as db2Commands } from "@hypr/plugin-db2";
 import { MergeableStoreOnly } from "./shared";
 
-export const LOCAL_PERSISTER_ID = "local-persister";
-
 export function createLocalPersister<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
   config: Omit<DpcJson, "mode">,

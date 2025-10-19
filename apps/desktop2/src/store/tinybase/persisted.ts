@@ -29,9 +29,9 @@ import {
   templateSchema as baseTemplateSchema,
   transcriptSchema,
 } from "@hypr/db";
+import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as internal from "./internal";
-import { createLocalPersister, LOCAL_PERSISTER_ID } from "./localPersister";
-import { createLocalSynchronizer } from "./localSynchronizer";
+import { createLocalPersister } from "./localPersister";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const STORE_ID = "persisted";
@@ -217,6 +217,7 @@ const {
   useProvidePersister,
   useProvideQueries,
   useDidFinishTransactionListener,
+  useProvideSynchronizer,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -269,11 +270,11 @@ export const StoreComponent = () => {
     (persister) => persister.startAutoPersisting(),
   );
 
-  useCreateSynchronizer(
+  const synchronizer = useCreateSynchronizer(
     store,
-    async (store) => createLocalSynchronizer(store),
+    async (store) => createBroadcastChannelSynchronizer(store, "hypr-persisted-sync"),
     [],
-    (sync) => sync.startSync(),
+    (sync) => sync.startSync().then(console.log).catch(console.error),
   );
 
   const relationships = useCreateRelationships(
@@ -485,7 +486,8 @@ export const StoreComponent = () => {
   useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(LOCAL_PERSISTER_ID, localPersister);
+  useProvidePersister(STORE_ID, localPersister);
+  useProvideSynchronizer(STORE_ID, synchronizer);
 
   return null;
 };

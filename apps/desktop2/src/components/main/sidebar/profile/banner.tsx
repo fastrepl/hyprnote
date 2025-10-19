@@ -9,7 +9,7 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
     onDismiss();
   };
 
-  const handleSignUp = () => { };
+  const handleSignUp = () => {};
 
   return (
     <AnimatePresence mode="wait">

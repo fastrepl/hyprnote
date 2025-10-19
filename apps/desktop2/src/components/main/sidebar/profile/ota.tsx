@@ -76,7 +76,7 @@ const updateStore = createStore({
           ? Math.round(
             ((context.downloadProgress.downloaded + event.chunkLength)
               / (event.contentLength ?? context.downloadProgress.total ?? 1))
-            * 100,
+              * 100,
           )
           : 0,
       },
@@ -253,7 +253,7 @@ export function UpdateChecker() {
             Retry
           </button>
         }
-        onClick={() => { }}
+        onClick={() => {}}
       />
     );
   }

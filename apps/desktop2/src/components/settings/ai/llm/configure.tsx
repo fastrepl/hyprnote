@@ -48,7 +48,16 @@ function ProviderCard({
         base_url: "",
         api_key: "",
       } satisfies internal.AIProvider),
-    listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
+    listeners: {
+      onChange: ({ formApi }) => {
+        const { form: { errors } } = formApi.getAllErrors();
+        if (errors.length > 0) {
+          console.log(errors);
+        } else {
+          formApi.handleSubmit();
+        }
+      },
+    },
     validators: { onChange: aiProviderSchema },
   });
 

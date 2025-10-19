@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useMemo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
@@ -82,13 +83,13 @@ export function SelectProviderAndModel() {
         <form.Field name="model">
           {(field) => {
             const providerId = form.getFieldValue("provider");
-            const providerData = configuredProviders[providerId];
+            const maybeListModels = configuredProviders[providerId];
 
             const listModels = () => {
-              if (!providerData?.base_url || !providerData?.api_key) {
+              if (!maybeListModels) {
                 return [];
               }
-              return openaiCompatibleListModels(providerData.base_url, providerData.api_key);
+              return maybeListModels();
             };
 
             return (
@@ -96,7 +97,7 @@ export function SelectProviderAndModel() {
                 <ModelCombobox
                   value={field.state.value}
                   onChange={(value) => field.handleChange(value)}
-                  disabled={!providerData?.base_url || !providerData?.api_key}
+                  disabled={!maybeListModels}
                   listModels={listModels}
                   placeholder="Select a model"
                 />
@@ -109,26 +110,29 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<ProviderId, { base_url: string; api_key: string } | null> {
+function useConfiguredMapping(): Record<ProviderId, null | (() => Promise<string[]>)> {
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
 
-  return Object.fromEntries(
-    PROVIDERS.map((provider) => {
-      if (
-        !configuredProviders[provider.id]
-        || !configuredProviders[provider.id].base_url
-        || !configuredProviders[provider.id].api_key
-      ) {
-        return [provider.id, null];
-      }
+  const mapping = useMemo(() => {
+    return Object.fromEntries(
+      PROVIDERS.map((provider) => {
+        if (
+          !configuredProviders[provider.id]
+          || !configuredProviders[provider.id]?.base_url
+          || !configuredProviders[provider.id]?.api_key
+        ) {
+          return [provider.id, null];
+        }
 
-      return [
-        provider.id,
-        {
-          base_url: String(configuredProviders[provider.id].base_url),
-          api_key: String(configuredProviders[provider.id].api_key),
-        },
-      ];
-    }),
-  );
+        const { base_url, api_key } = configuredProviders[provider.id];
+
+        return [
+          provider.id,
+          () => openaiCompatibleListModels(String(base_url), String(api_key)),
+        ];
+      }),
+    );
+  }, [configuredProviders]);
+
+  return mapping;
 }

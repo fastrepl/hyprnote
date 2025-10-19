@@ -32,17 +32,7 @@ export function ModelCombobox({
 
   const { data: fetchedModels, isLoading } = useQuery({
     queryKey: ["models", listModels],
-    queryFn: async () => {
-      try {
-        const models = await listModels();
-        if (Array.isArray(models)) {
-          return models;
-        }
-      } catch (error) {
-        console.error("Error loading models:", error);
-      }
-      return [];
-    },
+    queryFn: listModels,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -66,19 +56,15 @@ export function ModelCombobox({
           role="combobox"
           disabled={disabled || isLoading}
           aria-expanded={open}
-          className="w-full font-normal bg-white"
+          className={cn(["w-full justify-between font-normal bg-white"])}
         >
           {value && value.length > 0
-            ? <div className="truncate mr-auto">{value}</div>
-            : (
-              <div className="text-slate-600 mr-auto">
-                {isLoading ? "Loading models..." : placeholder}
-              </div>
-            )}
+            ? <span className="truncate">{value}</span>
+            : <span className="text-muted-foreground">{isLoading ? "Loading models..." : placeholder}</span>}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full min-w-[400px] p-0">
+      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]">
         <Command
           filter={(value, search) => {
             const v = value.toLocaleLowerCase();
@@ -99,8 +85,8 @@ export function ModelCombobox({
               }
             }}
           />
-          <CommandEmpty className="flex pl-1 py-1 w-full">
-            <div className="py-1.5 pl-3 space-y-1 text-sm">
+          <CommandEmpty>
+            <div className="py-1.5 px-2 text-sm text-muted-foreground">
               <p>No models available.</p>
               <p>Type to select any value.</p>
             </div>
@@ -109,7 +95,7 @@ export function ModelCombobox({
           <CommandList>
             <CommandGroup className="overflow-y-auto">
               {options.length === 0 && !trimmedQuery && (
-                <div className="py-1.5 pl-8 space-y-1 text-sm">
+                <div className="py-1.5 px-2 text-sm text-muted-foreground">
                   <p>No models</p>
                   <p>Enter a value to create a new one</p>
                 </div>
@@ -175,7 +161,7 @@ export function ModelCombobox({
   );
 }
 
-export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string) => {
+export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string): Promise<string[]> => {
   if (!baseUrl) {
     return [];
   }

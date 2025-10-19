@@ -16,15 +16,15 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
-  current_llm_provider: z.string().default("hyprnote"),
-  current_llm_model: z.string(),
-  current_stt_provider: z.string().default("hyprnote"),
-  current_stt_model: z.string(),
+  current_llm_provider: z.string().optional(),
+  current_llm_model: z.string().optional(),
+  current_stt_provider: z.string().optional(),
+  current_stt_model: z.string().optional(),
 });
 
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
-  base_url: z.url(),
+  base_url: z.url().min(1),
   api_key: z.string().min(1),
 });
 

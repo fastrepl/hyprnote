@@ -1,4 +1,4 @@
-import { Anthropic, LmStudio, Ollama, OpenAI } from "@lobehub/icons";
+import { Anthropic, LmStudio, Ollama, OpenAI, OpenRouter } from "@lobehub/icons";
 
 export type ProviderId = typeof PROVIDERS[number]["id"];
 
@@ -26,6 +26,14 @@ export const PROVIDERS = [
     icon: <Anthropic size={16} />,
     apiKey: true,
     baseUrl: { value: "https://api.anthropic.com/v1", immutable: true },
+  },
+  {
+    id: "openrouter",
+    displayName: "OpenRouter",
+    badge: null,
+    icon: <OpenRouter size={16} />,
+    apiKey: true,
+    baseUrl: { value: "https://openrouter.ai/api/v1", immutable: true },
   },
   {
     id: "ollama",

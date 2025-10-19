@@ -104,25 +104,35 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<ProviderId, boolean> {
+function useConfiguredMapping(): Record<ProviderId, string[]> {
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.sttProviders, internal.STORE_ID);
 
-  const modelDownloadedQueries = useQueries({
+  const [p2, p3] = useQueries({
     queries: [
       sttModelQueries.isDownloaded("am-parakeet-v2"),
       sttModelQueries.isDownloaded("am-parakeet-v3"),
     ],
   });
 
-  const hasAnyModelDownloaded = modelDownloadedQueries.some((query) => query.data === true);
-
   return Object.fromEntries(
     PROVIDERS.map((provider) => {
       if (provider.id === "hyprnote") {
-        return [provider.id, hasAnyModelDownloaded];
+        return [
+          provider.id,
+          [
+            p2.data ? "am-parakeet-v2" : null,
+            p3.data ? "am-parakeet-v3" : null,
+          ].filter(Boolean) as string[],
+        ];
       }
 
-      return [provider.id, configuredProviders[provider.id]];
+      const config = configuredProviders[provider.id] as internal.AIProviderStorage | undefined;
+
+      if (!config) {
+        return [provider.id, null];
+      }
+
+      return [provider.id, provider.models];
     }),
   );
 }

@@ -1,10 +1,12 @@
 import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { openPath } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 import { useManager } from "tinytick/ui-react";
 
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -170,7 +172,12 @@ function HyprProviderCloudRow() {
             Use the Hyprnote Cloud API to transcribe your audio.
           </span>
         </div>
-        <Button size="sm" variant="default" disabled={true}>
+        <Button
+          className="w-[110px]"
+          size="sm"
+          variant="default"
+          disabled={true}
+        >
           For Pro Users
         </Button>
       </div>
@@ -178,7 +185,108 @@ function HyprProviderCloudRow() {
   );
 }
 
+function LocalModelInfo({ displayName }: {
+  displayName: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-sm font-medium">{displayName}</span>
+      <span className="text-xs text-gray-500">
+        On-device model. No audio leaves your device.
+      </span>
+    </div>
+  );
+}
+
+function LocalModelAction({
+  isDownloaded,
+  showProgress,
+  progress,
+  onOpen,
+  onDownload,
+  onCancel,
+}: {
+  isDownloaded: boolean;
+  showProgress: boolean;
+  progress: number;
+  onOpen: () => void;
+  onDownload: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Button
+      size="sm"
+      className="w-[110px] relative overflow-hidden group"
+      variant={isDownloaded ? "outline" : "default"}
+      disabled={false}
+      onClick={isDownloaded ? onOpen : (showProgress ? onCancel : onDownload)}
+    >
+      {showProgress && (
+        <div
+          className="absolute inset-0 bg-black transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      )}
+      {isDownloaded
+        ? (
+          <>
+            <div className="relative z-10 flex items-center gap-1 group-hover:hidden">
+              <Icon icon="mdi:check" className="size-4 mt-1" />
+              <span>Downloaded</span>
+            </div>
+            <div className="relative z-10 hidden items-center gap-1 group-hover:flex">
+              <Icon icon="mdi:folder-open" className="size-4 mt-1" />
+              <span>Show Model</span>
+            </div>
+          </>
+        )
+        : showProgress
+        ? (
+          <>
+            <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
+              <Icon icon="mdi:loading" className="size-4 mt-1 animate-spin" />
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
+              <Icon icon="mdi:close" className="size-4 mt-1" />
+              <span>Cancel</span>
+            </div>
+          </>
+        )
+        : (
+          <div className="relative z-10 flex items-center gap-2">
+            <Icon icon="mdi:download" className="size-4 mt-1" />
+            <span>Download</span>
+          </div>
+        )}
+    </Button>
+  );
+}
+
 function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel; displayName: string }) {
+  const { progress, isDownloaded, showProgress, handleDownload, handleCancel } = useLocalModelDownload(model);
+
+  const handleOpen = () =>
+    localSttCommands.modelsDir().then((modelsDir) => {
+      openPath(modelsDir);
+    });
+
+  return (
+    <HyprProviderRow>
+      <LocalModelInfo displayName={displayName} />
+      <LocalModelAction
+        isDownloaded={isDownloaded}
+        showProgress={showProgress}
+        progress={progress}
+        onOpen={handleOpen}
+        onDownload={handleDownload}
+        onCancel={handleCancel}
+      />
+    </HyprProviderRow>
+  );
+}
+
+function useLocalModelDownload(model: SupportedSttModel) {
   const manager = useManager();
   const [progress, setProgress] = useState<number>(0);
   const [taskRunId, setTaskRunId] = useState<string | null>(null);
@@ -203,6 +311,13 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
     }
   }, [isDownloaded.data, taskRunId]);
 
+  useEffect(() => {
+    if (!isDownloading.data && !isDownloaded.data && taskRunId) {
+      setTaskRunId(null);
+      setProgress(0);
+    }
+  }, [isDownloading.data, isDownloaded.data, taskRunId]);
+
   const handleDownload = () => {
     if (!manager || isDownloaded.data) {
       return;
@@ -214,76 +329,43 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
     }
   };
 
-  const showProgress = !isDownloaded.data && (isDownloading.data || isTaskRunning);
+  const handleCancel = () => {
+    if (!manager || !taskRunId) {
+      return;
+    }
+    manager.delTaskRun(taskRunId);
+    setTaskRunId(null);
+    setProgress(0);
+  };
 
-  return (
-    <HyprProviderRow>
-      <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">{displayName}</span>
-        <span className="text-xs text-gray-500">
-          On-device model. No audio leaves your device.
-        </span>
+  const showProgress = !isDownloaded.data && taskRunId !== null && (isDownloading.data || isTaskRunning);
 
-        {showProgress && (
-          <div className="flex items-center gap-2">
-            <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <span className="text-xs text-gray-500">{Math.round(progress)}%</span>
-          </div>
-        )}
-      </div>
-      <Button
-        size="sm"
-        variant={isDownloaded.data ? "outline" : "default"}
-        disabled={showProgress || !!isDownloaded.data}
-        onClick={handleDownload}
-      >
-        {isDownloaded.data
-          ? (
-            <>
-              <Icon icon="mdi:check-circle" className="size-4 mr-1" />
-              Downloaded
-            </>
-          )
-          : showProgress
-          ? (
-            <>
-              <Icon icon="mdi:loading" className="size-4 mr-1 animate-spin" />
-              Downloading
-            </>
-          )
-          : (
-            <>
-              <Icon icon="mdi:download" className="size-4 mr-1" />
-              Download
-            </>
-          )}
-      </Button>
-    </HyprProviderRow>
-  );
+  return {
+    progress,
+    isDownloaded: isDownloaded.data ?? false,
+    showProgress,
+    handleDownload,
+    handleCancel,
+  };
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
-    ? "Hyprnote is great"
+    ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
     : providerId === "deepgram"
-    ? "Deepgram is great"
+    ? `Use [Deepgram](https://deepgram.com) for transcriptions. \ 
+    You can choose to use the [EU Endpoint](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) if you prefer.`
     : providerId === "deepgram-custom"
     ? `If you're using a [Dedicated endpoint](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints), or other Deepgram-compatible endpoint, you can configure it here.`
-      .trim()
     : "";
 
-  if (!content) {
+  if (!content.trim()) {
     return null;
   }
 
   return (
     <Streamdown className="text-sm mt-1 mb-6">
-      {content}
+      {content.trim()}
     </Streamdown>
   );
 }

@@ -4,10 +4,10 @@ import { useQueries } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import * as internal from "../../../../store/tinybase/internal";
-import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
-  const selectedProvider = internal.UI.useValue("current_stt_provider", internal.STORE_ID);
+  const { current_stt_provider, current_stt_model } = internal.UI.useValues(internal.STORE_ID);
   const configuredProviders = useConfiguredMapping();
 
   const handleSelectProvider = internal.UI.useSetValueCallback(
@@ -17,13 +17,23 @@ export function SelectProviderAndModel() {
     internal.STORE_ID,
   );
 
+  const handleSelectModel = internal.UI.useSetValueCallback(
+    "current_stt_model",
+    (model: string) => model,
+    [],
+    internal.STORE_ID,
+  );
+
   const form = useForm({
     defaultValues: {
-      provider: selectedProvider || "",
-      model: "",
+      provider: current_stt_provider || "",
+      model: current_stt_model || "",
     },
     listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
-    onSubmit: ({ value }) => handleSelectProvider(value.provider),
+    onSubmit: ({ value }) => {
+      handleSelectProvider(value.provider);
+      handleSelectModel(value.model);
+    },
   });
 
   return (
@@ -33,7 +43,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-row items-center gap-4",
           "p-4 rounded-md border border-gray-500 bg-gray-50",
-          !!selectedProvider ? "border-solid" : "border-dashed",
+          (!!current_stt_provider && !!current_stt_model) ? "border-solid" : "border-dashed",
         ])}
       >
         <form.Field
@@ -72,25 +82,23 @@ export function SelectProviderAndModel() {
 
         <form.Field name="model">
           {(field) => {
-            const selectedProviderConfig = PROVIDERS.find(
-              (p) => p.id === form.getFieldValue("provider"),
-            );
-            const availableModels = selectedProviderConfig?.models || [];
+            const providerId = field.form.getFieldValue("provider") as ProviderId;
+            const models = configuredProviders?.[providerId] ?? [];
 
             return (
               <div style={{ flex: 6 }}>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
-                  disabled={!selectedProviderConfig || availableModels.length === 0}
+                  disabled={models.length === 0}
                 >
                   <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableModels.map((model) => (
+                    {models.map((model) => (
                       <SelectItem key={model} value={model}>
-                        {model}
+                        {displayModelId(model)}
                       </SelectItem>
                     ))}
                   </SelectContent>

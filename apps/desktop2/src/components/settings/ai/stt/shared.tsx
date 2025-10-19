@@ -3,9 +3,23 @@ import { Fireworks, Groq } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import type { SupportedSttModel } from "@hypr/plugin-local-stt";
+import type { AmModel, SupportedSttModel } from "@hypr/plugin-local-stt";
 
 export type ProviderId = typeof PROVIDERS[number]["id"];
+
+export const displayModelId = (model: string) => {
+  if (model.startsWith("am-")) {
+    const am = model as AmModel;
+    if (am == "am-parakeet-v2") {
+      return "Parakeet V2";
+    }
+    if (am == "am-parakeet-v3") {
+      return "Parakeet V3";
+    }
+  }
+
+  return model;
+};
 
 export const PROVIDERS = [
   {
@@ -14,7 +28,7 @@ export const PROVIDERS = [
     displayName: "Hyprnote",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: { value: "https://api.hyprnote.com/v1", immutable: true },
-    models: ["Auto"],
+    models: ["am-parakeet-v2", "am-parakeet-v3"] satisfies SupportedSttModel[],
   },
   {
     disabled: false,

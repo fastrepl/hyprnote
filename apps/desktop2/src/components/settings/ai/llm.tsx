@@ -1,20 +1,18 @@
-import { Icon } from "@iconify-icon/react";
 import { Anthropic, LmStudio, Ollama, OpenAI } from "@lobehub/icons";
 import { useForm } from "@tanstack/react-form";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import { aiProviderSchema } from "../../../store/tinybase/internal";
 import * as internal from "../../../store/tinybase/internal";
-import { useProvider } from "./shared";
+import { FormField, useProvider } from "./shared";
 
 const PROVIDERS = [
   {
     id: "hyprnote",
     displayName: "Hyprnote",
-    badge: "Pro",
+    badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: { value: "https://api.openai.com/v1", immutable: true },
     models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
@@ -56,13 +54,13 @@ const PROVIDERS = [
 export function LLM() {
   return (
     <div className="space-y-6">
-      <CurrentProviderAndModel />
+      <SelectProviderAndModel />
       <ConfigureProviders />
     </div>
   );
 }
 
-function CurrentProviderAndModel() {
+function SelectProviderAndModel() {
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
   const selectedProvider = internal.UI.useValue("current_llm_provider", internal.STORE_ID);
 
@@ -89,7 +87,7 @@ function CurrentProviderAndModel() {
         className={cn([
           "flex flex-row items-center gap-4",
           "p-4 rounded-md border border-gray-500 bg-gray-50",
-          selectedProvider ? "border-solid" : "border-dashed",
+          !!selectedProvider ? "border-solid" : "border-dashed",
         ])}
       >
         <form.Field
@@ -166,7 +164,7 @@ function ConfigureProviders() {
       <h3 className="text-sm font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
         {PROVIDERS.map((provider) => (
-          <CloudProviderCard
+          <ProviderCard
             key={provider.id}
             icon={provider.icon}
             name={provider.displayName}
@@ -178,7 +176,7 @@ function ConfigureProviders() {
   );
 }
 
-function CloudProviderCard({
+function ProviderCard({
   name,
   icon,
   providerConfig,
@@ -251,54 +249,5 @@ function CloudProviderCard({
         </form>
       </AccordionContent>
     </AccordionItem>
-  );
-}
-
-function FormField({
-  field,
-  label,
-  icon,
-  placeholder,
-  type,
-  hidden,
-}: {
-  field: any;
-  label: string;
-  icon: string;
-  placeholder: string;
-  type?: string;
-  hidden?: boolean;
-}) {
-  const { errors } = field.state.meta;
-  const hasError = errors && errors.length > 0;
-  const errorMessage = hasError
-    ? (typeof errors[0] === "string" ? errors[0] : (errors[0] as any)?.message || "Invalid value")
-    : null;
-
-  return (
-    <div className={cn(["space-y-2", hidden && "hidden"])}>
-      <label className="block text-xs font-medium">{label}</label>
-      <InputGroup className="bg-white">
-        <InputGroupAddon align="inline-start">
-          <InputGroupText>
-            <Icon icon={icon} />
-          </InputGroupText>
-        </InputGroupAddon>
-        <InputGroupInput
-          name={field.name}
-          type={type}
-          value={field.state.value}
-          onChange={(e) => field.handleChange(e.target.value)}
-          placeholder={placeholder}
-          aria-invalid={hasError}
-        />
-      </InputGroup>
-      {errorMessage && (
-        <p className="text-destructive text-xs flex items-center gap-1.5">
-          <Icon icon="mdi:alert-circle" className="size-3.5" />
-          <span>{errorMessage}</span>
-        </p>
-      )}
-    </div>
   );
 }

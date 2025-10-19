@@ -19,7 +19,7 @@
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.7.0",
     "@tanstack/react-query": "^5.90.5",
-    "@tanstack/react-router": "^1.133.3",
+    "@tanstack/react-router": "^1.133.13",
     "@tiptap/core": "^3.7.2",
     "@tiptap/extension-bubble-menu": "^3.7.2",
     "@tiptap/extension-document": "^3.7.2",
@@ -48,7 +48,7 @@
     "turndown": "^7.2.1"
   },
   "devDependencies": {
-    "@types/node": "^22.18.10",
+    "@types/node": "^22.18.11",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/turndown": "^5.0.5",

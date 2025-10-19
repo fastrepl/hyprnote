@@ -1,6 +1,7 @@
 import "@hypr/ui/globals.css";
 import "./styles/globals.css";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
@@ -20,6 +21,7 @@ import { routeTree } from "./routeTree.gen";
 import { createListenerStore } from "./store/zustand/listener";
 
 const listenerStore = createListenerStore();
+const queryClient = new QueryClient();
 
 const router = createRouter({ routeTree, context: undefined });
 
@@ -57,13 +59,15 @@ function AppWithTiny() {
   });
 
   return (
-    <TinyTickProvider manager={manager}>
-      <TinyBaseProvider>
-        <App />
-        <StoreComponentPersisted />
-        <TaskManager />
-      </TinyBaseProvider>
-    </TinyTickProvider>
+    <QueryClientProvider client={queryClient}>
+      <TinyTickProvider manager={manager}>
+        <TinyBaseProvider>
+          <App />
+          <StoreComponentPersisted />
+          <TaskManager />
+        </TinyBaseProvider>
+      </TinyTickProvider>
+    </QueryClientProvider>
   );
 }
 

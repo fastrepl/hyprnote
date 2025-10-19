@@ -1,11 +1,13 @@
 import { Anthropic, LmStudio, Ollama, OpenAI } from "@lobehub/icons";
 import { useForm } from "@tanstack/react-form";
+import { Streamdown } from "streamdown";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import { aiProviderSchema } from "../../../store/tinybase/internal";
 import * as internal from "../../../store/tinybase/internal";
+import { ModelCombobox } from "./model-combobox";
 import { FormField, useProvider } from "./shared";
 
 const PROVIDERS = [
@@ -14,42 +16,44 @@ const PROVIDERS = [
     displayName: "Hyprnote",
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: { value: "https://api.openai.com/v1", immutable: true },
-    models: ["auto"],
+    apiKey: false,
+    baseUrl: { value: "https://api.hyprnote.com/v1", immutable: true },
   },
   {
     id: "openai",
     displayName: "OpenAI",
     badge: null,
     icon: <OpenAI size={16} />,
+    apiKey: true,
     baseUrl: { value: "https://api.openai.com/v1", immutable: true },
-    models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
   },
   {
     id: "anthropic",
     displayName: "Anthropic",
     badge: null,
     icon: <Anthropic size={16} />,
+    apiKey: true,
     baseUrl: { value: "https://api.anthropic.com/v1", immutable: true },
-    models: ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
   },
   {
     id: "ollama",
     displayName: "Ollama",
     badge: null,
     icon: <Ollama size={16} />,
+    apiKey: true,
     baseUrl: { value: "http://localhost:11434", immutable: false },
-    models: ["llama3.2", "llama3.1", "mistral", "qwen2.5"],
   },
   {
     id: "lmstudio",
     displayName: "LM Studio",
     badge: null,
     icon: <LmStudio size={16} />,
+    apiKey: true,
     baseUrl: { value: "http://localhost:8000", immutable: false },
-    models: [],
   },
 ];
+
+type ProviderId = typeof PROVIDERS[number]["id"];
 
 export function LLM() {
   return (
@@ -129,26 +133,26 @@ function SelectProviderAndModel() {
             const selectedProviderConfig = PROVIDERS.find(
               (p) => p.id === form.getFieldValue("provider"),
             );
-            const availableModels = selectedProviderConfig?.models || [];
+
+            const providerData = configuredProviders[form.getFieldValue("provider")];
+            const baseUrl = typeof providerData?.base_url === "string"
+              ? providerData.base_url
+              : selectedProviderConfig?.baseUrl.value;
+            const apiKey = typeof providerData?.api_key === "string"
+              ? providerData.api_key
+              : undefined;
 
             return (
               <div style={{ flex: 6 }}>
-                <Select
+                <ModelCombobox
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value)}
-                  disabled={!selectedProviderConfig || availableModels.length === 0}
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableModels.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => field.handleChange(value)}
+                  baseUrl={baseUrl}
+                  apiKey={apiKey}
+                  fallbackModels={[]}
+                  disabled={!selectedProviderConfig}
+                  placeholder="Select a model"
+                />
               </div>
             );
           }}
@@ -167,7 +171,8 @@ function ConfigureProviders() {
           <ProviderCard
             key={provider.id}
             icon={provider.icon}
-            name={provider.displayName}
+            providerId={provider.id}
+            providerName={provider.displayName}
             providerConfig={provider}
           />
         ))}
@@ -177,15 +182,17 @@ function ConfigureProviders() {
 }
 
 function ProviderCard({
-  name,
+  providerId,
+  providerName,
   icon,
   providerConfig,
 }: {
-  name: string;
+  providerId: ProviderId;
+  providerName: string;
   icon: React.ReactNode;
   providerConfig: typeof PROVIDERS[number];
 }) {
-  const [provider, setProvider] = useProvider(name);
+  const [provider, setProvider] = useProvider(providerId);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -202,13 +209,13 @@ function ProviderCard({
 
   return (
     <AccordionItem
-      value={name}
+      value={providerId}
       className={cn(["rounded-lg border-2 border-dashed bg-gray-50"])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">
           {icon}
-          <span>{name}</span>
+          <span>{providerName}</span>
           {providerConfig.badge && (
             <span className="text-xs text-gray-500 font-light border border-gray-300 rounded-full px-2">
               {providerConfig.badge}
@@ -217,6 +224,7 @@ function ProviderCard({
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4">
+        <ProviderContext providerId={providerId} />
         <form
           className="space-y-4"
           onSubmit={(e) => {
@@ -224,30 +232,49 @@ function ProviderCard({
             e.stopPropagation();
           }}
         >
-          <form.Field name="base_url">
-            {(field) => (
-              <FormField
-                field={field}
-                label="Base URL"
-                icon="mdi:web"
-                placeholder={providerConfig.baseUrl.value}
-                hidden={providerConfig.baseUrl.immutable}
-              />
-            )}
-          </form.Field>
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
-            )}
-          </form.Field>
+          {!providerConfig.baseUrl.immutable && (
+            <form.Field name="base_url" defaultValue={providerConfig.baseUrl.value}>
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Base URL"
+                  icon="mdi:web"
+                />
+              )}
+            </form.Field>
+          )}
+
+          {providerConfig?.apiKey && (
+            <form.Field name="api_key" defaultValue="">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="API Key"
+                  icon="mdi:key"
+                  placeholder="Enter your API key"
+                  type="password"
+                />
+              )}
+            </form.Field>
+          )}
         </form>
       </AccordionContent>
     </AccordionItem>
+  );
+}
+
+function ProviderContext({ providerId }: { providerId: ProviderId }) {
+  const content = providerId === "hyprnote"
+    ? "Hyprnote is great"
+    : "";
+
+  if (!content) {
+    return null;
+  }
+
+  return (
+    <Streamdown className="text-sm mt-1 mb-6">
+      {content}
+    </Streamdown>
   );
 }

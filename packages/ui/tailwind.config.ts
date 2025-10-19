@@ -155,15 +155,33 @@ const config = {
         ...retroGrid.animation,
         ...shadcn.animation,
         ...spinner.animation,
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
       keyframes: {
         ...shimmerButton.keyframes,
         ...retroGrid.keyframes,
         ...shadcn.keyframes,
         ...spinner.keyframes,
+        "accordion-down": {
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
+        },
+        "accordion-up": {
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
+        },
       },
-      colors: shadcn.colors,
-      borderRadius: shadcn.borderRadius,
+      colors: "shadcn.colors",
+      borderRadius: "shadcn.borderRadius",
     },
   },
   plugins: [],

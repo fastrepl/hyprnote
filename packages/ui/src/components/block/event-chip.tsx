@@ -264,7 +264,7 @@ function EventSearch({
           placeholder="Search past events..."
           value={searchQuery}
           onChange={(e) => onSearchChange?.(e.target.value)}
-          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-color3"
+          className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
         />
       </div>
 

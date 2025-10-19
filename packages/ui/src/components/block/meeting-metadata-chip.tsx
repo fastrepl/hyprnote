@@ -313,7 +313,7 @@ function ParticipantsSection({
               setTimeout(() => setIsFocused(false), 200);
             }}
             placeholder="Add participant"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-color3"
+            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
           />
           {searchQuery.trim() && (
             <button
@@ -322,7 +322,7 @@ function ParticipantsSection({
                   handleSelectParticipant(searchResults[selectedIndex].id);
                 }
               }}
-              className="text-neutral-700 neutral-700transition-colors flex-shrink-0"
+              className="text-neutral-700 transition-colors flex-shrink-0"
             >
               <CornerDownLeft className="size-4" />
             </button>

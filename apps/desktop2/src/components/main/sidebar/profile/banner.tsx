@@ -9,7 +9,7 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
     onDismiss();
   };
 
-  const handleSignUp = () => {};
+  const handleSignUp = () => { };
 
   return (
     <AnimatePresence mode="wait">
@@ -61,7 +61,7 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
               onClick={handleSignUp}
               className="w-full"
             >
-              Start 2 week Free Trial
+              Start 1 week Free Trial
             </Button>
           </div>
         </motion.div>

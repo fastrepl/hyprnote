@@ -12,6 +12,7 @@ import { Separator } from "@hypr/ui/components/ui/separator";
 
 import { CircleMinus, Link2Icon, SearchIcon } from "lucide-react";
 import { useState } from "react";
+import { getInitials } from "../../contacts/shared";
 
 interface Person {
   id: string;
@@ -70,15 +71,6 @@ export function ShareButton(_: { sessionId: string }) {
   const handleCopyLink = () => {
     // TODO: Implement copy link functionality
     console.log("Copy link");
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   return (

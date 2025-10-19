@@ -151,7 +151,7 @@ export function ProfileSection() {
                     <NotificationsMenuHeader onClick={handleClickNotifications} />
                     <UpdateChecker />
 
-                    <div className="my-1.5 border-t border-slate-100" />
+                    <div className="my-1.5 border-t border-neutral-100" />
 
                     {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
@@ -189,7 +189,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         "text-left",
         "transition-all duration-300",
         "hover:bg-gray-100",
-        isExpanded && "bg-neutral-50 border-t border-slate-100",
+        isExpanded && "bg-neutral-50 border-t border-neutral-100",
       )}
       onClick={onClick}
     >
@@ -217,10 +217,10 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
           className={clsx(
             "hidden md:inline-block",
             "rounded-full",
-            "border border-slate-900",
+            "border border-neutral-900",
             "bg-white",
             "px-2.5 py-0.5",
-            "text-[11px] font-medium text-slate-900",
+            "text-[11px] font-medium text-neutral-900",
           )}
         >
           Pro trial
@@ -229,7 +229,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
           className={clsx(
             "h-4 w-4",
             "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-slate-500" : "text-slate-400",
+            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
           )}
         />
       </div>

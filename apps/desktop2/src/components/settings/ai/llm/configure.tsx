@@ -39,7 +39,6 @@ function ProviderCard({
   providerConfig: typeof PROVIDERS[number];
 }) {
   const [provider, setProvider] = useProvider(providerId);
-  console.log(provider, "provider");
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),

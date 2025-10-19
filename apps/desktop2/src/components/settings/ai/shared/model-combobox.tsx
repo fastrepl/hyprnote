@@ -33,7 +33,7 @@ export function ModelCombobox({
   const { data: fetchedModels, isLoading } = useQuery({
     queryKey: ["models", listModels],
     queryFn: listModels,
-    staleTime: 5 * 60 * 1000,
+    refetchInterval: 1000,
   });
 
   const options: string[] = fetchedModels ?? [];

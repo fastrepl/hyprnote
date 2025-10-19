@@ -273,15 +273,47 @@ function HyprProviderCard(
       <AccordionContent className="px-4">
         <ProviderContext providerId={providerId} />
         <div className="space-y-3">
-          <ModelDownloadRow model="am-parakeet-v2" displayName="Parakeet v2" />
-          <ModelDownloadRow model="am-parakeet-v3" displayName="Parakeet v3" />
+          <HyprProviderLocalRow model="am-parakeet-v2" displayName="Parakeet v2" />
+          <HyprProviderLocalRow model="am-parakeet-v3" displayName="Parakeet v3" />
+          <HyprProviderCloudRow />
         </div>
       </AccordionContent>
     </AccordionItem>
   );
 }
 
-function ModelDownloadRow({ model, displayName }: { model: SupportedSttModel; displayName: string }) {
+function HyprProviderRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className={cn([
+        "flex items-center justify-between",
+        "py-2 px-3 rounded-md border bg-white",
+      ])}
+    >
+      {children}
+    </div>
+  );
+}
+
+function HyprProviderCloudRow() {
+  return (
+    <HyprProviderRow>
+      <div className="flex items-center justify-between w-full">
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium">Hyprnote Cloud (Beta)</span>
+          <span className="text-xs text-gray-500">
+            Use the Hyprnote Cloud API to transcribe your audio.
+          </span>
+        </div>
+        <Button size="sm" variant="default" disabled={true}>
+          For Pro Users
+        </Button>
+      </div>
+    </HyprProviderRow>
+  );
+}
+
+function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel; displayName: string }) {
   const manager = useManager();
   const [progress, setProgress] = useState<number>(0);
   const [taskRunId, setTaskRunId] = useState<string | null>(null);
@@ -327,14 +359,13 @@ function ModelDownloadRow({ model, displayName }: { model: SupportedSttModel; di
   const showProgress = !isDownloaded.data && (isDownloading.data || isTaskRunning);
 
   return (
-    <div
-      className={cn([
-        "flex items-center justify-between",
-        "p-3 rounded-md border bg-white",
-      ])}
-    >
+    <HyprProviderRow>
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">{displayName}</span>
+        <span className="text-xs text-gray-500">
+          On-device model. No audio leaves your device.
+        </span>
+
         {showProgress && (
           <div className="flex items-center gap-2">
             <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -374,7 +405,7 @@ function ModelDownloadRow({ model, displayName }: { model: SupportedSttModel; di
             </>
           )}
       </Button>
-    </div>
+    </HyprProviderRow>
   );
 }
 

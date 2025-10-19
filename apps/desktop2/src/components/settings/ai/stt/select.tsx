@@ -1,13 +1,14 @@
 import { useForm } from "@tanstack/react-form";
+import { useQueries } from "@tanstack/react-query";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/ui/lib/utils";
 import * as internal from "../../../../store/tinybase/internal";
-import { CUSTOM_PROVIDERS } from "./shared";
+import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
-  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.sttProviders, internal.STORE_ID);
   const selectedProvider = internal.UI.useValue("current_stt_provider", internal.STORE_ID);
+  const configuredProviders = useConfiguredMapping();
 
   const handleSelectProvider = internal.UI.useSetValueCallback(
     "current_stt_provider",
@@ -49,11 +50,11 @@ export function SelectProviderAndModel() {
                   <SelectValue placeholder="Select a provider" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CUSTOM_PROVIDERS.map((provider) => (
+                  {PROVIDERS.map((provider) => (
                     <SelectItem
                       key={provider.id}
                       value={provider.id}
-                      disabled={!configuredProviders[provider.id]}
+                      disabled={provider.disabled || !configuredProviders[provider.id]}
                     >
                       <div className="flex items-center gap-2">
                         {provider.icon}
@@ -71,7 +72,7 @@ export function SelectProviderAndModel() {
 
         <form.Field name="model">
           {(field) => {
-            const selectedProviderConfig = CUSTOM_PROVIDERS.find(
+            const selectedProviderConfig = PROVIDERS.find(
               (p) => p.id === form.getFieldValue("provider"),
             );
             const availableModels = selectedProviderConfig?.models || [];
@@ -100,5 +101,28 @@ export function SelectProviderAndModel() {
         </form.Field>
       </div>
     </div>
+  );
+}
+
+function useConfiguredMapping(): Record<ProviderId, boolean> {
+  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.sttProviders, internal.STORE_ID);
+
+  const modelDownloadedQueries = useQueries({
+    queries: [
+      sttModelQueries.isDownloaded("am-parakeet-v2"),
+      sttModelQueries.isDownloaded("am-parakeet-v3"),
+    ],
+  });
+
+  const hasAnyModelDownloaded = modelDownloadedQueries.some((query) => query.data === true);
+
+  return Object.fromEntries(
+    PROVIDERS.map((provider) => {
+      if (provider.id === "hyprnote") {
+        return [provider.id, hasAnyModelDownloaded];
+      }
+
+      return [provider.id, configuredProviders[provider.id]];
+    }),
   );
 }

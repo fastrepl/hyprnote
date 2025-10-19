@@ -1,4 +1,4 @@
-import { Icon } from "@iconify-icon/react";
+import { AudioLinesIcon, SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
@@ -11,12 +11,12 @@ export function SettingsAI() {
   return (
     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
       <TabsList className="mb-6 w-full grid grid-cols-2">
-        <TabsTrigger value="transcription" className="flex items-center gap-1">
-          <Icon icon="mdi:microphone" className="size-4 mt-1" />
+        <TabsTrigger value="transcription" className="flex items-center gap-2">
+          <AudioLinesIcon size={16} />
           <span>Transcription</span>
         </TabsTrigger>
-        <TabsTrigger value="intelligence" className="flex items-center gap-1">
-          <Icon icon="mdi:brain" className="size-4 mt-1" />
+        <TabsTrigger value="intelligence" className="flex items-center gap-2">
+          <SparklesIcon size={16} />
           <span>Intelligence</span>
         </TabsTrigger>
       </TabsList>

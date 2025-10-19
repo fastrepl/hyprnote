@@ -1,9 +1,21 @@
 import { Icon } from "@iconify-icon/react";
 import { Fireworks, Groq } from "@lobehub/icons";
+import { queryOptions } from "@tanstack/react-query";
 
-export type ProviderId = "hyprnote" | typeof CUSTOM_PROVIDERS[number]["id"];
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 
-export const CUSTOM_PROVIDERS = [
+export type ProviderId = typeof PROVIDERS[number]["id"];
+
+export const PROVIDERS = [
+  {
+    disabled: false,
+    id: "hyprnote",
+    displayName: "Hyprnote",
+    icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
+    baseUrl: { value: "https://api.hyprnote.com/v1", immutable: true },
+    models: ["Auto"],
+  },
   {
     disabled: false,
     id: "deepgram",
@@ -40,3 +52,18 @@ export const CUSTOM_PROVIDERS = [
     models: ["whisper-large-v3-turbo", "whisper-large-v3"],
   },
 ] as const;
+
+export const sttModelQueries = {
+  isDownloaded: (model: SupportedSttModel) =>
+    queryOptions({
+      queryKey: ["stt", "model", model, "downloaded"],
+      queryFn: () => localSttCommands.isModelDownloaded(model),
+      refetchInterval: 1500,
+    }),
+  isDownloading: (model: SupportedSttModel) =>
+    queryOptions({
+      queryKey: ["stt", "model", model, "downloading"],
+      queryFn: () => localSttCommands.isModelDownloading(model),
+      refetchInterval: 500,
+    }),
+};

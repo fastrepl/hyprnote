@@ -4,10 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@hypr/ui/lib/utils";
 import * as internal from "../../../../store/tinybase/internal";
 import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
-import { PROVIDERS } from "./shared";
+import { ProviderId, PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
-  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
+  const configuredProviders = useConfiguredMapping();
   const selectedProvider = internal.UI.useValue("current_llm_provider", internal.STORE_ID);
 
   const handleSelectProvider = internal.UI.useSetValueCallback(
@@ -106,5 +106,29 @@ export function SelectProviderAndModel() {
         </form.Field>
       </div>
     </div>
+  );
+}
+
+function useConfiguredMapping(): Record<ProviderId, { base_url: string; api_key: string } | null> {
+  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
+
+  return Object.fromEntries(
+    PROVIDERS.map((provider) => {
+      if (
+        !configuredProviders[provider.id]
+        || !configuredProviders[provider.id].base_url
+        || !configuredProviders[provider.id].api_key
+      ) {
+        return [provider.id, null];
+      }
+
+      return [
+        provider.id,
+        {
+          base_url: String(configuredProviders[provider.id].base_url),
+          api_key: String(configuredProviders[provider.id].api_key),
+        },
+      ];
+    }),
   );
 }

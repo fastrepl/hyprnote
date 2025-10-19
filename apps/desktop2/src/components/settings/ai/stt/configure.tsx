@@ -1,15 +1,14 @@
 import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 import { useManager } from "tinytick/ui-react";
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
-import { useQuery } from "../../../../hooks/useQuery";
 import * as internal from "../../../../store/tinybase/internal";
 import { aiProviderSchema } from "../../../../store/tinybase/internal";
 import {
@@ -18,7 +17,7 @@ import {
   unregisterDownloadProgressCallback,
 } from "../../../task-manager";
 import { FormField, useProvider } from "../shared";
-import { CUSTOM_PROVIDERS, ProviderId } from "./shared";
+import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
   return (
@@ -30,18 +29,20 @@ export function ConfigureProviders() {
           providerName="Hyprnote"
           icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
         />
-        {CUSTOM_PROVIDERS.map((provider) => (
-          <NonHyprProviderCard
-            key={provider.id}
-            config={provider}
-          />
-        ))}
+        {PROVIDERS
+          .filter((provider) => provider.id !== "hyprnote")
+          .map((provider) => (
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+            />
+          ))}
       </Accordion>
     </div>
   );
 }
 
-function NonHyprProviderCard({ config }: { config: typeof CUSTOM_PROVIDERS[number] }) {
+function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   const [provider, setProvider] = useProvider(config.id);
 
   const form = useForm({
@@ -184,15 +185,8 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
   const [progress, setProgress] = useState<number>(0);
   const [taskRunId, setTaskRunId] = useState<string | null>(null);
 
-  const isDownloaded = useQuery({
-    queryFn: () => localSttCommands.isModelDownloaded(model),
-    refetchInterval: 1500,
-  });
-
-  const isDownloading = useQuery({
-    queryFn: () => localSttCommands.isModelDownloading(model),
-    refetchInterval: 500,
-  });
+  const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
+  const isDownloading = useQuery(sttModelQueries.isDownloading(model));
 
   const taskRunInfo = taskRunId && manager ? manager.getTaskRunInfo(taskRunId) : null;
   const isTaskRunning = taskRunInfo?.running ?? false;

@@ -39,6 +39,7 @@ function ProviderCard({
   providerConfig: typeof PROVIDERS[number];
 }) {
   const [provider, setProvider] = useProvider(providerId);
+  console.log(provider, "provider");
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -50,12 +51,14 @@ function ProviderCard({
       } satisfies internal.AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
-        const { form: { errors } } = formApi.getAllErrors();
-        if (errors.length > 0) {
-          console.log(errors);
-        } else {
+        queueMicrotask(() => {
+          const { form: { errors } } = formApi.getAllErrors();
+          if (errors.length > 0) {
+            console.log(errors);
+          }
+
           formApi.handleSubmit();
-        }
+        });
       },
     },
     validators: { onChange: aiProviderSchema },
@@ -96,7 +99,7 @@ function ProviderCard({
               />
             )}
           </form.Field>
-          <form.Field name="api_key" defaultValue="">
+          <form.Field name="api_key">
             {(field) => (
               <FormField
                 field={field}

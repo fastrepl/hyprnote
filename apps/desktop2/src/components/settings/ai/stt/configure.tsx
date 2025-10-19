@@ -55,7 +55,18 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
         base_url: "",
         api_key: "",
       } satisfies internal.AIProvider),
-    listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
+    listeners: {
+      onChange: ({ formApi }) => {
+        queueMicrotask(() => {
+          const { form: { errors } } = formApi.getAllErrors();
+          if (errors.length > 0) {
+            console.log(errors);
+          }
+
+          formApi.handleSubmit();
+        });
+      },
+    },
     validators: { onChange: aiProviderSchema },
   });
 

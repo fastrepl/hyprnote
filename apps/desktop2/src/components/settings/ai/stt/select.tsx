@@ -29,7 +29,16 @@ export function SelectProviderAndModel() {
       provider: current_stt_provider || "",
       model: current_stt_model || "",
     },
-    listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
+    listeners: {
+      onChange: ({ formApi }) => {
+        const { form: { errors } } = formApi.getAllErrors();
+        if (errors.length > 0) {
+          console.log(errors);
+        }
+
+        formApi.handleSubmit();
+      },
+    },
     onSubmit: ({ value }) => {
       handleSelectProvider(value.provider);
       handleSelectModel(value.model);

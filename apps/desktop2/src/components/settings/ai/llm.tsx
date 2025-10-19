@@ -63,37 +63,38 @@ export function LLM() {
 }
 
 function CurrentProviderAndModel() {
+  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
   const selectedProvider = internal.UI.useValue("current_llm_provider", internal.STORE_ID);
+
+  const handleSelectProvider = internal.UI.useSetValueCallback(
+    "current_llm_provider",
+    (provider: string) => provider,
+    [],
+    internal.STORE_ID,
+  );
 
   const form = useForm({
     defaultValues: {
       provider: selectedProvider || "",
       model: "",
     },
-    onSubmit: ({ value }) => {
-      internal.UI.useSetValueCallback(
-        "current_llm_provider",
-        () => value.provider,
-        [value.provider],
-        internal.STORE_ID,
-      );
-    },
+    listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
+    onSubmit: ({ value }) => handleSelectProvider(value.provider),
   });
 
   return (
-    <div>
-      <h3 className="text-md font-semibold mb-3">Model being used</h3>
+    <div className="flex flex-col gap-3">
+      <h3 className="text-md font-semibold">Model being used</h3>
       <div
         className={cn([
-          "flex flex-row items-center gap-4 px-4 py-4",
-          "rounded-md border border-gray-500 bg-gray-50",
+          "flex flex-row items-center gap-4",
+          "p-4 rounded-md border border-gray-500 bg-gray-50",
+          selectedProvider ? "border-solid" : "border-dashed",
         ])}
       >
         <form.Field
           name="provider"
-          listeners={{
-            onChange: () => form.setFieldValue("model", ""),
-          }}
+          listeners={{ onChange: () => form.setFieldValue("model", "") }}
         >
           {(field) => (
             <div style={{ flex: 4 }}>
@@ -106,7 +107,11 @@ function CurrentProviderAndModel() {
                 </SelectTrigger>
                 <SelectContent>
                   {PROVIDERS.map((provider) => (
-                    <SelectItem key={provider.id} value={provider.id}>
+                    <SelectItem
+                      key={provider.id}
+                      value={provider.id}
+                      disabled={!configuredProviders[provider.id]}
+                    >
                       <div className="flex items-center gap-2">
                         {provider.icon}
                         <span>{provider.displayName}</span>
@@ -157,8 +162,8 @@ function CurrentProviderAndModel() {
 
 function ConfigureProviders() {
   return (
-    <div>
-      <h3 className="text-sm font-semibold mb-3">Configure Providers</h3>
+    <div className="flex flex-col gap-3">
+      <h3 className="text-sm font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
         {PROVIDERS.map((provider) => (
           <CloudProviderCard
@@ -193,9 +198,7 @@ function CloudProviderCard({
         base_url: "",
         api_key: "",
       } satisfies internal.AIProvider),
-    listeners: {
-      onChange: ({ formApi }) => formApi.handleSubmit(),
-    },
+    listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
     validators: { onChange: aiProviderSchema },
   });
 

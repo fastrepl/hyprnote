@@ -3,6 +3,8 @@ import { Icon } from "@iconify-icon/react";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
 import * as internal from "../../../../store/tinybase/internal";
 
+export * from "./model-combobox";
+
 export function useProvider(id: string) {
   const providerRow = internal.UI.useRow("ai_providers", id, internal.STORE_ID);
   const setProvider = internal.UI.useSetPartialRowCallback(

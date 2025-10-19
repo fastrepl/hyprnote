@@ -14,69 +14,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/ui/lib/utils";
 
-interface ModelComboboxProps {
-  value: string;
-  onChange: (value: string) => void;
-  baseUrl?: string;
-  apiKey?: string;
-  fallbackModels: string[];
-  disabled?: boolean;
-  placeholder?: string;
-}
-
-function CommandAddItem({ query, onCreate }: { query: string; onCreate: () => void }) {
-  return (
-    <div
-      tabIndex={0}
-      onClick={onCreate}
-      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter") {
-          onCreate();
-        }
-      }}
-      className={cn([
-        "flex w-full text-blue-500 cursor-pointer text-sm px-2 py-1.5 rounded-sm items-center",
-        "hover:bg-blue-200 focus:!bg-blue-200 focus:outline-none",
-      ])}
-    >
-      <CirclePlus className="mr-2 h-4 w-4" />
-      Create "{query}"
-    </div>
-  );
-}
-
-async function fetchModels(baseUrl: string, apiKey?: string): Promise<string[]> {
-  try {
-    const headers: Record<string, string> = {};
-    if (apiKey) {
-      headers["Authorization"] = `Bearer ${apiKey}`;
-    }
-
-    const response = await fetch(`${baseUrl}/models`, {
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch models: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.data && Array.isArray(data.data)) {
-      return data.data.map((model: any) => model.id || model.name || String(model));
-    }
-
-    if (Array.isArray(data)) {
-      return data.map((model: any) => model.id || model.name || String(model));
-    }
-
-    return [];
-  } catch (error) {
-    console.error("Error fetching models:", error);
-    return [];
-  }
-}
-
 export function ModelCombobox({
   value,
   onChange,
@@ -85,7 +22,15 @@ export function ModelCombobox({
   fallbackModels,
   disabled = false,
   placeholder = "Select a model",
-}: ModelComboboxProps) {
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  baseUrl?: string;
+  apiKey?: string;
+  fallbackModels: string[];
+  disabled?: boolean;
+  placeholder?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -215,4 +160,57 @@ export function ModelCombobox({
       </PopoverContent>
     </Popover>
   );
+}
+
+function CommandAddItem({ query, onCreate }: { query: string; onCreate: () => void }) {
+  return (
+    <div
+      tabIndex={0}
+      onClick={onCreate}
+      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === "Enter") {
+          onCreate();
+        }
+      }}
+      className={cn([
+        "flex w-full text-blue-500 cursor-pointer text-sm px-2 py-1.5 rounded-sm items-center",
+        "hover:bg-blue-200 focus:!bg-blue-200 focus:outline-none",
+      ])}
+    >
+      <CirclePlus className="mr-2 h-4 w-4" />
+      Create "{query}"
+    </div>
+  );
+}
+
+async function fetchModels(baseUrl: string, apiKey?: string): Promise<string[]> {
+  try {
+    const headers: Record<string, string> = {};
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(`${baseUrl}/models`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch models: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.data && Array.isArray(data.data)) {
+      return data.data.map((model: any) => model.id || model.name || String(model));
+    }
+
+    if (Array.isArray(data)) {
+      return data.map((model: any) => model.id || model.name || String(model));
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return [];
+  }
 }

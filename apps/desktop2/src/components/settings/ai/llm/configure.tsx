@@ -45,7 +45,6 @@ function ProviderCard({
     defaultValues: provider
       ?? ({
         type: "llm",
-        model: "",
         base_url: "",
         api_key: "",
       } satisfies internal.AIProvider),
@@ -78,31 +77,28 @@ function ProviderCard({
             e.stopPropagation();
           }}
         >
-          {!providerConfig.baseUrl.immutable && (
-            <form.Field name="base_url" defaultValue={providerConfig.baseUrl.value}>
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="Base URL"
-                  icon="mdi:web"
-                />
-              )}
-            </form.Field>
-          )}
-
-          {providerConfig?.apiKey && (
-            <form.Field name="api_key" defaultValue="">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  icon="mdi:key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
+          <form.Field name="base_url" defaultValue={providerConfig.baseUrl.value}>
+            {(field) => (
+              <FormField
+                field={field}
+                hidden={providerConfig.baseUrl.immutable}
+                label="Base URL"
+                icon="mdi:web"
+              />
+            )}
+          </form.Field>
+          <form.Field name="api_key" defaultValue="">
+            {(field) => (
+              <FormField
+                field={field}
+                hidden={!providerConfig?.apiKey}
+                label="API Key"
+                icon="mdi:key"
+                placeholder="Enter your API key"
+                type="password"
+              />
+            )}
+          </form.Field>
         </form>
       </AccordionContent>
     </AccordionItem>

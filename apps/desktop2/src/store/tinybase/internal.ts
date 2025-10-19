@@ -16,13 +16,14 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
-  current_llm_provider: z.string().default("hyprcloud"),
-  current_stt_provider: z.string().default("hyprlocal"),
+  current_llm_provider: z.string().default("hyprnote"),
+  current_llm_model: z.string(),
+  current_stt_provider: z.string().default("hyprnote"),
+  current_stt_model: z.string(),
 });
 
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
-  model: z.string().min(1),
   base_url: z.url(),
   api_key: z.string().min(1),
 });
@@ -47,12 +48,13 @@ export const SCHEMA = {
     spoken_languages: { type: "string" },
     jargons: { type: "string" },
     current_llm_provider: { type: "string" },
+    current_llm_model: { type: "string" },
     current_stt_provider: { type: "string" },
+    current_stt_model: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
     ai_providers: {
       type: { type: "string" },
-      model: { type: "string" },
       base_url: { type: "string" },
       api_key: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
@@ -126,7 +128,6 @@ export const useStore = () => {
           "ai_providers",
           ({ select, where }) => {
             select("type");
-            select("model");
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "llm");
@@ -137,7 +138,6 @@ export const useStore = () => {
           "ai_providers",
           ({ select, where }) => {
             select("type");
-            select("model");
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "stt");

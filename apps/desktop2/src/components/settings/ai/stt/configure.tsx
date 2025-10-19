@@ -50,7 +50,6 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
     defaultValues: provider
       ?? ({
         type: "stt",
-        model: "",
         base_url: "",
         api_key: "",
       } satisfies internal.AIProvider),
@@ -84,17 +83,16 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
             e.stopPropagation();
           }}
         >
-          {!config.baseUrl.immutable && (
-            <form.Field name="base_url" defaultValue={config.baseUrl.value}>
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="Base URL"
-                  icon="mdi:web"
-                />
-              )}
-            </form.Field>
-          )}
+          <form.Field name="base_url" defaultValue={config.baseUrl.value}>
+            {(field) => (
+              <FormField
+                field={field}
+                hidden={config.baseUrl.immutable}
+                label="Base URL"
+                icon="mdi:web"
+              />
+            )}
+          </form.Field>
           <form.Field name="api_key">
             {(field) => (
               <FormField

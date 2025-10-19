@@ -8,7 +8,7 @@ import { ProviderId, PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
-  const selectedProvider = internal.UI.useValue("current_llm_provider", internal.STORE_ID);
+  const { current_llm_model, current_llm_provider } = internal.UI.useValues(internal.STORE_ID);
 
   const handleSelectProvider = internal.UI.useSetValueCallback(
     "current_llm_provider",
@@ -16,14 +16,23 @@ export function SelectProviderAndModel() {
     [],
     internal.STORE_ID,
   );
+  const handleSelectModel = internal.UI.useSetValueCallback(
+    "current_llm_model",
+    (model: string) => model,
+    [],
+    internal.STORE_ID,
+  );
 
   const form = useForm({
     defaultValues: {
-      provider: selectedProvider || "",
-      model: "",
+      provider: current_llm_provider || "",
+      model: current_llm_model || "",
     },
     listeners: { onChange: ({ formApi }) => formApi.handleSubmit() },
-    onSubmit: ({ value }) => handleSelectProvider(value.provider),
+    onSubmit: ({ value }) => {
+      handleSelectProvider(value.provider);
+      handleSelectModel(value.model);
+    },
   });
 
   return (
@@ -33,7 +42,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-row items-center gap-4",
           "p-4 rounded-md border border-gray-500 bg-gray-50",
-          !!selectedProvider ? "border-solid" : "border-dashed",
+          (!!current_llm_provider && !!current_llm_model) ? "border-solid" : "border-dashed",
         ])}
       >
         <form.Field

@@ -81,7 +81,7 @@ export function ChatMessageInput({
         <div className="flex-1 px-2 pt-2">
           <Editor
             ref={editorRef}
-            handleChange={() => { }}
+            handleChange={() => {}}
             initialContent=""
             editable={!disabled}
             mentionConfig={{

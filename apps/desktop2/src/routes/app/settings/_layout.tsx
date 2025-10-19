@@ -42,7 +42,7 @@ function Component() {
   const group3Tabs = TABS.filter((tab) => info(tab).group === 3);
 
   return (
-    <div className={cn(["flex h-full"])}>
+    <div className={cn(["flex h-full mr-2"])}>
       <div className={cn(["w-60 flex flex-col bg-white"])}>
         <div
           className={cn([
@@ -73,7 +73,7 @@ function Component() {
           className={cn([
             "h-12 w-full",
             "flex items-center justify-between",
-            "my-2 p-2",
+            "my-1 p-2",
             "bg-gray-50 rounded-md",
           ])}
         >
@@ -88,7 +88,7 @@ function Component() {
           className={cn([
             "flex-1 w-full",
             "overflow-y-auto",
-            "p-6 mb-2",
+            "p-4 mb-2",
             "border border-gray-200 rounded-md",
           ])}
         >

@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@hypr/utils";
 import { BrainIcon, RotateCcw } from "lucide-react";
 import { Streamdown } from "streamdown";
 

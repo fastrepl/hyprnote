@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@hypr/utils";
 import { ChevronDown, MessageCircle, PanelRightIcon, PictureInPicture2Icon, Plus, X } from "lucide-react";
 import { useState } from "react";
 

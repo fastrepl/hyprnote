@@ -476,13 +476,13 @@ export function SessionMetadata({
           }}
           title={meetingMetadata.title}
         >
-          <CalendarIcon size={16} className="shrink-0" />
-          <p className="overflow-ellipsis truncate">{meetingMetadata.title}</p>
+          <CalendarIcon size={14} className="shrink-0" />
+          <p className="truncate">{meetingMetadata.title}</p>
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="shadow-lg w-72 relative">
-        <div className="flex flex-col gap-3">
+      <PopoverContent align="end" className="shadow-lg w-72 relative p-0 max-h-[80vh] flex flex-col">
+        <div className="flex flex-col gap-3 overflow-y-auto p-4">
           <div className="font-semibold text-base">{meetingMetadata.title}</div>
 
           <div className="border-t border-neutral-200" />

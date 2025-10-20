@@ -75,8 +75,8 @@ export function ShareButton(_: { sessionId: string }) {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[360px] shadow-lg" align="end">
-        <div className="flex flex-col gap-4">
+      <PopoverContent className="w-[360px] shadow-lg p-0 max-h-[80vh] flex flex-col" align="end">
+        <div className="flex flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center px-3 py-2 gap-2 rounded-md bg-neutral-50 border border-neutral-200">
               <SearchIcon className="size-4 text-neutral-700 flex-shrink-0" />
@@ -158,7 +158,7 @@ export function ShareButton(_: { sessionId: string }) {
           )}
 
           {selectedPeople.length > 0 && (
-            <Button onClick={handleInvite} className="w-full">
+            <Button onClick={handleInvite} variant="outline" className="w-full">
               Invite {selectedPeople.length} {selectedPeople.length === 1 ? "person" : "people"}
             </Button>
           )}
@@ -170,7 +170,7 @@ export function ShareButton(_: { sessionId: string }) {
               <div className="text-xs font-medium text-neutral-500">
                 People with access
               </div>
-              <div className="flex flex-col rounded-md border border-neutral-100 bg-neutral-50 overflow-hidden max-h-[40vh] overflow-y-auto">
+              <div className="flex flex-col rounded-md border border-neutral-100 bg-neutral-50">
                 {invitedPeople.map((person) => (
                   <div
                     key={person.id}
@@ -225,7 +225,6 @@ export function ShareButton(_: { sessionId: string }) {
           )}
 
           <Button
-            variant="outline"
             className="w-full"
             onClick={handleCopyLink}
           >

@@ -18,7 +18,7 @@ pub enum Error {
     ModelNotDownloaded,
     #[error("Server already running")]
     ServerAlreadyRunning,
-    #[error("Server start failed")]
+    #[error("Server start failed {0}")]
     ServerStartFailed(String),
     #[error("AM binary not found")]
     AmBinaryNotFound,

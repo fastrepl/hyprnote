@@ -6,10 +6,9 @@ import {
   commands as listenerCommands,
   events as listenerEvents,
   type SessionParams,
-  type Word,
+  type StreamResponse,
 } from "@hypr/plugin-listener";
 import { fromResult } from "../../effect";
-import * as persisted from "../tinybase/persisted";
 
 type State = {
   sessionEventUnlisten?: () => void;
@@ -18,12 +17,11 @@ type State = {
   amplitude: { mic: number; speaker: number };
   seconds: number;
   intervalId?: NodeJS.Timeout;
-  sessionId?: string;
 };
 
 type Actions = {
   get: () => State & Actions;
-  start: (sessionId: string, store: persisted.Store) => void;
+  start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => void;
   stop: () => void;
 };
 
@@ -51,11 +49,10 @@ export const createListenerStore = () => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
-    start: (sessionId: string, store: persisted.Store) => {
+    start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => {
       set((state) =>
         mutate(state, (draft) => {
           draft.loading = true;
-          draft.sessionId = sessionId;
         })
       );
 
@@ -104,26 +101,7 @@ export const createListenerStore = () => {
           );
         } else if (payload.type === "streamResponse") {
           const response = payload.response;
-          if (response.channel?.alternatives?.[0]?.words && response.is_final) {
-            const newWords: Word[] = response.channel.alternatives[0].words;
-            if (newWords.length > 0) {
-              const currentTranscript = store.getCell("sessions", sessionId, "transcript");
-              const existingWords: Word[] = currentTranscript
-                ? JSON.parse(currentTranscript as string).words || []
-                : [];
-
-              const updatedTranscript = {
-                words: [...existingWords, ...newWords],
-              };
-
-              store.setCell(
-                "sessions",
-                sessionId,
-                "transcript",
-                JSON.stringify(updatedTranscript),
-              );
-            }
-          }
+          onStreamResponse(response);
         }
       };
 
@@ -136,17 +114,13 @@ export const createListenerStore = () => {
           })
         );
 
-        yield* startSessionEffect({
-          model: "TODO",
-          api_key: "TODO",
-          base_url: "TODO",
-          languages: ["en"],
-          onboarding: false,
-          record_enabled: false,
-          session_id: sessionId,
-        });
-
-        set({ status: "running_active", loading: false });
+        yield* startSessionEffect(params);
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.status = "running_active";
+            draft.loading = false;
+          })
+        );
       });
 
       Effect.runPromiseExit(program).then((exit) => {

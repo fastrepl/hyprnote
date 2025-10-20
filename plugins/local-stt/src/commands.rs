@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use tauri::ipc::Channel;
 
 use crate::{
-    server::{ServerHealth, ServerType},
-    LocalSttPluginExt, SttModelInfo, SupportedSttModel, SUPPORTED_MODELS,
+    server::ServerType, LocalSttPluginExt, ServerInfo, SttModelInfo, SupportedSttModel,
+    SUPPORTED_MODELS,
 };
 
 #[tauri::command]
@@ -82,7 +82,7 @@ pub async fn stop_server<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn get_servers<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<HashMap<ServerType, ServerHealth>, String> {
+) -> Result<HashMap<ServerType, ServerInfo>, String> {
     app.get_servers().await.map_err(|e| e.to_string())
 }
 

@@ -1,11 +1,11 @@
 import { Icon } from "@iconify-icon/react";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useState } from "react";
 
 import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
+import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
 import { FloatingButton, formatTime } from "./shared";
@@ -44,17 +44,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
-  const start = useListener((state) => state.start);
-  const store = persisted.UI.useStore(persisted.STORE_ID) as persisted.Store;
-
-  const handleClick = useCallback(() => {
-    if (store) {
-      start(tab.id, store);
-      if (remote?.url) {
-        openUrl(remote.url);
-      }
-    }
-  }, [start, remote, tab.id, store]);
+  const handleClick = useStartSession(tab.id);
 
   if (remote?.type === "zoom") {
     return (
@@ -137,4 +127,31 @@ function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
   } as RemoteMeeting | null;
 
   return remote;
+}
+
+function useStartSession(sessionId: string) {
+  const start = useListener((state) => state.start);
+  const conn = useSTTConnection();
+
+  const handleClick = () => {
+    // TODO: We should be notified
+    if (!conn) {
+      console.log("no connection");
+      return;
+    }
+
+    start({
+      session_id: sessionId,
+      languages: ["en"],
+      onboarding: false,
+      record_enabled: false,
+      model: conn.model,
+      base_url: conn.baseUrl,
+      api_key: conn.apiKey,
+    }, (response) => {
+      console.log(response);
+    });
+  };
+
+  return handleClick;
 }

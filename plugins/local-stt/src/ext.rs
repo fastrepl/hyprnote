@@ -11,7 +11,7 @@ use hypr_file::download_file_parallel_cancellable;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, ServerHealth, ServerType},
+    server::{external, internal, ServerHealth, ServerInfo, ServerType},
 };
 
 pub trait LocalSttPluginExt<R: Runtime> {
@@ -28,7 +28,7 @@ pub trait LocalSttPluginExt<R: Runtime> {
     ) -> impl Future<Output = Result<bool, crate::Error>>;
     fn get_servers(
         &self,
-    ) -> impl Future<Output = Result<HashMap<ServerType, ServerHealth>, crate::Error>>;
+    ) -> impl Future<Output = Result<HashMap<ServerType, ServerInfo>, crate::Error>>;
 
     fn download_model(
         &self,
@@ -85,7 +85,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
 
         match t {
-            ServerType::Custom => Ok("".to_string()),
             ServerType::Internal => {
                 if !self.is_model_downloaded(&model).await? {
                     return Err(crate::Error::ModelNotDownloaded);
@@ -143,9 +142,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     #[cfg(debug_assertions)]
                     {
                         let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
+                            .join("../../apps/desktop2/src-tauri/resources/passthrough-aarch64-apple-darwin");
                         let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
-                            "../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin",
+                            "../../apps/desktop2/src-tauri/resources/stt-aarch64-apple-darwin",
                         );
 
                         if !passthrough_path.exists() || !stt_path.exists() {
@@ -209,7 +208,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 }
             }
-            Some(ServerType::Custom) => {}
             None => {
                 if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
                     let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
@@ -234,20 +232,32 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_servers(&self) -> Result<HashMap<ServerType, ServerHealth>, crate::Error> {
-        let internal_health = internal_health()
+    async fn get_servers(&self) -> Result<HashMap<ServerType, ServerInfo>, crate::Error> {
+        let internal_info = internal_health()
             .await
-            .map(|r| r.1)
-            .unwrap_or(ServerHealth::Unreachable);
+            .map(|(url, health)| ServerInfo {
+                url: Some(url),
+                health,
+            })
+            .unwrap_or(ServerInfo {
+                url: None,
+                health: ServerHealth::Unreachable,
+            });
 
-        let external_health = external_health()
+        let external_info = external_health()
             .await
-            .map(|r| r.1)
-            .unwrap_or(ServerHealth::Unreachable);
+            .map(|(url, health)| ServerInfo {
+                url: Some(url),
+                health,
+            })
+            .unwrap_or(ServerInfo {
+                url: None,
+                health: ServerHealth::Unreachable,
+            });
 
         Ok([
-            (ServerType::Internal, internal_health),
-            (ServerType::External, external_health),
+            (ServerType::Internal, internal_info),
+            (ServerType::External, external_info),
         ]
         .into_iter()
         .collect())

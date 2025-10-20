@@ -155,14 +155,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                             .command(passthrough_path)
                             .current_dir(dirs::home_dir().unwrap())
                             .arg(stt_path)
-                            .args(["serve", "-v", "-d"])
+                            .args(["serve", "--any-token", "-v", "-d"])
                     }
 
                     #[cfg(not(debug_assertions))]
                     self.shell()
                         .sidecar("stt")?
                         .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve"])
+                        .args(["serve", "--any-token"])
                 };
 
                 let (_server, _) = Actor::spawn(

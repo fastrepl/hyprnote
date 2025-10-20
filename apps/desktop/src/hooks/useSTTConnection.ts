@@ -69,7 +69,6 @@ export const useSTTConnection = (): Connection | null => {
   }
 
   if (isLocalModel) {
-    console.log("[useSTTConnection] Returning local connection", { localConnection });
     return localConnection ?? null;
   }
 
@@ -77,7 +76,6 @@ export const useSTTConnection = (): Connection | null => {
   const apiKey = providerConfig?.api_key?.trim();
 
   if (!baseUrl || !apiKey) {
-    console.log("[useSTTConnection] Returning null - missing baseUrl or apiKey", { baseUrl, apiKey });
     return null;
   }
 

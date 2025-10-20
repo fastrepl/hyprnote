@@ -147,8 +147,7 @@ function useStartSession(sessionId: string) {
   const start = useListener((state) => state.start);
   const conn = useSTTConnection();
 
-  const handleClick = () => {
-    // TODO: We should be notified
+  const handleClick = useCallback(() => {
     if (!conn) {
       console.log("no connection");
       return;
@@ -165,7 +164,7 @@ function useStartSession(sessionId: string) {
     }, (response) => {
       console.log(response);
     });
-  };
+  }, [conn, sessionId, start]);
 
   return handleClick;
 }

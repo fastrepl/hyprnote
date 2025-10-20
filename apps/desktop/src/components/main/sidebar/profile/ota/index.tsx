@@ -20,23 +20,21 @@ export function UpdateChecker() {
 
   if (state === "checking") {
     return (
-      <MenuItemLikeContainer>
-        <Spinner size={16} className="flex-shrink-0 text-neutral-400" />
-        <span className={cn("flex-1", "text-left font-medium")}>
-          Checking for updates...
-        </span>
-      </MenuItemLikeContainer>
+      <MenuItem
+        icon={Spinner}
+        label="Checking for updates..."
+        onClick={() => {}}
+      />
     );
   }
 
   if (state === "noUpdate") {
     return (
-      <MenuItemLikeContainer>
-        <CheckCircle className={cn("h-4 w-4 flex-shrink-0", "text-green-500")} />
-        <span className={cn("flex-1", "text-left font-medium")}>
-          You're up to date
-        </span>
-      </MenuItemLikeContainer>
+      <MenuItem
+        icon={CheckCircle}
+        label="You're up to date"
+        onClick={() => {}}
+      />
     );
   }
 
@@ -82,26 +80,26 @@ export function UpdateChecker() {
     return (
       <MenuItemLikeContainer>
         <div className="flex items-center gap-2.5">
-          <Spinner size={16} className="flex-shrink-0 text-blue-500" />
-          <span className={clsx("flex-1", "text-left font-medium")}>
-            Downloading... {downloadProgress.percentage}%
+          <Spinner size={16} className="flex-shrink-0 text-neutral-500" />
+          <span>
+            Downloading...
           </span>
           <button
             onClick={handleCancelDownload}
-            className={clsx(
-              "flex h-6 w-6 items-center justify-center",
+            className={cn([
+              "flex h-6 w-6 flex-shrink-0 items-center justify-center",
               "rounded-full",
               "hover:bg-neutral-100",
               "transition-colors",
-            )}
+            ])}
             title="Cancel download"
           >
             <X className="h-4 w-4 text-neutral-500" />
           </button>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
           <div
-            className="h-full bg-blue-500 transition-all duration-300"
+            className="h-full bg-neutral-900 transition-all duration-300"
             style={{ width: `${downloadProgress.percentage}%` }}
           />
         </div>
@@ -114,7 +112,7 @@ export function UpdateChecker() {
       <MenuItem
         icon={CheckCircle}
         label="Install update"
-        badge={<div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />}
+        badge={<div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />}
         onClick={handleInstall}
       />
     );
@@ -122,12 +120,11 @@ export function UpdateChecker() {
 
   if (state === "installing") {
     return (
-      <MenuItemLikeContainer>
-        <Spinner size={16} className="flex-shrink-0 text-green-500" />
-        <span className={clsx("flex-1", "text-left font-medium")}>
-          Installing...
-        </span>
-      </MenuItemLikeContainer>
+      <MenuItem
+        icon={Spinner}
+        label="Installing..."
+        onClick={() => {}}
+      />
     );
   }
 

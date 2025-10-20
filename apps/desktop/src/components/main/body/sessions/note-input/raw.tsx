@@ -100,7 +100,7 @@ const PlaceHolderInner = () => {
         <span className="text-[#e5e5e5]">You can also upload/drop an</span>
         <button
           type="button"
-          className="text-gray-400 hover:text-gray-600 transition-colors underline decoration-dotted hover:decoration-solid"
+          className="text-neutral-400 hover:text-neutral-600 transition-colors underline decoration-dotted hover:decoration-solid"
           onClick={handleFileSelect}
         >
           audio file or transcript file.

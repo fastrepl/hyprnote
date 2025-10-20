@@ -47,7 +47,7 @@ export function TimelineView() {
         ref={containerRef}
         className={cn([
           "flex flex-col h-full overflow-y-auto",
-          "bg-gray-50 rounded-lg",
+          "bg-neutral-50 rounded-lg",
         ])}
       >
         {buckets.map((bucket) => {
@@ -57,11 +57,11 @@ export function TimelineView() {
             <div key={bucket.label}>
               <div
                 className={cn([
-                  "sticky top-0 z-30",
-                  "bg-gray-50 px-2 py-1",
+                  "sticky top-0 z-10",
+                  "bg-neutral-50 px-2 py-1",
                 ])}
               >
-                <div className="text-base font-bold text-gray-900">{bucket.label}</div>
+                <div className="text-base font-bold text-neutral-900">{bucket.label}</div>
               </div>
               {isToday
                 ? (
@@ -91,9 +91,9 @@ export function TimelineView() {
           size="sm"
           className={clsx([
             "absolute left-1/2 transform -translate-x-1/2",
-            "rounded-full bg-white hover:bg-gray-50",
-            "text-gray-700 border border-gray-200",
-            "z-40 flex items-center gap-1",
+            "rounded-full bg-white hover:bg-neutral-50",
+            "text-neutral-700 border border-neutral-200",
+            "z-20 flex items-center gap-1",
             "shadow-[inset_0_-4px_6px_-1px_rgba(255,0,0,0.1),inset_0_-2px_4px_-2px_rgba(255,0,0,0.1)]",
             isScrolledPastToday ? "top-2" : "bottom-2",
           ])}
@@ -139,7 +139,7 @@ function TodayBucket({
       return (
         <>
           <CurrentTimeIndicator ref={registerIndicator} />
-          <div className="px-3 py-4 text-sm text-gray-400 text-center">
+          <div className="px-3 py-4 text-sm text-neutral-400 text-center">
             No items today
           </div>
         </>

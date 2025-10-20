@@ -103,7 +103,7 @@ export function SettingsGeneral() {
           <div className="flex flex-row items-center justify-between">
             <div>
               <h3 className="text-base font-medium mb-1">Main language</h3>
-              <p className="text-sm text-gray-600">Language for summaries, chats, and AI-generated responses</p>
+              <p className="text-sm text-neutral-600">Language for summaries, chats, and AI-generated responses</p>
             </div>
             <Select
               value={value.ai_language ?? "English"}
@@ -125,7 +125,7 @@ export function SettingsGeneral() {
           {/* Spoken Languages */}
           <div>
             <h3 className="text-base font-medium mb-1">Spoken languages</h3>
-            <p className="text-sm text-gray-600 mb-3">Add other languages you use other than the main language</p>
+            <p className="text-sm text-neutral-600 mb-3">Add other languages you use other than the main language</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-lg">
                 {(value.spoken_languages ?? []).map((lang) => (
@@ -190,7 +190,7 @@ export function SettingsGeneral() {
           {/* Custom Vocabulary */}
           <div>
             <h3 className="text-base font-medium mb-1">Custom vocabulary</h3>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-neutral-600 mb-3">
               Add jargons or industry/company-specific terms to improve transcription accuracy
             </p>
             <Textarea
@@ -215,11 +215,11 @@ export function SettingsGeneral() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h3 className="text-base font-medium mb-1">Microphone access</h3>
-              <p className="text-sm text-gray-600">Thanks for granting permission for system audio</p>
+              <p className="text-sm text-neutral-600">Thanks for granting permission for system audio</p>
             </div>
-            <div className="px-4 py-2 border rounded-lg bg-gray-50 flex items-center gap-2">
-              <Check className="w-4 h-4 text-gray-600" />
-              <span className="text-sm text-gray-600">Access Granted</span>
+            <div className="px-4 py-2 border rounded-lg bg-neutral-50 flex items-center gap-2">
+              <Check className="w-4 h-4 text-neutral-600" />
+              <span className="text-sm text-neutral-600">Access Granted</span>
             </div>
           </div>
 
@@ -258,7 +258,7 @@ function SettingRow({
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
         <h3 className="text-base font-medium mb-1">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
+        <p className="text-sm text-neutral-600">{description}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>

@@ -128,9 +128,9 @@ function ManualCodeProvider({ handleCode }: { handleCode: (code: string) => void
   return (
     <form
       onSubmit={handleSubmit}
-      className={clsx(["flex flex-col gap-2", "border border-gray-300 rounded-md p-4 m-2"])}
+      className={clsx(["flex flex-col gap-2", "border border-neutral-300 rounded-md p-4 m-2"])}
     >
-      <input name="code" className="border border-gray-300 rounded-md p-2" />
+      <input name="code" className="border border-neutral-300 rounded-md p-2" />
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded-md"

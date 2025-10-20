@@ -21,7 +21,6 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
             opacity: 0,
             height: 0,
             y: 20,
-            scale: 0.95,
             transition: { duration: 0.3, ease: "easeInOut" },
           }}
           className={cn([
@@ -33,7 +32,7 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
             className={cn([
               "relative group overflow-hidden rounded-lg",
               "flex flex-col gap-3",
-              "bg-white border border-gray-200 shadow-sm p-4",
+              "bg-white border border-neutral-200 shadow-sm p-4",
             ])}
           >
             <Button
@@ -48,7 +47,7 @@ export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean;
 
             <div className="flex items-center gap-4">
               <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-6" />
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-neutral-900">
                 Try Hyprnote Pro
               </h3>
             </div>

@@ -74,7 +74,7 @@ function Component() {
             "h-12 w-full",
             "flex items-center justify-between",
             "my-1 p-2",
-            "bg-gray-50 rounded-md",
+            "bg-neutral-50 rounded-md",
           ])}
         >
           <div className="w-40"></div>
@@ -89,7 +89,7 @@ function Component() {
             "flex-1 w-full",
             "overflow-y-auto",
             "p-4 mb-2",
-            "border border-gray-200 rounded-md",
+            "border border-neutral-200 rounded-md",
           ])}
         >
           <Outlet />
@@ -116,7 +116,7 @@ function Group(
   return (
     <div
       className={cn([
-        "rounded-md bg-gray-50",
+        "rounded-md bg-neutral-50",
         "p-2 mt-1",
         expandHeight && "flex-1",
       ])}
@@ -132,11 +132,11 @@ function Group(
             className={cn([
               "flex w-full items-center gap-3",
               "rounded-md px-3 py-2.5",
-              "text-sm text-gray-700",
-              "bg-gray-50 transition-colors",
+              "text-sm text-neutral-700",
+              "bg-neutral-50 transition-colors",
               activeTab === tab
-                ? "font-medium text-gray-900 bg-gray-200"
-                : "hover:bg-gray-100",
+                ? "font-medium text-neutral-900 bg-neutral-200"
+                : "hover:bg-neutral-100",
             ])}
             onClick={() => navigate({ search: { tab } })}
           >

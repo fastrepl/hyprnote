@@ -51,7 +51,7 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-row items-center gap-4",
-          "p-4 rounded-md border border-gray-500 bg-gray-50",
+          "p-4 rounded-md border border-neutral-500 bg-neutral-50",
           (!!current_stt_provider && !!current_stt_model) ? "border-solid" : "border-dashed",
         ])}
       >
@@ -87,7 +87,7 @@ export function SelectProviderAndModel() {
           )}
         </form.Field>
 
-        <span className="text-gray-500">/</span>
+        <span className="text-neutral-500">/</span>
 
         <form.Field name="model">
           {(field) => {

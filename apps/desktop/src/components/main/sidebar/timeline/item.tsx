@@ -135,13 +135,13 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
       contextMenu={contextMenu}
       className={cn([
         "w-full text-left px-3 py-2 rounded-lg",
-        active && "bg-gray-200",
-        !active && "hover:bg-gray-100",
+        active && "bg-neutral-200",
+        !active && "hover:bg-neutral-100",
       ])}
     >
       <div className="flex flex-col gap-0.5">
         <div className="text-sm font-normal truncate">{title}</div>
-        {displayTime && <div className="text-xs text-gray-500">{displayTime}</div>}
+        {displayTime && <div className="text-xs text-neutral-500">{displayTime}</div>}
       </div>
     </InteractiveButton>
   );

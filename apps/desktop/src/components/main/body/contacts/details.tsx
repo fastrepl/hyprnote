@@ -192,7 +192,7 @@ function EditPersonForm({
 
   return (
     <div className="flex-1 flex flex-col">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-neutral-200">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Edit Contact</h3>
           <div className="flex gap-2">
@@ -201,7 +201,7 @@ function EditPersonForm({
               variant="ghost"
               size="sm"
               onClick={onCancel}
-              className="hover:bg-gray-100 text-gray-700"
+              className="hover:bg-neutral-100 text-neutral-700"
             >
               Cancel
             </Button>
@@ -209,7 +209,7 @@ function EditPersonForm({
               onClick={onSave}
               variant="ghost"
               size="sm"
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700"
+              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
             >
               Save
             </Button>
@@ -219,19 +219,19 @@ function EditPersonForm({
 
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col items-center py-6">
-          <div className="w-24 h-24 mb-3 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-xl font-semibold text-gray-600">
+          <div className="w-24 h-24 mb-3 bg-neutral-200 rounded-full flex items-center justify-center">
+            <span className="text-xl font-semibold text-neutral-600">
               {getInitials(personData.name as string || "?")}
             </span>
           </div>
         </div>
 
-        <div className="border-t border-gray-200">
+        <div className="border-t border-neutral-200">
           <EditPersonNameField personId={personId} />
           <EditPersonJobTitleField personId={personId} />
 
-          <div className="flex items-center px-4 py-3 border-b border-gray-200">
-            <div className="w-28 text-sm text-gray-500">Company</div>
+          <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+            <div className="w-28 text-sm text-neutral-500">Company</div>
             <div className="flex-1">
               <EditPersonOrganizationSelector personId={personId} />
             </div>
@@ -258,8 +258,8 @@ function EditPersonNameField({ personId }: { personId: string }) {
   );
 
   return (
-    <div className="flex items-center px-4 py-3 border-b border-gray-200">
-      <div className="w-28 text-sm text-gray-500">Name</div>
+    <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+      <div className="w-28 text-sm text-neutral-500">Name</div>
       <div className="flex-1">
         <Input
           value={(value as string) || ""}
@@ -285,8 +285,8 @@ function EditPersonJobTitleField({ personId }: { personId: string }) {
   );
 
   return (
-    <div className="flex items-center px-4 py-3 border-b border-gray-200">
-      <div className="w-28 text-sm text-gray-500">Job Title</div>
+    <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+      <div className="w-28 text-sm text-neutral-500">Job Title</div>
       <div className="flex-1">
         <Input
           value={(value as string) || ""}
@@ -312,8 +312,8 @@ function EditPersonEmailField({ personId }: { personId: string }) {
   );
 
   return (
-    <div className="flex items-center px-4 py-3 border-b border-gray-200">
-      <div className="w-28 text-sm text-gray-500">Email</div>
+    <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+      <div className="w-28 text-sm text-neutral-500">Email</div>
       <div className="flex-1">
         <Input
           type="email"
@@ -340,8 +340,8 @@ function EditPersonLinkedInField({ personId }: { personId: string }) {
   );
 
   return (
-    <div className="flex items-center px-4 py-3 border-b border-gray-200">
-      <div className="w-28 text-sm text-gray-500">LinkedIn</div>
+    <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+      <div className="w-28 text-sm text-neutral-500">LinkedIn</div>
       <div className="flex-1">
         <Input
           value={(value as string) || ""}
@@ -380,9 +380,9 @@ function EditPersonOrganizationSelector({ personId }: { personId: string }) {
             ? (
               <div className="flex items-center">
                 <span className="text-base">{organization.name}</span>
-                <span className="ml-2 text-gray-400 group">
+                <span className="ml-2 text-neutral-400 group">
                   <CircleMinus
-                    className="size-4 cursor-pointer text-gray-400 hover:text-red-600"
+                    className="size-4 cursor-pointer text-neutral-400 hover:text-red-600"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleRemoveOrganization();
@@ -391,7 +391,7 @@ function EditPersonOrganizationSelector({ personId }: { personId: string }) {
                 </span>
               </div>
             )
-            : <span className="text-gray-500 text-base">Select organization</span>}
+            : <span className="text-neutral-500 text-base">Select organization</span>}
         </div>
       </PopoverTrigger>
 
@@ -439,12 +439,12 @@ function OrganizationControl({
 
   return (
     <div className="flex flex-col gap-3 max-w-[450px]">
-      <div className="text-sm font-medium text-gray-700">Organization</div>
+      <div className="text-sm font-medium text-neutral-700">Organization</div>
 
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-gray-50 border border-gray-200">
-            <span className="text-gray-500 flex-shrink-0">
+          <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
+            <span className="text-neutral-500 flex-shrink-0">
               <SearchIcon className="size-4" />
             </span>
             <input
@@ -453,20 +453,20 @@ function OrganizationControl({
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search or add company"
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
 
           {searchTerm.trim() && (
-            <div className="flex flex-col w-full rounded border border-gray-200 overflow-hidden">
+            <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-100 rounded-full">
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>
@@ -476,15 +476,15 @@ function OrganizationControl({
               {organizations.length === 0 && (
                 <button
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => {}}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-200 rounded-full">
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-200 rounded-full">
                     <span className="text-xs">+</span>
                   </span>
-                  <span className="flex items-center gap-1 font-medium text-gray-600">
+                  <span className="flex items-center gap-1 font-medium text-neutral-600">
                     Create
-                    <span className="text-gray-900 truncate max-w-[140px]">
+                    <span className="text-neutral-900 truncate max-w-[140px]">
                       &quot;{searchTerm.trim()}&quot;
                     </span>
                   </span>
@@ -494,15 +494,15 @@ function OrganizationControl({
           )}
 
           {!searchTerm.trim() && organizations.length > 0 && (
-            <div className="flex flex-col w-full rounded border border-gray-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
+            <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden max-h-[40vh] overflow-y-auto custom-scrollbar">
               {organizations.map((org: any) => (
                 <button
                   key={org.id}
                   type="button"
-                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-gray-100 transition-colors w-full"
+                  className="flex items-center px-3 py-2 text-sm text-left hover:bg-neutral-100 transition-colors w-full"
                   onClick={() => selectOrganization(org.id)}
                 >
-                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-gray-100 rounded-full">
+                  <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
                     <Building2 className="size-3" />
                   </span>
                   <span className="font-medium truncate">{org.name}</span>

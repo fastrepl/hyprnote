@@ -44,7 +44,7 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
       className={cn([
         "w-full px-3 py-2.5",
         "flex items-start gap-3",
-        "hover:bg-gray-50 active:bg-gray-100",
+        "hover:bg-neutral-50 active:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
       ])}
@@ -56,7 +56,9 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
       </div>
       <div className={cn(["flex-1 min-w-0"])}>
         <div
-          className={cn(["text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold"])}
+          className={cn([
+            "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+          ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
       </div>
@@ -85,17 +87,19 @@ function OrganizationSearchResultItem({ result, onClick }: { result: SearchResul
       className={cn([
         "w-full px-3 py-2.5",
         "flex items-start gap-3",
-        "hover:bg-gray-50 active:bg-gray-100",
+        "hover:bg-neutral-50 active:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
       ])}
     >
       <div className={cn(["flex-1 min-w-0"])}>
         <div
-          className={cn(["text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold"])}
+          className={cn([
+            "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+          ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
-        <div className={cn(["text-xs text-gray-500 truncate mt-0.5"])}>
+        <div className={cn(["text-xs text-neutral-500 truncate mt-0.5"])}>
           {memberText}
         </div>
       </div>
@@ -143,7 +147,7 @@ function SessionSearchResultItem({ result, onClick }: { result: SearchResult; on
       className={cn([
         "w-full px-3 py-2.5",
         "flex flex-col gap-1",
-        "hover:bg-gray-50 active:bg-gray-100",
+        "hover:bg-neutral-50 active:bg-neutral-100",
         "rounded-lg transition-colors",
         "text-left",
         "min-w-0",
@@ -151,18 +155,18 @@ function SessionSearchResultItem({ result, onClick }: { result: SearchResult; on
     >
       <div
         className={cn([
-          "text-sm font-medium text-gray-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
+          "text-sm font-medium text-neutral-900 truncate [&_mark]:bg-transparent [&_mark]:font-semibold",
           "w-full",
         ])}
         dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
       />
-      <div className={cn(["text-xs text-gray-500"])}>
+      <div className={cn(["text-xs text-neutral-500"])}>
         {timeAgo}
       </div>
       {result.content && (
         <div
           className={cn([
-            "text-xs text-gray-500 line-clamp-2 [&_mark]:bg-transparent [&_mark]:font-semibold [&_mark]:text-gray-900",
+            "text-xs text-neutral-500 line-clamp-2 [&_mark]:bg-transparent [&_mark]:font-semibold [&_mark]:text-neutral-900",
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedContent }}
         />

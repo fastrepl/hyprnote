@@ -15,21 +15,21 @@ export function Timeline() {
   };
 
   return (
-    <div className={cn(["w-full", "bg-gray-50 rounded-lg", state === "stopped" && "hidden"])}>
+    <div className={cn(["w-full", "bg-neutral-50 rounded-lg", state === "stopped" && "hidden"])}>
       <div className={cn(["flex items-center gap-2.5", "px-4 py-2", "w-full max-w-full"])}>
         <button
           onClick={handleClick}
           className={cn([
             "flex items-center justify-center",
             "w-8 h-8 rounded-full",
-            "bg-white border border-gray-200",
-            "hover:bg-gray-100 transition-colors",
+            "bg-white border border-neutral-200",
+            "hover:bg-neutral-100 transition-colors",
             "flex-shrink-0 shadow-sm",
           ])}
         >
           {state === "playing"
-            ? <Pause className={cn(["w-4 h-4", "text-gray-900"])} fill="currentColor" />
-            : <Play className={cn(["w-4 h-4", "text-gray-900"])} fill="currentColor" />}
+            ? <Pause className={cn(["w-4 h-4", "text-neutral-900"])} fill="currentColor" />
+            : <Play className={cn(["w-4 h-4", "text-neutral-900"])} fill="currentColor" />}
         </button>
 
         <div ref={registerContainer} className={cn(["flex-1 min-w-0"])} style={{ minHeight: "30px", width: "100%" }} />

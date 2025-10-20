@@ -164,8 +164,9 @@ function ParticipantsSection({
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
+  // TODO: sort participants based on attendance
   const sortedParticipants = useMemo(() => {
-    return [...participants].sort((a, b) => {
+    return [...participants].sort((_, __) => {
       return 0;
     });
   }, [participants]);

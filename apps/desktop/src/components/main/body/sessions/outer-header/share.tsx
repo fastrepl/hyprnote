@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Separator } from "@hypr/ui/components/ui/separator";
 
-import { CircleMinus, Link2Icon, SearchIcon } from "lucide-react";
+import { CircleMinus, SearchIcon } from "lucide-react";
 import { useState } from "react";
 import { getInitials } from "../../contacts/shared";
 

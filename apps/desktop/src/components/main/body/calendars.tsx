@@ -7,7 +7,6 @@ import {
   addMonths,
   cn,
   eachDayOfInterval,
-  endOfMonth,
   format,
   getDay,
   isSameDay,
@@ -77,7 +76,6 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
     });
   };
   const monthStart = startOfMonth(tab.month);
-  const monthEnd = endOfMonth(tab.month);
   const startDayOfWeek = getDay(monthStart);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const monthLabel = format(tab.month, "MMMM yyyy");
@@ -208,7 +206,6 @@ function TabContentCalendarDay({
   day,
   isCurrentMonth,
   isFirstColumn,
-  isLastColumn,
   isLastRow,
   selectedCalendars,
 }: {
@@ -289,10 +286,10 @@ function TabContentCalendarDay({
             isToday
               ? "text-white font-medium"
               : !isCurrentMonth
-              ? "text-neutral-400"
-              : isWeekend
-              ? "text-neutral-500"
-              : "text-neutral-700",
+                ? "text-neutral-400"
+                : isWeekend
+                  ? "text-neutral-500"
+                  : "text-neutral-700",
           )}
         >
           {dayNumber}

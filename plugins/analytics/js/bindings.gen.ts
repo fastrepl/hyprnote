@@ -7,37 +7,17 @@
 
 
 export const commands = {
-async event(payload: AnalyticsPayload) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:analytics|event", { payload }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async event(payload: AnalyticsPayload) : Promise<null> {
+    return await TAURI_INVOKE("plugin:analytics|event", { payload });
 },
-async setProperties(payload: PropertiesPayload) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:analytics|set_properties", { payload }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setProperties(payload: PropertiesPayload) : Promise<null> {
+    return await TAURI_INVOKE("plugin:analytics|set_properties", { payload });
 },
-async setDisabled(disabled: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:analytics|set_disabled", { disabled }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setDisabled(disabled: boolean) : Promise<null> {
+    return await TAURI_INVOKE("plugin:analytics|set_disabled", { disabled });
 },
-async isDisabled() : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:analytics|is_disabled") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async isDisabled() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:analytics|is_disabled");
 }
 }
 

@@ -7,61 +7,26 @@
 
 
 export const commands = {
-async windowShow(window: AppWindow) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|window_show", { window }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async windowShow(window: AppWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_show", { window });
 },
-async windowDestroy(window: AppWindow) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|window_destroy", { window }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async windowDestroy(window: AppWindow) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_destroy", { window });
 },
-async windowNavigate(window: AppWindow, path: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|window_navigate", { window, path }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async windowNavigate(window: AppWindow, path: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_navigate", { window, path });
 },
-async windowEmitNavigate(window: AppWindow, event: Navigate) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|window_emit_navigate", { window, event }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async windowEmitNavigate(window: AppWindow, event: Navigate) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|window_emit_navigate", { window, event });
 },
-async windowIsExists(window: AppWindow) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|window_is_exists", { window }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async windowIsExists(window: AppWindow) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:windows|window_is_exists", { window });
 },
-async setFakeWindowBounds(name: string, bounds: OverlayBound) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|set_fake_window_bounds", { name, bounds }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setFakeWindowBounds(name: string, bounds: OverlayBound) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|set_fake_window_bounds", { name, bounds });
 },
-async removeFakeWindow(name: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|remove_fake_window", { name }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async removeFakeWindow(name: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:windows|remove_fake_window", { name });
 }
 }
 

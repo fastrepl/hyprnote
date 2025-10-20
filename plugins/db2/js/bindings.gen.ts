@@ -7,21 +7,11 @@
 
 
 export const commands = {
-async executeLocal(sql: string, args: string[]) : Promise<Result<JsonValue[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db2|execute_local", { sql, args }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async executeLocal(sql: string, args: string[]) : Promise<JsonValue[]> {
+    return await TAURI_INVOKE("plugin:db2|execute_local", { sql, args });
 },
-async executeCloud(sql: string, args: string[]) : Promise<Result<JsonValue[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:db2|execute_cloud", { sql, args }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async executeCloud(sql: string, args: string[]) : Promise<JsonValue[]> {
+    return await TAURI_INVOKE("plugin:db2|execute_cloud", { sql, args });
 }
 }
 

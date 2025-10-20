@@ -7,21 +7,11 @@
 
 
 export const commands = {
-async logsDir() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tracing|logs_dir") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async logsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:tracing|logs_dir");
 },
-async doLog(level: Level, data: JsonValue[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:tracing|do_log", { level, data }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async doLog(level: Level, data: JsonValue[]) : Promise<null> {
+    return await TAURI_INVOKE("plugin:tracing|do_log", { level, data });
 }
 }
 

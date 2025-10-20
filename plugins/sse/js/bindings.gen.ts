@@ -7,13 +7,8 @@
 
 
 export const commands = {
-async fetch(req: Request) : Promise<Result<Response, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:sse|fetch", { req }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async fetch(req: Request) : Promise<Response> {
+    return await TAURI_INVOKE("plugin:sse|fetch", { req });
 }
 }
 

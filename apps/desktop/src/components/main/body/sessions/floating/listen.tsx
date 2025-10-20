@@ -2,12 +2,14 @@ import { Icon } from "@iconify-icon/react";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useEffect, useState } from "react";
 
+import { type StreamResponse } from "@hypr/plugin-listener";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
+import { id } from "../../../../../utils";
 import { FloatingButton, formatTime } from "./shared";
 
 type RemoteMeeting =
@@ -145,6 +147,7 @@ function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
 
 function useStartSession(sessionId: string) {
   const start = useListener((state) => state.start);
+  const append = useAppendTranscript(sessionId);
   const conn = useSTTConnection();
 
   const handleClick = useCallback(() => {
@@ -162,9 +165,31 @@ function useStartSession(sessionId: string) {
       base_url: conn.baseUrl,
       api_key: conn.apiKey,
     }, (response) => {
-      console.log(response);
+      append(response);
     });
   }, [conn, sessionId, start]);
 
   return handleClick;
+}
+
+function useAppendTranscript(sessionId: string) {
+  const store = persisted.UI.useStore(persisted.STORE_ID);
+
+  const handler = useCallback((res: StreamResponse) => {
+    if (store && res.type === "Results") {
+      res.channel.alternatives[0].words.forEach((w) => {
+        store.setRow("words", id(), {
+          session_id: sessionId,
+          text: w.word,
+          start_ms: Math.round(w.start * 1000),
+          end_ms: Math.round(w.end * 1000),
+          speaker: w.speaker?.toString() ?? undefined,
+          user_id: "",
+          created_at: new Date().toISOString(),
+        });
+      });
+    }
+  }, [store, sessionId]);
+
+  return handler;
 }

@@ -27,7 +27,7 @@ import {
   TABLE_SESSIONS,
   tagSchema as baseTagSchema,
   templateSchema as baseTemplateSchema,
-  transcriptSchema,
+  wordSchema,
 } from "@hypr/db";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as internal from "./internal";
@@ -62,7 +62,6 @@ export const folderSchema = baseFolderSchema.omit({ id: true }).extend({
 });
 
 export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
-  transcript: jsonObject(transcriptSchema),
   created_at: z.string(),
   event_id: z.preprocess(val => val ?? undefined, z.string().optional()),
   folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
@@ -97,12 +96,18 @@ export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend
   parts: jsonObject(z.any()),
 });
 
+export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  speaker: z.preprocess(val => val ?? undefined, z.string().optional()),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
+export type Word = z.infer<typeof wordSchemaOverride>;
 export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
@@ -132,8 +137,16 @@ const SCHEMA = {
       title: { type: "string" },
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
-      transcript: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof sessionSchema>,
+    words: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      text: { type: "string" },
+      session_id: { type: "string" },
+      start_ms: { type: "number" },
+      end_ms: { type: "number" },
+      speaker: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof wordSchema>,
     humans: {
       user_id: { type: "string" },
       created_at: { type: "string" },

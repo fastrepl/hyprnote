@@ -1,6 +1,5 @@
-import { boolean, json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 const SHARED = {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -41,7 +40,16 @@ export const sessions = pgTable(TABLE_SESSIONS, {
   title: text("title").notNull(),
   raw_md: text("raw_md").notNull(),
   enhanced_md: text("enhanced_md").notNull(),
-  transcript: json("transcript").notNull(),
+});
+
+export const TABLE_WORDS = "words";
+export const words = pgTable(TABLE_WORDS, {
+  ...SHARED,
+  session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  start_ms: integer("start_ms").notNull(),
+  end_ms: integer("end_ms").notNull(),
+  speaker: text("speaker"),
 });
 
 export const TABLE_EVENTS = "events";
@@ -108,24 +116,13 @@ export const chatMessages = pgTable(TABLE_CHAT_MESSAGES, {
   parts: json("parts"),
 });
 
-export const transcriptSchema = z.object({
-  words: z.array(z.object({
-    word: z.string(),
-    start: z.number(),
-    end: z.number(),
-    confidence: z.number(),
-    speaker: z.number().nullable(),
-    punctuated_word: z.string().nullable(),
-    language: z.string().nullable(),
-  })),
-});
-
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const folderSchema = createSelectSchema(folders);
 export const eventSchema = createSelectSchema(events);
 export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);
+export const wordSchema = createSelectSchema(words);
 export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);

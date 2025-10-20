@@ -7,64 +7,29 @@
 
 
 export const commands = {
-async getGitHash() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|get_git_hash") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getGitHash() : Promise<string> {
+    return await TAURI_INVOKE("plugin:misc|get_git_hash");
 },
-async getFingerprint() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|get_fingerprint") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getFingerprint() : Promise<string> {
+    return await TAURI_INVOKE("plugin:misc|get_fingerprint");
 },
-async opinionatedMdToHtml(text: string) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async opinionatedMdToHtml(text: string) : Promise<string> {
+    return await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text });
 },
-async deleteSessionFolder(sessionId: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|delete_session_folder", { sessionId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async deleteSessionFolder(sessionId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:misc|delete_session_folder", { sessionId });
 },
 async parseMeetingLink(text: string) : Promise<string | null> {
     return await TAURI_INVOKE("plugin:misc|parse_meeting_link", { text });
 },
-async audioExist(sessionId: string) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|audio_exist", { sessionId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async audioExist(sessionId: string) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:misc|audio_exist", { sessionId });
 },
-async audioOpen(sessionId: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|audio_open", { sessionId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async audioOpen(sessionId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:misc|audio_open", { sessionId });
 },
-async audioDelete(sessionId: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:misc|audio_delete", { sessionId }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async audioDelete(sessionId: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:misc|audio_delete", { sessionId });
 }
 }
 

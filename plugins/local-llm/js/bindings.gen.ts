@@ -7,136 +7,56 @@
 
 
 export const commands = {
-async modelsDir() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|models_dir") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async modelsDir() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|models_dir");
 },
-async listSupportedModel() : Promise<Result<ModelInfo[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|list_supported_model") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listSupportedModel() : Promise<ModelInfo[]> {
+    return await TAURI_INVOKE("plugin:local-llm|list_supported_model");
 },
 async isServerRunning() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_server_running");
 },
-async isModelDownloaded(model: SupportedModel) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|is_model_downloaded", { model }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async isModelDownloaded(model: SupportedModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloaded", { model });
 },
-async isModelDownloading(model: SupportedModel) : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|is_model_downloading", { model }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async isModelDownloading(model: SupportedModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-llm|is_model_downloading", { model });
 },
-async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|download_model", { model, channel }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async downloadModel(model: SupportedModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|download_model", { model, channel });
 },
-async startServer() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|start_server") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async startServer() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|start_server");
 },
-async stopServer() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|stop_server") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async stopServer() : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|stop_server");
 },
-async restartServer() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|restart_server") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async restartServer() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|restart_server");
 },
-async getCurrentModel() : Promise<Result<SupportedModel, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|get_current_model") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getCurrentModel() : Promise<SupportedModel> {
+    return await TAURI_INVOKE("plugin:local-llm|get_current_model");
 },
-async setCurrentModel(model: SupportedModel) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|set_current_model", { model }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setCurrentModel(model: SupportedModel) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|set_current_model", { model });
 },
-async listDownloadedModel() : Promise<Result<SupportedModel[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|list_downloaded_model") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listDownloadedModel() : Promise<SupportedModel[]> {
+    return await TAURI_INVOKE("plugin:local-llm|list_downloaded_model");
 },
-async listCustomModels() : Promise<Result<CustomModelInfo[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|list_custom_models") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async listCustomModels() : Promise<CustomModelInfo[]> {
+    return await TAURI_INVOKE("plugin:local-llm|list_custom_models");
 },
-async getCurrentModelSelection() : Promise<Result<ModelSelection, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|get_current_model_selection") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async getCurrentModelSelection() : Promise<ModelSelection> {
+    return await TAURI_INVOKE("plugin:local-llm|get_current_model_selection");
 },
-async setCurrentModelSelection(model: ModelSelection) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|set_current_model_selection", { model }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async setCurrentModelSelection(model: ModelSelection) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-llm|set_current_model_selection", { model });
 },
-async generateTitle(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|generate_title", { ctx }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async generateTitle(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-llm|generate_title", { ctx });
 },
-async generateTags(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<Result<string[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-llm|generate_tags", { ctx }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async generateTags(ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string[]> {
+    return await TAURI_INVOKE("plugin:local-llm|generate_tags", { ctx });
 }
 }
 

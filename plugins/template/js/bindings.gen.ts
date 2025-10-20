@@ -7,13 +7,8 @@
 
 
 export const commands = {
-async render(name: Template, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:template|render", { name, ctx }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
+async render(name: Template, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<string> {
+    return await TAURI_INVOKE("plugin:template|render", { name, ctx });
 }
 }
 

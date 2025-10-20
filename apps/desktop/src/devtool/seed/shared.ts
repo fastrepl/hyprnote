@@ -15,6 +15,7 @@ import type {
   Tag,
   TemplateSection,
   TemplateStorage,
+  Word,
 } from "../../store/tinybase/persisted";
 import { id } from "../../utils";
 
@@ -136,11 +137,10 @@ export const generateEnhancedMarkdown = () => {
 
 export const generateTranscript = () => {
   const wordCount = faker.number.int({ min: 50, max: 200 });
-  const words: Array<{ speaker: string; text: string; start: string; end: string }> = [];
+  const words: Array<{ speaker: string; text: string; start_ms: number; end_ms: number }> = [];
   const speakers = ["Speaker 1", "Speaker 2"];
 
-  const baseTime = faker.date.recent({ days: 30 });
-  let currentTime = baseTime.getTime();
+  let currentTimeMs = 0;
 
   for (let i = 0; i < wordCount; i++) {
     const word = faker.lorem.word();
@@ -149,11 +149,11 @@ export const generateTranscript = () => {
     words.push({
       speaker: faker.helpers.arrayElement(speakers),
       text: word,
-      start: new Date(currentTime).toISOString(),
-      end: new Date(currentTime + durationMs).toISOString(),
+      start_ms: currentTimeMs,
+      end_ms: currentTimeMs + durationMs,
     });
 
-    currentTime += durationMs + faker.number.int({ min: 50, max: 300 });
+    currentTimeMs += durationMs + faker.number.int({ min: 50, max: 300 });
   }
 
   return { words };
@@ -174,7 +174,6 @@ export const createSession = (eventId?: string, folderId?: string): { id: string
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       event_id: eventId,
       folder_id: folderId,
-      transcript: JSON.stringify(generateTranscript()),
     },
   };
 };
@@ -383,6 +382,7 @@ export const generateMockData = (config: MockConfig) => {
   const calendars: Record<string, Calendar> = {};
   const folders: Record<string, Folder> = {};
   const sessions: Record<string, SessionStorage> = {};
+  const words: Record<string, Word> = {};
   const events: Record<string, Event> = {};
   const mapping_session_participant: Record<string, mappingSessionParticipant> = {};
   const tags: Record<string, Tag> = {};
@@ -493,6 +493,20 @@ export const generateMockData = (config: MockConfig) => {
       const session = createSession(eventId, folderId);
       sessions[session.id] = session.data;
       sessionIds.push(session.id);
+
+      const transcript = generateTranscript();
+      transcript.words.forEach((word) => {
+        const wordId = id();
+        words[wordId] = {
+          user_id: USER_ID,
+          session_id: session.id,
+          text: word.text,
+          start_ms: word.start_ms,
+          end_ms: word.end_ms,
+          speaker: word.speaker || undefined,
+          created_at: faker.date.recent({ days: 30 }).toISOString(),
+        };
+      });
     });
   });
 
@@ -539,6 +553,7 @@ export const generateMockData = (config: MockConfig) => {
     calendars,
     folders,
     sessions,
+    words,
     events,
     mapping_session_participant,
     tags,

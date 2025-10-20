@@ -11,7 +11,12 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(
   return createCustomSqlitePersister(
     store,
     { mode: "json", ...config },
-    async (sql: string, args: any[] = []): Promise<any> => (await db2Commands.executeLocal(sql, args)),
+    async (sql: string, args: any[] = []): Promise<any> => {
+      const r = await db2Commands.executeLocal(sql, args);
+      if (r.status === "error") {
+        console.error(r.error);
+      }
+    },
     () => {},
     (unsubscribeFunction: any): any => unsubscribeFunction(),
     false ? console.log.bind(console, "[LocalPersister]") : () => {},

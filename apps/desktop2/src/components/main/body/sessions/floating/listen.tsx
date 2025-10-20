@@ -45,13 +45,16 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
   const start = useListener((state) => state.start);
+  const store = persisted.UI.useStore(persisted.STORE_ID) as persisted.Store;
 
   const handleClick = useCallback(() => {
-    start();
-    if (remote?.url) {
-      openUrl(remote.url);
+    if (store) {
+      start(tab.id, store);
+      if (remote?.url) {
+        openUrl(remote.url);
+      }
     }
-  }, [start, remote]);
+  }, [start, remote, tab.id, store]);
 
   if (remote?.type === "zoom") {
     return (

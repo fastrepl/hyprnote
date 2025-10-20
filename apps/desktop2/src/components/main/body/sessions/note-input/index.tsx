@@ -1,13 +1,14 @@
+import { useRef } from "react";
+
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/ui/lib/utils";
-import { useRef } from "react";
 import { useListener } from "../../../../../contexts/listener";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { EnhancedEditor } from "./enhanced";
 import { RawEditor } from "./raw";
-import { TranscriptEditorWrapper } from "./transcript";
+import { TranscriptView } from "./transcript";
 
 export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
@@ -31,7 +32,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
       <div className="flex-1 overflow-auto mt-3" onClick={handleContainerClick}>
         {currentTab === "enhanced" && <EnhancedEditor ref={editorRef} sessionId={sessionId} />}
         {currentTab === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
-        {currentTab === "transcript" && <TranscriptEditorWrapper sessionId={sessionId} />}
+        {currentTab === "transcript" && <TranscriptView sessionId={sessionId} />}
       </div>
     </div>
   );

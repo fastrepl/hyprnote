@@ -14,8 +14,6 @@ pub enum Error {
     TauriError(#[from] tauri::Error),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    #[error(transparent)]
-    StoreError(#[from] tauri_plugin_store2::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
     #[error("Server already running")]

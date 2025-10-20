@@ -3610,18 +3610,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "db-script"
-version = "0.1.0"
-dependencies = [
- "data",
- "db-core",
- "libsql",
- "owhisper-interface",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "db-user"
 version = "0.1.0"
 dependencies = [
@@ -3630,7 +3618,6 @@ dependencies = [
  "chrono",
  "data",
  "db-core",
- "db-script",
  "indoc",
  "language",
  "libsql",
@@ -14430,8 +14417,6 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-listener",
  "tauri-plugin-shell",
- "tauri-plugin-store",
- "tauri-plugin-store2",
  "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.17",

@@ -7,65 +7,75 @@
 
 
 export const commands = {
-async modelsDir() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|models_dir");
+async modelsDir() : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|models_dir") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async listGgmlBackends() : Promise<GgmlBackend[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
 },
-async isModelDownloaded(model: SupportedSttModel) : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model });
+async isModelDownloaded(model: SupportedSttModel) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async isModelDownloading(model: SupportedSttModel) : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-stt|is_model_downloading", { model });
+async isModelDownloading(model: SupportedSttModel) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|is_model_downloading", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async downloadModel(model: SupportedSttModel, channel: TAURI_CHANNEL<number>) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel });
+async downloadModel(model: SupportedSttModel, channel: TAURI_CHANNEL<number>) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getLocalModel() : Promise<SupportedSttModel> {
-    return await TAURI_INVOKE("plugin:local-stt|get_local_model");
+async getServers() : Promise<Result<Partial<{ [key in ServerType]: ServerHealth }>, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|get_servers") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setLocalModel(model: SupportedSttModel) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_local_model", { model });
+async startServer(model: SupportedSttModel) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|start_server", { model }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getServers() : Promise<Partial<{ [key in ServerType]: ServerHealth }>> {
-    return await TAURI_INVOKE("plugin:local-stt|get_servers");
+async stopServer(serverType: ServerType | null) : Promise<Result<boolean, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async startServer(model: SupportedSttModel | null) : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|start_server", { model });
-},
-async stopServer(serverType: ServerType | null) : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:local-stt|stop_server", { serverType });
-},
-async listSupportedModels() : Promise<SttModelInfo[]> {
-    return await TAURI_INVOKE("plugin:local-stt|list_supported_models");
+async listSupportedModels() : Promise<Result<SttModelInfo[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|list_supported_models") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
     return await TAURI_INVOKE("plugin:local-stt|list_supported_languages", { model });
-},
-async getCustomBaseUrl() : Promise<string> {
-    return await TAURI_INVOKE("plugin:local-stt|get_custom_base_url");
-},
-async getCustomApiKey() : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:local-stt|get_custom_api_key");
-},
-async setCustomBaseUrl(baseUrl: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_custom_base_url", { baseUrl });
-},
-async setCustomApiKey(apiKey: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_custom_api_key", { apiKey });
-},
-async getProvider() : Promise<Provider> {
-    return await TAURI_INVOKE("plugin:local-stt|get_provider");
-},
-async setProvider(provider: Provider) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_provider", { provider });
-},
-async getCustomModel() : Promise<SupportedSttModel | null> {
-    return await TAURI_INVOKE("plugin:local-stt|get_custom_model");
-},
-async setCustomModel(model: SupportedSttModel) : Promise<null> {
-    return await TAURI_INVOKE("plugin:local-stt|set_custom_model", { model });
 }
 }
 
@@ -81,11 +91,10 @@ async setCustomModel(model: SupportedSttModel) : Promise<null> {
 
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type Provider = "Local" | "Custom"
 export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external" | "custom"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
-export type SupportedSttModel = WhisperModel | AmModel | string
+export type SupportedSttModel = WhisperModel | AmModel
 export type TAURI_CHANNEL<TSend> = null
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 

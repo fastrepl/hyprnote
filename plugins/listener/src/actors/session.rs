@@ -31,6 +31,9 @@ pub struct SessionParams {
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
     pub record_enabled: bool,
+    pub model: String,
+    pub base_url: String,
+    pub api_key: String,
 }
 
 pub struct SessionArgs {
@@ -338,6 +341,9 @@ impl SessionActor {
                 app: session_state.app.clone(),
                 languages: session_state.params.languages.clone(),
                 onboarding: session_state.params.onboarding,
+                model: session_state.params.model.clone(),
+                base_url: session_state.params.base_url.clone(),
+                api_key: session_state.params.api_key.clone(),
             }),
             supervisor,
         )

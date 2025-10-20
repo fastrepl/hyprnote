@@ -2,8 +2,14 @@ import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import { commands as listenerCommands, events as listenerEvents, type SessionParams } from "@hypr/plugin-listener";
+import {
+  commands as listenerCommands,
+  events as listenerEvents,
+  type SessionParams,
+  type Word,
+} from "@hypr/plugin-listener";
 import { fromResult } from "../../effect";
+import * as persisted from "../tinybase/persisted";
 
 type State = {
   sessionEventUnlisten?: () => void;
@@ -12,11 +18,12 @@ type State = {
   amplitude: { mic: number; speaker: number };
   seconds: number;
   intervalId?: NodeJS.Timeout;
+  sessionId?: string;
 };
 
 type Actions = {
   get: () => State & Actions;
-  start: () => void;
+  start: (sessionId: string, store: persisted.Store) => void;
   stop: () => void;
 };
 
@@ -44,10 +51,11 @@ export const createListenerStore = () => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
-    start: () => {
+    start: (sessionId: string, store: persisted.Store) => {
       set((state) =>
         mutate(state, (draft) => {
           draft.loading = true;
+          draft.sessionId = sessionId;
         })
       );
 
@@ -95,7 +103,27 @@ export const createListenerStore = () => {
             })
           );
         } else if (payload.type === "streamResponse") {
-          console.log(payload.response);
+          const response = payload.response;
+          if (response.channel?.alternatives?.[0]?.words && response.is_final) {
+            const newWords: Word[] = response.channel.alternatives[0].words;
+            if (newWords.length > 0) {
+              const currentTranscript = store.getCell("sessions", sessionId, "transcript");
+              const existingWords: Word[] = currentTranscript
+                ? JSON.parse(currentTranscript as string).words || []
+                : [];
+
+              const updatedTranscript = {
+                words: [...existingWords, ...newWords],
+              };
+
+              store.setCell(
+                "sessions",
+                sessionId,
+                "transcript",
+                JSON.stringify(updatedTranscript),
+              );
+            }
+          }
         }
       };
 
@@ -109,10 +137,13 @@ export const createListenerStore = () => {
         );
 
         yield* startSessionEffect({
+          model: "TODO",
+          api_key: "TODO",
+          base_url: "TODO",
           languages: ["en"],
           onboarding: false,
           record_enabled: false,
-          session_id: crypto.randomUUID(),
+          session_id: sessionId,
         });
 
         set({ status: "running_active", loading: false });

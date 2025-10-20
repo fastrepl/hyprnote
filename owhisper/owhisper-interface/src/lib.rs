@@ -139,30 +139,3 @@ impl Default for ListenParams {
         }
     }
 }
-
-#[deprecated]
-#[derive(serde::Deserialize)]
-pub struct ConversationChunk {
-    pub start: chrono::DateTime<chrono::Utc>,
-    pub end: chrono::DateTime<chrono::Utc>,
-    pub transcripts: Vec<TranscriptChunk>,
-    pub diarizations: Vec<DiarizationChunk>,
-}
-
-#[deprecated]
-#[derive(serde::Deserialize)]
-pub struct TranscriptChunk {
-    pub start: u64,
-    pub end: u64,
-    pub text: String,
-    pub confidence: Option<f32>,
-}
-
-#[deprecated]
-#[derive(serde::Deserialize)]
-pub struct DiarizationChunk {
-    pub start: u64,
-    pub end: u64,
-    pub speaker: i32,
-    pub confidence: Option<f32>,
-}

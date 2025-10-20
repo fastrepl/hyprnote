@@ -1,4 +1,4 @@
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (

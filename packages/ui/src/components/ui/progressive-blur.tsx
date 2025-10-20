@@ -1,5 +1,5 @@
-"use client";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
+
 import { HTMLMotionProps, motion } from "motion/react";
 
 export const GRADIENT_ANGLES = {
@@ -39,11 +39,10 @@ export function ProgressiveBlur({
           (pos, posIndex) => `rgba(255, 255, 255, ${posIndex === 1 || posIndex === 2 ? 1 : 0}) ${pos * 100}%`,
         );
 
-        const gradient = `linear-gradient(${angle}deg, ${
-          gradientStops.join(
-            ", ",
-          )
-        })`;
+        const gradient = `linear-gradient(${angle}deg, ${gradientStops.join(
+          ", ",
+        )
+          })`;
 
         return (
           <motion.div

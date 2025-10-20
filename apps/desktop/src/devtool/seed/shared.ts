@@ -86,10 +86,16 @@ export const createHuman = (org_id: string, isUser = false) => {
 
 export const createCalendar = () => {
   const template = faker.helpers.arrayElement([
-    `${faker.commerce.product()} Meeting`,
-    `${faker.commerce.product()} Sync`,
-    `${faker.commerce.product()} Planning`,
-    `${faker.commerce.product()} Review`,
+    "Work Calendar",
+    "Personal Calendar",
+    "Team Calendar",
+    "Project Calendar",
+    "Meetings",
+    "Events & Conferences",
+    "Family Calendar",
+    `${faker.company.name()} Calendar`,
+    `${faker.commerce.department()} Team`,
+    "Shared Calendar",
   ]);
 
   return {

@@ -19,7 +19,7 @@
     "@hypr/ui": "workspace:^",
     "@remixicon/react": "^4.7.0",
     "@tanstack/react-query": "^5.90.5",
-    "@tanstack/react-router": "^1.133.13",
+    "@tanstack/react-router": "^1.133.15",
     "@tiptap/core": "^3.7.2",
     "@tiptap/extension-bubble-menu": "^3.7.2",
     "@tiptap/extension-document": "^3.7.2",

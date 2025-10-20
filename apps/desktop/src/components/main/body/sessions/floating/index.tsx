@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { useListener } from "../../../../../contexts/listener";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
 
@@ -8,11 +10,31 @@ import { PlaybackButton } from "./playback";
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const active = useListener((state) => state.status === "running_active");
 
+  if (active || tab.state.editor === "raw") {
+    return (
+      <FloatingButtonContainer>
+        <ListenButton tab={tab} />
+      </FloatingButtonContainer>
+    );
+  } else if (tab.state.editor === "enhanced") {
+    return (
+      <FloatingButtonContainer>
+        <GenerateButton />
+      </FloatingButtonContainer>
+    );
+  } else if (tab.state.editor === "transcript") {
+    return (
+      <FloatingButtonContainer>
+        <PlaybackButton />
+      </FloatingButtonContainer>
+    );
+  }
+}
+
+function FloatingButtonContainer({ children }: { children: ReactNode }) {
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-      {(tab.state.editor === "raw" || active) && <ListenButton tab={tab} />}
-      {tab.state.editor === "enhanced" && <GenerateButton />}
-      {tab.state.editor === "transcript" && <PlaybackButton />}
+      {children}
     </div>
   );
 }

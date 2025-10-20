@@ -1,18 +1,29 @@
 import { LinkedInIcon } from "@hypr/ui/components/icons/linkedin";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn, formatDateRange, getMeetingDomain } from "@hypr/utils";
 
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   CalendarIcon,
-  CircleMinus,
-  CornerDownLeft,
+  CheckIcon,
+  ChevronDownIcon,
+  CopyIcon,
   ExternalLinkIcon,
   MailIcon,
   MapPinIcon,
+  MinusCircleIcon,
   SearchIcon,
   VideoIcon,
+  XIcon,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
@@ -20,6 +31,7 @@ import { useQuery } from "../../../../../hooks/useQuery";
 import * as internal from "../../../../../store/tinybase/internal";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../../store/zustand/tabs";
+import { getInitials } from "../../contacts/shared";
 
 interface MeetingParticipant {
   id: string;
@@ -47,68 +59,84 @@ interface MeetingMetadata {
 interface ParticipantChipProps {
   participant: MeetingParticipant;
   currentUserId?: string;
+  attended?: boolean;
   onClick?: () => void;
   onRemove?: () => void;
 }
 
-function ParticipantChip({ participant, currentUserId, onClick, onRemove }: ParticipantChipProps) {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
+function ParticipantChip({ participant, currentUserId, attended = true, onRemove }: ParticipantChipProps) {
   const displayName = participant.full_name
     || (participant.id === currentUserId ? "You" : "Unknown");
 
   return (
-    <div className="group relative inline-flex items-center gap-2 px-3 py-2 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors w-full">
-      <div className="flex flex-1 items-center gap-2 cursor-pointer" onClick={onClick}>
-        <Avatar className="size-7">
-          <AvatarFallback className="text-xs bg-neutral-200 text-neutral-700 font-medium">
-            {participant.full_name ? getInitials(participant.full_name) : "?"}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-sm font-medium text-neutral-700 max-w-[140px] truncate">
-          {displayName}
-        </span>
-      </div>
+    <HoverCard openDelay={200}>
+      <HoverCardTrigger asChild>
+        <div className="group inline-flex items-center gap-1.5 px-1 py-0.5 bg-neutral-200 rounded-md hover:bg-neutral-200 transition-colors cursor-pointer">
+          <p className="text-[12px] font-medium text-neutral-700 max-w-[120px] truncate hover:underline hover:decoration-dotted">
+            {displayName}
+          </p>
 
-      <div className="flex items-center gap-1.5">
-        {participant.email && (
-          <a
-            href={`mailto:${participant.email}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-neutral-500 transition-colors hover:text-neutral-700 opacity-0 group-hover:opacity-100"
-          >
-            <MailIcon className="size-4" />
-          </a>
-        )}
-        {participant.linkedin_username && (
-          <a
-            href={`https://linkedin.com/in/${participant.linkedin_username}`}
-            onClick={(e) => e.stopPropagation()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-neutral-500 transition-colors hover:text-neutral-700 opacity-0 group-hover:opacity-100"
-          >
-            <LinkedInIcon className="size-4" />
-          </a>
-        )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove?.();
-          }}
-          className="text-red-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
-        >
-          <CircleMinus className="size-4" />
-        </button>
-      </div>
-    </div>
+          <div className="flex items-center">
+            <div className="group-hover:hidden">
+              {attended
+                ? <CheckIcon className="size-3.5 text-green-600" />
+                : <XIcon className="size-3.5 text-red-500" />}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove?.();
+              }}
+              className="hidden group-hover:block text-neutral-500 hover:text-red-600 transition-colors"
+            >
+              <MinusCircleIcon className="size-3.5" />
+            </button>
+          </div>
+        </div>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-80" side="top">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-3">
+            <Avatar className="size-12">
+              <AvatarFallback className="text-sm bg-neutral-200 text-neutral-700 font-medium">
+                {participant.full_name ? getInitials(participant.full_name) : "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <div className="font-semibold text-sm">{displayName}</div>
+              {participant.job_title && <div className="text-xs text-neutral-600">{participant.job_title}</div>}
+              {participant.organization?.name && (
+                <div className="text-xs text-neutral-500">{participant.organization.name}</div>
+              )}
+            </div>
+          </div>
+          {(participant.email || participant.linkedin_username) && (
+            <div className="flex flex-col gap-2 pt-2 border-t border-neutral-200">
+              {participant.email && (
+                <a
+                  href={`mailto:${participant.email}`}
+                  className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
+                >
+                  <MailIcon className="size-3.5" />
+                  {participant.email}
+                </a>
+              )}
+              {participant.linkedin_username && (
+                <a
+                  href={`https://linkedin.com/in/${participant.linkedin_username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
+                >
+                  <LinkedInIcon className="size-3.5" />
+                  linkedin.com/in/{participant.linkedin_username}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
@@ -136,7 +164,19 @@ function ParticipantsSection({
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
+  const sortedParticipants = useMemo(() => {
+    return [...participants].sort((a, b) => {
+      return 0;
+    });
+  }, [participants]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !searchQuery && sortedParticipants.length > 0) {
+      e.preventDefault();
+      onParticipantRemove?.(sortedParticipants[sortedParticipants.length - 1].id);
+      return;
+    }
+
     if (!searchQuery.trim() || searchResults.length === 0) {
       return;
     }
@@ -169,9 +209,15 @@ function ParticipantsSection({
   return (
     <div className="flex flex-col gap-2">
       <div className="text-xs font-medium text-neutral-500">Participants</div>
-      {participants.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {participants.map((participant) => (
+      <div className="relative">
+        <div
+          className={cn(
+            "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded bg-neutral-50 border border-neutral-200 focus-within:border-neutral-300 min-h-[36px]",
+            isFocused && "border-neutral-300",
+          )}
+          onClick={() => document.getElementById("participant-search-input")?.focus()}
+        >
+          {sortedParticipants.map((participant) => (
             <ParticipantChip
               key={participant.id}
               participant={participant}
@@ -180,13 +226,9 @@ function ParticipantsSection({
               onRemove={() => onParticipantRemove?.(participant.id)}
             />
           ))}
-        </div>
-      )}
-
-      <div className="relative">
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200 focus-within:border-neutral-300">
-          <SearchIcon className="size-4 text-neutral-700 flex-shrink-0" />
+          {sortedParticipants.length === 0 && <SearchIcon className="size-4 text-neutral-700 flex-shrink-0" />}
           <input
+            id="participant-search-input"
             type="text"
             value={searchQuery}
             onChange={(e) => {
@@ -198,21 +240,9 @@ function ParticipantsSection({
             onBlur={() => {
               setTimeout(() => setIsFocused(false), 200);
             }}
-            placeholder="Add participant"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
+            placeholder={sortedParticipants.length === 0 ? "Add participant" : ""}
+            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
           />
-          {searchQuery.trim() && (
-            <button
-              onClick={() => {
-                if (selectedIndex >= 0 && selectedIndex < searchResults.length) {
-                  handleSelectParticipant(searchResults[selectedIndex].id);
-                }
-              }}
-              className="text-neutral-700 transition-colors flex-shrink-0"
-            >
-              <CornerDownLeft className="size-4" />
-            </button>
-          )}
         </div>
 
         {isFocused && searchQuery.trim() && (
@@ -402,7 +432,11 @@ export function SessionMetadata({
   });
 
   const handleJoinMeeting = useCallback((meetingLink: string) => {
-    window.open(meetingLink, "_blank");
+    openUrl(meetingLink);
+  }, []);
+
+  const handleCopyLink = useCallback((meetingLink: string) => {
+    navigator.clipboard.writeText(meetingLink);
   }, []);
 
   const handleParticipantClick = useCallback((participant: MeetingParticipant) => {
@@ -481,7 +515,7 @@ export function SessionMetadata({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="shadow-lg w-72 relative p-0 max-h-[80vh] flex flex-col">
+      <PopoverContent align="end" className="shadow-lg w-[340px] relative p-0 max-h-[80vh] flex flex-col">
         <div className="flex flex-col gap-3 overflow-y-auto p-4">
           <div className="font-semibold text-base">{meetingMetadata.title}</div>
 
@@ -502,19 +536,31 @@ export function SessionMetadata({
           {meetingMetadata.meeting_link && (
             <>
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <VideoIcon size={16} className="flex-shrink-0 text-neutral-700" />
-                  <span className="text-sm text-neutral-700 truncate">
-                    {getMeetingDomain(meetingMetadata.meeting_link)}
-                  </span>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="shrink-0">
+                      <VideoIcon size={16} />
+                      {getMeetingDomain(meetingMetadata.meeting_link)}
+                      <ChevronDownIcon size={16} className="text-neutral-500" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => handleJoinMeeting(meetingMetadata.meeting_link!)}>
+                      <ExternalLinkIcon size={14} className="mr-2" />
+                      Open link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCopyLink(meetingMetadata.meeting_link!)}>
+                      <CopyIcon size={14} className="mr-2" />
+                      Copy link
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   size="sm"
                   onClick={() => handleJoinMeeting(meetingMetadata.meeting_link!)}
                   className="flex-shrink-0 gap-1"
                 >
                   Join
-                  <ExternalLinkIcon size={14} />
                 </Button>
               </div>
               <div className="border-t border-neutral-200" />
@@ -541,7 +587,7 @@ export function SessionMetadata({
           {meetingMetadata.description && (
             <>
               <div className="border-t border-neutral-200" />
-              <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
+              <div className="text-sm text-neutral-700 whitespace-pre-wrap break-words">
                 {meetingMetadata.description}
               </div>
             </>

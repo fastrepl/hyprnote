@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQueries } from "@tanstack/react-query";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as internal from "../../../../store/tinybase/internal";
 import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 

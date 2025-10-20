@@ -72,6 +72,9 @@ importers:
       '@hypr/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../../packages/utils
       '@iconify-icon/react':
         specifier: ^3.0.1
         version: 3.0.1(react@19.2.0)
@@ -564,6 +567,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.65.0(react@19.2.0))
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../utils
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -718,6 +724,9 @@ importers:
       ai:
         specifier: ^5.0.76
         version: 5.0.76(zod@4.1.12)
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -733,6 +742,9 @@ importers:
       react-hotkeys-hook:
         specifier: ^4.6.2
         version: 4.6.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      tailwind-merge:
+        specifier: ^2.6.0
+        version: 2.6.0
       tauri-plugin-keygen-api:
         specifier: github:bagindo/tauri-plugin-keygen#v2
         version: https://codeload.github.com/bagindo/tauri-plugin-keygen/tar.gz/e0de03a76a5c82c36adb347e43e4bff4f78c87de

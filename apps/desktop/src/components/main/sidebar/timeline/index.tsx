@@ -1,5 +1,5 @@
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 import { clsx } from "clsx";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";

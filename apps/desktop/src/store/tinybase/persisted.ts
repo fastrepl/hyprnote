@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format } from "@hypr/utils";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createIndexes,

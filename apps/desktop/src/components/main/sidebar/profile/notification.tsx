@@ -3,7 +3,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { clsx } from "clsx";
 import { ArrowLeft, ArrowRight, Bell, CheckCheck, MessageSquare } from "lucide-react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 import { MenuItem } from "./shared";
 

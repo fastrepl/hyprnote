@@ -32,6 +32,7 @@
     "@hypr/plugin-windows": "workspace:*",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
+    "@hypr/utils": "workspace:^",
     "@iconify-icon/react": "^3.0.1",
     "@lobehub/icons": "^2.43.1",
     "@orama/highlight": "^0.1.9",

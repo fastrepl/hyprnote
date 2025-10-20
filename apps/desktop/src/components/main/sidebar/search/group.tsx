@@ -1,7 +1,7 @@
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import { type SearchGroup } from "../../../../contexts/search/ui";
 import { SearchResultItem } from "./item";
 

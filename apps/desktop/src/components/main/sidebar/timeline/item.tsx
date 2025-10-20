@@ -2,7 +2,7 @@ import { ExternalLink, SquareArrowOutUpRight, Trash2 } from "lucide-react";
 import { useCallback, useMemo } from "react";
 
 import { ContextMenuItem, ContextMenuShortcut } from "@hypr/ui/components/ui/context-menu";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";

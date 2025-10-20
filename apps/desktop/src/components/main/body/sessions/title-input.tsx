@@ -1,4 +1,4 @@
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../store/zustand/tabs";

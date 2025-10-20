@@ -6,7 +6,7 @@ import { Effect, pipe } from "effect";
 import { forwardRef, useCallback } from "react";
 
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { commands } from "../../../../../types/tauri.gen";
 

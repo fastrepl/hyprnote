@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useManager } from "tinytick/ui-react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 interface TaskInfo {
   taskId: string;

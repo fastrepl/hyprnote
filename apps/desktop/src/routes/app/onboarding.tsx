@@ -10,10 +10,9 @@ import { z } from "zod";
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 const STEPS = ["welcome", "calendars", "permissions"] as const;
 
@@ -77,12 +76,12 @@ function Welcome() {
         Where Conversations Stay Yours
       </TextAnimate>
 
-      <PushableButton
+      <Button
         onClick={() => goNext({ local: false })}
         className="mb-4 w-full max-w-sm hover:underline decoration-gray-100"
       >
         Get Started
-      </PushableButton>
+      </Button>
 
       <div
         className={cn([
@@ -190,9 +189,9 @@ function Permissions() {
       </div>
 
       {allPermissionsGranted && (
-        <PushableButton onClick={() => goNext()} className="w-full">
+        <Button onClick={() => goNext()} className="w-full">
           Continue
-        </PushableButton>
+        </Button>
       )}
 
       {!allPermissionsGranted && (

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 const TABS = [
   "general",

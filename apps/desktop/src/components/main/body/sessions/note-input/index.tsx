@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";

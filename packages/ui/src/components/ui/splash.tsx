@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import { cn } from "@hypr/utils";
 
-import { cn } from "../../lib/utils";
+import React, { useEffect, useRef, useState } from "react";
 
 const DURATION = 1500;
 const MAX_WORM_LENGTH = 0.6;

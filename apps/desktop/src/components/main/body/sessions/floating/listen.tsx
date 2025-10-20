@@ -1,8 +1,8 @@
 import { Icon } from "@iconify-icon/react";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { SoundIndicator } from "@hypr/ui/components/block/sound-indicator";
+import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
@@ -86,6 +86,20 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
       Start listening
     </FloatingButton>
   );
+}
+
+function SoundIndicator({ value, color }: { value: number | Array<number>; color?: string }) {
+  const [amplitude, setAmplitude] = useState(0);
+
+  const u16max = 65535;
+  useEffect(() => {
+    const sample = Array.isArray(value)
+      ? (value.reduce((sum, v) => sum + v, 0) / value.length) / u16max
+      : value / u16max;
+    setAmplitude(Math.min(sample, 1));
+  }, [value]);
+
+  return <DancingSticks amplitude={amplitude} color={color} size="long" />;
 }
 
 function DuringMeetingButton() {

@@ -1,7 +1,7 @@
 import { Resizable } from "re-resizable";
 import { type ReactNode, useState } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 export function InteractiveContainer(
   {

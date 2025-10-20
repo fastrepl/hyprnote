@@ -12,7 +12,7 @@ import {
   CommandList,
 } from "@hypr/ui/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 export function ModelCombobox({
   providerId,

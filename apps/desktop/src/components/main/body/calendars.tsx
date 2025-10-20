@@ -1,9 +1,9 @@
+import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "@hypr/utils";
 import { clsx } from "clsx";
-import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "date-fns";
-import { CalendarIcon, FileTextIcon, Pen } from "lucide-react";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, FileTextIcon, Pen } from "lucide-react";
 import { useState } from "react";
 
-import { CalendarStructure } from "@hypr/ui/components/block/calendar-structure";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
@@ -43,6 +43,7 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((day) => format(day, "yyyy-MM-dd"));
   const startDayOfWeek = getDay(monthStart);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const monthLabel = format(tab.month, "MMMM yyyy");
 
   const handlePreviousMonth = () => {
     openCurrent({ ...tab, month: addMonths(tab.month, -1) });
@@ -58,18 +59,56 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
 
   return (
     <StandardTabWrapper>
-      <CalendarStructure
-        monthLabel={format(tab.month, "MMMM yyyy")}
-        weekDays={weekDays}
-        startDayOfWeek={startDayOfWeek}
-        onPreviousMonth={handlePreviousMonth}
-        onNextMonth={handleNextMonth}
-        onToday={handleToday}
-      >
-        {days.map((day) => (
-          <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />
-        ))}
-      </CalendarStructure>
+      <div className="flex flex-col h-full rounded-lg border">
+        <div className="p-4 pb-2 flex items-center relative ">
+          <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">{monthLabel}</div>
+          <div className="flex h-fit rounded-md overflow-clip border border-neutral-200 ml-auto">
+            <Button
+              variant="outline"
+              className="p-0.5 rounded-none border-none"
+              onClick={handlePreviousMonth}
+            >
+              <ChevronLeftIcon size={16} />
+            </Button>
+
+            <Button
+              variant="outline"
+              className="text-sm px-1 py-0.5 rounded-none border-none"
+              onClick={handleToday}
+            >
+              Today
+            </Button>
+
+            <Button
+              variant="outline"
+              className="p-0.5 rounded-none border-none"
+              onClick={handleNextMonth}
+            >
+              <ChevronRightIcon size={16} />
+            </Button>
+          </div>
+        </div>
+        <div className="h-full">
+          <div className="grid grid-cols-7 border-b border-neutral-200">
+            {weekDays.map((day) => (
+              <div
+                key={day}
+                className="text-center text-sm font-medium text-muted-foreground p-2"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 divide-x divide-neutral-200 h-[calc(100%-48px)] grid-rows-6 gap-0">
+            {Array.from({ length: startDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="border-b border-neutral-200" />
+            ))}
+            {days.map((day) => (
+              <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />
+            ))}
+          </div>
+        </div>
+      </div>
     </StandardTabWrapper>
   );
 }

@@ -1,6 +1,6 @@
 import { Pause, Play } from "lucide-react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "./provider";
 
 export function Timeline() {

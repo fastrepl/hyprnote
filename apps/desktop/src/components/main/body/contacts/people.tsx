@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { ColumnHeader, getInitials, type SortOption } from "./shared";
 

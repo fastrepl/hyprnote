@@ -27,6 +27,7 @@ import {
   TABLE_SESSIONS,
   tagSchema as baseTagSchema,
   templateSchema as baseTemplateSchema,
+  transcriptSchema as baseTranscriptSchema,
   wordSchema,
 } from "@hypr/db";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
@@ -67,6 +68,10 @@ export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
   folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
+export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
+
 export const mappingSessionParticipantSchema = baseMappingSessionParticipantSchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
@@ -99,6 +104,7 @@ export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend
 export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   created_at: z.string(),
   speaker: z.preprocess(val => val ?? undefined, z.string().optional()),
+  transcript_id: z.string(),
 });
 
 export type Human = z.infer<typeof humanSchema>;
@@ -107,6 +113,7 @@ export type Calendar = z.infer<typeof calendarSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
+export type Transcript = z.infer<typeof transcriptSchema>;
 export type Word = z.infer<typeof wordSchemaOverride>;
 export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
@@ -117,6 +124,7 @@ export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
+export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 
@@ -138,14 +146,19 @@ const SCHEMA = {
       raw_md: { type: "string" },
       enhanced_md: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof sessionSchema>,
+    transcripts: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      session_id: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof transcriptSchema>,
     words: {
       user_id: { type: "string" },
       created_at: { type: "string" },
       text: { type: "string" },
-      session_id: { type: "string" },
+      transcript_id: { type: "string" },
       start_ms: { type: "number" },
       end_ms: { type: "number" },
-      speaker: { type: "string" },
+      channel: { type: "number" },
     } satisfies InferTinyBaseSchema<typeof wordSchema>,
     humans: {
       user_id: { type: "string" },
@@ -319,6 +332,18 @@ export const StoreComponent = () => {
           "parent_folder_id",
         )
         .setRelationshipDefinition(
+          "transcriptToSession",
+          "transcripts",
+          "sessions",
+          "session_id",
+        )
+        .setRelationshipDefinition(
+          "wordToTranscript",
+          "words",
+          "transcripts",
+          "transcript_id",
+        )
+        .setRelationshipDefinition(
           "sessionParticipantToHuman",
           "mapping_session_participant",
           "humans",
@@ -436,6 +461,8 @@ export const StoreComponent = () => {
       .setIndexDefinition(INDEXES.sessionsByHuman, "mapping_session_participant", "human_id")
       .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
       .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
+      .setIndexDefinition(INDEXES.transcriptsBySession, "transcripts", "session_id")
+      .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
         INDEXES.eventsByDate,
@@ -529,6 +556,8 @@ export const INDEXES = {
   sessionParticipantsBySession: "sessionParticipantsBySession",
   foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
+  transcriptsBySession: "transcriptsBySession",
+  wordsByTranscript: "wordsByTranscript",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   sessionByDateWithoutEvent: "sessionByDateWithoutEvent",

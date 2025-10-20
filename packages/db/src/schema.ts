@@ -42,14 +42,20 @@ export const sessions = pgTable(TABLE_SESSIONS, {
   enhanced_md: text("enhanced_md").notNull(),
 });
 
+export const TABLE_TRANSCRIPTS = "transcripts";
+export const transcripts = pgTable(TABLE_TRANSCRIPTS, {
+  ...SHARED,
+  session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+});
+
 export const TABLE_WORDS = "words";
 export const words = pgTable(TABLE_WORDS, {
   ...SHARED,
-  session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+  transcript_id: uuid("transcript_id").notNull().references(() => transcripts.id, { onDelete: "cascade" }),
   text: text("text").notNull(),
   start_ms: integer("start_ms").notNull(),
   end_ms: integer("end_ms").notNull(),
-  speaker: text("speaker"),
+  channel: integer("channel").notNull(),
 });
 
 export const TABLE_EVENTS = "events";
@@ -122,6 +128,7 @@ export const folderSchema = createSelectSchema(folders);
 export const eventSchema = createSelectSchema(events);
 export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);
+export const transcriptSchema = createSelectSchema(transcripts);
 export const wordSchema = createSelectSchema(words);
 export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
 export const tagSchema = createSelectSchema(tags);

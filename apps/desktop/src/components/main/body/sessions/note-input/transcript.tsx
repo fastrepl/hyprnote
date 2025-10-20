@@ -4,15 +4,24 @@ import * as persisted from "../../../../../store/tinybase/persisted";
 export function TranscriptView({ sessionId }: { sessionId: string }) {
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
+  const transcriptIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.transcriptsBySession,
+    sessionId,
+    persisted.STORE_ID,
+  );
+  const transcriptId = transcriptIds?.[0];
+
   const QUERY = `${sessionId}_words`;
   const QUERIES = persisted.UI.useCreateQueries(
     store,
     (store) =>
       createQueries(store).setQueryDefinition(QUERY, "words", ({ select, where }) => {
         select("text");
-        where("session_id", sessionId);
+        if (transcriptId) {
+          where("transcript_id", transcriptId);
+        }
       }),
-    [sessionId],
+    [sessionId, transcriptId],
   );
 
   const words = persisted.UI.useResultTable(QUERY, QUERIES);

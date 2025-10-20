@@ -174,22 +174,42 @@ function useStartSession(sessionId: string) {
 
 function useAppendTranscript(sessionId: string) {
   const store = persisted.UI.useStore(persisted.STORE_ID);
+  const transcriptIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.transcriptsBySession,
+    sessionId,
+    persisted.STORE_ID,
+  );
 
   const handler = useCallback((res: StreamResponse) => {
     if (store && res.type === "Results") {
-      res.channel.alternatives[0].words.forEach((w) => {
-        store.setRow("words", id(), {
+      let transcriptId = transcriptIds?.[0];
+
+      if (!transcriptId) {
+        transcriptId = id();
+        store.setRow("transcripts", transcriptId, {
           session_id: sessionId,
-          text: w.word,
-          start_ms: Math.round(w.start * 1000),
-          end_ms: Math.round(w.end * 1000),
-          speaker: w.speaker?.toString() ?? undefined,
           user_id: "",
           created_at: new Date().toISOString(),
         });
+      }
+
+      const { channel: { alternatives: [{ words }] }, channel_index } = res;
+
+      words.forEach((w) => {
+        const word: persisted.Word = {
+          transcript_id: transcriptId,
+          text: w.word,
+          start_ms: Math.round(w.start * 1000),
+          end_ms: Math.round(w.end * 1000),
+          channel: channel_index[0],
+          user_id: "",
+          created_at: new Date().toISOString(),
+        };
+
+        store.setRow("words", id(), word);
       });
     }
-  }, [store, sessionId]);
+  }, [store, sessionId, transcriptIds]);
 
   return handler;
 }

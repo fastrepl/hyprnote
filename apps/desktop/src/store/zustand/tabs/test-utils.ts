@@ -1,9 +1,8 @@
+import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
-
-const id = () => crypto.randomUUID();
 
 type SessionOverrides = Partial<Omit<SessionTab, "type" | "state">> & {
   state?: Partial<SessionTab["state"]>;

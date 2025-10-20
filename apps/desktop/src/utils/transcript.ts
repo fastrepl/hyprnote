@@ -1,0 +1,25 @@
+import type { Word } from "../store/tinybase/persisted";
+
+type Segment = {
+  text: string;
+  speaker: string;
+};
+
+export const buildSegments = (
+  {
+    speakerFromChannel,
+    words,
+  }: {
+    speakerFromChannel: (channel: number) => string;
+    words: Word[];
+  },
+): Segment[] => {
+  const segments: Segment[] = [];
+
+  for (const word of words) {
+    const speaker = speakerFromChannel(word.channel);
+    segments.push({ text: word.text, speaker });
+  }
+
+  return segments;
+};

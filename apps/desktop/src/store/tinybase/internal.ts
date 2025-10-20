@@ -3,6 +3,7 @@ import { createMergeableStore, createQueries, type MergeableStore, type TablesSc
 import { z } from "zod";
 
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
+import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
@@ -98,8 +99,7 @@ export const createStore = () => {
 export const useStore = () => {
   const store = useCreateMergeableStore(() => createStore());
 
-  // TODO
-  store.setValue("user_id", "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a");
+  store.setValue("user_id", DEFAULT_USER_ID);
 
   const synchronizer = useCreateSynchronizer(
     store,

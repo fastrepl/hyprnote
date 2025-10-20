@@ -15,6 +15,7 @@ import type {
   Tag,
   TemplateSection,
   TemplateStorage,
+  Transcript,
   Word,
 } from "../../store/tinybase/persisted";
 import { id } from "../../utils";
@@ -137,8 +138,7 @@ export const generateEnhancedMarkdown = () => {
 
 export const generateTranscript = () => {
   const wordCount = faker.number.int({ min: 50, max: 200 });
-  const words: Array<{ speaker: string; text: string; start_ms: number; end_ms: number }> = [];
-  const speakers = ["Speaker 1", "Speaker 2"];
+  const words: Array<Word> = [];
 
   let currentTimeMs = 0;
 
@@ -147,7 +147,10 @@ export const generateTranscript = () => {
     const durationMs = faker.number.int({ min: 200, max: 800 });
 
     words.push({
-      speaker: faker.helpers.arrayElement(speakers),
+      user_id: USER_ID,
+      created_at: faker.date.recent({ days: 30 }).toISOString(),
+      transcript_id: id(),
+      channel: 0,
       text: word,
       start_ms: currentTimeMs,
       end_ms: currentTimeMs + durationMs,
@@ -382,6 +385,7 @@ export const generateMockData = (config: MockConfig) => {
   const calendars: Record<string, Calendar> = {};
   const folders: Record<string, Folder> = {};
   const sessions: Record<string, SessionStorage> = {};
+  const transcripts: Record<string, Transcript> = {};
   const words: Record<string, Word> = {};
   const events: Record<string, Event> = {};
   const mapping_session_participant: Record<string, mappingSessionParticipant> = {};
@@ -494,16 +498,23 @@ export const generateMockData = (config: MockConfig) => {
       sessions[session.id] = session.data;
       sessionIds.push(session.id);
 
+      const transcriptId = id();
+      transcripts[transcriptId] = {
+        user_id: USER_ID,
+        session_id: session.id,
+        created_at: faker.date.recent({ days: 30 }).toISOString(),
+      };
+
       const transcript = generateTranscript();
       transcript.words.forEach((word) => {
         const wordId = id();
         words[wordId] = {
           user_id: USER_ID,
-          session_id: session.id,
+          transcript_id: transcriptId,
           text: word.text,
           start_ms: word.start_ms,
           end_ms: word.end_ms,
-          speaker: word.speaker || undefined,
+          channel: word.channel,
           created_at: faker.date.recent({ days: 30 }).toISOString(),
         };
       });
@@ -553,6 +564,7 @@ export const generateMockData = (config: MockConfig) => {
     calendars,
     folders,
     sessions,
+    transcripts,
     words,
     events,
     mapping_session_participant,

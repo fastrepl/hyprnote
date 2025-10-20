@@ -286,10 +286,10 @@ function TabContentCalendarDay({
             isToday
               ? "text-white font-medium"
               : !isCurrentMonth
-                ? "text-neutral-400"
-                : isWeekend
-                  ? "text-neutral-500"
-                  : "text-neutral-700",
+              ? "text-neutral-400"
+              : isWeekend
+              ? "text-neutral-500"
+              : "text-neutral-700",
           )}
         >
           {dayNumber}

@@ -40,7 +40,7 @@ export const PROVIDERS = [
     displayName: "Ollama",
     badge: null,
     icon: <Ollama size={16} />,
-    apiKey: true,
+    apiKey: false,
     baseUrl: { value: "http://localhost:11434", immutable: false },
   },
   {
@@ -48,7 +48,7 @@ export const PROVIDERS = [
     displayName: "LM Studio",
     badge: null,
     icon: <LmStudio size={16} />,
-    apiKey: true,
+    apiKey: false,
     baseUrl: { value: "http://localhost:8000", immutable: false },
   },
 ];

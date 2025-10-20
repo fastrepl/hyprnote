@@ -1,3 +1,4 @@
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import { useMemo } from "react";
@@ -54,12 +55,20 @@ export const useLanguageModel = (): LanguageModel | null => {
       return null;
     }
 
-    const provider = createOpenAICompatible({
+    if (connection.providerId === "anthropic") {
+      const anthropicProvider = createAnthropic({
+        apiKey: connection.apiKey,
+      });
+
+      return anthropicProvider(connection.modelId);
+    }
+
+    const openAICompatibleProvider = createOpenAICompatible({
       name: connection.providerId,
       baseURL: connection.baseUrl,
       apiKey: connection.apiKey,
     });
 
-    return provider.chatModel(connection.modelId);
+    return openAICompatibleProvider.chatModel(connection.modelId);
   }, [connection]);
 };

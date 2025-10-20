@@ -15,12 +15,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { cn } from "@hypr/ui/lib/utils";
 
 export function ModelCombobox({
+  providerId,
   value,
   onChange,
   listModels,
   disabled = false,
   placeholder = "Select a model",
 }: {
+  providerId: string;
   value: string;
   onChange: (value: string) => void;
   listModels: () => Promise<string[]> | string[];
@@ -31,9 +33,10 @@ export function ModelCombobox({
   const [query, setQuery] = useState("");
 
   const { data: fetchedModels, isLoading } = useQuery({
-    queryKey: ["models", listModels],
+    queryKey: ["models", providerId, listModels],
     queryFn: listModels,
-    refetchInterval: 1000,
+    retry: 3,
+    retryDelay: 300,
   });
 
   const options: string[] = fetchedModels ?? [];

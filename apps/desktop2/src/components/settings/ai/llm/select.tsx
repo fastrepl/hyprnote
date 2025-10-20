@@ -104,11 +104,11 @@ export function SelectProviderAndModel() {
             return (
               <div style={{ flex: 6 }}>
                 <ModelCombobox
+                  providerId={providerId}
                   value={field.state.value}
                   onChange={(value) => field.handleChange(value)}
                   disabled={!maybeListModels}
                   listModels={listModels}
-                  placeholder="Select a model"
                 />
               </div>
             );

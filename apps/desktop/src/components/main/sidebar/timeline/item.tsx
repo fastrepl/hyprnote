@@ -1,8 +1,8 @@
-import { ExternalLink, SquareArrowOutUpRight, Trash2 } from "lucide-react";
+import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+import { cn } from "@hypr/utils";
+
 import { useCallback, useMemo } from "react";
 
-import { ContextMenuItem, ContextMenuShortcut } from "@hypr/ui/components/ui/context-menu";
-import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { Tab, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
@@ -97,24 +97,10 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
 
   const contextMenu = (
     <>
-      <ContextMenuItem
-        className="flex items-center gap-2"
-        onClick={() => handleClick()}
-      >
-        <SquareArrowOutUpRight className="w-4 h-4" />
-        <span>Current Tab</span>
-        <ContextMenuShortcut>Click</ContextMenuShortcut>
+      <ContextMenuItem className="cursor-pointer" onClick={() => handleCmdClick()}>
+        Open in New Tab
       </ContextMenuItem>
-      <ContextMenuItem
-        className="flex items-center gap-2"
-        onClick={() => handleCmdClick()}
-      >
-        <ExternalLink className="w-4 h-4" />
-        <span>New Tab</span>
-        <ContextMenuShortcut>⌘ + Click</ContextMenuShortcut>
-      </ContextMenuItem>
-      <ContextMenuItem className="text-red-500" onClick={handleDelete}>
-        <Trash2 className="w-4 h-4 mr-2 text-red-500" />
+      <ContextMenuItem className="cursor-pointer text-red-500 hover:bg-red-500 hover:text-white" onClick={handleDelete}>
         Delete Completely
       </ContextMenuItem>
     </>

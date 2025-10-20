@@ -2,8 +2,8 @@ import * as _UI from "tinybase/ui-react/with-schemas";
 import { createMergeableStore, createQueries, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
+import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import { createLocalPersister } from "./localPersister";
-import { createLocalSynchronizer } from "./localSynchronizer";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const generalSchema = z.object({
@@ -16,14 +16,15 @@ export const generalSchema = z.object({
   ai_language: z.string().default("en"),
   spoken_languages: jsonObject(z.array(z.string()).default(["en"])),
   jargons: jsonObject(z.array(z.string()).default([])),
-  current_llm_provider: z.string().default("hyprcloud"),
-  current_stt_provider: z.string().default("hyprlocal"),
+  current_llm_provider: z.string().optional(),
+  current_llm_model: z.string().optional(),
+  current_stt_provider: z.string().optional(),
+  current_stt_model: z.string().optional(),
 });
 
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
-  model: z.string().min(1),
-  base_url: z.url(),
+  base_url: z.url().min(1),
   api_key: z.string().min(1),
 });
 
@@ -47,12 +48,13 @@ export const SCHEMA = {
     spoken_languages: { type: "string" },
     jargons: { type: "string" },
     current_llm_provider: { type: "string" },
+    current_llm_model: { type: "string" },
     current_stt_provider: { type: "string" },
+    current_stt_model: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
     ai_providers: {
       type: { type: "string" },
-      model: { type: "string" },
       base_url: { type: "string" },
       api_key: { type: "string" },
     } as const satisfies InferTinyBaseSchema<typeof aiProviderSchema>,
@@ -78,6 +80,7 @@ const {
   useProvideStore,
   useProvidePersister,
   useProvideQueries,
+  useProvideSynchronizer,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -98,11 +101,11 @@ export const useStore = () => {
   // TODO
   store.setValue("user_id", "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a");
 
-  useCreateSynchronizer(
+  const synchronizer = useCreateSynchronizer(
     store,
-    async (store) => createLocalSynchronizer(store),
+    async (store) => createBroadcastChannelSynchronizer(store, "hypr-internal-sync"),
     [],
-    (sync) => sync.startSync(),
+    (sync) => sync.startSync().then(console.log).catch(console.error),
   );
 
   const localPersister = useCreatePersister(
@@ -126,7 +129,6 @@ export const useStore = () => {
           "ai_providers",
           ({ select, where }) => {
             select("type");
-            select("model");
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "llm");
@@ -137,7 +139,6 @@ export const useStore = () => {
           "ai_providers",
           ({ select, where }) => {
             select("type");
-            select("model");
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "stt");
@@ -149,6 +150,7 @@ export const useStore = () => {
   useProvideStore(STORE_ID, store);
   useProvidePersister(STORE_ID, localPersister);
   useProvideQueries(STORE_ID, queries);
+  useProvideSynchronizer(STORE_ID, synchronizer);
 
   return store;
 };

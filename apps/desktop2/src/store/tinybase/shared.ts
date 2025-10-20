@@ -3,8 +3,6 @@ import { z } from "zod";
 export const MergeableStoreOnly = 2;
 export const StoreOrMergeableStore = 3;
 
-export const BROADCAST_CHANNEL_NAME = "hypr-window-sync";
-
 export const jsonObject = <T extends z.ZodTypeAny>(schema: T) => {
   return z.union([z.string(), z.any()]).transform((input, ctx) => {
     try {

@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
+import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
@@ -27,8 +28,7 @@ export function ChatSession({
   chatGroupId,
   children,
 }: ChatSessionProps) {
-  const registry = useToolRegistry();
-  const transport = useMemo(() => new CustomChatTransport(registry), [registry]);
+  const transport = useTransport();
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
@@ -89,7 +89,7 @@ export function ChatSession({
     id: sessionId,
     messages: initialMessages,
     generateId: () => id(),
-    transport,
+    transport: transport ?? undefined,
     onError: console.error,
   });
 
@@ -122,4 +122,19 @@ export function ChatSession({
   }, [chatGroupId, createChatMessage, messages, status]);
 
   return <>{children({ messages, sendMessage, regenerate, stop, status, error })}</>;
+}
+
+function useTransport() {
+  const registry = useToolRegistry();
+  const model = useLanguageModel();
+
+  const transport = useMemo(() => {
+    if (!model) {
+      return null;
+    }
+
+    return new CustomChatTransport(registry, model);
+  }, [registry, model]);
+
+  return transport;
 }

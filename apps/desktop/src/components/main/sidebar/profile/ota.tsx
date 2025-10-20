@@ -1,5 +1,3 @@
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { createStore } from "@xstate/store";
@@ -7,6 +5,8 @@ import { useSelector } from "@xstate/store/react";
 import { clsx } from "clsx";
 import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
 
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { cn } from "@hypr/utils";
 import { MenuItem } from "./shared";
 
 type State =
@@ -203,31 +203,19 @@ export function UpdateChecker() {
 
   if (state === "checking") {
     return (
-      <div
-        className={clsx(
-          "flex w-full items-center gap-2.5",
-          "px-4 py-1.5",
-          "text-sm text-neutral-700",
-        )}
-      >
+      <MenuItemLikeContainer>
         <Spinner size={16} className="flex-shrink-0 text-neutral-400" />
-        <span className={clsx("flex-1", "text-left font-medium")}>Checking for updates...</span>
-      </div>
+        <span className={cn("flex-1", "text-left font-medium")}>Checking for updates...</span>
+      </MenuItemLikeContainer>
     );
   }
 
   if (state === "noUpdate") {
     return (
-      <div
-        className={clsx(
-          "flex w-full items-center gap-2.5",
-          "px-4 py-1.5",
-          "text-sm text-neutral-700",
-        )}
-      >
-        <CheckCircle className={clsx("h-4 w-4 flex-shrink-0", "text-green-500")} />
-        <span className={clsx("flex-1", "text-left font-medium")}>You're up to date</span>
-      </div>
+      <MenuItemLikeContainer>
+        <CheckCircle className={cn("h-4 w-4 flex-shrink-0", "text-green-500")} />
+        <span className={cn("flex-1", "text-left font-medium")}>You're up to date</span>
+      </MenuItemLikeContainer>
     );
   }
 
@@ -271,7 +259,7 @@ export function UpdateChecker() {
 
   if (state === "downloading") {
     return (
-      <div className={clsx("flex w-full flex-col gap-2", "px-4 py-2", "text-sm text-neutral-700")}>
+      <MenuItemLikeContainer>
         <div className="flex items-center gap-2.5">
           <Spinner size={16} className="flex-shrink-0 text-blue-500" />
           <span className={clsx("flex-1", "text-left font-medium")}>
@@ -296,7 +284,7 @@ export function UpdateChecker() {
             style={{ width: `${downloadProgress.percentage}%` }}
           />
         </div>
-      </div>
+      </MenuItemLikeContainer>
     );
   }
 
@@ -313,16 +301,10 @@ export function UpdateChecker() {
 
   if (state === "installing") {
     return (
-      <div
-        className={clsx(
-          "flex w-full items-center gap-2.5",
-          "px-4 py-1.5",
-          "text-sm text-neutral-700",
-        )}
-      >
+      <MenuItemLikeContainer>
         <Spinner size={16} className="flex-shrink-0 text-green-500" />
         <span className={clsx("flex-1", "text-left font-medium")}>Installing...</span>
-      </div>
+      </MenuItemLikeContainer>
     );
   }
 
@@ -332,5 +314,20 @@ export function UpdateChecker() {
       label="Check for updates"
       onClick={handleCheckForUpdate}
     />
+  );
+}
+
+function MenuItemLikeContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "flex w-full items-center gap-2.5 rounded-lg",
+        "px-4 py-1.5",
+        "text-sm text-black",
+        "transition-colors hover:bg-neutral-100",
+      )}
+    >
+      {children}
+    </div>
   );
 }

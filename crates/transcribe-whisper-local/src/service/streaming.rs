@@ -270,7 +270,6 @@ async fn process_transcription_stream(
                     .collect();
 
                 let response = StreamResponse::TranscriptResponse {
-                    type_field: "Results".to_string(),
                     start: adjusted_start_f64,
                     duration: duration_f64,
                     is_final: true,

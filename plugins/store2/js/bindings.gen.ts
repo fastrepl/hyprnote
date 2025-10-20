@@ -7,23 +7,53 @@
 
 
 export const commands = {
-async getStr(scope: string, key: string) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:store2|get_str", { scope, key });
+async getStr(scope: string, key: string) : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|get_str", { scope, key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setStr(scope: string, key: string, value: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:store2|set_str", { scope, key, value });
+async setStr(scope: string, key: string, value: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|set_str", { scope, key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getBool(scope: string, key: string) : Promise<boolean | null> {
-    return await TAURI_INVOKE("plugin:store2|get_bool", { scope, key });
+async getBool(scope: string, key: string) : Promise<Result<boolean | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|get_bool", { scope, key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setBool(scope: string, key: string, value: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:store2|set_bool", { scope, key, value });
+async setBool(scope: string, key: string, value: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|set_bool", { scope, key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getNumber(scope: string, key: string) : Promise<number | null> {
-    return await TAURI_INVOKE("plugin:store2|get_number", { scope, key });
+async getNumber(scope: string, key: string) : Promise<Result<number | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|get_number", { scope, key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setNumber(scope: string, key: string, value: number) : Promise<null> {
-    return await TAURI_INVOKE("plugin:store2|set_number", { scope, key, value });
+async setNumber(scope: string, key: string, value: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:store2|set_number", { scope, key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

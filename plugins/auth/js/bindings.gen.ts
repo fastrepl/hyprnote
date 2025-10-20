@@ -7,29 +7,69 @@
 
 
 export const commands = {
-async startOauthServer() : Promise<number> {
-    return await TAURI_INVOKE("plugin:auth|start_oauth_server");
+async startOauthServer() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|start_oauth_server") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async stopOauthServer(port: number) : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|stop_oauth_server", { port });
+async stopOauthServer(port: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|stop_oauth_server", { port }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async initVault(userId: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|init_vault", { userId });
+async initVault(userId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|init_vault", { userId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async resetVault() : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|reset_vault");
+async resetVault() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|reset_vault") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getFromVault(key: VaultKey) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:auth|get_from_vault", { key });
+async getFromVault(key: VaultKey) : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|get_from_vault", { key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getFromStore(key: StoreKey) : Promise<string | null> {
-    return await TAURI_INVOKE("plugin:auth|get_from_store", { key });
+async getFromStore(key: StoreKey) : Promise<Result<string | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|get_from_store", { key }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setInVault(key: VaultKey, value: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|set_in_vault", { key, value });
+async setInVault(key: VaultKey, value: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|set_in_vault", { key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setInStore(key: StoreKey, value: string) : Promise<null> {
-    return await TAURI_INVOKE("plugin:auth|set_in_store", { key, value });
+async setInStore(key: StoreKey, value: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:auth|set_in_store", { key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

@@ -276,7 +276,6 @@ where
                             .collect();
 
                         let response = StreamResponse::TranscriptResponse {
-                            type_field: "Results".to_string(),
                             start: start_f64,
                             duration: duration_f64,
                             is_final: true,

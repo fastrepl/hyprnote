@@ -7,14 +7,29 @@
 
 
 export const commands = {
-async openCalendar() : Promise<null> {
-    return await TAURI_INVOKE("plugin:apple-calendar|open_calendar");
+async openCalendar() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|open_calendar") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async openCalendarAccessSettings() : Promise<null> {
-    return await TAURI_INVOKE("plugin:apple-calendar|open_calendar_access_settings");
+async openCalendarAccessSettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|open_calendar_access_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async openContactsAccessSettings() : Promise<null> {
-    return await TAURI_INVOKE("plugin:apple-calendar|open_contacts_access_settings");
+async openContactsAccessSettings() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|open_contacts_access_settings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
 async calendarAccessStatus() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:apple-calendar|calendar_access_status");
@@ -28,11 +43,21 @@ async requestCalendarAccess() : Promise<void> {
 async requestContactsAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
 },
-async syncCalendars() : Promise<null> {
-    return await TAURI_INVOKE("plugin:apple-calendar|sync_calendars");
+async syncCalendars() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|sync_calendars") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async syncEvents() : Promise<null> {
-    return await TAURI_INVOKE("plugin:apple-calendar|sync_events");
+async syncEvents() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|sync_events") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

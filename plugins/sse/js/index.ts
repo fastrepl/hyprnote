@@ -68,9 +68,12 @@ export const commands = {
           : [],
       })
       .then((res) => {
+        if (res.status === "error") {
+          throw new Error(res.error);
+        }
         return new Response(ts.readable, {
-          status: res.status,
-          headers: new Headers(res.headers as Record<string, string>),
+          status: res.data.status,
+          headers: new Headers(res.data.headers as Record<string, string>),
         });
       });
   },

@@ -62,12 +62,11 @@ impl Default for Metadata {
 }
 
 common_derives! {
-    #[serde(untagged)]
+    #[serde(tag = "type")]
     #[non_exhaustive]
     pub enum StreamResponse {
+        #[serde(rename = "Results")]
         TranscriptResponse {
-            #[serde(rename = "type")]
-            type_field: String,
             start: f64,
             duration: f64,
             is_final: bool,
@@ -77,21 +76,20 @@ common_derives! {
             metadata: Metadata,
             channel_index: Vec<i32>,
         },
+        #[serde(rename = "Metadata")]
         TerminalResponse {
             request_id: String,
             created: String,
             duration: f64,
             channels: u32,
         },
+        #[serde(rename = "SpeechStarted")]
         SpeechStartedResponse {
-            #[serde(rename = "type")]
-            type_field: String,
             channel: Vec<u8>,
             timestamp: f64,
         },
+        #[serde(rename = "UtteranceEnd")]
         UtteranceEndResponse {
-            #[serde(rename = "type")]
-            type_field: String,
             channel: Vec<u8>,
             last_word_end: f64,
         },

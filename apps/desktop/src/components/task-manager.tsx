@@ -3,7 +3,7 @@ import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
-import { checkForUpdate } from "./main/sidebar/profile/ota";
+import { checkForUpdate } from "./main/sidebar/profile/ota/task";
 
 const UPDATE_CHECK_TASK_ID = "checkForUpdate";
 const UPDATE_CHECK_INTERVAL = 30 * 1000;

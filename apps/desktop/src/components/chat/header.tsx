@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import { useShell } from "../../contexts/shell";
 import * as persisted from "../../store/tinybase/persisted";
 

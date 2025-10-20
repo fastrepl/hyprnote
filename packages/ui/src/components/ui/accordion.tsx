@@ -1,8 +1,8 @@
+import { cn } from "@hypr/utils";
+
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
-
-import { cn } from "@hypr/ui/lib/utils";
 
 const Accordion = AccordionPrimitive.Root;
 

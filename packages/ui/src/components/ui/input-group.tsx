@@ -1,10 +1,11 @@
+import { cn } from "@hypr/utils";
+
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { Input } from "@hypr/ui/components/ui/input";
-import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { cn } from "@hypr/ui/lib/utils";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Textarea } from "./textarea";
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (

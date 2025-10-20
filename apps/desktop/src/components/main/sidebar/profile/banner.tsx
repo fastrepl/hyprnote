@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 export function TryProBanner({ isDismissed, onDismiss }: { isDismissed: boolean; onDismiss: () => void }) {
   const handleDismiss = () => {

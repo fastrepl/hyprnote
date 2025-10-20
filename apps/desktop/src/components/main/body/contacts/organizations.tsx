@@ -1,7 +1,7 @@
 import { Building2, CornerDownLeft, Pencil, User } from "lucide-react";
 import React, { useState } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { ColumnHeader, type SortOption } from "./shared";
 

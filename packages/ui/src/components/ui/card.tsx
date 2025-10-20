@@ -1,6 +1,6 @@
-import { forwardRef } from "react";
+import { cn } from "@hypr/utils";
 
-import { cn } from "../../lib/utils";
+import { forwardRef } from "react";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "outline" | "ghost";

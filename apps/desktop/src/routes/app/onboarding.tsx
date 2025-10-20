@@ -13,7 +13,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 const STEPS = ["welcome", "calendars", "permissions"] as const;
 

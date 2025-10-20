@@ -1,4 +1,4 @@
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 export function ChatTrigger({ onClick }: { onClick: () => void }) {
   return (

@@ -1,7 +1,7 @@
 import Editor from "@hypr/tiptap/editor";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 
 import { MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";

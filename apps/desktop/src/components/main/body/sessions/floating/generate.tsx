@@ -1,7 +1,7 @@
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { FloatingButton } from "./shared";

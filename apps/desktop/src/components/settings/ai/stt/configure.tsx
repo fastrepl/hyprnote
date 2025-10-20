@@ -10,7 +10,7 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as internal from "../../../../store/tinybase/internal";
 import { aiProviderSchema } from "../../../../store/tinybase/internal";
 import {

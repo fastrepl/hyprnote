@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { Streamdown } from "streamdown";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import { aiProviderSchema } from "../../../../store/tinybase/internal";
 import * as internal from "../../../../store/tinybase/internal";
 import { FormField, useProvider } from "../shared";

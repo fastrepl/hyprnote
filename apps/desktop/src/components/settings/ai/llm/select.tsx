@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useMemo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
 import * as internal from "../../../../store/tinybase/internal";
 import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";

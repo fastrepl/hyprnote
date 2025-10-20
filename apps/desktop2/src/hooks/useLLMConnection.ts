@@ -6,8 +6,34 @@ import { useMemo } from "react";
 import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared";
 import * as internal from "../store/tinybase/internal";
 
+export const useLanguageModel = (): LanguageModel | null => {
+  const connection = useLLMConnection();
+
+  return useMemo(() => {
+    if (!connection) {
+      return null;
+    }
+
+    if (connection.providerId === "anthropic") {
+      const anthropicProvider = createAnthropic({
+        apiKey: connection.apiKey,
+      });
+
+      return anthropicProvider(connection.modelId);
+    }
+
+    const openAICompatibleProvider = createOpenAICompatible({
+      name: connection.providerId,
+      baseURL: connection.baseUrl,
+      apiKey: connection.apiKey,
+    });
+
+    return openAICompatibleProvider.chatModel(connection.modelId);
+  }, [connection]);
+};
+
 const useLLMConnection = (): {
-  providerId: string;
+  providerId: ProviderId;
   modelId: string;
   baseUrl: string;
   apiKey: string;
@@ -45,30 +71,4 @@ const useLLMConnection = (): {
       apiKey,
     };
   }, [current_llm_provider, current_llm_model, providerConfig]);
-};
-
-export const useLanguageModel = (): LanguageModel | null => {
-  const connection = useLLMConnection();
-
-  return useMemo(() => {
-    if (!connection) {
-      return null;
-    }
-
-    if (connection.providerId === "anthropic") {
-      const anthropicProvider = createAnthropic({
-        apiKey: connection.apiKey,
-      });
-
-      return anthropicProvider(connection.modelId);
-    }
-
-    const openAICompatibleProvider = createOpenAICompatible({
-      name: connection.providerId,
-      baseURL: connection.baseUrl,
-      apiKey: connection.apiKey,
-    });
-
-    return openAICompatibleProvider.chatModel(connection.modelId);
-  }, [connection]);
 };

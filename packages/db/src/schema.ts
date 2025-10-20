@@ -110,10 +110,13 @@ export const chatMessages = pgTable(TABLE_CHAT_MESSAGES, {
 
 export const transcriptSchema = z.object({
   words: z.array(z.object({
-    speaker: z.string(),
-    text: z.string(),
-    start: z.iso.datetime(),
-    end: z.iso.datetime(),
+    word: z.string(),
+    start: z.number(),
+    end: z.number(),
+    confidence: z.number(),
+    speaker: z.number().nullable(),
+    punctuated_word: z.string().nullable(),
+    language: z.string().nullable(),
   })),
 });
 

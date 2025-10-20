@@ -2,7 +2,12 @@ import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import { createStore } from "zustand";
 
-import { commands as listenerCommands, events as listenerEvents, type SessionParams } from "@hypr/plugin-listener";
+import {
+  commands as listenerCommands,
+  events as listenerEvents,
+  type SessionParams,
+  type StreamResponse,
+} from "@hypr/plugin-listener";
 import { fromResult } from "../../effect";
 
 type State = {
@@ -16,7 +21,7 @@ type State = {
 
 type Actions = {
   get: () => State & Actions;
-  start: () => void;
+  start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => void;
   stop: () => void;
 };
 
@@ -44,7 +49,7 @@ export const createListenerStore = () => {
   return createStore<State & Actions>((set, get) => ({
     ...initialState,
     get: () => get(),
-    start: () => {
+    start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => {
       set((state) =>
         mutate(state, (draft) => {
           draft.loading = true;
@@ -95,7 +100,8 @@ export const createListenerStore = () => {
             })
           );
         } else if (payload.type === "streamResponse") {
-          console.log(payload.response);
+          const response = payload.response;
+          onStreamResponse(response);
         }
       };
 
@@ -108,14 +114,13 @@ export const createListenerStore = () => {
           })
         );
 
-        yield* startSessionEffect({
-          languages: ["en"],
-          onboarding: false,
-          record_enabled: false,
-          session_id: crypto.randomUUID(),
-        });
-
-        set({ status: "running_active", loading: false });
+        yield* startSessionEffect(params);
+        set((state) =>
+          mutate(state, (draft) => {
+            draft.status = "running_active";
+            draft.loading = false;
+          })
+        );
       });
 
       Effect.runPromiseExit(program).then((exit) => {

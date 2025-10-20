@@ -8,7 +8,6 @@ hypr-buffer = { workspace = true }
 hypr-calendar-interface = { workspace = true }
 hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
-hypr-db-script = { workspace = true }
 hypr-language = { workspace = true }
 owhisper-interface = { workspace = true }
 

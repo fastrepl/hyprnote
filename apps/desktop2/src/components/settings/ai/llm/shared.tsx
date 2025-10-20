@@ -51,4 +51,4 @@ export const PROVIDERS = [
     apiKey: false,
     baseUrl: { value: "http://localhost:8000", immutable: false },
   },
-];
+] as const;

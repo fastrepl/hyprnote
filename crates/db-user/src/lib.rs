@@ -176,8 +176,6 @@ pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {
     let conn = db.conn()?;
     hypr_db_core::migrate(&conn, MIGRATIONS.to_vec()).await?;
 
-    hypr_db_script::conversation_to_words::run(&conn).await;
-
     Ok(())
 }
 

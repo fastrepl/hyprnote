@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@hypr/ui/lib/utils";
 import * as internal from "../../../../store/tinybase/internal";
 import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
-import { ProviderId, PROVIDERS } from "./shared";
+import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
@@ -119,7 +119,7 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<ProviderId, null | (() => Promise<string[]>)> {
+function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)> {
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
 
   const mapping = useMemo(() => {
@@ -140,7 +140,7 @@ function useConfiguredMapping(): Record<ProviderId, null | (() => Promise<string
           () => openaiCompatibleListModels(String(base_url), String(api_key)),
         ];
       }),
-    );
+    ) as Record<string, null | (() => Promise<string[]>)>;
   }, [configuredProviders]);
 
   return mapping;

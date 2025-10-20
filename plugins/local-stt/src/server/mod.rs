@@ -9,8 +9,6 @@ pub enum ServerType {
     Internal,
     #[serde(rename = "external")]
     External,
-    #[serde(rename = "custom")]
-    Custom,
 }
 
 #[derive(
@@ -21,4 +19,10 @@ pub enum ServerHealth {
     Unreachable,
     Loading,
     Ready,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct ServerInfo {
+    pub url: Option<String>,
+    pub health: ServerHealth,
 }

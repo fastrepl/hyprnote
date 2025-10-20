@@ -58,6 +58,7 @@
     "local-stt:default",
     "dialog:default",
     "listener:default",
-    "template:default"
+    "template:default",
+    "shell:default"
   ]
 }

@@ -27,6 +27,9 @@ pub struct ListenerArgs {
     pub app: tauri::AppHandle,
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
+    pub model: String,
+    pub base_url: String,
+    pub api_key: String,
 }
 
 pub struct ListenerState {
@@ -54,12 +57,6 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        {
-            use tauri_plugin_local_stt::LocalSttPluginExt;
-            let r = args.app.start_server(None).await;
-            tracing::info!("{:?}", r);
-        }
-
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
 
         let state = ListenerState {
@@ -155,18 +152,11 @@ async fn spawn_rx_task(
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
-    let app = args.app.clone();
-
-    let conn = {
-        use tauri_plugin_local_stt::LocalSttPluginExt;
-        app.get_connection().await?
-    };
-
     let client = owhisper_client::ListenClient::builder()
-        .api_base(conn.base_url)
-        .api_key(conn.api_key.unwrap_or_default())
+        .api_base(args.base_url)
+        .api_key(args.api_key)
         .params(owhisper_interface::ListenParams {
-            model: conn.model,
+            model: Some(args.model),
             languages: args.languages,
             redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
             ..Default::default()

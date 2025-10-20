@@ -278,8 +278,10 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
   const { progress, isDownloaded, showProgress, handleDownload, handleCancel } = useLocalModelDownload(model);
 
   const handleOpen = () =>
-    localSttCommands.modelsDir().then((modelsDir) => {
-      openPath(modelsDir);
+    localSttCommands.modelsDir().then((result) => {
+      if (result.status === "ok") {
+        openPath(result.data);
+      }
     });
 
   return (
@@ -316,21 +318,23 @@ function useLocalModelDownload(model: SupportedSttModel) {
   }, [model]);
 
   useEffect(() => {
-    if (isDownloaded.data && taskRunId) {
+    if (isDownloaded.data?.status === "ok" && isDownloaded.data.data && taskRunId) {
       setTaskRunId(null);
       setProgress(0);
     }
   }, [isDownloaded.data, taskRunId]);
 
   useEffect(() => {
-    if (!isDownloading.data && !isDownloaded.data && taskRunId) {
+    const isNotDownloading = !(isDownloading.data?.status === "ok" && isDownloading.data.data);
+    const isNotDownloaded = !(isDownloaded.data?.status === "ok" && isDownloaded.data.data);
+    if (isNotDownloading && isNotDownloaded && taskRunId) {
       setTaskRunId(null);
       setProgress(0);
     }
   }, [isDownloading.data, isDownloaded.data, taskRunId]);
 
   const handleDownload = () => {
-    if (!manager || isDownloaded.data) {
+    if (!manager || (isDownloaded.data?.status === "ok" && isDownloaded.data?.data)) {
       return;
     }
     const runId = manager.scheduleTaskRun(DOWNLOAD_MODEL_TASK_ID, model);
@@ -349,11 +353,12 @@ function useLocalModelDownload(model: SupportedSttModel) {
     setProgress(0);
   };
 
-  const showProgress = !isDownloaded.data && taskRunId !== null && (isDownloading.data || isTaskRunning);
+  const showProgress = !(isDownloaded.data?.status === "ok" && isDownloaded.data?.data) && taskRunId !== null
+    && (isDownloading.data?.status === "ok" && isDownloading.data?.data || isTaskRunning);
 
   return {
     progress,
-    isDownloaded: isDownloaded.data ?? false,
+    isDownloaded: isDownloaded.data?.status === "ok" ? isDownloaded.data?.data ?? false : false,
     showProgress,
     handleDownload,
     handleCancel,

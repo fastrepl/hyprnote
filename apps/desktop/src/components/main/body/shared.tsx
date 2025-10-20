@@ -73,7 +73,7 @@ export function TabItemBase(
           handleCloseThis();
         }}
         className={clsx([
-          "flex-shrink-0 transition-opacity",
+          "flex-shrink-0 transition-opacity size-6",
           active
             ? "opacity-100 text-neutral-700"
             : "opacity-0 group-hover:opacity-100 text-neutral-500",

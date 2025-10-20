@@ -75,7 +75,7 @@ export function ShareButton(_: { sessionId: string }) {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[360px] shadow-lg p-0 max-h-[80vh] flex flex-col" align="end">
+      <PopoverContent className="w-[340px] shadow-lg p-0 max-h-[80vh] flex flex-col" align="end">
         <div className="flex flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center px-3 py-2 gap-2 rounded-md bg-neutral-50 border border-neutral-200">
@@ -214,8 +214,8 @@ export function ShareButton(_: { sessionId: string }) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                        <SelectItem value="editor">Editor</SelectItem>
+                        <SelectItem value="viewer" className="cursor-pointer">Viewer</SelectItem>
+                        <SelectItem value="editor" className="cursor-pointer">Editor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -228,7 +228,6 @@ export function ShareButton(_: { sessionId: string }) {
             className="w-full"
             onClick={handleCopyLink}
           >
-            <Link2Icon className="size-4" />
             Copy link
           </Button>
         </div>

@@ -32,6 +32,7 @@ tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-plugin-process = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
+tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-store2 = { workspace = true }

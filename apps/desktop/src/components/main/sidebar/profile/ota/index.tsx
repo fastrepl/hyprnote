@@ -1,86 +1,30 @@
-import { relaunch } from "@tauri-apps/plugin-process";
-import { useSelector } from "@xstate/store/react";
 import { clsx } from "clsx";
 import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 import { MenuItem } from "../shared";
-import { updateStore } from "./store";
-import { checkForUpdate } from "./task";
+import { useOTA } from "./task";
 
 export function UpdateChecker() {
-  const snapshot = useSelector(updateStore, (state) => state.context);
-  const { state, update, error, downloadProgress } = snapshot;
-
-  const handleCheckForUpdate = () => checkForUpdate();
-
-  const handleStartDownload = async () => {
-    if (!update) {
-      return;
-    }
-
-    updateStore.trigger.startDownload();
-
-    try {
-      await update.download((event) => {
-        if (event.event === "Started") {
-          updateStore.trigger.downloadProgress({
-            chunkLength: 0,
-            contentLength: event.data.contentLength,
-          });
-        } else if (event.event === "Progress") {
-          updateStore.trigger.downloadProgress({
-            chunkLength: event.data.chunkLength,
-          });
-        } else if (event.event === "Finished") {
-          updateStore.trigger.downloadFinished();
-        }
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Download failed";
-      updateStore.trigger.checkError({ error: errorMessage });
-    }
-  };
-
-  const handleCancelDownload = async () => {
-    if (update) {
-      try {
-        await update.close();
-      } catch (err) {
-        console.error("Failed to close update:", err);
-      }
-    }
-    updateStore.trigger.cancelDownload();
-  };
-
-  const handleInstall = async () => {
-    if (!update) {
-      return;
-    }
-
-    updateStore.trigger.setInstalling();
-
-    try {
-      if (process.env.NODE_ENV !== "development") {
-        await update.install();
-        await relaunch();
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Installation failed";
-      updateStore.trigger.checkError({ error: errorMessage });
-    }
-  };
-
-  const handleRetry = () => {
-    handleCheckForUpdate();
-  };
+  const {
+    state,
+    update,
+    error,
+    downloadProgress,
+    handleCheckForUpdate,
+    handleStartDownload,
+    handleCancelDownload,
+    handleInstall,
+  } = useOTA();
 
   if (state === "checking") {
     return (
       <MenuItemLikeContainer>
         <Spinner size={16} className="flex-shrink-0 text-neutral-400" />
-        <span className={cn("flex-1", "text-left font-medium")}>Checking for updates...</span>
+        <span className={cn("flex-1", "text-left font-medium")}>
+          Checking for updates...
+        </span>
       </MenuItemLikeContainer>
     );
   }
@@ -89,7 +33,9 @@ export function UpdateChecker() {
     return (
       <MenuItemLikeContainer>
         <CheckCircle className={cn("h-4 w-4 flex-shrink-0", "text-green-500")} />
-        <span className={cn("flex-1", "text-left font-medium")}>You're up to date</span>
+        <span className={cn("flex-1", "text-left font-medium")}>
+          You're up to date
+        </span>
       </MenuItemLikeContainer>
     );
   }
@@ -103,7 +49,7 @@ export function UpdateChecker() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleRetry();
+              handleCheckForUpdate();
             }}
             className={clsx(
               "rounded-full",
@@ -178,18 +124,22 @@ export function UpdateChecker() {
     return (
       <MenuItemLikeContainer>
         <Spinner size={16} className="flex-shrink-0 text-green-500" />
-        <span className={clsx("flex-1", "text-left font-medium")}>Installing...</span>
+        <span className={clsx("flex-1", "text-left font-medium")}>
+          Installing...
+        </span>
       </MenuItemLikeContainer>
     );
   }
 
-  return (
-    <MenuItem
-      icon={RefreshCw}
-      label="Check for updates"
-      onClick={handleCheckForUpdate}
-    />
-  );
+  if (state === "idle") {
+    return (
+      <MenuItem
+        icon={RefreshCw}
+        label="Check for updates"
+        onClick={handleCheckForUpdate}
+      />
+    );
+  }
 }
 
 function MenuItemLikeContainer({ children }: { children: React.ReactNode }) {

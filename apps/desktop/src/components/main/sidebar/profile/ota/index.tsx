@@ -7,7 +7,7 @@ import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
-import { MenuItem } from "./shared";
+import { MenuItem } from "../shared";
 
 type State =
   | "idle"

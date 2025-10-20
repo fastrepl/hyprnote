@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    hyprnote_desktop2_lib::main()
+    hyprnote_desktop_lib::main()
 }

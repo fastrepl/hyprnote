@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - apps/desktop2/**
+      - apps/desktop/**
       - plugins/**
   pull_request:
     branches:
       - main
     paths:
-      - apps/desktop2/**
+      - apps/desktop/**
       - plugins/**
 jobs:
   ci:
@@ -34,4 +34,4 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           target: ${{ matrix.platform }}
-      - run: cargo check -p desktop2
+      - run: cargo check -p desktop

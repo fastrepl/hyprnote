@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop2_')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_')) }}
     permissions:
       contents: write
     strategy:
@@ -38,7 +38,7 @@ jobs:
           lfs: true
       - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
         run: |
-          VERSION=$(jq -r '.version' ./apps/desktop2/src-tauri/tauri.conf.json)
+          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
@@ -56,7 +56,7 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./apps/desktop2
+          working-directory: ./apps/desktop
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: ${{ matrix.platform }}
@@ -77,7 +77,7 @@ jobs:
           if [[ "${{ env.RELEASE_CHANNEL }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F desktop2 tauri build --target ${{ matrix.target }} --verbose $FEATURES_FLAG
+          pnpm -F desktop tauri build --target ${{ matrix.target }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
@@ -100,7 +100,7 @@ jobs:
             find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
           fi
         shell: bash
-        working-directory: ./apps/desktop2/src-tauri
+        working-directory: ./apps/desktop/src-tauri
       - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
@@ -109,23 +109,23 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./apps/desktop2
+          working-directory: ./apps/desktop
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'macos' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote2-staging-${{ matrix.target }}
-          path: apps/desktop2/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
       - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'windows' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote2-staging-${{ matrix.target }}
           path: |
-            apps/desktop2/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
-            apps/desktop2/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
           retention-days: 3
   publish:
-    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop2_'))) }}
+    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) }}
     needs: build
     runs-on: ubuntu-24.04
     steps:
@@ -137,4 +137,4 @@ jobs:
           key: ${{ secrets.CN_API_KEY }}
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
-          working-directory: ./apps/desktop2
+          working-directory: ./apps/desktop

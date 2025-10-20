@@ -5,9 +5,9 @@
   "mainBinaryName": "Hyprnote2 Dev",
   "identifier": "com.hyprnote2.dev",
   "build": {
-    "beforeDevCommand": "pnpm -F desktop2 dev",
+    "beforeDevCommand": "pnpm -F desktop dev",
     "devUrl": "http://localhost:1422",
-    "beforeBuildCommand": "pnpm -F desktop2 build",
+    "beforeBuildCommand": "pnpm -F desktop build",
     "frontendDist": "../dist"
   },
   "app": {

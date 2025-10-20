@@ -71,5 +71,5 @@ tasks:
 
   stt:
     cmds:
-      - chmod +x ./apps/desktop2/src-tauri/resources/stt-aarch64-apple-darwin
-      - chmod +x ./apps/desktop2/src-tauri/resources/passthrough-aarch64-apple-darwin
+      - chmod +x ./apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin
+      - chmod +x ./apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin

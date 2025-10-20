@@ -16,7 +16,7 @@ importers:
         specifier: ^2.5.8
         version: 2.5.8
 
-  apps/desktop2:
+  apps/desktop:
     dependencies:
       '@ai-sdk/amazon-bedrock':
         specifier: ^3.0.43

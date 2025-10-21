@@ -370,9 +370,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
     : providerId === "deepgram"
     ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
-    You can choose to use the [EU Endpoint](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) if you prefer.`
-    : providerId === "deepgram-custom"
-    ? `If you're using a [Dedicated endpoint](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints), or other Deepgram-compatible endpoint, you can configure it here.`
+    If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)
+    or [EU](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) endpoint,
+    you can do that in the **advanced** section.`
+    : providerId === "custom"
+    ? `We only support **Deepgram compatible** endpoints for now.`
     : "";
 
   if (!content.trim()) {

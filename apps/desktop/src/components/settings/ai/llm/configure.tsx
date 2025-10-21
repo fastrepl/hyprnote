@@ -119,6 +119,8 @@ function ProviderCard({
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
     ? "Hyprnote is great"
+    : providerId === "custom"
+    ? "We only support **OpenAI compatible** endpoints for now."
     : "";
 
   if (!content) {

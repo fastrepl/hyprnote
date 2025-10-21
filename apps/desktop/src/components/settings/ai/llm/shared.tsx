@@ -1,3 +1,4 @@
+import { Icon } from "@iconify-icon/react";
 import { Anthropic, LmStudio, Ollama, OpenAI, OpenRouter } from "@lobehub/icons";
 
 export type ProviderId = typeof PROVIDERS[number]["id"];
@@ -50,5 +51,13 @@ export const PROVIDERS = [
     icon: <LmStudio size={16} />,
     apiKey: false,
     baseUrl: { value: "http://localhost:8000", immutable: false },
+  },
+  {
+    id: "custom",
+    displayName: "Custom",
+    badge: null,
+    icon: <Icon icon="mingcute:random-fill" />,
+    apiKey: true,
+    baseUrl: { value: "https://openai.compatible.com", immutable: false },
   },
 ] as const;

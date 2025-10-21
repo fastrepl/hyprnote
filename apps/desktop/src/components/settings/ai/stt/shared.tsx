@@ -40,12 +40,12 @@ export const PROVIDERS = [
   },
   {
     disabled: false,
-    id: "deepgram-custom",
-    displayName: "Deepgram (Custom)",
+    id: "custom",
+    displayName: "Custom",
     badge: null,
-    icon: <Icon icon="simple-icons:deepgram" className="size-4" />,
-    baseUrl: { value: "https://api.openai.com/v1", immutable: false },
-    models: ["nova-3", "nova-3-general", "nova-3-medical"],
+    icon: <Icon icon="mingcute:random-fill" />,
+    baseUrl: { value: "https://deepgram.compatible.com", immutable: false },
+    models: [],
   },
   {
     disabled: true,

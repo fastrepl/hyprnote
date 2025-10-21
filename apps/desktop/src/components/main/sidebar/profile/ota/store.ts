@@ -65,10 +65,13 @@ export const updateStore = createStore({
         downloaded: context.downloadProgress.downloaded + event.chunkLength,
         total: event.contentLength ?? context.downloadProgress.total,
         percentage: event.contentLength || context.downloadProgress.total
-          ? Math.round(
-            ((context.downloadProgress.downloaded + event.chunkLength)
-              / (event.contentLength ?? context.downloadProgress.total ?? 1))
-              * 100,
+          ? Math.min(
+            100,
+            Math.round(
+              ((context.downloadProgress.downloaded + event.chunkLength)
+                / (event.contentLength ?? context.downloadProgress.total ?? 1))
+                * 100,
+            ),
           )
           : 0,
       },

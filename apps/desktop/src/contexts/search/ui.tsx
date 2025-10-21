@@ -1,6 +1,7 @@
 import { Highlight } from "@orama/highlight";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
+import { useHotkeys } from "react-hotkeys-hook";
 import type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./engine";
 import { useSearchEngine } from "./engine";
 
@@ -38,8 +39,7 @@ interface SearchUIContextValue {
   isIndexing: boolean;
   onFocus: () => void;
   onBlur: () => void;
-  registerFocusCallback: (callback: () => void) => void;
-  focusInput: () => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 const SCORE_PERCENTILE_THRESHOLD = 0.1;
@@ -150,7 +150,13 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
   const [isFocused, setIsFocused] = useState(false);
   const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const focusCallbackRef = useRef<(() => void) | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useHotkeys(
+    "mod+k",
+    () => inputRef.current?.focus(),
+    { preventDefault: true },
+  );
 
   const resetSearchState = useCallback(() => {
     setSearchHits([]);
@@ -198,14 +204,6 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
     setIsFocused(false);
   }, []);
 
-  const registerFocusCallback = useCallback((callback: () => void) => {
-    focusCallbackRef.current = callback;
-  }, []);
-
-  const focusInput = useCallback(() => {
-    focusCallbackRef.current?.();
-  }, []);
-
   const results = useMemo(() => {
     if (searchHits.length === 0 || !searchQuery) {
       return null;
@@ -225,10 +223,9 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       isIndexing,
       onFocus,
       onBlur,
-      registerFocusCallback,
-      focusInput,
+      inputRef,
     }),
-    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur, registerFocusCallback, focusInput],
+    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur],
   );
 
   return <SearchUIContext.Provider value={value}>{children}</SearchUIContext.Provider>;

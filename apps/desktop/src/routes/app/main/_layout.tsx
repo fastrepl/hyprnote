@@ -4,7 +4,7 @@ import { useCallback, useEffect } from "react";
 import { toolFactories } from "../../../chat/tools";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
-import { SearchUIProvider, useSearch } from "../../../contexts/search/ui";
+import { SearchUIProvider } from "../../../contexts/search/ui";
 import { ShellProvider } from "../../../contexts/shell";
 import { useToolRegistry } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
@@ -80,10 +80,8 @@ function Component() {
 }
 
 function SearchShortcutBridge({ onNewTab }: { onNewTab: (closeCurrentFirst: boolean) => void }) {
-  const { focusInput } = useSearch();
-
   return (
-    <ShellProvider onNewTab={onNewTab} onFocusSearch={focusInput}>
+    <ShellProvider onNewTab={onNewTab}>
       <ToolRegistryProvider>
         <ToolRegistration />
         <Outlet />

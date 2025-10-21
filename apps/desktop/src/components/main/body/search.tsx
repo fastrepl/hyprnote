@@ -1,21 +1,14 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
 
 export function Search() {
-  const { query, setQuery, isSearching, isIndexing, onFocus, onBlur, registerFocusCallback } = useSearch();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const { query, setQuery, isSearching, isIndexing, onFocus, onBlur, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
 
   const showLoading = isSearching || isIndexing;
-
-  useEffect(() => {
-    registerFocusCallback(() => {
-      inputRef.current?.focus();
-    });
-  }, [registerFocusCallback]);
 
   const handleFocus = () => {
     setIsFocused(true);

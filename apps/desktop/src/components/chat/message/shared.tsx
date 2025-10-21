@@ -35,9 +35,9 @@ export function MessageBubble({
     <div
       className={cn([
         "rounded-2xl px-3 py-1 text-sm",
-        variant === "user" && "bg-blue-100 text-gray-800",
-        variant === "assistant" && "bg-gray-100 text-gray-800",
-        variant === "loading" && "bg-gray-100 text-gray-800",
+        variant === "user" && "bg-blue-100 text-neutral-800",
+        variant === "assistant" && "bg-neutral-100 text-neutral-800",
+        variant === "loading" && "bg-neutral-100 text-neutral-800",
         variant === "error" && "bg-red-50 text-red-600 border border-red-200",
         withActionButton && "relative group",
       ])}
@@ -68,8 +68,8 @@ export function ActionButton({
         "transition-opacity",
         "p-1 rounded-full",
         variant === "default" && [
-          "bg-gray-200 hover:bg-gray-300",
-          "text-gray-600 hover:text-gray-800",
+          "bg-neutral-200 hover:bg-neutral-300",
+          "text-neutral-600 hover:text-neutral-800",
         ],
         variant === "error" && [
           "bg-red-100 hover:bg-red-200",
@@ -99,13 +99,13 @@ export function Disclosure(
     <details
       className={cn([
         "group px-2 py-1 my-2 border rounded-md transition-colors",
-        "cursor-pointer border-gray-200 hover:border-gray-300",
+        "cursor-pointer border-neutral-200 hover:border-neutral-300",
       ])}
     >
       <summary
         className={cn([
           "w-full",
-          "text-xs text-gray-500",
+          "text-xs text-neutral-500",
           "select-none list-none marker:hidden",
           "flex items-center gap-2",
         ])}
@@ -122,7 +122,7 @@ export function Disclosure(
         </span>
         <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform group-open:rotate-90" />
       </summary>
-      <div className="mt-1 pt-2 px-1 border-t border-gray-200">
+      <div className="mt-1 pt-2 px-1 border-t border-neutral-200">
         {children}
       </div>
     </details>

@@ -1,6 +1,7 @@
-import { useState } from "react";
-
 import { cn } from "@hypr/utils";
+
+import { useMemo, useState } from "react";
+
 import * as persisted from "../../../../store/tinybase/persisted";
 import { ColumnHeader, getInitials, type SortOption } from "./shared";
 
@@ -13,20 +14,38 @@ export function PeopleColumn({
   currentHumanId?: string | null;
   setSelectedPerson: (id: string | null) => void;
 }) {
+  const [searchValue, setSearchValue] = useState("");
   const { humanIds, sortOption, setSortOption } = useSortedHumanIds(currentOrgId);
 
+  const allHumans = persisted.UI.useTable("humans", persisted.STORE_ID);
+
+  const filteredHumanIds = useMemo(() => {
+    if (!searchValue.trim()) {
+      return humanIds;
+    }
+
+    return humanIds.filter((id) => {
+      const human = allHumans[id];
+      const q = searchValue.toLowerCase();
+      const name = (human?.name ?? "").toLowerCase();
+      const email = (human?.email ?? "").toLowerCase();
+      return name.includes(q) || email.includes(q);
+    });
+  }, [humanIds, searchValue, allHumans]);
+
   return (
-    <div className="w-[250px] border-r border-neutral-200 flex flex-col">
+    <div className="w-full h-full flex flex-col">
       <ColumnHeader
         title="People"
         sortOption={sortOption}
         setSortOption={setSortOption}
-        onAdd={() => {
-        }}
+        onAdd={() => {}}
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
-          {humanIds.map((humanId) => (
+          {filteredHumanIds.map((humanId) => (
             <PersonItem
               key={humanId}
               active={currentHumanId === humanId}
@@ -40,13 +59,21 @@ export function PeopleColumn({
   );
 }
 
-function useSortedHumanIds(currentOrgId?: string | null) {
+export function useSortedHumanIds(currentOrgId?: string | null) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
 
   const allAlphabeticalIds = persisted.UI.useResultSortedRowIds(
     persisted.QUERIES.visibleHumans,
     "name",
     false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const allReverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleHumans,
+    "name",
+    true,
     0,
     undefined,
     persisted.STORE_ID,
@@ -77,11 +104,15 @@ function useSortedHumanIds(currentOrgId?: string | null) {
   const humanIds = currentOrgId
     ? (sortOption === "alphabetical"
       ? allAlphabeticalIds
+      : sortOption === "reverse-alphabetical"
+      ? allReverseAlphabeticalIds
       : sortOption === "newest"
       ? allNewestIds
       : allOldestIds).filter((id) => thisOrgHumanIds.includes(id))
     : (sortOption === "alphabetical"
       ? allAlphabeticalIds
+      : sortOption === "reverse-alphabetical"
+      ? allReverseAlphabeticalIds
       : sortOption === "newest"
       ? allNewestIds
       : allOldestIds);
@@ -104,8 +135,8 @@ function PersonItem({
     <button
       onClick={() => setSelectedPerson(humanId)}
       className={cn([
-        "w-full text-left px-3 py-2 rounded-md text-sm hover:bg-neutral-100 transition-colors flex items-center gap-2",
-        active && "bg-neutral-100",
+        "w-full text-left px-3 py-2 rounded-md text-sm  border hover:bg-neutral-100 transition-colors flex items-center gap-2",
+        active ? "border-neutral-500 bg-neutral-100" : "border-transparent",
       ])}
     >
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">

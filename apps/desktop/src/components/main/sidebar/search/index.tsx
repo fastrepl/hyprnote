@@ -23,7 +23,7 @@ function SearchYesResults({ results, query }: { results: GroupedSearchResults; q
     <div className={cn(["h-full overflow-y-auto"])}>
       <div className={cn(["px-3 py-3"])}>
         <div className={cn(["px-2 py-2 mb-4"])}>
-          <p className={cn(["text-xs text-gray-500 font-medium"])}>
+          <p className={cn(["text-xs text-neutral-500 font-medium"])}>
             {results.totalResults} result{results.totalResults !== 1 ? "s" : ""} for "{query}"
           </p>
         </div>
@@ -39,12 +39,12 @@ function SearchNoResults({ query }: { query: string; setQuery: (query: string) =
     <div className={cn(["h-full flex items-center justify-center"])}>
       <div className={cn(["text-center px-4 max-w-xs"])}>
         <div className={cn(["flex justify-center mb-3"])}>
-          <SearchXIcon className={cn(["h-10 w-10 text-gray-300"])} />
+          <SearchXIcon className={cn(["h-10 w-10 text-neutral-300"])} />
         </div>
-        <p className={cn(["text-sm font-medium text-gray-700"])}>
+        <p className={cn(["text-sm font-medium text-neutral-700"])}>
           No results found for "{query}"
         </p>
-        <p className={cn(["text-xs text-gray-500 mt-2 leading-relaxed underline"])}>
+        <p className={cn(["text-xs text-neutral-500 mt-2 leading-relaxed underline"])}>
           Help us improve search
         </p>
       </div>

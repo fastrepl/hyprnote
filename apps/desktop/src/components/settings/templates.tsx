@@ -40,7 +40,7 @@ export function SettingsTemplates() {
     <div className="p-6 space-y-4">
       <div className="mb-6">
         <h1 className="text-xl font-semibold mb-2">Your Templates</h1>
-        <p className="text-sm text-gray-600">Select a template to enhance your meeting notes</p>
+        <p className="text-sm text-neutral-600">Select a template to enhance your meeting notes</p>
       </div>
 
       <div className="space-y-3">
@@ -72,11 +72,11 @@ function TemplateCard({
   return (
     <div
       onClick={onEdit}
-      className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+      className="flex items-center gap-4 p-4 border rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors"
     >
       <div className="flex-1">
         <h3 className="text-lg font-medium mb-1">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
+        <p className="text-sm text-neutral-600">{description}</p>
       </div>
       <Button
         variant="outline"

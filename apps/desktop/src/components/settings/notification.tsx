@@ -43,7 +43,7 @@ function SettingRow({
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
         <h3 className="text-base font-medium mb-1">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
+        <p className="text-sm text-neutral-600">{description}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>

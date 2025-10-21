@@ -1,28 +1,47 @@
-import { Building2, CornerDownLeft, Pencil, User } from "lucide-react";
+import { cn } from "@hypr/utils";
+
+import { Building2, CornerDownLeft, User } from "lucide-react";
 import React, { useState } from "react";
 
-import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({
   selectedOrganization,
   setSelectedOrganization,
+  isViewingOrgDetails,
 }: {
   selectedOrganization: string | null;
   setSelectedOrganization: (id: string | null) => void;
+  isViewingOrgDetails: boolean;
 }) {
-  const [editingOrg, setEditingOrg] = useState<string | null>(null);
   const [showNewOrg, setShowNewOrg] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
 
+  const allOrgs = persisted.UI.useTable("organizations", persisted.STORE_ID);
+
+  const filteredOrganizationIds = React.useMemo(() => {
+    if (!searchValue.trim()) {
+      return organizationIds;
+    }
+
+    return organizationIds.filter((id) => {
+      const org = allOrgs[id];
+      const nameLower = (org?.name ?? "").toLowerCase();
+      return nameLower.includes(searchValue.toLowerCase());
+    });
+  }, [organizationIds, searchValue, allOrgs]);
+
   return (
-    <div className="w-[200px] border-r border-neutral-200 flex flex-col">
+    <div className="w-full h-full flex flex-col">
       <ColumnHeader
         title="Organizations"
         sortOption={sortOption}
         setSortOption={setSortOption}
         onAdd={() => setShowNewOrg(true)}
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
       />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
@@ -42,26 +61,15 @@ export function OrganizationsColumn({
               onCancel={() => setShowNewOrg(false)}
             />
           )}
-          {organizationIds.map((orgId) =>
-            editingOrg === orgId
-              ? (
-                <EditOrganizationForm
-                  key={orgId}
-                  organizationId={orgId}
-                  onSave={() => setEditingOrg(null)}
-                  onCancel={() => setEditingOrg(null)}
-                />
-              )
-              : (
-                <OrganizationItem
-                  key={orgId}
-                  organizationId={orgId}
-                  isSelected={selectedOrganization === orgId}
-                  setSelectedOrganization={setSelectedOrganization}
-                  handleEditOrganization={() => setEditingOrg(orgId)}
-                />
-              )
-          )}
+          {filteredOrganizationIds.map((orgId) => (
+            <OrganizationItem
+              key={orgId}
+              organizationId={orgId}
+              isSelected={selectedOrganization === orgId}
+              isViewingDetails={isViewingOrgDetails && selectedOrganization === orgId}
+              setSelectedOrganization={setSelectedOrganization}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -75,6 +83,14 @@ function useSortedOrganizationIds() {
     persisted.QUERIES.visibleOrganizations,
     "name",
     false,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
+  const reverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "name",
+    true,
     0,
     undefined,
     persisted.STORE_ID,
@@ -98,6 +114,8 @@ function useSortedOrganizationIds() {
 
   const organizationIds = sortOption === "alphabetical"
     ? alphabeticalIds
+    : sortOption === "reverse-alphabetical"
+    ? reverseAlphabeticalIds
     : sortOption === "newest"
     ? newestIds
     : oldestIds;
@@ -108,13 +126,13 @@ function useSortedOrganizationIds() {
 function OrganizationItem({
   organizationId,
   isSelected,
+  isViewingDetails,
   setSelectedOrganization,
-  handleEditOrganization,
 }: {
   organizationId: string;
   isSelected: boolean;
+  isViewingDetails: boolean;
   setSelectedOrganization: (id: string | null) => void;
-  handleEditOrganization: () => void;
 }) {
   const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
   if (!organization) {
@@ -124,93 +142,18 @@ function OrganizationItem({
   return (
     <div
       className={cn([
-        "group relative rounded-md transition-colors",
+        "group relative rounded-md transition-colors border",
         isSelected && "bg-neutral-100",
+        isSelected && isViewingDetails ? "border-black" : "border-transparent",
       ])}
     >
       <button
         onClick={() => setSelectedOrganization(organizationId)}
         className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors rounded-md"
       >
-        <Building2 className="h-4 w-4 text-neutral-500" />
-        {organization.name}
+        <Building2 className="h-4 w-4 text-neutral-500 shrink-0" />
+        <p className="truncate">{organization.name}</p>
       </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleEditOrganization();
-        }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-neutral-200 transition-all"
-      >
-        <Pencil className="h-3 w-3 text-neutral-500" />
-      </button>
-    </div>
-  );
-}
-
-function EditOrganizationForm({
-  organizationId,
-  onSave,
-  onCancel,
-}: {
-  organizationId: string;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  const name = persisted.UI.useCell("organizations", organizationId, "name", persisted.STORE_ID);
-
-  const handleChange = persisted.UI.useSetCellCallback(
-    "organizations",
-    organizationId,
-    "name",
-    (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
-    [],
-    persisted.STORE_ID,
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name?.trim()) {
-      onSave();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (name?.trim()) {
-        onSave();
-      }
-    }
-    if (e.key === "Escape") {
-      onCancel();
-    }
-  };
-
-  return (
-    <div className="p-2">
-      <form onSubmit={handleSubmit}>
-        <div className="flex items-center w-full px-2 py-1.5 gap-2 rounded bg-neutral-50 border border-neutral-200">
-          <input
-            type="text"
-            value={name || ""}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Organization name"
-            className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
-            autoFocus
-          />
-          {name?.trim() && (
-            <button
-              type="submit"
-              className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
-              aria-label="Save organization"
-            >
-              <CornerDownLeft className="size-4" />
-            </button>
-          )}
-        </div>
-      </form>
     </div>
   );
 }

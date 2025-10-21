@@ -1,5 +1,5 @@
-"use client";
-import { cn } from "@hypr/ui/lib/utils";
+import { cn } from "@hypr/utils";
+
 import { HTMLMotionProps, motion } from "motion/react";
 
 export const GRADIENT_ANGLES = {

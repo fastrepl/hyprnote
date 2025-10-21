@@ -111,6 +111,7 @@ export function ChatMessageInput({
                   });
                 }
               }}
+              defaultValue="auto"
             >
               <SelectTrigger className="h-8 text-xs border-0 focus:ring-0 focus:ring-offset-0 shadow-none hover:bg-accent">
                 <SelectValue />

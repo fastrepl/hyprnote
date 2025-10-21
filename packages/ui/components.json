@@ -11,7 +11,7 @@
     "prefix": ""
   },
   "aliases": {
-    "utils": "@hypr/ui/lib/utils",
+    "utils": "@hypr/utils",
     "ui": "@hypr/ui/components/ui",
     "components": "@hypr/ui/components",
     "lib": "@hypr/ui/lib",

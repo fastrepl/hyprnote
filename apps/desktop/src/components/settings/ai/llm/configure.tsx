@@ -66,14 +66,14 @@ function ProviderCard({
   return (
     <AccordionItem
       value={providerId}
-      className={cn(["rounded-lg border-2 border-dashed bg-gray-50"])}
+      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
           {providerConfig.badge && (
-            <span className="text-xs text-gray-500 font-light border border-gray-300 rounded-full px-2">
+            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
               {providerConfig.badge}
             </span>
           )}

@@ -85,59 +85,65 @@ export function OthersButton(_: { sessionId: string }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={handleCopyLink}>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleCopyLink}>
           <Link2Icon />
-          <span>Copy link</span>
+          Copy link
         </DropdownMenuItem>
 
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger className="cursor-pointer">
             <FolderIcon />
             <span>Move to</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             {folders.map((folder) => (
-              <DropdownMenuItem key={folder.id} onClick={handleMoveToFolder}>
+              <DropdownMenuItem key={folder.id} className="cursor-pointer" onClick={handleMoveToFolder}>
                 <FolderIcon />
-                <span>{folder.name}</span>
+                {folder.name}
               </DropdownMenuItem>
             ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+        <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
           <LockIcon />
-          <span>Lock note</span>
-          <Switch checked={isLocked} onCheckedChange={handleToggleLock} className="ml-auto" />
+          Lock note
+          <Switch size="sm" checked={isLocked} onCheckedChange={handleToggleLock} className="ml-auto hover:scale-105" />
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleExportPDF}>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleExportPDF}>
           <FileTextIcon />
           <span>Export to PDF</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleToggleListening}>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleToggleListening}>
           {isListening ? <MicOffIcon /> : <MicIcon />}
           <span>{isListening ? "Stop listening" : "Start listening"}</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleDeleteNote} className="text-red-600 focus:text-red-600">
+        <DropdownMenuItem
+          onClick={handleDeleteNote}
+          className="text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+        >
           <TrashIcon />
           <span>Delete note</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleDeleteRecording} className="text-red-600 focus:text-red-600">
+        <DropdownMenuItem
+          onClick={handleDeleteRecording}
+          className="text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+        >
           <TrashIcon />
           <span>Delete only recording</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleHistory}>
+        <DropdownMenuItem onClick={handleHistory} className="cursor-pointer">
           <ClockIcon />
           <span>History</span>
         </DropdownMenuItem>

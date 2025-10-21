@@ -15,7 +15,8 @@ import { FloatingButton, formatTime } from "./shared";
 type RemoteMeeting =
   | { type: "zoom"; url: string | null }
   | { type: "google-meet"; url: string | null }
-  | { type: "webex"; url: string | null };
+  | { type: "webex"; url: string | null }
+  | { type: "teams"; url: string | null };
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, loading, stop } = useListener((state) => ({
@@ -52,7 +53,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/zoom.png" alt="Zoom" className="w-5 h-5" />}
+        icon={<img src="/assets/conferencing-platforms/zoom.png" alt="Zoom" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
       </FloatingButton>
@@ -63,7 +64,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/meet.png" alt="Google Meet" className="w-5 h-5" />}
+        icon={<img src="/assets/conferencing-platforms/meet.png" alt="Google Meet" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
       </FloatingButton>
@@ -74,9 +75,20 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/webex.png" alt="Webex" className="w-5 h-5" />}
+        icon={<img src="/assets/conferencing-platforms/webex.png" alt="Webex" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Webex & Start listening"}
+      </FloatingButton>
+    );
+  }
+
+  if (remote?.type === "teams") {
+    return (
+      <FloatingButton
+        onClick={handleClick}
+        icon={<img src="/assets/conferencing-platforms/teams.png" alt="Microsoft Teams" className="w-5 h-5" />}
+      >
+        {isNarrow ? "Join & Listen" : "Join Teams & Start listening"}
       </FloatingButton>
     );
   }
@@ -119,14 +131,16 @@ function DuringMeetingButton() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {hovered
-        ? <span>Stop listening</span>
-        : (
-          <div className="flex flex-row items-center gap-3">
-            <span className="text-gray-500 text-sm tabular-nums">{formatTime(seconds)}</span>
-            <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
-          </div>
-        )}
+      <span>
+        {hovered
+          ? "Stop listening"
+          : (
+            <div className="flex flex-row items-center gap-4">
+              <span className="text-neutral-500 text-sm">{formatTime(seconds)}</span>
+              <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
+            </div>
+          )}
+      </span>
     </FloatingButton>
   );
 }

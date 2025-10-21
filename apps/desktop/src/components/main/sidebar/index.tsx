@@ -37,7 +37,9 @@ export function LeftSidebar() {
         <div className="flex-1 min-h-0 overflow-hidden">
           {showSearchResults ? <SearchResults /> : <TimelineView />}
         </div>
-        <ProfileSection />
+        <div className="relative z-30">
+          <ProfileSection />
+        </div>
       </div>
     </div>
   );

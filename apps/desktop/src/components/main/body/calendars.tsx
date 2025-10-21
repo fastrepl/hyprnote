@@ -1,10 +1,23 @@
-import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, isSameMonth, startOfMonth } from "@hypr/utils";
-import { clsx } from "clsx";
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, FileTextIcon, Pen } from "lucide-react";
+import { Button } from "@hypr/ui/components/ui/button";
+import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
+import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  addDays,
+  addMonths,
+  cn,
+  eachDayOfInterval,
+  format,
+  getDay,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  subDays,
+} from "@hypr/utils";
+
+import { Calendar, CalendarDays, ChevronLeft, ChevronRight, FileText, Pen } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
@@ -21,7 +34,7 @@ export const TabItemCalendar: TabItem = (
 ) => {
   return (
     <TabItemBase
-      icon={<CalendarIcon className="w-4 h-4" />}
+      icon={<Calendar size={16} />}
       title={"Calendar"}
       active={tab.active}
       handleCloseThis={() => handleCloseThis(tab)}
@@ -37,13 +50,35 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
     return null;
   }
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const { openCurrent } = useTabs();
+
+  const calendarIds = persisted.UI.useRowIds("calendars", persisted.STORE_ID);
+
+  const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(() => new Set(calendarIds));
+
+  const toggleCalendar = (calendarId: string) => {
+    setSelectedCalendars((prev) => {
+      const next = new Set(prev);
+      if (next.has(calendarId)) {
+        next.delete(calendarId);
+      } else {
+        next.add(calendarId);
+      }
+      return next;
+    });
+  };
   const monthStart = startOfMonth(tab.month);
-  const monthEnd = endOfMonth(tab.month);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map((day) => format(day, "yyyy-MM-dd"));
   const startDayOfWeek = getDay(monthStart);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const monthLabel = format(tab.month, "MMMM yyyy");
+
+  // Calculate all days to display including previous and next month
+  const calendarStart = subDays(monthStart, startDayOfWeek);
+  const totalCells = 42; // 6 rows * 7 days
+  const calendarEnd = addDays(calendarStart, totalCells - 1);
+  const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd }).map((day) => format(day, "yyyy-MM-dd"));
 
   const handlePreviousMonth = () => {
     openCurrent({ ...tab, month: addMonths(tab.month, -1) });
@@ -59,52 +94,93 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
 
   return (
     <StandardTabWrapper>
-      <div className="flex flex-col h-full rounded-lg border">
-        <div className="p-4 pb-2 flex items-center relative ">
-          <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">{monthLabel}</div>
-          <div className="flex h-fit rounded-md overflow-clip border border-neutral-200 ml-auto">
-            <Button
-              variant="outline"
-              className="p-0.5 rounded-none border-none"
-              onClick={handlePreviousMonth}
-            >
-              <ChevronLeftIcon size={16} />
-            </Button>
-
-            <Button
-              variant="outline"
-              className="text-sm px-1 py-0.5 rounded-none border-none"
-              onClick={handleToday}
-            >
-              Today
-            </Button>
-
-            <Button
-              variant="outline"
-              className="p-0.5 rounded-none border-none"
-              onClick={handleNextMonth}
-            >
-              <ChevronRightIcon size={16} />
-            </Button>
-          </div>
-        </div>
-        <div className="h-full">
-          <div className="grid grid-cols-7 border-b border-neutral-200">
-            {weekDays.map((day) => (
-              <div
-                key={day}
-                className="text-center text-sm font-medium text-muted-foreground p-2"
-              >
-                {day}
+      <div className="flex h-full">
+        {sidebarOpen && (
+          <aside className="w-64 border-r border-neutral-200 bg-white flex flex-col">
+            <div className="p-2 border-b border-neutral-200 flex items-center gap-2">
+              <Button size="icon" variant={sidebarOpen ? "default" : "ghost"} onClick={() => setSidebarOpen(false)}>
+                <CalendarDays size={16} />
+              </Button>
+              My Calendars
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-3">
+                {calendarIds.map((id) => (
+                  <CalendarCheckboxRow
+                    key={id}
+                    id={id}
+                    checked={selectedCalendars.has(id)}
+                    onToggle={() => toggleCalendar(id)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 divide-x divide-neutral-200 h-[calc(100%-48px)] grid-rows-6 gap-0">
-            {Array.from({ length: startDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} className="border-b border-neutral-200" />
-            ))}
-            {days.map((day) => (
-              <TabContentCalendarDay key={day} day={day} isCurrentMonth={isSameMonth(new Date(day), tab.month)} />
+            </div>
+          </aside>
+        )}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="flex-shrink-0">
+            <div className="p-2 flex items-center relative">
+              {!sidebarOpen && (
+                <Button size="icon" variant="ghost" onClick={() => setSidebarOpen(true)}>
+                  <CalendarDays size={16} />
+                </Button>
+              )}
+              <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">{monthLabel}</div>
+              <ButtonGroup className="ml-auto">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePreviousMonth}
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="text-sm px-3"
+                  onClick={handleToday}
+                >
+                  Today
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNextMonth}
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              </ButtonGroup>
+            </div>
+
+            <div className="grid grid-cols-7 border-b border-neutral-200">
+              {weekDays.map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-sm font-medium text-muted-foreground p-2"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+          </header>
+
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {Array.from({ length: 6 }).map((_, weekIndex) => (
+              <div key={weekIndex} className="flex flex-1 min-h-0">
+                {allDays.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => (
+                  <TabContentCalendarDay
+                    key={day}
+                    day={day}
+                    isCurrentMonth={isSameMonth(new Date(day), tab.month)}
+                    isFirstColumn={dayIndex === 0}
+                    isLastColumn={dayIndex === 6}
+                    isLastRow={weekIndex === 5}
+                    selectedCalendars={selectedCalendars}
+                  />
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -113,12 +189,49 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
   );
 }
 
-function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrentMonth: boolean }) {
-  const eventIds = persisted.UI.useSliceRowIds(
+function CalendarCheckboxRow(
+  { id, checked, onToggle }: { id: string; checked: boolean; onToggle: () => void },
+) {
+  const calendar = persisted.UI.useRow("calendars", id, persisted.STORE_ID);
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox id={`calendar-${id}`} checked={checked} onCheckedChange={onToggle} />
+      <label
+        htmlFor={`calendar-${id}`}
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+      >
+        {calendar?.name ?? "Untitled"}
+      </label>
+    </div>
+  );
+}
+
+function TabContentCalendarDay({
+  day,
+  isCurrentMonth,
+  isFirstColumn,
+  isLastRow,
+  selectedCalendars,
+}: {
+  day: string;
+  isCurrentMonth: boolean;
+  isFirstColumn: boolean;
+  isLastColumn: boolean;
+  isLastRow: boolean;
+  selectedCalendars: Set<string>;
+}) {
+  const allEventIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.eventsByDate,
     day,
     persisted.STORE_ID,
   );
+
+  const store = persisted.UI.useStore(persisted.STORE_ID);
+
+  const eventIds = allEventIds.filter((eventId) => {
+    const event = store?.getRow("events", eventId);
+    return event?.calendar_id && selectedCalendars.has(event.calendar_id as string);
+  });
 
   const sessionIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.sessionByDateWithoutEvent,
@@ -160,52 +273,49 @@ function TabContentCalendarDay({ day, isCurrentMonth }: { day: string; isCurrent
 
   return (
     <div
-      className={clsx([
-        "h-32 relative flex flex-col border-b border-neutral-200",
+      className={cn([
+        "relative flex flex-col items-end flex-1 min-w-0 border-neutral-200 p-1 overflow-hidden",
+        !isFirstColumn && "border-l",
+        !isLastRow && "border-b",
         isWeekend ? "bg-neutral-50" : "bg-white",
       ])}
     >
-      <div className="flex items-center justify-end px-1 text-sm ">
-        <div className={clsx("flex items-end gap-1", isToday && "items-center")}>
-          <div
-            className={clsx(
-              isToday && "bg-red-500 rounded-full w-6 h-6 flex items-center justify-center",
-            )}
-          >
-            <span
-              className={clsx(
-                isToday
-                  ? "text-white font-medium"
-                  : !isCurrentMonth
-                  ? "text-neutral-400"
-                  : isWeekend
-                  ? "text-neutral-500"
-                  : "text-neutral-700",
-              )}
-            >
-              {dayNumber}
-            </span>
-          </div>
-        </div>
+      <div
+        className={cn(
+          "text-xs size-6 rounded-full flex items-center justify-center mb-1",
+          isToday && "bg-red-500",
+        )}
+      >
+        <span
+          className={cn(
+            isToday
+              ? "text-white font-medium"
+              : !isCurrentMonth
+              ? "text-neutral-400"
+              : isWeekend
+              ? "text-neutral-500"
+              : "text-neutral-700",
+          )}
+        >
+          {dayNumber}
+        </span>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col px-1">
-        <div className="space-y-1">
-          {visibleItems.map((item) =>
-            item.type === "event"
-              ? <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
-              : <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
-          )}
+      <div className="flex-1 w-full space-y-1">
+        {visibleItems.map((item) =>
+          item.type === "event"
+            ? <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
+            : <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
+        )}
 
-          {hiddenCount > 0 && (
-            <TabContentCalendarDayMore
-              day={day}
-              eventIds={hiddenEventIds}
-              sessionIds={hiddenSessionIds}
-              hiddenCount={hiddenCount}
-            />
-          )}
-        </div>
+        {hiddenCount > 0 && (
+          <TabContentCalendarDayMore
+            day={day}
+            eventIds={hiddenEventIds}
+            sessionIds={hiddenSessionIds}
+            hiddenCount={hiddenCount}
+          />
+        )}
       </div>
     </div>
   );
@@ -241,31 +351,21 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     const start = new Date(event.started_at);
     const end = new Date(event.ended_at);
 
-    const formatTime = (date: Date) => {
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const displayHours = hours % 12 || 12;
-      return `${displayHours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-    };
-
-    const formatDate = (date: Date) => {
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return `${months[date.getMonth()]} ${date.getDate()}`;
-    };
-
-    const isSameDay = start.toDateString() === end.toDateString();
-    if (isSameDay) {
-      return `${formatDate(start)}, ${formatTime(start)} - ${formatTime(end)}`;
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return "";
     }
-    return `${formatDate(start)}, ${formatTime(start)} - ${formatDate(end)}, ${formatTime(end)}`;
+
+    if (isSameDay(start, end)) {
+      return `${format(start, "MMM d")}, ${format(start, "h:mm a")} - ${format(end, "h:mm a")}`;
+    }
+    return `${format(start, "MMM d")}, ${format(start, "h:mm a")} - ${format(end, "MMM d")}, ${format(end, "h:mm a")}`;
   };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <CalendarIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
+          <Calendar size={12} className="text-neutral-500 flex-shrink-0" />
           <div className="flex-1 text-xs text-neutral-800 truncate">
             {event.title}
           </div>
@@ -286,7 +386,7 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
               className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
               onClick={handleClick}
             >
-              <FileTextIcon className="size-3 text-neutral-600 flex-shrink-0" />
+              <FileText size={12} className="text-neutral-600 flex-shrink-0" />
               <div className="text-xs font-medium text-neutral-800 truncate">
                 {linkedSession?.title || "Untitled Note"}
               </div>
@@ -321,25 +421,23 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   };
 
   const formatSessionTime = () => {
-    const created = new Date(session.created_at || "");
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const hours = created.getHours();
-    const minutes = created.getMinutes();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
-
-    return `Created: ${months[created.getMonth()]} ${created.getDate()}, ${displayHours}:${
-      minutes.toString().padStart(2, "0")
-    } ${ampm}`;
+    if (!session.created_at) {
+      return "Created: —";
+    }
+    const created = new Date(session.created_at);
+    if (isNaN(created.getTime())) {
+      return "Created: —";
+    }
+    return `Created: ${format(created, "MMM d, h:mm a")}`;
   };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-center space-x-1 px-0.5 py-0.5 cursor-pointer rounded hover:bg-neutral-200 transition-colors h-5">
-          <FileTextIcon className="w-2.5 h-2.5 text-neutral-500 flex-shrink-0" />
+          <FileText size={12} className="text-neutral-500 flex-shrink-0" />
           <div className="flex-1 text-xs text-neutral-800 truncate">
-            {session.title}
+            {event && session.event_id ? event.title : session.title || "Untitled"}
           </div>
         </div>
       </PopoverTrigger>
@@ -356,7 +454,7 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
           className="flex items-center gap-2 px-2 py-1 bg-neutral-50 border border-neutral-200 rounded-md cursor-pointer hover:bg-neutral-100 transition-colors"
           onClick={handleClick}
         >
-          <FileTextIcon className="size-3 text-neutral-600 flex-shrink-0" />
+          <FileText size={12} className="text-neutral-600 flex-shrink-0" />
           <div className="text-xs font-medium text-neutral-800 truncate">
             {event && session.event_id ? event.title : session.title || "Untitled"}
           </div>

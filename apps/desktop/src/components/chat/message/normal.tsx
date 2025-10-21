@@ -38,7 +38,7 @@ export function NormalMessage({ message, handleReload }: { message: HyprUIMessag
           )}
         </MessageBubble>
         {shouldShowTimestamp && message.metadata?.createdAt && (
-          <div className="text-xs text-gray-400 mt-1 px-2">
+          <div className="text-xs text-neutral-400 mt-1 px-2">
             {formatDistanceToNow(message.metadata.createdAt, { addSuffix: true })}
           </div>
         )}
@@ -81,7 +81,7 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
       title={title}
       disabled={streaming}
     >
-      <div className="text-sm text-gray-500 whitespace-pre-wrap">
+      <div className="text-sm text-neutral-500 whitespace-pre-wrap">
         {part.text}
       </div>
     </Disclosure>

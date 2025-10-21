@@ -69,8 +69,8 @@ export function Search() {
     >
       <div className="relative flex items-center w-full h-full">
         {showLoading
-          ? <Loader2Icon className={cn(["h-4 w-4 absolute left-3 text-gray-400 animate-spin"])} />
-          : <SearchIcon className={cn(["h-4 w-4 absolute left-3 text-gray-400"])} />}
+          ? <Loader2Icon className={cn(["h-4 w-4 absolute left-3 text-neutral-400 animate-spin"])} />
+          : <SearchIcon className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])} />}
         <input
           ref={inputRef}
           type="text"
@@ -83,8 +83,8 @@ export function Search() {
             "text-sm",
             "w-full pl-9 h-full",
             query ? "pr-9" : "pr-4",
-            "rounded-lg bg-gray-100 border border-transparent",
-            "focus:outline-none focus:bg-gray-200 focus:border-black",
+            "rounded-lg bg-neutral-100 border border-transparent",
+            "focus:outline-none focus:bg-neutral-200 focus:border-black",
           ])}
         />
         {query && (
@@ -93,7 +93,7 @@ export function Search() {
             className={cn([
               "absolute right-3",
               "h-4 w-4",
-              "text-gray-400 hover:text-gray-600",
+              "text-neutral-400 hover:text-neutral-600",
               "transition-colors",
             ])}
             aria-label="Clear search"

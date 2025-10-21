@@ -68,7 +68,7 @@ function RenderContent({ part }: { part: Part }) {
           <CarouselContent className="-ml-2">
             {results.map((result: any, index: number) => (
               <CarouselItem key={result.id || index} className="pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
-                <Card className="h-full bg-gray-50">
+                <Card className="h-full bg-neutral-50">
                   <CardContent className="px-2 py-0.5">
                     <RenderSession sessionId={result.id} />
                   </CardContent>
@@ -76,8 +76,8 @@ function RenderContent({ part }: { part: Part }) {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="-left-4 h-6 w-6 bg-gray-100 hover:bg-gray-200" />
-          <CarouselNext className="-right-4 h-6 w-6 bg-gray-100 hover:bg-gray-200" />
+          <CarouselPrevious className="-left-4 h-6 w-6 bg-neutral-100 hover:bg-neutral-200" />
+          <CarouselNext className="-right-4 h-6 w-6 bg-neutral-100 hover:bg-neutral-200" />
         </Carousel>
       </div>
     );

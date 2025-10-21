@@ -8,7 +8,7 @@ import { SettingsFeedback } from "../../../components/settings/feedback";
 import { SettingsGeneral } from "../../../components/settings/general";
 import { SettingsIntegrations } from "../../../components/settings/integrations";
 import { SettingsNotifications } from "../../../components/settings/notification";
-import { SettingsTemplates } from "../../../components/settings/templates";
+import { SettingsTemplates } from "../../../components/settings/template";
 
 export const Route = createFileRoute("/app/settings/_layout/")({
   component: Component,

@@ -24,21 +24,6 @@ export const useUpdateGeneral = () => {
   return { value, handle };
 };
 
-export const useUpdateAIProvider = (type: "llm" | "stt", id: string) => {
-  const _value = internal.UI.useRow("ai_providers", id, internal.STORE_ID);
-  const initialData = _value ? internal.aiProviderSchema.safeParse(_value).data : { type };
-
-  const cb = internal.UI.useSetPartialRowCallback(
-    "ai_providers",
-    id,
-    (row: Partial<internal.AIProvider>) => ({ ...row } satisfies Partial<internal.AIProviderStorage>),
-    [id],
-    internal.STORE_ID,
-  );
-
-  return useSafeObjectUpdate(internal.aiProviderSchema, initialData, cb);
-};
-
 export const useUpdateTemplate = (id: string) => {
   const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
   const value = persisted.templateSchema.parse(_value);

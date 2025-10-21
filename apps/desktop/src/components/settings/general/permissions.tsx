@@ -1,20 +1,67 @@
+// https://github.com/fastrepl/hyprnote/blob/0f5a1d5/apps/desktop/src/components/right-panel/hooks/useTranscript.ts
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { message } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { AlertTriangle, Check } from "lucide-react";
 import { useState } from "react";
 
+import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 export function Permissions() {
-  const [hasMicrophoneAccess, setHasMicrophoneAccess] = useState(true);
-  const [hasSystemAudioAccess, setHasSystemAudioAccess] = useState(false);
+  const [micPermissionRequested, setMicPermissionRequested] = useState(false);
 
-  const handleGrantMicrophoneAccess = () => {
-    setHasMicrophoneAccess(!hasMicrophoneAccess);
+  const micPermissionStatus = useQuery({
+    queryKey: ["micPermission"],
+    queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    refetchInterval: 1000,
+  });
+
+  const systemAudioPermissionStatus = useQuery({
+    queryKey: ["systemAudioPermission"],
+    queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    refetchInterval: 1000,
+  });
+
+  const micPermission = useMutation({
+    mutationFn: () => listenerCommands.requestMicrophoneAccess(),
+    onSuccess: () => {
+      setMicPermissionRequested(true);
+      setTimeout(() => {
+        micPermissionStatus.refetch();
+      }, 3000);
+    },
+    onError: (error) => {
+      setMicPermissionRequested(true);
+      console.error(error);
+    },
+  });
+
+  const capturePermission = useMutation({
+    mutationFn: () => listenerCommands.requestSystemAudioAccess(),
+    onSuccess: () => {
+      message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
+      setTimeout(() => {
+        relaunch();
+      }, 2000);
+    },
+    onError: console.error,
+  });
+
+  const handleMicPermissionAction = () => {
+    if (micPermissionRequested && !micPermissionStatus.data) {
+      listenerCommands.openMicrophoneAccessSettings();
+    } else {
+      micPermission.mutate();
+    }
   };
 
-  const handleGrantSystemAudioAccess = () => {
-    setHasSystemAudioAccess(!hasSystemAudioAccess);
-  };
+  const hasMicAccess = micPermissionStatus.data?.status === "ok" ? micPermissionStatus.data.data : false;
+  const hasSystemAudioAccess = systemAudioPermissionStatus.data?.status === "ok"
+    ? systemAudioPermissionStatus.data.data
+    : false;
 
   return (
     <div>
@@ -22,17 +69,21 @@ export function Permissions() {
       <div className="space-y-4">
         <PermissionRow
           title="Microphone access"
-          hasAccess={hasMicrophoneAccess}
+          hasAccess={hasMicAccess}
           grantedMessage="Thanks for granting permission for microphone"
           deniedMessage="Oops! You need to grant access to use Hyprnote"
-          onGrant={handleGrantMicrophoneAccess}
+          isPending={micPermission.isPending}
+          buttonText={micPermissionRequested && !hasMicAccess ? "Open Settings" : "Grant Permission"}
+          onGrant={handleMicPermissionAction}
         />
         <PermissionRow
           title="System audio access"
           hasAccess={hasSystemAudioAccess}
           grantedMessage="Thanks for granting permission for system audio"
           deniedMessage="Oops! You need to grant access to use Hyprnote"
-          onGrant={handleGrantSystemAudioAccess}
+          isPending={capturePermission.isPending}
+          buttonText="Grant Permission"
+          onGrant={() => capturePermission.mutate(undefined)}
         />
       </div>
     </div>
@@ -43,12 +94,16 @@ function PermissionRow({
   hasAccess,
   grantedMessage,
   deniedMessage,
+  isPending,
+  buttonText,
   onGrant,
 }: {
   title: string;
-  hasAccess: boolean;
+  hasAccess: boolean | undefined;
   grantedMessage: string;
   deniedMessage: string;
+  isPending: boolean;
+  buttonText: string;
   onGrant: () => void;
 }) {
   return (
@@ -64,11 +119,22 @@ function PermissionRow({
       <Button
         variant={hasAccess ? "outline" : "default"}
         className="w-40 text-xs shadow-none"
-        disabled={hasAccess}
+        disabled={hasAccess || isPending}
         onClick={onGrant}
       >
-        {hasAccess ? <Check size={16} /> : <AlertTriangle size={16} />}
-        {hasAccess ? "Access Granted" : "Grant Permission"}
+        {isPending
+          ? (
+            <>
+              <Spinner className="mr-1" />
+              Requesting...
+            </>
+          )
+          : (
+            <>
+              {hasAccess ? <Check size={16} /> : <AlertTriangle size={16} />}
+              {hasAccess ? "Access Granted" : buttonText}
+            </>
+          )}
       </Button>
     </div>
   );

@@ -5,20 +5,10 @@ import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
 
 export function Search() {
-  const { query, setQuery, isSearching, isIndexing, onFocus, onBlur, inputRef } = useSearch();
+  const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
 
   const showLoading = isSearching || isIndexing;
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    onFocus();
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    onBlur();
-  };
 
   return (
     <div
@@ -37,8 +27,8 @@ export function Search() {
           placeholder="Search anything..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           className={cn([
             "text-sm",
             "w-full pl-9 h-full",

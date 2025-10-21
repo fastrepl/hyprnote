@@ -35,10 +35,7 @@ interface SearchUIContextValue {
   setFilters: (filters: SearchFilters | null) => void;
   results: GroupedSearchResults | null;
   isSearching: boolean;
-  isFocused: boolean;
   isIndexing: boolean;
-  onFocus: () => void;
-  onBlur: () => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
@@ -147,7 +144,6 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilters | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -196,14 +192,6 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
     }
   }, [query, filters, performSearch, resetSearchState]);
 
-  const onFocus = useCallback(() => {
-    setIsFocused(true);
-  }, []);
-
-  const onBlur = useCallback(() => {
-    setIsFocused(false);
-  }, []);
-
   const results = useMemo(() => {
     if (searchHits.length === 0 || !searchQuery) {
       return null;
@@ -219,13 +207,10 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       setFilters,
       results,
       isSearching,
-      isFocused,
       isIndexing,
-      onFocus,
-      onBlur,
       inputRef,
     }),
-    [query, filters, results, isSearching, isFocused, isIndexing, onFocus, onBlur],
+    [query, filters, results, isSearching, isIndexing],
   );
 
   return <SearchUIContext.Provider value={value}>{children}</SearchUIContext.Provider>;

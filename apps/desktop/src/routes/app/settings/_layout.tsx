@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 const TABS = [
@@ -42,56 +43,24 @@ function Component() {
   const group3Tabs = TABS.filter((tab) => info(tab).group === 3);
 
   return (
-    <div className={cn(["flex h-full mr-2"])}>
-      <div className={cn(["w-60 flex flex-col bg-white"])}>
-        <div
-          className={cn([
-            "flex-1 flex flex-col justify-between",
-            "overflow-y-auto",
-            "px-1 mt-1",
-          ])}
-        >
-          <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
+    <div className={cn(["flex h-full p-1 gap-1"])}>
+      <aside className="w-52 flex flex-col justify-between overflow-hidden gap-1">
+        <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
+        <Group tabs={group2Tabs} activeTab={search.tab} />
+        <Group tabs={group3Tabs} activeTab={search.tab} />
+      </aside>
 
-          <div className="mb-2">
-            <Group tabs={group2Tabs} activeTab={search.tab} />
-            <Group tabs={group3Tabs} activeTab={search.tab} />
-          </div>
-        </div>
-      </div>
-
-      <div
-        className={cn([
-          "flex-1 flex flex-col",
-          "h-full w-full",
-          "overflow-hidden",
-          "bg-white",
-        ])}
-      >
+      <div className="flex-1 flex flex-col gap-1 h-full w-full overflow-hidden bg-white">
         <header
           data-tauri-drag-region
-          className={cn([
-            "h-12 w-full",
-            "flex items-center justify-between",
-            "my-1 p-2",
-            "bg-neutral-50 rounded-md",
-          ])}
+          className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center"
         >
-          <div className="w-40"></div>
-          <h1 data-tauri-drag-region className={cn(["text-md font-semibold capitalize"])}>
+          <h1 data-tauri-drag-region className="font-semibold capitalize select-none cursor-default">
             {info(search.tab).label}
           </h1>
-          <div className="w-40"></div>
         </header>
 
-        <div
-          className={cn([
-            "flex-1 w-full",
-            "overflow-y-auto",
-            "p-4 mb-2",
-            "border border-neutral-200 rounded-md",
-          ])}
-        >
+        <div className="flex-1 w-full overflow-y-auto p-6 border border-neutral-200 rounded-lg">
           <Outlet />
         </div>
       </div>
@@ -117,7 +86,6 @@ function Group(
     <div
       className={cn([
         "rounded-md bg-neutral-50",
-        "p-2 mt-1",
         expandHeight && "flex-1",
       ])}
     >
@@ -127,22 +95,18 @@ function Group(
         const Icon = tabInfo.icon;
 
         return (
-          <button
+          <Button
             key={tab}
+            variant="ghost"
             className={cn([
-              "flex w-full items-center gap-3",
-              "rounded-md px-3 py-2.5",
-              "text-sm text-neutral-700",
-              "bg-neutral-50 transition-colors",
-              activeTab === tab
-                ? "font-medium text-neutral-900 bg-neutral-200"
-                : "hover:bg-neutral-100",
+              "shadow-none w-full justify-start hover:bg-neutral-200",
+              activeTab === tab && "bg-neutral-200",
             ])}
             onClick={() => navigate({ search: { tab } })}
           >
-            <Icon className="h-5 w-5" />
-            <span>{tabInfo.label}</span>
-          </button>
+            <Icon size={16} className="shrink-0" />
+            {tabInfo.label}
+          </Button>
         );
       })}
     </div>

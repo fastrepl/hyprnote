@@ -9,8 +9,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 
-import * as internal from "../../store/tinybase/internal";
-import { SettingRow } from "./shared";
+import * as internal from "../../../store/tinybase/internal";
+import { SettingRow } from "../shared";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [

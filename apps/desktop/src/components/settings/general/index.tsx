@@ -1,6 +1,6 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
-import { AlertTriangle, Check, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
@@ -11,6 +11,7 @@ import { cn } from "@hypr/utils";
 
 import * as internal from "../../../store/tinybase/internal";
 import { SettingRow } from "../shared";
+import { Permissions } from "./permissions";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
@@ -102,16 +103,6 @@ export function SettingsGeneral() {
   const [languageSelectedIndex, setLanguageSelectedIndex] = useState(-1);
   const [vocabSearchQuery, setVocabSearchQuery] = useState("");
   const [vocabInputFocused, setVocabInputFocused] = useState(false);
-  const [hasMicrophoneAccess, setHasMicrophoneAccess] = useState(true);
-  const [hasSystemAudioAccess, setHasSystemAudioAccess] = useState(false);
-
-  const handleGrantMicrophoneAccess = () => {
-    setHasMicrophoneAccess(!hasMicrophoneAccess);
-  };
-
-  const handleGrantSystemAudioAccess = () => {
-    setHasSystemAudioAccess(!hasSystemAudioAccess);
-  };
 
   const getSpokenLanguages = () => form.getFieldValue("spoken_languages") as string[];
   const getJargons = () => form.getFieldValue("jargons") as string[];
@@ -453,61 +444,7 @@ export function SettingsGeneral() {
         </div>
       </div>
 
-      <div>
-        <h2 className="font-semibold mb-4">Permissions</h2>
-        <div className="space-y-4">
-          <PermissionRow
-            title="Microphone access"
-            hasAccess={hasMicrophoneAccess}
-            grantedMessage="Thanks for granting permission for microphone"
-            deniedMessage="Oops! You need to grant access to use Hyprnote"
-            onGrant={handleGrantMicrophoneAccess}
-          />
-          <PermissionRow
-            title="System audio access"
-            hasAccess={hasSystemAudioAccess}
-            grantedMessage="Thanks for granting permission for system audio"
-            deniedMessage="Oops! You need to grant access to use Hyprnote"
-            onGrant={handleGrantSystemAudioAccess}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PermissionRow({
-  title,
-  hasAccess,
-  grantedMessage,
-  deniedMessage,
-  onGrant,
-}: {
-  title: string;
-  hasAccess: boolean;
-  grantedMessage: string;
-  deniedMessage: string;
-  onGrant: () => void;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <h3 className={cn("text-sm font-medium mb-1", !hasAccess && "text-red-500")}>
-          {title}
-        </h3>
-        <p className={cn(["text-xs", hasAccess ? "text-neutral-600" : "text-red-500"])}>
-          {hasAccess ? grantedMessage : deniedMessage}
-        </p>
-      </div>
-      <Button
-        variant={hasAccess ? "outline" : "default"}
-        className="w-40 text-xs shadow-none"
-        disabled={hasAccess}
-        onClick={onGrant}
-      >
-        {hasAccess ? <Check size={16} /> : <AlertTriangle size={16} />}
-        {hasAccess ? "Access Granted" : "Grant Permission"}
-      </Button>
+      <Permissions />
     </div>
   );
 }

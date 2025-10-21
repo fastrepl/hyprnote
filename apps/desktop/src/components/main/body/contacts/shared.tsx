@@ -30,10 +30,8 @@ export function SortDropdown({
       value={sortOption}
       onValueChange={(value: SortOption) => setSortOption(value)}
     >
-      <SelectTrigger>
-        <Button variant="ghost" size="icon">
-          <ArrowDownUp size={16} />
-        </Button>
+      <SelectTrigger className="h-8 w-8 p-0" aria-label="Sort options">
+        <ArrowDownUp size={16} />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="alphabetical" className="text-xs">

@@ -28,7 +28,8 @@ export function OrganizationsColumn({
 
     return organizationIds.filter((id) => {
       const org = allOrgs[id];
-      return org?.name?.toLowerCase().includes(searchValue.toLowerCase());
+      const nameLower = (org?.name ?? "").toLowerCase();
+      return nameLower.includes(searchValue.toLowerCase());
     });
   }, [organizationIds, searchValue, allOrgs]);
 
@@ -86,6 +87,14 @@ function useSortedOrganizationIds() {
     undefined,
     persisted.STORE_ID,
   );
+  const reverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleOrganizations,
+    "name",
+    true,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
   const newestIds = persisted.UI.useResultSortedRowIds(
     persisted.QUERIES.visibleOrganizations,
     "created_at",
@@ -105,6 +114,8 @@ function useSortedOrganizationIds() {
 
   const organizationIds = sortOption === "alphabetical"
     ? alphabeticalIds
+    : sortOption === "reverse-alphabetical"
+    ? reverseAlphabeticalIds
     : sortOption === "newest"
     ? newestIds
     : oldestIds;

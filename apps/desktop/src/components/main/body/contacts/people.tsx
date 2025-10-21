@@ -26,11 +26,10 @@ export function PeopleColumn({
 
     return humanIds.filter((id) => {
       const human = allHumans[id];
-      const searchLower = searchValue.toLowerCase();
-      return (
-        human?.name?.toLowerCase().includes(searchLower)
-        || human?.email?.toLowerCase().includes(searchLower)
-      );
+      const q = searchValue.toLowerCase();
+      const name = (human?.name ?? "").toLowerCase();
+      const email = (human?.email ?? "").toLowerCase();
+      return name.includes(q) || email.includes(q);
     });
   }, [humanIds, searchValue, allHumans]);
 
@@ -71,6 +70,14 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
     undefined,
     persisted.STORE_ID,
   );
+  const allReverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
+    persisted.QUERIES.visibleHumans,
+    "name",
+    true,
+    0,
+    undefined,
+    persisted.STORE_ID,
+  );
   const allNewestIds = persisted.UI.useResultSortedRowIds(
     persisted.QUERIES.visibleHumans,
     "created_at",
@@ -97,11 +104,15 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
   const humanIds = currentOrgId
     ? (sortOption === "alphabetical"
       ? allAlphabeticalIds
+      : sortOption === "reverse-alphabetical"
+      ? allReverseAlphabeticalIds
       : sortOption === "newest"
       ? allNewestIds
       : allOldestIds).filter((id) => thisOrgHumanIds.includes(id))
     : (sortOption === "alphabetical"
       ? allAlphabeticalIds
+      : sortOption === "reverse-alphabetical"
+      ? allReverseAlphabeticalIds
       : sortOption === "newest"
       ? allNewestIds
       : allOldestIds);

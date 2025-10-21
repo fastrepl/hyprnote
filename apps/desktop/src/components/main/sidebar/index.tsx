@@ -33,7 +33,7 @@ export function LeftSidebar() {
         </Button>
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden gap-1 relative">
+      <div className="flex flex-col flex-1 overflow-hidden gap-1">
         <div className="flex-1 min-h-0 overflow-hidden">
           {showSearchResults ? <SearchResults /> : <TimelineView />}
         </div>

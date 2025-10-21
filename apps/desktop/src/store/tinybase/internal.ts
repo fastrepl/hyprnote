@@ -26,8 +26,14 @@ export const generalSchema = z.object({
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
   base_url: z.url().min(1),
-  api_key: z.string().min(1),
-});
+  api_key: z.string(),
+}).refine(
+  (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
+  {
+    message: "API key is required for HTTPS URLs",
+    path: ["api_key"],
+  },
+);
 
 export type AIProvider = z.infer<typeof aiProviderSchema>;
 export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;

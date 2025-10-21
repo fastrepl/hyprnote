@@ -26,23 +26,25 @@ export function FormField({
   icon,
   placeholder,
   type,
-  hidden,
 }: {
   field: AnyFieldApi;
   label: string;
   icon: string;
   placeholder?: string;
   type?: string;
-  hidden?: boolean;
 }) {
-  const { meta: { errors, isTouched, isDirty } } = field.state;
-  const hasError = isDirty && isTouched && errors && errors.length > 0;
+  const { meta: { errors, isTouched } } = field.state;
+  const hasError = isTouched && errors && errors.length > 0;
   const errorMessage = hasError
-    ? (typeof errors[0] === "string" ? errors[0] : (errors[0] as any)?.message || "Invalid value")
+    ? (typeof errors[0] === "string"
+      ? errors[0]
+      : "message" in errors[0]
+      ? errors[0].message
+      : JSON.stringify(errors[0]))
     : null;
 
   return (
-    <div className="space-y-2" hidden={hidden}>
+    <div className="space-y-2">
       <label className="block text-xs font-medium">{label}</label>
       <InputGroup className="bg-white">
         <InputGroupAddon align="inline-start">

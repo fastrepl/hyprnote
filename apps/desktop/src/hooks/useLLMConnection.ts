@@ -53,7 +53,7 @@ const useLLMConnection = (): {
     const providerId = current_llm_provider as ProviderId;
     const providerDefinition = PROVIDERS.find((provider) => provider.id === providerId);
 
-    const baseUrl = providerConfig?.base_url?.trim() || providerDefinition?.baseUrl.value || "";
+    const baseUrl = providerConfig?.base_url?.trim() || providerDefinition?.baseUrl || "";
     const apiKey = providerConfig?.api_key?.trim() || "";
 
     if (!baseUrl) {

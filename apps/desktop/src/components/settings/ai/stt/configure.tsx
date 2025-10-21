@@ -52,7 +52,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
     defaultValues: provider
       ?? ({
         type: "stt",
-        base_url: "",
+        base_url: config.baseUrl ?? "",
         api_key: "",
       } satisfies internal.AIProvider),
     listeners: {
@@ -96,16 +96,17 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
             e.stopPropagation();
           }}
         >
-          <form.Field name="base_url" defaultValue={config.baseUrl.value}>
-            {(field) => (
-              <FormField
-                field={field}
-                hidden={config.baseUrl.immutable}
-                label="Base URL"
-                icon="mdi:web"
-              />
-            )}
-          </form.Field>
+          {!config.baseUrl && (
+            <form.Field name="base_url">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Base URL"
+                  icon="mdi:web"
+                />
+              )}
+            </form.Field>
+          )}
           <form.Field name="api_key">
             {(field) => (
               <FormField
@@ -117,6 +118,24 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
               />
             )}
           </form.Field>
+          {config.baseUrl && (
+            <details className="space-y-4 pt-2">
+              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                Advanced
+              </summary>
+              <div className="mt-4">
+                <form.Field name="base_url">
+                  {(field) => (
+                    <FormField
+                      field={field}
+                      label="Base URL"
+                      icon="mdi:web"
+                    />
+                  )}
+                </form.Field>
+              </div>
+            </details>
+          )}
         </form>
       </AccordionContent>
     </AccordionItem>
@@ -370,9 +389,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
     : providerId === "deepgram"
     ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
-    You can choose to use the [EU Endpoint](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) if you prefer.`
-    : providerId === "deepgram-custom"
-    ? `If you're using a [Dedicated endpoint](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints), or other Deepgram-compatible endpoint, you can configure it here.`
+    If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)
+    or [EU](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) endpoint,
+    you can do that in the **advanced** section.`
+    : providerId === "custom"
+    ? `We only support **Deepgram compatible** endpoints for now.`
     : "";
 
   if (!content.trim()) {

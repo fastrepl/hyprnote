@@ -79,11 +79,36 @@ export function UpdateChecker() {
   if (state === "downloading") {
     return (
       <MenuItemLikeContainer>
-        <div className="flex items-center gap-2.5">
-          <Spinner size={16} className="flex-shrink-0 text-neutral-500" />
-          <span>
-            Downloading...
-          </span>
+        <div className="flex w-full items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5">
+            <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 16 16">
+              <circle
+                cx="8"
+                cy="8"
+                r="6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-neutral-200"
+              />
+              <circle
+                cx="8"
+                cy="8"
+                r="6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * 6}`}
+                strokeDashoffset={`${2 * Math.PI * 6 * (1 - downloadProgress.percentage / 100)}`}
+                strokeLinecap="round"
+                className="text-neutral-500 transition-all duration-300"
+                style={{ transform: "rotate(-90deg)", transformOrigin: "center" }}
+              />
+            </svg>
+            <span className="text-sm text-black">
+              Downloading... ({Math.round(downloadProgress.percentage)}%)
+            </span>
+          </div>
           <button
             onClick={handleCancelDownload}
             className={cn([
@@ -96,12 +121,6 @@ export function UpdateChecker() {
           >
             <X className="h-4 w-4 text-neutral-500" />
           </button>
-        </div>
-        <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
-          <div
-            className="h-full bg-neutral-900 transition-all duration-300"
-            style={{ width: `${downloadProgress.percentage}%` }}
-          />
         </div>
       </MenuItemLikeContainer>
     );

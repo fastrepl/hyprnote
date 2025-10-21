@@ -1,4 +1,3 @@
-import { LinkedInIcon } from "@hypr/ui/components/icons/linkedin";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -11,6 +10,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/componen
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn, formatDateRange, getMeetingDomain } from "@hypr/utils";
 
+import { Icon } from "@iconify-icon/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   CalendarIcon,
@@ -128,7 +128,7 @@ function ParticipantChip({ participant, currentUserId, attended = true, onRemove
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
                 >
-                  <LinkedInIcon className="size-3.5" />
+                  <Icon icon="logos:linkedin-icon" className="size-3.5" />
                   linkedin.com/in/{participant.linkedin_username}
                 </a>
               )}

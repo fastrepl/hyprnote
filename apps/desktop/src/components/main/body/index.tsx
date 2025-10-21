@@ -1,11 +1,12 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
 import { useRouteContext } from "@tanstack/react-router";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
@@ -36,25 +37,13 @@ export function Body() {
 }
 
 function Header({ tabs }: { tabs: Tab[] }) {
-  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-
   const { leftsidebar } = useShell();
-  const { select, close, reorder, openNew, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs();
+  const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
+  const handleNewNote = useNewTab();
+
   const setTabRef = useScrollActiveTabIntoView(tabs);
-
-  const handleNewNote = useCallback(() => {
-    const sessionId = id();
-    const user_id = internalStore?.getValue("user_id");
-
-    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString(), title: "" });
-    openNew({
-      type: "sessions",
-      id: sessionId,
-      active: true,
-      state: { editor: "raw" },
-    });
-  }, [persistedStore, internalStore, openNew]);
+  useTabsShortcuts();
 
   return (
     <div
@@ -65,9 +54,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && (
         <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
-          <PanelLeftOpenIcon
-            size={16}
-          />
+          <PanelLeftOpenIcon size={16} />
         </Button>
       )}
 
@@ -309,4 +296,83 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
   }, []);
 
   return setTabRef;
+}
+
+function useTabsShortcuts() {
+  const { tabs, currentTab, close, select } = useTabs();
+  const newTab = useNewTab();
+
+  useHotkeys(
+    "mod+n",
+    () => {
+      if (currentTab) {
+        close(currentTab);
+      }
+      newTab();
+    },
+    { preventDefault: true },
+    [currentTab, close, newTab],
+  );
+
+  useHotkeys(
+    "mod+t",
+    () => newTab(),
+    { preventDefault: true },
+    [newTab],
+  );
+
+  useHotkeys(
+    "mod+w",
+    async () => {
+      if (currentTab && tabs.length > 1) {
+        close(currentTab);
+      } else {
+        const appWindow = getCurrentWebviewWindow();
+        await appWindow.close();
+      }
+    },
+    { preventDefault: true },
+    [tabs, currentTab, close],
+  );
+
+  useHotkeys(
+    "mod+1, mod+2, mod+3, mod+4, mod+5, mod+6, mod+7, mod+8, mod+9",
+    (event) => {
+      const key = event.key;
+      const targetIndex = key === "9" ? tabs.length - 1 : Number.parseInt(key, 10) - 1;
+      const target = tabs[targetIndex];
+      if (target) {
+        select(target);
+      }
+    },
+    { preventDefault: true },
+    [tabs, select],
+  );
+
+  return {};
+}
+
+function useNewTab() {
+  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { openNew } = useTabs();
+
+  const handler = useCallback(() => {
+    const user_id = internalStore?.getValue("user_id");
+    const sessionId = id();
+
+    persistedStore?.setRow("sessions", sessionId, {
+      user_id,
+      created_at: new Date().toISOString(),
+      title: "",
+    });
+
+    openNew({
+      type: "sessions",
+      id: sessionId,
+      active: true,
+      state: { editor: "raw" },
+    });
+  }, [persistedStore, internalStore, openNew]);
+
+  return handler;
 }

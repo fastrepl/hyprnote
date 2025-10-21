@@ -3,30 +3,22 @@ import { createContext, useContext } from "react";
 import { useChatMode } from "./chat";
 import { useLeftSidebar } from "./leftsidebar";
 import { useSettings } from "./settings";
-import { useTabsShortcuts } from "./tabs";
 
 interface ShellContextType {
   chat: ReturnType<typeof useChatMode>;
   leftsidebar: ReturnType<typeof useLeftSidebar>;
   settings: ReturnType<typeof useSettings>;
-  tabs: ReturnType<typeof useTabsShortcuts>;
 }
 
 const ShellContext = createContext<ShellContextType | null>(null);
 
-interface ShellProviderProps {
-  children: React.ReactNode;
-  onNewTab: (closeCurrentFirst: boolean) => void;
-}
-
-export function ShellProvider({ children, onNewTab }: ShellProviderProps) {
+export function ShellProvider({ children }: { children: React.ReactNode }) {
   const chat = useChatMode();
   const leftsidebar = useLeftSidebar();
   const settings = useSettings();
-  const tabs = useTabsShortcuts(onNewTab);
 
   return (
-    <ShellContext.Provider value={{ chat, leftsidebar, settings, tabs }}>
+    <ShellContext.Provider value={{ chat, leftsidebar, settings }}>
       {children}
     </ShellContext.Provider>
   );

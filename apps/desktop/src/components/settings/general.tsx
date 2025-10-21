@@ -6,10 +6,9 @@ import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
-import { useUpdateGeneral } from "./shared";
+import { SettingRow, useUpdateGeneral } from "./shared";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
@@ -437,28 +436,6 @@ function PermissionRow({
         {hasAccess ? <Check size={16} /> : <AlertTriangle size={16} />}
         {hasAccess ? "Access Granted" : "Grant Permission"}
       </Button>
-    </div>
-  );
-}
-
-function SettingRow({
-  title,
-  description,
-  checked,
-  onChange,
-}: {
-  title: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">{title}</h3>
-        <p className="text-xs text-neutral-600">{description}</p>
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }

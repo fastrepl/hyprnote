@@ -25,14 +25,14 @@ describe("buildSegments", () => {
     end_ms,
   });
 
-  it.each([
+  const testcases = [
     {
       description: "returns empty array for empty input",
       words: [],
       segments: [],
     },
     {
-      description: "creates single segment from single word",
+      description: "simple single segment from single word",
       words: [
         WORD({ text: "hello", channel: 0, start_ms: 0, end_ms: 100 }),
       ],
@@ -40,11 +40,36 @@ describe("buildSegments", () => {
         { speaker: "Speaker 0", text: "hello" },
       ],
     },
-  ])("$description", ({ words, segments }) => {
-    const result = buildSegments({
-      words,
-      speakerFromChannel: (channel) => `Speaker ${channel}`,
-    });
+    {
+      description: "merge adjacent words from same channel",
+      words: [
+        WORD({ text: "hello", channel: 0, start_ms: 0, end_ms: 100 }),
+        WORD({ text: "world", channel: 0, start_ms: 120, end_ms: 220 }),
+      ],
+      segments: [
+        { speaker: "Speaker 0", text: "hello world" },
+      ],
+    },
+    {
+      description: "different channels are different speakers",
+      words: [
+        WORD({ text: "hello", channel: 0, start_ms: 0, end_ms: 100 }),
+        WORD({ text: "world", channel: 1, start_ms: 120, end_ms: 220 }),
+      ],
+      segments: [
+        { speaker: "Speaker 0", text: "hello" },
+        { speaker: "Speaker 1", text: "world" },
+      ],
+    },
+  ];
+
+  it.each(testcases)("$description", ({ words, segments }) => {
+    const result = buildSegments(
+      {
+        words,
+        speakerFromChannel: (channel) => `Speaker ${channel}`,
+      },
+    );
 
     expect(result).toEqual(segments);
   });

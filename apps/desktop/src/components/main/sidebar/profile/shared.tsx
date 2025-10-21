@@ -1,17 +1,23 @@
-import { clsx } from "clsx";
+import { cn } from "@hypr/utils";
 
 export function MenuItem(
-  { icon: Icon, label, badge, suffixIcon: SuffixIcon, onClick }: {
-    icon: any;
+  {
+    icon: Icon,
+    label,
+    badge,
+    suffixIcon: SuffixIcon,
+    onClick,
+  }: {
+    icon: React.ComponentType<{ className?: string }>;
     label: string;
     badge?: number | React.ReactNode;
-    suffixIcon?: any;
+    suffixIcon?: React.ComponentType<{ className?: string }>;
     onClick: () => void;
   },
 ) {
   return (
     <button
-      className={clsx(
+      className={cn(
         "flex w-full items-center gap-2.5 rounded-lg",
         "px-4 py-1.5",
         "text-sm text-black",
@@ -19,13 +25,13 @@ export function MenuItem(
       )}
       onClick={onClick}
     >
-      <Icon className={clsx("h-4 w-4 flex-shrink-0", "text-black")} />
-      <span className={clsx("flex-1", "text-left")}>{label}</span>
+      <Icon className={cn("h-4 w-4 flex-shrink-0", "text-black")} />
+      <span className={cn("flex-1", "text-left")}>{label}</span>
       {badge && (
         typeof badge === "number"
           ? (
             <span
-              className={clsx(
+              className={cn(
                 "rounded-full",
                 "px-2 py-0.5",
                 "bg-red-500",
@@ -37,7 +43,7 @@ export function MenuItem(
           )
           : badge
       )}
-      {SuffixIcon && <SuffixIcon className={clsx("h-4 w-4 flex-shrink-0", "text-neutral-400")} />}
+      {SuffixIcon && <SuffixIcon className={cn("h-4 w-4 flex-shrink-0", "text-neutral-400")} />}
     </button>
   );
 }

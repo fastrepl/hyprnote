@@ -18,7 +18,13 @@ export const buildSegments = (
 
   for (const word of words) {
     const speaker = speakerFromChannel(word.channel);
-    segments.push({ text: word.text, speaker });
+    const lastSegment = segments[segments.length - 1];
+
+    if (lastSegment && lastSegment.speaker === speaker) {
+      lastSegment.text += ` ${word.text}`;
+    } else {
+      segments.push({ text: word.text, speaker });
+    }
   }
 
   return segments;

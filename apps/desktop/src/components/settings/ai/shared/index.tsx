@@ -33,10 +33,14 @@ export function FormField({
   placeholder?: string;
   type?: string;
 }) {
-  const { meta: { errors, isTouched, isDirty } } = field.state;
-  const hasError = isDirty && isTouched && errors && errors.length > 0;
+  const { meta: { errors, isTouched } } = field.state;
+  const hasError = isTouched && errors && errors.length > 0;
   const errorMessage = hasError
-    ? (typeof errors[0] === "string" ? errors[0] : (errors[0] as any)?.message || "Invalid value")
+    ? (typeof errors[0] === "string"
+      ? errors[0]
+      : "message" in errors[0]
+      ? errors[0].message
+      : JSON.stringify(errors[0]))
     : null;
 
   return (

@@ -1,16 +1,20 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
 import { clsx } from "clsx";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
-import { buildTimelineBuckets } from "../../../../utils/timeline";
-import type { TimelineBucket, TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
+import {
+  buildTimelineBuckets,
+  calculateIndicatorIndex,
+  type TimelineBucket,
+  type TimelineItem,
+  type TimelinePrecision,
+} from "../../../../utils/timeline";
 import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
-import { CurrentTimeIndicator, useCurrentTime } from "./realtime";
+import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
@@ -112,7 +116,7 @@ function TodayBucket({
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
 }) {
-  const currentTimeMs = useCurrentTime().getTime();
+  const currentTimeMs = useCurrentTimeMs();
 
   const entries = useMemo(
     () =>
@@ -123,21 +127,12 @@ function TodayBucket({
     [items],
   );
 
-  const indicatorIndex = useMemo(() => {
-    const index = entries.findIndex(({ timestamp }) => {
-      if (!timestamp) {
-        return true;
-      }
-
-      return timestamp.getTime() < currentTimeMs;
-    });
-
-    if (index === -1) {
-      return entries.length;
-    }
-
-    return index;
-  }, [entries, currentTimeMs]);
+  const indicatorIndex = useMemo(
+    // currentTimeMs in deps triggers updates as time passes,
+    // but we use fresh Date() so indicator positions correctly when entries change immediately (new note).
+    () => calculateIndicatorIndex(entries, new Date()),
+    [entries, currentTimeMs],
+  );
 
   const renderedEntries = useMemo(() => {
     if (entries.length === 0) {

@@ -6,12 +6,12 @@ export const CurrentTimeIndicator = forwardRef<HTMLDivElement>((_, ref) => (
   </div>
 ));
 
-export function useCurrentTime() {
-  const [now, setNow] = useState(() => new Date());
+export function useCurrentTimeMs() {
+  const [now, setNow] = useState(() => new Date().getTime());
 
   useEffect(() => {
     const update = () => {
-      const now = new Date();
+      const now = new Date().getTime();
       setNow(now);
     };
 

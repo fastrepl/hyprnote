@@ -107,6 +107,25 @@ export function getBucketInfo(date: Date): { label: string; sortKey: number; pre
   };
 }
 
+export function calculateIndicatorIndex(
+  entries: Array<{ timestamp: Date | null }>,
+  current: Date,
+): number {
+  const index = entries.findIndex(({ timestamp }) => {
+    if (!timestamp) {
+      return true;
+    }
+
+    return timestamp.getTime() < current.getTime();
+  });
+
+  if (index === -1) {
+    return entries.length;
+  }
+
+  return index;
+}
+
 export function buildTimelineBuckets({
   eventsWithoutSessionTable,
   sessionsWithMaybeEventTable,

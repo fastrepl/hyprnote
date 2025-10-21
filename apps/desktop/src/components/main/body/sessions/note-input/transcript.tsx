@@ -17,18 +17,16 @@ export function TranscriptView({ sessionId }: { sessionId: string }) {
     (store) =>
       createQueries(store).setQueryDefinition(QUERY, "words", ({ select, where }) => {
         select("text");
-        if (transcriptId) {
-          where("transcript_id", transcriptId);
-        }
+        where("transcript_id", transcriptId);
       }),
     [sessionId, transcriptId],
   );
 
-  const words = persisted.UI.useResultTable(QUERY, QUERIES);
+  const words = persisted.UI.useResultTable(QUERY, QUERIES) as Record<string, persisted.Word>;
 
   return (
-    <div className="relative h-full flex flex-col">
-      <pre>{JSON.stringify(words)}</pre>
+    <div className="flex flex-col gap-2 overflow-y-auto max-h-64">
+      {Object.values(words).map((word: persisted.Word) => word.text).join(" ")}
     </div>
   );
 }

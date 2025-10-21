@@ -115,20 +115,18 @@ function DuringMeetingButton() {
   return (
     <FloatingButton
       onClick={stop}
-      icon={hovered ? <Icon icon="lucide:stop-circle" className="w-5 h-5" /> : undefined}
+      icon={hovered ? <Icon icon="lucide:stop-circle" className="w-5 h-5 mt-1.5" /> : undefined}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <span>
-        {hovered
-          ? "Stop listening"
-          : (
-            <div className="flex flex-row items-center gap-4">
-              <span className="text-gray-500 text-sm">{formatTime(seconds)}</span>
-              <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
-            </div>
-          )}
-      </span>
+      {hovered
+        ? <span>Stop listening</span>
+        : (
+          <div className="flex flex-row items-center gap-3">
+            <span className="text-gray-500 text-sm tabular-nums">{formatTime(seconds)}</span>
+            <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
+          </div>
+        )}
     </FloatingButton>
   );
 }

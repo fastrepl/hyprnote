@@ -61,10 +61,26 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         },
         scrollThreshold: 32,
         scrollMargin: 32,
-        handleKeyDown: (_, event) => {
-          if ((event.metaKey || event.ctrlKey) && (event.key === "w" || event.key === "n" || event.key === "t")) {
+        handleKeyDown: (view, event) => {
+          const allowedGlobalShortcuts = ["w", "n", "t", ",", "j", "l", "k"];
+          if ((event.metaKey || event.ctrlKey) && allowedGlobalShortcuts.includes(event.key)) {
             return false;
           }
+
+          if (event.key === "Backspace") {
+            const { state } = view;
+            const isAtStart = state.selection.$head.pos === 0;
+            if (isAtStart && state.selection.empty) {
+              event.preventDefault();
+              return true;
+            }
+          }
+
+          if (event.key === "Tab") {
+            event.preventDefault();
+            return true;
+          }
+
           return false;
         },
       },
@@ -98,35 +114,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         editor.setEditable(editable);
       }
     }, [editor, editable]);
-
-    useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if ((e.metaKey || e.ctrlKey) && (e.key === "w" || e.key === "n" || e.key === "t")) {
-          return;
-        }
-
-        if (e.key === "Backspace" && editor?.state.selection.empty) {
-          const isAtStart = editor.state.selection.$head.pos === 0;
-          if (isAtStart) {
-            e.preventDefault();
-          }
-        }
-
-        if (e.key === "Tab") {
-          e.preventDefault();
-        }
-      };
-
-      if (editor) {
-        editor.view.dom.addEventListener("keydown", handleKeyDown);
-      }
-
-      return () => {
-        if (editor) {
-          editor.view.dom.removeEventListener("keydown", handleKeyDown);
-        }
-      };
-    }, [editor]);
 
     return (
       <div role="textbox">

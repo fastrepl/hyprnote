@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { toolFactories } from "../../../chat/tools";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
-import { SearchUIProvider } from "../../../contexts/search/ui";
+import { SearchUIProvider, useSearch } from "../../../contexts/search/ui";
 import { ShellProvider } from "../../../contexts/shell";
 import { useToolRegistry } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { registerOnClose, registerOnEmpty, currentTab, openNew } = useTabs();
+  const { registerOnClose, registerOnEmpty, currentTab, openNew, close } = useTabs();
 
   useEffect(() => {
     return registerOnClose((tab) => {
@@ -49,16 +49,45 @@ function Component() {
     return registerOnEmpty(createDefaultSession);
   }, [currentTab, persistedStore, internalStore, registerOnEmpty, openNew]);
 
+  const handleNewTab = useCallback((closeCurrentFirst: boolean) => {
+    const user_id = internalStore?.getValue("user_id");
+    const sessionId = id();
+    persistedStore?.setRow("sessions", sessionId, {
+      user_id,
+      created_at: new Date().toISOString(),
+      title: "",
+    });
+
+    if (closeCurrentFirst && currentTab) {
+      close(currentTab);
+    }
+
+    openNew({
+      type: "sessions",
+      id: sessionId,
+      active: true,
+      state: { editor: "raw" },
+    });
+  }, [persistedStore, internalStore, currentTab, close, openNew]);
+
   return (
-    <ShellProvider>
-      <SearchEngineProvider store={persistedStore}>
-        <SearchUIProvider>
-          <ToolRegistryProvider>
-            <ToolRegistration />
-            <Outlet />
-          </ToolRegistryProvider>
-        </SearchUIProvider>
-      </SearchEngineProvider>
+    <SearchEngineProvider store={persistedStore}>
+      <SearchUIProvider>
+        <SearchShortcutBridge onNewTab={handleNewTab} />
+      </SearchUIProvider>
+    </SearchEngineProvider>
+  );
+}
+
+function SearchShortcutBridge({ onNewTab }: { onNewTab: (closeCurrentFirst: boolean) => void }) {
+  const { focusInput } = useSearch();
+
+  return (
+    <ShellProvider onNewTab={onNewTab} onFocusSearch={focusInput}>
+      <ToolRegistryProvider>
+        <ToolRegistration />
+        <Outlet />
+      </ToolRegistryProvider>
     </ShellProvider>
   );
 }

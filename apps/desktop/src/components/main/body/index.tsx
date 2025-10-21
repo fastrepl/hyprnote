@@ -2,11 +2,9 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useRouteContext } from "@tanstack/react-router";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
@@ -22,10 +20,6 @@ import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
   const { tabs, currentTab } = useTabs();
-
-  useTabCloseHotkey();
-  useTabSelectHotkeys();
-  useNewTabHotkeys();
 
   if (!currentTab) {
     return null;
@@ -287,81 +281,6 @@ export function StandardTabWrapper(
     </div>
   );
 }
-
-const useTabCloseHotkey = () => {
-  const { tabs, currentTab, close } = useTabs();
-
-  useHotkeys(
-    "mod+w",
-    async (e) => {
-      e.preventDefault();
-
-      if (currentTab && tabs.length > 1) {
-        close(currentTab);
-      } else {
-        const appWindow = getCurrentWebviewWindow();
-        await appWindow.close();
-      }
-    },
-    { enableOnFormTags: true, enableOnContentEditable: true },
-    [tabs, currentTab, close],
-  );
-};
-
-const useTabSelectHotkeys = () => {
-  const { tabs, select } = useTabs();
-
-  useHotkeys(
-    ["mod+1", "mod+2", "mod+3", "mod+4", "mod+5", "mod+6", "mod+7", "mod+8", "mod+9"],
-    (event) => {
-      const key = event.key;
-
-      const targetIndex = key === "9"
-        ? tabs.length - 1
-        : Number.parseInt(key, 10) - 1;
-
-      const target = tabs[targetIndex];
-      if (!target) {
-        return;
-      }
-
-      event.preventDefault();
-      select(target);
-    },
-    { enableOnFormTags: true, enableOnContentEditable: true },
-    [tabs, select],
-  );
-};
-
-const useNewTabHotkeys = () => {
-  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { currentTab, close, openNew } = useTabs();
-
-  useHotkeys(
-    ["mod+n", "mod+t"],
-    (e) => {
-      e.preventDefault();
-
-      const sessionId = id();
-      const user_id = internalStore?.getValue("user_id");
-
-      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-
-      if (e.key === "n" && currentTab) {
-        close(currentTab);
-      }
-
-      openNew({
-        type: "sessions",
-        id: sessionId,
-        active: true,
-        state: { editor: "raw" },
-      });
-    },
-    { enableOnFormTags: true, enableOnContentEditable: true },
-    [persistedStore, internalStore, currentTab, close, openNew],
-  );
-};
 
 function useScrollActiveTabIntoView(tabs: Tab[]) {
   const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());

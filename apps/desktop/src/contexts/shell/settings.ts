@@ -1,23 +1,21 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export function useSettings() {
   const openSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === ",") {
-        event.preventDefault();
-        openSettings();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [openSettings]);
+  useHotkeys(
+    "mod+,",
+    openSettings,
+    {
+      preventDefault: true,
+      splitKey: "|",
+    },
+    [openSettings],
+  );
 
   return { openSettings };
 }

@@ -308,9 +308,6 @@ export const StoreComponent = () => {
       createBroadcastChannelSynchronizer(
         store,
         "hypr-sync-persisted",
-        undefined,
-        undefined,
-        console.error,
       ).startSync(),
   );
 

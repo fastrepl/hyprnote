@@ -145,10 +145,7 @@ function DuringMeetingButton() {
   );
 }
 
-function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const note = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
-  console.log(note);
-
+function useRemoteMeeting(_sessionId: string): RemoteMeeting | null {
   const remote = {
     type: "google-meet",
     url: null,

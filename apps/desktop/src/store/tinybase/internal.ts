@@ -113,8 +113,6 @@ export const useStore = () => {
       createBroadcastChannelSynchronizer(
         store,
         "hypr-sync-internal",
-        undefined,
-        undefined,
       ).startSync(),
   );
 

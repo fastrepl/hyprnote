@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { wrapSliceWithLogging } from "../shared";
 
 import { type BasicActions, type BasicState, createBasicSlice } from "./basic";
 import { createLifecycleSlice, type LifecycleActions, type LifecycleState } from "./lifecycle";
@@ -13,8 +14,8 @@ type Actions = BasicActions & StateBasicActions & NavigationActions & LifecycleA
 type Store = State & Actions;
 
 export const useTabs = create<Store>()((set, get) => ({
-  ...createBasicSlice(set, get),
-  ...createStateUpdaterSlice(set, get),
-  ...createNavigationSlice(set, get),
-  ...createLifecycleSlice(set, get),
+  ...wrapSliceWithLogging("basic", createBasicSlice(set, get)),
+  ...wrapSliceWithLogging("state", createStateUpdaterSlice(set, get)),
+  ...wrapSliceWithLogging("navigation", createNavigationSlice(set, get)),
+  ...wrapSliceWithLogging("lifecycle", createLifecycleSlice(set, get)),
 }));

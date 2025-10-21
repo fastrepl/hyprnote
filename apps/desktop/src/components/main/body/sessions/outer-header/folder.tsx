@@ -144,7 +144,7 @@ function TitleInput({ title, handleChangeTitle }: { title: string; handleChangeT
       type="text"
       placeholder="Untitled"
       className="truncate max-w-[80px] border-none bg-transparent text-neutral-700 focus:outline-none focus:underline"
-      value={title}
+      value={title ?? ""}
       onChange={(e) => handleChangeTitle(e.target.value)}
     />
   );

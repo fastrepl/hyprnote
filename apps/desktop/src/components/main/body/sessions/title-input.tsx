@@ -21,7 +21,7 @@ export function TitleInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> })
       placeholder="Untitled"
       type="text"
       onChange={(e) => handleEditTitle(e.target.value)}
-      value={title}
+      value={title ?? ""}
       className={cn(
         "w-full transition-opacity duration-200",
         "border-none bg-transparent focus:outline-none",

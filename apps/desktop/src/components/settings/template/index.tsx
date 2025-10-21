@@ -8,25 +8,7 @@ import { TemplateEditor } from "./editor";
 
 export function SettingsTemplates() {
   const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);
-
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
-  const store = persisted.UI.useStore(persisted.STORE_ID);
-
-  const USER_TEMPLATE_QUERY = "user_templates";
-
-  const quries = persisted.UI.useCreateQueries(
-    store,
-    (store) =>
-      createQueries(store).setQueryDefinition(USER_TEMPLATE_QUERY, "templates", ({ select, where }) => {
-        select("title");
-        select("description");
-        select("sections");
-        where("user_id", user_id ?? "");
-      }),
-    [user_id],
-  );
-
-  const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
+  const templates = useTemplates();
 
   if (currentTemplate) {
     return <TemplateEditor id={currentTemplate} onClose={() => setCurrentTemplate(null)} />;
@@ -85,4 +67,26 @@ function TemplateCard({
       </Button>
     </div>
   );
+}
+
+function useTemplates() {
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const store = persisted.UI.useStore(persisted.STORE_ID);
+
+  const USER_TEMPLATE_QUERY = "user_templates";
+
+  const quries = persisted.UI.useCreateQueries(
+    store,
+    (store) =>
+      createQueries(store).setQueryDefinition(USER_TEMPLATE_QUERY, "templates", ({ select, where }) => {
+        select("title");
+        select("description");
+        select("sections");
+        where("user_id", user_id ?? "");
+      }),
+    [user_id],
+  );
+
+  const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
+  return templates;
 }

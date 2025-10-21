@@ -3,8 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SettingsAI } from "../../../components/settings/ai";
 import { SettingsBilling } from "../../../components/settings/billing";
 import { SettingsCalendar } from "../../../components/settings/calendar";
-import { SettingsDevelopers } from "../../../components/settings/developers";
-import { SettingsFeedback } from "../../../components/settings/feedback";
 import { SettingsGeneral } from "../../../components/settings/general";
 import { SettingsIntegrations } from "../../../components/settings/integrations";
 import { SettingsNotifications } from "../../../components/settings/notification";
@@ -25,8 +23,6 @@ function Component() {
       {search.tab === "notifications" && <SettingsNotifications />}
       {search.tab === "integrations" && <SettingsIntegrations />}
       {search.tab === "templates" && <SettingsTemplates />}
-      {search.tab === "feedback" && <SettingsFeedback />}
-      {search.tab === "developers" && <SettingsDevelopers />}
       {search.tab === "billing" && <SettingsBilling />}
     </>
   );

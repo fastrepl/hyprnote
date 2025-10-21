@@ -6,9 +6,9 @@ import { createQueries } from "tinybase/with-schemas";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import * as internal from "../../store/tinybase/internal";
-import * as persisted from "../../store/tinybase/persisted";
-import { useUpdateTemplate } from "./shared";
+import * as internal from "../../../store/tinybase/internal";
+import * as persisted from "../../../store/tinybase/persisted";
+import { useUpdateTemplate } from "../shared";
 
 export function SettingsTemplates() {
   const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);

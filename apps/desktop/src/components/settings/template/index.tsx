@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createQueries } from "tinybase/with-schemas";
 
-import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 import * as internal from "../../../store/tinybase/internal";
 import * as persisted from "../../../store/tinybase/persisted";
 import { TemplateEditor } from "./editor";
@@ -25,10 +25,9 @@ export function SettingsTemplates() {
         {Object.entries(templates).map(([id, template]) => (
           <TemplateCard
             key={id}
-            id={id}
-            title={(template as any).title || "Untitled"}
-            description={(template as any).description || ""}
-            onEdit={() => setCurrentTemplate(id)}
+            title={template.title || "Untitled"}
+            description={template.description || ""}
+            onClick={() => setCurrentTemplate(id)}
           />
         ))}
       </div>
@@ -37,34 +36,27 @@ export function SettingsTemplates() {
 }
 
 function TemplateCard({
-  id,
   title,
   description,
-  onEdit,
+  onClick,
 }: {
-  id: string;
   title: string;
   description: string;
-  onEdit: () => void;
+  onClick: () => void;
 }) {
   return (
     <div
-      onClick={onEdit}
-      className="flex items-center gap-4 p-4 border rounded-lg hover:bg-neutral-50 cursor-pointer transition-colors"
+      onClick={onClick}
+      className={cn([
+        "flex items-center gap-4",
+        "cursor-pointer transition-colors",
+        "p-4 border rounded-lg hover:bg-neutral-50",
+      ])}
     >
       <div className="flex-1">
         <h3 className="text-lg font-medium mb-1">{title}</h3>
         <p className="text-sm text-neutral-600">{description}</p>
       </div>
-      <Button
-        variant="outline"
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("Set as default:", id);
-        }}
-      >
-        Set as default
-      </Button>
     </div>
   );
 }
@@ -88,5 +80,5 @@ function useTemplates() {
   );
 
   const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
-  return templates;
+  return templates as unknown as Record<string, persisted.Template>;
 }

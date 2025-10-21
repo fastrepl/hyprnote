@@ -34,7 +34,7 @@ export interface MockConfig {
   calendarsPerUser: number;
 }
 
-export const USER_ID = "4c2c0e44-f674-4c67-87d0-00bcfb78dc8a";
+export const USER_ID = "00000000-0000-0000-0000-000000000000";
 
 export const createOrganization = () => ({
   id: id(),

@@ -103,9 +103,13 @@ export const useStore = () => {
 
   const synchronizer = useCreateSynchronizer(
     store,
-    async (store) => createBroadcastChannelSynchronizer(store, "hypr-internal-sync"),
-    [],
-    (sync) => sync.startSync().then(console.log).catch(console.error),
+    async (store) =>
+      createBroadcastChannelSynchronizer(
+        store,
+        "hypr-sync-internal",
+        undefined,
+        undefined,
+      ).startSync(),
   );
 
   const localPersister = useCreatePersister(

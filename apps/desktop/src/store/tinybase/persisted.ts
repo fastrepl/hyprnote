@@ -304,9 +304,14 @@ export const StoreComponent = () => {
 
   const synchronizer = useCreateSynchronizer(
     store,
-    async (store) => createBroadcastChannelSynchronizer(store, "hypr-persisted-sync"),
-    [],
-    (sync) => sync.startSync().then(console.log).catch(console.error),
+    async (store) =>
+      createBroadcastChannelSynchronizer(
+        store,
+        "hypr-sync-persisted",
+        undefined,
+        undefined,
+        console.error,
+      ).startSync(),
   );
 
   const relationships = useCreateRelationships(

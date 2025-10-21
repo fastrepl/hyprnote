@@ -10,7 +10,7 @@ export const PROVIDERS = [
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     apiKey: false,
-    baseUrl: { value: "https://api.hyprnote.com/v1", immutable: true },
+    baseUrl: "https://api.hyprnote.com/v1",
   },
   {
     id: "openai",
@@ -18,7 +18,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <OpenAI size={16} />,
     apiKey: true,
-    baseUrl: { value: "https://api.openai.com/v1", immutable: true },
+    baseUrl: "https://api.openai.com/v1",
   },
   {
     id: "anthropic",
@@ -26,7 +26,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <Anthropic size={16} />,
     apiKey: true,
-    baseUrl: { value: "https://api.anthropic.com/v1", immutable: true },
+    baseUrl: "https://api.anthropic.com/v1",
   },
   {
     id: "openrouter",
@@ -34,7 +34,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <OpenRouter size={16} />,
     apiKey: true,
-    baseUrl: { value: "https://openrouter.ai/api/v1", immutable: true },
+    baseUrl: "https://openrouter.ai/api/v1",
   },
   {
     id: "ollama",
@@ -42,7 +42,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <Ollama size={16} />,
     apiKey: false,
-    baseUrl: { value: "http://localhost:11434", immutable: false },
+    baseUrl: "http://localhost:11434",
   },
   {
     id: "lmstudio",
@@ -50,7 +50,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <LmStudio size={16} />,
     apiKey: false,
-    baseUrl: { value: "http://localhost:8000", immutable: false },
+    baseUrl: "http://localhost:8000",
   },
   {
     id: "custom",
@@ -58,6 +58,6 @@ export const PROVIDERS = [
     badge: null,
     icon: <Icon icon="mingcute:random-fill" />,
     apiKey: true,
-    baseUrl: { value: "https://openai.compatible.com", immutable: false },
+    baseUrl: undefined,
   },
 ] as const;

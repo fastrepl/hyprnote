@@ -27,7 +27,7 @@ export const PROVIDERS = [
     id: "hyprnote",
     displayName: "Hyprnote",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
-    baseUrl: { value: "https://api.hyprnote.com/v1", immutable: true },
+    baseUrl: "https://api.hyprnote.com/v1",
     models: ["am-parakeet-v2", "am-parakeet-v3"] satisfies SupportedSttModel[],
   },
   {
@@ -35,7 +35,7 @@ export const PROVIDERS = [
     id: "deepgram",
     displayName: "Deepgram",
     icon: <Icon icon="simple-icons:deepgram" className="size-4" />,
-    baseUrl: { value: "https://api.deepgram.com/v1", immutable: true },
+    baseUrl: "https://api.deepgram.com/v1",
     models: ["nova-3", "nova-3-general", "nova-3-medical"],
   },
   {
@@ -44,7 +44,7 @@ export const PROVIDERS = [
     displayName: "Custom",
     badge: null,
     icon: <Icon icon="mingcute:random-fill" />,
-    baseUrl: { value: "https://deepgram.compatible.com", immutable: false },
+    baseUrl: undefined,
     models: [],
   },
   {
@@ -53,7 +53,7 @@ export const PROVIDERS = [
     displayName: "Groq",
     badge: null,
     icon: <Groq size={16} />,
-    baseUrl: { value: "https://api.groq.com/v1", immutable: false },
+    baseUrl: "https://api.groq.com/v1",
     models: ["whisper-large-v3-turbo", "whisper-large-v3"],
   },
   {
@@ -62,7 +62,7 @@ export const PROVIDERS = [
     displayName: "Fireworks",
     badge: null,
     icon: <Fireworks size={16} />,
-    baseUrl: { value: "https://api.firework.ai/v1", immutable: false },
+    baseUrl: "https://api.firework.ai/v1",
     models: ["whisper-large-v3-turbo", "whisper-large-v3"],
   },
 ] as const;

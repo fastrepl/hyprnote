@@ -52,7 +52,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
     defaultValues: provider
       ?? ({
         type: "stt",
-        base_url: "",
+        base_url: config.baseUrl ?? "",
         api_key: "",
       } satisfies internal.AIProvider),
     listeners: {
@@ -96,16 +96,17 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
             e.stopPropagation();
           }}
         >
-          <form.Field name="base_url" defaultValue={config.baseUrl.value}>
-            {(field) => (
-              <FormField
-                field={field}
-                hidden={config.baseUrl.immutable}
-                label="Base URL"
-                icon="mdi:web"
-              />
-            )}
-          </form.Field>
+          {!config.baseUrl && (
+            <form.Field name="base_url">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Base URL"
+                  icon="mdi:web"
+                />
+              )}
+            </form.Field>
+          )}
           <form.Field name="api_key">
             {(field) => (
               <FormField
@@ -117,6 +118,24 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
               />
             )}
           </form.Field>
+          {config.baseUrl && (
+            <details className="space-y-4 pt-2">
+              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                Advanced
+              </summary>
+              <div className="mt-4">
+                <form.Field name="base_url">
+                  {(field) => (
+                    <FormField
+                      field={field}
+                      label="Base URL"
+                      icon="mdi:web"
+                    />
+                  )}
+                </form.Field>
+              </div>
+            </details>
+          )}
         </form>
       </AccordionContent>
     </AccordionItem>

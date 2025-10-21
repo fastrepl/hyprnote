@@ -16,10 +16,7 @@ export function ConfigureProviders() {
         {PROVIDERS.map((provider) => (
           <ProviderCard
             key={provider.id}
-            icon={provider.icon}
-            providerId={provider.id}
-            providerName={provider.displayName}
-            providerConfig={provider}
+            config={provider}
           />
         ))}
       </Accordion>
@@ -27,25 +24,15 @@ export function ConfigureProviders() {
   );
 }
 
-function ProviderCard({
-  providerId,
-  providerName,
-  icon,
-  providerConfig,
-}: {
-  providerId: ProviderId;
-  providerName: string;
-  icon: React.ReactNode;
-  providerConfig: typeof PROVIDERS[number];
-}) {
-  const [provider, setProvider] = useProvider(providerId);
+function ProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
+  const [provider, setProvider] = useProvider(config.id);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
     defaultValues: provider
       ?? ({
         type: "llm",
-        base_url: "",
+        base_url: config.baseUrl ?? "",
         api_key: "",
       } satisfies internal.AIProvider),
     listeners: {
@@ -65,22 +52,22 @@ function ProviderCard({
 
   return (
     <AccordionItem
-      value={providerId}
+      value={config.id}
       className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">
-          {icon}
-          <span>{providerName}</span>
-          {providerConfig.badge && (
+          {config.icon}
+          <span>{config.displayName}</span>
+          {config.badge && (
             <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {providerConfig.badge}
+              {config.badge}
             </span>
           )}
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4">
-        <ProviderContext providerId={providerId} />
+        <ProviderContext providerId={config.id} />
         <form
           className="space-y-4"
           onSubmit={(e) => {
@@ -88,28 +75,48 @@ function ProviderCard({
             e.stopPropagation();
           }}
         >
-          <form.Field name="base_url" defaultValue={providerConfig.baseUrl.value}>
-            {(field) => (
-              <FormField
-                field={field}
-                hidden={providerConfig.baseUrl.immutable}
-                label="Base URL"
-                icon="mdi:web"
-              />
-            )}
-          </form.Field>
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                hidden={!providerConfig?.apiKey}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
-            )}
-          </form.Field>
+          {!config.baseUrl && (
+            <form.Field name="base_url">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="Base URL"
+                  icon="mdi:web"
+                />
+              )}
+            </form.Field>
+          )}
+          {config?.apiKey && (
+            <form.Field name="api_key">
+              {(field) => (
+                <FormField
+                  field={field}
+                  label="API Key"
+                  icon="mdi:key"
+                  placeholder="Enter your API key"
+                  type="password"
+                />
+              )}
+            </form.Field>
+          )}
+          {config.baseUrl && (
+            <details className="space-y-4 pt-2">
+              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                Advanced
+              </summary>
+              <div className="mt-4">
+                <form.Field name="base_url">
+                  {(field) => (
+                    <FormField
+                      field={field}
+                      label="Base URL"
+                      icon="mdi:web"
+                    />
+                  )}
+                </form.Field>
+              </div>
+            </details>
+          )}
         </form>
       </AccordionContent>
     </AccordionItem>

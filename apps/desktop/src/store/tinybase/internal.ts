@@ -26,7 +26,7 @@ export const generalSchema = z.object({
 export const aiProviderSchema = z.object({
   type: z.enum(["stt", "llm"]),
   base_url: z.url().min(1),
-  api_key: z.string().min(1),
+  api_key: z.string(),
 });
 
 export type AIProvider = z.infer<typeof aiProviderSchema>;

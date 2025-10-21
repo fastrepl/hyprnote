@@ -26,14 +26,12 @@ export function FormField({
   icon,
   placeholder,
   type,
-  hidden,
 }: {
   field: AnyFieldApi;
   label: string;
   icon: string;
   placeholder?: string;
   type?: string;
-  hidden?: boolean;
 }) {
   const { meta: { errors, isTouched, isDirty } } = field.state;
   const hasError = isDirty && isTouched && errors && errors.length > 0;
@@ -42,7 +40,7 @@ export function FormField({
     : null;
 
   return (
-    <div className="space-y-2" hidden={hidden}>
+    <div className="space-y-2">
       <label className="block text-xs font-medium">{label}</label>
       <InputGroup className="bg-white">
         <InputGroupAddon align="inline-start">

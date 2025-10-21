@@ -1,4 +1,5 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 
 import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
@@ -116,7 +117,17 @@ export function ProfileSection() {
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
     { icon: Users, label: "Contacts", onClick: handleClickContacts },
     { icon: Calendar, label: "Calendar", onClick: handleClickCalendar },
-    { icon: Settings, label: "Settings", onClick: handleClickSettings },
+    {
+      icon: Settings,
+      label: "Settings",
+      onClick: handleClickSettings,
+      badge: (
+        <KbdGroup>
+          <Kbd className="bg-neutral-200">⌘</Kbd>
+          <Kbd className="bg-neutral-200">,</Kbd>
+        </KbdGroup>
+      ),
+    },
   ];
 
   return (

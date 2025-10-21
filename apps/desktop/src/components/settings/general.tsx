@@ -1,15 +1,14 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
-import { AlertTriangle, Check, Link2, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Check, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { Switch } from "@hypr/ui/components/ui/switch";
-import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { useUpdateGeneral } from "./shared";
+import { cn } from "@hypr/utils";
+
+import { SettingRow, useUpdateGeneral } from "./shared";
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
@@ -60,13 +59,117 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
 
 export function SettingsGeneral() {
   const { value, handle } = useUpdateGeneral();
-  const [languagePopoverOpen, setLanguagePopoverOpen] = useState(false);
+  const [languageSearchQuery, setLanguageSearchQuery] = useState("");
+  const [languageInputFocused, setLanguageInputFocused] = useState(false);
+  const [languageSelectedIndex, setLanguageSelectedIndex] = useState(-1);
+  const [vocabSearchQuery, setVocabSearchQuery] = useState("");
+  const [vocabInputFocused, setVocabInputFocused] = useState(false);
+  // Mock permission states - set to true/false to test different states
+  const [hasMicrophoneAccess, setHasMicrophoneAccess] = useState(true);
+  const [hasSystemAudioAccess, setHasSystemAudioAccess] = useState(false);
+
+  const handleGrantMicrophoneAccess = () => {
+    // Mock: Toggle the permission state
+    setHasMicrophoneAccess(!hasMicrophoneAccess);
+  };
+
+  const handleGrantSystemAudioAccess = () => {
+    // Mock: Toggle the permission state
+    setHasSystemAudioAccess(!hasSystemAudioAccess);
+  };
+
+  const filteredLanguages = useMemo(() => {
+    if (!languageSearchQuery.trim()) {
+      return [];
+    }
+    const query = languageSearchQuery.toLowerCase();
+    return SUPPORTED_LANGUAGES
+      .filter((langCode) => {
+        const langName = LANGUAGES_ISO_639_1[langCode].name;
+        return !((value.spoken_languages ?? []).includes(langName))
+          && langName.toLowerCase().includes(query);
+      })
+      .map((langCode) => LANGUAGES_ISO_639_1[langCode].name);
+  }, [languageSearchQuery, value.spoken_languages]);
+
+  const handleLanguageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !languageSearchQuery && (value.spoken_languages ?? []).length > 0) {
+      e.preventDefault();
+      const languages = value.spoken_languages ?? [];
+      handle.setField("spoken_languages", languages.slice(0, -1));
+      return;
+    }
+
+    if (!languageSearchQuery.trim() || filteredLanguages.length === 0) {
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setLanguageSelectedIndex((prev) => (prev < filteredLanguages.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setLanguageSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (languageSelectedIndex >= 0 && languageSelectedIndex < filteredLanguages.length) {
+        handle.setField("spoken_languages", [
+          ...(value.spoken_languages ?? []),
+          filteredLanguages[languageSelectedIndex],
+        ]);
+        setLanguageSearchQuery("");
+        setLanguageSelectedIndex(-1);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setLanguageInputFocused(false);
+      setLanguageSearchQuery("");
+    }
+  };
+
+  const handleVocabChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setVocabSearchQuery(inputValue);
+
+    if (inputValue.includes(",")) {
+      const terms = inputValue.split(",").map(s => s.trim()).filter(Boolean);
+      if (terms.length > 0) {
+        const existingJargons = new Set(value.jargons ?? []);
+        const newTerms = terms.filter(term => !existingJargons.has(term));
+        if (newTerms.length > 0) {
+          handle.setField("jargons", [...(value.jargons ?? []), ...newTerms]);
+        }
+        setVocabSearchQuery("");
+      }
+    }
+  };
+
+  const handleVocabKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !vocabSearchQuery && (value.jargons ?? []).length > 0) {
+      e.preventDefault();
+      const jargons = value.jargons ?? [];
+      handle.setField("jargons", jargons.slice(0, -1));
+      return;
+    }
+
+    if (e.key === "Enter" && vocabSearchQuery.trim()) {
+      e.preventDefault();
+      const newVocab = vocabSearchQuery.trim();
+      if (!((value.jargons ?? []).includes(newVocab))) {
+        handle.setField("jargons", [...(value.jargons ?? []), newVocab]);
+      }
+      setVocabSearchQuery("");
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setVocabInputFocused(false);
+      setVocabSearchQuery("");
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-8 p-6">
-      {/* App Section */}
+    <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-xl font-semibold mb-4">App</h2>
+        <h2 className="font-semibold mb-4">App</h2>
         <div className="space-y-6">
           <SettingRow
             title="Start Hyprnote automatically at login"
@@ -95,21 +198,19 @@ export function SettingsGeneral() {
         </div>
       </div>
 
-      {/* Language & Vocabulary Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Language & Vocabulary</h2>
+        <h2 className="font-semibold mb-4">Language & Vocabulary</h2>
         <div className="space-y-6">
-          {/* Main Language */}
           <div className="flex flex-row items-center justify-between">
             <div>
-              <h3 className="text-base font-medium mb-1">Main language</h3>
-              <p className="text-sm text-neutral-600">Language for summaries, chats, and AI-generated responses</p>
+              <h3 className="text-sm font-medium mb-1">Main language</h3>
+              <p className="text-xs text-neutral-600">Language for summaries, chats, and AI-generated responses</p>
             </div>
             <Select
               value={value.ai_language ?? "English"}
               onValueChange={(val) => handle.setField("ai_language", val)}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-40 shadow-none focus:ring-0 focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="max-h-[250px] overflow-auto">
@@ -122,12 +223,19 @@ export function SettingsGeneral() {
             </Select>
           </div>
 
-          {/* Spoken Languages */}
           <div>
-            <h3 className="text-base font-medium mb-1">Spoken languages</h3>
-            <p className="text-sm text-neutral-600 mb-3">Add other languages you use other than the main language</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-lg">
+            <h3 className="text-sm font-medium mb-1">Spoken languages</h3>
+            <p className="text-xs text-neutral-600 mb-3">Add other languages you use other than the main language</p>
+            <div className="relative">
+              <div
+                className={cn(
+                  [
+                    "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded-lg bg-white border border-neutral-200 focus-within:border-neutral-300 min-h-[38px]",
+                    languageInputFocused && "border-neutral-300",
+                  ],
+                )}
+                onClick={() => document.getElementById("language-search-input")?.focus()}
+              >
                 {(value.spoken_languages ?? []).map((lang) => (
                   <Badge
                     key={lang}
@@ -140,7 +248,8 @@ export function SettingsGeneral() {
                       variant="ghost"
                       size="sm"
                       className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const updated = (value.spoken_languages ?? []).filter(l => l !== lang);
                         handle.setField("spoken_languages", updated);
                       }}
@@ -149,118 +258,184 @@ export function SettingsGeneral() {
                     </Button>
                   </Badge>
                 ))}
+                {(value.spoken_languages ?? []).length === 0 && (
+                  <Search className="size-4 text-neutral-700 flex-shrink-0" />
+                )}
+                <input
+                  id="language-search-input"
+                  type="text"
+                  value={languageSearchQuery}
+                  onChange={(e) => {
+                    setLanguageSearchQuery(e.target.value);
+                    setLanguageSelectedIndex(-1);
+                  }}
+                  onKeyDown={handleLanguageKeyDown}
+                  onFocus={() => setLanguageInputFocused(true)}
+                  onBlur={() => setLanguageInputFocused(false)}
+                  role="combobox"
+                  aria-haspopup="listbox"
+                  aria-expanded={languageInputFocused && !!languageSearchQuery.trim()}
+                  aria-controls="language-options"
+                  aria-activedescendant={languageSelectedIndex >= 0
+                    ? `language-option-${languageSelectedIndex}`
+                    : undefined}
+                  aria-label="Add spoken language"
+                  placeholder={(value.spoken_languages ?? []).length === 0 ? "Add language" : ""}
+                  className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
+                />
               </div>
-              <Popover open={languagePopoverOpen} onOpenChange={setLanguagePopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-[38px] w-[38px]"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[220px] p-0" align="end">
-                  <Command>
-                    <CommandInput placeholder="Search languages..." className="h-9" />
-                    <CommandEmpty>No language found.</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-auto">
-                      {SUPPORTED_LANGUAGES.filter(
-                        (langCode) => !(value.spoken_languages ?? []).includes(LANGUAGES_ISO_639_1[langCode].name),
-                      ).map((langCode) => (
-                        <CommandItem
-                          key={langCode}
-                          onSelect={() => {
-                            const langName = LANGUAGES_ISO_639_1[langCode].name;
+
+              {languageInputFocused && languageSearchQuery.trim() && (
+                <div
+                  id="language-options"
+                  role="listbox"
+                  className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
+                >
+                  {filteredLanguages.length > 0
+                    ? (
+                      filteredLanguages.map((langName, index) => (
+                        <button
+                          key={langName}
+                          id={`language-option-${index}`}
+                          type="button"
+                          role="option"
+                          aria-selected={languageSelectedIndex === index}
+                          onClick={() => {
                             handle.setField("spoken_languages", [...(value.spoken_languages ?? []), langName]);
-                            setLanguagePopoverOpen(false);
+                            setLanguageSearchQuery("");
+                            setLanguageSelectedIndex(-1);
                           }}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onMouseEnter={() => setLanguageSelectedIndex(index)}
+                          className={cn([
+                            "flex items-center justify-between px-3 py-2 text-sm text-left transition-colors w-full",
+                            languageSelectedIndex === index ? "bg-neutral-200" : "hover:bg-neutral-100",
+                          ])}
                         >
-                          {LANGUAGES_ISO_639_1[langCode].name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                          <span className="font-medium truncate">{langName}</span>
+                        </button>
+                      ))
+                    )
+                    : (
+                      <div className="px-3 py-2 text-sm text-neutral-500 text-center">
+                        No matching languages found
+                      </div>
+                    )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Custom Vocabulary */}
           <div>
-            <h3 className="text-base font-medium mb-1">Custom vocabulary</h3>
-            <p className="text-sm text-neutral-600 mb-3">
+            <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
+            <p className="text-xs text-neutral-600 mb-3">
               Add jargons or industry/company-specific terms to improve transcription accuracy
             </p>
-            <Textarea
-              value={(value.jargons ?? []).join(", ")}
-              onChange={(e) => handle.setField("jargons", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-              onBlur={() => {
-                // Auto-save on blur
-              }}
-              placeholder="smart notepad, offline, X, Discord"
-              className="w-full resize-none"
-              rows={3}
-            />
+            <div className="relative">
+              <div
+                className={cn([
+                  "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded-lg bg-white border border-neutral-200 focus-within:border-neutral-300 min-h-[38px]",
+                  vocabInputFocused && "border-neutral-300",
+                ])}
+                onClick={() => document.getElementById("vocab-search-input")?.focus()}
+              >
+                {(value.jargons ?? []).map((vocab) => (
+                  <Badge
+                    key={vocab}
+                    variant="secondary"
+                    className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+                  >
+                    {vocab}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = (value.jargons ?? []).filter(j => j !== vocab);
+                        handle.setField("jargons", updated);
+                      }}
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </Button>
+                  </Badge>
+                ))}
+                {(value.jargons ?? []).length === 0 && <Search className="size-4 text-neutral-700 flex-shrink-0" />}
+                <input
+                  id="vocab-search-input"
+                  type="text"
+                  value={vocabSearchQuery}
+                  onChange={handleVocabChange}
+                  onKeyDown={handleVocabKeyDown}
+                  onFocus={() => setVocabInputFocused(true)}
+                  onBlur={() => setVocabInputFocused(false)}
+                  role="textbox"
+                  aria-label="Add custom vocabulary"
+                  placeholder={(value.jargons ?? []).length === 0 ? "Add terms separated by comma" : ""}
+                  className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-neutral-500"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Permissions Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Permissions</h2>
+        <h2 className="font-semibold mb-4">Permissions</h2>
         <div className="space-y-4">
-          {/* Microphone Access - Granted */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h3 className="text-base font-medium mb-1">Microphone access</h3>
-              <p className="text-sm text-neutral-600">Thanks for granting permission for system audio</p>
-            </div>
-            <div className="px-4 py-2 border rounded-lg bg-neutral-50 flex items-center gap-2">
-              <Check className="w-4 h-4 text-neutral-600" />
-              <span className="text-sm text-neutral-600">Access Granted</span>
-            </div>
-          </div>
-
-          {/* System Audio Access - Not Granted */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="w-4 h-4 text-red-500" />
-                <h3 className="text-base font-medium text-red-500">System audio access</h3>
-              </div>
-              <p className="text-sm text-red-500">Oops! You need to grant access to use Hyprnote</p>
-            </div>
-            <Button className="bg-black hover:bg-neutral-800 text-white flex items-center gap-2">
-              <Link2 className="w-4 h-4" />
-              Grant Permission
-            </Button>
-          </div>
+          <PermissionRow
+            title="Microphone access"
+            hasAccess={hasMicrophoneAccess}
+            grantedMessage="Thanks for granting permission for microphone"
+            deniedMessage="Oops! You need to grant access to use Hyprnote"
+            onGrant={handleGrantMicrophoneAccess}
+          />
+          <PermissionRow
+            title="System audio access"
+            hasAccess={hasSystemAudioAccess}
+            grantedMessage="Thanks for granting permission for system audio"
+            deniedMessage="Oops! You need to grant access to use Hyprnote"
+            onGrant={handleGrantSystemAudioAccess}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function SettingRow({
+function PermissionRow({
   title,
-  description,
-  checked,
-  onChange,
+  hasAccess,
+  grantedMessage,
+  deniedMessage,
+  onGrant,
 }: {
   title: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+  hasAccess: boolean;
+  grantedMessage: string;
+  deniedMessage: string;
+  onGrant: () => void;
 }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
-        <h3 className="text-base font-medium mb-1">{title}</h3>
-        <p className="text-sm text-neutral-600">{description}</p>
+        <h3 className={cn("text-sm font-medium mb-1", !hasAccess && "text-red-500")}>
+          {title}
+        </h3>
+        <p className={cn(["text-xs", hasAccess ? "text-neutral-600" : "text-red-500"])}>
+          {hasAccess ? grantedMessage : deniedMessage}
+        </p>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Button
+        variant={hasAccess ? "outline" : "default"}
+        className="w-40 text-xs shadow-none"
+        disabled={hasAccess}
+        onClick={onGrant}
+      >
+        {hasAccess ? <Check size={16} /> : <AlertTriangle size={16} />}
+        {hasAccess ? "Access Granted" : "Grant Permission"}
+      </Button>
     </div>
   );
 }

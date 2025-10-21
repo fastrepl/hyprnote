@@ -50,16 +50,16 @@ function Component() {
   }, [currentTab, persistedStore, internalStore, registerOnEmpty, openNew]);
 
   return (
-    <ShellProvider>
-      <SearchEngineProvider store={persistedStore}>
-        <SearchUIProvider>
+    <SearchEngineProvider store={persistedStore}>
+      <SearchUIProvider>
+        <ShellProvider>
           <ToolRegistryProvider>
             <ToolRegistration />
             <Outlet />
           </ToolRegistryProvider>
-        </SearchUIProvider>
-      </SearchEngineProvider>
-    </ShellProvider>
+        </ShellProvider>
+      </SearchUIProvider>
+    </SearchEngineProvider>
   );
 }
 

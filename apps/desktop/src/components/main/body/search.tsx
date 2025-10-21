@@ -1,64 +1,14 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
-import { useRef, useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
 
 export function Search() {
-  const { query, setQuery, isSearching, isIndexing, onFocus, onBlur } = useSearch();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
 
   const showLoading = isSearching || isIndexing;
-
-  useHotkeys("mod+k", (e) => {
-    e.preventDefault();
-    inputRef.current?.focus();
-  });
-
-  useHotkeys(
-    "down",
-    (event) => {
-      if (document.activeElement === inputRef.current) {
-        event.preventDefault();
-        console.log("down");
-      }
-    },
-    { enableOnFormTags: true },
-  );
-
-  useHotkeys(
-    "up",
-    (event) => {
-      if (document.activeElement === inputRef.current) {
-        event.preventDefault();
-        console.log("up");
-      }
-    },
-    { enableOnFormTags: true },
-  );
-
-  useHotkeys(
-    "enter",
-    (event) => {
-      if (document.activeElement === inputRef.current) {
-        event.preventDefault();
-        console.log("enter");
-      }
-    },
-    { enableOnFormTags: true },
-  );
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    onFocus();
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    onBlur();
-  };
 
   return (
     <div
@@ -77,8 +27,13 @@ export function Search() {
           placeholder="Search anything..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.currentTarget.blur();
+            }
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           className={cn([
             "text-sm",
             "w-full pl-9 h-full",

@@ -162,7 +162,7 @@ function useStartSession(sessionId: string) {
 
   const handleClick = useCallback(() => {
     if (!conn) {
-      console.log("no connection");
+      console.error("no_stt_connection");
       return;
     }
 

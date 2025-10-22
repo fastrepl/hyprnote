@@ -8,7 +8,7 @@ import {
   type SessionParams,
   type StreamResponse,
 } from "@hypr/plugin-listener";
-import { fromResult } from "../../effect";
+import { fromResult } from "../../../effect";
 
 type State = {
   sessionEventUnlisten?: () => void;

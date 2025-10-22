@@ -61,7 +61,7 @@ function Component() {
           </h1>
         </header>
 
-        <div className="flex-1 w-full overflow-y-auto p-6 border border-neutral-200 rounded-lg">
+        <div className="flex-1 w-full overflow-y-auto scrollbar-none p-6 border border-neutral-200 rounded-lg">
           <Outlet />
         </div>
       </div>

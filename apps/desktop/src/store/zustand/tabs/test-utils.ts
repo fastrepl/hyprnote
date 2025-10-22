@@ -37,7 +37,13 @@ export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTa
 type TabsStore = ReturnType<typeof useTabs.getState>;
 type TabsStateSlice = Pick<
   TabsStore,
-  "currentTab" | "tabs" | "history" | "canGoBack" | "canGoNext" | "onCloseHandlers" | "onEmptyHandlers"
+  | "currentTab"
+  | "tabs"
+  | "history"
+  | "canGoBack"
+  | "canGoNext"
+  | "onClose"
+  | "onEmpty"
 >;
 
 const createDefaultTabsState = (): TabsStateSlice => ({
@@ -46,8 +52,8 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   history: new Map(),
   canGoBack: false,
   canGoNext: false,
-  onCloseHandlers: new Set(),
-  onEmptyHandlers: new Set(),
+  onClose: null,
+  onEmpty: null,
 });
 
 export const seedTabsStore = (overrides: Partial<TabsStateSlice> = {}): void => {

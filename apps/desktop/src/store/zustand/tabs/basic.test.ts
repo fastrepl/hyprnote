@@ -62,20 +62,20 @@ describe("Basic Tab Actions", () => {
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: "first" }));
   });
 
-  test("openNew appends unique active tab and closes duplicates", () => {
-    const duplicate = createSessionTab({ id: "dup", active: false });
-    const handler = vi.fn();
-    useTabs.getState().registerOnClose(handler);
-    useTabs.getState().openNew(duplicate);
+  test("openNew is idempotent - switches to existing tab instead of duplicating", () => {
+    const session1 = createSessionTab({ id: "tab1", active: false });
+    const session2 = createSessionTab({ id: "tab2", active: false });
+    useTabs.getState().openNew(session1);
+    useTabs.getState().openNew(session2);
 
-    useTabs.getState().openNew(createSessionTab({ id: "dup", active: false }));
+    useTabs.getState().openNew(createSessionTab({ id: "tab1", active: false }));
 
     const state = useTabs.getState();
     expect(state).toMatchTabsInOrder([
-      { id: "dup", active: true },
+      { id: "tab1", active: true },
+      { id: "tab2", active: false },
     ]);
-    expect(handler).toHaveBeenCalledTimes(1);
-    expect(state).toHaveHistoryLength(2);
+    expect(state).toHaveHistoryLength(3);
   });
 
   test("select toggles active flag without changing history", () => {

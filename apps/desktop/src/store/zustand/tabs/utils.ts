@@ -7,38 +7,6 @@ export const getSlotId = (tab: Tab): string => {
   return tab.active ? ACTIVE_TAB_SLOT_ID : `inactive-${uniqueIdfromTab(tab)}`;
 };
 
-export const notifyTabClose = (
-  handlers: Set<(tab: Tab) => void>,
-  tab: Tab,
-): void => {
-  handlers.forEach((handler) => {
-    try {
-      handler(tab);
-    } catch (error) {
-      console.error("tab onClose handler failed", error);
-    }
-  });
-};
-
-export const notifyTabsClose = (
-  handlers: Set<(tab: Tab) => void>,
-  tabs: Tab[],
-): void => {
-  tabs.forEach((tab) => notifyTabClose(handlers, tab));
-};
-
-export const notifyEmpty = (
-  handlers: Set<() => void>,
-): void => {
-  handlers.forEach((handler) => {
-    try {
-      handler();
-    } catch (error) {
-      console.error("tab onEmpty handler failed", error);
-    }
-  });
-};
-
 export const computeHistoryFlags = (
   history: Map<string, TabHistory>,
   currentTab: Tab | null,

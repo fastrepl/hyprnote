@@ -27,7 +27,7 @@ function Component() {
   }, [persistedStore, internalStore, openNew]);
 
   useEffect(() => {
-    return registerOnClose((tab) => {
+    registerOnClose((tab) => {
       if (tab.type === "sessions" && persistedStore) {
         const row = persistedStore.getRow("sessions", tab.id);
         if (!row) {
@@ -48,7 +48,7 @@ function Component() {
   }, [currentTab, createDefaultSession]);
 
   useEffect(() => {
-    return registerOnEmpty(createDefaultSession);
+    registerOnEmpty(createDefaultSession);
   }, [createDefaultSession, registerOnEmpty]);
 
   return (

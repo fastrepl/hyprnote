@@ -101,6 +101,14 @@ export function ProfileSection() {
     closeMenu();
   }, [closeMenu]);
 
+  // TODO - why is this not working as intended
+  const handleClickBilling = useCallback(() => {
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "settings" }, { path: "/app/settings", search: { tab: "billing" } });
+    });
+    closeMenu();
+  }, [closeMenu]);
+
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null });
     closeMenu();
@@ -227,13 +235,19 @@ export function ProfileSection() {
       </AnimatePresence>
 
       <div className="bg-neutral-50 rounded-lg overflow-hidden">
-        <ProfileButton isExpanded={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />
+        <ProfileButton
+          isExpanded={isExpanded}
+          onClick={() => setIsExpanded(!isExpanded)}
+          onClickBilling={handleClickBilling}
+        />
       </div>
     </div>
   );
 }
 
-function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: () => void }) {
+function ProfileButton(
+  { isExpanded, onClick, onClickBilling }: { isExpanded: boolean; onClick: () => void; onClickBilling: () => void },
+) {
   return (
     <button
       className={clsx(
@@ -267,6 +281,10 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
       </div>
       <div className="flex items-center gap-1.5">
         <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onClickBilling();
+          }}
           className={clsx(
             "hidden md:inline-block",
             "rounded-full",
@@ -274,6 +292,9 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
             "bg-white",
             "px-2.5 py-0.5",
             "text-[11px] font-medium text-neutral-900",
+            "cursor-pointer",
+            "hover:bg-neutral-100",
+            "transition-colors duration-200",
           )}
         >
           Pro trial

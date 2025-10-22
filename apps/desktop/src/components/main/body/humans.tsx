@@ -7,6 +7,7 @@ import { type TabItem, TabItemBase } from "./shared";
 
 export const TabItemHuman: TabItem = ({
   tab,
+  tabIndex,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
@@ -23,6 +24,7 @@ export const TabItemHuman: TabItem = ({
       icon={<UserIcon className="w-4 h-4" />}
       title={title ?? "Human"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

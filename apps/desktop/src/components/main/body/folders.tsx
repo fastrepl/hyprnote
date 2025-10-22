@@ -22,6 +22,7 @@ export const TabItemFolder: TabItem = (props) => {
 const TabItemFolderAll: TabItem = (
   {
     tab,
+    tabIndex,
     handleCloseThis: handleCloseThis,
     handleSelectThis: handleSelectThis,
     handleCloseAll,
@@ -33,6 +34,7 @@ const TabItemFolderAll: TabItem = (
       icon={<FolderIcon className="w-4 h-4" />}
       title={"Folder"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
@@ -43,6 +45,7 @@ const TabItemFolderAll: TabItem = (
 
 const TabItemFolderSpecific: TabItem = ({
   tab,
+  tabIndex,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
@@ -59,6 +62,7 @@ const TabItemFolderSpecific: TabItem = ({
       icon={<FolderIcon className="w-4 h-4" />}
       title={folderName ?? ""}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

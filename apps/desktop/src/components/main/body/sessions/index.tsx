@@ -16,6 +16,7 @@ import { TitleInput } from "./title-input";
 export const TabItemNote: TabItem = (
   {
     tab,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
@@ -29,6 +30,7 @@ export const TabItemNote: TabItem = (
       icon={<StickyNoteIcon className="w-4 h-4" />}
       title={title || "Untitled"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

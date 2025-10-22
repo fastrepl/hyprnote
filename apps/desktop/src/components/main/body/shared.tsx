@@ -1,20 +1,22 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 
 import { clsx } from "clsx";
 import { X } from "lucide-react";
 
+import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";
 
-type TabItemProps = { tab: Tab } & {
+type TabItemProps = { tab: Tab; tabIndex?: number } & {
   handleSelectThis: (tab: Tab) => void;
   handleCloseThis: (tab: Tab) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
 };
 
-type TabItemBaseProps = { icon: React.ReactNode; title: string; active: boolean } & {
+type TabItemBaseProps = { icon: React.ReactNode; title: string; active: boolean; tabIndex?: number } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
   handleCloseOthers: () => void;
@@ -28,12 +30,15 @@ export function TabItemBase(
     icon,
     title,
     active,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
     handleCloseAll,
   }: TabItemBaseProps,
 ) {
+  const isCmdPressed = useCmdKeyPressed();
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1) {
       e.preventDefault();
@@ -50,6 +55,8 @@ export function TabItemBase(
     </>
   );
 
+  const showShortcut = isCmdPressed && tabIndex !== undefined;
+
   return (
     <InteractiveButton
       asChild
@@ -57,7 +64,7 @@ export function TabItemBase(
       onClick={handleSelectThis}
       onMouseDown={handleMouseDown}
       className={clsx([
-        "flex items-center gap-2 cursor-pointer group",
+        "flex items-center gap-1 cursor-pointer group relative",
         "w-48 h-full pl-2 pr-1",
         "bg-neutral-50 rounded-lg border",
         active ? "text-black border-black" : "text-neutral-500 border-transparent",
@@ -83,6 +90,14 @@ export function TabItemBase(
       >
         <X size={14} />
       </Button>
+      {showShortcut && (
+        <div className="absolute top-[3px] right-2 pointer-events-none">
+          <KbdGroup>
+            <Kbd className="bg-neutral-200">⌘</Kbd>
+            <Kbd className="bg-neutral-200">{tabIndex}</Kbd>
+          </KbdGroup>
+        </div>
+      )}
     </InteractiveButton>
   );
 }

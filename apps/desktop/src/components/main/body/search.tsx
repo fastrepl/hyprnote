@@ -1,14 +1,18 @@
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
+import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
 export function Search() {
   const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
+  const isCmdPressed = useCmdKeyPressed();
 
   const showLoading = isSearching || isIndexing;
+  const showShortcut = isCmdPressed && !query;
 
   return (
     <div
@@ -37,7 +41,7 @@ export function Search() {
           className={cn([
             "text-sm",
             "w-full pl-9 h-full",
-            query ? "pr-9" : "pr-4",
+            query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
             "rounded-lg bg-neutral-100 border border-transparent",
             "focus:outline-none focus:bg-neutral-200 focus:border-black",
           ])}
@@ -55,6 +59,14 @@ export function Search() {
           >
             <XIcon className="h-4 w-4" />
           </button>
+        )}
+        {showShortcut && (
+          <div className="absolute right-2 top-1">
+            <KbdGroup>
+              <Kbd className="bg-neutral-200">⌘</Kbd>
+              <Kbd className="bg-neutral-200">K</Kbd>
+            </KbdGroup>
+          </div>
         )}
       </div>
     </div>

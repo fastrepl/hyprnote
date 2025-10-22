@@ -26,6 +26,7 @@ import { type TabItem, TabItemBase } from "./shared";
 export const TabItemCalendar: TabItem = (
   {
     tab,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
@@ -37,6 +38,7 @@ export const TabItemCalendar: TabItem = (
       icon={<Calendar size={16} />}
       title={"Calendar"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

@@ -93,25 +93,31 @@ function Header({ tabs }: { tabs: Tab[] }) {
           onReorder={reorder}
           className="flex w-max gap-1 h-full"
         >
-          {tabs.map((tab) => (
-            <Reorder.Item
-              key={uniqueIdfromTab(tab)}
-              value={tab}
-              as="div"
-              ref={(el) => setTabRef(tab, el)}
-              style={{ position: "relative" }}
-              className="h-full z-10"
-              layoutScroll
-            >
-              <TabItem
-                tab={tab}
-                handleClose={close}
-                handleSelect={select}
-                handleCloseOthersCallback={closeOthers}
-                handleCloseAll={closeAll}
-              />
-            </Reorder.Item>
-          ))}
+          {tabs.map((tab, index) => {
+            const isLastTab = index === tabs.length - 1;
+            const shortcutIndex = index < 8 ? index + 1 : (isLastTab ? 9 : undefined);
+
+            return (
+              <Reorder.Item
+                key={uniqueIdfromTab(tab)}
+                value={tab}
+                as="div"
+                ref={(el) => setTabRef(tab, el)}
+                style={{ position: "relative" }}
+                className="h-full z-10"
+                layoutScroll
+              >
+                <TabItem
+                  tab={tab}
+                  handleClose={close}
+                  handleSelect={select}
+                  handleCloseOthersCallback={closeOthers}
+                  handleCloseAll={closeAll}
+                  tabIndex={shortcutIndex}
+                />
+              </Reorder.Item>
+            );
+          })}
         </Reorder.Group>
       </div>
 
@@ -141,12 +147,14 @@ function TabItem(
     handleSelect,
     handleCloseOthersCallback,
     handleCloseAll,
+    tabIndex,
   }: {
     tab: Tab;
     handleClose: (tab: Tab) => void;
     handleSelect: (tab: Tab) => void;
     handleCloseOthersCallback: (tab: Tab) => void;
     handleCloseAll: () => void;
+    tabIndex?: number;
   },
 ) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
@@ -155,6 +163,7 @@ function TabItem(
     return (
       <TabItemNote
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
@@ -166,6 +175,7 @@ function TabItem(
     return (
       <TabItemEvent
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
@@ -177,6 +187,7 @@ function TabItem(
     return (
       <TabItemFolder
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
@@ -188,6 +199,7 @@ function TabItem(
     return (
       <TabItemHuman
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
@@ -200,6 +212,7 @@ function TabItem(
     return (
       <TabItemCalendar
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
@@ -211,6 +224,7 @@ function TabItem(
     return (
       <TabItemContact
         tab={tab}
+        tabIndex={tabIndex}
         handleCloseThis={handleClose}
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}

@@ -1,4 +1,8 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   Bell,
   BookText,
@@ -10,9 +14,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { z } from "zod";
-
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 
 const TABS = [
   "general",
@@ -82,6 +83,17 @@ function Group(
   },
 ) {
   const navigate = Route.useNavigate();
+
+  const handleTabClick = async (tab: typeof TABS[number]) => {
+    if (tab === "feedback") {
+      await openUrl("https://hyprnote.canny.io/feature-requests");
+    } else if (tab === "developers") {
+      await openUrl("https://cal.com/team/hyprnote/welcome");
+    } else {
+      navigate({ search: { tab } });
+    }
+  };
+
   return (
     <div
       className={cn([
@@ -102,7 +114,7 @@ function Group(
               "shadow-none w-full justify-start hover:bg-neutral-200",
               activeTab === tab && "bg-neutral-200",
             ])}
-            onClick={() => navigate({ search: { tab } })}
+            onClick={() => handleTabClick(tab)}
           >
             <Icon size={16} className="shrink-0" />
             {tabInfo.label}

@@ -1,10 +1,11 @@
+import { type StreamResponse } from "@hypr/plugin-listener";
+import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+
 import { Icon } from "@iconify-icon/react";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useEffect, useState } from "react";
 
-import { type StreamResponse } from "@hypr/plugin-listener";
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
@@ -53,7 +54,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/conferencing-platforms/zoom.png" alt="Zoom" className="w-5 h-5" />}
+        icon={<Icon icon="logos:zoom-icon" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
       </FloatingButton>
@@ -64,7 +65,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/conferencing-platforms/meet.png" alt="Google Meet" className="w-5 h-5" />}
+        icon={<Icon icon="logos:google-meet" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
       </FloatingButton>
@@ -75,7 +76,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/conferencing-platforms/webex.png" alt="Webex" className="w-5 h-5" />}
+        icon={<Icon icon="simple-icons:webex" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Webex & Start listening"}
       </FloatingButton>
@@ -86,7 +87,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<img src="/assets/conferencing-platforms/teams.png" alt="Microsoft Teams" className="w-5 h-5" />}
+        icon={<Icon icon="logos:microsoft-teams" className="w-5 h-5" />}
       >
         {isNarrow ? "Join & Listen" : "Join Teams & Start listening"}
       </FloatingButton>

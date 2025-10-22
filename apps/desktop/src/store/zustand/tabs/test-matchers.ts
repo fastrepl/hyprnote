@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
 import type { Tab, useTabs } from ".";
-import { getSlotId } from "./utils";
+import { getSlotId } from "./navigation";
 
 type TabsState = ReturnType<typeof useTabs.getState>;
 

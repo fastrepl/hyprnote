@@ -52,11 +52,6 @@ export const tabSchema = z.discriminatedUnion("type", [
 
 export type Tab = z.infer<typeof tabSchema>;
 
-export type TabHistory = {
-  stack: Tab[];
-  currentIndex: number;
-};
-
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
     case "sessions":

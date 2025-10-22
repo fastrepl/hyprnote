@@ -1,13 +1,14 @@
 import type { StoreApi } from "zustand";
 
 import type { LifecycleState } from "./lifecycle";
-import type { NavigationState } from "./navigation";
-import { isSameTab, type Tab, type TabHistory, tabSchema } from "./schema";
-import { computeHistoryFlags, getSlotId, pushHistory } from "./utils";
+import { isSameTab, type Tab, tabSchema } from "./schema";
+
+import type { NavigationState, TabHistory } from "./navigation";
+import { computeHistoryFlags, getSlotId, pushHistory } from "./navigation";
 
 export type BasicState = {
-  currentTab: Tab | null;
   tabs: Tab[];
+  currentTab: Tab | null;
 };
 
 export type BasicActions = {
@@ -20,95 +21,15 @@ export type BasicActions = {
   closeAll: () => void;
 };
 
-const removeDuplicates = (tabs: Tab[], newTab: Tab): Tab[] => {
-  return tabs.filter((t) => !isSameTab(t, newTab));
-};
-
-const setActiveFlags = (tabs: Tab[], activeTab: Tab): Tab[] => {
-  return tabs.map((t) => ({ ...t, active: isSameTab(t, activeTab) }));
-};
-
-const deactivateAll = (tabs: Tab[]): Tab[] => {
-  return tabs.map((t) => ({ ...t, active: false }));
-};
-
-const findNextActiveIndex = (tabs: Tab[], closedIndex: number): number => {
-  return closedIndex < tabs.length ? closedIndex : tabs.length - 1;
-};
-
-const updateWithHistory = <T extends BasicState & NavigationState>(
-  tabs: Tab[],
-  currentTab: Tab,
-  history: Map<string, TabHistory>,
-): Partial<T> => {
-  const nextHistory = pushHistory(history, currentTab);
-  const flags = computeHistoryFlags(nextHistory, currentTab);
-  return { tabs, currentTab, history: nextHistory, ...flags } as Partial<T>;
-};
-
-const openTab = <T extends BasicState & NavigationState>(
-  tabs: Tab[],
-  newTab: Tab,
-  history: Map<string, TabHistory>,
-  replaceActive: boolean,
-): Partial<T> => {
-  const tabWithDefaults = tabSchema.parse(newTab);
-  const activeTab = { ...tabWithDefaults, active: true };
-
-  let nextTabs: Tab[];
-
-  const existingTab = tabs.find((t) => isSameTab(t, tabWithDefaults));
-  const isNewTab = !existingTab;
-
-  if (replaceActive) {
-    const existingActiveIdx = tabs.findIndex((t) => t.active);
-
-    if (existingActiveIdx !== -1) {
-      nextTabs = tabs
-        .map((t, idx) => {
-          if (idx === existingActiveIdx) {
-            return activeTab;
-          }
-          if (isSameTab(t, tabWithDefaults)) {
-            return null;
-          }
-          return { ...t, active: false };
-        })
-        .filter((t): t is Tab => t !== null);
-    } else {
-      const withoutDuplicates = removeDuplicates(tabs, tabWithDefaults);
-      const deactivated = deactivateAll(withoutDuplicates);
-      nextTabs = [...deactivated, activeTab];
-    }
-  } else {
-    if (!isNewTab) {
-      nextTabs = setActiveFlags(tabs, existingTab!);
-      const currentTab = { ...existingTab!, active: true };
-      const flags = computeHistoryFlags(history, currentTab);
-      return { tabs: nextTabs, currentTab, history, ...flags } as Partial<T>;
-    }
-
-    const deactivated = deactivateAll(tabs);
-    nextTabs = [...deactivated, activeTab];
-  }
-
-  if (isNewTab) {
-    return updateWithHistory(nextTabs, activeTab, history);
-  }
-
-  const flags = computeHistoryFlags(history, activeTab);
-  return { tabs: nextTabs, currentTab: activeTab, history, ...flags } as Partial<T>;
-};
-
 export const createBasicSlice = <T extends BasicState & NavigationState & LifecycleState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): BasicState & BasicActions => ({
-  currentTab: null,
   tabs: [],
-  openCurrent: (newTab) => {
+  currentTab: null,
+  openCurrent: (tab) => {
     const { tabs, history } = get();
-    set(openTab(tabs, newTab, history, true));
+    set(openTab(tabs, tab, history, true));
   },
   openNew: (tab) => {
     const { tabs, history } = get();
@@ -188,3 +109,88 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
     } as unknown as Partial<T>);
   },
 });
+
+const removeDuplicates = (tabs: Tab[], newTab: Tab): Tab[] => {
+  return tabs.filter((t) => !isSameTab(t, newTab));
+};
+
+const setActiveFlags = (tabs: Tab[], activeTab: Tab): Tab[] => {
+  return tabs.map((t) => ({ ...t, active: isSameTab(t, activeTab) }));
+};
+
+const deactivateAll = (tabs: Tab[]): Tab[] => {
+  return tabs.map((t) => ({ ...t, active: false }));
+};
+
+const findNextActiveIndex = (tabs: Tab[], closedIndex: number): number => {
+  return closedIndex < tabs.length ? closedIndex : tabs.length - 1;
+};
+
+const updateWithHistory = <T extends BasicState & NavigationState>(
+  tabs: Tab[],
+  currentTab: Tab,
+  history: Map<string, TabHistory>,
+): Partial<T> => {
+  const nextHistory = pushHistory(history, currentTab);
+  const flags = computeHistoryFlags(nextHistory, currentTab);
+  return { tabs, currentTab, history: nextHistory, ...flags } as Partial<T>;
+};
+
+const openTab = <T extends BasicState & NavigationState>(
+  tabs: Tab[],
+  newTab: Tab,
+  history: Map<string, TabHistory>,
+  replaceActive: boolean,
+): Partial<T> => {
+  const tabWithDefaults = tabSchema.parse(newTab);
+  const activeTab = { ...tabWithDefaults, active: true };
+
+  let nextTabs: Tab[];
+
+  const existingTab = tabs.find((t) => isSameTab(t, tabWithDefaults));
+  const isNewTab = !existingTab;
+
+  if (replaceActive) {
+    const existingActiveIdx = tabs.findIndex((t) => t.active);
+
+    if (existingActiveIdx !== -1) {
+      nextTabs = tabs
+        .map((t, idx) => {
+          if (idx === existingActiveIdx) {
+            return activeTab;
+          }
+          if (isSameTab(t, tabWithDefaults)) {
+            return null;
+          }
+          return { ...t, active: false };
+        })
+        .filter((t): t is Tab => t !== null);
+    } else {
+      const withoutDuplicates = removeDuplicates(tabs, tabWithDefaults);
+      const deactivated = deactivateAll(withoutDuplicates);
+      nextTabs = [...deactivated, activeTab];
+    }
+  } else {
+    if (!isNewTab) {
+      nextTabs = setActiveFlags(tabs, existingTab!);
+      const currentTab = { ...existingTab!, active: true };
+      const flags = computeHistoryFlags(history, currentTab);
+      return { tabs: nextTabs, currentTab, history, ...flags } as Partial<T>;
+    }
+
+    const deactivated = deactivateAll(tabs);
+    nextTabs = [...deactivated, activeTab];
+  }
+
+  if (isNewTab) {
+    return updateWithHistory(nextTabs, activeTab, history);
+  }
+
+  const flags = computeHistoryFlags(history, activeTab);
+  return {
+    tabs: nextTabs,
+    currentTab: activeTab,
+    history,
+    ...flags,
+  } as Partial<T>;
+};

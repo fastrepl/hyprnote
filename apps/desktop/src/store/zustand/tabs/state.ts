@@ -1,9 +1,10 @@
 import type { StoreApi } from "zustand";
 
 import type { BasicState } from "./basic";
-import type { NavigationState } from "./navigation";
 import { isSameTab, type Tab } from "./schema";
-import { updateHistoryCurrent } from "./utils";
+
+import type { NavigationState } from "./navigation";
+import { updateHistoryCurrent } from "./navigation";
 
 export type StateBasicActions = {
   updateContactsTabState: (tab: Tab, state: Extract<Tab, { type: "contacts" }>["state"]) => void;

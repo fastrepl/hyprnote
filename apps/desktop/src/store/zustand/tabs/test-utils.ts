@@ -1,7 +1,6 @@
 import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
-import type { TabHistory } from "./schema";
-import { getSlotId } from "./utils";
+import { getSlotId, type TabHistory } from "./navigation";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;

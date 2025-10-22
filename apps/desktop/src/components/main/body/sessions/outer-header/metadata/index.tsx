@@ -1,15 +1,3 @@
-import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn, formatDateRange, getMeetingDomain } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
@@ -27,11 +15,22 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
-import { useQuery } from "../../../../../hooks/useQuery";
-import * as internal from "../../../../../store/tinybase/internal";
-import * as persisted from "../../../../../store/tinybase/persisted";
-import { useTabs } from "../../../../../store/zustand/tabs";
-import { getInitials } from "../../contacts/shared";
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { cn, formatDateRange, getMeetingDomain } from "@hypr/utils";
+import { useQuery } from "../../../../../../hooks/useQuery";
+import * as internal from "../../../../../../store/tinybase/internal";
+import * as persisted from "../../../../../../store/tinybase/persisted";
+import { useTabs } from "../../../../../../store/zustand/tabs";
+import { getInitials } from "../../../contacts/shared";
 
 interface MeetingParticipant {
   id: string;

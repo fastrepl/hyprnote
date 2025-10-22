@@ -8,9 +8,6 @@
 // Re-export ALL date-fns functions so users can import any date-fns function from @hypr/utils
 export * from "date-fns";
 
-// Import only what we need for our custom functions
-import { isSameDay } from "date-fns";
-
 /**
  * Formats a date according to a custom format string.
  *

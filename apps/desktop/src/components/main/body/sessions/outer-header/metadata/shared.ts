@@ -9,13 +9,23 @@ type MeetingMetadata = {
 };
 
 export function useMeetingMetadata(sessionId: string): MeetingMetadata | null {
-  const note = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
+  const eventId = persisted.UI.useCell("sessions", sessionId, "event_id", persisted.STORE_ID);
+
+  const eventNote = persisted.UI.useCell("events", eventId ?? "", "note", persisted.STORE_ID);
+  const meetingLink = persisted.UI.useCell("events", eventId ?? "", "meeting_link", persisted.STORE_ID);
+  const title = persisted.UI.useCell("events", eventId ?? "", "title", persisted.STORE_ID);
+  const startedAt = persisted.UI.useCell("events", eventId ?? "", "started_at", persisted.STORE_ID);
+  const endedAt = persisted.UI.useCell("events", eventId ?? "", "ended_at", persisted.STORE_ID);
+
+  if (!eventId || !title || !startedAt || !endedAt) {
+    return null;
+  }
 
   return {
-    tood: note ?? "",
-    meeting_link: "TOO",
-    title: "Event Title",
-    started_at: "2025-01-01",
-    ended_at: "2025-01-01",
+    tood: eventNote ?? "",
+    meeting_link: meetingLink,
+    title,
+    started_at: startedAt,
+    ended_at: endedAt,
   };
 }

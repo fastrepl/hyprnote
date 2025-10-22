@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { toolFactories } from "../../../chat/tools";
 import { useSearchEngine } from "../../../contexts/search/engine";
@@ -19,6 +19,13 @@ function Component() {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
   const { registerOnClose, registerOnEmpty, currentTab, openNew } = useTabs();
 
+  const createDefaultSession = useCallback(() => {
+    const user_id = internalStore?.getValue("user_id");
+    const sessionId = id();
+    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
+    openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
+  }, [persistedStore, internalStore, openNew]);
+
   useEffect(() => {
     return registerOnClose((tab) => {
       if (tab.type === "sessions" && persistedStore) {
@@ -35,19 +42,14 @@ function Component() {
   }, [persistedStore, registerOnClose]);
 
   useEffect(() => {
-    const createDefaultSession = () => {
-      const user_id = internalStore?.getValue("user_id");
-      const sessionId = id();
-      persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-      openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
-    };
-
     if (!currentTab) {
       createDefaultSession();
     }
+  }, [currentTab, createDefaultSession]);
 
+  useEffect(() => {
     return registerOnEmpty(createDefaultSession);
-  }, [currentTab, persistedStore, internalStore, registerOnEmpty, openNew]);
+  }, [createDefaultSession, registerOnEmpty]);
 
   return (
     <SearchEngineProvider store={persistedStore}>

@@ -2,8 +2,7 @@ import type { StoreApi } from "zustand";
 
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState } from "./navigation";
-import type { Tab, TabHistory } from "./schema";
-import { isSameTab, tabSchema } from "./schema";
+import { isSameTab, type Tab, tabSchema } from "./schema";
 import { computeHistoryFlags, getSlotId, notifyEmpty, notifyTabClose, notifyTabsClose, pushHistory } from "./utils";
 
 export type BasicState = {
@@ -12,7 +11,6 @@ export type BasicState = {
 };
 
 export type BasicActions = {
-  setTabs: (tabs: Tab[]) => void;
   openCurrent: (tab: Tab) => void;
   openNew: (tab: Tab) => void;
   select: (tab: Tab) => void;
@@ -28,20 +26,6 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
 ): BasicState & BasicActions => ({
   currentTab: null,
   tabs: [],
-  setTabs: (tabs) => {
-    const tabsWithDefaults = tabs.map(t => tabSchema.parse(t));
-    const currentTab = tabsWithDefaults.find((t) => t.active) || null;
-    const history = new Map<string, TabHistory>();
-
-    tabsWithDefaults.forEach((tab) => {
-      if (tab.active) {
-        history.set(getSlotId(tab), { stack: [tab], currentIndex: 0 });
-      }
-    });
-
-    const flags = computeHistoryFlags(history, currentTab);
-    set({ tabs: tabsWithDefaults, currentTab, history, ...flags } as Partial<T>);
-  },
   openCurrent: (newTab) => {
     const { tabs, history, onCloseHandlers } = get();
     const tabWithDefaults = tabSchema.parse(newTab);

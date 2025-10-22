@@ -12,7 +12,7 @@ describe("State Updater Actions", () => {
   describe("updateSessionTabState", () => {
     test("updates matching session tab and current tab state", () => {
       const tab = createSessionTab({ active: true });
-      useTabs.getState().setTabs([tab]);
+      useTabs.getState().openNew(tab);
 
       useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
 
@@ -25,7 +25,8 @@ describe("State Updater Actions", () => {
     test("updates only matching tab instances", () => {
       const tab = createSessionTab({ active: false });
       const active = createSessionTab({ active: true });
-      useTabs.getState().setTabs([tab, active]);
+      useTabs.getState().openNew(tab);
+      useTabs.getState().openNew(active);
 
       useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
 
@@ -38,7 +39,8 @@ describe("State Updater Actions", () => {
     test("no-op when tab types mismatch", () => {
       const session = createSessionTab({ active: true });
       const contacts = createContactsTab();
-      useTabs.getState().setTabs([session, contacts]);
+      useTabs.getState().openNew(session);
+      useTabs.getState().openNew(contacts);
 
       useTabs.getState().updateSessionTabState(contacts as Tab, { editor: "enhanced" } as any);
 
@@ -56,7 +58,7 @@ describe("State Updater Actions", () => {
 
     test("updates contacts tab and current tab state", () => {
       const contacts = createContactsTab({ active: true });
-      useTabs.getState().setTabs([contacts]);
+      useTabs.getState().openNew(contacts);
 
       useTabs.getState().updateContactsTabState(contacts, newContactsState);
 
@@ -69,7 +71,8 @@ describe("State Updater Actions", () => {
     test("only matching contacts tab receives update", () => {
       const contacts = createContactsTab({ active: false });
       const session = createSessionTab({ active: true });
-      useTabs.getState().setTabs([contacts, session]);
+      useTabs.getState().openNew(contacts);
+      useTabs.getState().openNew(session);
 
       useTabs.getState().updateContactsTabState(contacts, newContactsState);
 
@@ -79,17 +82,16 @@ describe("State Updater Actions", () => {
       expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session.id });
     });
 
-    test("updates all contacts tabs sharing identity even when instance differs", () => {
+    test("updates contacts tab state using any contacts instance", () => {
       const contacts = createContactsTab({ active: true });
-      const other = createContactsTab({ active: false });
-      useTabs.getState().setTabs([contacts, other]);
+      useTabs.getState().openNew(contacts);
 
       const otherInstance = createContactsTab({ active: true });
       useTabs.getState().updateContactsTabState(otherInstance, newContactsState);
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(state.tabs[1]).toMatchObject({ state: newContactsState });
+      expect(useTabs.getState()).toHaveCurrentTab({ state: newContactsState });
     });
   });
 });

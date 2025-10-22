@@ -1,17 +1,10 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Tab, useTabs } from ".";
-import { createSessionTab } from "./test-utils";
+import { createSessionTab, resetTabsStore, seedTabsStore } from "./test-utils";
 
 describe("Tab Lifecycle", () => {
   beforeEach(() => {
-    useTabs.setState({
-      currentTab: null,
-      tabs: [],
-      history: new Map(),
-      canGoBack: false,
-      canGoNext: false,
-      onCloseHandlers: new Set(),
-    });
+    seedTabsStore();
   });
 
   test("registerOnClose triggers handler when close removes tab", () => {
@@ -56,5 +49,17 @@ describe("Tab Lifecycle", () => {
 
     expect(closedTabs).toHaveLength(1);
     expect(closedTabs[0]).toMatchObject({ id: tab2.id, type: "sessions" });
+  });
+
+  test("registerOnEmpty fires when tabs become empty", () => {
+    const tab = createSessionTab({ active: true });
+    const onEmpty = vi.fn();
+
+    resetTabsStore();
+    useTabs.getState().registerOnEmpty(onEmpty);
+    useTabs.getState().openCurrent(tab);
+    useTabs.getState().close(tab);
+
+    expect(onEmpty).toHaveBeenCalledTimes(1);
   });
 });

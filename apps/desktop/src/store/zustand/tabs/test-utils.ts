@@ -1,5 +1,7 @@
 import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
+import type { TabHistory } from "./schema";
+import { ACTIVE_TAB_SLOT_ID } from "./utils";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
@@ -32,13 +34,46 @@ export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTa
   },
 });
 
+type TabsStore = ReturnType<typeof useTabs.getState>;
+type TabsStateSlice = Pick<
+  TabsStore,
+  "currentTab" | "tabs" | "history" | "canGoBack" | "canGoNext" | "onCloseHandlers" | "onEmptyHandlers"
+>;
+
+const createDefaultTabsState = (): TabsStateSlice => ({
+  currentTab: null,
+  tabs: [],
+  history: new Map(),
+  canGoBack: false,
+  canGoNext: false,
+  onCloseHandlers: new Set(),
+  onEmptyHandlers: new Set(),
+});
+
+export const seedTabsStore = (overrides: Partial<TabsStateSlice> = {}): void => {
+  const state = { ...createDefaultTabsState(), ...overrides };
+  useTabs.setState(() => state);
+};
+
 export const resetTabsStore = (): void => {
-  useTabs.setState(() => ({
-    currentTab: null,
-    tabs: [],
-    history: new Map(),
-    canGoBack: false,
-    canGoNext: false,
-    onCloseHandlers: new Set(),
-  }));
+  seedTabsStore();
+};
+
+type HistoryEntry = {
+  slotId?: string;
+  stack: Tab[];
+  currentIndex?: number;
+};
+
+export const createHistory = (entries: HistoryEntry[]): Map<string, TabHistory> => {
+  const history = new Map<string, TabHistory>();
+
+  entries.forEach(({ slotId, stack, currentIndex }) => {
+    history.set(slotId ?? ACTIVE_TAB_SLOT_ID, {
+      stack,
+      currentIndex: currentIndex ?? stack.length - 1,
+    });
+  });
+
+  return history;
 };

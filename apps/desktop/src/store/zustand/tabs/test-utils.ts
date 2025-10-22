@@ -1,7 +1,7 @@
 import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
 import type { TabHistory } from "./schema";
-import { ACTIVE_TAB_SLOT_ID } from "./utils";
+import { getSlotId } from "./utils";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
@@ -75,7 +75,8 @@ export const createHistory = (entries: HistoryEntry[]): Map<string, TabHistory> 
   const history = new Map<string, TabHistory>();
 
   entries.forEach(({ slotId, stack, currentIndex }) => {
-    history.set(slotId ?? ACTIVE_TAB_SLOT_ID, {
+    const key = slotId ?? (stack.length > 0 ? getSlotId(stack[0]) : "default");
+    history.set(key, {
       stack,
       currentIndex: currentIndex ?? stack.length - 1,
     });

@@ -57,6 +57,9 @@ const openTab = <T extends BasicState & NavigationState>(
 
   let nextTabs: Tab[];
 
+  const existingTab = tabs.find((t) => isSameTab(t, tabWithDefaults));
+  const isNewTab = !existingTab;
+
   if (replaceActive) {
     const existingActiveIdx = tabs.findIndex((t) => t.active);
 
@@ -78,17 +81,23 @@ const openTab = <T extends BasicState & NavigationState>(
       nextTabs = [...deactivated, activeTab];
     }
   } else {
-    const existingTab = tabs.find((t) => isSameTab(t, tabWithDefaults));
-    if (existingTab) {
-      nextTabs = setActiveFlags(tabs, existingTab);
-      return updateWithHistory(nextTabs, { ...existingTab, active: true }, history);
+    if (!isNewTab) {
+      nextTabs = setActiveFlags(tabs, existingTab!);
+      const currentTab = { ...existingTab!, active: true };
+      const flags = computeHistoryFlags(history, currentTab);
+      return { tabs: nextTabs, currentTab, history, ...flags } as Partial<T>;
     }
 
     const deactivated = deactivateAll(tabs);
     nextTabs = [...deactivated, activeTab];
   }
 
-  return updateWithHistory(nextTabs, activeTab, history);
+  if (isNewTab) {
+    return updateWithHistory(nextTabs, activeTab, history);
+  }
+
+  const flags = computeHistoryFlags(history, activeTab);
+  return { tabs: nextTabs, currentTab: activeTab, history, ...flags } as Partial<T>;
 };
 
 export const createBasicSlice = <T extends BasicState & NavigationState & LifecycleState>(

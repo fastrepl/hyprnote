@@ -1,75 +1,80 @@
 import { describe, expect, test } from "vitest";
 
 import { createContactsTab, createSessionTab } from "./test-utils";
-import { ACTIVE_TAB_SLOT_ID, computeHistoryFlags, getSlotId, pushHistory, updateHistoryCurrent } from "./utils";
+import { computeHistoryFlags, getSlotId, pushHistory, updateHistoryCurrent } from "./utils";
 
 describe("tabs utils", () => {
-  test("getSlotId distinguishes active tab slot", () => {
-    const active = createSessionTab({ active: true });
-    const inactive = createSessionTab({ active: false });
+  test("getSlotId returns unique identifier per tab", () => {
+    const tab1 = createSessionTab({ id: "session-1" });
+    const tab2 = createSessionTab({ id: "session-2" });
+    const contacts = createContactsTab();
 
-    expect(getSlotId(active)).toBe(ACTIVE_TAB_SLOT_ID);
-    expect(getSlotId(inactive)).toContain(inactive.id);
+    expect(getSlotId(tab1)).toBe("sessions-session-1");
+    expect(getSlotId(tab2)).toBe("sessions-session-2");
+    expect(getSlotId(contacts)).toBe("contacts");
   });
 
-  test("pushHistory appends to active slot and resets forward history", () => {
-    const first = createSessionTab({ active: true });
-    const second = createSessionTab({ active: true });
+  test("pushHistory appends to tab's own history slot", () => {
+    const tab1 = createSessionTab({ id: "session-1" });
+    const tab2 = createSessionTab({ id: "session-2" });
 
-    const initial = pushHistory(new Map(), first);
-    const advanced = pushHistory(initial, second);
+    const history1 = pushHistory(new Map(), tab1);
+    const history2 = pushHistory(history1, tab2);
 
-    expect(initial.get(ACTIVE_TAB_SLOT_ID)?.stack).toHaveLength(1);
-    expect(advanced.get(ACTIVE_TAB_SLOT_ID)?.stack).toHaveLength(2);
-    const stack = advanced.get(ACTIVE_TAB_SLOT_ID)?.stack ?? [];
-    expect(stack[stack.length - 1]).toMatchObject({ id: second.id });
+    const slot1 = getSlotId(tab1);
+    const slot2 = getSlotId(tab2);
+
+    expect(history1.get(slot1)?.stack).toHaveLength(1);
+    expect(history2.get(slot1)?.stack).toHaveLength(1);
+    expect(history2.get(slot2)?.stack).toHaveLength(1);
   });
 
-  test("pushHistory truncates forward entries when re-opening", () => {
-    const base = createSessionTab({ active: true });
-    const next = createSessionTab({ active: true });
+  test("pushHistory truncates forward entries when navigating", () => {
+    const tab = createSessionTab({ id: "session-1" });
+    const slotId = getSlotId(tab);
 
-    const history = pushHistory(pushHistory(new Map(), base), next);
+    let history = pushHistory(new Map(), tab);
+    history = pushHistory(history, { ...tab, state: { editor: "enhanced" } });
 
     const backTracked = new Map(history);
-    backTracked.set(ACTIVE_TAB_SLOT_ID, {
-      stack: history.get(ACTIVE_TAB_SLOT_ID)?.stack ?? [],
+    backTracked.set(slotId, {
+      stack: history.get(slotId)?.stack ?? [],
       currentIndex: 0,
     });
 
-    const branched = pushHistory(backTracked, createSessionTab({ id: next.id, active: true }));
-    expect(branched.get(ACTIVE_TAB_SLOT_ID)?.stack).toHaveLength(2);
+    const branched = pushHistory(backTracked, { ...tab, state: { editor: "transcript" } });
+    expect(branched.get(slotId)?.stack).toHaveLength(2);
   });
 
   test("updateHistoryCurrent replaces current stack entry", () => {
-    const tab = createContactsTab({ active: true });
-    const history = pushHistory(new Map(), { ...tab, active: true });
+    const tab = createContactsTab();
+    const history = pushHistory(new Map(), tab);
 
     const updated = updateHistoryCurrent(history, {
       ...tab,
       state: { selectedOrganization: "org", selectedPerson: null },
     });
 
-    const updatedStack = updated.get(ACTIVE_TAB_SLOT_ID)?.stack ?? [];
+    const slotId = getSlotId(tab);
+    const updatedStack = updated.get(slotId)?.stack ?? [];
     expect(updatedStack[updatedStack.length - 1]).toMatchObject({
       state: { selectedOrganization: "org", selectedPerson: null },
     });
   });
 
-  test("computeHistoryFlags reflect navigation availability", () => {
-    const tab = createSessionTab({ active: true });
-    const history = pushHistory(new Map(), tab);
+  test("computeHistoryFlags reflect navigation availability per tab", () => {
+    const tab = createSessionTab({ id: "session-1" });
+    let history = pushHistory(new Map(), tab);
 
     expect(computeHistoryFlags(history, tab)).toEqual({ canGoBack: false, canGoNext: false });
 
-    const next = createSessionTab({ active: true });
-    const advanced = pushHistory(history, next);
+    history = pushHistory(history, { ...tab, state: { editor: "enhanced" } });
+    expect(computeHistoryFlags(history, tab)).toEqual({ canGoBack: true, canGoNext: false });
 
-    expect(computeHistoryFlags(advanced, next)).toEqual({ canGoBack: true, canGoNext: false });
-
-    const backtracked = new Map(advanced);
-    backtracked.set(ACTIVE_TAB_SLOT_ID, {
-      stack: advanced.get(ACTIVE_TAB_SLOT_ID)?.stack ?? [],
+    const slotId = getSlotId(tab);
+    const backtracked = new Map(history);
+    backtracked.set(slotId, {
+      stack: history.get(slotId)?.stack ?? [],
       currentIndex: 0,
     });
 

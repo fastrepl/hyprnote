@@ -1,6 +1,7 @@
 import { expect } from "vitest";
 
 import type { Tab, useTabs } from ".";
+import { getSlotId } from "./utils";
 
 type TabsState = ReturnType<typeof useTabs.getState>;
 
@@ -57,7 +58,17 @@ expect.extend({
   },
 
   toHaveHistoryLength(state: TabsState, length: number) {
-    const stack = state.history.get("active-tab-history")?.stack;
+    if (!state.currentTab) {
+      return {
+        pass: length === 0,
+        message: () => `Expected history length to be ${length}, but no current tab`,
+        actual: 0,
+        expected: length,
+      };
+    }
+
+    const slotId = getSlotId(state.currentTab);
+    const stack = state.history.get(slotId)?.stack;
     const actualLength = stack?.length ?? 0;
     const pass = actualLength === length;
 
@@ -73,7 +84,17 @@ expect.extend({
   },
 
   toHaveLastHistoryEntry(state: TabsState, expected: Partial<Tab>) {
-    const stack = state.history.get("active-tab-history")?.stack;
+    if (!state.currentTab) {
+      return {
+        pass: false,
+        message: () => `Expected history to have last entry matching ${JSON.stringify(expected)}, but no current tab`,
+        actual: null,
+        expected,
+      };
+    }
+
+    const slotId = getSlotId(state.currentTab);
+    const stack = state.history.get(slotId)?.stack;
 
     if (!stack || stack.length === 0) {
       return {

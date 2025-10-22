@@ -1,4 +1,5 @@
 import { Button } from "@hypr/ui/components/ui/button";
+import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
@@ -8,7 +9,6 @@ import { useMemo, useState } from "react";
 
 import { ConnectedServiceCard } from "./shared";
 
-// Mock data structure - replace with actual data
 type IntegrationProvider = "slack" | "notion" | "discord" | "linear" | "github" | "jira";
 
 interface Integration {
@@ -21,7 +21,6 @@ interface Integration {
   accountInfo?: string;
 }
 
-// Placeholder data - replace with actual hook to fetch integrations
 const MOCK_INTEGRATIONS: Integration[] = [
   {
     id: "1",
@@ -84,21 +83,35 @@ function getProviderIcon(provider: IntegrationProvider) {
   return <Icon icon={iconMap[provider]} className="w-5 h-5" />;
 }
 
+type FilterStatus = "all" | "connected" | "not-connected";
+
 export function SettingsIntegrations() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const integrations = MOCK_INTEGRATIONS;
 
   const filteredIntegrations = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return integrations;
+    let filtered = integrations;
+
+    // Apply status filter
+    if (filterStatus === "connected") {
+      filtered = filtered.filter((integration) => integration.connected);
+    } else if (filterStatus === "not-connected") {
+      filtered = filtered.filter((integration) => !integration.connected);
     }
-    const query = searchQuery.toLowerCase();
-    return integrations.filter(
-      (integration) =>
-        integration.name.toLowerCase().includes(query)
-        || integration.description.toLowerCase().includes(query),
-    );
-  }, [searchQuery, integrations]);
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (integration) =>
+          integration.name.toLowerCase().includes(query)
+          || integration.description.toLowerCase().includes(query),
+      );
+    }
+
+    return filtered;
+  }, [searchQuery, filterStatus, integrations]);
 
   const handleConnect = (integrationId: string) => {
     // TODO: Implement connect logic
@@ -114,10 +127,35 @@ export function SettingsIntegrations() {
     <div className="flex flex-col gap-8">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold">Integrations</h2>
+          <h2 className="font-semibold cursor-default">Integrations</h2>
+          <ButtonGroup>
+            <Button
+              variant={filterStatus === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("all")}
+              className="shadow-none"
+            >
+              All
+            </Button>
+            <Button
+              variant={filterStatus === "connected" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("connected")}
+              className="shadow-none"
+            >
+              Connected
+            </Button>
+            <Button
+              variant={filterStatus === "not-connected" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("not-connected")}
+              className="shadow-none"
+            >
+              Not Connected
+            </Button>
+          </ButtonGroup>
         </div>
 
-        {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
           <Input
@@ -125,7 +163,7 @@ export function SettingsIntegrations() {
             placeholder="Search integrations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 shadow-none"
           />
         </div>
 
@@ -191,7 +229,6 @@ function IntegrationCard({
     onDisconnect(integration.id);
   };
 
-  // Not connected state
   if (!integration.connected) {
     return (
       <div className="border border-neutral-200 rounded-lg p-4">
@@ -224,7 +261,6 @@ function IntegrationCard({
     );
   }
 
-  // Connected state
   return (
     <ConnectedServiceCard
       icon={getProviderIcon(integration.provider)}

@@ -14,6 +14,7 @@ export const Route = createFileRoute("/app/settings/_layout/")({
 
 function Component() {
   const search = Route.useSearch();
+  const navigate = Route.useNavigate();
 
   return (
     <>
@@ -22,7 +23,7 @@ function Component() {
       {search.tab === "ai" && <SettingsAI />}
       {search.tab === "notifications" && <SettingsNotifications />}
       {search.tab === "integrations" && <SettingsIntegrations />}
-      {search.tab === "templates" && <SettingsTemplates />}
+      {search.tab === "templates" && <SettingsTemplates navigate={navigate} />}
       {search.tab === "billing" && <SettingsBilling />}
     </>
   );

@@ -194,6 +194,8 @@ function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
   );
 
   const handler = useCallback<PersistFinalCallback>((words) => {
+    console.log("persistFinal", words);
+
     if (!store || words.length === 0) {
       return;
     }

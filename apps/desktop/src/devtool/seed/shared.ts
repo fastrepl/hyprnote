@@ -13,7 +13,6 @@ import type {
   Organization,
   SessionStorage,
   Tag,
-  TemplateSection,
   TemplateStorage,
   Transcript,
   Word,
@@ -235,20 +234,78 @@ export const createMappingTagSession = (tag_id: string, session_id: string) => (
   } satisfies MappingTagSession,
 });
 
-export const createTemplate = (): { id: string; data: TemplateStorage } => {
-  const sectionCount = faker.number.int({ min: 2, max: 5 });
-  const sections: TemplateSection[] = Array.from({ length: sectionCount }, () => ({
-    title: faker.lorem.words({ min: 2, max: 4 }),
-    description: faker.lorem.sentence(),
-  }));
+export const createTemplate = (
+  templateType?: "meeting" | "standup" | "retrospective" | "interview" | "sales",
+): { id: string; data: TemplateStorage } => {
+  const templates = {
+    meeting: {
+      title: "Team Meeting",
+      description: "Standard template for team meetings. Captures key discussion points, decisions, and action items.",
+      sections: [
+        { title: "Meeting Overview", description: "Brief summary of the meeting purpose and attendees" },
+        { title: "Key Discussion Points", description: "Main topics discussed during the meeting" },
+        { title: "Decisions Made", description: "Important decisions and their rationale" },
+        { title: "Action Items", description: "Tasks assigned with owners and deadlines" },
+        { title: "Next Steps", description: "Follow-up actions and next meeting plans" },
+      ],
+    },
+    standup: {
+      title: "Daily Standup",
+      description: "Quick daily sync template for agile teams. Focuses on progress, plans, and blockers.",
+      sections: [
+        { title: "Yesterday's Progress", description: "What was completed yesterday" },
+        { title: "Today's Plan", description: "What will be worked on today" },
+        { title: "Blockers", description: "Any impediments or help needed" },
+        { title: "Team Updates", description: "Important announcements or updates" },
+      ],
+    },
+    retrospective: {
+      title: "Sprint Retrospective",
+      description: "Reflection template for sprint retrospectives. Helps teams improve their processes.",
+      sections: [
+        { title: "What Went Well", description: "Positive aspects and successes from the sprint" },
+        { title: "What Could Be Improved", description: "Challenges and areas for improvement" },
+        { title: "Action Items", description: "Concrete steps to improve in the next sprint" },
+        { title: "Team Metrics", description: "Sprint velocity and other key metrics" },
+      ],
+    },
+    interview: {
+      title: "Candidate Interview",
+      description: "Structured interview template for consistent candidate evaluation.",
+      sections: [
+        { title: "Candidate Background", description: "Summary of candidate's experience and qualifications" },
+        { title: "Technical Skills", description: "Assessment of technical abilities and knowledge" },
+        { title: "Cultural Fit", description: "Evaluation of alignment with company values" },
+        { title: "Questions Asked", description: "Questions the candidate asked about the role" },
+        { title: "Overall Assessment", description: "Final recommendation and next steps" },
+      ],
+    },
+    sales: {
+      title: "Sales Discovery Call",
+      description: "Template for initial sales calls to understand customer needs and qualify leads.",
+      sections: [
+        { title: "Company Overview", description: "Brief background on the prospect's company" },
+        { title: "Pain Points", description: "Current challenges and problems they're facing" },
+        { title: "Goals & Objectives", description: "What they're trying to achieve" },
+        { title: "Budget & Timeline", description: "Financial capacity and decision timeline" },
+        { title: "Next Steps", description: "Follow-up actions and proposal timeline" },
+      ],
+    },
+  };
+
+  // If no type specified, pick a random one
+  const type = templateType
+    || faker.helpers.arrayElement(["meeting", "standup", "retrospective", "interview", "sales"] as const);
+
+  const templateData = templates[type];
 
   return {
     id: id(),
     data: {
       user_id: USER_ID,
-      title: faker.lorem.words({ min: 2, max: 5 }),
-      description: faker.lorem.sentence(),
-      sections: JSON.stringify(sections),
+      title: templateData.title,
+      description: templateData.description,
+      sections: JSON.stringify(templateData.sections),
       created_at: faker.date.past({ years: 1 }).toISOString(),
     },
   };
@@ -476,10 +533,22 @@ export const generateMockData = (config: MockConfig) => {
     return tag.id;
   });
 
-  Array.from({ length: 5 }, () => {
-    const template = createTemplate();
+  // Create one of each template type for better demonstration
+  const templateTypes: Array<"meeting" | "standup" | "retrospective" | "interview" | "sales"> = [
+    "meeting",
+    "standup",
+    "retrospective",
+    "interview",
+    "sales",
+  ];
+
+  templateTypes.forEach((type) => {
+    const template = createTemplate(type);
     templates[template.id] = template.data;
+    console.log("Created template:", type, template.id, template.data);
   });
+
+  console.log("Total templates created:", Object.keys(templates).length);
 
   const sessionIds: string[] = [];
   humanIds.forEach((humanId) => {

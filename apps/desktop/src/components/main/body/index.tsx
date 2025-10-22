@@ -310,14 +310,14 @@ function useTabsShortcuts() {
       }
       newTab();
     },
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
     [currentTab, close, newTab],
   );
 
   useHotkeys(
     "mod+t",
     () => newTab(),
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
     [newTab],
   );
 
@@ -331,7 +331,7 @@ function useTabsShortcuts() {
         await appWindow.close();
       }
     },
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, currentTab, close],
   );
 
@@ -345,7 +345,7 @@ function useTabsShortcuts() {
         select(target);
       }
     },
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
     [tabs, select],
   );
 

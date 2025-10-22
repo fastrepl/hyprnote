@@ -13,6 +13,8 @@ export function useSettings() {
     {
       preventDefault: true,
       splitKey: "|",
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
     },
     [openSettings],
   );

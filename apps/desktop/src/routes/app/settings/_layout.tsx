@@ -111,13 +111,14 @@ function Group(
             key={tab}
             variant="ghost"
             className={cn([
-              "shadow-none w-full justify-start hover:bg-neutral-200",
+              "w-full justify-start",
+              "hover:bg-neutral-200 font-normal",
               activeTab === tab && "bg-neutral-200",
             ])}
             onClick={() => handleTabClick(tab)}
           >
             <Icon size={16} className="shrink-0" />
-            {tabInfo.label}
+            <span>{tabInfo.label}</span>
           </Button>
         );
       })}

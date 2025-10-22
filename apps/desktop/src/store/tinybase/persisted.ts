@@ -454,6 +454,15 @@ export const StoreComponent = () => {
             select("sections");
             select("created_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleFolders,
+          "folders",
+          ({ select }) => {
+            select("name");
+            select("parent_folder_id");
+            select("created_at");
+          },
         ),
     [store2],
   )!;
@@ -548,6 +557,7 @@ export const QUERIES = {
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
+  visibleFolders: "visibleFolders",
 };
 
 export const METRICS = {

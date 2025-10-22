@@ -1,6 +1,6 @@
 import { FolderChain } from "./folder";
 import { MeetingMetadata } from "./metadata";
-import { OthersButton } from "./other";
+import { OverflowButton } from "./overflow";
 import { ShareButton } from "./share";
 
 export function OuterHeader({ sessionId }: { sessionId: string }) {
@@ -11,7 +11,7 @@ export function OuterHeader({ sessionId }: { sessionId: string }) {
       <div className="flex items-center gap-1">
         <MeetingMetadata sessionId={sessionId} />
         <ShareButton sessionId={sessionId} />
-        <OthersButton sessionId={sessionId} />
+        <OverflowButton sessionId={sessionId} />
       </div>
     </div>
   );

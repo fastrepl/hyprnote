@@ -10,10 +10,10 @@ faker.seed(123);
 
 const V1 = (() => {
   const data = generateMockData({
-    organizations: 8,
-    humansPerOrg: { min: 5, max: 12 },
-    sessionsPerHuman: { min: 2, max: 6 },
-    eventsPerHuman: { min: 1, max: 5 },
+    organizations: 4,
+    humansPerOrg: { min: 2, max: 5 },
+    sessionsPerHuman: { min: 1, max: 4 },
+    eventsPerHuman: { min: 1, max: 4 },
     calendarsPerUser: 3,
   }) satisfies Tables<Schemas[0]>;
 

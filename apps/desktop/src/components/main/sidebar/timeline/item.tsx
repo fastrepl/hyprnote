@@ -4,13 +4,13 @@ import { cn } from "@hypr/utils";
 import { useCallback, useMemo } from "react";
 
 import * as persisted from "../../../../store/tinybase/persisted";
-import { Tab, useTabs } from "../../../../store/zustand/tabs";
+import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
 import { type TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
 
 export function TimelineItemComponent({ item, precision }: { item: TimelineItem; precision: TimelinePrecision }) {
-  const { currentTab, openCurrent, openNew } = useTabs();
+  const { currentTab, openCurrent, openNew, invalidateResource } = useTabs();
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
   const title = item.data.title || "Untitled";
@@ -21,7 +21,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     if (item.type === "event") {
       handleEventClick(false);
     } else {
-      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
+      const tab: TabInput = { id: item.id, type: "sessions", state: { editor: "raw" } };
       openCurrent(tab);
     }
   };
@@ -30,7 +30,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     if (item.type === "event") {
       handleEventClick(true);
     } else {
-      const tab: Tab = { id: item.id, type: "sessions", active: false, state: { editor: "raw" } };
+      const tab: TabInput = { id: item.id, type: "sessions", state: { editor: "raw" } };
       openNew(tab);
     }
   };
@@ -50,7 +50,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     });
 
     if (existingSessionId) {
-      const tab: Tab = { id: existingSessionId, type: "sessions", active: false, state: { editor: "raw" } };
+      const tab: TabInput = { id: existingSessionId, type: "sessions", state: { editor: "raw" } };
       if (openInNewTab) {
         openNew(tab);
       } else {
@@ -63,7 +63,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
         title: title,
         created_at: new Date().toISOString(),
       });
-      const tab: Tab = { id: sessionId, type: "sessions", active: false, state: { editor: "raw" } };
+      const tab: TabInput = { id: sessionId, type: "sessions", state: { editor: "raw" } };
       if (openInNewTab) {
         openNew(tab);
       } else {
@@ -89,11 +89,13 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
       return;
     }
     if (item.type === "event") {
+      invalidateResource("events", item.id);
       store.delRow("events", item.id);
     } else {
+      invalidateResource("sessions", item.id);
       store.delRow("sessions", item.id);
     }
-  }, [store, item.id]);
+  }, [store, item.id, invalidateResource]);
 
   const contextMenu = (
     <>

@@ -52,7 +52,7 @@ function ContactView({ tab }: { tab: Tab }) {
   }
 
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
-  const { openNew } = useTabs();
+  const { openCurrent, invalidateResource } = useTabs();
 
   const { selectedOrganization, selectedPerson } = tab.state;
 
@@ -73,20 +73,30 @@ function ContactView({ tab }: { tab: Tab }) {
   }, [updateContactsTabState, tab]);
 
   const handleSessionClick = useCallback((id: string) => {
-    openNew({ type: "sessions", id, active: true, state: { editor: "raw" } });
-  }, [openNew]);
+    openCurrent({ type: "sessions", id, state: { editor: "raw" } });
+  }, [openCurrent]);
 
-  const handleDeletePerson = persisted.UI.useDelRowCallback(
+  const deletePersonFromStore = persisted.UI.useDelRowCallback(
     "humans",
     (human_id: string) => human_id,
     persisted.STORE_ID,
   );
 
-  const handleDeleteOrganization = persisted.UI.useDelRowCallback(
+  const handleDeletePerson = useCallback((id: string) => {
+    invalidateResource("humans", id);
+    deletePersonFromStore(id);
+  }, [invalidateResource, deletePersonFromStore]);
+
+  const deleteOrganizationFromStore = persisted.UI.useDelRowCallback(
     "organizations",
     (org_id: string) => org_id,
     persisted.STORE_ID,
   );
+
+  const handleDeleteOrganization = useCallback((id: string) => {
+    invalidateResource("organizations" as const, id);
+    deleteOrganizationFromStore(id);
+  }, [invalidateResource, deleteOrganizationFromStore]);
 
   // Get the list of humanIds to auto-select the first person (only when no org is selected)
   const { humanIds } = useSortedHumanIds(selectedOrganization);

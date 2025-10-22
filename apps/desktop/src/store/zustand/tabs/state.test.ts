@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import "./test-matchers";
 
 import { type Tab, useTabs } from ".";
 import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
-import "./test-matchers";
 
 describe("State Updater Actions", () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
-import { getSlotId, type TabHistory } from "./navigation";
+import { computeHistoryFlags, type TabHistory } from "./navigation";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
@@ -17,6 +17,7 @@ export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab =
   type: "sessions",
   id: overrides.id ?? id(),
   active: overrides.active ?? false,
+  slotId: id(),
   state: {
     editor: "raw",
     ...overrides.state,
@@ -26,6 +27,7 @@ export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab =
 export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTab => ({
   type: "contacts",
   active: overrides.active ?? false,
+  slotId: id(),
   state: {
     selectedOrganization: null,
     selectedPerson: null,
@@ -58,6 +60,8 @@ const createDefaultTabsState = (): TabsStateSlice => ({
 export const seedTabsStore = (overrides: Partial<TabsStateSlice> = {}): void => {
   const state = { ...createDefaultTabsState(), ...overrides };
   useTabs.setState(() => state);
+  const flags = computeHistoryFlags(state.history, state.currentTab);
+  useTabs.setState(() => flags);
 };
 
 export const resetTabsStore = (): void => {
@@ -74,7 +78,7 @@ export const createHistory = (entries: HistoryEntry[]): Map<string, TabHistory> 
   const history = new Map<string, TabHistory>();
 
   entries.forEach(({ slotId, stack, currentIndex }) => {
-    const key = slotId ?? (stack.length > 0 ? getSlotId(stack[0]) : "default");
+    const key = slotId ?? (stack.length > 0 ? stack[0].slotId : "default");
     history.set(key, {
       stack,
       currentIndex: currentIndex ?? stack.length - 1,

@@ -1,7 +1,6 @@
 import { expect } from "vitest";
 
 import type { Tab, useTabs } from ".";
-import { getSlotId } from "./navigation";
 
 type TabsState = ReturnType<typeof useTabs.getState>;
 
@@ -67,7 +66,7 @@ expect.extend({
       };
     }
 
-    const slotId = getSlotId(state.currentTab);
+    const slotId = state.currentTab.slotId;
     const stack = state.history.get(slotId)?.stack;
     const actualLength = stack?.length ?? 0;
     const pass = actualLength === length;
@@ -93,7 +92,7 @@ expect.extend({
       };
     }
 
-    const slotId = getSlotId(state.currentTab);
+    const slotId = state.currentTab.slotId;
     const stack = state.history.get(slotId)?.stack;
 
     if (!stack || stack.length === 0) {

@@ -26,6 +26,13 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
       tools,
       stopWhen: stepCountIs(5),
       abortSignal: options.abortSignal,
+      prepareStep: async ({ messages }) => {
+        if (messages.length > 20) {
+          return { messages: messages.slice(-10) };
+        }
+
+        return {};
+      },
     });
 
     return result.toUIMessageStream({

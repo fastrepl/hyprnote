@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import "./test-matchers";
 
 import { type Tab, useTabs } from ".";
 import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
-import "./test-matchers";
 
 const isSessionsTab = (tab: Tab): tab is Extract<Tab, { type: "sessions" }> => tab.type === "sessions";
 
@@ -46,7 +46,8 @@ describe("Basic Tab Actions", () => {
       { id: session1.id, active: true },
     ]);
     expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session1.id });
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(useTabs.getState()).toHaveHistoryLength(2);
+    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: true, canGoNext: false });
   });
 
   test("openCurrent closes existing active tab via lifecycle handlers", () => {

@@ -443,7 +443,6 @@ export function SessionMetadata({
   const handleParticipantClick = useCallback((participant: MeetingParticipant) => {
     openNew({
       type: "contacts",
-      active: true,
       state: {
         selectedPerson: participant.id,
         selectedOrganization: null,

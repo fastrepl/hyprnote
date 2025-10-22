@@ -64,7 +64,7 @@ function RenderIfRootExist(
         renderCrumb={({ id, name }) => (
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <button onClick={() => openNew({ type: "folders", id, active: true })}>
+              <button onClick={() => openNew({ type: "folders", id })}>
                 {name}
               </button>
             </BreadcrumbLink>

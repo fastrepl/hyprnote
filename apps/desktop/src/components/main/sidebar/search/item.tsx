@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { cn } from "@hypr/utils";
 import { type SearchResult } from "../../../../contexts/search/ui";
 import * as persisted from "../../../../store/tinybase/persisted";
-import { Tab, useTabs } from "../../../../store/zustand/tabs";
+import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
@@ -175,15 +175,15 @@ function SessionSearchResultItem({ result, onClick }: { result: SearchResult; on
   );
 }
 
-function getTab(result: SearchResult): Tab | null {
+function getTab(result: SearchResult): TabInput | null {
   if (result.type === "session") {
-    return { type: "sessions", active: true, id: result.id, state: { editor: "raw" } };
+    return { type: "sessions", id: result.id, state: { editor: "raw" } };
   }
   if (result.type === "human") {
-    return { type: "humans", active: true, id: result.id };
+    return { type: "humans", id: result.id };
   }
   if (result.type === "organization") {
-    return { type: "organizations", active: true, id: result.id };
+    return { type: "organizations", id: result.id };
   }
 
   return null;

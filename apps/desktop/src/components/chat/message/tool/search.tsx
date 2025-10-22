@@ -98,7 +98,6 @@ function RenderSession({ sessionId }: { sessionId: string }) {
     openNew({
       type: "sessions",
       id: sessionId,
-      active: true,
       state: { editor: "raw" },
     });
   }, [openNew, sessionId]);

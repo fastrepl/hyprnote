@@ -17,17 +17,17 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { registerOnClose, registerOnEmpty, currentTab, openNew } = useTabs();
+  const { registerOnClose, registerOnEmpty, currentTab, openNew, invalidateResource } = useTabs();
 
   const createDefaultSession = useCallback(() => {
     const user_id = internalStore?.getValue("user_id");
     const sessionId = id();
     persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-    openNew({ id: sessionId, type: "sessions", active: true, state: { editor: "raw" } });
+    openNew({ id: sessionId, type: "sessions", state: { editor: "raw" } });
   }, [persistedStore, internalStore, openNew]);
 
   useEffect(() => {
-    return registerOnClose((tab) => {
+    registerOnClose((tab) => {
       if (tab.type === "sessions" && persistedStore) {
         const row = persistedStore.getRow("sessions", tab.id);
         if (!row) {
@@ -35,11 +35,12 @@ function Component() {
         }
 
         if (!row.title && !row.raw_md && !row.enhanced_md) {
+          invalidateResource("sessions", tab.id);
           persistedStore.delRow("sessions", tab.id);
         }
       }
     });
-  }, [persistedStore, registerOnClose]);
+  }, [persistedStore, registerOnClose, invalidateResource]);
 
   useEffect(() => {
     if (!currentTab) {
@@ -48,7 +49,7 @@ function Component() {
   }, [currentTab, createDefaultSession]);
 
   useEffect(() => {
-    return registerOnEmpty(createDefaultSession);
+    registerOnEmpty(createDefaultSession);
   }, [createDefaultSession, registerOnEmpty]);
 
   return (

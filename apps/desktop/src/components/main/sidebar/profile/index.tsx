@@ -84,19 +84,18 @@ export function ProfileSection() {
   }, [closeMenu]);
 
   const handleClickFolders = useCallback(() => {
-    openNew({ type: "folders", id: null, active: true });
+    openNew({ type: "folders", id: null });
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickCalendar = useCallback(() => {
-    openNew({ type: "calendars", month: new Date(), active: true });
+    openNew({ type: "calendars", month: new Date() });
     closeMenu();
   }, [openNew, closeMenu]);
 
   const handleClickContacts = useCallback(() => {
     openNew({
       type: "contacts",
-      active: true,
       state: {
         selectedOrganization: null,
         selectedPerson: null,

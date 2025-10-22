@@ -1,7 +1,6 @@
 import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
-import type { TabHistory } from "./schema";
-import { ACTIVE_TAB_SLOT_ID } from "./utils";
+import { computeHistoryFlags, type TabHistory } from "./navigation";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
 type ContactsTab = Extract<Tab, { type: "contacts" }>;
@@ -18,6 +17,7 @@ export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab =
   type: "sessions",
   id: overrides.id ?? id(),
   active: overrides.active ?? false,
+  slotId: id(),
   state: {
     editor: "raw",
     ...overrides.state,
@@ -27,6 +27,7 @@ export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab =
 export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTab => ({
   type: "contacts",
   active: overrides.active ?? false,
+  slotId: id(),
   state: {
     selectedOrganization: null,
     selectedPerson: null,
@@ -37,7 +38,13 @@ export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTa
 type TabsStore = ReturnType<typeof useTabs.getState>;
 type TabsStateSlice = Pick<
   TabsStore,
-  "currentTab" | "tabs" | "history" | "canGoBack" | "canGoNext" | "onCloseHandlers" | "onEmptyHandlers"
+  | "currentTab"
+  | "tabs"
+  | "history"
+  | "canGoBack"
+  | "canGoNext"
+  | "onClose"
+  | "onEmpty"
 >;
 
 const createDefaultTabsState = (): TabsStateSlice => ({
@@ -46,13 +53,15 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   history: new Map(),
   canGoBack: false,
   canGoNext: false,
-  onCloseHandlers: new Set(),
-  onEmptyHandlers: new Set(),
+  onClose: null,
+  onEmpty: null,
 });
 
 export const seedTabsStore = (overrides: Partial<TabsStateSlice> = {}): void => {
   const state = { ...createDefaultTabsState(), ...overrides };
   useTabs.setState(() => state);
+  const flags = computeHistoryFlags(state.history, state.currentTab);
+  useTabs.setState(() => flags);
 };
 
 export const resetTabsStore = (): void => {
@@ -69,7 +78,8 @@ export const createHistory = (entries: HistoryEntry[]): Map<string, TabHistory> 
   const history = new Map<string, TabHistory>();
 
   entries.forEach(({ slotId, stack, currentIndex }) => {
-    history.set(slotId ?? ACTIVE_TAB_SLOT_ID, {
+    const key = slotId ?? (stack.length > 0 ? stack[0].slotId : "default");
+    history.set(key, {
       stack,
       currentIndex: currentIndex ?? stack.length - 1,
     });

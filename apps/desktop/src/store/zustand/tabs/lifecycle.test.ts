@@ -12,14 +12,11 @@ describe("Tab Lifecycle", () => {
 
     const handler = vi.fn();
     useTabs.getState().openCurrent(tab);
-    const unregister = useTabs.getState().registerOnClose(handler);
+    useTabs.getState().registerOnClose(handler);
     useTabs.getState().close(tab);
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab.id, type: "sessions" }));
-
-    unregister();
-    expect(useTabs.getState().onCloseHandlers.size).toBe(0);
   });
 
   test("registerOnClose triggers handler when openCurrent replaces tab", () => {
@@ -61,5 +58,34 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().close(tab);
 
     expect(onEmpty).toHaveBeenCalledTimes(1);
+  });
+
+  test("registerOnClose is idempotent", () => {
+    const tab = createSessionTab({ active: true });
+    const handler = vi.fn();
+
+    useTabs.getState().registerOnClose(handler);
+    useTabs.getState().registerOnClose(handler);
+    useTabs.getState().registerOnClose(handler);
+
+    useTabs.getState().openCurrent(tab);
+    useTabs.getState().close(tab);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  test("registerOnEmpty is idempotent", () => {
+    const tab = createSessionTab({ active: true });
+    const handler = vi.fn();
+
+    resetTabsStore();
+    useTabs.getState().registerOnEmpty(handler);
+    useTabs.getState().registerOnEmpty(handler);
+    useTabs.getState().registerOnEmpty(handler);
+
+    useTabs.getState().openCurrent(tab);
+    useTabs.getState().close(tab);
+
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 });

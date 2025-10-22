@@ -117,7 +117,7 @@ function FolderCard({ folderId }: { folderId: string }) {
   return (
     <div
       className="flex flex-col items-center justify-center gap-2 p-6 border rounded-lg hover:bg-muted cursor-pointer"
-      onClick={() => openCurrent({ type: "folders", id: folderId, active: true })}
+      onClick={() => openCurrent({ type: "folders", id: folderId })}
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
       <span className="text-sm font-medium text-center">{folder.name}</span>
@@ -178,7 +178,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
       folderId={folderId}
       renderBefore={() => (
         <button
-          onClick={() => openCurrent({ type: "folders", id: null, active: true })}
+          onClick={() => openCurrent({ type: "folders", id: null })}
           className="hover:text-foreground"
         >
           Root
@@ -186,7 +186,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
       )}
       renderCrumb={({ id, name, isLast }) => (
         <button
-          onClick={() => !isLast && openCurrent({ type: "folders", id, active: true })}
+          onClick={() => !isLast && openCurrent({ type: "folders", id })}
           className={isLast ? "text-foreground font-medium" : "hover:text-foreground"}
         >
           {name}
@@ -203,7 +203,7 @@ function FolderSessionItem({ sessionId }: { sessionId: string }) {
   return (
     <div
       className="flex items-center gap-2 px-3 py-2 border rounded-md hover:bg-muted cursor-pointer"
-      onClick={() => openCurrent({ type: "sessions", id: sessionId, active: true, state: { editor: "raw" } })}
+      onClick={() => openCurrent({ type: "sessions", id: sessionId, state: { editor: "raw" } })}
     >
       <StickyNoteIcon className="w-4 h-4 text-muted-foreground" />
       <span className="text-sm">{session.title}</span>

@@ -338,9 +338,9 @@ function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     setOpen(false);
 
     if (linkedSessionId) {
-      openNew({ type: "sessions", id: linkedSessionId, active: false, state: { editor: "raw" } });
+      openNew({ type: "sessions", id: linkedSessionId, state: { editor: "raw" } });
     } else {
-      openNew({ type: "sessions", id: crypto.randomUUID(), active: false, state: { editor: "raw" } });
+      openNew({ type: "sessions", id: crypto.randomUUID(), state: { editor: "raw" } });
     }
   };
 
@@ -417,7 +417,7 @@ function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
 
   const handleClick = () => {
     setOpen(false);
-    openNew({ type: "sessions", id: sessionId, active: false, state: { editor: "raw" } });
+    openNew({ type: "sessions", id: sessionId, state: { editor: "raw" } });
   };
 
   const formatSessionTime = () => {

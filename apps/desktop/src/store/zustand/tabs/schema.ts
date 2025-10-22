@@ -4,6 +4,7 @@ import { TABLES } from "../../tinybase/persisted";
 
 const baseTabSchema = z.object({
   active: z.boolean(),
+  slotId: z.string(),
 });
 
 export const editorViewSchema = z.enum(["raw", "enhanced", "transcript"]);
@@ -52,10 +53,14 @@ export const tabSchema = z.discriminatedUnion("type", [
 
 export type Tab = z.infer<typeof tabSchema>;
 
-export type TabHistory = {
-  stack: Tab[];
-  currentIndex: number;
-};
+export type TabInput =
+  | { type: "sessions"; id: string; state?: { editor?: "raw" | "enhanced" | "transcript" } }
+  | { type: "contacts"; state?: { selectedOrganization?: string | null; selectedPerson?: string | null } }
+  | { type: "events"; id: string }
+  | { type: "humans"; id: string }
+  | { type: "organizations"; id: string }
+  | { type: "folders"; id: string | null }
+  | { type: "calendars"; month: Date };
 
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {

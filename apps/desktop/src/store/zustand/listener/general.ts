@@ -10,6 +10,8 @@ import {
 } from "@hypr/plugin-listener";
 import { fromResult } from "../../../effect";
 
+import type { PersistFinalCallback, TranscriptActions } from "./transcript";
+
 export type GeneralState = {
   sessionEventUnlisten?: () => void;
   loading: boolean;
@@ -20,7 +22,10 @@ export type GeneralState = {
 };
 
 export type GeneralActions = {
-  start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => void;
+  start: (
+    params: SessionParams,
+    options?: { persistFinal?: PersistFinalCallback },
+  ) => void;
   stop: () => void;
 };
 
@@ -42,17 +47,21 @@ const listenToSessionEvents = (
 const startSessionEffect = (params: SessionParams) => fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
-export const createGeneralSlice = <T extends GeneralState>(
+export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): GeneralState & GeneralActions => ({
   ...initialState,
-  start: (params: SessionParams, onStreamResponse: (response: StreamResponse) => void) => {
+  start: (params: SessionParams, options) => {
     set((state) =>
       mutate(state, (draft) => {
         draft.loading = true;
       })
     );
+
+    if (options?.persistFinal) {
+      get().setTranscriptPersist(options.persistFinal);
+    }
 
     const handleSessionEvent = (payload: any) => {
       if (payload.type === "audioAmplitude") {
@@ -97,9 +106,11 @@ export const createGeneralSlice = <T extends GeneralState>(
             draft.loading = false;
           })
         );
+
+        get().resetTranscript();
       } else if (payload.type === "streamResponse") {
         const response = payload.response;
-        onStreamResponse(response);
+        get().handleTranscriptResponse(response as unknown as StreamResponse);
       }
     };
 
@@ -150,6 +161,7 @@ export const createGeneralSlice = <T extends GeneralState>(
 
       yield* stopSessionEffect();
       set(initialState as Partial<T>);
+      get().resetTranscript();
     });
 
     Effect.runPromiseExit(program).then((exit) => {

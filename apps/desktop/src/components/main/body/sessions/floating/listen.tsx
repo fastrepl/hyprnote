@@ -1,4 +1,3 @@
-import { type StreamResponse } from "@hypr/plugin-listener";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
@@ -9,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useListener } from "../../../../../contexts/listener";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
+import type { PersistFinalCallback } from "../../../../../store/zustand/listener/transcript";
 import { type Tab } from "../../../../../store/zustand/tabs";
 import { id } from "../../../../../utils";
 import { FloatingButton, formatTime } from "./shared";
@@ -157,7 +157,7 @@ function useRemoteMeeting(_sessionId: string): RemoteMeeting | null {
 
 function useStartSession(sessionId: string) {
   const start = useListener((state) => state.start);
-  const append = useAppendTranscript(sessionId);
+  const persistFinal = usePersistFinalTranscript(sessionId);
   const conn = useSTTConnection();
 
   const handleClick = useCallback(() => {
@@ -166,23 +166,26 @@ function useStartSession(sessionId: string) {
       return;
     }
 
-    start({
-      session_id: sessionId,
-      languages: ["en"],
-      onboarding: false,
-      record_enabled: false,
-      model: conn.model,
-      base_url: conn.baseUrl,
-      api_key: conn.apiKey,
-    }, (response) => {
-      append(response);
-    });
-  }, [conn, sessionId, start]);
+    start(
+      {
+        session_id: sessionId,
+        languages: ["en"],
+        onboarding: false,
+        record_enabled: false,
+        model: conn.model,
+        base_url: conn.baseUrl,
+        api_key: conn.apiKey,
+      },
+      {
+        persistFinal,
+      },
+    );
+  }, [conn, persistFinal, sessionId, start]);
 
   return handleClick;
 }
 
-function useAppendTranscript(sessionId: string) {
+function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
   const store = persisted.UI.useStore(persisted.STORE_ID);
   const transcriptIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.transcriptsBySession,
@@ -190,36 +193,36 @@ function useAppendTranscript(sessionId: string) {
     persisted.STORE_ID,
   );
 
-  const handler = useCallback((res: StreamResponse) => {
-    if (store && res.type === "Results") {
-      let transcriptId = transcriptIds?.[0];
+  const handler = useCallback<PersistFinalCallback>((words) => {
+    if (!store || words.length === 0) {
+      return;
+    }
 
-      if (!transcriptId) {
-        transcriptId = id();
-        store.setRow("transcripts", transcriptId, {
-          session_id: sessionId,
-          user_id: "",
-          created_at: new Date().toISOString(),
-        });
-      }
+    let transcriptId = transcriptIds?.[0];
 
-      const { channel: { alternatives: [{ words }] }, channel_index } = res;
-
-      words.forEach((w) => {
-        const word: persisted.Word = {
-          transcript_id: transcriptId,
-          text: w.word,
-          start_ms: Math.round(w.start * 1000),
-          end_ms: Math.round(w.end * 1000),
-          channel: channel_index[0],
-          user_id: "",
-          created_at: new Date().toISOString(),
-        };
-
-        store.setRow("words", id(), word);
+    if (!transcriptId) {
+      transcriptId = id();
+      store.setRow("transcripts", transcriptId, {
+        session_id: sessionId,
+        user_id: "",
+        created_at: new Date().toISOString(),
       });
     }
-  }, [store, sessionId, transcriptIds]);
+
+    words.forEach((word) => {
+      const entry: persisted.Word = {
+        transcript_id: transcriptId!,
+        text: word.text,
+        start_ms: word.start_ms,
+        end_ms: word.end_ms,
+        channel: word.channel,
+        user_id: "",
+        created_at: new Date().toISOString(),
+      };
+
+      store.setRow("words", id(), entry);
+    });
+  }, [store, transcriptIds, sessionId]);
 
   return handler;
 }

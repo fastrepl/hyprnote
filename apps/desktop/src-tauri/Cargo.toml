@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { workspace = true, features = [] }
 
 [dependencies]
-tauri = { workspace = true, features = ["specta", "macos-private-api"] }
+tauri = { workspace = true, features = ["specta", "macos-private-api", "protocol-asset"] }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
@@ -28,6 +28,7 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
+tauri-plugin-misc = { workspace = true }
 tauri-plugin-opener = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-plugin-process = { workspace = true }

@@ -10,6 +10,7 @@ Default permissions for the plugin
 - `allow-delete-session-folder`
 - `allow-parse-meeting-link`
 - `allow-audio-open`
+- `allow-audio-path`
 - `allow-audio-exist`
 - `allow-audio-delete`
 
@@ -96,6 +97,32 @@ Enables the audio_open command without any pre-configured scope.
 <td>
 
 Denies the audio_open command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-audio-path`
+
+</td>
+<td>
+
+Enables the audio_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-audio-path`
+
+</td>
+<td>
+
+Denies the audio_path command without any pre-configured scope.
 
 </td>
 </tr>

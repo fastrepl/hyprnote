@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "audio_open",
     "audio_exist",
     "audio_delete",
+    "audio_path",
 ];
 
 fn main() {

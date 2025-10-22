@@ -171,7 +171,7 @@ function useStartSession(sessionId: string) {
         session_id: sessionId,
         languages: ["en"],
         onboarding: false,
-        record_enabled: false,
+        record_enabled: true,
         model: conn.model,
         base_url: conn.baseUrl,
         api_key: conn.apiKey,

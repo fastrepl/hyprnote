@@ -1,3 +1,6 @@
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { useQuery } from "@tanstack/react-query";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
 
 import AudioPlayer from "../../../../contexts/audio-player";
@@ -35,8 +38,19 @@ export const TabItemNote: TabItem = (
 };
 
 export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+  const { data: audioUrl } = useQuery({
+    queryKey: ["session", tab.id, "audio-url"],
+    queryFn: () => miscCommands.audioPath(tab.id),
+    select: (result) => {
+      if (result.status === "ok") {
+        return convertFileSrc(result.data);
+      }
+      return null;
+    },
+  });
+
   return (
-    <AudioPlayer.Provider url="/assets/audio.wav">
+    <AudioPlayer.Provider url={audioUrl ?? ""}>
       <StandardTabWrapper afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}>
         <div className="p-2">
           <OuterHeader sessionId={tab.id} />

@@ -52,10 +52,31 @@ pub async fn audio_delete<R: tauri::Runtime>(
     session_id: String,
 ) -> Result<(), String> {
     let data_dir = app.path().app_data_dir().unwrap();
-    let audio_path = data_dir.join(session_id).join("audio.wav");
+    let session_dir = data_dir.join(session_id);
 
-    std::fs::remove_file(audio_path).map_err(|e| e.to_string())?;
+    ["audio.wav", "audio.ogg"]
+        .iter()
+        .map(|format| session_dir.join(format))
+        .try_for_each(|path| std::fs::remove_file(path).map_err(|e| e.to_string()))?;
     Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn audio_path<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+) -> Result<String, String> {
+    let data_dir = app.path().app_data_dir().unwrap();
+    let session_dir = data_dir.join(session_id);
+
+    let path = ["audio.ogg", "audio.wav"]
+        .iter()
+        .map(|format| session_dir.join(format))
+        .find(|path| path.exists())
+        .ok_or("audio_path_not_found")?;
+
+    Ok(path.to_string_lossy().to_string())
 }
 
 #[tauri::command]

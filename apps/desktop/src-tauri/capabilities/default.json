@@ -59,6 +59,7 @@
     "dialog:default",
     "listener:default",
     "template:default",
-    "shell:default"
+    "shell:default",
+    "misc:default"
   ]
 }

@@ -465,7 +465,7 @@ export const StoreComponent = () => {
       .setIndexDefinition(INDEXES.sessionsByHuman, "mapping_session_participant", "human_id")
       .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
       .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
-      .setIndexDefinition(INDEXES.transcriptsBySession, "transcripts", "session_id")
+      .setIndexDefinition(INDEXES.transcriptBySession, "transcripts", "session_id")
       .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
@@ -560,7 +560,7 @@ export const INDEXES = {
   sessionParticipantsBySession: "sessionParticipantsBySession",
   foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
-  transcriptsBySession: "transcriptsBySession",
+  transcriptBySession: "transcriptBySession",
   wordsByTranscript: "wordsByTranscript",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",

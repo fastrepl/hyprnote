@@ -95,9 +95,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   }
 
   return (
-    <FloatingButton
-      onClick={handleClick}
-    >
+    <FloatingButton onClick={handleClick}>
       Start listening
     </FloatingButton>
   );
@@ -187,20 +185,18 @@ function useStartSession(sessionId: string) {
 
 function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
   const store = persisted.UI.useStore(persisted.STORE_ID);
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptsBySession,
-    sessionId,
-    persisted.STORE_ID,
-  );
 
   const handler = useCallback<PersistFinalCallback>((words) => {
-    console.log("persistFinal", words);
-
     if (!store || words.length === 0) {
       return;
     }
 
-    let transcriptId = transcriptIds?.[0];
+    let transcriptId: string | undefined;
+    store.forEachRow("transcripts", (rowId, _forEachCell) => {
+      if (store.getCell("transcripts", rowId, "session_id") === sessionId) {
+        transcriptId = rowId;
+      }
+    });
 
     if (!transcriptId) {
       transcriptId = id();
@@ -212,7 +208,7 @@ function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
     }
 
     words.forEach((word) => {
-      const entry: persisted.Word = {
+      store.setRow("words", id(), {
         transcript_id: transcriptId!,
         text: word.text,
         start_ms: word.start_ms,
@@ -220,11 +216,9 @@ function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
         channel: word.channel,
         user_id: "",
         created_at: new Date().toISOString(),
-      };
-
-      store.setRow("words", id(), entry);
+      });
     });
-  }, [store, transcriptIds, sessionId]);
+  }, [store, sessionId]);
 
   return handler;
 }

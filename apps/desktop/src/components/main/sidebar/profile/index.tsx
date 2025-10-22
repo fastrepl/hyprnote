@@ -3,7 +3,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 
 import { clsx } from "clsx";
-import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, Users } from "lucide-react";
+import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -138,10 +138,23 @@ export function ProfileSection() {
     setCurrentView("main");
   }, []);
 
+  const handleClickProfile = useCallback(() => {
+    // TODO: Show the user's own profile in the contacts view
+    openNew({
+      type: "contacts",
+      state: {
+        selectedOrganization: null,
+        selectedPerson: null,
+      },
+    });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
     { icon: Users, label: "Contacts", onClick: handleClickContacts },
     { icon: Calendar, label: "Calendar", onClick: handleClickCalendar },
+    { icon: User, label: "My Profile", onClick: handleClickProfile },
     {
       icon: Settings,
       label: "Settings",

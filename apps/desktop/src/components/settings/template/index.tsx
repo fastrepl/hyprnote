@@ -32,11 +32,7 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
 
     let filtered = Object.entries(templates);
 
-    // Apply favorite filter (placeholder for now)
-    if (filterStatus === "favorite") {
-      // TODO: Implement favorite filtering when favorite field is added
-      filtered = filtered;
-    }
+    // TODO: Implement favorite filtering when favorite field is added to the schema
 
     // Apply search filter
     if (searchQuery.trim()) {

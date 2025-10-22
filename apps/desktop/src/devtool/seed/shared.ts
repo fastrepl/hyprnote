@@ -545,10 +545,7 @@ export const generateMockData = (config: MockConfig) => {
   templateTypes.forEach((type) => {
     const template = createTemplate(type);
     templates[template.id] = template.data;
-    console.log("Created template:", type, template.id, template.data);
   });
-
-  console.log("Total templates created:", Object.keys(templates).length);
 
   const sessionIds: string[] = [];
   humanIds.forEach((humanId) => {

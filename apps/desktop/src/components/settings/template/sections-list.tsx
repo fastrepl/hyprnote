@@ -1,6 +1,7 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { cn } from "@hypr/utils";
 
 import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
@@ -123,9 +124,10 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
 
   return (
     <div
-      className={`group relative rounded-lg border p-3 transition-all bg-white ${
-        isFocused ? "border-blue-500" : "border-border hover:border-neutral-300"
-      }`}
+      className={cn([
+        "group relative rounded-lg border p-3 transition-all bg-white",
+        isFocused ? "border-blue-500" : "border-border hover:border-neutral-300",
+      ])}
     >
       <button
         className="absolute left-2 top-2 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"

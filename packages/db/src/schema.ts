@@ -68,6 +68,7 @@ export const events = pgTable(TABLE_EVENTS, {
   location: text("location"),
   meeting_link: text("meeting_link"),
   description: text("description"),
+  note: text("note"),
 });
 
 export const TABLE_CALENDARS = "calendars";

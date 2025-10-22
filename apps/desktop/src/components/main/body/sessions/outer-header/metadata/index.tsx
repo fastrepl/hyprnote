@@ -3,15 +3,17 @@ import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { cn } from "@hypr/utils";
 import { MeetingDate } from "./date";
 import { MeetingLink } from "./link";
-import { Participants } from "./participants";
+import { MeetingParticipants } from "./participants";
 import { useMeetingMetadata } from "./shared";
 
-export function SessionMetadata({ sessionId }: { sessionId: string }) {
+export function MeetingMetadata({ sessionId }: { sessionId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const meta = useMeetingMetadata(sessionId);
 
+  // Keeping this at the top is important as we do `useMeetingMetadata(V)!` in other places
   if (!meta) {
     return (
       <Button disabled size="sm" variant="ghost">
@@ -37,15 +39,21 @@ export function SessionMetadata({ sessionId }: { sessionId: string }) {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="shadow-lg w-[340px] relative p-0 max-h-[80vh] flex flex-col">
+      <PopoverContent
+        align="end"
+        className={cn([
+          "flex flex-col",
+          "shadow-lg w-[340px] relative p-0 max-h-[80vh]",
+        ])}
+      >
         <div className="flex flex-col gap-3 overflow-y-auto p-4">
-          <div className="font-semibold text-base">{meta.title}</div>
+          <span className="font-semibold text-base">{meta.title}</span>
           <Divider />
           <MeetingLink sessionId={sessionId} />
           <Divider />
           <MeetingDate sessionId={sessionId} />
           <Divider />
-          <Participants sessionId={sessionId} />
+          <MeetingParticipants sessionId={sessionId} />
         </div>
       </PopoverContent>
     </Popover>

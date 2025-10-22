@@ -26,7 +26,7 @@ export function MeetingLink({ sessionId }: { sessionId: string }) {
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="ghost" className="shrink-0">
             <VideoIcon size={16} />
-            {meta.meeting_link && new URL(meta.meeting_link).hostname}
+            {meta.meeting_link && renderURL(meta.meeting_link)}
             <ChevronDownIcon size={16} className="text-neutral-500" />
           </Button>
         </DropdownMenuTrigger>
@@ -51,3 +51,11 @@ export function MeetingLink({ sessionId }: { sessionId: string }) {
     </div>
   );
 }
+
+const renderURL = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};

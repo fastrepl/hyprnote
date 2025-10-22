@@ -54,7 +54,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="logos:zoom-icon" className="w-5 h-5" />}
+        icon={<Icon icon="logos:zoom-icon" size={20} />}
       >
         {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
       </FloatingButton>
@@ -65,7 +65,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="logos:google-meet" className="w-5 h-5" />}
+        icon={<Icon icon="logos:google-meet" size={20} />}
       >
         {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
       </FloatingButton>
@@ -76,7 +76,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="simple-icons:webex" className="w-5 h-5" />}
+        icon={<Icon icon="simple-icons:webex" size={20} />}
       >
         {isNarrow ? "Join & Listen" : "Join Webex & Start listening"}
       </FloatingButton>
@@ -87,7 +87,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     return (
       <FloatingButton
         onClick={handleClick}
-        icon={<Icon icon="logos:microsoft-teams" className="w-5 h-5" />}
+        icon={<Icon icon="logos:microsoft-teams" size={20} />}
       >
         {isNarrow ? "Join & Listen" : "Join Teams & Start listening"}
       </FloatingButton>

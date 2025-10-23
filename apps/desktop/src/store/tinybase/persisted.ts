@@ -42,6 +42,7 @@ export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
   job_title: z.preprocess(val => val ?? undefined, z.string().optional()),
   linkedin_username: z.preprocess(val => val ?? undefined, z.string().optional()),
   is_user: z.preprocess(val => val ?? undefined, z.boolean().optional()),
+  memo: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
 export const eventSchema = baseEventSchema.omit({ id: true }).extend({
@@ -170,6 +171,7 @@ const SCHEMA = {
       job_title: { type: "string" },
       linkedin_username: { type: "string" },
       is_user: { type: "boolean" },
+      memo: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof humanSchema>,
     organizations: {
       user_id: { type: "string" },

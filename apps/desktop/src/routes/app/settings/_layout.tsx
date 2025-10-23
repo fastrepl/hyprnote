@@ -17,6 +17,7 @@ import {
   CalendarDays,
   CreditCard,
   Edit,
+  ExternalLinkIcon,
   MessageCircleQuestion,
   MoreVertical,
   Plus,
@@ -153,14 +154,17 @@ function Group(
             key={tab}
             variant="ghost"
             className={cn([
-              "w-full justify-start",
-              "hover:bg-neutral-200 font-normal",
-              activeTab === tab && "bg-neutral-200",
+              "w-full justify-between",
+              "font-normal",
+              activeTab === tab ? "bg-neutral-200 hover:bg-neutral-200" : "hover:bg-neutral-100",
             ])}
             onClick={() => handleTabClick(tab)}
           >
-            <Icon size={16} className="shrink-0" />
-            <span>{tabInfo.label}</span>
+            <div className="flex items-center gap-2">
+              <Icon size={16} className="shrink-0" />
+              <span>{tabInfo.label}</span>
+            </div>
+            {(tab === "developers" || tab === "feedback") && <ExternalLinkIcon className="shrink-0 text-neutral-500" />}
           </Button>
         );
       })}

@@ -5,44 +5,6 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { Check } from "lucide-react";
 import { useCallback, useState } from "react";
 
-type PlanId = "free" | "pro";
-
-interface BillingPlan {
-  id: PlanId;
-  name: string;
-  description: string;
-  price: string;
-  priceSuffix?: string;
-  features: string[];
-}
-
-const PLANS: BillingPlan[] = [
-  {
-    id: "free",
-    name: "Free",
-    description: "Get started with local transcription and essential exports.",
-    price: "$0",
-    priceSuffix: "per month",
-    features: [
-      "Local transcription with BYOK intelligence",
-      "Copy and PDF sharing",
-      "Community support",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "Unlock cloud enhancements and org-ready workflows.",
-    price: "$19",
-    priceSuffix: "per seat / month",
-    features: [
-      "Local + cloud transcription",
-      "Shareable links with viewer permissions",
-      "Unified billing and access controls",
-    ],
-  },
-];
-
 export function SettingsBilling() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
 
@@ -52,31 +14,27 @@ export function SettingsBilling() {
   }, []);
 
   const handleContact = useCallback(() => {
-    void openUrl("https://cal.com/team/hyprnote/welcome");
+    openUrl("https://cal.com/team/hyprnote/welcome");
   }, []);
 
   return (
-    <div className="flex flex-col">
-      <h2 className="font-semibold mb-4">Available Plans</h2>
-
-      <div className="space-y-4">
-        <div className="border border-neutral-200 rounded-lg bg-white overflow-hidden">
-          <div className="grid grid-cols-2">
-            {PLANS.map((plan, index) => (
-              <div
-                key={plan.id}
-                className={cn(index === 0 && "border-r border-neutral-200")}
-              >
-                <BillingPlanCard
-                  plan={plan}
-                  currentPlan={currentPlan}
-                  onChangePlan={handlePlanChange}
-                  onContactSales={handleContact}
-                  removeBorder
-                />
-              </div>
-            ))}
-          </div>
+    <div className="h-full flex flex-col">
+      <div className="flex-1 border border-neutral-200 rounded-lg bg-white overflow-hidden">
+        <div className="grid grid-cols-2 h-full">
+          {PLANS.map((plan, index) => (
+            <div
+              key={plan.id}
+              className={cn(index === 0 && "border-r border-neutral-200")}
+            >
+              <BillingPlanCard
+                plan={plan}
+                currentPlan={currentPlan}
+                onChangePlan={handlePlanChange}
+                onContactSales={handleContact}
+                removeBorder
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -106,7 +64,7 @@ function BillingPlanCard(
     <div
       className={cn(
         [
-          "p-6 flex flex-col gap-6 bg-white",
+          "h-full p-8 flex flex-col justify-center gap-6 bg-white",
           !removeBorder && "border border-neutral-200 rounded-lg",
           className,
         ],
@@ -197,3 +155,41 @@ function PlanActions(
     </Button>
   );
 }
+
+type PlanId = "free" | "pro";
+
+interface BillingPlan {
+  id: PlanId;
+  name: string;
+  description: string;
+  price: string;
+  priceSuffix?: string;
+  features: string[];
+}
+
+const PLANS: BillingPlan[] = [
+  {
+    id: "free",
+    name: "Free",
+    description: "Get started with local transcription and essential exports.",
+    price: "$0",
+    priceSuffix: "per month",
+    features: [
+      "Local transcription with BYOK intelligence",
+      "Copy and PDF sharing",
+      "Community support",
+    ],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    description: "Unlock cloud enhancements and org-ready workflows.",
+    price: "$19",
+    priceSuffix: "per seat / month",
+    features: [
+      "Local + cloud transcription",
+      "Shareable links with viewer permissions",
+      "Unified billing and access controls",
+    ],
+  },
+];

@@ -1,4 +1,5 @@
 import { Button } from "@hypr/ui/components/ui/button";
+import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
@@ -84,21 +85,35 @@ function getProviderIcon(provider: IntegrationProvider) {
   return <Icon icon={iconMap[provider]} className="w-5 h-5" />;
 }
 
+type FilterStatus = "all" | "installed" | "not-installed";
+
 export function SettingsIntegrations() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const integrations = MOCK_INTEGRATIONS;
 
   const filteredIntegrations = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return integrations;
+    let filtered = integrations;
+
+    // Apply status filter
+    if (filterStatus === "installed") {
+      filtered = filtered.filter((integration) => integration.connected);
+    } else if (filterStatus === "not-installed") {
+      filtered = filtered.filter((integration) => !integration.connected);
     }
-    const query = searchQuery.toLowerCase();
-    return integrations.filter(
-      (integration) =>
-        integration.name.toLowerCase().includes(query)
-        || integration.description.toLowerCase().includes(query),
-    );
-  }, [searchQuery, integrations]);
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (integration) =>
+          integration.name.toLowerCase().includes(query)
+          || integration.description.toLowerCase().includes(query),
+      );
+    }
+
+    return filtered;
+  }, [searchQuery, filterStatus, integrations]);
 
   const handleConnect = (integrationId: string) => {
     // TODO: Implement connect logic
@@ -114,10 +129,32 @@ export function SettingsIntegrations() {
     <div className="flex flex-col gap-8">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold">Integrations</h2>
+          <h2 className="font-semibold cursor-default">Integrations</h2>
+          <ButtonGroup>
+            <Button
+              variant={filterStatus === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("all")}
+            >
+              All
+            </Button>
+            <Button
+              variant={filterStatus === "installed" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("installed")}
+            >
+              Installed
+            </Button>
+            <Button
+              variant={filterStatus === "not-installed" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus("not-installed")}
+            >
+              Not Installed
+            </Button>
+          </ButtonGroup>
         </div>
 
-        {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
           <Input

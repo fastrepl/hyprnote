@@ -1,9 +1,11 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Separator } from "@hypr/ui/components/ui/separator";
+import { cn } from "@hypr/utils";
+
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/utils";
 import { MeetingDate } from "./date";
 import { MeetingLink } from "./link";
 import { MeetingParticipants } from "./participants";
@@ -46,20 +48,16 @@ export function MeetingMetadata({ sessionId }: { sessionId: string }) {
           "shadow-lg w-[340px] relative p-0 max-h-[80vh]",
         ])}
       >
-        <div className="flex flex-col gap-3 overflow-y-auto p-4">
+        <div className="flex flex-col gap-2 overflow-y-auto p-4">
           <span className="font-semibold text-base">{meta.title}</span>
-          <Divider />
+          <Separator />
           <MeetingLink sessionId={sessionId} />
-          <Divider />
+          <Separator />
           <MeetingDate sessionId={sessionId} />
-          <Divider />
+          <Separator />
           <MeetingParticipants sessionId={sessionId} />
         </div>
       </PopoverContent>
     </Popover>
   );
-}
-
-function Divider() {
-  return <div className="border-t border-neutral-200" />;
 }

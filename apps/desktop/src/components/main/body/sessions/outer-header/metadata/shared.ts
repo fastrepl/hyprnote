@@ -1,6 +1,6 @@
 import * as persisted from "../../../../../../store/tinybase/persisted";
 
-type MeetingMetadata = {
+export type MeetingMetadata = {
   tood: string;
   meeting_link?: string | null;
   title: string;

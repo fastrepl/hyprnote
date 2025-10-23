@@ -1,4 +1,5 @@
 import { formatDate, isSameDay } from "@hypr/utils";
+
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingDate({ sessionId }: { sessionId: string }) {

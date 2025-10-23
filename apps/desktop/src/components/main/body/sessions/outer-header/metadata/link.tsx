@@ -1,7 +1,3 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, VideoIcon } from "lucide-react";
-import { useCallback } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -9,6 +5,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, VideoIcon } from "lucide-react";
+import { useCallback } from "react";
+
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingLink({ sessionId }: { sessionId: string }) {

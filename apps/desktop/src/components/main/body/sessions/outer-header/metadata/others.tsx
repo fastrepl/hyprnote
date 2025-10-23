@@ -1,13 +1,14 @@
+import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
+import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import { CheckIcon, MailIcon, MinusCircleIcon, SearchIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@hypr/ui/components/ui/hover-card";
-import { cn } from "@hypr/utils";
 import { getInitials } from "../../../contacts/shared";
 
-export interface MeetingParticipant {
+interface MeetingParticipant {
   id: string;
   full_name?: string | null;
   email?: string | null;
@@ -17,17 +18,6 @@ export interface MeetingParticipant {
     id: string;
     name: string;
   } | null;
-}
-
-export interface MeetingMetadata {
-  id: string;
-  title: string;
-  started_at: string;
-  ended_at: string;
-  location?: string | null;
-  meeting_link?: string | null;
-  description?: string | null;
-  participants: MeetingParticipant[];
 }
 
 function ParticipantChip({

@@ -1,12 +1,11 @@
-import { Loader2 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
 
-export function StreamingView({ text }: { text: string }) {
-  const containerRef = useAutoScrollToBottom();
+export function StreamingView({ text, after }: { text: string; after: ReactNode }) {
+  const containerRef = useAutoScrollToBottom(text);
 
   const components = {
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
@@ -40,22 +39,12 @@ export function StreamingView({ text }: { text: string }) {
           </Streamdown>
         </motion.div>
       </div>
-
-      <div
-        className={cn([
-          "flex items-center justify-center w-full gap-3",
-          "border border-neutral-200",
-          "bg-neutral-50 rounded-lg py-2",
-        ])}
-      >
-        <Loader2 className="w-4 h-4 animate-spin text-neutral-500" />
-        <span className="text-xs text-neutral-500">Generating...</span>
-      </div>
+      {after}
     </div>
   );
 }
 
-function useAutoScrollToBottom() {
+function useAutoScrollToBottom(text: string) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -75,7 +64,7 @@ function useAutoScrollToBottom() {
     if (isNearBottom) {
       scrollableParent.scrollTop = scrollHeight;
     }
-  }, [containerRef]);
+  }, [text]);
 
   return containerRef;
 }

@@ -1,11 +1,11 @@
+import { BookText, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { createQueries } from "tinybase/with-schemas";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
-
-import { useMemo, useState } from "react";
-import { createQueries } from "tinybase/with-schemas";
-import { BookText, Search } from "lucide-react";
 
 import * as internal from "../../../store/tinybase/internal";
 import * as persisted from "../../../store/tinybase/persisted";
@@ -38,7 +38,7 @@ export function SettingsTemplates() {
   }, [searchQuery, templates]);
 
   if (currentTemplate) {
-    return <TemplateEditor id={currentTemplate} onClose={() => setCurrentTemplate(null)} />;
+    return <TemplateEditor id={currentTemplate} />;
   }
 
   return (

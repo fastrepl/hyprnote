@@ -103,6 +103,7 @@ export function ProfileSection() {
 
   // TODO - why is this not working as intended
   const handleClickBilling = useCallback(() => {
+    console.log("handleClickBilling");
     windowsCommands.windowShow({ type: "settings" }).then(() => {
       windowsCommands.windowEmitNavigate({ type: "settings" }, { path: "/app/settings", search: { tab: "billing" } });
     });

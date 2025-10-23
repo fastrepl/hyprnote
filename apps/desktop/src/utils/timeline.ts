@@ -202,15 +202,6 @@ export function buildTimelineBuckets({
     bucketMap.get(bucket.label)!.items.push(item);
   });
 
-  const todayBucket = getBucketInfo(new Date());
-  if (!bucketMap.has(todayBucket.label)) {
-    bucketMap.set(todayBucket.label, {
-      sortKey: todayBucket.sortKey,
-      precision: todayBucket.precision,
-      items: [],
-    });
-  }
-
   return Array.from(bucketMap.entries())
     .sort((a, b) => b[1].sortKey - a[1].sortKey)
     .map(([label, value]) => ({ label, items: value.items, precision: value.precision } satisfies TimelineBucket));

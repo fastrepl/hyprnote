@@ -23,7 +23,7 @@ import { type Tab, useTabs } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemCalendar: TabItem = (
+export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = (
   {
     tab,
     tabIndex,

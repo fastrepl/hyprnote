@@ -12,7 +12,7 @@ import { OrganizationDetailsColumn } from "./organization-details";
 import { OrganizationsColumn } from "./organizations";
 import { PeopleColumn, useSortedHumanIds } from "./people";
 
-export const TabItemContact: TabItem = (
+export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
   {
     tab,
     tabIndex,
@@ -36,11 +36,7 @@ export const TabItemContact: TabItem = (
   );
 };
 
-export function TabContentContact({ tab }: { tab: Tab }) {
-  if (tab.type !== "contacts") {
-    return null;
-  }
-
+export function TabContentContact({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   return (
     <StandardTabWrapper>
       <ContactView tab={tab} />
@@ -48,11 +44,7 @@ export function TabContentContact({ tab }: { tab: Tab }) {
   );
 }
 
-function ContactView({ tab }: { tab: Tab }) {
-  if (tab.type !== "contacts") {
-    return null;
-  }
-
+function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
   const { openCurrent, invalidateResource } = useTabs();
 

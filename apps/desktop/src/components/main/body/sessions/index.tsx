@@ -13,7 +13,7 @@ import { NoteInput } from "./note-input";
 import { OuterHeader } from "./outer-header";
 import { TitleInput } from "./title-input";
 
-export const TabItemNote: TabItem = (
+export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
   {
     tab,
     tabIndex,

@@ -3,9 +3,9 @@ import { cn } from "@hypr/utils";
 
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Check } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 
-type PlanId = "free" | "pro" | "ultimate";
+type PlanId = "free" | "pro";
 
 interface BillingPlan {
   id: PlanId;
@@ -41,31 +41,10 @@ const PLANS: BillingPlan[] = [
       "Unified billing and access controls",
     ],
   },
-  {
-    id: "ultimate",
-    name: "Ultimate",
-    description: "For enterprises that need serious data privacy and security while keeping the team moving.",
-    price: "Custom",
-    priceSuffix: "tailored pricing",
-    features: [
-      "Local + cloud transcription with zero-retention options",
-      "Granular access management and unified billing",
-      "Dedicated success team and compliance reviews",
-    ],
-  },
 ];
 
 export function SettingsBilling() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
-
-  const standardPlans = useMemo(
-    () => PLANS.filter((plan) => plan.id !== "ultimate"),
-    [],
-  );
-  const ultimatePlan = useMemo(
-    () => PLANS.find((plan) => plan.id === "ultimate")!,
-    [],
-  );
 
   const handlePlanChange = useCallback((nextPlan: PlanId) => {
     setCurrentPlan(nextPlan);
@@ -81,10 +60,9 @@ export function SettingsBilling() {
       <h2 className="font-semibold mb-4">Available Plans</h2>
 
       <div className="space-y-4">
-        {/* Free and Pro in same box */}
         <div className="border border-neutral-200 rounded-lg bg-white overflow-hidden">
           <div className="grid grid-cols-2">
-            {standardPlans.map((plan, index) => (
+            {PLANS.map((plan, index) => (
               <div
                 key={plan.id}
                 className={cn(index === 0 && "border-r border-neutral-200")}
@@ -100,14 +78,6 @@ export function SettingsBilling() {
             ))}
           </div>
         </div>
-
-        {/* Ultimate spanning full width */}
-        <BillingPlanCard
-          plan={ultimatePlan}
-          currentPlan={currentPlan}
-          onChangePlan={handlePlanChange}
-          onContactSales={handleContact}
-        />
       </div>
     </div>
   );
@@ -138,7 +108,6 @@ function BillingPlanCard(
         [
           "p-6 flex flex-col gap-6 bg-white",
           !removeBorder && "border border-neutral-200 rounded-lg",
-          plan.id === "ultimate" && "bg-neutral-50",
           className,
         ],
       )}

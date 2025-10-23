@@ -5,9 +5,9 @@ import { type Tab } from "../../../store/zustand/tabs";
 import { useTabs } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
-import { FolderBreadcrumb } from "./shared/folder-breadcrumb";
+import { FolderBreadcrumb, useFolderChain } from "./shared/folder-breadcrumb";
 
-export const TabItemFolder: TabItem = (props) => {
+export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (props) => {
   if (props.tab.type === "folders" && props.tab.id === null) {
     return <TabItemFolderAll {...props} />;
   }
@@ -19,7 +19,7 @@ export const TabItemFolder: TabItem = (props) => {
   return null;
 };
 
-const TabItemFolderAll: TabItem = (
+const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = (
   {
     tab,
     tabIndex,
@@ -43,7 +43,7 @@ const TabItemFolderAll: TabItem = (
   );
 };
 
-const TabItemFolderSpecific: TabItem = ({
+const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   tab,
   tabIndex,
   handleCloseThis,
@@ -51,16 +51,14 @@ const TabItemFolderSpecific: TabItem = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
-  if (tab.type !== "folders" || tab.id === null) {
-    return null;
-  }
-
-  const folderName = persisted.UI.useCell("folders", tab.id, "name", persisted.STORE_ID);
+  const folders = useFolderChain(tab?.id ?? "");
+  const name = persisted.UI.useCell("folders", tab?.id ?? "", "name", persisted.STORE_ID);
+  const title = " .. / ".repeat(folders.length - 1) + name;
 
   return (
     <TabItemBase
       icon={<FolderIcon className="w-4 h-4" />}
-      title={folderName ?? ""}
+      title={title}
       active={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}

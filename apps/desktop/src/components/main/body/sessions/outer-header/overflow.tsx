@@ -1,14 +1,4 @@
-import {
-  FileTextIcon,
-  FolderIcon,
-  Link2Icon,
-  LockIcon,
-  MicIcon,
-  MicOffIcon,
-  MoreHorizontalIcon,
-  TrashIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { FileTextIcon, FolderIcon, Link2Icon, MicIcon, MicOffIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -17,14 +7,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
-  DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { Switch } from "@hypr/ui/components/ui/switch";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import * as persisted from "../../../../../store/tinybase/persisted";
+import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
   return (
@@ -37,7 +25,6 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
       <DropdownMenuContent align="end" className="w-56">
         <Copy />
         <Folder sessionId={sessionId} />
-        <Lock />
         <ExportPDF />
         <DropdownMenuSeparator />
         <Listening sessionId={sessionId} />
@@ -64,54 +51,14 @@ function Copy() {
 }
 
 function Folder({ sessionId }: { sessionId: string }) {
-  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
-
-  const handleMoveToFolder = persisted.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    persisted.STORE_ID,
-  );
-
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="cursor-pointer" disabled={Object.keys(folders).length === 0}>
+      <DropdownMenuSubTrigger className="cursor-pointer">
         <FolderIcon />
         <span>Move to</span>
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent>
-        {folders
-          && Object.entries(folders).map(([folderId, folder]) => (
-            <DropdownMenuItem
-              key={folderId}
-              className="cursor-pointer"
-              onClick={() => handleMoveToFolder(folderId)}
-            >
-              <FolderIcon />
-              {folder.name}
-            </DropdownMenuItem>
-          ))}
-      </DropdownMenuSubContent>
+      <SearchableFolderSubmenuContent sessionId={sessionId} />
     </DropdownMenuSub>
-  );
-}
-
-function Lock() {
-  const [isLocked, setIsLocked] = useState(false);
-
-  const handleToggleLock = () => {
-    setIsLocked(!isLocked);
-    // TODO: Implement lock note functionality
-    console.log("Toggle lock");
-  };
-
-  return (
-    <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
-      <LockIcon />
-      Lock note
-      <Switch size="sm" checked={isLocked} onCheckedChange={handleToggleLock} className="ml-auto hover:scale-105" />
-    </DropdownMenuItem>
   );
 }
 

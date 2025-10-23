@@ -56,7 +56,7 @@ function FolderWrapper(
   return <>{children({ id: folderId, name: name ?? "Untitled", isLast: false })}</>;
 }
 
-function useFolderChain(folderId: string) {
+export function useFolderChain(folderId: string) {
   const folderIds = persisted.UI.useLinkedRowIds(
     "folderToParentFolder",
     folderId,

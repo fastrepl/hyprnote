@@ -75,7 +75,7 @@ export function ShareButton(_: { sessionId: string }) {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[340px] shadow-lg p-0 max-h-[80vh] flex flex-col" align="end">
+      <PopoverContent className="w-[340px] shadow-lg p-0 max-h-[80vh] flex flex-col rounded-lg" align="end">
         <div className="flex flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center px-3 py-2 gap-2 rounded-md bg-neutral-50 border border-neutral-200">
@@ -225,7 +225,7 @@ export function ShareButton(_: { sessionId: string }) {
           )}
 
           <Button
-            className="w-full"
+            className="w-full rounded-lg"
             onClick={handleCopyLink}
           >
             Copy link

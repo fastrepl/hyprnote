@@ -1,14 +1,4 @@
-import {
-  FileTextIcon,
-  FolderIcon,
-  Link2Icon,
-  LockIcon,
-  MicIcon,
-  MicOffIcon,
-  MoreHorizontalIcon,
-  TrashIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { FileTextIcon, FolderIcon, Link2Icon, MicIcon, MicOffIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -21,7 +11,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { Switch } from "@hypr/ui/components/ui/switch";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as persisted from "../../../../../store/tinybase/persisted";
@@ -37,7 +26,6 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
       <DropdownMenuContent align="end" className="w-56">
         <Copy />
         <Folder sessionId={sessionId} />
-        <Lock />
         <ExportPDF />
         <DropdownMenuSeparator />
         <Listening sessionId={sessionId} />
@@ -76,13 +64,13 @@ function Folder({ sessionId }: { sessionId: string }) {
 
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="cursor-pointer" disabled={Object.keys(folders).length === 0}>
+      <DropdownMenuSubTrigger className="cursor-pointer">
         <FolderIcon />
         <span>Move to</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
-        {folders
-          && Object.entries(folders).map(([folderId, folder]) => (
+        {Object.keys(folders).length
+          ? Object.entries(folders).map(([folderId, folder]) => (
             <DropdownMenuItem
               key={folderId}
               className="cursor-pointer"
@@ -91,27 +79,10 @@ function Folder({ sessionId }: { sessionId: string }) {
               <FolderIcon />
               {folder.name}
             </DropdownMenuItem>
-          ))}
+          ))
+          : <DropdownMenuItem disabled>No folders available</DropdownMenuItem>}
       </DropdownMenuSubContent>
     </DropdownMenuSub>
-  );
-}
-
-function Lock() {
-  const [isLocked, setIsLocked] = useState(false);
-
-  const handleToggleLock = () => {
-    setIsLocked(!isLocked);
-    // TODO: Implement lock note functionality
-    console.log("Toggle lock");
-  };
-
-  return (
-    <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
-      <LockIcon />
-      Lock note
-      <Switch size="sm" checked={isLocked} onCheckedChange={handleToggleLock} className="ml-auto hover:scale-105" />
-    </DropdownMenuItem>
   );
 }
 

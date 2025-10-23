@@ -92,7 +92,7 @@ function RenderIfRootNotExist(
     sessionId: string;
   },
 ) {
-  const folderIds = persisted.UI.useRowIds("folders", persisted.STORE_ID);
+  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
 
   const handleSelectFolder = persisted.UI.useSetPartialRowCallback(
     "sessions",
@@ -110,10 +110,18 @@ function RenderIfRootNotExist(
             Select folder
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {folderIds?.map((id) => <FolderMenuItem key={id} folderId={id} onSelect={() => handleSelectFolder(id)} />)}
-            {(!folderIds || folderIds.length === 0) && (
-              <DropdownMenuItem disabled>No folders available</DropdownMenuItem>
-            )}
+            {Object.keys(folders).length
+              ? Object.entries(folders).map(([folderId, folder]) => (
+                <DropdownMenuItem
+                  key={folderId}
+                  className="cursor-pointer"
+                  onClick={() => handleSelectFolder(folderId)}
+                >
+                  <FolderIcon />
+                  {folder.name}
+                </DropdownMenuItem>
+              ))
+              : <DropdownMenuItem disabled>No folders available</DropdownMenuItem>}
           </DropdownMenuContent>
         </DropdownMenu>
       </BreadcrumbItem>
@@ -124,17 +132,6 @@ function RenderIfRootNotExist(
         </BreadcrumbPage>
       </BreadcrumbItem>
     </>
-  );
-}
-
-function FolderMenuItem({ folderId, onSelect }: { folderId: string; onSelect: () => void }) {
-  const name = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
-
-  return (
-    <DropdownMenuItem onSelect={onSelect}>
-      <FolderIcon className="w-4 h-4" />
-      {name ?? "Untitled"}
-    </DropdownMenuItem>
   );
 }
 

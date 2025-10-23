@@ -16,7 +16,7 @@ import {
 } from "@hypr/utils";
 
 import { Calendar, CalendarDays, ChevronLeft, ChevronRight, FileText, Pen } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import * as persisted from "../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../store/zustand/tabs";
@@ -26,6 +26,7 @@ import { type TabItem, TabItemBase } from "./shared";
 export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = (
   {
     tab,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
@@ -37,6 +38,7 @@ export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = (
       icon={<Calendar size={16} />}
       title={"Calendar"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
@@ -138,6 +140,7 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
 
                 <Button
                   variant="outline"
+                  size="sm"
                   className="text-sm px-3"
                   onClick={handleToday}
                 >
@@ -220,6 +223,10 @@ function TabContentCalendarDay({
   isLastRow: boolean;
   selectedCalendars: Set<string>;
 }) {
+  const cellRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [maxVisibleItems, setMaxVisibleItems] = useState(5);
+
   const allEventIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.eventsByDate,
     day,
@@ -244,15 +251,33 @@ function TabContentCalendarDay({
   const dayOfWeek = getDay(new Date(day));
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  const HEADER_HEIGHT = 32;
-  const EVENT_HEIGHT = 20;
-  const CELL_HEIGHT = 128;
-  const availableHeight = CELL_HEIGHT - HEADER_HEIGHT;
-  const maxPossibleEvents = Math.floor(availableHeight / EVENT_HEIGHT);
+  // Measure actual available height and calculate max visible items
+  useEffect(() => {
+    const measureHeight = () => {
+      if (cellRef.current && contentRef.current) {
+        const cellHeight = cellRef.current.clientHeight;
+        const contentTop = contentRef.current.offsetTop;
+        const availableHeight = cellHeight - contentTop;
+        const EVENT_HEIGHT = 20; // height of each event item (h-5)
+        const SPACING = 4; // space-y-1
+
+        // Calculate how many items can fit
+        const itemsWithSpacing = Math.floor((availableHeight + SPACING) / (EVENT_HEIGHT + SPACING));
+        // Reserve space for "+x more" if needed
+        setMaxVisibleItems(Math.max(1, itemsWithSpacing));
+      }
+    };
+
+    measureHeight();
+
+    // Re-measure on window resize
+    window.addEventListener("resize", measureHeight);
+    return () => window.removeEventListener("resize", measureHeight);
+  }, []);
 
   const totalItems = eventIds.length + sessionIds.length;
-  const visibleCount = totalItems > maxPossibleEvents
-    ? maxPossibleEvents - 1
+  const visibleCount = totalItems > maxVisibleItems
+    ? maxVisibleItems - 1
     : totalItems;
   const hiddenCount = totalItems - visibleCount;
 
@@ -273,6 +298,7 @@ function TabContentCalendarDay({
 
   return (
     <div
+      ref={cellRef}
       className={cn([
         "relative flex flex-col items-end flex-1 min-w-0 border-neutral-200 p-1 overflow-hidden",
         !isFirstColumn && "border-l",
@@ -301,7 +327,7 @@ function TabContentCalendarDay({
         </span>
       </div>
 
-      <div className="flex-1 w-full space-y-1">
+      <div ref={contentRef} className="flex-1 w-full space-y-1">
         {visibleItems.map((item) =>
           item.type === "event"
             ? <TabContentCalendarDayEvents key={item.id} eventId={item.id} />

@@ -1,38 +1,28 @@
+import { BookText, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { createQueries } from "tinybase/with-schemas";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
-import { type NavigateOptions, useSearch } from "@tanstack/react-router";
-import { BookText, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-
+import * as internal from "../../../store/tinybase/internal";
 import * as persisted from "../../../store/tinybase/persisted";
 import { TemplateEditor } from "./editor";
 
 type FilterStatus = "all" | "favorite";
 
-interface SettingsTemplatesProps {
-  navigate: (opts: NavigateOptions) => Promise<void>;
-}
-
-export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
-  const search = useSearch({ strict: false }) as { tab?: string; templateId?: string };
+export function SettingsTemplates() {
+  const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const templates = persisted.UI.useResultTable(
-    persisted.QUERIES.visibleTemplates,
-    persisted.STORE_ID,
-  ) as unknown as Record<string, persisted.Template>;
+  const templates = useTemplates();
 
   const filteredTemplates = useMemo(() => {
-    if (!templates) {
-      return [];
-    }
-
     let filtered = Object.entries(templates);
 
-    // TODO: Implement favorite filtering when favorite field is added to the schema
+    // TODO: Implement favorite filtering when favorite field is added
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -45,10 +35,10 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
     }
 
     return filtered;
-  }, [searchQuery, filterStatus, templates]);
+  }, [searchQuery, templates]);
 
-  if (search.templateId) {
-    return <TemplateEditor id={search.templateId} />;
+  if (currentTemplate) {
+    return <TemplateEditor id={currentTemplate} />;
   }
 
   return (
@@ -61,6 +51,7 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
               variant={filterStatus === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("all")}
+              className="shadow-none"
             >
               All
             </Button>
@@ -68,6 +59,7 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
               variant={filterStatus === "favorite" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("favorite")}
+              className="shadow-none"
             >
               Favorite
             </Button>
@@ -81,7 +73,7 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
             placeholder="Search templates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 shadow-none"
           />
         </div>
 
@@ -102,7 +94,7 @@ export function SettingsTemplates({ navigate }: SettingsTemplatesProps) {
                   key={id}
                   title={template.title || "Untitled"}
                   description={template.description || ""}
-                  onClick={() => navigate({ search: { tab: "templates", templateId: id } })}
+                  onClick={() => setCurrentTemplate(id)}
                 />
               ))
             )}
@@ -136,4 +128,26 @@ function TemplateCard({
       </div>
     </div>
   );
+}
+
+function useTemplates() {
+  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const store = persisted.UI.useStore(persisted.STORE_ID);
+
+  const USER_TEMPLATE_QUERY = "user_templates";
+
+  const quries = persisted.UI.useCreateQueries(
+    store,
+    (store) =>
+      createQueries(store).setQueryDefinition(USER_TEMPLATE_QUERY, "templates", ({ select, where }) => {
+        select("title");
+        select("description");
+        select("sections");
+        where("user_id", user_id ?? "");
+      }),
+    [user_id],
+  );
+
+  const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
+  return templates as unknown as Record<string, persisted.Template>;
 }

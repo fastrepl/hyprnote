@@ -8,6 +8,7 @@ import { type TabItem, TabItemBase } from "./shared";
 export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
   {
     tab,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
@@ -21,6 +22,7 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
       icon={<CalendarIcon className="w-4 h-4" />}
       title={title ?? ""}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

@@ -9,7 +9,6 @@ import { useMemo, useState } from "react";
 
 import { ConnectedServiceCard } from "./shared";
 
-// Mock data structure - replace with actual data
 type IntegrationProvider = "slack" | "notion" | "discord" | "linear" | "github" | "jira";
 
 interface Integration {
@@ -22,7 +21,6 @@ interface Integration {
   accountInfo?: string;
 }
 
-// Placeholder data - replace with actual hook to fetch integrations
 const MOCK_INTEGRATIONS: Integration[] = [
   {
     id: "1",
@@ -85,7 +83,7 @@ function getProviderIcon(provider: IntegrationProvider) {
   return <Icon icon={iconMap[provider]} className="w-5 h-5" />;
 }
 
-type FilterStatus = "all" | "installed" | "not-installed";
+type FilterStatus = "all" | "connected" | "not-connected";
 
 export function SettingsIntegrations() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,9 +94,9 @@ export function SettingsIntegrations() {
     let filtered = integrations;
 
     // Apply status filter
-    if (filterStatus === "installed") {
+    if (filterStatus === "connected") {
       filtered = filtered.filter((integration) => integration.connected);
-    } else if (filterStatus === "not-installed") {
+    } else if (filterStatus === "not-connected") {
       filtered = filtered.filter((integration) => !integration.connected);
     }
 
@@ -135,22 +133,25 @@ export function SettingsIntegrations() {
               variant={filterStatus === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilterStatus("all")}
+              className="shadow-none"
             >
               All
             </Button>
             <Button
-              variant={filterStatus === "installed" ? "default" : "outline"}
+              variant={filterStatus === "connected" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilterStatus("installed")}
+              onClick={() => setFilterStatus("connected")}
+              className="shadow-none"
             >
-              Installed
+              Connected
             </Button>
             <Button
-              variant={filterStatus === "not-installed" ? "default" : "outline"}
+              variant={filterStatus === "not-connected" ? "default" : "outline"}
               size="sm"
-              onClick={() => setFilterStatus("not-installed")}
+              onClick={() => setFilterStatus("not-connected")}
+              className="shadow-none"
             >
-              Not Installed
+              Not Connected
             </Button>
           </ButtonGroup>
         </div>
@@ -162,7 +163,7 @@ export function SettingsIntegrations() {
             placeholder="Search integrations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 shadow-none"
           />
         </div>
 
@@ -228,7 +229,6 @@ function IntegrationCard({
     onDisconnect(integration.id);
   };
 
-  // Not connected state
   if (!integration.connected) {
     return (
       <div className="border border-neutral-200 rounded-lg p-4">
@@ -261,7 +261,6 @@ function IntegrationCard({
     );
   }
 
-  // Connected state
   return (
     <ConnectedServiceCard
       icon={getProviderIcon(integration.provider)}

@@ -15,6 +15,7 @@ import { PeopleColumn, useSortedHumanIds } from "./people";
 export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
   {
     tab,
+    tabIndex,
     handleCloseThis,
     handleSelectThis,
     handleCloseOthers,
@@ -26,6 +27,7 @@ export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
       icon={<Contact2Icon className="w-4 h-4" />}
       title={"Contacts"}
       active={tab.active}
+      tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}

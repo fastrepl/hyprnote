@@ -1,8 +1,9 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { cn } from "@hypr/utils";
 
-import { clsx } from "clsx";
-import { Calendar, ChevronUpIcon, FolderOpen, Settings, Users } from "lucide-react";
+import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -18,10 +19,13 @@ type ProfileView = "main" | "notifications";
 export function ProfileSection() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<ProfileView>("main");
-  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
   const { openNew } = useTabs();
+
+  // Mock auth state - toggle this to test different states
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
 
   const closeMenu = useCallback(() => {
     setIsExpanded(false);
@@ -30,6 +34,20 @@ export function ProfileSection() {
   const handleDismissBanner = useCallback(() => {
     setIsBannerDismissed(true);
   }, []);
+
+  const handleAuth = useCallback(() => {
+    if (isAuthenticated) {
+      // Mock logout
+      console.log("Logging out...");
+      setIsAuthenticated(false);
+      setIsBannerDismissed(false);
+    } else {
+      // Mock sign in
+      console.log("Signing in...");
+      setIsAuthenticated(true);
+    }
+    closeMenu();
+  }, [isAuthenticated, closeMenu]);
 
   useEffect(() => {
     if (!isExpanded && currentView !== "main") {
@@ -74,12 +92,21 @@ export function ProfileSection() {
     return () => {
       observer.disconnect();
     };
-  }, [isExpanded, currentView, isBannerDismissed]);
+  }, [isExpanded, currentView, isBannerDismissed, isAuthenticated]);
 
   const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
 
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
+    closeMenu();
+  }, [closeMenu]);
+
+  // TODO - why is this not working as intended
+  const handleClickBilling = useCallback(() => {
+    console.log("handleClickBilling");
+    windowsCommands.windowShow({ type: "settings" }).then(() => {
+      windowsCommands.windowEmitNavigate({ type: "settings" }, { path: "/app/settings", search: { tab: "billing" } });
+    });
     closeMenu();
   }, [closeMenu]);
 
@@ -112,10 +139,23 @@ export function ProfileSection() {
     setCurrentView("main");
   }, []);
 
+  const handleClickProfile = useCallback(() => {
+    // TODO: Show the user's own profile in the contacts view
+    openNew({
+      type: "contacts",
+      state: {
+        selectedOrganization: null,
+        selectedPerson: null,
+      },
+    });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
     { icon: Users, label: "Contacts", onClick: handleClickContacts },
     { icon: Calendar, label: "Calendar", onClick: handleClickCalendar },
+    { icon: User, label: "My Profile", onClick: handleClickProfile },
     {
       icon: Settings,
       label: "Settings",
@@ -160,7 +200,36 @@ export function ProfileSection() {
 
                         {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
-                        <TryProBanner isDismissed={isBannerDismissed} onDismiss={handleDismissBanner} />
+                        {isAuthenticated
+                          ? (
+                            <div className="px-1 py-2">
+                              <Button
+                                onClick={handleAuth}
+                                variant="outline"
+                                className="w-full"
+                              >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Log out
+                              </Button>
+                            </div>
+                          )
+                          : (
+                            <>
+                              <TryProBanner isDismissed={isBannerDismissed} onDismiss={handleDismissBanner} />
+                              {isBannerDismissed && (
+                                <div className="px-1 py-2">
+                                  <Button
+                                    onClick={handleAuth}
+                                    variant="default"
+                                    className="w-full"
+                                  >
+                                    <LogIn className="w-4 h-4 mr-2" />
+                                    Sign in
+                                  </Button>
+                                </div>
+                              )}
+                            </>
+                          )}
                       </motion.div>
                     )
                     : (
@@ -183,16 +252,22 @@ export function ProfileSection() {
       </AnimatePresence>
 
       <div className="bg-neutral-50 rounded-lg overflow-hidden">
-        <ProfileButton isExpanded={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />
+        <ProfileButton
+          isExpanded={isExpanded}
+          onClick={() => setIsExpanded(!isExpanded)}
+          onClickBilling={handleClickBilling}
+        />
       </div>
     </div>
   );
 }
 
-function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: () => void }) {
+function ProfileButton(
+  { isExpanded, onClick, onClickBilling }: { isExpanded: boolean; onClick: () => void; onClickBilling: () => void },
+) {
   return (
     <button
-      className={clsx(
+      className={cn(
         "flex w-full items-center gap-2.5",
         "px-4 py-2",
         "text-left",
@@ -203,7 +278,7 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
       onClick={onClick}
     >
       <div
-        className={clsx(
+        className={cn(
           "flex size-8 flex-shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-neutral-400",
@@ -223,19 +298,28 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
       </div>
       <div className="flex items-center gap-1.5">
         <span
-          className={clsx(
-            "hidden md:inline-block",
-            "rounded-full",
-            "border border-neutral-900",
-            "bg-white",
-            "px-2.5 py-0.5",
-            "text-[11px] font-medium text-neutral-900",
+          onClick={(e) => {
+            e.stopPropagation();
+            onClickBilling();
+          }}
+          className={cn(
+            [
+              "hidden md:inline-block",
+              "cursor-pointer",
+              "rounded-full",
+              "border border-neutral-900",
+              "bg-white",
+              "px-2.5 py-0.5",
+              "text-[11px] font-medium text-neutral-900",
+              "transition-colors duration-200",
+              "hover:bg-neutral-100",
+            ],
           )}
         >
           Pro trial
         </span>
         <ChevronUpIcon
-          className={clsx(
+          className={cn(
             "h-4 w-4",
             "transition-transform duration-300",
             isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",

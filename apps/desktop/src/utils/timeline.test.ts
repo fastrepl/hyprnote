@@ -36,15 +36,14 @@ describe("timeline utils", () => {
     expect(info).toMatchObject({ label: "in 2 months", precision: "date" });
   });
 
-  test("buildTimelineBuckets includes Today bucket even without items", () => {
+  test("buildTimelineBuckets excludes Today bucket when empty", () => {
     const buckets = buildTimelineBuckets({
       eventsWithoutSessionTable: null,
       sessionsWithMaybeEventTable: null,
     });
 
     const todayBucket = buckets.find(bucket => bucket.label === "Today");
-    expect(todayBucket).toBeDefined();
-    expect(todayBucket?.items).toEqual([]);
+    expect(todayBucket).toBeUndefined();
   });
 
   test("buildTimelineBuckets prioritizes upcoming events and avoids duplicate sessions", () => {
@@ -130,7 +129,7 @@ describe("timeline utils", () => {
     expect(hasPastEvent).toBe(false);
 
     const todayBucket = buckets.find(bucket => bucket.label === "Today");
-    expect(todayBucket).toBeDefined();
+    expect(todayBucket).toBeUndefined();
   });
 
   test("buildTimelineBuckets sorts buckets by most recent first", () => {
@@ -156,6 +155,6 @@ describe("timeline utils", () => {
 
     const buckets = buildTimelineBuckets({ eventsWithoutSessionTable: null, sessionsWithMaybeEventTable });
 
-    expect(buckets.map(bucket => bucket.label)).toEqual(["Tomorrow", "Today", "Yesterday"]);
+    expect(buckets.map(bucket => bucket.label)).toEqual(["Tomorrow", "Yesterday"]);
   });
 });

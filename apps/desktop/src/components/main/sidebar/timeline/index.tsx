@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import { startOfDay } from "date-fns";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
@@ -41,6 +42,24 @@ export function TimelineView() {
     deps: [todayBucketLength],
   });
 
+  const todayTimestamp = useMemo(() => startOfDay(new Date()).getTime(), []);
+  const indicatorIndex = useMemo(() => {
+    if (hasToday) {
+      return -1;
+    }
+    return buckets.findIndex(bucket =>
+      bucket.items.length > 0 && (() => {
+        const firstItem = bucket.items[0];
+        const timestamp = firstItem.type === "event" ? firstItem.data.started_at : firstItem.data.created_at;
+        if (!timestamp) {
+          return false;
+        }
+        const itemDate = new Date(timestamp);
+        return itemDate.getTime() < todayTimestamp;
+      })()
+    );
+  }, [buckets, hasToday, todayTimestamp]);
+
   return (
     <div className="relative h-full">
       <div
@@ -50,11 +69,13 @@ export function TimelineView() {
           "bg-neutral-50 rounded-lg",
         ])}
       >
-        {buckets.map((bucket) => {
+        {buckets.map((bucket, index) => {
           const isToday = bucket.label === "Today";
+          const shouldRenderIndicatorBefore = !hasToday && indicatorIndex === index;
 
           return (
             <div key={bucket.label}>
+              {shouldRenderIndicatorBefore && <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />}
               <div
                 className={cn([
                   "sticky top-0 z-10",
@@ -83,9 +104,12 @@ export function TimelineView() {
             </div>
           );
         })}
+        {!hasToday && (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
+          <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
+        )}
       </div>
 
-      {hasToday && !isTodayVisible && (
+      {!isTodayVisible && (
         <Button
           onClick={scrollToToday}
           size="sm"

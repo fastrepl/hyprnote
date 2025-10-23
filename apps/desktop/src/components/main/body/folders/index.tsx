@@ -1,5 +1,6 @@
-import { FolderIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
+import { FolderIcon, FoldersIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
 
+import { cn } from "@hypr/utils";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -89,7 +90,7 @@ function TabContentFolderTopLevel() {
   );
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       <Section
         icon={<FolderIcon className="w-4 h-4" />}
         title="Folders"
@@ -98,7 +99,6 @@ function TabContentFolderTopLevel() {
             <PlusIcon className="w-4 h-4" />
           </button>
         }
-        emptyMessage="No folders"
       >
         {(topLevelFolderIds?.length ?? 0) > 0 && (
           <div className="grid grid-cols-4 gap-4">
@@ -130,7 +130,10 @@ function FolderCard({ folderId }: { folderId: string }) {
 
   return (
     <div
-      className="flex flex-col items-center justify-center gap-2 p-6 border rounded-lg hover:bg-muted cursor-pointer"
+      className={cn([
+        "flex flex-col items-center justify-center",
+        "gap-2 p-6 border rounded-lg hover:bg-muted cursor-pointer",
+      ])}
       onClick={() => openCurrent({ type: "folders", id: folderId })}
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
@@ -156,7 +159,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
   const isEmpty = (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
       <Section
@@ -167,7 +170,6 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
             <PlusIcon className="w-4 h-4" />
           </button>
         }
-        emptyMessage={isEmpty ? "This folder is empty" : "No folders"}
       >
         {(childFolderIds?.length ?? 0) > 0 && (
           <div className="grid grid-cols-4 gap-4">
@@ -185,7 +187,6 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
               <PlusIcon className="w-4 h-4" />
             </button>
           }
-          emptyMessage="No notes"
         >
           {(sessionIds?.length ?? 0) > 0 && (
             <div className="space-y-2">
@@ -209,7 +210,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
           onClick={() => openCurrent({ type: "folders", id: null })}
           className="hover:text-foreground"
         >
-          Root
+          <FoldersIcon className="w-4 h-4" />
         </button>
       )}
       renderCrumb={({ id, name, isLast }) => (
@@ -234,7 +235,7 @@ function FolderSessionItem({ sessionId }: { sessionId: string }) {
       onClick={() => openCurrent({ type: "sessions", id: sessionId, state: { editor: "raw" } })}
     >
       <StickyNoteIcon className="w-4 h-4 text-muted-foreground" />
-      <span className="text-sm">{session.title}</span>
+      <span className="text-sm">{session.title || "Untitled"}</span>
     </div>
   );
 }

@@ -318,67 +318,73 @@ export const StoreComponent = () => {
     (store) =>
       createRelationships(store)
         .setRelationshipDefinition(
-          "sessionHuman",
+          RELATIONSHIPS.sessionHuman,
           TABLE_SESSIONS,
           TABLE_HUMANS,
           "user_id",
         )
         .setRelationshipDefinition(
-          "sessionToFolder",
+          RELATIONSHIPS.sessionToFolder,
           "sessions",
           "folders",
           "folder_id",
         )
         .setRelationshipDefinition(
-          "folderToParentFolder",
+          RELATIONSHIPS.sessionToEvent,
+          "sessions",
+          "events",
+          "event_id",
+        )
+        .setRelationshipDefinition(
+          RELATIONSHIPS.folderToParentFolder,
           "folders",
           "folders",
           "parent_folder_id",
         )
         .setRelationshipDefinition(
-          "transcriptToSession",
+          RELATIONSHIPS.transcriptToSession,
           "transcripts",
           "sessions",
           "session_id",
         )
         .setRelationshipDefinition(
-          "wordToTranscript",
+          RELATIONSHIPS.wordToTranscript,
           "words",
           "transcripts",
           "transcript_id",
         )
         .setRelationshipDefinition(
-          "sessionParticipantToHuman",
+          RELATIONSHIPS.sessionParticipantToHuman,
           "mapping_session_participant",
           "humans",
           "human_id",
         )
         .setRelationshipDefinition(
-          "sessionParticipantToSession",
+          RELATIONSHIPS.sessionParticipantToSession,
           "mapping_session_participant",
           "sessions",
           "session_id",
         )
         .setRelationshipDefinition(
-          "eventToCalendar",
+          RELATIONSHIPS.eventToCalendar,
           "events",
           "calendars",
           "calendar_id",
         )
         .setRelationshipDefinition(
-          "tagSessionToTag",
+          RELATIONSHIPS.tagSessionToTag,
           "mapping_tag_session",
           "tags",
           "tag_id",
         )
         .setRelationshipDefinition(
-          "tagSessionToSession",
+          RELATIONSHIPS.tagSessionToSession,
           "mapping_tag_session",
           "sessions",
           "session_id",
         )
         .setRelationshipDefinition(
-          "chatMessageToGroup",
+          RELATIONSHIPS.chatMessageToGroup,
           "chat_messages",
           "chat_groups",
           "chat_group_id",
@@ -581,4 +587,19 @@ export const INDEXES = {
   tagSessionsByTag: "tagSessionsByTag",
   chatMessagesByGroup: "chatMessagesByGroup",
   sessionsByHuman: "sessionsByHuman",
+};
+
+export const RELATIONSHIPS = {
+  sessionHuman: "sessionHuman",
+  sessionToFolder: "sessionToFolder",
+  sessionToEvent: "sessionToEvent",
+  folderToParentFolder: "folderToParentFolder",
+  transcriptToSession: "transcriptToSession",
+  wordToTranscript: "wordToTranscript",
+  sessionParticipantToHuman: "sessionParticipantToHuman",
+  sessionParticipantToSession: "sessionParticipantToSession",
+  eventToCalendar: "eventToCalendar",
+  tagSessionToTag: "tagSessionToTag",
+  tagSessionToSession: "tagSessionToSession",
+  chatMessageToGroup: "chatMessageToGroup",
 };

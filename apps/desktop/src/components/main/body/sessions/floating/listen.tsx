@@ -1,20 +1,14 @@
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-
 import { Icon } from "@iconify-icon/react";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useEffect, useState } from "react";
 
+import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
+import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
 import { FloatingButton, formatTime } from "./shared";
-
-type RemoteMeeting =
-  | { type: "zoom"; url: string | null }
-  | { type: "google-meet"; url: string | null }
-  | { type: "webex"; url: string | null }
-  | { type: "teams"; url: string | null };
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, loading, stop } = useListener((state) => ({
@@ -141,7 +135,16 @@ function DuringMeetingButton() {
   );
 }
 
-function useRemoteMeeting(_sessionId: string): RemoteMeeting | null {
+type RemoteMeeting = { type: "zoom" | "google-meet" | "webex" | "teams"; url: string | null };
+
+function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
+  const eventId = persisted.UI.useRemoteRowId(persisted.RELATIONSHIPS.sessionToEvent, sessionId);
+  const note = persisted.UI.useCell("events", eventId ?? "", "note", persisted.STORE_ID);
+
+  if (!note) {
+    return null;
+  }
+
   const remote = {
     type: "google-meet",
     url: null,

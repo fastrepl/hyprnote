@@ -7,9 +7,9 @@ import { X } from "lucide-react";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";
 
-type TabItemProps = { tab: Tab } & {
-  handleSelectThis: (tab: Tab) => void;
-  handleCloseThis: (tab: Tab) => void;
+type TabItemProps<T extends Tab = Tab> = { tab: T } & {
+  handleSelectThis: (tab: T) => void;
+  handleCloseThis: (tab: T) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
 };
@@ -21,7 +21,7 @@ type TabItemBaseProps = { icon: React.ReactNode; title: string; active: boolean 
   handleCloseAll: () => void;
 };
 
-export type TabItem = (props: TabItemProps) => React.ReactNode;
+export type TabItem<T extends Tab = Tab> = (props: TabItemProps<T>) => React.ReactNode;
 
 export function TabItemBase(
   {

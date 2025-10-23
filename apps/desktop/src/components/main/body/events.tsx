@@ -5,7 +5,7 @@ import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
 
-export const TabItemEvent: TabItem = (
+export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
   {
     tab,
     handleCloseThis,
@@ -29,7 +29,7 @@ export const TabItemEvent: TabItem = (
   );
 };
 
-export function TabContentEvent({ tab }: { tab: Tab }) {
+export function TabContentEvent({ tab }: { tab: Extract<Tab, { type: "events" }> }) {
   const id = rowIdfromTab(tab);
   const event = persisted.UI.useRow("events", id, persisted.STORE_ID);
 

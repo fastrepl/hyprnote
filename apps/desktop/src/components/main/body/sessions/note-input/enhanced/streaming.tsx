@@ -6,26 +6,7 @@ import { Streamdown } from "streamdown";
 import { cn } from "@hypr/utils";
 
 export function StreamingView({ text }: { text: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) {
-      return;
-    }
-
-    let parent = node.parentElement;
-    while (parent) {
-      if (parent.classList.contains("overflow-auto")) {
-        if (parent.scrollHeight > parent.clientHeight) {
-          parent.scrollTo({ top: parent.scrollHeight, behavior: "smooth" });
-        }
-        break;
-      }
-      parent = parent.parentElement;
-    }
-  }, [text]);
+  const containerRef = useAutoScrollToBottom();
 
   const components = {
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
@@ -61,18 +42,40 @@ export function StreamingView({ text }: { text: string }) {
       </div>
 
       <div
-        ref={bottomRef}
         className={cn([
-          "flex items-center justify-center gap-3",
-          "w-full py-4",
+          "flex items-center justify-center w-full gap-3",
           "border border-neutral-200",
-          "bg-neutral-50",
-          "rounded-lg",
+          "bg-neutral-50 rounded-lg py-2",
         ])}
       >
-        <Loader2 className="w-4 h-4 animate-spin text-neutral-600" />
-        <span className="text-sm font-medium text-neutral-600">Generating...</span>
+        <Loader2 className="w-4 h-4 animate-spin text-neutral-500" />
+        <span className="text-xs text-neutral-500">Generating...</span>
       </div>
     </div>
   );
+}
+
+function useAutoScrollToBottom() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const scrollableParent = container.parentElement;
+    if (!scrollableParent) {
+      return;
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollableParent;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+    if (isNearBottom) {
+      scrollableParent.scrollTop = scrollHeight;
+    }
+  }, [containerRef]);
+
+  return containerRef;
 }

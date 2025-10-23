@@ -8,7 +8,7 @@ import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { EnhancedEditor } from "./enhanced";
 import { RawEditor } from "./raw";
-import { TranscriptView } from "./transcript";
+import { Transcript } from "./transcript";
 
 export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
@@ -32,7 +32,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
       <div className="flex-1 overflow-auto mt-3" onClick={handleContainerClick}>
         {currentTab === "enhanced" && <EnhancedEditor ref={editorRef} sessionId={sessionId} />}
         {currentTab === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
-        {currentTab === "transcript" && <TranscriptView sessionId={sessionId} />}
+        {currentTab === "transcript" && <Transcript sessionId={sessionId} />}
       </div>
     </div>
   );
@@ -76,6 +76,7 @@ function Header(
 function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
   const status = useListener((state) => state.status);
   const enhanced = !!persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
+  const hasTranscript = useHasTranscript(sessionId);
 
   if (status === "running_active") {
     return ["raw", "transcript"];
@@ -85,7 +86,21 @@ function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
     return ["enhanced", "raw", "transcript"];
   }
 
+  if (hasTranscript) {
+    return ["raw", "transcript"];
+  }
+
   return ["raw"];
+}
+
+function useHasTranscript(sessionId: string): boolean {
+  const transcriptIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.transcriptBySession,
+    sessionId,
+    persisted.STORE_ID,
+  );
+
+  return !!transcriptIds && transcriptIds.length > 0;
 }
 
 function labelForEditorView(view: EditorView): string {

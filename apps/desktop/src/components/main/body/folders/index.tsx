@@ -32,8 +32,8 @@ const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = (
 ) => {
   return (
     <TabItemBase
-      icon={<FolderIcon className="w-4 h-4" />}
-      title={"Folder"}
+      icon={<FoldersIcon className="w-4 h-4" />}
+      title={"Folders"}
       active={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}

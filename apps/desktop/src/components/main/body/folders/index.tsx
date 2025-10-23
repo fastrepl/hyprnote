@@ -1,11 +1,11 @@
-import { FolderIcon, StickyNoteIcon } from "lucide-react";
+import { FolderIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
 
-import * as persisted from "../../../store/tinybase/persisted";
-import { type Tab } from "../../../store/zustand/tabs";
-import { useTabs } from "../../../store/zustand/tabs";
-import { StandardTabWrapper } from "./index";
-import { type TabItem, TabItemBase } from "./shared";
-import { FolderBreadcrumb, useFolderChain } from "./shared/folder-breadcrumb";
+import * as persisted from "../../../../store/tinybase/persisted";
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
+import { StandardTabWrapper } from "../index";
+import { type TabItem, TabItemBase } from "../shared";
+import { FolderBreadcrumb, useFolderChain } from "../shared/folder-breadcrumb";
+import { Section } from "./shared";
 
 export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (props) => {
   if (props.tab.type === "folders" && props.tab.id === null) {
@@ -89,11 +89,23 @@ function TabContentFolderTopLevel() {
   );
 
   return (
-    <div className="flex flex-col gap-4 h-full">
-      <h2 className="text-lg font-semibold">All Folders</h2>
-      <div className="grid grid-cols-4 gap-4">
-        {topLevelFolderIds?.map((folderId) => <FolderCard key={folderId} folderId={folderId} />)}
-      </div>
+    <div className="flex flex-col gap-6 p-6">
+      <Section
+        icon={<FolderIcon className="w-4 h-4" />}
+        title="Folders"
+        action={
+          <button className="p-1 hover:bg-muted rounded">
+            <PlusIcon className="w-4 h-4" />
+          </button>
+        }
+        emptyMessage="No folders"
+      >
+        {(topLevelFolderIds?.length ?? 0) > 0 && (
+          <div className="grid grid-cols-4 gap-4">
+            {topLevelFolderIds!.map((folderId) => <FolderCard key={folderId} folderId={folderId} />)}
+          </div>
+        )}
+      </Section>
     </div>
   );
 }
@@ -141,32 +153,46 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
     persisted.STORE_ID,
   );
 
+  const isEmpty = (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6 p-6">
       <TabContentFolderBreadcrumb folderId={folderId} />
 
-      {(childFolderIds?.length ?? 0) > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Folders</h3>
+      <Section
+        icon={<FolderIcon className="w-4 h-4" />}
+        title="Folders"
+        action={
+          <button className="p-1 hover:bg-muted rounded">
+            <PlusIcon className="w-4 h-4" />
+          </button>
+        }
+        emptyMessage={isEmpty ? "This folder is empty" : "No folders"}
+      >
+        {(childFolderIds?.length ?? 0) > 0 && (
           <div className="grid grid-cols-4 gap-4">
             {childFolderIds!.map((childId) => <FolderCard key={childId} folderId={childId} />)}
           </div>
-        </div>
-      )}
+        )}
+      </Section>
 
-      {(sessionIds?.length ?? 0) > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Notes</h3>
-          <div className="space-y-2">
-            {sessionIds!.map((sessionId) => <FolderSessionItem key={sessionId} sessionId={sessionId} />)}
-          </div>
-        </div>
-      )}
-
-      {(childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0 && (
-        <div className="text-center text-muted-foreground py-8">
-          This folder is empty
-        </div>
+      {!isEmpty && (
+        <Section
+          icon={<StickyNoteIcon className="w-4 h-4" />}
+          title="Notes"
+          action={
+            <button className="p-1 hover:bg-muted rounded">
+              <PlusIcon className="w-4 h-4" />
+            </button>
+          }
+          emptyMessage="No notes"
+        >
+          {(sessionIds?.length ?? 0) > 0 && (
+            <div className="space-y-2">
+              {sessionIds!.map((sessionId) => <FolderSessionItem key={sessionId} sessionId={sessionId} />)}
+            </div>
+          )}
+        </Section>
       )}
     </div>
   );

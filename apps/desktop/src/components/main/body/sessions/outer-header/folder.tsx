@@ -6,18 +6,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@hypr/ui/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
 
 import { FolderIcon } from "lucide-react";
 
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
+import { SearchableFolderDropdown } from "./shared/folder";
 
 export function FolderChain({ sessionId }: { sessionId: string }) {
   const folderId = persisted.UI.useCell("sessions", sessionId, "folder_id", persisted.STORE_ID);
@@ -92,38 +87,17 @@ function RenderIfRootNotExist(
     sessionId: string;
   },
 ) {
-  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
-
-  const handleSelectFolder = persisted.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    persisted.STORE_ID,
-  );
-
   return (
     <>
       <BreadcrumbItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger className="text-neutral-500 hover:text-neutral-700 transition-colors outline-none">
-            Select folder
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {Object.keys(folders).length
-              ? Object.entries(folders).map(([folderId, folder]) => (
-                <DropdownMenuItem
-                  key={folderId}
-                  className="cursor-pointer"
-                  onClick={() => handleSelectFolder(folderId)}
-                >
-                  <FolderIcon />
-                  {folder.name}
-                </DropdownMenuItem>
-              ))
-              : <DropdownMenuItem disabled>No folders available</DropdownMenuItem>}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableFolderDropdown
+          sessionId={sessionId}
+          trigger={
+            <button className="text-neutral-500 hover:text-neutral-700 transition-colors outline-none">
+              Select folder
+            </button>
+          }
+        />
       </BreadcrumbItem>
       <BreadcrumbSeparator />
       <BreadcrumbItem>

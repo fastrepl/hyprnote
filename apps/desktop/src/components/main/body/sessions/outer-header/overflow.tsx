@@ -7,13 +7,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
-  DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import * as persisted from "../../../../../store/tinybase/persisted";
+import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
   return (
@@ -52,36 +51,13 @@ function Copy() {
 }
 
 function Folder({ sessionId }: { sessionId: string }) {
-  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
-
-  const handleMoveToFolder = persisted.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (folderId: string) => ({ folder_id: folderId }),
-    [],
-    persisted.STORE_ID,
-  );
-
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger className="cursor-pointer">
         <FolderIcon />
         <span>Move to</span>
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent>
-        {Object.keys(folders).length
-          ? Object.entries(folders).map(([folderId, folder]) => (
-            <DropdownMenuItem
-              key={folderId}
-              className="cursor-pointer"
-              onClick={() => handleMoveToFolder(folderId)}
-            >
-              <FolderIcon />
-              {folder.name}
-            </DropdownMenuItem>
-          ))
-          : <DropdownMenuItem disabled>No folders available</DropdownMenuItem>}
-      </DropdownMenuSubContent>
+      <SearchableFolderSubmenuContent sessionId={sessionId} />
     </DropdownMenuSub>
   );
 }

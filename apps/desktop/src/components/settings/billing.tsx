@@ -135,10 +135,12 @@ function BillingPlanCard(
   return (
     <div
       className={cn(
-        "p-6 flex flex-col gap-6 bg-white",
-        !removeBorder && "border border-neutral-200 rounded-lg",
-        plan.id === "ultimate" && "bg-neutral-50",
-        className,
+        [
+          "p-6 flex flex-col gap-6 bg-white",
+          !removeBorder && "border border-neutral-200 rounded-lg",
+          plan.id === "ultimate" && "bg-neutral-50",
+          className,
+        ],
       )}
     >
       <div className="flex flex-col gap-4">

@@ -1,8 +1,8 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { cn } from "@hypr/utils";
 
-import { clsx } from "clsx";
 import { X } from "lucide-react";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -63,7 +63,7 @@ export function TabItemBase(
       contextMenu={contextMenu}
       onClick={handleSelectThis}
       onMouseDown={handleMouseDown}
-      className={clsx([
+      className={cn([
         "flex items-center gap-1 cursor-pointer group relative",
         "w-48 h-full pl-2 pr-1",
         "bg-neutral-50 rounded-lg border",
@@ -79,7 +79,7 @@ export function TabItemBase(
           e.stopPropagation();
           handleCloseThis();
         }}
-        className={clsx([
+        className={cn([
           "flex-shrink-0 transition-opacity size-6",
           active
             ? "opacity-100 text-neutral-700"

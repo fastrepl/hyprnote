@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
-import { createQueries } from "tinybase/with-schemas";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
+import { useMemo, useState } from "react";
+import { createQueries } from "tinybase/with-schemas";
 import { BookText, Search } from "lucide-react";
 
 import * as internal from "../../../store/tinybase/internal";
@@ -23,11 +22,7 @@ export function SettingsTemplates() {
   const filteredTemplates = useMemo(() => {
     let filtered = Object.entries(templates);
 
-    // Apply favorite filter (placeholder for now)
-    if (filterStatus === "favorite") {
-      // TODO: Implement favorite filtering when favorite field is added
-      filtered = filtered;
-    }
+    // TODO: Implement favorite filtering when favorite field is added
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -40,7 +35,7 @@ export function SettingsTemplates() {
     }
 
     return filtered;
-  }, [searchQuery, filterStatus, templates]);
+  }, [searchQuery, templates]);
 
   if (currentTemplate) {
     return <TemplateEditor id={currentTemplate} onClose={() => setCurrentTemplate(null)} />;

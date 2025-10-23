@@ -1,8 +1,8 @@
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { cn } from "@hypr/utils";
 
-import { clsx } from "clsx";
 import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -212,19 +212,22 @@ export function ProfileSection() {
                               </Button>
                             </div>
                           )
-                          : !isBannerDismissed
-                          ? <TryProBanner isDismissed={false} onDismiss={handleDismissBanner} />
                           : (
-                            <div className="px-1 py-2">
-                              <Button
-                                onClick={handleAuth}
-                                variant="default"
-                                className="w-full"
-                              >
-                                <LogIn className="w-4 h-4 mr-2" />
-                                Sign in
-                              </Button>
-                            </div>
+                            <>
+                              <TryProBanner isDismissed={isBannerDismissed} onDismiss={handleDismissBanner} />
+                              {isBannerDismissed && (
+                                <div className="px-1 py-2">
+                                  <Button
+                                    onClick={handleAuth}
+                                    variant="default"
+                                    className="w-full"
+                                  >
+                                    <LogIn className="w-4 h-4 mr-2" />
+                                    Sign in
+                                  </Button>
+                                </div>
+                              )}
+                            </>
                           )}
                       </motion.div>
                     )
@@ -263,7 +266,7 @@ function ProfileButton(
 ) {
   return (
     <button
-      className={clsx(
+      className={cn(
         "flex w-full items-center gap-2.5",
         "px-4 py-2",
         "text-left",
@@ -274,7 +277,7 @@ function ProfileButton(
       onClick={onClick}
     >
       <div
-        className={clsx(
+        className={cn(
           "flex size-8 flex-shrink-0 items-center justify-center",
           "overflow-hidden rounded-full",
           "border border-white/60 border-t border-neutral-400",
@@ -298,22 +301,24 @@ function ProfileButton(
             e.stopPropagation();
             onClickBilling();
           }}
-          className={clsx(
-            "hidden md:inline-block",
-            "rounded-full",
-            "border border-neutral-900",
-            "bg-white",
-            "px-2.5 py-0.5",
-            "text-[11px] font-medium text-neutral-900",
-            "cursor-pointer",
-            "hover:bg-neutral-100",
-            "transition-colors duration-200",
+          className={cn(
+            [
+              "hidden md:inline-block",
+              "cursor-pointer",
+              "rounded-full",
+              "border border-neutral-900",
+              "bg-white",
+              "px-2.5 py-0.5",
+              "text-[11px] font-medium text-neutral-900",
+              "transition-colors duration-200",
+              "hover:bg-neutral-100",
+            ],
           )}
         >
           Pro trial
         </span>
         <ChevronUpIcon
-          className={clsx(
+          className={cn(
             "h-4 w-4",
             "transition-transform duration-300",
             isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",

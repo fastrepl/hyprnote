@@ -17,12 +17,18 @@ export function FloatingButton({
 }) {
   return (
     <Button
-      className="shadow-lg"
+      size="lg"
+      className="rounded-lg"
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {icon || <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+      {icon || (
+        <div className="relative size-2">
+          <div className="absolute inset-0 rounded-full bg-red-600"></div>
+          <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
+        </div>
+      )}
       {children}
     </Button>
   );

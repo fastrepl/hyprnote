@@ -1,8 +1,8 @@
 {
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10.19.0",
   "devDependencies": {
-    "turbo": "^2.5.8",
-    "esbuild": "0.25.11"
+    "esbuild": "0.25.11",
+    "turbo": "^2.5.8"
   },
   "pnpm": {
     "overrides": {

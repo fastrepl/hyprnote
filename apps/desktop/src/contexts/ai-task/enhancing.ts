@@ -21,7 +21,7 @@ export function createEnhancingAgent(model: LanguageModel) {
   IMPORTANT: Your final output MUST be ONLY the markdown summary itself.
   Do NOT include any explanations, commentary, or meta-discussion.
   Do NOT say things like "Here's the summary" or "I've analyzed".
-  Output ONLY the formatted markdown document, starting directly with the h1 header.`,
+  Output ONLY the formatted markdown document, starting directly with the h2 header. No h1 needed.`,
     tools: {
       analyzeStructure: tool({
         description: "Analyze raw meeting content to identify key themes, topics, and overall structure",

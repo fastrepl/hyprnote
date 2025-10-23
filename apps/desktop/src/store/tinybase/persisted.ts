@@ -51,6 +51,7 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   location: z.preprocess(val => val ?? undefined, z.string().optional()),
   meeting_link: z.preprocess(val => val ?? undefined, z.string().optional()),
   description: z.preprocess(val => val ?? undefined, z.string().optional()),
+  note: z.preprocess(val => val ?? undefined, z.string().optional()),
 });
 
 export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({ created_at: z.string() });
@@ -190,6 +191,7 @@ const SCHEMA = {
       location: { type: "string" },
       meeting_link: { type: "string" },
       description: { type: "string" },
+      note: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof eventSchema>,
     mapping_session_participant: {
       user_id: { type: "string" },
@@ -452,6 +454,15 @@ export const StoreComponent = () => {
             select("sections");
             select("created_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleFolders,
+          "folders",
+          ({ select }) => {
+            select("name");
+            select("parent_folder_id");
+            select("created_at");
+          },
         ),
     [store2],
   )!;
@@ -463,7 +474,7 @@ export const StoreComponent = () => {
       .setIndexDefinition(INDEXES.sessionsByHuman, "mapping_session_participant", "human_id")
       .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
       .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
-      .setIndexDefinition(INDEXES.transcriptsBySession, "transcripts", "session_id")
+      .setIndexDefinition(INDEXES.transcriptBySession, "transcripts", "session_id")
       .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
@@ -546,6 +557,7 @@ export const QUERIES = {
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
+  visibleFolders: "visibleFolders",
 };
 
 export const METRICS = {
@@ -558,7 +570,7 @@ export const INDEXES = {
   sessionParticipantsBySession: "sessionParticipantsBySession",
   foldersByParent: "foldersByParent",
   sessionsByFolder: "sessionsByFolder",
-  transcriptsBySession: "transcriptsBySession",
+  transcriptBySession: "transcriptBySession",
   wordsByTranscript: "wordsByTranscript",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",

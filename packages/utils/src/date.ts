@@ -8,9 +8,6 @@
 // Re-export ALL date-fns functions so users can import any date-fns function from @hypr/utils
 export * from "date-fns";
 
-// Import only what we need for our custom functions
-import { isSameDay } from "date-fns";
-
 /**
  * Formats a date according to a custom format string.
  *
@@ -51,41 +48,4 @@ export const formatDate = (date: Date, formatString: string): string => {
   };
 
   return formatString.replace(/yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g, (token) => replacements[token]);
-};
-
-/**
- * Formats a date range with intelligent formatting based on whether the dates are on the same day.
- * Uses date-fns isSameDay for comparison.
- *
- * @param startDate - ISO date string for the start of the range
- * @param endDate - ISO date string for the end of the range
- * @returns Formatted date range string (e.g., "Jan 15, 2024 9:00 AM to 10:30 AM")
- */
-export const formatDateRange = (startDate: string, endDate: string): string => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  const formatTime = (date: Date) => formatDate(date, "p");
-  const formatFullDate = (date: Date) => formatDate(date, "MMM d, yyyy");
-
-  if (isSameDay(start, end)) {
-    return `${formatFullDate(start)} ${formatTime(start)} to ${formatTime(end)}`;
-  } else {
-    return `${formatFullDate(start)} ${formatTime(start)} to ${formatFullDate(end)} ${formatTime(end)}`;
-  }
-};
-
-/**
- * Extracts the domain/hostname from a URL string.
- *
- * @param url - The URL to parse
- * @returns The hostname of the URL, or the original string if parsing fails
- */
-export const getMeetingDomain = (url: string): string => {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.hostname;
-  } catch {
-    return url;
-  }
 };

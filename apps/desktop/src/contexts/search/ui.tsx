@@ -151,7 +151,7 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
   useHotkeys(
     "mod+k",
     () => inputRef.current?.focus(),
-    { preventDefault: true },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
   );
 
   const resetSearchState = useCallback(() => {

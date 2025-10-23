@@ -1,6 +1,5 @@
 import { cn } from "@hypr/utils";
 import { useMemo } from "react";
-import { createQueries } from "tinybase/with-schemas";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -17,10 +16,12 @@ export function TranscriptView({ sessionId }: { sessionId: string }) {
   const finalWords = useFinalWords(sessionId);
   const partialWordsByChannel = useListener((state) => state.partialWordsByChannel);
 
-  const wordsByChannel = useMemo(() => {
+  const finalWordsArray = useMemo(() => Object.values(finalWords), [finalWords]);
+
+  const wordsByChannel = (() => {
     const channels = new Map<number, WordWithType[]>();
 
-    Object.values(finalWords).forEach((word) => {
+    finalWordsArray.forEach((word) => {
       const channelWords = channels.get(word.channel) ?? [];
       channelWords.push({
         text: word.text,
@@ -55,7 +56,7 @@ export function TranscriptView({ sessionId }: { sessionId: string }) {
     });
 
     return channels;
-  }, [finalWords, partialWordsByChannel]);
+  })();
 
   const channelIds = Array.from(wordsByChannel.keys()).sort((a, b) => a - b);
 
@@ -64,7 +65,7 @@ export function TranscriptView({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-4 overflow-y-auto max-h-64">
+    <div className="flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-20rem)]">
       {channelIds.map((channelId) => {
         const words = wordsByChannel.get(channelId) ?? [];
         return (
@@ -98,27 +99,30 @@ function useFinalWords(sessionId: string) {
   const store = persisted.UI.useStore(persisted.STORE_ID);
 
   const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptsBySession,
+    persisted.INDEXES.transcriptBySession,
     sessionId,
     persisted.STORE_ID,
   );
   const transcriptId = transcriptIds?.[0];
 
-  const QUERY = `${sessionId}_words`;
-  const QUERIES = persisted.UI.useCreateQueries(
-    store,
-    (store) =>
-      createQueries(store).setQueryDefinition(QUERY, "words", ({ select, where }) => {
-        select("text");
-        select("start_ms");
-        select("end_ms");
-        select("channel");
-        where("transcript_id", transcriptId);
-      }),
-    [sessionId, transcriptId],
+  const wordIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.wordsByTranscript,
+    transcriptId,
+    persisted.STORE_ID,
   );
 
-  const finalWords = persisted.UI.useResultTable(QUERY, QUERIES) as Record<string, persisted.Word>;
-  console.log("finalWords_result", finalWords);
-  return finalWords;
+  return useMemo(() => {
+    if (!store) {
+      return {};
+    }
+
+    const words: Record<string, persisted.Word> = {};
+    wordIds?.forEach((wordId) => {
+      const word = store.getRow("words", wordId);
+      if (word) {
+        words[wordId] = word as persisted.Word;
+      }
+    });
+    return words;
+  }, [store, wordIds]);
 }

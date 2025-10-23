@@ -52,7 +52,12 @@ export function useChatMode() {
     [actorRef],
   );
 
-  useHotkeys("mod+j", () => sendEvent({ type: "TOGGLE" }));
+  useHotkeys(
+    "mod+j",
+    () => sendEvent({ type: "TOGGLE" }),
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    [sendEvent],
+  );
 
   return {
     mode,

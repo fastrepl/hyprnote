@@ -1,24 +1,17 @@
-import * as internal from "../../../../../store/tinybase/internal";
-
 import { FolderChain } from "./folder";
-import { SessionMetadata } from "./metadata";
-import { OthersButton } from "./other";
+import { MeetingMetadata } from "./metadata";
+import { OverflowButton } from "./overflow";
 import { ShareButton } from "./share";
 
 export function OuterHeader({ sessionId }: { sessionId: string }) {
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
-
   return (
     <div className="flex items-center justify-between">
       <FolderChain sessionId={sessionId} />
 
       <div className="flex items-center gap-1">
-        <SessionMetadata
-          sessionId={sessionId}
-          currentUserId={user_id}
-        />
+        <MeetingMetadata sessionId={sessionId} />
         <ShareButton sessionId={sessionId} />
-        <OthersButton sessionId={sessionId} />
+        <OverflowButton sessionId={sessionId} />
       </div>
     </div>
   );

@@ -10,24 +10,13 @@ export function useLeftSidebar() {
 
   useHotkeys(
     "mod+l",
-    (event) => {
-      const target = event.target as HTMLElement;
-      const isInput = target.tagName === "INPUT"
-        || target.tagName === "TEXTAREA"
-        || target.tagName === "SELECT";
-      const isContentEditable = target.isContentEditable;
-
-      if (isInput || isContentEditable) {
-        return;
-      }
-
-      event.preventDefault();
-      toggleExpanded();
-    },
+    toggleExpanded,
     {
+      preventDefault: true,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
+    [toggleExpanded],
   );
 
   return {

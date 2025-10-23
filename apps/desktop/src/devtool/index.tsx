@@ -6,7 +6,7 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 import { useAutoCloser } from "../hooks/useAutoCloser";
 import { type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED } from "../store/tinybase/persisted";
-import { autoSeedIfEmpty, SeedDefinition, seeds } from "./seed/index";
+import { SeedDefinition, seeds } from "./seed/index";
 import { TinyTickMonitor } from "./tinytick";
 
 declare global {
@@ -31,8 +31,6 @@ export function Devtool() {
     if (!persistedStore) {
       return;
     }
-
-    autoSeedIfEmpty(persistedStore);
 
     const api = {
       seed: (id?: string) => {

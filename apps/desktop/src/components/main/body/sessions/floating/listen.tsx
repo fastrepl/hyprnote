@@ -6,11 +6,8 @@ import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
 import { useCallback, useEffect, useState } from "react";
 
 import { useListener } from "../../../../../contexts/listener";
-import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
-import * as persisted from "../../../../../store/tinybase/persisted";
-import type { PersistFinalCallback } from "../../../../../store/zustand/listener/transcript";
+import { useStartListening } from "../../../../../hooks/useStartListening";
 import { type Tab } from "../../../../../store/zustand/tabs";
-import { id } from "../../../../../utils";
 import { FloatingButton, formatTime } from "./shared";
 
 type RemoteMeeting =
@@ -48,7 +45,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
-  const handleClick = useStartSession(tab.id);
+  const handleClick = useStartListening(tab.id);
 
   if (remote?.type === "zoom") {
     return (
@@ -95,9 +92,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   }
 
   return (
-    <FloatingButton
-      onClick={handleClick}
-    >
+    <FloatingButton onClick={handleClick}>
       Start listening
     </FloatingButton>
   );
@@ -153,78 +148,4 @@ function useRemoteMeeting(_sessionId: string): RemoteMeeting | null {
   } as RemoteMeeting | null;
 
   return remote;
-}
-
-function useStartSession(sessionId: string) {
-  const start = useListener((state) => state.start);
-  const persistFinal = usePersistFinalTranscript(sessionId);
-  const conn = useSTTConnection();
-
-  const handleClick = useCallback(() => {
-    if (!conn) {
-      console.error("no_stt_connection");
-      return;
-    }
-
-    start(
-      {
-        session_id: sessionId,
-        languages: ["en"],
-        onboarding: false,
-        record_enabled: true,
-        model: conn.model,
-        base_url: conn.baseUrl,
-        api_key: conn.apiKey,
-      },
-      {
-        persistFinal,
-      },
-    );
-  }, [conn, persistFinal, sessionId, start]);
-
-  return handleClick;
-}
-
-function usePersistFinalTranscript(sessionId: string): PersistFinalCallback {
-  const store = persisted.UI.useStore(persisted.STORE_ID);
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptsBySession,
-    sessionId,
-    persisted.STORE_ID,
-  );
-
-  const handler = useCallback<PersistFinalCallback>((words) => {
-    console.log("persistFinal", words);
-
-    if (!store || words.length === 0) {
-      return;
-    }
-
-    let transcriptId = transcriptIds?.[0];
-
-    if (!transcriptId) {
-      transcriptId = id();
-      store.setRow("transcripts", transcriptId, {
-        session_id: sessionId,
-        user_id: "",
-        created_at: new Date().toISOString(),
-      });
-    }
-
-    words.forEach((word) => {
-      const entry: persisted.Word = {
-        transcript_id: transcriptId!,
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        user_id: "",
-        created_at: new Date().toISOString(),
-      };
-
-      store.setRow("words", id(), entry);
-    });
-  }, [store, transcriptIds, sessionId]);
-
-  return handler;
 }

@@ -37,6 +37,8 @@ interface SearchUIContextValue {
   isSearching: boolean;
   isIndexing: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
+  focus: () => void;
+  setFocusImpl: (impl: () => void) => void;
 }
 
 const SCORE_PERCENTILE_THRESHOLD = 0.1;
@@ -147,10 +149,23 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
   const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const focusImplRef = useRef<(() => void) | null>(null);
+
+  const focus = useCallback(() => {
+    if (focusImplRef.current) {
+      focusImplRef.current();
+    } else {
+      inputRef.current?.focus();
+    }
+  }, []);
+
+  const setFocusImpl = useCallback((impl: () => void) => {
+    focusImplRef.current = impl;
+  }, []);
 
   useHotkeys(
     "mod+k",
-    () => inputRef.current?.focus(),
+    () => focus(),
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
   );
 
@@ -209,8 +224,10 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       isSearching,
       isIndexing,
       inputRef,
+      focus,
+      setFocusImpl,
     }),
-    [query, filters, results, isSearching, isIndexing],
+    [query, filters, results, isSearching, isIndexing, focus, setFocusImpl],
   );
 
   return <SearchUIContext.Provider value={value}>{children}</SearchUIContext.Provider>;

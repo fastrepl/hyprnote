@@ -40,6 +40,9 @@ export function StreamingView({ text }: { text: string }) {
       </div>
       <motion.div
         layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, layout: { duration: 0.15 } }}
         className={cn([
           "flex items-center justify-center w-[calc(100%-24px)] gap-3",
           "border border-neutral-200",

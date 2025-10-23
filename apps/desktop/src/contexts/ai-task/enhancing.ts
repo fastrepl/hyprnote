@@ -1,69 +1,75 @@
-import { Experimental_Agent as Agent, type LanguageModel, stepCountIs, tool } from "ai";
+import { Experimental_Agent as Agent, generateObject, type LanguageModel, stepCountIs, Tool, tool } from "ai";
 import { z } from "zod";
 
 export function createEnhancingAgent(model: LanguageModel) {
-  return new Agent({
-    model,
-    stopWhen: stepCountIs(10),
-    system: `You are an expert at creating structured, comprehensive meeting summaries.
-  
-  Your approach:
-  1. First, analyze the raw content to identify key themes and structure
-  2. Extract and organize action items, decisions, and important points
-  3. Finally, generate a well-formatted markdown summary
+  const system = `
+  You are an expert at creating structured, comprehensive meeting summaries.
   
   Format requirements:
-  - Start with an h1 header for the meeting title
+  - Do not use h1, start with h2.
   - Use h2 and h3 headers for sections (no deeper than h3)
   - Each section should have at least 5 detailed bullet points
   - Be clear, concise, and actionable
+
+  Workflow:
+  1. User provides raw meeting content.
+  2. You analyze the content and decide the sections to use. (Using analyzeStructure)
+  3. You generate a well-formatted markdown summary, following the format requirements.
   
   IMPORTANT: Your final output MUST be ONLY the markdown summary itself.
   Do NOT include any explanations, commentary, or meta-discussion.
   Do NOT say things like "Here's the summary" or "I've analyzed".
-  Output ONLY the formatted markdown document, starting directly with the h2 header. No h1 needed.`,
-    tools: {
-      analyzeStructure: tool({
-        description: "Analyze raw meeting content to identify key themes, topics, and overall structure",
-        inputSchema: z.object({
-          content: z.string().describe("Raw meeting content to analyze"),
-        }),
-        execute: async ({ content }) => {
-          const themes = [];
-          if (content.toLowerCase().includes("decision")) {
-            themes.push("Decisions Made");
-          }
-          if (content.toLowerCase().includes("action") || content.toLowerCase().includes("todo")) {
-            themes.push("Action Items");
-          }
-          if (content.toLowerCase().includes("discuss")) {
-            themes.push("Discussion Points");
-          }
+`.trim();
 
-          return {
-            suggestedSections: themes.length > 0 ? themes : ["Overview", "Key Points", "Next Steps"],
-            contentLength: content.length,
-            hasStructure: content.includes("#") || content.includes("*"),
-          };
-        },
+  const tools: Record<string, Tool> = {
+    analyzeStructure: tool({
+      description: "Analyze raw meeting content to identify key themes, topics, and overall structure",
+      inputSchema: z.object({
+        max_num_sections: z
+          .number()
+          .describe(`Maximum number of sections to generate. 
+            Based on the content, decide the number of sections to generate.`),
       }),
-      extractKeyPoints: tool({
-        description: "Extract important points, decisions, and action items from meeting content",
-        inputSchema: z.object({
-          content: z.string().describe("Content to extract key points from"),
-          focusArea: z.string().optional().describe("Specific area to focus on (e.g., 'decisions', 'action items')"),
-        }),
-        execute: async ({ content, focusArea }) => {
-          const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
-          const keyPoints = sentences.slice(0, Math.min(10, sentences.length));
+      outputSchema: z.object({
+        sections: z.array(z.string()).describe("Suggested sections for the meeting summary"),
+      }),
+      execute: async ({ max_num_sections }, { messages }) => {
+        const lastMessage = messages[messages.length - 1];
+        const content = typeof lastMessage.content === "string"
+          ? lastMessage.content
+          : lastMessage.content.map((part) => part.type === "text" ? part.text : "").join("\n");
 
-          return {
-            extractedPoints: keyPoints,
-            count: keyPoints.length,
-            focusArea: focusArea || "general",
-          };
-        },
-      }),
+        const { object } = await generateObject({
+          model,
+          schema: z.object({
+            sections: z.array(z.string()).describe("Suggested sections for the meeting summary"),
+          }),
+          prompt: `
+            Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
+            The sections should cover the main themes and topics discussed.
+            Generate between 3 and ${max_num_sections} sections based on the content depth.
+        
+            Content:
+            ${content}`,
+        });
+        return object;
+      },
+    }),
+  };
+
+  return new Agent({
+    model,
+    stopWhen: stepCountIs(10),
+    system,
+    tools,
+    prepareStep: async ({ stepNumber }) => {
+      if (stepNumber === 0) {
+        return {
+          toolChoice: { type: "tool", toolName: "analyzeStructure" },
+        };
+      }
+
+      return { toolChoice: "none" };
     },
   });
 }

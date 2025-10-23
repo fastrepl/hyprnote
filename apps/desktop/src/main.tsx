@@ -18,9 +18,11 @@ import {
 } from "./store/tinybase/persisted";
 
 import { routeTree } from "./routeTree.gen";
+import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
 
 const listenerStore = createListenerStore();
+const aiTaskStore = createAITaskStore();
 const queryClient = new QueryClient();
 
 const router = createRouter({ routeTree, context: undefined });
@@ -48,6 +50,7 @@ function App() {
         persistedStore,
         internalStore,
         listenerStore,
+        aiTaskStore,
       }}
     />
   );

@@ -19,7 +19,7 @@ export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessi
   } else if (tab.state.editor === "enhanced") {
     return (
       <FloatingButtonContainer>
-        <GenerateButton />
+        <GenerateButton sessionId={tab.id} />
       </FloatingButtonContainer>
     );
   } else if (tab.state.editor === "transcript") {

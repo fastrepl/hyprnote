@@ -1,19 +1,52 @@
-import { SparklesIcon } from "lucide-react";
+import { cn } from "@hypr/utils";
+import { Loader2, SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@hypr/utils";
+import { useAITask } from "../../../../../contexts/ai-task";
+import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { FloatingButton } from "./shared";
 
-export function GenerateButton() {
+export function GenerateButton({ sessionId }: { sessionId: string }) {
   const [showTemplates, setShowTemplates] = useState(false);
+  const model = useLanguageModel();
+
+  const taskId = `${sessionId}-enhance`;
+
+  const { generate, cancel, status } = useAITask((state) => ({
+    generate: state.generate,
+    cancel: state.cancel,
+    status: state.tasks.get(taskId)?.status ?? "idle",
+  }));
 
   const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
+  const rawMd = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
 
-  const onRegenerate = (templateId: string | null) => {
-    console.log("Regenerate clicked:", templateId);
+  const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ enhanced_md: input }),
+    [],
+    persisted.STORE_ID,
+  );
+
+  const onRegenerate = async (_templateId: string | null) => {
+    if (!model || !rawMd) {
+      return;
+    }
+
+    const prompt =
+      "Generate some random meeting summry, following markdown format. Start with h1 header and no more that h3. Each header should have more that 5 points, bullet points.";
+
+    await generate(taskId, {
+      model,
+      prompt,
+      onComplete: updateEnhancedMd,
+    });
   };
+
+  const isGenerating = status === "generating";
 
   return (
     <div>
@@ -22,12 +55,12 @@ export function GenerateButton() {
           "absolute left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border",
           "px-6 pb-14 overflow-visible",
           "transition-all duration-300",
-          showTemplates
+          showTemplates && !isGenerating
             ? ["opacity-100 bottom-[-14px] pt-2 w-[270px]", "pointer-events-auto"]
             : ["opacity-0 bottom-0 pt-0 w-0", "pointer-events-none"],
         ])}
         style={{ zIndex: 0 }}
-        onMouseEnter={() => setShowTemplates(true)}
+        onMouseEnter={() => !isGenerating && setShowTemplates(true)}
         onMouseLeave={() => setShowTemplates(false)}
       >
         <div className={cn(["transition-opacity duration-200", showTemplates ? "opacity-100" : "opacity-0"])}>
@@ -55,15 +88,19 @@ export function GenerateButton() {
       </div>
 
       <FloatingButton
-        icon={<SparklesIcon className="w-4 h-4" />}
-        onMouseEnter={() => setShowTemplates(true)}
+        icon={isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <SparklesIcon className="w-4 h-4" />}
+        onMouseEnter={() => !isGenerating && setShowTemplates(true)}
         onMouseLeave={() => setShowTemplates(false)}
         onClick={() => {
-          setShowTemplates(false);
-          onRegenerate(null);
+          if (isGenerating) {
+            cancel(taskId);
+          } else {
+            setShowTemplates(false);
+            onRegenerate(null);
+          }
         }}
       >
-        Regenerate
+        {isGenerating ? "Cancel" : "Regenerate"}
       </FloatingButton>
     </div>
   );

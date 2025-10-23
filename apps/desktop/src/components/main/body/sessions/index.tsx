@@ -53,15 +53,17 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
 
   return (
     <AudioPlayer.Provider url={audioUrl ?? ""}>
-      <StandardTabWrapper afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}>
-        <div className="p-2">
+      <StandardTabWrapper
+        afterBorder={tab.state.editor === "transcript" && <AudioPlayer.Timeline />}
+        floatingButton={<FloatingActionButton tab={tab} />}
+      >
+        <div className="flex flex-col h-full p-2">
           <OuterHeader sessionId={tab.id} />
-          <div className="mt-3 px-2">
+          <div className="mt-3 px-2 flex-shrink-0">
             <TitleInput tab={tab} />
-            <div className="mt-2">
-              <NoteInput tab={tab} />
-            </div>
-            <FloatingActionButton tab={tab} />
+          </div>
+          <div className="mt-2 px-2 flex-1 min-h-0">
+            <NoteInput tab={tab} />
           </div>
         </div>
       </StandardTabWrapper>

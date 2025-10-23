@@ -270,12 +270,21 @@ function TabChatButton() {
 }
 
 export function StandardTabWrapper(
-  { children, afterBorder }: { children: React.ReactNode; afterBorder?: React.ReactNode },
+  {
+    children,
+    afterBorder,
+    floatingButton,
+  }: {
+    children: React.ReactNode;
+    afterBorder?: React.ReactNode;
+    floatingButton?: React.ReactNode;
+  },
 ) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col rounded-lg border flex-1 overflow-hidden relative">
         {children}
+        {floatingButton}
         <TabChatButton />
       </div>
       {afterBorder}

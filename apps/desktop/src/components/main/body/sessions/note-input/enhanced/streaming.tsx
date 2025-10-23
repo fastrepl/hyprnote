@@ -1,10 +1,11 @@
+import { Loader2Icon } from "lucide-react";
 import { motion } from "motion/react";
-import { ReactNode, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
 
-export function StreamingView({ text, after }: { text: string; after: ReactNode }) {
+export function StreamingView({ text }: { text: string }) {
   const containerRef = useAutoScrollToBottom(text);
 
   const components = {
@@ -30,16 +31,24 @@ export function StreamingView({ text, after }: { text: string; after: ReactNode 
           "whitespace-pre-wrap break-words",
         ])}
       >
-        <motion.div>
-          <Streamdown
-            disallowedElements={["code", "pre", "h1"]}
-            components={components}
-          >
-            {text}
-          </Streamdown>
-        </motion.div>
+        <Streamdown
+          disallowedElements={["code", "pre", "h1"]}
+          components={components}
+        >
+          {text}
+        </Streamdown>
       </div>
-      {after}
+      <motion.div
+        layout
+        className={cn([
+          "flex items-center justify-center w-[calc(100%-24px)] gap-3",
+          "border border-neutral-200",
+          "bg-neutral-800 rounded-lg py-3",
+        ])}
+      >
+        <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
+        <span className="text-xs text-neutral-50">Generating...</span>
+      </motion.div>
     </div>
   );
 }

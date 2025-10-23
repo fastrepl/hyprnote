@@ -6,6 +6,8 @@ export type MeetingMetadata = {
   title: string;
   started_at: string;
   ended_at: string;
+  location?: string | null;
+  description?: string | null;
 };
 
 export function useMeetingMetadata(sessionId: string): MeetingMetadata | null {
@@ -16,6 +18,8 @@ export function useMeetingMetadata(sessionId: string): MeetingMetadata | null {
   const title = persisted.UI.useCell("events", eventId ?? "", "title", persisted.STORE_ID);
   const startedAt = persisted.UI.useCell("events", eventId ?? "", "started_at", persisted.STORE_ID);
   const endedAt = persisted.UI.useCell("events", eventId ?? "", "ended_at", persisted.STORE_ID);
+  const location = persisted.UI.useCell("events", eventId ?? "", "location", persisted.STORE_ID);
+  const description = persisted.UI.useCell("events", eventId ?? "", "description", persisted.STORE_ID);
 
   if (!eventId || !title || !startedAt || !endedAt) {
     return null;
@@ -27,5 +31,7 @@ export function useMeetingMetadata(sessionId: string): MeetingMetadata | null {
     title,
     started_at: startedAt,
     ended_at: endedAt,
+    location: location as string | null | undefined,
+    description: description as string | null | undefined,
   };
 }

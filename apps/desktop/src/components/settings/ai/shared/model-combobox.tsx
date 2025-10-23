@@ -164,36 +164,50 @@ export function ModelCombobox({
   );
 }
 
+// https://openrouter.ai/docs/overview/models#model-object-schema
+// https://platform.openai.com/docs/api-reference/models/list
 export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string): Promise<string[]> => {
   if (!baseUrl) {
     return [];
   }
 
-  const headers: Record<string, string> = {};
-  if (apiKey) {
-    headers["Authorization"] = `Bearer ${apiKey}`;
-  }
-
   try {
-    const response = await fetch(`${baseUrl}/models`, {
-      headers,
-    });
+    const response = await fetch(
+      `${baseUrl}/models`,
+      { headers: { "Authorization": `Bearer ${apiKey}` } },
+    );
 
     if (!response.ok) {
       return [];
     }
 
-    const data = await response.json();
+    const { data } = await response.json() as {
+      data: {
+        id: string;
+        supported_parameters?: string[];
+        architecture?: {
+          input_modalities?: string[];
+          output_modalities?: string[];
+        };
+      }[];
+    };
+    const removeNonToolModels = data
+      .filter((model) => {
+        if (
+          Array.isArray(model.architecture?.input_modalities)
+          && !model.architecture.input_modalities.includes("text")
+        ) {
+          return false;
+        }
 
-    if (data.data && Array.isArray(data.data)) {
-      return data.data.map((model: any) => model.id || model.name || String(model));
-    }
+        if (!model.supported_parameters) {
+          return true;
+        }
 
-    if (Array.isArray(data)) {
-      return data.map((model: any) => model.id || model.name || String(model));
-    }
+        return model.supported_parameters.includes("tools");
+      });
 
-    return [];
+    return removeNonToolModels.map((model) => model.id);
   } catch (error) {
     return [];
   }

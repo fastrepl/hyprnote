@@ -125,9 +125,11 @@ function ProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
-    ? "Hyprnote is great"
+    ? "The Hyprnote team continuously tests different models to provide the best experience."
     : providerId === "custom"
     ? "We only support **OpenAI compatible** endpoints for now."
+    : providerId === "openrouter"
+    ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
     : "";
 
   if (!content) {

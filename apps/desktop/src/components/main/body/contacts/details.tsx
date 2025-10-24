@@ -1,9 +1,10 @@
-import { Building2, CircleMinus, FileText, Pencil, SearchIcon, TrashIcon } from "lucide-react";
+import { Building2, CircleMinus, FileText, SearchIcon } from "lucide-react";
 import React, { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { getInitials } from "./shared";
 
@@ -16,7 +17,6 @@ export function DetailsColumn({
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
 }) {
-  const [editingPerson, setEditingPerson] = useState<string | null>(null);
   const selectedPersonData = persisted.UI.useRow("humans", selectedHumanId ?? "", persisted.STORE_ID);
 
   const mappingIdsByHuman = persisted.UI.useSliceRowIds(
@@ -58,99 +58,122 @@ export function DetailsColumn({
     <div className="flex-1 flex flex-col h-full">
       {selectedPersonData && selectedHumanId
         ? (
-          editingPerson === selectedHumanId
-            ? (
-              <EditPersonForm
-                personId={selectedHumanId}
-                onSave={() => setEditingPerson(null)}
-                onCancel={() => setEditingPerson(null)}
-              />
-            )
-            : (
-              <>
-                <div className="px-6 py-4 border-b border-neutral-200">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <span className="text-lg font-medium text-neutral-600">
-                        {getInitials(selectedPersonData.name || selectedPersonData.email)}
-                      </span>
+          <>
+            <div className="px-6 py-4 border-b border-neutral-200">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
+                  <span className="text-lg font-medium text-neutral-600">
+                    {getInitials(selectedPersonData.name || selectedPersonData.email)}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <EditablePersonNameField personId={selectedHumanId} />
+                      {selectedPersonData.is_user && (
+                        <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">You</span>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              <div className="border-b border-neutral-200">
+                <EditablePersonJobTitleField personId={selectedHumanId} />
+
+                <div className="flex items-center px-4 py-3 border-b border-neutral-200">
+                  <div className="w-28 text-sm text-neutral-500">Company</div>
+                  <div className="flex-1">
+                    <EditPersonOrganizationSelector personId={selectedHumanId} />
+                  </div>
+                </div>
+
+                <EditablePersonEmailField personId={selectedHumanId} />
+                <EditablePersonLinkedInField personId={selectedHumanId} />
+                <EditablePersonMemoField personId={selectedHumanId} />
+              </div>
+
+              {personSessions.length > 0 && (
+                <div className="p-6 border-b border-neutral-200">
+                  <h3 className="text-sm font-medium text-neutral-600 mb-3">Summary</h3>
+                  <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
+                    <p className="text-sm text-neutral-700 leading-relaxed">
+                      AI-generated summary of all interactions and notes with this contact will appear here. This will
+                      synthesize key discussion points, action items, and relationship context across all meetings and
+                      notes.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-6">
+                <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
+                <div className="space-y-2">
+                  {personSessions.length > 0
+                    ? (
+                      personSessions.map((session: any) => (
+                        <button
+                          key={session.id}
+                          onClick={() => handleSessionClick(session.id)}
+                          className="w-full text-left p-3 rounded-md border border-neutral-200 hover:bg-neutral-50 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <FileText className="h-4 w-4 text-neutral-500" />
+                            <span className="font-medium text-sm">
+                              {session.title || "Untitled Note"}
+                            </span>
+                          </div>
+                          {session.summary && (
+                            <p className="text-xs text-neutral-600 mt-1 line-clamp-2">
+                              {session.summary}
+                            </p>
+                          )}
+                          {session.created_at && (
+                            <div className="text-xs text-neutral-500 mt-1">
+                              {new Date(session.created_at).toLocaleDateString()}
+                            </div>
+                          )}
+                        </button>
+                      ))
+                    )
+                    : <p className="text-sm text-neutral-500">No related notes found</p>}
+                </div>
+              </div>
+
+              {!selectedPersonData.is_user && (
+                <div className="p-6">
+                  <div className="border border-red-200 rounded-lg overflow-hidden">
+                    <div className="bg-red-50 px-4 py-3 border-b border-red-200">
+                      <h3 className="text-sm font-semibold text-red-900">Danger Zone</h3>
+                    </div>
+                    <div className="bg-white p-4">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h2 className="text-lg font-semibold flex items-center gap-2">
-                            {selectedPersonData.name || "Unnamed Contact"}
-                            {selectedPersonData.is_user && (
-                              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">You</span>
-                            )}
-                          </h2>
-                          {selectedPersonData.job_title && (
-                            <p className="text-sm text-neutral-600">{selectedPersonData.job_title}</p>
-                          )}
-                          {selectedPersonData.email && (
-                            <p className="text-sm text-neutral-500">{selectedPersonData.email}</p>
-                          )}
-                          {selectedPersonData.org_id && <OrganizationInfo organizationId={selectedPersonData.org_id} />}
+                          <p className="text-sm font-medium text-neutral-900">Delete this contact</p>
+                          <p className="text-xs text-neutral-500 mt-1">This action cannot be undone</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setEditingPerson(selectedHumanId)}
-                            className="p-2 rounded-md hover:bg-neutral-100 transition-colors"
-                            title="Edit contact"
-                          >
-                            <Pencil className="h-4 w-4 text-neutral-500" />
-                          </button>
-                          {!selectedPersonData.is_user && (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleDeletePerson(selectedHumanId);
-                              }}
-                              className="p-2 rounded-md hover:bg-red-50 transition-colors"
-                              title="Delete contact"
-                            >
-                              <TrashIcon className="h-4 w-4 text-red-500 hover:text-red-600" />
-                            </button>
-                          )}
-                        </div>
+                        <Button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeletePerson(selectedHumanId);
+                          }}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          Delete Contact
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
+              )}
 
-                <div className="flex-1 p-6">
-                  <h3 className="text-sm font-medium text-neutral-600 mb-4 pl-3">Related Notes</h3>
-                  <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
-                    <div className="space-y-2">
-                      {personSessions.length > 0
-                        ? (
-                          personSessions.map((session: any) => (
-                            <button
-                              key={session.id}
-                              onClick={() => handleSessionClick(session.id)}
-                              className="w-full text-left p-3 rounded-md border border-neutral-200 hover:bg-neutral-50 transition-colors"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <FileText className="h-4 w-4 text-neutral-500" />
-                                <span className="font-medium text-sm">
-                                  {session.title || "Untitled Note"}
-                                </span>
-                              </div>
-                              {session.created_at && (
-                                <div className="text-xs text-neutral-500">
-                                  {new Date(session.created_at).toLocaleDateString()}
-                                </div>
-                              )}
-                            </button>
-                          ))
-                        )
-                        : <p className="text-sm text-neutral-500 pl-3">No related notes found</p>}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )
+              <div className="pb-96" />
+            </div>
+          </>
         )
         : (
           <div className="flex-1 flex items-center justify-center">
@@ -161,91 +184,7 @@ export function DetailsColumn({
   );
 }
 
-function OrganizationInfo({ organizationId }: { organizationId: string }) {
-  const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
-
-  if (!organization) {
-    return null;
-  }
-
-  return (
-    <p className="text-sm text-neutral-500">
-      {organization.name}
-    </p>
-  );
-}
-
-function EditPersonForm({
-  personId,
-  onSave,
-  onCancel,
-}: {
-  personId: string;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  const personData = persisted.UI.useRow("humans", personId, persisted.STORE_ID);
-
-  if (!personData) {
-    return null;
-  }
-
-  return (
-    <div className="flex-1 flex flex-col">
-      <div className="px-6 py-4 border-b border-neutral-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Edit Contact</h3>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onCancel}
-              className="hover:bg-neutral-100 text-neutral-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={onSave}
-              variant="ghost"
-              size="sm"
-              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col items-center py-6">
-          <div className="w-24 h-24 mb-3 bg-neutral-200 rounded-full flex items-center justify-center">
-            <span className="text-xl font-semibold text-neutral-600">
-              {getInitials(personData.name as string || "?")}
-            </span>
-          </div>
-        </div>
-
-        <div className="border-t border-neutral-200">
-          <EditPersonNameField personId={personId} />
-          <EditPersonJobTitleField personId={personId} />
-
-          <div className="flex items-center px-4 py-3 border-b border-neutral-200">
-            <div className="w-28 text-sm text-neutral-500">Company</div>
-            <div className="flex-1">
-              <EditPersonOrganizationSelector personId={personId} />
-            </div>
-          </div>
-
-          <EditPersonEmailField personId={personId} />
-          <EditPersonLinkedInField personId={personId} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EditPersonNameField({ personId }: { personId: string }) {
+function EditablePersonNameField({ personId }: { personId: string }) {
   const value = persisted.UI.useCell("humans", personId, "name", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
@@ -258,21 +197,16 @@ function EditPersonNameField({ personId }: { personId: string }) {
   );
 
   return (
-    <div className="flex items-center px-4 py-3 border-b border-neutral-200">
-      <div className="w-28 text-sm text-neutral-500">Name</div>
-      <div className="flex-1">
-        <Input
-          value={(value as string) || ""}
-          onChange={handleChange}
-          placeholder="John Doe"
-          className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
-        />
-      </div>
-    </div>
+    <Input
+      value={(value as string) || ""}
+      onChange={handleChange}
+      placeholder="Name"
+      className="border-none shadow-none p-0 h-8 text-lg font-semibold focus-visible:ring-0 focus-visible:ring-offset-0"
+    />
   );
 }
 
-function EditPersonJobTitleField({ personId }: { personId: string }) {
+function EditablePersonJobTitleField({ personId }: { personId: string }) {
   const value = persisted.UI.useCell("humans", personId, "job_title", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
@@ -292,14 +226,14 @@ function EditPersonJobTitleField({ personId }: { personId: string }) {
           value={(value as string) || ""}
           onChange={handleChange}
           placeholder="Software Engineer"
-          className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="border-none shadow-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
     </div>
   );
 }
 
-function EditPersonEmailField({ personId }: { personId: string }) {
+function EditablePersonEmailField({ personId }: { personId: string }) {
   const value = persisted.UI.useCell("humans", personId, "email", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
@@ -320,14 +254,14 @@ function EditPersonEmailField({ personId }: { personId: string }) {
           value={(value as string) || ""}
           onChange={handleChange}
           placeholder="john@example.com"
-          className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="border-none shadow-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
         />
       </div>
     </div>
   );
 }
 
-function EditPersonLinkedInField({ personId }: { personId: string }) {
+function EditablePersonLinkedInField({ personId }: { personId: string }) {
   const value = persisted.UI.useCell("humans", personId, "linkedin_username", persisted.STORE_ID);
 
   const handleChange = persisted.UI.useSetCellCallback(
@@ -347,7 +281,35 @@ function EditPersonLinkedInField({ personId }: { personId: string }) {
           value={(value as string) || ""}
           onChange={handleChange}
           placeholder="https://www.linkedin.com/in/johntopia/"
-          className="border-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="border-none shadow-none p-0 h-7 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
+      </div>
+    </div>
+  );
+}
+
+function EditablePersonMemoField({ personId }: { personId: string }) {
+  const value = persisted.UI.useCell("humans", personId, "memo", persisted.STORE_ID);
+
+  const handleChange = persisted.UI.useSetCellCallback(
+    "humans",
+    personId,
+    "memo",
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => e.target.value,
+    [],
+    persisted.STORE_ID,
+  );
+
+  return (
+    <div className="flex px-4 py-3 border-b border-neutral-200">
+      <div className="w-28 text-sm text-neutral-500 pt-2">Notes</div>
+      <div className="flex-1">
+        <Textarea
+          value={(value as string) || ""}
+          onChange={handleChange}
+          placeholder="Add notes about this contact..."
+          className="border-none shadow-none p-2 min-h-[80px] text-base focus-visible:ring-0 focus-visible:ring-offset-0 resize-none"
+          rows={3}
         />
       </div>
     </div>
@@ -375,7 +337,7 @@ function EditPersonOrganizationSelector({ personId }: { personId: string }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex flex-row items-center cursor-pointer">
+        <div className="inline-flex items-center cursor-pointer hover:bg-neutral-50 py-1 rounded-lg transition-colors">
           {organization
             ? (
               <div className="flex items-center">
@@ -391,7 +353,7 @@ function EditPersonOrganizationSelector({ personId }: { personId: string }) {
                 </span>
               </div>
             )
-            : <span className="text-neutral-500 text-base">Select organization</span>}
+            : <span className="text-neutral-400 text-base">Select organization</span>}
         </div>
       </PopoverTrigger>
 

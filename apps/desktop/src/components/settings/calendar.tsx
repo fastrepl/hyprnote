@@ -22,7 +22,6 @@ interface CalendarAccount {
   }[];
 }
 
-// Placeholder data - replace with actual hook to fetch calendar accounts
 const MOCK_ACCOUNTS: CalendarAccount[] = [
   {
     id: "1",

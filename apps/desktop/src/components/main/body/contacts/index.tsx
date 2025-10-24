@@ -129,6 +129,7 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
             <OrganizationDetailsColumn
               selectedOrganizationId={selectedOrganization}
               handleDeleteOrganization={handleDeleteOrganization}
+              onPersonClick={setSelectedPerson}
             />
           )
           : (

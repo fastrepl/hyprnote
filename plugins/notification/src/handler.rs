@@ -108,6 +108,7 @@ impl NotificationHandler {
                         "dev.zed.Zed",
                         "com.microsoft.VSCode",
                         "com.todesktop.230313mzl4w4u92",
+                        "com.apple.garageband10",
                     ]
                     .contains(&app.id.as_str())
                 }) {

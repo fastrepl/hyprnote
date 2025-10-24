@@ -42,7 +42,9 @@ export function SearchableFolderDropdown({ sessionId, trigger }: { sessionId: st
   );
 }
 
-export function SearchableFolderSubmenuContent({ sessionId }: { sessionId: string }) {
+export function SearchableFolderSubmenuContent(
+  { sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void },
+) {
   const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
 
   const handleSelectFolder = persisted.UI.useSetPartialRowCallback(
@@ -53,13 +55,11 @@ export function SearchableFolderSubmenuContent({ sessionId }: { sessionId: strin
     persisted.STORE_ID,
   );
 
-  if (!Object.keys(folders).length) {
-    return <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>;
-  }
-
   return (
     <DropdownMenuSubContent className="w-[200px] p-0">
-      <SearchableFolderContent folders={folders} onSelectFolder={handleSelectFolder} />
+      {Object.keys(folders).length
+        ? <SearchableFolderContent folders={folders} onSelectFolder={handleSelectFolder} setOpen={setOpen} />
+        : <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>}
     </DropdownMenuSubContent>
   );
 }

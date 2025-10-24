@@ -86,7 +86,7 @@ export function ColumnHeader({
   return (
     <div className="@container border-b border-neutral-200">
       <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12 min-w-0">
-        <h3 className="text-sm font-medium truncate">{title}</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
         <div className="flex items-center flex-shrink-0">
           {onSearchChange && (
             <Button

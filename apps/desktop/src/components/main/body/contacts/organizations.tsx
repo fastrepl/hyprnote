@@ -48,11 +48,11 @@ export function OrganizationsColumn({
           <button
             onClick={() => setSelectedOrganization(null)}
             className={cn([
-              "w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 hover:bg-neutral-100 transition-colors",
+              "w-full text-left px-3 py-2 rounded-md text-sm truncate flex items-center gap-2 hover:bg-neutral-100 transition-colors",
               !selectedOrganization && "bg-neutral-100",
             ])}
           >
-            <User className="h-4 w-4 text-neutral-500" />
+            <User className="h-4 w-4 text-neutral-500 shrink-0" />
             All People
           </button>
           {showNewOrg && (

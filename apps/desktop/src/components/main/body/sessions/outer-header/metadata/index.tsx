@@ -1,11 +1,14 @@
-import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
+
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
+
 import { MeetingDate } from "./date";
+import { MeetingDescription } from "./description";
 import { MeetingLink } from "./link";
+import { MeetingLocation } from "./location";
 import { MeetingParticipants } from "./participants";
 import { useMeetingMetadata } from "./shared";
 
@@ -22,6 +25,10 @@ export function MeetingMetadata({ sessionId }: { sessionId: string }) {
       </Button>
     );
   }
+
+  const hasLocation = !!meta.location;
+  const hasMeetingLink = !!meta.meeting_link;
+  const hasDescription = !!meta.description;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -47,19 +54,38 @@ export function MeetingMetadata({ sessionId }: { sessionId: string }) {
         ])}
       >
         <div className="flex flex-col gap-3 overflow-y-auto p-4">
-          <span className="font-semibold text-base">{meta.title}</span>
-          <Divider />
-          <MeetingLink sessionId={sessionId} />
-          <Divider />
+          <div className="font-semibold text-base">{meta.title}</div>
+
+          <div className="border-t border-neutral-200" />
+
+          {hasLocation && (
+            <>
+              <MeetingLocation sessionId={sessionId} />
+              <div className="border-t border-neutral-200" />
+            </>
+          )}
+
+          {hasMeetingLink && (
+            <>
+              <MeetingLink sessionId={sessionId} />
+              <div className="border-t border-neutral-200" />
+            </>
+          )}
+
           <MeetingDate sessionId={sessionId} />
-          <Divider />
+
+          <div className="border-t border-neutral-200" />
+
           <MeetingParticipants sessionId={sessionId} />
+
+          {hasDescription && (
+            <>
+              <div className="border-t border-neutral-200" />
+              <MeetingDescription sessionId={sessionId} />
+            </>
+          )}
         </div>
       </PopoverContent>
     </Popover>
   );
-}
-
-function Divider() {
-  return <div className="border-t border-neutral-200" />;
 }

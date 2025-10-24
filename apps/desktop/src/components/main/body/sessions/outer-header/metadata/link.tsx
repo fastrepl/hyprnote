@@ -1,7 +1,3 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, VideoIcon } from "lucide-react";
-import { useCallback } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -9,19 +5,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, VideoIcon } from "lucide-react";
+import { useCallback } from "react";
+
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingLink({ sessionId }: { sessionId: string }) {
-  const meta = useMeetingMetadata(sessionId)!;
+  const meta = useMeetingMetadata(sessionId);
 
   const handleCopyLink = useCallback(() => {
-    if (meta.meeting_link) {
+    if (meta?.meeting_link) {
       navigator.clipboard.writeText(meta.meeting_link);
     }
-  }, [meta.meeting_link]);
+  }, [meta?.meeting_link]);
+
+  if (!meta?.meeting_link) {
+    return null;
+  }
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-between gap-2 -ml-2.5">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="ghost" className="shrink-0">

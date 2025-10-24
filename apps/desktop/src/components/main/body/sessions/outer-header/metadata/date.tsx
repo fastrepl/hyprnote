@@ -1,8 +1,13 @@
 import { formatDate, isSameDay } from "@hypr/utils";
+
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingDate({ sessionId }: { sessionId: string }) {
-  const meta = useMeetingMetadata(sessionId)!;
+  const meta = useMeetingMetadata(sessionId);
+
+  if (!meta || !meta.started_at || !meta.ended_at) {
+    return null;
+  }
 
   return (
     <p className="text-sm text-neutral-700">

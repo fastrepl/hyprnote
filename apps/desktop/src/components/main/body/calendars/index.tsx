@@ -62,17 +62,6 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
 
   const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(() => new Set(calendarIds));
 
-  const toggleCalendar = (calendarId: string) => {
-    setSelectedCalendars((prev) => {
-      const next = new Set(prev);
-      if (next.has(calendarId)) {
-        next.delete(calendarId);
-      } else {
-        next.add(calendarId);
-      }
-      return next;
-    });
-  };
   const monthStart = startOfMonth(tab.month);
   const startDayOfWeek = getDay(monthStart);
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -113,7 +102,17 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
                     key={id}
                     id={id}
                     checked={selectedCalendars.has(id)}
-                    onToggle={() => toggleCalendar(id)}
+                    onToggle={(checked) => {
+                      if (checked) {
+                        setSelectedCalendars((prev) => new Set([...prev, id]));
+                      } else {
+                        setSelectedCalendars((prev) => {
+                          const next = new Set(prev);
+                          next.delete(id);
+                          return next;
+                        });
+                      }
+                    }}
                   />
                 ))}
               </div>

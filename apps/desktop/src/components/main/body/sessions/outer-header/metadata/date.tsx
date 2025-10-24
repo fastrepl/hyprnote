@@ -5,7 +5,7 @@ import { useMeetingMetadata } from "./shared";
 export function MeetingDate({ sessionId }: { sessionId: string }) {
   const meta = useMeetingMetadata(sessionId);
 
-  if (!meta?.started_at && !meta?.ended_at) {
+  if (!meta || !meta.started_at || !meta.ended_at) {
     return null;
   }
 

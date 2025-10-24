@@ -1,4 +1,5 @@
 {
+  "engines": { "node": ">=22" },
   "packageManager": "pnpm@10.19.0",
   "devDependencies": {
     "esbuild": "0.25.11",

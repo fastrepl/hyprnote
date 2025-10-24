@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { cn } from "@hypr/utils";
 
-export const Route = createFileRoute("/_view/_layout/")({
+export const Route = createFileRoute("/_view/")({
   component: Component,
 });
 

@@ -6,7 +6,7 @@ const validateSearch = z.object({
   type: z.enum(["signup", "signin"]).default("signup"),
 });
 
-export const Route = createFileRoute("/_view/_layout/app/auth")({
+export const Route = createFileRoute("/_view/app/auth")({
   validateSearch,
   component: Component,
 });

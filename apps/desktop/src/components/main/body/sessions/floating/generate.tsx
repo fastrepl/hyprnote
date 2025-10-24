@@ -1,19 +1,53 @@
+import { cn } from "@hypr/utils";
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
-import { cn } from "@hypr/utils";
+import { useAITask } from "../../../../../contexts/ai-task";
+import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { FloatingButton } from "./shared";
 
-export function GenerateButton() {
+export function GenerateButton({ sessionId }: { sessionId: string }) {
   const [showTemplates, setShowTemplates] = useState(false);
+  const model = useLanguageModel();
+
+  const taskId = `${sessionId}-enhance`;
+
+  const { generate, status } = useAITask((state) => ({
+    generate: state.generate,
+    status: state.tasks[taskId]?.status ?? "idle",
+  }));
 
   const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
+  const rawMd = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
 
-  const onRegenerate = (templateId: string | null) => {
-    console.log("Regenerate clicked:", templateId);
+  const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ enhanced_md: input }),
+    [],
+    persisted.STORE_ID,
+  );
+
+  const onRegenerate = async (_templateId: string | null) => {
+    if (!model) {
+      return;
+    }
+
+    await generate(taskId, {
+      model,
+      taskType: "enhance",
+      args: { rawMd },
+      onComplete: updateEnhancedMd,
+    });
   };
+
+  const isGenerating = status === "generating";
+
+  if (isGenerating) {
+    return null;
+  }
 
   return (
     <div>
@@ -54,17 +88,19 @@ export function GenerateButton() {
         </div>
       </div>
 
-      <FloatingButton
-        icon={<SparklesIcon className="w-4 h-4" />}
-        onMouseEnter={() => setShowTemplates(true)}
-        onMouseLeave={() => setShowTemplates(false)}
-        onClick={() => {
-          setShowTemplates(false);
-          onRegenerate(null);
-        }}
-      >
-        Regenerate
-      </FloatingButton>
+      <div className="flex flex-col items-center">
+        <FloatingButton
+          icon={<SparklesIcon className="w-4 h-4" />}
+          onMouseEnter={() => setShowTemplates(true)}
+          onMouseLeave={() => setShowTemplates(false)}
+          onClick={() => {
+            setShowTemplates(false);
+            onRegenerate(null);
+          }}
+        >
+          <span>Regenerate</span>
+        </FloatingButton>
+      </div>
     </div>
   );
 }

@@ -1,12 +1,13 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
+import { useAITask } from "../../../../../contexts/ai-task";
 import { useListener } from "../../../../../contexts/listener";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import { EnhancedEditor } from "./enhanced";
+import { Enhanced } from "./enhanced";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
@@ -14,6 +15,10 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+
+  const taskId = `${tab.id}-enhance`;
+
+  const taskStatus = useAITask((state) => state.tasks[taskId]?.status ?? "idle");
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });
@@ -23,6 +28,12 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     editorRef.current?.editor?.commands.focus();
   };
 
+  useEffect(() => {
+    if (taskStatus === "generating" && tab.state.editor !== "enhanced") {
+      updateSessionTabState(tab, { editor: "enhanced" });
+    }
+  }, [taskStatus, tab.state.editor, updateSessionTabState, tab]);
+
   const sessionId = tab.id;
   const currentTab = tab.state.editor ?? "raw";
 
@@ -30,7 +41,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     <div className="flex flex-col h-full">
       <Header editorTabs={editorTabs} currentTab={currentTab} handleTabChange={handleTabChange} />
       <div className="flex-1 overflow-auto mt-3" onClick={handleContainerClick}>
-        {currentTab === "enhanced" && <EnhancedEditor ref={editorRef} sessionId={sessionId} />}
+        {currentTab === "enhanced" && <Enhanced ref={editorRef} sessionId={sessionId} />}
         {currentTab === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
         {currentTab === "transcript" && <Transcript sessionId={sessionId} />}
       </div>
@@ -75,19 +86,14 @@ function Header(
 
 function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
   const status = useListener((state) => state.status);
-  const enhanced = !!persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
   const hasTranscript = useHasTranscript(sessionId);
 
   if (status === "running_active") {
     return ["raw", "transcript"];
   }
 
-  if (enhanced) {
-    return ["enhanced", "raw", "transcript"];
-  }
-
   if (hasTranscript) {
-    return ["raw", "transcript"];
+    return ["enhanced", "raw", "transcript"];
   }
 
   return ["raw"];

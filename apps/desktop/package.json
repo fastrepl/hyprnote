@@ -36,6 +36,7 @@
     "@hypr/utils": "workspace:^",
     "@iconify-icon/react": "^3.0.1",
     "@lobehub/icons": "^2.43.1",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "@orama/highlight": "^0.1.9",
     "@orama/orama": "^3.1.16",
     "@orama/plugin-qps": "^3.1.16",

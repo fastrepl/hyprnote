@@ -1,6 +1,7 @@
 import "../styles/tiptap.css";
 import "../styles/mention.css";
 
+import { Markdown } from "@tiptap/markdown";
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
 
@@ -45,9 +46,11 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       extensions: [
         ...shared.getExtensions(placeholderComponent),
         mention(mentionConfig),
+        Markdown,
       ],
       editable,
-      content: initialContent || "<p></p>",
+      contentType: "markdown",
+      content: initialContent || "",
       onCreate: ({ editor }) => {
         editor.view.dom.setAttribute("spellcheck", "false");
         editor.view.dom.setAttribute("autocomplete", "off");

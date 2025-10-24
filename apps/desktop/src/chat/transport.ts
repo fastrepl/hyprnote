@@ -1,5 +1,5 @@
-import type { ChatRequestOptions, ChatTransport, LanguageModel, UIMessageChunk } from "ai";
-import { convertToModelMessages, smoothStream, stepCountIs, streamText } from "ai";
+import type { ChatTransport, LanguageModel } from "ai";
+import { convertToModelMessages, Experimental_Agent as Agent, stepCountIs } from "ai";
 
 import { ToolRegistry } from "../contexts/tool";
 import type { HyprUIMessage } from "./types";
@@ -7,25 +7,13 @@ import type { HyprUIMessage } from "./types";
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   constructor(private registry: ToolRegistry, private model: LanguageModel) {}
 
-  async sendMessages(
-    options:
-      & {
-        chatId: string;
-        messages: HyprUIMessage[];
-        abortSignal: AbortSignal | undefined;
-      }
-      & { trigger: "submit-message" | "regenerate-message"; messageId: string | undefined }
-      & ChatRequestOptions,
-  ): Promise<ReadableStream<UIMessageChunk>> {
+  sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (options) => {
     const tools = this.registry.getForTransport();
 
-    const result = streamText({
+    const agent = new Agent({
       model: this.model,
-      messages: convertToModelMessages(options.messages),
-      experimental_transform: smoothStream({ chunking: "word" }),
       tools,
       stopWhen: stepCountIs(5),
-      abortSignal: options.abortSignal,
       prepareStep: async ({ messages }) => {
         if (messages.length > 20) {
           return { messages: messages.slice(-10) };
@@ -34,6 +22,8 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
         return {};
       },
     });
+
+    const result = agent.stream({ messages: convertToModelMessages(options.messages) });
 
     return result.toUIMessageStream({
       originalMessages: options.messages,
@@ -47,9 +37,9 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
         return error instanceof Error ? error.message : String(error);
       },
     });
-  }
+  };
 
-  async reconnectToStream(): Promise<ReadableStream<UIMessageChunk> | null> {
+  reconnectToStream: ChatTransport<HyprUIMessage>["reconnectToStream"] = async () => {
     return null;
-  }
+  };
 }

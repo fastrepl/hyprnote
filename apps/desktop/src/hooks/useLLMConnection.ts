@@ -1,5 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { useMemo } from "react";
 
@@ -20,6 +22,22 @@ export const useLanguageModel = (): LanguageModel | null => {
       });
 
       return anthropicProvider(connection.modelId);
+    }
+
+    if (connection.providerId === "openrouter") {
+      const openRouterProvider = createOpenRouter({
+        apiKey: connection.apiKey,
+      });
+
+      return openRouterProvider(connection.modelId);
+    }
+
+    if (connection.providerId === "openai") {
+      const openAIProvider = createOpenAI({
+        apiKey: connection.apiKey,
+      });
+
+      return openAIProvider(connection.modelId);
     }
 
     const openAICompatibleProvider = createOpenAICompatible({

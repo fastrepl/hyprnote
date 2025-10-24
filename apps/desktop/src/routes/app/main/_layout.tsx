@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router
 import { useCallback, useEffect } from "react";
 
 import { toolFactories } from "../../../chat/tools";
+import { AITaskProvider } from "../../../contexts/ai-task";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
 import { SearchUIProvider } from "../../../contexts/search/ui";
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/app/main/_layout")({
 });
 
 function Component() {
-  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+  const { persistedStore, internalStore, aiTaskStore } = useRouteContext({ from: "__root__" });
   const { registerOnClose, registerOnEmpty, currentTab, openNew, invalidateResource } = useTabs();
 
   const createDefaultSession = useCallback(() => {
@@ -52,13 +53,19 @@ function Component() {
     registerOnEmpty(createDefaultSession);
   }, [createDefaultSession, registerOnEmpty]);
 
+  if (!aiTaskStore) {
+    return null;
+  }
+
   return (
     <SearchEngineProvider store={persistedStore}>
       <SearchUIProvider>
         <ShellProvider>
           <ToolRegistryProvider>
-            <ToolRegistration />
-            <Outlet />
+            <AITaskProvider store={aiTaskStore}>
+              <ToolRegistration />
+              <Outlet />
+            </AITaskProvider>
           </ToolRegistryProvider>
         </ShellProvider>
       </SearchUIProvider>

@@ -4,9 +4,17 @@ import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
+import { useAITask } from "../../../../../../contexts/ai-task";
 
-export function StreamingView({ text }: { text: string }) {
+export function StreamingView({ sessionId, text }: { sessionId: string; text: string }) {
   const containerRef = useAutoScrollToBottom(text);
+
+  const taskId = `${sessionId}-enhance`;
+
+  const { status, step } = useAITask((state) => ({
+    status: state.tasks[taskId]?.status ?? "idle",
+    step: state.tasks[taskId]?.currentStep,
+  }));
 
   const components = {
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
@@ -50,7 +58,7 @@ export function StreamingView({ text }: { text: string }) {
         ])}
       >
         <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-        <span className="text-xs text-neutral-50">Generating...</span>
+        <span className="text-xs text-neutral-50">Generating... {status} {JSON.stringify(step)}</span>
       </motion.div>
     </div>
   );

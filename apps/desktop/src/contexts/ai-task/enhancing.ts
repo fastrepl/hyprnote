@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, generateObject, type LanguageModel, stepCountIs, Tool, tool } from "ai";
+import { Experimental_Agent as Agent, generateText, type LanguageModel, stepCountIs, Tool, tool } from "ai";
 import { z } from "zod";
 
 export function createEnhancingAgent(model: LanguageModel) {
@@ -6,10 +6,9 @@ export function createEnhancingAgent(model: LanguageModel) {
   You are an expert at creating structured, comprehensive meeting summaries.
   
   Format requirements:
-  - Do not use h1, start with h2.
+  - Do not use h1, start with h2(##)
   - Use h2 and h3 headers for sections (no deeper than h3)
   - Each section should have at least 5 detailed bullet points
-  - Be clear, concise, and actionable
 
   Workflow:
   1. User provides raw meeting content.
@@ -30,29 +29,24 @@ export function createEnhancingAgent(model: LanguageModel) {
           .describe(`Maximum number of sections to generate. 
             Based on the content, decide the number of sections to generate.`),
       }),
-      outputSchema: z.object({
-        sections: z.array(z.string()).describe("Suggested sections for the meeting summary"),
-      }),
       execute: async ({ max_num_sections }, { messages }) => {
         const lastMessage = messages[messages.length - 1];
-        const content = typeof lastMessage.content === "string"
+        const input = typeof lastMessage.content === "string"
           ? lastMessage.content
           : lastMessage.content.map((part) => part.type === "text" ? part.text : "").join("\n");
 
-        const { object } = await generateObject({
+        const { content: output } = await generateText({
           model,
-          schema: z.object({
-            sections: z.array(z.string()).describe("Suggested sections for the meeting summary"),
-          }),
           prompt: `
             Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
             The sections should cover the main themes and topics discussed.
-            Generate between 3 and ${max_num_sections} sections based on the content depth.
+            Generate around ${max_num_sections} sections based on the content depth.
+            Give me in bullet points.
         
-            Content:
-            ${content}`,
+            Content: ${input}`,
         });
-        return object;
+
+        return output;
       },
     }),
   };
@@ -63,6 +57,7 @@ export function createEnhancingAgent(model: LanguageModel) {
     system,
     tools,
     prepareStep: async ({ stepNumber }) => {
+      console.log("prepareStep", stepNumber);
       if (stepNumber === 0) {
         return {
           toolChoice: { type: "tool", toolName: "analyzeStructure" },

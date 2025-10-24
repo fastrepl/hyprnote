@@ -18,7 +18,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
 
   const taskId = `${tab.id}-enhance`;
 
-  const taskStatus = useAITask((state) => state.tasks.get(taskId)?.status ?? "idle");
+  const taskStatus = useAITask((state) => state.tasks[taskId]?.status ?? "idle");
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });

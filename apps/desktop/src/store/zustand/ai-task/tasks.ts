@@ -2,29 +2,25 @@ import { Experimental_Agent as Agent, type LanguageModel, stepCountIs } from "ai
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import { createEnhancingAgent } from "../../../contexts/ai-task/enhancing";
-
-export type TaskStatus = "idle" | "generating" | "success" | "error";
+import { applyTransforms } from "./shared/transform_infra";
+import { TASK_CONFIGS, type TaskType } from "./task-configs";
 
 export interface StepInfo {
-  stepNumber: number;
-  type: "tool-call" | "text";
+  type: "tool-call" | "tool-result" | "generating";
   toolName?: string;
-  toolArgs?: unknown;
-  toolResult?: unknown;
-  text?: string;
+  description?: string;
 }
 
 export interface TaskState {
-  status: TaskStatus;
+  status: "idle" | "generating" | "success" | "error";
   streamedText: string;
-  steps: StepInfo[];
   error?: Error;
   abortController: AbortController | null;
+  currentStep?: StepInfo;
 }
 
 export type TasksState = {
-  tasks: Map<string, TaskState>;
+  tasks: Record<string, TaskState>;
 };
 
 export type TasksActions = {
@@ -32,54 +28,36 @@ export type TasksActions = {
     taskId: string,
     config: {
       model: LanguageModel;
-      prompt: string;
+      taskType: TaskType;
+      args?: Record<string, unknown>;
       onComplete?: (text: string) => void;
     },
   ) => Promise<void>;
   cancel: (taskId: string) => void;
-  getStatus: (taskId: string) => TaskStatus;
-  getState: (taskId: string) => {
-    status: TaskStatus;
-    streamedText: string;
-    steps: StepInfo[];
-    error?: Error;
-  };
+  getState: (taskId: string) => TaskState;
 };
 
 const initialState: TasksState = {
-  tasks: new Map(),
+  tasks: {},
 };
-
-function getAgentForTask(taskId: string, model: LanguageModel) {
-  if (taskId.endsWith("-enhance")) {
-    return createEnhancingAgent(model);
-  }
-
-  return new Agent({
-    model,
-    stopWhen: stepCountIs(10),
-  });
-}
 
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): TasksState & TasksActions => ({
   ...initialState,
-  getStatus: (taskId: string): TaskStatus => {
-    return get().tasks.get(taskId)?.status ?? "idle";
-  },
   getState: (taskId: string) => {
-    const state = get().tasks.get(taskId);
+    const state = get().tasks[taskId];
     return {
       status: state?.status ?? "idle",
       streamedText: state?.streamedText ?? "",
-      steps: state?.steps ?? [],
       error: state?.error,
+      abortController: state?.abortController ?? null,
+      currentStep: state?.currentStep,
     };
   },
   cancel: (taskId: string) => {
-    const state = get().tasks.get(taskId);
+    const state = get().tasks[taskId];
     if (state?.abortController) {
       state.abortController.abort();
     }
@@ -88,131 +66,144 @@ export const createTasksSlice = <T extends TasksState>(
     taskId: string,
     config: {
       model: LanguageModel;
-      prompt: string;
+      taskType: TaskType;
+      args?: Record<string, unknown>;
       onComplete?: (text: string) => void;
     },
   ) => {
     const abortController = new AbortController();
+    const taskConfig = TASK_CONFIGS[config.taskType];
+    const prompt = taskConfig.getPrompt(config.args);
 
     set((state) =>
       mutate(state, (draft) => {
-        draft.tasks.set(taskId, {
+        draft.tasks[taskId] = {
           status: "generating",
           streamedText: "",
-          steps: [],
           error: undefined,
           abortController,
-        });
+          currentStep: undefined,
+        };
       })
     );
 
     try {
-      const agent = getAgentForTask(taskId, config.model);
-      const result = agent.stream({ prompt: config.prompt });
+      const agent = getAgentForTask(config.taskType, config.model);
+      const result = agent.stream({ prompt });
 
       let fullText = "";
-      const collectedSteps: StepInfo[] = [];
 
-      const abortHandler = () => {
-        const error = new Error("Aborted");
-        error.name = "AbortError";
-        throw error;
+      const checkAbort = () => {
+        if (abortController.signal.aborted) {
+          const error = new Error("Aborted");
+          error.name = "AbortError";
+          throw error;
+        }
       };
 
-      abortController.signal.addEventListener("abort", abortHandler);
+      const transforms = taskConfig.transforms ?? [];
+      const transformedStream = applyTransforms(result.fullStream, transforms, {
+        tools: result.toolCalls,
+        stopStream: () => abortController.abort(),
+      });
 
-      try {
-        for await (const chunk of result.textStream) {
-          if (abortController.signal.aborted) {
-            throw new Error("Aborted");
-          }
+      for await (const chunk of transformedStream) {
+        checkAbort();
 
-          fullText += chunk;
+        if (chunk.type === "text-delta") {
+          fullText += chunk.text;
 
           set((state) =>
             mutate(state, (draft) => {
-              const currentState = draft.tasks.get(taskId);
+              const currentState = draft.tasks[taskId];
               if (currentState) {
-                // TODO
-                const firstheader = fullText.indexOf("#");
-                const trimmed = fullText.substring(firstheader - 1);
-                currentState.streamedText = trimmed;
+                currentState.streamedText = fullText;
+                currentState.currentStep = { type: "generating" };
+              }
+            })
+          );
+        } else if (chunk.type === "tool-call") {
+          set((state) =>
+            mutate(state, (draft) => {
+              const currentState = draft.tasks[taskId];
+              if (currentState) {
+                currentState.currentStep = {
+                  type: "tool-call",
+                  toolName: chunk.toolName,
+                  description: `Calling ${chunk.toolName}...`,
+                };
+              }
+            })
+          );
+        } else if (chunk.type === "tool-result") {
+          set((state) =>
+            mutate(state, (draft) => {
+              const currentState = draft.tasks[taskId];
+              if (currentState) {
+                currentState.currentStep = {
+                  type: "tool-result",
+                  toolName: chunk.toolName,
+                  description: `Completed ${chunk.toolName}`,
+                };
               }
             })
           );
         }
-
-        const steps = await result.steps;
-
-        steps.forEach((step: any, index: number) => {
-          if (step.toolCalls && step.toolCalls.length > 0) {
-            step.toolCalls.forEach((toolCall: any) => {
-              const toolResult = step.toolResults?.find(
-                (tr: any) => tr.toolCallId === toolCall.toolCallId,
-              );
-
-              collectedSteps.push({
-                stepNumber: index + 1,
-                type: "tool-call",
-                toolName: toolCall.toolName,
-                toolArgs: toolCall.args,
-                toolResult: toolResult?.result,
-              });
-            });
-          }
-
-          if (step.text) {
-            collectedSteps.push({
-              stepNumber: index + 1,
-              type: "text",
-              text: step.text,
-            });
-          }
-        });
-
-        set((state) =>
-          mutate(state, (draft) => {
-            draft.tasks.set(taskId, {
-              status: "success",
-              streamedText: fullText,
-              steps: collectedSteps,
-              error: undefined,
-              abortController: null,
-            });
-          })
-        );
-
-        config.onComplete?.(fullText);
-      } finally {
-        abortController.signal.removeEventListener("abort", abortHandler);
       }
+
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.tasks[taskId] = {
+            status: "success",
+            streamedText: fullText,
+            error: undefined,
+            abortController: null,
+            currentStep: undefined,
+          };
+        })
+      );
+
+      config.onComplete?.(fullText);
     } catch (err) {
       if (err instanceof Error && (err.name === "AbortError" || err.message === "Aborted")) {
         set((state) =>
           mutate(state, (draft) => {
-            draft.tasks.set(taskId, {
+            draft.tasks[taskId] = {
               status: "idle",
               streamedText: "",
-              steps: [],
               error: undefined,
               abortController: null,
-            });
+              currentStep: undefined,
+            };
           })
         );
       } else {
         const error = err instanceof Error ? err : new Error(String(err));
         set((state) =>
           mutate(state, (draft) => {
-            draft.tasks.set(taskId, {
+            draft.tasks[taskId] = {
               status: "error",
               streamedText: "",
-              steps: [],
               error,
               abortController: null,
-            });
+              currentStep: undefined,
+            };
           })
         );
       }
     }
   },
 });
+
+function getAgentForTask(taskType: TaskType, model: LanguageModel) {
+  const taskConfig = TASK_CONFIGS[taskType];
+
+  if (taskConfig.getAgent) {
+    return taskConfig.getAgent(model);
+  }
+
+  return new Agent({
+    model,
+    stopWhen: stepCountIs(10),
+  });
+}

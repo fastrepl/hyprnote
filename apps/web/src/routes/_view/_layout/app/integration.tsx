@@ -2,9 +2,9 @@ import Nango from "@nangohq/frontend";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { nangoCreateConnectSession } from "../functions/nango";
+import { nangoCreateConnectSession } from "../../../../functions/nango";
 
-export const Route = createFileRoute("/integration")({
+export const Route = createFileRoute("/_view/_layout/app/integration")({
   component: Component,
 });
 

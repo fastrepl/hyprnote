@@ -1,8 +1,6 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { lazy } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -33,15 +31,31 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{ position: "bottom-right" }}
-          plugins={[
-            { name: "Tanstack Router", render: <TanStackRouterDevtoolsPanel /> },
-            { name: "Tanstack Query", render: <ReactQueryDevtoolsPanel /> },
-          ]}
-        />
+        <TanStackDevtools config={{ position: "bottom-right" }} />
         <Scripts />
       </body>
     </html>
   );
 }
+
+export const TanStackDevtools = process.env.NODE_ENV === "production"
+  ? () => null
+  : lazy(() =>
+    Promise.all([
+      import("@tanstack/react-devtools"),
+      import("@tanstack/react-router-devtools"),
+      import("@tanstack/react-query-devtools"),
+    ]).then(([devtools, router, query]) => ({
+      default: (
+        props: React.ComponentProps<typeof devtools.TanStackDevtools>,
+      ) => (
+        <devtools.TanStackDevtools
+          {...props}
+          plugins={[
+            { name: "Tanstack Router", render: <router.TanStackRouterDevtoolsPanel /> },
+            { name: "Tanstack Query", render: <query.ReactQueryDevtoolsPanel /> },
+          ]}
+        />
+      ),
+    }))
+  );

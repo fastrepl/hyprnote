@@ -5,7 +5,19 @@ tasks:
     dir: .
     cmds:
       - npx wrangler deploy
-  env:
+
+  env-sample:
+    dir: .
+    cmds:
+      - |
+          cat .env .env.prod 2>/dev/null \
+            | grep -E '^[A-Z_]+=' \
+            | cut -d'=' -f1 \
+            | sort -u \
+            | sed 's/$/=""/' \
+            > .env.sample
+
+  env-prod:
     dir: .
     cmds:
       - |

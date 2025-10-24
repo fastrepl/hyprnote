@@ -9,24 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IntegrationRouteImport } from './routes/integration'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as CallbackAuthRouteImport } from './routes/callback/auth'
+import { Route as ViewLayoutRouteRouteImport } from './routes/_view/_layout/route'
+import { Route as ViewLayoutIndexRouteImport } from './routes/_view/_layout/index'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
 import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
 import { Route as ApiChatCompletionsRouteImport } from './routes/api/chat.completions'
+import { Route as ViewLayoutPricingRouteImport } from './routes/_view/_layout/pricing'
+import { Route as ViewLayoutAppRouteRouteImport } from './routes/_view/_layout/app/route'
+import { Route as ViewLayoutAppIndexRouteImport } from './routes/_view/_layout/app/index'
+import { Route as ViewLayoutAppIntegrationRouteImport } from './routes/_view/_layout/app/integration'
+import { Route as ViewLayoutAppAuthRouteImport } from './routes/_view/_layout/app/auth'
 
-const IntegrationRoute = IntegrationRouteImport.update({
-  id: '/integration',
-  path: '/integration',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const WebhookNangoRoute = WebhookNangoRouteImport.update({
   id: '/webhook/nango',
   path: '/webhook/nango',
@@ -36,6 +31,15 @@ const CallbackAuthRoute = CallbackAuthRouteImport.update({
   id: '/callback/auth',
   path: '/callback/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ViewLayoutRouteRoute = ViewLayoutRouteRouteImport.update({
+  id: '/_view/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ViewLayoutIndexRoute = ViewLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ViewLayoutRouteRoute,
 } as any)
 const ApiSyncWriteRoute = ApiSyncWriteRouteImport.update({
   id: '/api/sync/write',
@@ -52,68 +56,117 @@ const ApiChatCompletionsRoute = ApiChatCompletionsRouteImport.update({
   path: '/api/chat/completions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ViewLayoutPricingRoute = ViewLayoutPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => ViewLayoutRouteRoute,
+} as any)
+const ViewLayoutAppRouteRoute = ViewLayoutAppRouteRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => ViewLayoutRouteRoute,
+} as any)
+const ViewLayoutAppIndexRoute = ViewLayoutAppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ViewLayoutAppRouteRoute,
+} as any)
+const ViewLayoutAppIntegrationRoute =
+  ViewLayoutAppIntegrationRouteImport.update({
+    id: '/integration',
+    path: '/integration',
+    getParentRoute: () => ViewLayoutAppRouteRoute,
+  } as any)
+const ViewLayoutAppAuthRoute = ViewLayoutAppAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => ViewLayoutAppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/integration': typeof IntegrationRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/app': typeof ViewLayoutAppRouteRouteWithChildren
+  '/pricing': typeof ViewLayoutPricingRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
+  '/': typeof ViewLayoutIndexRoute
+  '/app/auth': typeof ViewLayoutAppAuthRoute
+  '/app/integration': typeof ViewLayoutAppIntegrationRoute
+  '/app/': typeof ViewLayoutAppIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/integration': typeof IntegrationRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/pricing': typeof ViewLayoutPricingRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
+  '/': typeof ViewLayoutIndexRoute
+  '/app/auth': typeof ViewLayoutAppAuthRoute
+  '/app/integration': typeof ViewLayoutAppIntegrationRoute
+  '/app': typeof ViewLayoutAppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/integration': typeof IntegrationRoute
+  '/_view/_layout': typeof ViewLayoutRouteRouteWithChildren
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/_view/_layout/app': typeof ViewLayoutAppRouteRouteWithChildren
+  '/_view/_layout/pricing': typeof ViewLayoutPricingRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
+  '/_view/_layout/': typeof ViewLayoutIndexRoute
+  '/_view/_layout/app/auth': typeof ViewLayoutAppAuthRoute
+  '/_view/_layout/app/integration': typeof ViewLayoutAppIntegrationRoute
+  '/_view/_layout/app/': typeof ViewLayoutAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/integration'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/app'
+    | '/pricing'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
+    | '/'
+    | '/app/auth'
+    | '/app/integration'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/integration'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/pricing'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
+    | '/'
+    | '/app/auth'
+    | '/app/integration'
+    | '/app'
   id:
     | '__root__'
-    | '/'
-    | '/integration'
+    | '/_view/_layout'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/_view/_layout/app'
+    | '/_view/_layout/pricing'
     | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
+    | '/_view/_layout/'
+    | '/_view/_layout/app/auth'
+    | '/_view/_layout/app/integration'
+    | '/_view/_layout/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  IntegrationRoute: typeof IntegrationRoute
+  ViewLayoutRouteRoute: typeof ViewLayoutRouteRouteWithChildren
   CallbackAuthRoute: typeof CallbackAuthRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   ApiChatCompletionsRoute: typeof ApiChatCompletionsRoute
@@ -123,20 +176,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/integration': {
-      id: '/integration'
-      path: '/integration'
-      fullPath: '/integration'
-      preLoaderRoute: typeof IntegrationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/webhook/nango': {
       id: '/webhook/nango'
       path: '/webhook/nango'
@@ -150,6 +189,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/callback/auth'
       preLoaderRoute: typeof CallbackAuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_view/_layout': {
+      id: '/_view/_layout'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ViewLayoutRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_view/_layout/': {
+      id: '/_view/_layout/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof ViewLayoutIndexRouteImport
+      parentRoute: typeof ViewLayoutRouteRoute
     }
     '/api/sync/write': {
       id: '/api/sync/write'
@@ -172,12 +225,77 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatCompletionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_view/_layout/pricing': {
+      id: '/_view/_layout/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof ViewLayoutPricingRouteImport
+      parentRoute: typeof ViewLayoutRouteRoute
+    }
+    '/_view/_layout/app': {
+      id: '/_view/_layout/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof ViewLayoutAppRouteRouteImport
+      parentRoute: typeof ViewLayoutRouteRoute
+    }
+    '/_view/_layout/app/': {
+      id: '/_view/_layout/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof ViewLayoutAppIndexRouteImport
+      parentRoute: typeof ViewLayoutAppRouteRoute
+    }
+    '/_view/_layout/app/integration': {
+      id: '/_view/_layout/app/integration'
+      path: '/integration'
+      fullPath: '/app/integration'
+      preLoaderRoute: typeof ViewLayoutAppIntegrationRouteImport
+      parentRoute: typeof ViewLayoutAppRouteRoute
+    }
+    '/_view/_layout/app/auth': {
+      id: '/_view/_layout/app/auth'
+      path: '/auth'
+      fullPath: '/app/auth'
+      preLoaderRoute: typeof ViewLayoutAppAuthRouteImport
+      parentRoute: typeof ViewLayoutAppRouteRoute
+    }
   }
 }
 
+interface ViewLayoutAppRouteRouteChildren {
+  ViewLayoutAppAuthRoute: typeof ViewLayoutAppAuthRoute
+  ViewLayoutAppIntegrationRoute: typeof ViewLayoutAppIntegrationRoute
+  ViewLayoutAppIndexRoute: typeof ViewLayoutAppIndexRoute
+}
+
+const ViewLayoutAppRouteRouteChildren: ViewLayoutAppRouteRouteChildren = {
+  ViewLayoutAppAuthRoute: ViewLayoutAppAuthRoute,
+  ViewLayoutAppIntegrationRoute: ViewLayoutAppIntegrationRoute,
+  ViewLayoutAppIndexRoute: ViewLayoutAppIndexRoute,
+}
+
+const ViewLayoutAppRouteRouteWithChildren =
+  ViewLayoutAppRouteRoute._addFileChildren(ViewLayoutAppRouteRouteChildren)
+
+interface ViewLayoutRouteRouteChildren {
+  ViewLayoutAppRouteRoute: typeof ViewLayoutAppRouteRouteWithChildren
+  ViewLayoutPricingRoute: typeof ViewLayoutPricingRoute
+  ViewLayoutIndexRoute: typeof ViewLayoutIndexRoute
+}
+
+const ViewLayoutRouteRouteChildren: ViewLayoutRouteRouteChildren = {
+  ViewLayoutAppRouteRoute: ViewLayoutAppRouteRouteWithChildren,
+  ViewLayoutPricingRoute: ViewLayoutPricingRoute,
+  ViewLayoutIndexRoute: ViewLayoutIndexRoute,
+}
+
+const ViewLayoutRouteRouteWithChildren = ViewLayoutRouteRoute._addFileChildren(
+  ViewLayoutRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  IntegrationRoute: IntegrationRoute,
+  ViewLayoutRouteRoute: ViewLayoutRouteRouteWithChildren,
   CallbackAuthRoute: CallbackAuthRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   ApiChatCompletionsRoute: ApiChatCompletionsRoute,

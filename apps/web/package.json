@@ -9,7 +9,9 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@hypr/utils": "workspace:*",
     "@cloudflare/vite-plugin": "^1.13.15",
+    "@iconify-icon/react": "^3.0.1",
     "@nangohq/frontend": "^0.69.5",
     "@nangohq/node": "^0.69.5",
     "@sentry/tanstackstart-react": "^10.22.0",
@@ -17,6 +19,7 @@
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.1.16",
     "@tanstack/react-devtools": "^0.7.7",
+    "@tanstack/react-form": "^1.23.8",
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-router": "^1.133.25",

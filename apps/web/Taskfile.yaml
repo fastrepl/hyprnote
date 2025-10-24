@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  deploy:
+    dir: .
+    cmds:
+      - npx wrangler deploy
+  env:
+    dir: .
+    cmds:
+      - |
+          grep -v '^#' ./.env.prod | grep '=' | while IFS='=' read -r key value; do
+            echo "$value" | npx wrangler secret put "$key" --config ./wrangler.json
+          done

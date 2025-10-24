@@ -1,12 +1,11 @@
 version: "3"
-dotenv: [".env.local"]
-tasks:
-  app:env:
-    cmds:
-      - |
-          secrets=$(grep -v '^#' .env.prod | grep '=' | sed 's/"/\\"/g' | tr '\n' ' ')
-          fly secrets set $secrets -a hypr-server
+dotenv: [".env"]
+includes:
+  web:
+    taskfile: ./apps/web
+    dir: ./apps/web
 
+tasks:
   py:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras
   py:run: poetry run python3 {{.CLI_ARGS}}
 

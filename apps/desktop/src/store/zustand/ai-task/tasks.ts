@@ -5,20 +5,6 @@ import type { StoreApi } from "zustand";
 import { applyTransforms } from "./shared/transform_infra";
 import { TASK_CONFIGS, type TaskType } from "./task-configs";
 
-export interface StepInfo {
-  type: "tool-call" | "tool-result" | "generating";
-  toolName?: string;
-  description?: string;
-}
-
-export interface TaskState {
-  status: "idle" | "generating" | "success" | "error";
-  streamedText: string;
-  error?: Error;
-  abortController: AbortController | null;
-  currentStep?: StepInfo;
-}
-
 export type TasksState = {
   tasks: Record<string, TaskState>;
 };
@@ -35,6 +21,18 @@ export type TasksActions = {
   ) => Promise<void>;
   cancel: (taskId: string) => void;
   getState: (taskId: string) => TaskState;
+};
+
+type StepInfo =
+  | { type: "generating" }
+  | { type: "tool-call" | "tool-result"; toolName: string };
+
+type TaskState = {
+  status: "idle" | "generating" | "success" | "error";
+  streamedText: string;
+  error?: Error;
+  abortController: AbortController | null;
+  currentStep?: StepInfo;
 };
 
 const initialState: TasksState = {
@@ -130,7 +128,6 @@ export const createTasksSlice = <T extends TasksState>(
                 currentState.currentStep = {
                   type: "tool-call",
                   toolName: chunk.toolName,
-                  description: `Calling ${chunk.toolName}...`,
                 };
               }
             })
@@ -143,7 +140,6 @@ export const createTasksSlice = <T extends TasksState>(
                 currentState.currentStep = {
                   type: "tool-result",
                   toolName: chunk.toolName,
-                  description: `Completed ${chunk.toolName}`,
                 };
               }
             })

@@ -11,21 +11,17 @@ export const Enhanced = forwardRef<
 >(({ sessionId }, ref) => {
   const taskId = `${sessionId}-enhance`;
 
-  const { status, streamedText, error } = useAITask((state) => {
-    const taskState = state.tasks[taskId];
-    return {
-      status: taskState?.status ?? "idle",
-      streamedText: taskState?.streamedText ?? "",
-      error: taskState?.error,
-    };
-  });
+  const { status, error } = useAITask((state) => ({
+    status: state.tasks[taskId]?.status ?? "idle",
+    error: state.tasks[taskId]?.error,
+  }));
 
   if (status === "error" && error) {
     return <pre>{error.message}</pre>;
   }
 
   if (status === "generating") {
-    return <StreamingView sessionId={sessionId} text={streamedText} />;
+    return <StreamingView sessionId={sessionId} />;
   }
 
   return <EnhancedEditor ref={ref} sessionId={sessionId} />;

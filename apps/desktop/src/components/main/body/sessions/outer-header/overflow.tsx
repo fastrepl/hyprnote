@@ -1,4 +1,5 @@
 import { FileTextIcon, FolderIcon, Link2Icon, MicIcon, MicOffIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -15,8 +16,10 @@ import { useStartListening } from "../../../../../hooks/useStartListening";
 import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button size="icon" variant="ghost">
           <MoreHorizontalIcon size={16} />
@@ -24,7 +27,7 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <Copy />
-        <Folder sessionId={sessionId} />
+        <Folder sessionId={sessionId} setOpen={setOpen} />
         <ExportPDF />
         <DropdownMenuSeparator />
         <Listening sessionId={sessionId} />
@@ -50,14 +53,14 @@ function Copy() {
   );
 }
 
-function Folder({ sessionId }: { sessionId: string }) {
+function Folder({ sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void }) {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger className="cursor-pointer">
         <FolderIcon />
         <span>Move to</span>
       </DropdownMenuSubTrigger>
-      <SearchableFolderSubmenuContent sessionId={sessionId} />
+      <SearchableFolderSubmenuContent sessionId={sessionId} setOpen={setOpen} />
     </DropdownMenuSub>
   );
 }

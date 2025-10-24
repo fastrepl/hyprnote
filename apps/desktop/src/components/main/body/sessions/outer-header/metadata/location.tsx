@@ -3,9 +3,9 @@ import { MapPinIcon } from "lucide-react";
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingLocation({ sessionId }: { sessionId: string }) {
-  const meta = useMeetingMetadata(sessionId)!;
+  const meta = useMeetingMetadata(sessionId);
 
-  if (!meta.location) {
+  if (!meta?.location) {
     return null;
   }
 

@@ -1,9 +1,9 @@
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingDescription({ sessionId }: { sessionId: string }) {
-  const meta = useMeetingMetadata(sessionId)!;
+  const meta = useMeetingMetadata(sessionId);
 
-  if (!meta.description) {
+  if (!meta?.description) {
     return null;
   }
 

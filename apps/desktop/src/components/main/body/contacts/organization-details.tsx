@@ -42,7 +42,7 @@ export function OrganizationDetailsColumn({
                     <div className="flex-1">
                       <EditableOrganizationNameField organizationId={selectedOrganizationId} />
                       <p className="text-sm text-neutral-500 mt-1">
-                        {peopleInOrg.length} {peopleInOrg.length === 1 ? "person" : "people"}
+                        {peopleInOrg?.length ?? 0} {(peopleInOrg?.length ?? 0) === 1 ? "person" : "people"}
                       </p>
                     </div>
                   </div>
@@ -54,7 +54,7 @@ export function OrganizationDetailsColumn({
               <div className="p-6">
                 <h3 className="text-sm font-medium text-neutral-600 mb-4">People</h3>
                 <div className="overflow-y-auto" style={{ maxHeight: "55vh" }}>
-                  {peopleInOrg.length > 0
+                  {(peopleInOrg?.length ?? 0) > 0
                     ? (
                       <div className="grid grid-cols-3 gap-4">
                         {peopleInOrg.map((humanId: string) => {
@@ -90,7 +90,10 @@ export function OrganizationDetailsColumn({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => openUrl(`mailto:${human.email}`)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openUrl(`mailto:${human.email}`);
+                                      }}
                                       title="Send email"
                                     >
                                       <Mail />
@@ -100,7 +103,14 @@ export function OrganizationDetailsColumn({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => openUrl(human.linkedin_username as string)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const v = String(human.linkedin_username ?? "");
+                                        const href = /^https?:\/\//i.test(v)
+                                          ? v
+                                          : `https://www.linkedin.com/in/${v.replace(/^@/, "")}`;
+                                        void openUrl(href);
+                                      }}
                                       title="View LinkedIn profile"
                                     >
                                       <Icon icon="logos:linkedin-icon" />

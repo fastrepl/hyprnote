@@ -13,13 +13,17 @@ import { useCallback } from "react";
 import { useMeetingMetadata } from "./shared";
 
 export function MeetingLink({ sessionId }: { sessionId: string }) {
-  const meta = useMeetingMetadata(sessionId)!;
+  const meta = useMeetingMetadata(sessionId);
 
   const handleCopyLink = useCallback(() => {
-    if (meta.meeting_link) {
+    if (meta?.meeting_link) {
       navigator.clipboard.writeText(meta.meeting_link);
     }
-  }, [meta.meeting_link]);
+  }, [meta?.meeting_link]);
+
+  if (!meta?.meeting_link) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-between gap-2 -ml-2.5">

@@ -17,7 +17,6 @@ export function TabContentCalendarDay({
   day: string;
   isCurrentMonth: boolean;
   isFirstColumn: boolean;
-  isLastColumn: boolean;
   isLastRow: boolean;
   selectedCalendars: Set<string>;
 }) {

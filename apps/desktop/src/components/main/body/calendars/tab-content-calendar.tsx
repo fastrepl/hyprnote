@@ -25,7 +25,10 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
   if (tab.type !== "calendars") {
     return null;
   }
+  return <TabContentCalendarInner tab={tab} />;
+}
 
+function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars" }> }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const { openCurrent } = useTabs();
@@ -159,7 +162,6 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
                     day={day}
                     isCurrentMonth={isSameMonth(new Date(day), tab.month)}
                     isFirstColumn={dayIndex === 0}
-                    isLastColumn={dayIndex === 6}
                     isLastRow={weekIndex === 5}
                     selectedCalendars={selectedCalendars}
                   />

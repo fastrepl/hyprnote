@@ -20,5 +20,23 @@
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.allTargets": true,
   "rust-analyzer.cargo.targetDir": "target/analyzer",
-  "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" }
+  "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" },
+  "deno.lint": true,
+  "deno.enable": true,
+  "deno.enablePaths": ["apps/web/supabase/functions"],
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ]
 }

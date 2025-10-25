@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@supabase/functions-js/edge-runtime": "jsr:@supabase/functions-js/edge-runtime.d.ts",
+    "stripe": "npm:stripe@^17.4.0"
+  }
+}

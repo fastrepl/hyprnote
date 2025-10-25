@@ -20,6 +20,12 @@ tasks:
           done
 
   supabase:
+    dir: .
+    cmds:
+      - supabase {{.CLI_ARGS}}
+
+  supabase-start:
+    dir: .
     cmds:
       - |
           OUTPUT=$(supabase start 2>&1)

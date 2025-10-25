@@ -17,6 +17,7 @@
     "@nangohq/frontend": "^0.69.5",
     "@nangohq/node": "^0.69.5",
     "@sentry/tanstackstart-react": "^10.22.0",
+    "@stripe/stripe-js": "^8.1.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.76.1",
     "@t3-oss/env-core": "^0.13.8",
@@ -36,6 +37,7 @@
     "postgres": "^3.4.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "stripe": "^19.1.0",
     "tailwindcss": "^4.1.16",
     "vite-tsconfig-paths": "^5.1.4",
     "zod": "^4.1.12"

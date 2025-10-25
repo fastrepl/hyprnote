@@ -12,6 +12,10 @@ export const env = createEnv({
 
     SUPABASE_URL: z.string().min(1),
     SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
+
+    STRIPE_SECRET_KEY: z.string().min(1),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1),
+    STRIPE_PRICE_ID: z.string().min(1),
   },
 
   clientPrefix: "VITE_",
@@ -19,6 +23,7 @@ export const env = createEnv({
     VITE_APP_URL: z.string().min(1),
     VITE_SUPABASE_URL: z.string().min(1),
     VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
+    VITE_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
   },
 
   runtimeEnv: { ...process.env, ...import.meta.env },

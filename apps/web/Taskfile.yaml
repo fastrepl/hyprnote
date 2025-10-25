@@ -9,13 +9,7 @@ tasks:
   env-sample:
     dir: .
     cmds:
-      - |
-          cat .env .env.prod 2>/dev/null \
-            | grep -E '^[A-Z_]+=' \
-            | cut -d'=' -f1 \
-            | sort -u \
-            | sed 's/$/=""/' \
-            > .env.sample
+      - sed -E '/^[A-Z_][A-Z0-9_]*=/s/=.*/=""/' .env > .env.sample
 
   env-prod:
     dir: .

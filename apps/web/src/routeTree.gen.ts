@@ -14,6 +14,7 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as CallbackAuthRouteImport } from './routes/callback/auth'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
+import { Route as ViewDownloadsRouteImport } from './routes/_view/downloads'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
@@ -44,6 +45,11 @@ const CallbackAuthRoute = CallbackAuthRouteImport.update({
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadsRoute = ViewDownloadsRouteImport.update({
+  id: '/downloads',
+  path: '/downloads',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -84,6 +90,7 @@ const ViewAppAuthRoute = ViewAppAuthRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof ViewAppRouteRouteWithChildren
+  '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof ViewAppIndexRoute
 }
 export interface FileRoutesByTo {
+  '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/_view/app': typeof ViewAppRouteRouteWithChildren
+  '/_view/downloads': typeof ViewDownloadsRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
+    | '/downloads'
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/downloads'
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/_view/app'
+    | '/_view/downloads'
     | '/_view/pricing'
     | '/callback/auth'
     | '/webhook/nango'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof ViewPricingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/downloads': {
+      id: '/_view/downloads'
+      path: '/downloads'
+      fullPath: '/downloads'
+      preLoaderRoute: typeof ViewDownloadsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/app': {
@@ -280,12 +299,14 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
+  ViewDownloadsRoute: typeof ViewDownloadsRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
+  ViewDownloadsRoute: ViewDownloadsRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
 }

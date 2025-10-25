@@ -9,13 +9,14 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@hypr/utils": "workspace:*",
-    "@hypr/ui": "workspace:*",
     "@cloudflare/vite-plugin": "^1.13.15",
+    "@hypr/ui": "workspace:*",
+    "@hypr/utils": "workspace:*",
     "@iconify-icon/react": "^3.0.1",
     "@nangohq/frontend": "^0.69.5",
     "@nangohq/node": "^0.69.5",
     "@sentry/tanstackstart-react": "^10.22.0",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.76.1",
     "@t3-oss/env-core": "^0.13.8",
     "@tailwindcss/vite": "^4.1.16",

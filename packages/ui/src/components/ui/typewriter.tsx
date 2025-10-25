@@ -1,6 +1,6 @@
 import { cn } from "@hypr/utils";
 
-import { motion, Variants } from "framer-motion";
+import { motion, Variants } from "motion/react";
 import { useEffect, useState } from "react";
 
 interface TypewriterProps {

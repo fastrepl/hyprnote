@@ -4,12 +4,20 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     NANGO_SECRET_KEY: z.string().min(1),
+
     OPENAI_DEFAULT_MODEL: z.string().min(1),
     OPENAI_BASE_URL: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
-    DATABASE_URL: z.string().min(1),
+
     SUPABASE_URL: z.string().min(1),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
+  },
+
+  clientPrefix: "VITE_",
+  client: {
+    VITE_APP_URL: z.string().min(1),
+    VITE_SUPABASE_URL: z.string().min(1),
+    VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
   },
 
   runtimeEnv: process.env,

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
+import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as CallbackAuthRouteImport } from './routes/callback/auth'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
@@ -32,6 +33,11 @@ const ViewIndexRoute = ViewIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewRouteRoute,
+} as any)
+const WebhookStripeRoute = WebhookStripeRouteImport.update({
+  id: '/webhook/stripe',
+  path: '/webhook/stripe',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const WebhookNangoRoute = WebhookNangoRouteImport.update({
   id: '/webhook/nango',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
+  '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/webhook/stripe'
     | '/'
     | '/app/account'
     | '/app/integration'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/webhook/stripe'
     | '/'
     | '/app/account'
     | '/app/integration'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/_view/pricing'
     | '/callback/auth'
     | '/webhook/nango'
+    | '/webhook/stripe'
     | '/_view/'
     | '/_view/app/account'
     | '/_view/app/integration'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   CallbackAuthRoute: typeof CallbackAuthRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
+  WebhookStripeRoute: typeof WebhookStripeRoute
   ApiChatCompletionsRoute: typeof ApiChatCompletionsRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
   ApiSyncWriteRoute: typeof ApiSyncWriteRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof ViewIndexRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/webhook/stripe': {
+      id: '/webhook/stripe'
+      path: '/webhook/stripe'
+      fullPath: '/webhook/stripe'
+      preLoaderRoute: typeof WebhookStripeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/webhook/nango': {
       id: '/webhook/nango'
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   CallbackAuthRoute: CallbackAuthRoute,
   WebhookNangoRoute: WebhookNangoRoute,
+  WebhookStripeRoute: WebhookStripeRoute,
   ApiChatCompletionsRoute: ApiChatCompletionsRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,
   ApiSyncWriteRoute: ApiSyncWriteRoute,

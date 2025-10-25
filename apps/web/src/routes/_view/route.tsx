@@ -23,23 +23,20 @@ function Component() {
 function Header() {
   return (
     <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-0 py-6 border-x border-neutral-100">
+      <div className="max-w-6xl mx-auto px-4 sm:px-0 py-3 border-x border-neutral-100">
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-2 hover:scale-105 transition-transform"
+            className="font-semibold text-2xl font-serif hover:scale-105 transition-transform"
           >
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">
-              H
-            </div>
-            <span className="font-semibold text-lg">Hyprnote</span>
+            Hyprnote
           </Link>
           <nav className="flex items-center gap-6">
             <div className="flex gap-3">
               <HeaderUser />
               <Link
                 to="/downloads"
-                className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-blue-600 to-blue-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
               >
                 Download
               </Link>

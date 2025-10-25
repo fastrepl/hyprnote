@@ -1,9 +1,10 @@
-import { Typewriter } from "@hypr/ui/components/ui/typewriter";
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+
+import { DownloadButton } from "@/components/download-button";
+import { GithubStars } from "@/components/github-stars";
+import { LogoCloud } from "@/components/logo-cloud";
+import { SocialCard } from "@/components/social-card";
 
 export const Route = createFileRoute("/_view/")({
   component: Component,
@@ -12,30 +13,28 @@ export const Route = createFileRoute("/_view/")({
 function Component() {
   return (
     <div>
-      <main className="flex-1 bg-linear-to-b from-white via-blue-50/20 to-white min-h-screen">
+      <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
         <div className="max-w-6xl mx-auto py-12 border-x border-neutral-100">
-          <section className="py-16 sm:py-24">
-            <div className="grid grid-cols-1 lg:grid-cols-8 gap-12 items-center">
-              <div className="space-y-6 lg:col-span-3">
-                <h1 className="text-4xl sm:text-5xl font-serif tracking-tight whitespace-pre-wrap">
-                  The AI notepad for{" "}
-                  <Typewriter
-                    text={["your meetings", "your lectures", "your thoughts"]}
-                    className="text-blue-600 text-4xl sm:text-5xl font-serif tracking-tight"
-                    speed={100}
-                    deleteSpeed={50}
-                    waitTime={2000}
-                  />
-                </h1>
-                <p className="text-lg sm:text-xl text-neutral-600 max-w-xl">
-                  Hyprnote is a notetaking app that listens and summarizes the world around you
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+          <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
+            <div className="flex flex-col items-center text-center">
+              <section className="flex flex-col items-center text-center gap-12 pt-12 pb-24">
+                <div className="space-y-6 max-w-4xl">
+                  <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
+                    The AI notepad for <br className="block sm:hidden" />private meetings
+                  </h1>
+                  <p className="text-lg sm:text-xl text-neutral-600">
+                    Hyprnote listens and summarizes your meetings{" "}
+                    <br className="hidden sm:block" />without sending any voice to remote servers
+                  </p>
+                </div>
+
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
                   <DownloadButton />
-                  <p className="text-neutral-500 self-center">
+                  <p className="text-neutral-500">
                     Free and{" "}
                     <a
-                      className="decoration-dotted underline hover:text-blue-600 transition-all"
+                      className="decoration-dotted underline hover:text-stone-600 transition-all"
                       href="https://github.com/fastrepl/hyprnote"
                       target="_blank"
                     >
@@ -43,9 +42,10 @@ function Component() {
                     </a>
                   </p>
                 </div>
-              </div>
+              </section>
 
-              <div className="relative aspect-video bg-linear-to-br from-blue-50 to-neutral-50 rounded-2xl border-2 border-neutral-200 shadow-xl overflow-hidden lg:col-span-5">
+              {/* Video - Mobile First */}
+              <div className="relative aspect-video w-full max-w-4xl bg-linear-to-br from-stone-50 to-neutral-50 border-t border-neutral-100 md:hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center space-y-4">
                     <Icon icon="mdi:play-circle-outline" className="text-6xl text-neutral-400 mx-auto" />
@@ -53,10 +53,228 @@ function Component() {
                   </div>
                 </div>
               </div>
+
+              {/* Feature Cards Row */}
+              <div className="w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">
+                  <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                    <h3 className="font-medium mb-1 text-neutral-900 font-mono">Private</h3>
+                    <p className="text-sm text-neutral-600 leading-relaxed">
+                      Your notes stay local by default. Sync to a cloud only when you choose.
+                    </p>
+                  </div>
+                  <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                    <h3 className="font-medium mb-1 text-neutral-900 font-mono">Effortless</h3>
+                    <p className="text-sm text-neutral-600 leading-relaxed">
+                      A simple notepad that just works—fast, minimal, and distraction-free.
+                    </p>
+                  </div>
+                  <div className="p-6 text-left">
+                    <h3 className="font-medium mb-1 text-neutral-900 font-mono">Flexible</h3>
+                    <p className="text-sm text-neutral-600 leading-relaxed">
+                      Use any STT or LLM. Local or cloud. No lock-ins, no forced stack.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Video - Desktop (no gap) */}
+                <div className="relative aspect-video w-full bg-white border-t border-neutral-100 hidden md:block">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                      <Icon icon="mdi:play-circle-outline" className="text-6xl text-neutral-400 mx-auto" />
+                      <p className="text-neutral-500 font-medium">Demo video coming soon</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Proof Section */}
+          <section className="border-t border-neutral-100">
+            <div className="text-center">
+              <p className="text-sm font-medium text-neutral-600 uppercase tracking-wide py-6">
+                Loved by professionals at
+              </p>
+
+              <LogoCloud />
+
+              {/* Testimonials - New Grid Layout */}
+              <div className="w-full">
+                {/* Mobile: Horizontal scrollable layout */}
+                <div className="md:hidden overflow-x-auto pb-4">
+                  <div className="flex w-max">
+                    <div className="shrink-0">
+                      <SocialCard
+                        platform="reddit"
+                        author="spilledcarryout"
+                        subreddit="macapps"
+                        body="Dear Hyprnote Team,
+
+I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
+
+The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
+
+I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
+
+Hyprnote is now part of that process.
+
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
+
+Cheers!"
+                        url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
+                        className="w-80 border-x-0"
+                      />
+                    </div>
+
+                    <div className="shrink-0">
+                      <SocialCard
+                        platform="linkedin"
+                        author="Flavius Catalin Miron"
+                        role="Product Engineer"
+                        company="Waveful"
+                        body="Guys at Hyprnote (YC S25) are wild.
+
+Had a call with John Jeong about their product (privacy-first AI notepad).
+
+Next day? They already shipped a first version of the context feature we discussed 🤯
+
+24 𝐡𝐨𝐮𝐫𝐬. A conversation turned into production
+
+As Product Engineer at Waveful, where we also prioritize rapid execution, I deeply respect this level of speed.
+
+The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
+
+Btw give an eye to Hyprnote:
+100% local AI processing
+Zero cloud dependency
+Real privacy
+Almost daily releases
+
+Their repo: https://lnkd.in/dKCtxkA3 (mac only rn but they're releasing for windows very soon)
+
+Been using it for daily tasks, even simple note-taking is GREAT because I can review everything late, make action points etc.
+
+Mad respect to the team. This is how you build in 2025. 🚀"
+                        url="https://www.linkedin.com/in/flaviews/"
+                        className="w-80 border-x-0"
+                      />
+                    </div>
+
+                    <div className="shrink-0">
+                      <SocialCard
+                        platform="twitter"
+                        author="yoran was here"
+                        username="yoran_beisher"
+                        body="Been using Hypernote for a while now, truly one of the best AI apps I've used all year. Like they said, the best thing since sliced bread"
+                        url="https://x.com/yoran_beisher/status/1953147865486012611"
+                        className="w-80 border-x-0"
+                      />
+                    </div>
+
+                    <div className="shrink-0">
+                      <SocialCard
+                        platform="twitter"
+                        author="Tom Yang"
+                        username="tomyang11_"
+                        body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
+                        url="https://twitter.com/tomyang11_/status/1956395933538902092"
+                        className="w-80 border-x-0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop: Custom grid layout with big and small cards */}
+                <div className="hidden md:grid md:grid-cols-3">
+                  {/* Left column - Big card (row-span-2) */}
+                  <div className="row-span-2">
+                    <SocialCard
+                      platform="reddit"
+                      author="spilledcarryout"
+                      subreddit="macapps"
+                      body="Dear Hyprnote Team,
+
+I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
+
+The live transcription is key for me. It saves a landmark step to transcribe each note myself using macwhisper. Much more handy they way you all do this. The Calendar function is cool too.
+
+I am a telephysician and my notes are much more quickly done. Seeing 6-8 patients daily and tested it yesteday. So yes, my job is session heavy. Add to that being in psychiatry where document making sessions become voluminous, my flow is AI dependent to make reports stand out. Accuracy is key for patient care.
+
+Hyprnote is now part of that process.
+
+Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
+
+Cheers!"
+                      url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
+                      className="w-full h-full border-l-0 border-r-0"
+                    />
+                  </div>
+
+                  {/* Middle column - Big card (row-span-2) */}
+                  <div className="row-span-2">
+                    <SocialCard
+                      platform="linkedin"
+                      author="Flavius Catalin Miron"
+                      role="Product Engineer"
+                      company="Waveful"
+                      body="Guys at Hyprnote (YC S25) are wild.
+
+Had a call with John Jeong about their product (privacy-first AI notepad).
+
+Next day? They already shipped a first version of the context feature we discussed 🤯
+
+24 𝐡𝐨𝐮𝐫𝐬. A conversation turned into production
+
+As Product Engineer at Waveful, where we also prioritize rapid execution, I deeply respect this level of speed.
+
+The ability to ship this fast while maintaining quality, is what separates great teams from the rest 🔥
+
+Btw give an eye to Hyprnote:
+100% local AI processing
+Zero cloud dependency
+Real privacy
+Almost daily releases
+
+Their repo: https://lnkd.in/dKCtxkA3 (mac only rn but they're releasing for windows very soon)
+
+Been using it for daily tasks, even simple note-taking is GREAT because I can review everything late, make action points etc.
+
+Mad respect to the team. This is how you build in 2025. 🚀"
+                      url="https://www.linkedin.com/in/flaviews/"
+                      className="w-full h-full border-r-0"
+                    />
+                  </div>
+
+                  {/* Right column - Small card (top) */}
+                  <div className="h-[260px]">
+                    <SocialCard
+                      platform="twitter"
+                      author="yoran was here"
+                      username="yoran_beisher"
+                      body="Been using Hypernote for a while now, truly one of the best AI apps I've used all year. Like they said, the best thing since sliced bread"
+                      url="https://x.com/yoran_beisher/status/1953147865486012611"
+                      className="w-full h-full overflow-hidden border-r-0 border-b-0"
+                    />
+                  </div>
+
+                  {/* Right column - Small card (bottom) */}
+                  <div className="h-[260px]">
+                    <SocialCard
+                      platform="twitter"
+                      author="Tom Yang"
+                      username="tomyang11_"
+                      body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
+                      url="https://twitter.com/tomyang11_/status/1956395933538902092"
+                      className="w-full h-full overflow-hidden border-r-0"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section className="py-16 sm:py-24 border-t border-neutral-100 text-center">
+          <section className="py-16 sm:py-24 text-center">
             <div className="space-y-6 max-w-2xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-serif">
                 Built for developers
@@ -70,10 +288,10 @@ function Component() {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="group flex items-start gap-3 p-3 rounded-lg hover:bg-blue-50/30 transition-all duration-200"
+                    className="group flex items-start gap-3 p-3 rounded-lg hover:bg-stone-50/30 transition-all duration-200"
                   >
                     <svg
-                      className="h-5 w-5 flex-none text-blue-600 mt-0.5 group-hover:scale-110 transition-transform"
+                      className="h-5 w-5 flex-none text-stone-600 mt-0.5 group-hover:scale-110 transition-transform"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -92,11 +310,11 @@ function Component() {
 
           <section className="py-16 sm:py-24 border-t border-neutral-100">
             <div className="space-y-6 text-center">
-              <h2 className="text-2xl sm:text-3xl">
-                Ready to get started?
+              <h2 className="text-2xl sm:text-3xl font-serif">
+                Where conversations stay yours
               </h2>
-              <p className="text-lg text-neutral-600 max-w-xl mx-auto">
-                Download Hyprnote today and experience note-taking reimagined.
+              <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+                Start using Hyprnote today and bring clarity to your back-to-back meetings
               </p>
               <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <DownloadButton />
@@ -107,67 +325,5 @@ function Component() {
         </div>
       </main>
     </div>
-  );
-}
-
-function DownloadButton() {
-  return (
-    <Link
-      to="/downloads"
-      className={cn([
-        "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
-        "bg-linear-to-t from-blue-600 to-blue-500 text-white rounded-full",
-        "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-        "transition-all",
-      ])}
-    >
-      Download now
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-        />
-      </svg>
-    </Link>
-  );
-}
-
-function GithubStars() {
-  const LAST_SEEN = 6400;
-  const ORG_REPO = "fastrepl/hyprnote";
-
-  const star = useQuery({
-    queryKey: ["github-stars"],
-    queryFn: async () => {
-      const response = await fetch(`https://api.github.com/repos/${ORG_REPO}`);
-      const data = await response.json();
-      return data.stargazers_count ?? LAST_SEEN;
-    },
-  });
-
-  const render = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
-
-  return (
-    <a href={`https://github.com/${ORG_REPO}`} target="_blank">
-      <button
-        className={cn([
-          "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
-          "bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full",
-          "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-          "transition-all cursor-pointer",
-        ])}
-      >
-        <Icon icon="mdi:github" className="text-xl" />
-        <span className="ml-2">{star.data ? render(star.data) : render(LAST_SEEN)} stars</span>
-      </button>
-    </a>
   );
 }

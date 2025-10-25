@@ -13,18 +13,25 @@ export function ConfigureProviders() {
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
-        {PROVIDERS.map((provider) => (
-          <ProviderCard
-            key={provider.id}
-            config={provider}
-          />
-        ))}
+        <HyprProviderCard
+          providerId="hyprnote"
+          providerName="Hyprnote"
+          icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
+        />
+        {PROVIDERS
+          .filter((provider) => provider.id !== "hyprnote")
+          .map((provider) => (
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+            />
+          ))}
       </Accordion>
     </div>
   );
 }
 
-function ProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
+function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   const [provider, setProvider] = useProvider(config.id);
 
   const form = useForm({
@@ -59,14 +66,9 @@ function ProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
         <div className="flex items-center gap-2">
           {config.icon}
           <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4">
+      <AccordionContent className="px-4 space-y-6">
         <ProviderContext providerId={config.id} />
         <form
           className="space-y-4"
@@ -123,9 +125,41 @@ function ProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   );
 }
 
+function HyprProviderCard(
+  {
+    providerId,
+    providerName,
+    icon,
+  }: {
+    providerId: ProviderId;
+    providerName: string;
+    icon: React.ReactNode;
+  },
+) {
+  return (
+    <AccordionItem
+      value={providerId}
+      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+    >
+      <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
+        <div className="flex items-center gap-2">
+          {icon}
+          <span>{providerName}</span>
+          <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
+            Recommended
+          </span>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="px-4">
+        <ProviderContext providerId={providerId} />
+      </AccordionContent>
+    </AccordionItem>
+  );
+}
+
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
-    ? "The Hyprnote team continuously tests different models to provide the best experience."
+    ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
     : providerId === "custom"
     ? "We only support **OpenAI compatible** endpoints for now."
     : providerId === "openrouter"
@@ -137,7 +171,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
   }
 
   return (
-    <Streamdown className="text-sm mt-1 mb-6">
+    <Streamdown className="text-sm mt-1">
       {content}
     </Streamdown>
   );

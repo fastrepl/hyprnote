@@ -3,7 +3,6 @@ import { useForm } from "@tanstack/react-form";
 
 import * as internal from "../../../store/tinybase/internal";
 import { AppSettingsView } from "./app-settings";
-import { CustomVocabularyView } from "./custom-vocabulary";
 import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
@@ -109,14 +108,6 @@ export function SettingsGeneral() {
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 supportedLanguages={SUPPORTED_LANGUAGES}
-              />
-            )}
-          </form.Field>
-          <form.Field name="jargons">
-            {(field) => (
-              <CustomVocabularyView
-                value={field.state.value}
-                onChange={(val) => field.handleChange(val)}
               />
             )}
           </form.Field>

@@ -12,8 +12,10 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   ArrowLeft,
+  AudioLines,
   Bell,
   BookText,
+  Brain,
   CalendarDays,
   CreditCard,
   Edit,
@@ -33,10 +35,12 @@ import { useUpdateTemplate } from "../../../components/settings/shared.tsx";
 const TABS = [
   "general",
   "calendar",
-  "ai",
   "notifications",
-  "integrations",
+  "transcription",
+  "intelligence",
+  "memory",
   "templates",
+  "integrations",
   "feedback",
   "developers",
   "billing",
@@ -186,10 +190,22 @@ const info = (tab: typeof TABS[number]) => {
         icon: CalendarDays,
         group: 1,
       };
-    case "ai":
+    case "transcription":
       return {
-        label: "Hyprnote AI",
+        label: "Transcription",
+        icon: AudioLines,
+        group: 1,
+      };
+    case "intelligence":
+      return {
+        label: "Intelligence",
         icon: Sparkles,
+        group: 1,
+      };
+    case "memory":
+      return {
+        label: "Memory",
+        icon: Brain,
         group: 1,
       };
     case "notifications":

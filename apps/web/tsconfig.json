@@ -1,5 +1,6 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["supabase/functions/**/*"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

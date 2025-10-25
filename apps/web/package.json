@@ -6,7 +6,8 @@
     "dev": "env-cmd -f ./.env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.13.15",

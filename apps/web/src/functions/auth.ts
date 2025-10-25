@@ -1,23 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { env } from "../env";
-import { getSupabaseServerClient } from "../utils/supabase";
+import { env } from "@/env";
+import { getSupabaseServerClient } from "@/functions/supabase";
+
+const shared = z.object({
+  flow: z.enum(["desktop", "web"]).default("desktop"),
+});
 
 export const doAuth = createServerFn({ method: "POST" })
   .inputValidator(z.discriminatedUnion(
     "method",
     [
-      z.object({
-        method: z.literal("email_otp"),
-        email: z.email(),
-        redirectTo: z.string().optional(),
-      }),
-      z.object({
-        method: z.literal("oauth"),
-        provider: z.enum(["google", "github"]),
-        redirectTo: z.string().optional(),
-      }),
+      shared.extend({ method: z.literal("email_otp"), email: z.email() }),
+      shared.extend({ method: z.literal("oauth"), provider: z.enum(["google", "github"]) }),
     ],
   ))
   .handler(async ({ data }) => {
@@ -28,7 +24,7 @@ export const doAuth = createServerFn({ method: "POST" })
         email: data.email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: data.redirectTo || `${env.VITE_APP_URL}/callback/auth`,
+          emailRedirectTo: `${env.VITE_APP_URL}/callback/auth?flow=${data.flow}`,
         },
       });
 
@@ -43,8 +39,7 @@ export const doAuth = createServerFn({ method: "POST" })
       const { data: authData, error } = await supabase.auth.signInWithOAuth({
         provider: data.provider,
         options: {
-          // Use custom redirect if provided (desktop flow), otherwise default to web callback
-          redirectTo: data.redirectTo || `${process.env.VITE_APP_URL}/callback/auth`,
+          redirectTo: `${env.VITE_APP_URL}/callback/auth?flow=${data.flow}`,
         },
       });
 
@@ -52,7 +47,6 @@ export const doAuth = createServerFn({ method: "POST" })
         return { error: true, message: error.message };
       }
 
-      // Return the OAuth URL for client-side redirect
       return { success: true, url: authData.url };
     }
   });
@@ -75,7 +69,7 @@ export const signOutFn = createServerFn({ method: "POST" }).handler(async () => 
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    return { error: true, message: error.message };
+    return { success: false, message: error.message };
   }
 
   return { success: true };

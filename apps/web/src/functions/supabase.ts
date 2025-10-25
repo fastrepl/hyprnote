@@ -1,9 +1,10 @@
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
+import { createClientOnlyFn, createServerOnlyFn } from "@tanstack/react-start";
 import { getCookies, setCookie } from "@tanstack/react-start/server";
 
-import { env } from "../env";
+import { env } from "@/env";
 
-export const getSupabaseBrowserClient = () => {
+export const getSupabaseBrowserClient = createClientOnlyFn(() => {
   return createBrowserClient(
     env.VITE_SUPABASE_URL,
     env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -14,9 +15,9 @@ export const getSupabaseBrowserClient = () => {
       },
     },
   );
-};
+});
 
-export function getSupabaseServerClient() {
+export const getSupabaseServerClient = createServerOnlyFn(() => {
   return createServerClient(
     env.SUPABASE_URL,
     env.SUPABASE_PUBLISHABLE_KEY,
@@ -36,4 +37,4 @@ export function getSupabaseServerClient() {
       },
     },
   );
-}
+});

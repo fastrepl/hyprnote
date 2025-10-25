@@ -4,6 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     NANGO_SECRET_KEY: z.string().min(1),
+    DATABASE_URL: z.string().min(1),
 
     OPENAI_DEFAULT_MODEL: z.string().min(1),
     OPENAI_BASE_URL: z.string().min(1),
@@ -20,6 +21,6 @@ export const env = createEnv({
     VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
   },
 
-  runtimeEnv: process.env,
+  runtimeEnv: { ...process.env, ...import.meta.env },
   emptyStringAsUndefined: true,
 });

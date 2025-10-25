@@ -15,13 +15,14 @@ import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as CallbackAuthRouteImport } from './routes/callback/auth'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewDownloadsRouteImport } from './routes/_view/downloads'
+import { Route as ViewAuthRouteImport } from './routes/_view/auth'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
 import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
 import { Route as ApiChatCompletionsRouteImport } from './routes/api/chat.completions'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
-import { Route as ViewAppAuthRouteImport } from './routes/_view/app/auth'
+import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
 const ViewRouteRoute = ViewRouteRouteImport.update({
   id: '/_view',
@@ -50,6 +51,11 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
 const ViewDownloadsRoute = ViewDownloadsRouteImport.update({
   id: '/downloads',
   path: '/downloads',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewAuthRoute = ViewAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -82,20 +88,21 @@ const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
   path: '/integration',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ViewAppAuthRoute = ViewAppAuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/app': typeof ViewAppRouteRouteWithChildren
+  '/auth': typeof ViewAuthRoute
   '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
-  '/app/auth': typeof ViewAppAuthRoute
+  '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
@@ -103,12 +110,13 @@ export interface FileRoutesByFullPath {
   '/app/': typeof ViewAppIndexRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof ViewAuthRoute
   '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/': typeof ViewIndexRoute
-  '/app/auth': typeof ViewAppAuthRoute
+  '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
@@ -119,12 +127,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/_view/app': typeof ViewAppRouteRouteWithChildren
+  '/_view/auth': typeof ViewAuthRoute
   '/_view/downloads': typeof ViewDownloadsRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/callback/auth': typeof CallbackAuthRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/_view/': typeof ViewIndexRoute
-  '/_view/app/auth': typeof ViewAppAuthRoute
+  '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
   '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
@@ -135,12 +144,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
+    | '/auth'
     | '/downloads'
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
     | '/'
-    | '/app/auth'
+    | '/app/account'
     | '/app/integration'
     | '/api/chat/completions'
     | '/api/sync/read'
@@ -148,12 +158,13 @@ export interface FileRouteTypes {
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
     | '/downloads'
     | '/pricing'
     | '/callback/auth'
     | '/webhook/nango'
     | '/'
-    | '/app/auth'
+    | '/app/account'
     | '/app/integration'
     | '/api/chat/completions'
     | '/api/sync/read'
@@ -163,12 +174,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/_view/app'
+    | '/_view/auth'
     | '/_view/downloads'
     | '/_view/pricing'
     | '/callback/auth'
     | '/webhook/nango'
     | '/_view/'
-    | '/_view/app/auth'
+    | '/_view/app/account'
     | '/_view/app/integration'
     | '/api/chat/completions'
     | '/api/sync/read'
@@ -229,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/auth': {
+      id: '/_view/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof ViewAuthRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/app': {
       id: '/_view/app'
       path: '/app'
@@ -271,24 +290,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIntegrationRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
-    '/_view/app/auth': {
-      id: '/_view/app/auth'
-      path: '/auth'
-      fullPath: '/app/auth'
-      preLoaderRoute: typeof ViewAppAuthRouteImport
+    '/_view/app/account': {
+      id: '/_view/app/account'
+      path: '/account'
+      fullPath: '/app/account'
+      preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
   }
 }
 
 interface ViewAppRouteRouteChildren {
-  ViewAppAuthRoute: typeof ViewAppAuthRoute
+  ViewAppAccountRoute: typeof ViewAppAccountRoute
   ViewAppIntegrationRoute: typeof ViewAppIntegrationRoute
   ViewAppIndexRoute: typeof ViewAppIndexRoute
 }
 
 const ViewAppRouteRouteChildren: ViewAppRouteRouteChildren = {
-  ViewAppAuthRoute: ViewAppAuthRoute,
+  ViewAppAccountRoute: ViewAppAccountRoute,
   ViewAppIntegrationRoute: ViewAppIntegrationRoute,
   ViewAppIndexRoute: ViewAppIndexRoute,
 }
@@ -299,6 +318,7 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
+  ViewAuthRoute: typeof ViewAuthRoute
   ViewDownloadsRoute: typeof ViewDownloadsRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
@@ -306,6 +326,7 @@ interface ViewRouteRouteChildren {
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
+  ViewAuthRoute: ViewAuthRoute,
   ViewDownloadsRoute: ViewDownloadsRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,

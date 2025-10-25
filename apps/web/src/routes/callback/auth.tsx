@@ -1,38 +1,57 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
+
+import { getSupabaseServerClient } from "@/functions/supabase";
+import { useEffect } from "react";
+
+const validateSearch = z.object({
+  code: z.string().optional(),
+  flow: z.enum(["desktop", "web"]).default("desktop"),
+});
 
 export const Route = createFileRoute("/callback/auth")({
+  validateSearch,
   component: Component,
+  beforeLoad: async ({ search }) => {
+    if (search.flow === "web" && search.code) {
+      const supabase = getSupabaseServerClient();
+      const { error } = await supabase.auth.exchangeCodeForSession(search.code);
+
+      if (!error) {
+        throw redirect({ to: "/app" });
+      }
+    }
+  },
 });
 
 function Component() {
-  const searchParams = Route.useSearch();
-  const params = new URLSearchParams(searchParams as Record<string, string>);
-  const code = params.get("code");
-  const deeplink = "hypr://auth/callback?" + params.toString();
+  const search = Route.useSearch();
 
-  const handleOpenApp = () => {
-    window.open(deeplink);
-  };
+  useEffect(() => {
+    if (search.flow === "web") {
+      throw redirect({ to: "/app" });
+    }
 
-  if (typeof window !== "undefined") {
-    setTimeout(() => {
-      window.open(deeplink);
-    }, 0);
+    if (search.flow === "desktop") {
+      setTimeout(() => {
+        const params = new URLSearchParams(search as Record<string, string>);
+        const deeplink = "hypr://auth/callback?" + params.toString();
+        window.location.href = deeplink;
+      }, 1500);
+    }
+  }, [search]);
+
+  if (search.flow === "desktop") {
+    return (
+      <div>
+        <p>Desktop</p>
+        <p>Code: {search.code}</p>
+        <p>Flow: {search.flow}</p>
+      </div>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-        <div className="space-y-4">
-          <p className="font-mono text-lg bg-neutral-100 p-2 rounded">Code: {code}</p>
-          <button
-            onClick={handleOpenApp}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-          >
-            Open App
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  if (search.flow === "web") {
+    return <div>Redirecting...</div>;
+  }
 }

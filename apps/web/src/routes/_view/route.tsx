@@ -1,7 +1,11 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+
+import { signOutFn } from "@/functions/auth";
+import { useMutation } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
+  loader: async ({ context }) => ({ user: context.user }),
 });
 
 function Component() {
@@ -32,13 +36,7 @@ function Header() {
           </Link>
           <nav className="flex items-center gap-6">
             <div className="flex gap-3">
-              <Link
-                to="/app/auth"
-                search={{ type: "signin" }}
-                className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
-              >
-                Sign up
-              </Link>
+              <HeaderUser />
               <Link
                 to="/downloads"
                 className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-blue-600 to-blue-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
@@ -50,6 +48,58 @@ function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function HeaderUser() {
+  const { user } = Route.useLoaderData();
+  const navigate = useNavigate();
+
+  const signOut = useMutation({
+    mutationFn: async () => {
+      const res = await signOutFn();
+      if (res.success) {
+        return true;
+      }
+
+      throw new Error(res.message);
+    },
+    onSuccess: () => {
+      navigate({ to: "/" });
+    },
+    onError: (error) => {
+      console.error(error);
+      navigate({ to: "/" });
+    },
+  });
+
+  if (user) {
+    return (
+      <div className="flex flex-row gap-2">
+        <Link
+          to="/app/account"
+          className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+        >
+          Account
+        </Link>
+        <button
+          onClick={() => signOut.mutate()}
+          className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+        >
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to="/auth"
+      search={{ flow: "web" }}
+      className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+    >
+      Get Started
+    </Link>
   );
 }
 

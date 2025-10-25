@@ -24,6 +24,11 @@ tasks:
     cmds:
       - supabase {{.CLI_ARGS}}
 
+  supabase-env:
+    dir: .
+    cmds:
+      - supabase secrets set --env-file ./supabase/functions/.env --project-ref ijoptyyjrfqwaqhyxkxj
+
   supabase-start:
     dir: .
     cmds:

@@ -40,7 +40,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" }).handler(
     cancel_url: `${env.VITE_APP_URL}/app/account`,
     line_items: [
       {
-        price: env.STRIPE_PRICE_ID,
+        price: env.STRIPE_MONTHLY_PRICE_ID,
         quantity: 1,
       },
     ],

@@ -1,9 +1,9 @@
 import { createClient, processLock, type Session, SupabaseClient, type SupportedStorage } from "@supabase/supabase-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { createContext, useContext, useEffect, useState } from "react";
-
 import { load } from "@tauri-apps/plugin-store";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { env } from "./env";
 
@@ -32,7 +32,6 @@ const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
-      flowType: "pkce",
       lock: processLock,
     },
   })
@@ -79,6 +78,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     appWindow.listen("tauri://blur", () => {
       supabase.auth.stopAutoRefresh();
+    });
+
+    onOpenUrl(([url]) => {
+      const parsed = new URL(url);
+      const accessToken = parsed.searchParams.get("access_token");
+      const refreshToken = parsed.searchParams.get("refresh_token");
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      }
     });
   }, []);
 

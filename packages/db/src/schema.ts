@@ -1,23 +1,33 @@
-import { boolean, integer, json, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, json, pgSchema, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 
-const SHARED = {
-  id: uuid("id").primaryKey().defaultRandom(),
-  // it is crucial to have user_id for sync filtering
-  user_id: uuid("user_id").notNull(),
-  created_at: timestamp("created_at").notNull().defaultNow(),
-};
+const auth = pgSchema("auth");
+
+const users = auth.table("users", {
+  id: uuid("id").primaryKey(),
+});
+
+const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+});
 
 export const TABLE_HUMANS = "humans";
 export const humans = pgTable(TABLE_HUMANS, {
-  ...SHARED,
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
   name: text("name").notNull(),
   email: text("email").notNull(),
   org_id: uuid("org_id").notNull(),
   job_title: text("job_title"),
   linkedin_username: text("linkedin_username"),
-  is_user: boolean("is_user"),
 });
+
+const SHARED = {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+};
 
 export const TABLE_ORGANIZATIONS = "organizations";
 export const organizations = pgTable(TABLE_ORGANIZATIONS, {

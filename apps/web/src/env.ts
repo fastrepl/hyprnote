@@ -15,7 +15,8 @@ export const env = createEnv({
 
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
-    STRIPE_PRICE_ID: z.string().min(1),
+    STRIPE_MONTHLY_PRICE_ID: z.string().min(1),
+    STRIPE_YEARLY_PRICE_ID: z.string().min(1),
   },
 
   clientPrefix: "VITE_",

@@ -21,7 +21,6 @@ import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
 import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
-import { Route as ApiChatCompletionsRouteImport } from './routes/api/chat.completions'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
@@ -84,11 +83,6 @@ const ApiSyncReadRoute = ApiSyncReadRouteImport.update({
   path: '/api/sync/read',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatCompletionsRoute = ApiChatCompletionsRouteImport.update({
-  id: '/api/chat/completions',
-  path: '/api/chat/completions',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
   id: '/integration',
   path: '/integration',
@@ -111,7 +105,6 @@ export interface FileRoutesByFullPath {
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
-  '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/app/': typeof ViewAppIndexRoute
@@ -126,7 +119,6 @@ export interface FileRoutesByTo {
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/integration': typeof ViewAppIntegrationRoute
-  '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/app': typeof ViewAppIndexRoute
@@ -144,7 +136,6 @@ export interface FileRoutesById {
   '/_view/': typeof ViewIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
-  '/api/chat/completions': typeof ApiChatCompletionsRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/_view/app/': typeof ViewAppIndexRoute
@@ -162,7 +153,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app/account'
     | '/app/integration'
-    | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/app/'
@@ -177,7 +167,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app/account'
     | '/app/integration'
-    | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/app'
@@ -194,7 +183,6 @@ export interface FileRouteTypes {
     | '/_view/'
     | '/_view/app/account'
     | '/_view/app/integration'
-    | '/api/chat/completions'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/_view/app/'
@@ -205,7 +193,6 @@ export interface RootRouteChildren {
   CallbackAuthRoute: typeof CallbackAuthRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
-  ApiChatCompletionsRoute: typeof ApiChatCompletionsRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
   ApiSyncWriteRoute: typeof ApiSyncWriteRoute
 }
@@ -296,13 +283,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSyncReadRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat/completions': {
-      id: '/api/chat/completions'
-      path: '/api/chat/completions'
-      fullPath: '/api/chat/completions'
-      preLoaderRoute: typeof ApiChatCompletionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_view/app/integration': {
       id: '/_view/app/integration'
       path: '/integration'
@@ -361,7 +341,6 @@ const rootRouteChildren: RootRouteChildren = {
   CallbackAuthRoute: CallbackAuthRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
-  ApiChatCompletionsRoute: ApiChatCompletionsRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,
   ApiSyncWriteRoute: ApiSyncWriteRoute,
 }

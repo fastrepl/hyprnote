@@ -7,6 +7,8 @@ import { useEffect } from "react";
 const validateSearch = z.object({
   code: z.string().optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
+  access_token: z.string().optional(),
+  refresh_token: z.string().optional(),
 });
 
 export const Route = createFileRoute("/callback/auth")({
@@ -21,6 +23,22 @@ export const Route = createFileRoute("/callback/auth")({
         throw redirect({ to: "/app" });
       }
     }
+
+    if (search.flow === "desktop" && search.code) {
+      const supabase = getSupabaseServerClient();
+      const { data, error } = await supabase.auth.exchangeCodeForSession(search.code);
+
+      if (!error && data.session) {
+        throw redirect({
+          to: "/callback/auth",
+          search: {
+            flow: "desktop",
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          },
+        });
+      }
+    }
   },
 });
 
@@ -32,9 +50,13 @@ function Component() {
       throw redirect({ to: "/app" });
     }
 
-    if (search.flow === "desktop") {
+    if (search.flow === "desktop" && search.access_token && search.refresh_token) {
+      const accessToken = search.access_token!;
+      const refreshToken = search.refresh_token!;
       setTimeout(() => {
-        const params = new URLSearchParams(search as Record<string, string>);
+        const params = new URLSearchParams();
+        params.set("access_token", accessToken);
+        params.set("refresh_token", refreshToken);
         const deeplink = "hypr://auth/callback?" + params.toString();
         window.location.href = deeplink;
       }, 1500);
@@ -45,8 +67,7 @@ function Component() {
     return (
       <div>
         <p>Desktop</p>
-        <p>Code: {search.code}</p>
-        <p>Flow: {search.flow}</p>
+        <p>Authenticating...</p>
       </div>
     );
   }

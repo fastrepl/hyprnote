@@ -1,15 +1,15 @@
+import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
-import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-
+import { useAuth } from "../../../../auth";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
-import { TryProBanner } from "./banner";
 import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
@@ -22,32 +22,23 @@ export function ProfileSection() {
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
   const { openNew } = useTabs();
+  const auth = useAuth();
 
-  // Mock auth state - toggle this to test different states
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+  const isAuthenticated = !!auth?.session;
 
   const closeMenu = useCallback(() => {
     setIsExpanded(false);
   }, []);
 
-  const handleDismissBanner = useCallback(() => {
-    setIsBannerDismissed(true);
-  }, []);
-
-  const handleAuth = useCallback(() => {
-    if (isAuthenticated) {
-      // Mock logout
-      console.log("Logging out...");
-      setIsAuthenticated(false);
-      setIsBannerDismissed(false);
-    } else {
-      // Mock sign in
-      console.log("Signing in...");
-      setIsAuthenticated(true);
-    }
+  const handleSignIn = useCallback(async () => {
+    await auth?.signIn();
     closeMenu();
-  }, [isAuthenticated, closeMenu]);
+  }, [auth, closeMenu]);
+
+  const handleSignOut = useCallback(async () => {
+    await auth?.signOut();
+    closeMenu();
+  }, [auth, closeMenu]);
 
   useEffect(() => {
     if (!isExpanded && currentView !== "main") {
@@ -92,7 +83,7 @@ export function ProfileSection() {
     return () => {
       observer.disconnect();
     };
-  }, [isExpanded, currentView, isBannerDismissed, isAuthenticated]);
+  }, [isExpanded, currentView, isAuthenticated]);
 
   const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
 
@@ -200,36 +191,11 @@ export function ProfileSection() {
 
                         {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
-                        {isAuthenticated
-                          ? (
-                            <div className="px-1 py-2">
-                              <Button
-                                onClick={handleAuth}
-                                variant="outline"
-                                className="w-full"
-                              >
-                                <LogOut className="w-4 h-4 mr-2" />
-                                Log out
-                              </Button>
-                            </div>
-                          )
-                          : (
-                            <>
-                              <TryProBanner isDismissed={isBannerDismissed} onDismiss={handleDismissBanner} />
-                              {isBannerDismissed && (
-                                <div className="px-1 py-2">
-                                  <Button
-                                    onClick={handleAuth}
-                                    variant="default"
-                                    className="w-full"
-                                  >
-                                    <LogIn className="w-4 h-4 mr-2" />
-                                    Sign in
-                                  </Button>
-                                </div>
-                              )}
-                            </>
-                          )}
+                        <AuthUI
+                          isAuthenticated={isAuthenticated}
+                          onSignIn={handleSignIn}
+                          onSignOut={handleSignOut}
+                        />
                       </motion.div>
                     )
                     : (
@@ -327,5 +293,107 @@ function ProfileButton(
         />
       </div>
     </button>
+  );
+}
+
+function AuthUI({
+  isAuthenticated,
+  onSignIn,
+  onSignOut,
+}: {
+  isAuthenticated: boolean;
+  onSignIn: () => void;
+  onSignOut: () => void;
+}) {
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
+  if (isAuthenticated) {
+    return (
+      <div className="px-1 py-2">
+        <Button onClick={onSignOut} variant="outline" className="w-full">
+          <LogOut className="w-4 h-4 mr-2" />
+          Log out
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <TryProBanner
+        isDismissed={isBannerDismissed}
+        onDismiss={() => setIsBannerDismissed(true)}
+        onSignIn={onSignIn}
+      />
+      {isBannerDismissed && (
+        <div className="px-1 py-2">
+          <Button onClick={onSignIn} variant="default" className="w-full">
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign in
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function TryProBanner({
+  isDismissed,
+  onDismiss,
+  onSignIn,
+}: {
+  isDismissed: boolean;
+  onDismiss: () => void;
+  onSignIn: () => void;
+}) {
+  return (
+    <AnimatePresence mode="wait">
+      {!isDismissed && (
+        <motion.div
+          initial={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
+          animate={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
+          exit={{
+            opacity: 0,
+            height: 0,
+            y: 20,
+            transition: { duration: 0.3, ease: "easeInOut" },
+          }}
+          className={cn(["overflow-hidden", "px-1 py-2"])}
+        >
+          <div
+            className={cn([
+              "relative group overflow-hidden rounded-lg",
+              "flex flex-col gap-3",
+              "bg-white border border-neutral-200 shadow-sm p-4",
+            ])}
+          >
+            <Button
+              onClick={onDismiss}
+              size="icon"
+              variant="ghost"
+              aria-label="Dismiss banner"
+              className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+
+            <div className="flex items-center gap-4">
+              <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-6" />
+              <h3 className="text-lg font-bold text-neutral-900">
+                Try Hyprnote Pro
+              </h3>
+            </div>
+
+            <p className="text-sm">
+              Sign up now and experience smarter meetings with a 1-week free trial of Hyprnote Pro.
+            </p>
+
+            <Button onClick={onSignIn} className="w-full">
+              Start 1 week Free Trial
+            </Button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,5 +1,6 @@
 import { createClient, processLock, type Session, SupabaseClient, type SupportedStorage } from "@supabase/supabase-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { load } from "@tauri-apps/plugin-store";
@@ -42,11 +43,13 @@ const AuthContext = createContext<
     supabase: SupabaseClient | null;
     session: Session | null;
     apiClient: ReturnType<typeof buildApiClient> | null;
+    signIn: () => Promise<void>;
+    signOut: () => Promise<void>;
   } | null
 >(null);
 
 const buildApiClient = (session: Session) => {
-  const base = "http://localhost:5173";
+  const base = "http://localhost:3000";
   const apiClient = {
     syncWrite: (changes: any) => {
       return fetch(`${base}/v1/write`, {
@@ -71,7 +74,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const appWindow = getCurrentWindow();
 
-    // TODO
     appWindow.listen("tauri://focus", () => {
       supabase.auth.startAutoRefresh();
     });
@@ -108,10 +110,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session]);
 
+  const signIn = async () => {
+    await openUrl("http://localhost:3000/auth?flow=desktop");
+  };
+
+  const signOut = async () => {
+    if (!supabase) {
+      return;
+    }
+
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error(error);
+    }
+  };
+
   const value = {
     session,
     supabase,
     apiClient,
+    signIn,
+    signOut,
   };
 
   return (

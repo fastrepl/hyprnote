@@ -12,36 +12,38 @@ export const Route = createFileRoute("/app/auth")({
 });
 
 const redirectTo = import.meta.env.DEV
-  ? "http://localhost:5173/callback/auth"
-  : "https://api.hyprnote.com/callback/auth";
+  ? "http://localhost:3000/callback/auth"
+  : "https://web.hyprnote.com/callback/auth";
 
 function Component() {
   const auth = useAuth();
 
-  const handleCode = async (code: string) => {
+  const handleSession = async (accessToken: string, refreshToken: string) => {
     const client = auth?.supabase?.auth;
     if (!client) {
       return;
     }
 
-    const { data, error } = await client.exchangeCodeForSession(code);
-    if (error || !data.session) {
-      console.error(error);
-      return;
-    }
+    const { error } = await client.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
 
-    await client.setSession(data.session);
+    if (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
     onOpenUrl(([url]) => {
       const parsed = new URL(url);
-      const code = parsed.searchParams.get("code");
-      if (code) {
-        handleCode(code);
+      const accessToken = parsed.searchParams.get("access_token");
+      const refreshToken = parsed.searchParams.get("refresh_token");
+      if (accessToken && refreshToken) {
+        handleSession(accessToken, refreshToken);
       }
     });
-  }, [handleCode]);
+  }, [handleSession]);
 
   const handleSignupEmail = useCallback(async (email: string, password: string) => {
     if (auth?.supabase) {
@@ -110,27 +112,31 @@ function Component() {
         signout
       </button>
 
-      <ManualCodeProvider handleCode={handleCode} />
+      <ManualTokenProvider handleSession={handleSession} />
 
       <pre>session: {JSON.stringify(auth?.session, null, 2)}</pre>
     </div>
   );
 }
 
-function ManualCodeProvider({ handleCode }: { handleCode: (code: string) => void }) {
+function ManualTokenProvider(
+  { handleSession }: { handleSession: (accessToken: string, refreshToken: string) => void },
+) {
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const code = formData.get("code") as string;
-    handleCode(code);
-  }, [handleCode]);
+    const accessToken = formData.get("access_token") as string;
+    const refreshToken = formData.get("refresh_token") as string;
+    handleSession(accessToken, refreshToken);
+  }, [handleSession]);
 
   return (
     <form
       onSubmit={handleSubmit}
       className={clsx(["flex flex-col gap-2", "border border-neutral-300 rounded-md p-4 m-2"])}
     >
-      <input name="code" className="border border-neutral-300 rounded-md p-2" />
+      <input name="access_token" placeholder="Access Token" className="border border-neutral-300 rounded-md p-2" />
+      <input name="refresh_token" placeholder="Refresh Token" className="border border-neutral-300 rounded-md p-2" />
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded-md"

@@ -142,7 +142,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 27] = [
+const MIGRATIONS: [&str; 28] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -170,8 +170,25 @@ const MIGRATIONS: [&str; 27] = [
     include_str!("./templates_migration_1.sql"),
     include_str!("./chat_conversations_migration.sql"),
     include_str!("./chat_messages_v2_migration.sql"),
+    include_str!("./templates_migration_2.sql"),
 ];
 
+/// Run the bundled SQL migrations against the given database.
+///
+/// Applies the module's embedded migrations in order to bring the database schema up to date.
+///
+/// # Returns
+///
+/// `Ok(())` on success, `Err(crate::Error)` if obtaining a connection or applying migrations fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// # async fn run() -> Result<(), crate::Error> {
+/// let db = /* obtain a UserDatabase */;
+/// migrate(&db).await?;
+/// # Ok(()) }
+/// ```
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {
     let conn = db.conn()?;
     hypr_db_core::migrate(&conn, MIGRATIONS.to_vec()).await?;

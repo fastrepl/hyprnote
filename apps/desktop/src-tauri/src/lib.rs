@@ -45,7 +45,6 @@ pub async fn main() {
         .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
-        .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_local_stt::init())
@@ -55,11 +54,12 @@ pub async fn main() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_misc::init())
         .plugin(tauri_plugin_template::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_windows::init());
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]

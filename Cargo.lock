@@ -3849,6 +3849,7 @@ dependencies = [
  "tauri-plugin-listener",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
+ "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-process",

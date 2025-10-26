@@ -15,8 +15,8 @@ export const tabSchema = z.discriminatedUnion("type", [
     type: z.literal("sessions" satisfies typeof TABLES[number]),
     id: z.string(),
     state: z.object({
-      editor: editorViewSchema.default("raw"),
-    }).default({ editor: "raw" }),
+      editor: editorViewSchema.optional(),
+    }).default({}),
   }),
   baseTabSchema.extend({
     type: z.literal("contacts"),

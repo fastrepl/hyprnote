@@ -1,8 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
-import { useAITask } from "../../../../../contexts/ai-task";
 import { useListener } from "../../../../../contexts/listener";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
@@ -16,9 +15,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
-  const taskId = `${tab.id}-enhance`;
-
-  const taskStatus = useAITask((state) => state.tasks[taskId]?.status ?? "idle");
+  const hasTranscript = useHasTranscript(tab.id);
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });
@@ -28,14 +25,11 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     editorRef.current?.editor?.commands.focus();
   };
 
-  useEffect(() => {
-    if (taskStatus === "generating" && tab.state.editor !== "enhanced") {
-      updateSessionTabState(tab, { editor: "enhanced" });
-    }
-  }, [taskStatus, tab.state.editor, updateSessionTabState, tab]);
-
   const sessionId = tab.id;
-  const currentTab = tab.state.editor ?? "raw";
+  const currentTab = useMemo(
+    () => tab.state.editor ?? (hasTranscript ? "enhanced" : "raw"),
+    [tab.state.editor, hasTranscript],
+  );
 
   return (
     <div className="flex flex-col h-full">

@@ -389,11 +389,7 @@ function useNewTab() {
       title: "",
     });
 
-    openNew({
-      type: "sessions",
-      id: sessionId,
-      state: { editor: "raw" },
-    });
+    openNew({ type: "sessions", id: sessionId });
   }, [persistedStore, internalStore, openNew]);
 
   return handler;

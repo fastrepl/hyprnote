@@ -2,7 +2,7 @@ import type { StoreApi } from "zustand";
 
 import { id } from "../../../utils";
 import type { LifecycleState } from "./lifecycle";
-import { isSameTab, type Tab, type TabInput } from "./schema";
+import { isSameTab, type Tab, type TabInput, tabSchema } from "./schema";
 
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
@@ -147,7 +147,7 @@ const openTab = <T extends BasicState & NavigationState>(
   history: Map<string, TabHistory>,
   replaceActive: boolean,
 ): Partial<T> => {
-  const tabWithDefaults: Tab = { ...newTab, active: false, slotId: id() } as Tab;
+  const tabWithDefaults: Tab = tabSchema.parse({ ...newTab, active: false, slotId: id() });
 
   let nextTabs: Tab[];
   let activeTab: Tab;

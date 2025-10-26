@@ -67,7 +67,7 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   }, [updateContactsTabState, tab]);
 
   const handleSessionClick = useCallback((id: string) => {
-    openCurrent({ type: "sessions", id, state: { editor: "raw" } });
+    openCurrent({ type: "sessions", id });
   }, [openCurrent]);
 
   const deletePersonFromStore = persisted.UI.useDelRowCallback(

@@ -13,7 +13,7 @@ export function TabContentCalendarDaySessions({ sessionId }: { sessionId: string
   const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
 
   const handleClick = () => {
-    openNew({ type: "sessions", id: sessionId, state: { editor: "raw" } });
+    openNew({ type: "sessions", id: sessionId });
   };
 
   return (

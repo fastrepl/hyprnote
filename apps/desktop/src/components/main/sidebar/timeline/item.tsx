@@ -21,7 +21,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     if (item.type === "event") {
       handleEventClick(false);
     } else {
-      const tab: TabInput = { id: item.id, type: "sessions", state: { editor: "raw" } };
+      const tab: TabInput = { id: item.id, type: "sessions" };
       openCurrent(tab);
     }
   };
@@ -30,7 +30,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     if (item.type === "event") {
       handleEventClick(true);
     } else {
-      const tab: TabInput = { id: item.id, type: "sessions", state: { editor: "raw" } };
+      const tab: TabInput = { id: item.id, type: "sessions" };
       openNew(tab);
     }
   };
@@ -50,7 +50,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     });
 
     if (existingSessionId) {
-      const tab: TabInput = { id: existingSessionId, type: "sessions", state: { editor: "raw" } };
+      const tab: TabInput = { id: existingSessionId, type: "sessions" };
       if (openInNewTab) {
         openNew(tab);
       } else {
@@ -63,7 +63,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
         title: title,
         created_at: new Date().toISOString(),
       });
-      const tab: TabInput = { id: sessionId, type: "sessions", state: { editor: "raw" } };
+      const tab: TabInput = { id: sessionId, type: "sessions" };
       if (openInNewTab) {
         openNew(tab);
       } else {

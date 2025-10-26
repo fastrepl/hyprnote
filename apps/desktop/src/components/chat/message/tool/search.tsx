@@ -95,11 +95,7 @@ function RenderSession({ sessionId }: { sessionId: string }) {
   const { openNew } = useTabs();
 
   const handleClick = useCallback(() => {
-    openNew({
-      type: "sessions",
-      id: sessionId,
-      state: { editor: "raw" },
-    });
+    openNew({ type: "sessions", id: sessionId });
   }, [openNew, sessionId]);
 
   if (!session) {

@@ -27,9 +27,9 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     setOpen(false);
 
     if (linkedSessionId) {
-      openNew({ type: "sessions", id: linkedSessionId, state: { editor: "raw" } });
+      openNew({ type: "sessions", id: linkedSessionId });
     } else {
-      openNew({ type: "sessions", id: crypto.randomUUID(), state: { editor: "raw" } });
+      openNew({ type: "sessions", id: crypto.randomUUID() });
     }
   };
 

@@ -24,7 +24,7 @@ function Component() {
     const user_id = internalStore?.getValue("user_id");
     const sessionId = id();
     persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-    openNew({ id: sessionId, type: "sessions", state: { editor: "raw" } });
+    openNew({ id: sessionId, type: "sessions" });
   }, [persistedStore, internalStore, openNew]);
 
   useEffect(() => {

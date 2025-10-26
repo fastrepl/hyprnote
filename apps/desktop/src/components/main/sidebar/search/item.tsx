@@ -177,7 +177,7 @@ function SessionSearchResultItem({ result, onClick }: { result: SearchResult; on
 
 function getTab(result: SearchResult): TabInput | null {
   if (result.type === "session") {
-    return { type: "sessions", id: result.id, state: { editor: "raw" } };
+    return { type: "sessions", id: result.id };
   }
   if (result.type === "human") {
     return { type: "humans", id: result.id };

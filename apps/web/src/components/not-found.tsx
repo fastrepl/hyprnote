@@ -10,7 +10,7 @@ export function NotFoundDocument() {
             Page Not Found
           </h1>
 
-          <div className="text-[200px] leading-none font-caprasimo text-neutral-800 mb-8">
+          <div className="text-[200px] leading-none font-serif text-neutral-800 mb-8">
             404
           </div>
 

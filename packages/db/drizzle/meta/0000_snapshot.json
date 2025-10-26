@@ -1,0 +1,1717 @@
+{
+  "id": "07758711-51d3-4f8d-b482-de095da7441b",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.calendars": {
+      "name": "calendars",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "calendars_user_id_profiles_id_fk": {
+          "name": "calendars_user_id_profiles_id_fk",
+          "tableFrom": "calendars",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "calendars_select_owner": {
+          "name": "calendars_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"calendars\".\"user_id\" = auth.uid()"
+        },
+        "calendars_insert_owner": {
+          "name": "calendars_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"calendars\".\"user_id\" = auth.uid()"
+        },
+        "calendars_update_owner": {
+          "name": "calendars_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"calendars\".\"user_id\" = auth.uid()",
+          "withCheck": "\"calendars\".\"user_id\" = auth.uid()"
+        },
+        "calendars_delete_owner": {
+          "name": "calendars_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"calendars\".\"user_id\" = auth.uid()"
+        },
+        "calendars_service_all": {
+          "name": "calendars_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.chat_groups": {
+      "name": "chat_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "chat_groups_user_id_profiles_id_fk": {
+          "name": "chat_groups_user_id_profiles_id_fk",
+          "tableFrom": "chat_groups",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "chat_groups_select_owner": {
+          "name": "chat_groups_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_groups\".\"user_id\" = auth.uid()"
+        },
+        "chat_groups_insert_owner": {
+          "name": "chat_groups_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"chat_groups\".\"user_id\" = auth.uid()"
+        },
+        "chat_groups_update_owner": {
+          "name": "chat_groups_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_groups\".\"user_id\" = auth.uid()",
+          "withCheck": "\"chat_groups\".\"user_id\" = auth.uid()"
+        },
+        "chat_groups_delete_owner": {
+          "name": "chat_groups_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_groups\".\"user_id\" = auth.uid()"
+        },
+        "chat_groups_service_all": {
+          "name": "chat_groups_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.chat_messages": {
+      "name": "chat_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "chat_group_id": {
+          "name": "chat_group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parts": {
+          "name": "parts",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "chat_messages_user_id_profiles_id_fk": {
+          "name": "chat_messages_user_id_profiles_id_fk",
+          "tableFrom": "chat_messages",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "chat_messages_chat_group_id_chat_groups_id_fk": {
+          "name": "chat_messages_chat_group_id_chat_groups_id_fk",
+          "tableFrom": "chat_messages",
+          "tableTo": "chat_groups",
+          "columnsFrom": [
+            "chat_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "chat_messages_select_owner": {
+          "name": "chat_messages_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_messages\".\"user_id\" = auth.uid()"
+        },
+        "chat_messages_insert_owner": {
+          "name": "chat_messages_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"chat_messages\".\"user_id\" = auth.uid()"
+        },
+        "chat_messages_update_owner": {
+          "name": "chat_messages_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_messages\".\"user_id\" = auth.uid()",
+          "withCheck": "\"chat_messages\".\"user_id\" = auth.uid()"
+        },
+        "chat_messages_delete_owner": {
+          "name": "chat_messages_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"chat_messages\".\"user_id\" = auth.uid()"
+        },
+        "chat_messages_service_all": {
+          "name": "chat_messages_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.events": {
+      "name": "events",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "calendar_id": {
+          "name": "calendar_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meeting_link": {
+          "name": "meeting_link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "events_user_id_profiles_id_fk": {
+          "name": "events_user_id_profiles_id_fk",
+          "tableFrom": "events",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "events_calendar_id_calendars_id_fk": {
+          "name": "events_calendar_id_calendars_id_fk",
+          "tableFrom": "events",
+          "tableTo": "calendars",
+          "columnsFrom": [
+            "calendar_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "events_select_owner": {
+          "name": "events_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"events\".\"user_id\" = auth.uid()"
+        },
+        "events_insert_owner": {
+          "name": "events_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"events\".\"user_id\" = auth.uid()"
+        },
+        "events_update_owner": {
+          "name": "events_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"events\".\"user_id\" = auth.uid()",
+          "withCheck": "\"events\".\"user_id\" = auth.uid()"
+        },
+        "events_delete_owner": {
+          "name": "events_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"events\".\"user_id\" = auth.uid()"
+        },
+        "events_service_all": {
+          "name": "events_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.folders": {
+      "name": "folders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_folder_id": {
+          "name": "parent_folder_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "folders_user_id_profiles_id_fk": {
+          "name": "folders_user_id_profiles_id_fk",
+          "tableFrom": "folders",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "folders_parent_folder_id_folders_id_fk": {
+          "name": "folders_parent_folder_id_folders_id_fk",
+          "tableFrom": "folders",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "parent_folder_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "folders_select_owner": {
+          "name": "folders_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"folders\".\"user_id\" = auth.uid()"
+        },
+        "folders_insert_owner": {
+          "name": "folders_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"folders\".\"user_id\" = auth.uid()"
+        },
+        "folders_update_owner": {
+          "name": "folders_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"folders\".\"user_id\" = auth.uid()",
+          "withCheck": "\"folders\".\"user_id\" = auth.uid()"
+        },
+        "folders_delete_owner": {
+          "name": "folders_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"folders\".\"user_id\" = auth.uid()"
+        },
+        "folders_service_all": {
+          "name": "folders_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.humans": {
+      "name": "humans",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "org_id": {
+          "name": "org_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "job_title": {
+          "name": "job_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "linkedin_username": {
+          "name": "linkedin_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "humans_select_owner": {
+          "name": "humans_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"humans\".\"user_id\" = auth.uid()"
+        },
+        "humans_insert_owner": {
+          "name": "humans_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"humans\".\"user_id\" = auth.uid()"
+        },
+        "humans_update_owner": {
+          "name": "humans_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"humans\".\"user_id\" = auth.uid()",
+          "withCheck": "\"humans\".\"user_id\" = auth.uid()"
+        },
+        "humans_delete_owner": {
+          "name": "humans_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"humans\".\"user_id\" = auth.uid()"
+        },
+        "humans_service_all": {
+          "name": "humans_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.mapping_session_participant": {
+      "name": "mapping_session_participant",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "human_id": {
+          "name": "human_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mapping_session_participant_user_id_profiles_id_fk": {
+          "name": "mapping_session_participant_user_id_profiles_id_fk",
+          "tableFrom": "mapping_session_participant",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "mapping_session_participant_session_id_sessions_id_fk": {
+          "name": "mapping_session_participant_session_id_sessions_id_fk",
+          "tableFrom": "mapping_session_participant",
+          "tableTo": "sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "mapping_session_participant_human_id_humans_id_fk": {
+          "name": "mapping_session_participant_human_id_humans_id_fk",
+          "tableFrom": "mapping_session_participant",
+          "tableTo": "humans",
+          "columnsFrom": [
+            "human_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "mapping_session_participant_select_owner": {
+          "name": "mapping_session_participant_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_session_participant\".\"user_id\" = auth.uid()"
+        },
+        "mapping_session_participant_insert_owner": {
+          "name": "mapping_session_participant_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"mapping_session_participant\".\"user_id\" = auth.uid()"
+        },
+        "mapping_session_participant_update_owner": {
+          "name": "mapping_session_participant_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_session_participant\".\"user_id\" = auth.uid()",
+          "withCheck": "\"mapping_session_participant\".\"user_id\" = auth.uid()"
+        },
+        "mapping_session_participant_delete_owner": {
+          "name": "mapping_session_participant_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_session_participant\".\"user_id\" = auth.uid()"
+        },
+        "mapping_session_participant_service_all": {
+          "name": "mapping_session_participant_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.mapping_tag_session": {
+      "name": "mapping_tag_session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mapping_tag_session_user_id_profiles_id_fk": {
+          "name": "mapping_tag_session_user_id_profiles_id_fk",
+          "tableFrom": "mapping_tag_session",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "mapping_tag_session_tag_id_tags_id_fk": {
+          "name": "mapping_tag_session_tag_id_tags_id_fk",
+          "tableFrom": "mapping_tag_session",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "mapping_tag_session_session_id_sessions_id_fk": {
+          "name": "mapping_tag_session_session_id_sessions_id_fk",
+          "tableFrom": "mapping_tag_session",
+          "tableTo": "sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "mapping_tag_session_select_owner": {
+          "name": "mapping_tag_session_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_tag_session\".\"user_id\" = auth.uid()"
+        },
+        "mapping_tag_session_insert_owner": {
+          "name": "mapping_tag_session_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"mapping_tag_session\".\"user_id\" = auth.uid()"
+        },
+        "mapping_tag_session_update_owner": {
+          "name": "mapping_tag_session_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_tag_session\".\"user_id\" = auth.uid()",
+          "withCheck": "\"mapping_tag_session\".\"user_id\" = auth.uid()"
+        },
+        "mapping_tag_session_delete_owner": {
+          "name": "mapping_tag_session_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"mapping_tag_session\".\"user_id\" = auth.uid()"
+        },
+        "mapping_tag_session_service_all": {
+          "name": "mapping_tag_session_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.organizations": {
+      "name": "organizations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organizations_user_id_profiles_id_fk": {
+          "name": "organizations_user_id_profiles_id_fk",
+          "tableFrom": "organizations",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "organizations_select_owner": {
+          "name": "organizations_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"organizations\".\"user_id\" = auth.uid()"
+        },
+        "organizations_insert_owner": {
+          "name": "organizations_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"organizations\".\"user_id\" = auth.uid()"
+        },
+        "organizations_update_owner": {
+          "name": "organizations_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"organizations\".\"user_id\" = auth.uid()",
+          "withCheck": "\"organizations\".\"user_id\" = auth.uid()"
+        },
+        "organizations_delete_owner": {
+          "name": "organizations_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"organizations\".\"user_id\" = auth.uid()"
+        },
+        "organizations_service_all": {
+          "name": "organizations_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.sessions": {
+      "name": "sessions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "folder_id": {
+          "name": "folder_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw_md": {
+          "name": "raw_md",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "enhanced_md": {
+          "name": "enhanced_md",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sessions_user_id_profiles_id_fk": {
+          "name": "sessions_user_id_profiles_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "sessions_folder_id_folders_id_fk": {
+          "name": "sessions_folder_id_folders_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "folder_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "sessions_select_owner": {
+          "name": "sessions_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"sessions\".\"user_id\" = auth.uid()"
+        },
+        "sessions_insert_owner": {
+          "name": "sessions_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"sessions\".\"user_id\" = auth.uid()"
+        },
+        "sessions_update_owner": {
+          "name": "sessions_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"sessions\".\"user_id\" = auth.uid()",
+          "withCheck": "\"sessions\".\"user_id\" = auth.uid()"
+        },
+        "sessions_delete_owner": {
+          "name": "sessions_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"sessions\".\"user_id\" = auth.uid()"
+        },
+        "sessions_service_all": {
+          "name": "sessions_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.tags": {
+      "name": "tags",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tags_user_id_profiles_id_fk": {
+          "name": "tags_user_id_profiles_id_fk",
+          "tableFrom": "tags",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "tags_select_owner": {
+          "name": "tags_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"tags\".\"user_id\" = auth.uid()"
+        },
+        "tags_insert_owner": {
+          "name": "tags_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"tags\".\"user_id\" = auth.uid()"
+        },
+        "tags_update_owner": {
+          "name": "tags_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"tags\".\"user_id\" = auth.uid()",
+          "withCheck": "\"tags\".\"user_id\" = auth.uid()"
+        },
+        "tags_delete_owner": {
+          "name": "tags_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"tags\".\"user_id\" = auth.uid()"
+        },
+        "tags_service_all": {
+          "name": "tags_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.templates": {
+      "name": "templates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sections": {
+          "name": "sections",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "templates_user_id_profiles_id_fk": {
+          "name": "templates_user_id_profiles_id_fk",
+          "tableFrom": "templates",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "templates_select_owner": {
+          "name": "templates_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"templates\".\"user_id\" = auth.uid()"
+        },
+        "templates_insert_owner": {
+          "name": "templates_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"templates\".\"user_id\" = auth.uid()"
+        },
+        "templates_update_owner": {
+          "name": "templates_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"templates\".\"user_id\" = auth.uid()",
+          "withCheck": "\"templates\".\"user_id\" = auth.uid()"
+        },
+        "templates_delete_owner": {
+          "name": "templates_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"templates\".\"user_id\" = auth.uid()"
+        },
+        "templates_service_all": {
+          "name": "templates_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.transcripts": {
+      "name": "transcripts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "transcripts_user_id_profiles_id_fk": {
+          "name": "transcripts_user_id_profiles_id_fk",
+          "tableFrom": "transcripts",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "transcripts_session_id_sessions_id_fk": {
+          "name": "transcripts_session_id_sessions_id_fk",
+          "tableFrom": "transcripts",
+          "tableTo": "sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "transcripts_select_owner": {
+          "name": "transcripts_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"transcripts\".\"user_id\" = auth.uid()"
+        },
+        "transcripts_insert_owner": {
+          "name": "transcripts_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"transcripts\".\"user_id\" = auth.uid()"
+        },
+        "transcripts_update_owner": {
+          "name": "transcripts_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"transcripts\".\"user_id\" = auth.uid()",
+          "withCheck": "\"transcripts\".\"user_id\" = auth.uid()"
+        },
+        "transcripts_delete_owner": {
+          "name": "transcripts_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"transcripts\".\"user_id\" = auth.uid()"
+        },
+        "transcripts_service_all": {
+          "name": "transcripts_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.words": {
+      "name": "words",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "transcript_id": {
+          "name": "transcript_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_ms": {
+          "name": "start_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_ms": {
+          "name": "end_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel": {
+          "name": "channel",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "words_user_id_profiles_id_fk": {
+          "name": "words_user_id_profiles_id_fk",
+          "tableFrom": "words",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "words_transcript_id_transcripts_id_fk": {
+          "name": "words_transcript_id_transcripts_id_fk",
+          "tableFrom": "words",
+          "tableTo": "transcripts",
+          "columnsFrom": [
+            "transcript_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "words_select_owner": {
+          "name": "words_select_owner",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"words\".\"user_id\" = auth.uid()"
+        },
+        "words_insert_owner": {
+          "name": "words_insert_owner",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "\"words\".\"user_id\" = auth.uid()"
+        },
+        "words_update_owner": {
+          "name": "words_update_owner",
+          "as": "PERMISSIVE",
+          "for": "UPDATE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"words\".\"user_id\" = auth.uid()",
+          "withCheck": "\"words\".\"user_id\" = auth.uid()"
+        },
+        "words_delete_owner": {
+          "name": "words_delete_owner",
+          "as": "PERMISSIVE",
+          "for": "DELETE",
+          "to": [
+            "authenticated"
+          ],
+          "using": "\"words\".\"user_id\" = auth.uid()"
+        },
+        "words_service_all": {
+          "name": "words_service_all",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "service_role"
+          ],
+          "using": "true",
+          "withCheck": "true"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

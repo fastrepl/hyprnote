@@ -39,7 +39,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         return;
       }
 
-      handleChange(editor.getHTML());
+      handleChange(editor.getMarkdown());
     };
 
     const editor = useEditor({

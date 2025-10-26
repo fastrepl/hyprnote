@@ -21,20 +21,20 @@ export const generateEnhancedMarkdown = () => {
   const sectionCount = faker.number.int({ min: 3, max: 8 });
 
   for (let i = 0; i < sectionCount; i++) {
+    const current = [];
     const heading = faker.lorem.sentence({ min: 2, max: 5 });
-    sections.push(`## ${heading}\n`);
+    current.push(`## ${heading}`);
 
     const bulletCount = faker.number.int({ min: 2, max: 5 });
     const bullets = faker.helpers.multiple(
       () => `- ${faker.lorem.sentence()}`,
       { count: bulletCount },
     );
-    sections.push(bullets.join("\n"));
-    sections.push("\n\n");
+    current.push(bullets.join("\n"));
+    sections.push(current.join("\n"));
   }
 
-  const mainHeading = faker.lorem.words({ min: 2, max: 4 });
-  return `# ${mainHeading}\n\n${sections.join("")}`;
+  return `${sections.join("\n\n")}`;
 };
 
 export const createSession = (eventId?: string, folderId?: string): { id: string; data: SessionStorage } => {

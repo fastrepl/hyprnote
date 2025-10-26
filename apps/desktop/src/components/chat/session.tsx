@@ -80,6 +80,7 @@ export function ChatSession({
   }, [initialMessages]);
 
   const persistedAssistantIds = useRef(new Set(initialAssistantMessages.map((message) => message.id)));
+  const prevMessagesRef = useRef<HyprUIMessage[]>(initialMessages);
 
   useEffect(() => {
     persistedAssistantIds.current = new Set(initialAssistantMessages.map((message) => message.id));
@@ -92,6 +93,28 @@ export function ChatSession({
     transport: transport ?? undefined,
     onError: console.error,
   });
+
+  useEffect(() => {
+    if (!chatGroupId || !store) {
+      prevMessagesRef.current = messages;
+      return;
+    }
+
+    const currentMessageIds = new Set(messages.map((m) => m.id));
+
+    for (const prevMessage of prevMessagesRef.current) {
+      if (
+        prevMessage.role === "assistant"
+        && persistedAssistantIds.current.has(prevMessage.id)
+        && !currentMessageIds.has(prevMessage.id)
+      ) {
+        store.delRow("chat_messages", prevMessage.id);
+        persistedAssistantIds.current.delete(prevMessage.id);
+      }
+    }
+
+    prevMessagesRef.current = messages;
+  }, [chatGroupId, messages, store]);
 
   useEffect(() => {
     if (!chatGroupId || status !== "ready") {

@@ -89,8 +89,26 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
 }
 
 function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
+  const components = {
+    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+      return <h2 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h2>;
+    },
+    ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
+      return <ul className="list-disc list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ul>;
+    },
+    ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
+      return <ol className="list-decimal list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ol>;
+    },
+    li: (props: React.HTMLAttributes<HTMLLIElement>) => {
+      return <li className="list-item">{props.children as React.ReactNode}</li>;
+    },
+  } as const;
+
   return (
-    <Streamdown className="prose prose-sm dark:prose-invert max-w-none">
+    <Streamdown
+      components={components}
+      className="px-0.5 py-1"
+    >
       {part.text}
     </Streamdown>
   );

@@ -3,7 +3,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 
-import { MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
+import { PaperclipIcon, SendIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useShell } from "../../contexts/shell";
@@ -67,6 +67,10 @@ export function ChatMessageInput({
     }
   }, [handleSubmit]);
 
+  useEffect(() => {
+    editorRef.current?.editor?.commands.focus();
+  }, []);
+
   return (
     <div
       className={cn([chat.mode !== "RightPanelOpen" && "p-1"])}
@@ -74,13 +78,13 @@ export function ChatMessageInput({
       <div
         className={cn([
           "flex flex-col border border-neutral-200 rounded-xl",
-          "focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500",
           chat.mode === "RightPanelOpen" && "rounded-t-none border-t-0",
         ])}
       >
-        <div className="flex-1 px-2 pt-2">
+        <div className="flex-1 p-2">
           <Editor
             ref={editorRef}
+            placeholderComponent={() => <p className="text-sm text-neutral-400">Ask me anything...</p>}
             handleChange={() => {}}
             initialContent=""
             editable={!disabled}
@@ -126,14 +130,6 @@ export function ChatMessageInput({
           </div>
 
           <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-neutral-400"
-            >
-              <MicIcon size={16} />
-            </Button>
-
             <Button
               onClick={handleSubmit}
               disabled={disabled}

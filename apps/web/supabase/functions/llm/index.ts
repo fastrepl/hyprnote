@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
   const needsToolCalling = requestBody.tools && requestBody.tool_choice !== "none";
 
   const modelsToUse = needsToolCalling
-    ? ["anthropic/claude-haiku-4.5", "z-ai/glm-4.6"]
-    : ["openai/chatgpt-4o-latest", "moonshotai/kimi-k2-0905"];
+    ? ["anthropic/claude-haiku-4.5", "openai/gpt-oss-120b:nitro"]
+    : ["openai/chatgpt-4o-latest", "moonshotai/kimi-k2-0905:nitro"];
 
   const { model: _, ...bodyWithoutModel } = requestBody;
 

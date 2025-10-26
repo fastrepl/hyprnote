@@ -36,8 +36,18 @@ function Component() {
         }
 
         if (!row.title && !row.raw_md && !row.enhanced_md) {
-          invalidateResource("sessions", tab.id);
-          persistedStore.delRow("sessions", tab.id);
+          let hasTranscript = false;
+          persistedStore.forEachRow("transcripts", (transcriptId, _forEachCell) => {
+            const sessionId = persistedStore.getCell("transcripts", transcriptId, "session_id");
+            if (sessionId === tab.id) {
+              hasTranscript = true;
+            }
+          });
+
+          if (!hasTranscript) {
+            invalidateResource("sessions", tab.id);
+            persistedStore.delRow("sessions", tab.id);
+          }
         }
       }
     });

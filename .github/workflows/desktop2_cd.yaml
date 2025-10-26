@@ -25,9 +25,6 @@ jobs:
           - platform: "macos"
             target: "aarch64-apple-darwin"
             runner: "macos-14"
-          - platform: "windows"
-            target: "x86_64-pc-windows-msvc"
-            runner: "windows-latest"
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
@@ -82,6 +79,8 @@ jobs:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AM_API_KEY: ${{ secrets.AM_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
@@ -94,11 +93,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       - run: |
           mkdir -p target/release/
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            find target/${{ matrix.target }}/release -type f ! -name ".*" -exec cp {} target/release/ \;
-          else
-            find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
-          fi
+          find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
       - if: ${{ env.RELEASE_CHANNEL != 'staging' }}

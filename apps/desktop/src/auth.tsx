@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { load } from "@tauri-apps/plugin-store";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import { env } from "./env";
 
@@ -25,8 +25,8 @@ const tauriStorage: SupportedStorage = {
   },
 };
 
-const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY
-  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
+const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
+  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, {
     auth: {
       storage: tauriStorage,
       autoRefreshToken: true,
@@ -41,30 +41,41 @@ const AuthContext = createContext<
   {
     supabase: SupabaseClient | null;
     session: Session | null;
-    apiClient: ReturnType<typeof buildApiClient> | null;
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
+    handleAuthCallback: (url: string) => Promise<void>;
+    getHeaders: () => Record<string, string> | null;
+    getAvatarUrl: () => Promise<string>;
   } | null
 >(null);
 
-const buildApiClient = (session: Session) => {
-  const base = "http://localhost:3000";
-  const apiClient = {
-    syncWrite: (changes: any) => {
-      return fetch(`${base}/v1/write`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
-        body: JSON.stringify(changes),
-      });
-    },
-  };
-
-  return apiClient;
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [apiClient, setApiClient] = useState<ReturnType<typeof buildApiClient> | null>(null);
+
+  const handleAuthCallback = async (url: string) => {
+    if (!supabase) {
+      console.error("Supabase client not found");
+      return;
+    }
+
+    const parsed = new URL(url);
+    const accessToken = parsed.searchParams.get("access_token");
+    const refreshToken = parsed.searchParams.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      console.error("invalid_callback_url");
+      return;
+    }
+
+    const res = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (res.error) {
+      console.error(res.error);
+    }
+  };
 
   useEffect(() => {
     if (!supabase) {
@@ -81,15 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     onOpenUrl(([url]) => {
-      const parsed = new URL(url);
-      const accessToken = parsed.searchParams.get("access_token");
-      const refreshToken = parsed.searchParams.get("refresh_token");
-      if (accessToken && refreshToken) {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-      }
+      handleAuthCallback(url);
     });
   }, []);
 
@@ -113,14 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!session) {
-      setApiClient(null);
-    } else {
-      setApiClient(buildApiClient(session));
-    }
-  }, [session]);
-
   const signIn = async () => {
     await openUrl("http://localhost:3000/auth?flow=desktop");
   };
@@ -136,12 +131,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getHeaders = useCallback(() => {
+    if (!session) {
+      return null;
+    }
+
+    return { "Authorization": `${session.token_type} ${session.access_token}` };
+  }, [session]);
+
+  const getAvatarUrl = useCallback(async () => {
+    const email = session?.user.email;
+
+    if (!email) {
+      return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e0e0e0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='48' fill='%23666'%3E%3F%3C/text%3E%3C/svg%3E";
+    }
+
+    const address = email.trim().toLowerCase();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(address);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    return `https://gravatar.com/avatar/${hash}`;
+  }, [session]);
+
   const value = {
     session,
     supabase,
-    apiClient,
     signIn,
     signOut,
+    handleAuthCallback,
+    getHeaders,
+    getAvatarUrl,
   };
 
   return (

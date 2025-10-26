@@ -1,15 +1,16 @@
-import { Calendar, ChevronUpIcon, FolderOpen, LogIn, LogOut, Settings, User, Users, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CalendarIcon, ChevronUpIcon, FolderOpenIcon, SettingsIcon, UserIcon, UsersIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
+import { AuthSection } from "./auth";
 import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
@@ -32,8 +33,7 @@ export function ProfileSection() {
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
-    closeMenu();
-  }, [auth, closeMenu]);
+  }, [auth]);
 
   const handleSignOut = useCallback(async () => {
     await auth?.signOut();
@@ -92,15 +92,6 @@ export function ProfileSection() {
     closeMenu();
   }, [closeMenu]);
 
-  // TODO - why is this not working as intended
-  const handleClickBilling = useCallback(() => {
-    console.log("handleClickBilling");
-    windowsCommands.windowShow({ type: "settings" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "settings" }, { path: "/app/settings", search: { tab: "billing" } });
-    });
-    closeMenu();
-  }, [closeMenu]);
-
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null });
     closeMenu();
@@ -143,12 +134,12 @@ export function ProfileSection() {
   }, [openNew, closeMenu]);
 
   const menuItems = [
-    { icon: FolderOpen, label: "Folders", onClick: handleClickFolders },
-    { icon: Users, label: "Contacts", onClick: handleClickContacts },
-    { icon: Calendar, label: "Calendar", onClick: handleClickCalendar },
-    { icon: User, label: "My Profile", onClick: handleClickProfile },
+    { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
+    { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
+    { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
+    { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
     {
-      icon: Settings,
+      icon: SettingsIcon,
       label: "Settings",
       onClick: handleClickSettings,
       badge: (
@@ -191,7 +182,7 @@ export function ProfileSection() {
 
                         {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
 
-                        <AuthUI
+                        <AuthSection
                           isAuthenticated={isAuthenticated}
                           onSignIn={handleSignIn}
                           onSignOut={handleSignOut}
@@ -219,9 +210,9 @@ export function ProfileSection() {
 
       <div className="bg-neutral-50 rounded-lg overflow-hidden">
         <ProfileButton
+          name={auth?.session?.user?.email}
           isExpanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}
-          onClickBilling={handleClickBilling}
         />
       </div>
     </div>
@@ -229,8 +220,26 @@ export function ProfileSection() {
 }
 
 function ProfileButton(
-  { isExpanded, onClick, onClickBilling }: { isExpanded: boolean; onClick: () => void; onClickBilling: () => void },
+  {
+    name,
+    isExpanded,
+    onClick,
+  }: {
+    name?: string;
+    isExpanded: boolean;
+    onClick: () => void;
+  },
 ) {
+  const auth = useAuth();
+
+  const profile = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const avatarUrl = await auth?.getAvatarUrl();
+      return avatarUrl;
+    },
+  });
+
   return (
     <button
       className={cn(
@@ -254,36 +263,15 @@ function ProfileButton(
         )}
       >
         <img
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed=JohnJeong"
+          src={profile.data ?? ""}
           alt="Profile"
           className="h-full w-full rounded-full"
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-black truncate">John Jeong</div>
+        <div className="text-sm text-black truncate">{name ?? "Unknown"}</div>
       </div>
       <div className="flex items-center gap-1.5">
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            onClickBilling();
-          }}
-          className={cn(
-            [
-              "hidden md:inline-block",
-              "cursor-pointer",
-              "rounded-full",
-              "border border-neutral-900",
-              "bg-white",
-              "px-2.5 py-0.5",
-              "text-[11px] font-medium text-neutral-900",
-              "transition-colors duration-200",
-              "hover:bg-neutral-100",
-            ],
-          )}
-        >
-          Pro trial
-        </span>
         <ChevronUpIcon
           className={cn(
             "h-4 w-4",
@@ -293,107 +281,5 @@ function ProfileButton(
         />
       </div>
     </button>
-  );
-}
-
-function AuthUI({
-  isAuthenticated,
-  onSignIn,
-  onSignOut,
-}: {
-  isAuthenticated: boolean;
-  onSignIn: () => void;
-  onSignOut: () => void;
-}) {
-  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
-
-  if (isAuthenticated) {
-    return (
-      <div className="px-1 py-2">
-        <Button onClick={onSignOut} variant="outline" className="w-full">
-          <LogOut className="w-4 h-4 mr-2" />
-          Log out
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <TryProBanner
-        isDismissed={isBannerDismissed}
-        onDismiss={() => setIsBannerDismissed(true)}
-        onSignIn={onSignIn}
-      />
-      {isBannerDismissed && (
-        <div className="px-1 py-2">
-          <Button onClick={onSignIn} variant="default" className="w-full">
-            <LogIn className="w-4 h-4 mr-2" />
-            Sign in
-          </Button>
-        </div>
-      )}
-    </>
-  );
-}
-
-function TryProBanner({
-  isDismissed,
-  onDismiss,
-  onSignIn,
-}: {
-  isDismissed: boolean;
-  onDismiss: () => void;
-  onSignIn: () => void;
-}) {
-  return (
-    <AnimatePresence mode="wait">
-      {!isDismissed && (
-        <motion.div
-          initial={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
-          animate={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
-          exit={{
-            opacity: 0,
-            height: 0,
-            y: 20,
-            transition: { duration: 0.3, ease: "easeInOut" },
-          }}
-          className={cn(["overflow-hidden", "px-1 py-2"])}
-        >
-          <div
-            className={cn([
-              "relative group overflow-hidden rounded-lg",
-              "flex flex-col gap-3",
-              "bg-white border border-neutral-200 shadow-sm p-4",
-            ])}
-          >
-            <Button
-              onClick={onDismiss}
-              size="icon"
-              variant="ghost"
-              aria-label="Dismiss banner"
-              className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-
-            <div className="flex items-center gap-4">
-              <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-6" />
-              <h3 className="text-lg font-bold text-neutral-900">
-                Try Hyprnote Pro
-              </h3>
-            </div>
-
-            <p className="text-sm">
-              Sign up now and experience smarter meetings with a 1-week free trial of Hyprnote Pro.
-            </p>
-
-            <Button onClick={onSignIn} className="w-full">
-              Start 1 week Free Trial
-            </Button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }

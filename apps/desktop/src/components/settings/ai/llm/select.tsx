@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
+import { useAuth } from "../../../../auth";
 import * as internal from "../../../../store/tinybase/internal";
 import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";
@@ -120,11 +121,23 @@ export function SelectProviderAndModel() {
 }
 
 function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)> {
+  const auth = useAuth();
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
 
   const mapping = useMemo(() => {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
+        if (provider.id === "hyprnote") {
+          if (!auth?.session) {
+            return [provider.id, null];
+          }
+
+          return [
+            provider.id,
+            async () => ["auto"],
+          ];
+        }
+
         if (
           !configuredProviders[provider.id]
           || !configuredProviders[provider.id]?.base_url
@@ -141,7 +154,7 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)
         ];
       }),
     ) as Record<string, null | (() => Promise<string[]>)>;
-  }, [configuredProviders]);
+  }, [configuredProviders, auth]);
 
   return mapping;
 }

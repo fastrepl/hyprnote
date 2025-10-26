@@ -103,6 +103,7 @@ mod tests {
                 context_option: Some(
                     r#"{"type":"tags","selections":["Meeting","Project A"]}"#.to_string(),
                 ),
+                created_at: Template::default_created_at(),
             })
             .await
             .unwrap();

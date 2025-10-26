@@ -62,7 +62,7 @@ impl ListenClientBuilder {
             if !path.ends_with('/') {
                 path.push('/');
             }
-            path.push_str("v1/listen");
+            path.push_str("listen");
             url.set_path(&path);
         }
 
@@ -104,7 +104,7 @@ impl ListenClientBuilder {
 
             query_pairs
                 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#request.query
-                .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
+                .append_pair("model", params.model.as_deref().unwrap_or("hypr-whisper"))
                 .append_pair("channels", &channels.to_string())
                 .append_pair("filler_words", "false")
                 .append_pair("interim_results", "true")
@@ -123,6 +123,18 @@ impl ListenClientBuilder {
                 "redemption_time_ms",
                 &params.redemption_time_ms.unwrap_or(400).to_string(),
             );
+
+            let use_keyterms = params
+                .model
+                .as_ref()
+                .map(|model| model.contains("nova-3"))
+                .unwrap_or(false);
+
+            let param_name = if use_keyterms { "keyterm" } else { "keywords" };
+
+            for keyword in &params.keywords {
+                query_pairs.append_pair(param_name, keyword);
+            }
         }
 
         let host = url.host_str().unwrap();
@@ -292,7 +304,7 @@ mod tests {
         ));
 
         let client = ListenClient::builder()
-            .api_base("https://api.deepgram.com")
+            .api_base("https://api.deepgram.com/v1")
             .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
             .params(owhisper_interface::ListenParams {
                 model: Some("nova-3".to_string()),
@@ -331,7 +343,7 @@ mod tests {
         let input = audio.map(|chunk| ListenClientInput::Audio(chunk));
 
         let client = ListenClient::builder()
-            .api_base("ws://127.0.0.1:52693")
+            .api_base("ws://127.0.0.1:52693/v1")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
                 model: Some("whisper-cpp-small-q8".to_string()),
@@ -402,7 +414,7 @@ mod tests {
             .map(|(mic, speaker)| ListenClientDualInput::Audio((mic, speaker)));
 
         let client = ListenClient::builder()
-            .api_base("ws://localhost:50060")
+            .api_base("ws://localhost:50060/v1")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
                 model: Some("tiny.en".to_string()),

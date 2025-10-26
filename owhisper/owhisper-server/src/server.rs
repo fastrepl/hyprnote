@@ -414,7 +414,7 @@ mod tests {
         let addr = start().await;
 
         let client = ListenClient::builder()
-            .api_base(format!("http://{}", addr))
+            .api_base(format!("http://{}/v1", addr))
             .params(ListenParams {
                 model: Some("whisper_cpp".to_string()),
                 ..Default::default()

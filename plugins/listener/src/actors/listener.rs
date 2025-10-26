@@ -30,6 +30,7 @@ pub struct ListenerArgs {
     pub model: String,
     pub base_url: String,
     pub api_key: String,
+    pub keywords: Vec<String>,
 }
 
 pub struct ListenerState {
@@ -159,6 +160,7 @@ async fn spawn_rx_task(
             model: Some(args.model),
             languages: args.languages,
             redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
+            keywords: args.keywords,
             ..Default::default()
         })
         .build_dual();

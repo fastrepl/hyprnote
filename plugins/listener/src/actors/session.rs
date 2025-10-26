@@ -34,6 +34,7 @@ pub struct SessionParams {
     pub model: String,
     pub base_url: String,
     pub api_key: String,
+    pub keywords: Vec<String>,
 }
 
 pub struct SessionArgs {
@@ -344,6 +345,7 @@ impl SessionActor {
                 model: session_state.params.model.clone(),
                 base_url: session_state.params.base_url.clone(),
                 api_key: session_state.params.api_key.clone(),
+                keywords: session_state.params.keywords.clone(),
             }),
             supervisor,
         )

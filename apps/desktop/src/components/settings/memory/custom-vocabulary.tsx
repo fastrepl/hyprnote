@@ -22,16 +22,7 @@ export function CustomVocabularyView({ value: _value, onChange: _onChange }: Cus
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formVocabulary, setFormVocabulary] = useState<Array<{ text: string; rowId: string }>>([]);
 
-  const vocabRowIds = UI.useResultRowIds(QUERIES.visibleVocabs, STORE_ID);
-
-  const vocabItems = useMemo(() => {
-    return vocabRowIds
-      .map((rowId) => ({
-        rowId,
-        text: store?.getCell("memories", rowId, "text") as string,
-      }))
-      .filter((item) => item.text);
-  }, [vocabRowIds, store]);
+  const vocabItems = useVocabs();
 
   const form = useForm({
     defaultValues: {
@@ -99,15 +90,6 @@ export function CustomVocabularyView({ value: _value, onChange: _onChange }: Cus
 
   return (
     <div>
-      <form.Subscribe
-        selector={(state) => state.values.vocabulary}
-        children={(vocabulary) => {
-          if (vocabulary && JSON.stringify(vocabulary) !== JSON.stringify(formVocabulary)) {
-            setFormVocabulary(vocabulary);
-          }
-          return null;
-        }}
-      />
       <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
       <p className="text-xs text-neutral-600 mb-3">
         Add jargons or industry/company-specific terms to improve transcription accuracy
@@ -206,6 +188,16 @@ export function CustomVocabularyView({ value: _value, onChange: _onChange }: Cus
       </div>
     </div>
   );
+}
+
+function useVocabs() {
+  const table = UI.useResultTable(QUERIES.visibleVocabs, STORE_ID);
+  const ret = useMemo(() => {
+    return Object.entries(table).map((
+      [rowId, { text }],
+    ) => ({ rowId, text } as { rowId: string; text: string }));
+  }, [table]);
+  return ret;
 }
 
 interface VocabularyItemProps {

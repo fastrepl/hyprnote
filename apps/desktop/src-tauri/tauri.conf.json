@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "version": "0.0.1",
-  "productName": "Hyprnote2 Dev",
-  "mainBinaryName": "Hyprnote2 Dev",
-  "identifier": "com.hyprnote2.dev",
+  "productName": "Hyprnote Dev",
+  "mainBinaryName": "Hyprnote Dev",
+  "identifier": "com.hyprnote.dev",
   "build": {
     "beforeDevCommand": "pnpm -F desktop dev",
     "devUrl": "http://localhost:1422",

@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { getSupabaseServerClient } from "@/functions/supabase";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const validateSearch = z.object({
   code: z.string().optional(),
@@ -11,7 +11,7 @@ const validateSearch = z.object({
   refresh_token: z.string().optional(),
 });
 
-export const Route = createFileRoute("/callback/auth")({
+export const Route = createFileRoute("/_view/callback/auth")({
   validateSearch,
   component: Component,
   beforeLoad: async ({ search }) => {
@@ -44,6 +44,18 @@ export const Route = createFileRoute("/callback/auth")({
 
 function Component() {
   const search = Route.useSearch();
+  const [attempted, setAttempted] = useState(false);
+
+  const handleDeeplink = () => {
+    if (search.flow === "desktop" && search.access_token && search.refresh_token) {
+      const params = new URLSearchParams();
+      params.set("access_token", search.access_token);
+      params.set("refresh_token", search.refresh_token);
+      const deeplink = "hypr://auth/callback?" + params.toString();
+      window.location.href = deeplink;
+      setAttempted(true);
+    }
+  };
 
   useEffect(() => {
     if (search.flow === "web") {
@@ -51,23 +63,39 @@ function Component() {
     }
 
     if (search.flow === "desktop" && search.access_token && search.refresh_token) {
-      const accessToken = search.access_token!;
-      const refreshToken = search.refresh_token!;
       setTimeout(() => {
-        const params = new URLSearchParams();
-        params.set("access_token", accessToken);
-        params.set("refresh_token", refreshToken);
-        const deeplink = "hypr://auth/callback?" + params.toString();
-        window.location.href = deeplink;
-      }, 1500);
+        handleDeeplink();
+      }, 2000);
     }
   }, [search]);
 
   if (search.flow === "desktop") {
     return (
-      <div>
-        <p>Desktop</p>
-        <p>Authenticating...</p>
+      <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white flex items-start justify-center pt-32">
+        <div className="max-w-md mx-auto px-6 text-center space-y-6">
+          <div className="space-y-3">
+            <h1 className="text-3xl font-serif tracking-tight text-stone-600">
+              Redirecting to Hyprnote app...
+            </h1>
+            <p className="text-neutral-600">
+              Please allow the popup to open Hyprnote
+            </p>
+          </div>
+
+          {attempted && (
+            <div className="pt-8 space-y-2">
+              <p className="text-sm text-neutral-600">
+                Popup didn't appear?
+              </p>
+              <button
+                onClick={handleDeeplink}
+                className="px-6 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg transition-colors font-medium"
+              >
+                Click here to retry
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

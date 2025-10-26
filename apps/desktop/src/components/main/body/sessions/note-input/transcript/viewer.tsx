@@ -61,53 +61,59 @@ function Renderer({ wordsByChannel }: { wordsByChannel: Map<number, MaybePartial
   );
 }
 
+export function mergeWordsByChannel(
+  finalWords: Record<string, persisted.Word>,
+  partialWords: Record<string, Array<{ text: string; start_ms: number; end_ms: number; channel: number }>>,
+): Map<number, MaybePartialWord[]> {
+  const channels = new Map<number, MaybePartialWord[]>();
+
+  Object.values(finalWords).forEach((word) => {
+    const channelWords = channels.get(word.channel) ?? [];
+    channelWords.push({
+      text: word.text,
+      start_ms: word.start_ms,
+      end_ms: word.end_ms,
+      channel: word.channel,
+      isFinal: true,
+    });
+    channels.set(word.channel, channelWords);
+  });
+
+  Object.values(partialWords).flat().forEach((word) => {
+    const channelWords = channels.get(word.channel) ?? [];
+    channelWords.push({
+      text: word.text,
+      start_ms: word.start_ms,
+      end_ms: word.end_ms,
+      channel: word.channel,
+      isFinal: false,
+    });
+    channels.set(word.channel, channelWords);
+  });
+
+  channels.forEach((words, channel) => {
+    channels.set(
+      channel,
+      words.sort((a, b) => a.start_ms - b.start_ms),
+    );
+  });
+
+  return channels;
+}
+
 function useMergedWordsByChannel(
   finalWords: Record<string, persisted.Word>,
   partialWords: Record<string, Array<{ text: string; start_ms: number; end_ms: number; channel: number }>>,
 ) {
-  return useMemo(() => {
-    const channels = new Map<number, MaybePartialWord[]>();
-
-    Object.values(finalWords).forEach((word) => {
-      const channelWords = channels.get(word.channel) ?? [];
-      channelWords.push({
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        isFinal: true,
-      });
-      channels.set(word.channel, channelWords);
-    });
-
-    Object.entries(partialWords).forEach(([channelStr, words]) => {
-      const channel = Number(channelStr);
-      const channelWords = channels.get(channel) ?? [];
-      words.forEach((word) => {
-        channelWords.push({
-          text: word.text,
-          start_ms: word.start_ms,
-          end_ms: word.end_ms,
-          channel: word.channel,
-          isFinal: false,
-        });
-      });
-      channels.set(channel, channelWords);
-    });
-
-    channels.forEach((words, channel) => {
-      channels.set(
-        channel,
-        words.sort((a, b) => a.start_ms - b.start_ms),
-      );
-    });
-
-    return channels;
-  }, [finalWords, partialWords]);
+  return useMemo(
+    () => mergeWordsByChannel(finalWords, partialWords),
+    [finalWords, partialWords],
+  );
 }
 
 function usePartialWords() {
-  return useListener((state) => state.partialWordsByChannel);
+  const result = useListener((state) => state.partialWordsByChannel);
+  return result;
 }
 
 function useFinalWords(sessionId: string) {

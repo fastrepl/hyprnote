@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import { FloatingButton, formatTime } from "./shared";
@@ -116,33 +115,20 @@ function StartButton({
   warningMessage: string;
   onClick: () => void;
 }) {
-  const button = (
+  return (
     <FloatingButton
       onClick={onClick}
       icon={icon}
       disabled={disabled}
+      tooltip={warningMessage
+        ? {
+          content: <p>{warningMessage}</p>,
+          side: "top",
+        }
+        : undefined}
     >
       {text}
     </FloatingButton>
-  );
-
-  if (!warningMessage) {
-    return button;
-  }
-
-  return (
-    <TooltipProvider delayDuration={0}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-block">
-            {button}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          <p>{warningMessage}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 }
 

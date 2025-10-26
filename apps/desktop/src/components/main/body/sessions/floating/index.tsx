@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
+
 import { useListener } from "../../../../../contexts/listener";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
 
@@ -10,25 +12,27 @@ import { PlaybackButton } from "./playback";
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const active = useListener((state) => state.status === "running_active");
 
+  let button: ReactNode | null = null;
+
   if (active || tab.state.editor === "raw") {
-    return (
-      <FloatingButtonContainer>
-        <ListenButton tab={tab} />
-      </FloatingButtonContainer>
-    );
+    button = <ListenButton tab={tab} />;
   } else if (tab.state.editor === "enhanced") {
-    return (
-      <FloatingButtonContainer>
-        <GenerateButton sessionId={tab.id} />
-      </FloatingButtonContainer>
-    );
+    button = <GenerateButton sessionId={tab.id} />;
   } else if (tab.state.editor === "transcript") {
-    return (
-      <FloatingButtonContainer>
-        <PlaybackButton />
-      </FloatingButtonContainer>
-    );
+    button = <PlaybackButton sessionId={tab.id} />;
   }
+
+  if (!button) {
+    return null;
+  }
+
+  return (
+    <TooltipProvider>
+      <FloatingButtonContainer>
+        {button}
+      </FloatingButtonContainer>
+    </TooltipProvider>
+  );
 }
 
 function FloatingButtonContainer({ children }: { children: ReactNode }) {

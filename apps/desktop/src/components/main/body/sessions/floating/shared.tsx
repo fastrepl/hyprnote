@@ -1,6 +1,7 @@
 import { Button } from "@hypr/ui/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 
-import { type ReactNode } from "react";
+import { type ComponentProps, type ReactNode } from "react";
 
 export function FloatingButton({
   icon,
@@ -9,6 +10,7 @@ export function FloatingButton({
   onMouseEnter,
   onMouseLeave,
   disabled,
+  tooltip,
 }: {
   icon?: ReactNode;
   children: ReactNode;
@@ -16,8 +18,14 @@ export function FloatingButton({
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   disabled?: boolean;
+  tooltip?: {
+    content: ReactNode;
+    side?: ComponentProps<typeof TooltipContent>["side"];
+    align?: ComponentProps<typeof TooltipContent>["align"];
+    delayDuration?: number;
+  };
 }) {
-  return (
+  const button = (
     <Button
       size="lg"
       className="rounded-lg"
@@ -29,6 +37,21 @@ export function FloatingButton({
       {icon}
       {children}
     </Button>
+  );
+
+  if (!tooltip) {
+    return button;
+  }
+
+  return (
+    <Tooltip delayDuration={tooltip.delayDuration ?? 0}>
+      <TooltipTrigger asChild>
+        <span className="inline-block">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent side={tooltip.side ?? "top"} align={tooltip.align}>
+        {tooltip.content}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -78,3 +78,62 @@ pub const JS_INIT_SCRIPT: &str = r#"
     initConsoleOverride();
 })();
 "#;
+
+#[cfg(test)]
+mod tests {
+    use rquickjs::{Context, Runtime};
+
+    fn setup_runtime() -> (Runtime, Context) {
+        let runtime = Runtime::new().unwrap();
+        let context = Context::full(&runtime).unwrap();
+        context.with(|_ctx| {});
+        (runtime, context)
+    }
+
+    #[test]
+    fn test_js_init_script() {
+        let (_rt, ctx) = setup_runtime();
+        ctx.with(|ctx| {
+            let setup = r#"
+                globalThis.window = globalThis;
+                globalThis.setTimeout = function(fn, delay) { fn(); };
+                
+                if (typeof globalThis.console === 'undefined') {
+                    globalThis.console = {
+                        log: function() {},
+                        debug: function() {},
+                        info: function() {},
+                        warn: function() {},
+                        error: function() {}
+                    };
+                }
+                
+                globalThis.window.__TAURI__ = {
+                    core: {
+                        invoke: function() { return Promise.resolve(); }
+                    }
+                };
+            "#;
+            ctx.eval::<(), _>(setup).unwrap();
+            ctx.eval::<(), _>(super::JS_INIT_SCRIPT).unwrap();
+
+            let console_methods_exist: bool = ctx
+                .eval(
+                    r#"
+                    typeof console !== 'undefined' && 
+                    typeof console.log === 'function' &&
+                    typeof console.debug === 'function' &&
+                    typeof console.info === 'function' &&
+                    typeof console.warn === 'function' &&
+                    typeof console.error === 'function'
+                "#,
+                )
+                .unwrap();
+
+            assert!(
+                console_methods_exist,
+                "All console methods should be defined"
+            );
+        });
+    }
+}

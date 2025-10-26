@@ -27,23 +27,23 @@ function Header() {
               to="/"
               className="font-semibold text-2xl font-serif hover:scale-105 transition-transform"
             >
-              Hyprnote
+              <img src="/hyprnote-logo.svg" alt="Hyprnote" className="h-6" />
             </Link>
             <a
               href="https://docs.hyprnote.com"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-colors"
+              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
             >
               Docs
             </a>
             <Link
               to="/blog"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-colors"
+              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
             >
               Blog
             </Link>
             <Link
               to="/pricing"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-colors"
+              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
             >
               Pricing
             </Link>
@@ -72,7 +72,7 @@ function HeaderUser() {
     return (
       <Link
         to="/app/account"
-        className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+        className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
       >
         Account
       </Link>
@@ -83,7 +83,7 @@ function HeaderUser() {
     <Link
       to="/auth"
       search={{ flow: "web" }}
-      className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+      className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
     >
       Get Started
     </Link>

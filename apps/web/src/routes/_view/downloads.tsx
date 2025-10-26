@@ -58,7 +58,7 @@ function DownloadCard({
   return (
     <a
       href={downloadUrl}
-      className="group flex items-center justify-between p-6 rounded-xl border border-neutral-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200"
+      className="group flex items-center justify-between p-6 rounded-xl border border-neutral-100 hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200"
     >
       <div className="flex items-center gap-4 text-left">
         <span className="text-4xl">{icon}</span>

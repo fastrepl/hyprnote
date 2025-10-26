@@ -136,6 +136,7 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
   });
 
   return (
+
     <>
       <form
         onSubmit={(e) => {
@@ -192,6 +193,7 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
   );
 }
 
+
 function OAuthButton({ flow, provider }: { flow: "desktop" | "web"; provider: "google" | "github" }) {
   const oauthMutation = useMutation({
     mutationFn: (provider: "google" | "github") =>
@@ -208,7 +210,6 @@ function OAuthButton({ flow, provider }: { flow: "desktop" | "web"; provider: "g
       }
     },
   });
-
   return (
     <button
       onClick={() => oauthMutation.mutate(provider)}

@@ -15,7 +15,6 @@ export function SettingsGeneral() {
     (row: Partial<internal.General>) => ({
       ...row,
       spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
-      jargons: row.jargons ? JSON.stringify(row.jargons) : undefined,
     } satisfies Partial<internal.GeneralStorage>),
     [],
     internal.STORE_ID,
@@ -29,7 +28,6 @@ export function SettingsGeneral() {
       telemetry_consent: value.telemetry_consent ?? false,
       ai_language: value.ai_language ?? "English",
       spoken_languages: value.spoken_languages ?? [],
-      jargons: value.jargons ?? [],
     },
     listeners: {
       onChange: ({ formApi }) => {

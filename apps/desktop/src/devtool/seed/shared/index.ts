@@ -10,6 +10,7 @@ import type {
   Human,
   mappingSessionParticipant,
   MappingTagSession,
+  MemoryStorage,
   Organization,
   SessionStorage,
   Tag,
@@ -25,6 +26,7 @@ import { createEvent } from "./event";
 import { createFolder } from "./folder";
 import { createHuman } from "./human";
 import { createmappingSessionParticipant, createMappingTagSession } from "./mapping";
+import { createMemory } from "./memory";
 import { createOrganization } from "./organization";
 import { createSession } from "./session";
 import { createTag } from "./tag";
@@ -37,6 +39,7 @@ export { createEvent } from "./event";
 export { createFolder } from "./folder";
 export { createHuman } from "./human";
 export { createmappingSessionParticipant, createMappingTagSession } from "./mapping";
+export { createMemory } from "./memory";
 export { createOrganization } from "./organization";
 export { createSession, generateEnhancedMarkdown } from "./session";
 export { createTag } from "./tag";
@@ -72,6 +75,7 @@ export const generateMockData = (config: MockConfig) => {
   const templates: Record<string, TemplateStorage> = {};
   const chat_groups: Record<string, ChatGroup> = {};
   const chat_messages: Record<string, ChatMessageStorage> = {};
+  const memories: Record<string, MemoryStorage> = {};
 
   const orgIds = Array.from({ length: config.organizations }, () => {
     const org = createOrganization();
@@ -236,6 +240,12 @@ export const generateMockData = (config: MockConfig) => {
     });
   });
 
+  Array.from({ length: 8 }, () => {
+    const term = faker.word.words({ count: { min: 1, max: 2 } });
+    const memory = createMemory("vocab", term);
+    memories[memory.id] = memory.data;
+  });
+
   return {
     organizations,
     humans,
@@ -251,5 +261,6 @@ export const generateMockData = (config: MockConfig) => {
     templates,
     chat_groups,
     chat_messages,
+    memories,
   };
 };

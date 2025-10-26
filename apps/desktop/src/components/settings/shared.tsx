@@ -28,7 +28,6 @@ export const useUpdateGeneral = () => {
     ) => ({
       ...row,
       spoken_languages: JSON.stringify(row.spoken_languages),
-      jargons: JSON.stringify(row.jargons),
     } satisfies Partial<internal.GeneralStorage>),
     [],
     internal.STORE_ID,

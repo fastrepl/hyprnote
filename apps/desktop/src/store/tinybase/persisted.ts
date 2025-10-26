@@ -21,6 +21,7 @@ import {
   humanSchema as baseHumanSchema,
   mappingSessionParticipantSchema as baseMappingSessionParticipantSchema,
   mappingTagSessionSchema as baseMappingTagSessionSchema,
+  memorySchema as baseMemorySchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
   TABLE_HUMANS,
@@ -103,6 +104,10 @@ export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend
   parts: jsonObject(z.any()),
 });
 
+export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
+
 export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   created_at: z.string(),
   speaker: z.preprocess(val => val ?? undefined, z.string().optional()),
@@ -124,11 +129,13 @@ export type Template = z.infer<typeof templateSchema>;
 export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
+export type Memory = z.infer<typeof memorySchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
+export type MemoryStorage = ToStorageType<typeof memorySchema>;
 
 const SCHEMA = {
   value: {} as const satisfies ValuesSchema,
@@ -233,6 +240,12 @@ const SCHEMA = {
       metadata: { type: "string" },
       parts: { type: "string" },
     } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
+    memories: {
+      user_id: { type: "string" },
+      created_at: { type: "string" },
+      type: { type: "string" },
+      text: { type: "string" },
+    } satisfies InferTinyBaseSchema<typeof memorySchema>,
   } as const satisfies TablesSchema,
 };
 
@@ -471,6 +484,15 @@ export const StoreComponent = () => {
             select("parent_folder_id");
             select("created_at");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.visibleVocabs,
+          "memories",
+          ({ select, where }) => {
+            select("text");
+            select("created_at");
+            where((getCell) => getCell("type") === "vocab");
+          },
         ),
     [store2],
   )!;
@@ -566,6 +588,7 @@ export const QUERIES = {
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
   visibleFolders: "visibleFolders",
+  visibleVocabs: "visibleVocabs",
 };
 
 export const METRICS = {

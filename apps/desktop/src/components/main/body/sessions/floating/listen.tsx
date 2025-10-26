@@ -4,11 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
+import { FloatingButton, formatTime } from "./shared";
+
+import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useStartListening } from "../../../../../hooks/useStartListening";
+import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
+
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
-import { FloatingButton, formatTime } from "./shared";
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, loading, stop } = useListener((state) => ({
@@ -39,56 +45,104 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
+  const sttConnection = useSTTConnection();
+  const llmModel = useLanguageModel();
+
   const handleClick = useStartListening(tab.id);
 
+  const warnings = [];
+  if (!sttConnection) {
+    warnings.push("STT (Speech-to-Text) is not configured");
+  }
+  if (!llmModel) {
+    warnings.push("LLM is not configured");
+  }
+  const warningMessage = warnings.join(". ");
+
+  const isDisabled = !sttConnection;
+
+  let icon: React.ReactNode;
+  let text: string;
+
   if (remote?.type === "zoom") {
-    return (
-      <FloatingButton
-        onClick={handleClick}
-        icon={<Icon icon="logos:zoom-icon" size={20} />}
-      >
-        {isNarrow ? "Join & Listen" : "Join Zoom & Start listening"}
-      </FloatingButton>
+    icon = <Icon icon="logos:zoom-icon" size={20} />;
+    text = isNarrow ? "Join & Listen" : "Join Zoom & Start listening";
+  } else if (remote?.type === "google-meet") {
+    icon = <Icon icon="logos:google-meet" size={20} />;
+    text = isNarrow ? "Join & Listen" : "Join Google Meet & Start listening";
+  } else if (remote?.type === "webex") {
+    icon = <Icon icon="simple-icons:webex" size={20} />;
+    text = isNarrow ? "Join & Listen" : "Join Webex & Start listening";
+  } else if (remote?.type === "teams") {
+    icon = <Icon icon="logos:microsoft-teams" size={20} />;
+    text = isNarrow ? "Join & Listen" : "Join Teams & Start listening";
+  } else {
+    icon = (
+      <div className="relative size-2">
+        <div className="absolute inset-0 rounded-full bg-red-600"></div>
+        <div
+          className={cn([
+            "absolute inset-0 rounded-full bg-red-300",
+            !isDisabled && "animate-ping",
+          ])}
+        >
+        </div>
+      </div>
     );
-  }
-
-  if (remote?.type === "google-meet") {
-    return (
-      <FloatingButton
-        onClick={handleClick}
-        icon={<Icon icon="logos:google-meet" size={20} />}
-      >
-        {isNarrow ? "Join & Listen" : "Join Google Meet & Start listening"}
-      </FloatingButton>
-    );
-  }
-
-  if (remote?.type === "webex") {
-    return (
-      <FloatingButton
-        onClick={handleClick}
-        icon={<Icon icon="simple-icons:webex" size={20} />}
-      >
-        {isNarrow ? "Join & Listen" : "Join Webex & Start listening"}
-      </FloatingButton>
-    );
-  }
-
-  if (remote?.type === "teams") {
-    return (
-      <FloatingButton
-        onClick={handleClick}
-        icon={<Icon icon="logos:microsoft-teams" size={20} />}
-      >
-        {isNarrow ? "Join & Listen" : "Join Teams & Start listening"}
-      </FloatingButton>
-    );
+    text = "Start listening";
   }
 
   return (
-    <FloatingButton onClick={handleClick}>
-      Start listening
+    <StartButton
+      icon={icon}
+      text={text}
+      disabled={isDisabled}
+      warningMessage={warningMessage}
+      onClick={handleClick}
+    />
+  );
+}
+
+function StartButton({
+  icon,
+  text,
+  disabled,
+  warningMessage,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  disabled: boolean;
+  warningMessage: string;
+  onClick: () => void;
+}) {
+  const button = (
+    <FloatingButton
+      onClick={onClick}
+      icon={icon}
+      disabled={disabled}
+    >
+      {text}
     </FloatingButton>
+  );
+
+  if (!warningMessage) {
+    return button;
+  }
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-block">
+            {button}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+          <p>{warningMessage}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

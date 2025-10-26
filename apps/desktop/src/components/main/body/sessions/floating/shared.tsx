@@ -8,12 +8,14 @@ export function FloatingButton({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  disabled,
 }: {
   icon?: ReactNode;
   children: ReactNode;
   onClick?: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Button
@@ -22,13 +24,9 @@ export function FloatingButton({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      disabled={disabled}
     >
-      {icon || (
-        <div className="relative size-2">
-          <div className="absolute inset-0 rounded-full bg-red-600"></div>
-          <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
-        </div>
-      )}
+      {icon}
       {children}
     </Button>
   );

@@ -78,10 +78,9 @@ const useCloudSaver = () => {
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
     });
+    console.log(changes);
 
-    const response = await auth.apiClient?.syncWrite(changes);
-    console.log(response);
-    return response;
+    return null;
   }, [store]);
 
   return save;

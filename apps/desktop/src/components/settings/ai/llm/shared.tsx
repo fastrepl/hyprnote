@@ -10,7 +10,7 @@ export const PROVIDERS = [
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     apiKey: false,
-    baseUrl: "https://api.hyprnote.com/v1",
+    baseUrl: "/functions/v1/llm",
   },
   {
     id: "openai",

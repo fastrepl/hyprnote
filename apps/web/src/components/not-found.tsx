@@ -1,16 +1,30 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view")({
-  component: Component,
-  loader: async ({ context }) => ({ user: context.user }),
-});
-
-function Component() {
+export function NotFoundDocument() {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1">
-        <Outlet />
+      <main className="flex-1 flex items-center justify-center bg-linear-to-b from-stone-50 to-stone-100 px-4">
+        <div className="text-center">
+          <h1 className="text-3xl font-medium text-neutral-700 mb-4 font-serif">
+            Page Not Found
+          </h1>
+
+          <div className="text-[200px] leading-none font-serif text-neutral-800 mb-8">
+            404
+          </div>
+
+          <p className="text-base text-neutral-600 max-w-md mx-auto">
+            We couldn't find the page you were looking for. If you think this is an error, you can{" "}
+            <a
+              href="mailto:support@hyprnote.com"
+              className="text-stone-700 underline hover:text-stone-900 transition-colors"
+            >
+              let us know
+            </a>
+            .
+          </p>
+        </div>
       </main>
       <Footer />
     </div>
@@ -50,7 +64,13 @@ function Header() {
           </div>
           <nav className="flex items-center gap-6">
             <div className="flex gap-3">
-              <HeaderUser />
+              <Link
+                to="/auth"
+                search={{ flow: "web" }}
+                className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+              >
+                Get Started
+              </Link>
               <Link
                 to="/downloads"
                 className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
@@ -62,31 +82,6 @@ function Header() {
         </div>
       </div>
     </header>
-  );
-}
-
-function HeaderUser() {
-  const { user } = Route.useLoaderData();
-
-  if (user) {
-    return (
-      <Link
-        to="/app/account"
-        className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
-      >
-        Account
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      to="/auth"
-      search={{ flow: "web" }}
-      className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
-    >
-      Get Started
-    </Link>
   );
 }
 

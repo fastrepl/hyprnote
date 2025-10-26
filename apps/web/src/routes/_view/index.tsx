@@ -308,15 +308,22 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
           </section>
 
-          <section className="py-16 sm:py-24 border-t border-neutral-100">
-            <div className="space-y-6 text-center">
+          <section className="py-16 sm:py-24 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30">
+            <div className="flex flex-col gap-6 items-center">
+              <div className="mb-4 size-40 shadow-2xl border border-neutral-200 flex justify-center items-center rounded-[48px] bg-transparent">
+                <img
+                  src="/hyprnote_with_noise.png"
+                  alt="Hyprnote"
+                  className="size-36 mx-auto rounded-[40px] border border-neutral-200"
+                />
+              </div>
               <h2 className="text-2xl sm:text-3xl font-serif">
                 Where conversations stay yours
               </h2>
               <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
                 Start using Hyprnote today and bring clarity to your back-to-back meetings
               </p>
-              <div className="pt-2 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <DownloadButton />
                 <GithubStars />
               </div>

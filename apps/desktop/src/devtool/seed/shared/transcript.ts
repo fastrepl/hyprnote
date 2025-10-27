@@ -76,9 +76,11 @@ export const generateTranscript = () => {
   const channelCount = 2;
   const turnCount = faker.number.int({ min: 10, max: 20 });
 
+  const transcriptId = id();
   const words: Array<Word> = [];
   let currentTimeMs = 0;
   let currentChannel = 0;
+  const createdAt = faker.date.recent({ days: 30 }).toISOString();
 
   for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
     const sentenceCount = selectWeighted([
@@ -105,8 +107,8 @@ export const generateTranscript = () => {
 
         words.push({
           user_id: DEFAULT_USER_ID,
-          created_at: faker.date.recent({ days: 30 }).toISOString(),
-          transcript_id: id(),
+          created_at: createdAt,
+          transcript_id: transcriptId,
           channel: currentChannel,
           text,
           start_ms,

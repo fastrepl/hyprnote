@@ -23,7 +23,7 @@ impl Client {
     }
 
     pub async fn status(&self) -> Result<ServerStatus, Error> {
-        let url = format!("{}/v1/status", self.base_url);
+        let url = format!("{}/status", self.base_url);
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
@@ -38,7 +38,7 @@ impl Client {
             return Err(Error::InvalidApiKey);
         }
 
-        let url = format!("{}/v1/init", self.base_url);
+        let url = format!("{}/init", self.base_url);
         let response = self.client.post(&url).json(&request).send().await?;
 
         match response.status() {
@@ -51,7 +51,7 @@ impl Client {
     }
 
     pub async fn reset(&self) -> Result<GenericResponse, Error> {
-        let url = format!("{}/v1/reset", self.base_url);
+        let url = format!("{}/reset", self.base_url);
         let response = self.client.post(&url).send().await?;
 
         if response.status().is_success() {
@@ -62,7 +62,7 @@ impl Client {
     }
 
     pub async fn unload(&self) -> Result<GenericResponse, Error> {
-        let url = format!("{}/v1/unload", self.base_url);
+        let url = format!("{}/unload", self.base_url);
         let response = self.client.post(&url).send().await?;
 
         match response.status() {
@@ -73,7 +73,7 @@ impl Client {
     }
 
     pub async fn shutdown(&self) -> Result<GenericResponse, Error> {
-        let url = format!("{}/v1/shutdown", self.base_url);
+        let url = format!("{}/shutdown", self.base_url);
         let response = self.client.post(&url).send().await?;
 
         if response.status().is_success() {

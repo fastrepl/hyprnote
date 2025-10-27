@@ -47,7 +47,7 @@ impl Actor for ExternalSTTActor {
     ) -> Result<Self::State, ActorProcessingErr> {
         let port = port_check::free_local_port().unwrap();
         let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
-        let base_url = format!("http://localhost:{}", port);
+        let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);
 
         let task_handle = tokio::spawn(async move {

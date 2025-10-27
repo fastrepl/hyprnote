@@ -1,5 +1,6 @@
 import { Resizable } from "re-resizable";
 import { type ReactNode, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "@hypr/utils";
 
@@ -16,9 +17,9 @@ export function InteractiveContainer(
 ) {
   const [isResizing, setIsResizing] = useState(false);
 
-  return (
+  return createPortal(
     <div
-      className="absolute z-10"
+      className="fixed z-[100]"
       style={{ right: 16, bottom: 16 }}
     >
       <Resizable
@@ -63,6 +64,7 @@ export function InteractiveContainer(
       >
         {children}
       </Resizable>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -15,7 +15,6 @@ type AuthSectionProps = {
 };
 
 export function AuthSection({ isAuthenticated, onSignIn, onSignOut }: AuthSectionProps) {
-  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   const auth = useAuth();
@@ -104,24 +103,16 @@ export function AuthSection({ isAuthenticated, onSignIn, onSignOut }: AuthSectio
   };
 
   return (
-    <>
-      <TryProBanner
-        isDismissed={isBannerDismissed}
-        onDismiss={() => setIsBannerDismissed(true)}
-        onSignIn={() => handleStartSignIn()}
-      />
-      {isBannerDismissed && (
-        <div className="px-1 py-2">
-          <Button onClick={() => handleStartSignIn()} variant="default" className="w-full">
-            <LogIn className="w-4 h-4 mr-2" />
-            Sign in
-          </Button>
-        </div>
-      )}
-    </>
+    <div className="px-1 py-2">
+      <Button onClick={() => handleStartSignIn()} variant="default" className="w-full">
+        <LogIn className="w-4 h-4 mr-2" />
+        Sign in
+      </Button>
+    </div>
   );
 }
 
+// @ts-expect-error: Will use this later
 function TryProBanner({
   isDismissed,
   onDismiss,

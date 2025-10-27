@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Product Strategy Discussion",
+    "raw_md": "We discussed the Q1 roadmap and prioritized features based on user feedback. Key decisions: focus on performance improvements and mobile experience.",
+    "enhanced_md": "## Key Decisions\n- Prioritize performance improvements\n- Focus on mobile experience\n- Defer non-critical features to Q2\n\n## Action Items\n- Schedule follow-up with engineering team\n- Draft requirements document\n- Set up user testing sessions"
+  },
+  {
+    "title": "Engineering Retrospective",
+    "raw_md": "Team reflected on the last sprint. Identified bottlenecks in the code review process and decided to implement automated testing.",
+    "enhanced_md": "## What Went Well\n- Delivered all planned features\n- Good collaboration across teams\n- Improved deployment process\n\n## Areas for Improvement\n- Code review turnaround time\n- Test coverage\n- Documentation\n\n## Action Items\n- Set up automated testing pipeline\n- Schedule pairing sessions for complex features"
+  }
+]

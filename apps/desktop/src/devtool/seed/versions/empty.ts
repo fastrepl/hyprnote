@@ -1,5 +1,5 @@
-import type { Store as PersistedStore } from "../../store/tinybase/persisted";
-import type { SeedDefinition } from "./shared";
+import type { Store as PersistedStore } from "../../../store/tinybase/persisted";
+import type { SeedDefinition } from "../shared";
 
 export const emptySeed: SeedDefinition = {
   id: "empty",

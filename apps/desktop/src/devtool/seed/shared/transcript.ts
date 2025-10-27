@@ -22,26 +22,7 @@ const durationForWord = (text: string) => {
   return Math.max(80, base + charBonus + variation);
 };
 
-export const generateTranscript = () => {
-  const channelCount = selectWeighted([
-    { weight: 55, value: 2 },
-    { weight: 30, value: 3 },
-    { weight: 15, value: 4 },
-  ]);
-
-  const turnRange = selectWeighted([
-    { weight: 18, value: { min: 18, max: 26 } },
-    { weight: 36, value: { min: 27, max: 42 } },
-    { weight: 28, value: { min: 43, max: 64 } },
-    { weight: 18, value: { min: 65, max: 92 } },
-  ]);
-  const turnCount = faker.number.int(turnRange);
-
-  const channelIndices = Array.from({ length: channelCount }, (_, index) => index);
-  const words: Array<Word> = [];
-  let currentTimeMs = 0;
-  let previousChannel: number | undefined;
-
+const generateSentence = () => {
   const starters = [
     "yeah",
     "so",
@@ -62,126 +43,100 @@ export const generateTranscript = () => {
     "basically",
     "on our side",
   ];
-  const briefReplies = [
-    "right",
-    "exactly",
-    "totally",
-    "absolutely",
-    "thanks",
-    "nice",
-    "got it",
-    "makes sense",
-  ];
-  const endCaps = [
-    "if that works",
-    "if that makes sense",
-    "what do you think",
-    "does that sound good",
-    "for next steps",
-    "and that's the plan",
-  ];
 
-  const chooseChannel = () => {
-    if (previousChannel === undefined) {
-      previousChannel = faker.helpers.arrayElement(channelIndices);
-      return previousChannel;
+  const sentenceWords: string[] = [];
+  const isShort = faker.datatype.boolean({ probability: 0.3 });
+
+  if (isShort) {
+    const lengthRange = faker.number.int({ min: 3, max: 6 });
+    appendPhrase(sentenceWords, faker.lorem.words(lengthRange));
+  } else {
+    if (faker.datatype.boolean({ probability: 0.5 })) {
+      appendPhrase(sentenceWords, faker.helpers.arrayElement(starters));
     }
 
-    if (faker.datatype.boolean({ probability: 0.22 })) {
-      return previousChannel;
-    }
+    const lengthRange = selectWeighted([
+      { weight: 25, value: { min: 5, max: 9 } },
+      { weight: 40, value: { min: 10, max: 15 } },
+      { weight: 25, value: { min: 16, max: 22 } },
+      { weight: 10, value: { min: 23, max: 30 } },
+    ]);
+    appendPhrase(sentenceWords, faker.lorem.words(faker.number.int(lengthRange)));
 
-    const pool = channelIndices.filter(index => index !== previousChannel);
-    const nextChannel = pool.length > 0 ? faker.helpers.arrayElement(pool) : previousChannel;
-    previousChannel = nextChannel;
-    return nextChannel;
-  };
+    if (faker.datatype.boolean({ probability: 0.35 })) {
+      appendPhrase(sentenceWords, faker.helpers.arrayElement(bridges));
+      appendPhrase(sentenceWords, faker.lorem.words(faker.number.int({ min: 3, max: 8 })));
+    }
+  }
+
+  return sentenceWords;
+};
+
+export const generateTranscript = () => {
+  const channelCount = 2;
+  const turnCount = faker.number.int({ min: 10, max: 20 });
+
+  const words: Array<Word> = [];
+  let currentTimeMs = 0;
+  let currentChannel = 0;
 
   for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
-    const channel = chooseChannel();
-    const isQuickTurn = faker.datatype.boolean({ probability: 0.18 });
-    const clauseCount = isQuickTurn ? 1 : faker.number.int({ min: 1, max: 4 });
-    const turnWords: string[] = [];
+    const sentenceCount = selectWeighted([
+      { weight: 20, value: 1 },
+      { weight: 25, value: 2 },
+      { weight: 20, value: 3 },
+      { weight: 15, value: faker.number.int({ min: 4, max: 6 }) },
+      { weight: 10, value: faker.number.int({ min: 7, max: 8 }) },
+      { weight: 10, value: faker.number.int({ min: 9, max: 10 }) },
+    ]);
 
-    if (isQuickTurn) {
-      appendPhrase(turnWords, faker.helpers.arrayElement(briefReplies));
+    for (let sentenceIndex = 0; sentenceIndex < sentenceCount; sentenceIndex++) {
+      const sentenceWords = generateSentence();
 
-      if (faker.datatype.boolean({ probability: 0.45 })) {
-        appendPhrase(turnWords, faker.helpers.arrayElement(starters));
+      for (const raw of sentenceWords) {
+        const text = sanitizeWord(raw);
+        if (!text) {
+          continue;
+        }
+
+        const start_ms = currentTimeMs;
+        const durationMs = durationForWord(text);
+        const end_ms = start_ms + durationMs;
+
+        words.push({
+          user_id: DEFAULT_USER_ID,
+          created_at: faker.date.recent({ days: 30 }).toISOString(),
+          transcript_id: id(),
+          channel: currentChannel,
+          text,
+          start_ms,
+          end_ms,
+        });
+
+        currentTimeMs = end_ms;
+        currentTimeMs += faker.number.int({ min: 40, max: 120 });
       }
 
-      if (faker.datatype.boolean({ probability: 0.4 })) {
-        appendPhrase(turnWords, faker.lorem.words(faker.number.int({ min: 2, max: 5 })));
-      }
-    } else {
-      for (let clauseIndex = 0; clauseIndex < clauseCount; clauseIndex++) {
-        if (clauseIndex === 0 && faker.datatype.boolean({ probability: 0.55 })) {
-          appendPhrase(turnWords, faker.helpers.arrayElement(starters));
+      if (sentenceIndex < sentenceCount - 1) {
+        if (sentenceCount >= 4) {
+          const sentenceGap = faker.number.int({ min: 200, max: 800 });
+          currentTimeMs += sentenceGap;
+        } else if (sentenceCount >= 2) {
+          if (faker.datatype.boolean({ probability: 0.5 })) {
+            const sentenceGap = faker.number.int({ min: 150, max: 600 });
+            currentTimeMs += sentenceGap;
+          }
         }
-
-        const lengthRange = selectWeighted([
-          { weight: 22, value: { min: 4, max: 7 } },
-          { weight: 36, value: { min: 8, max: 13 } },
-          { weight: 28, value: { min: 14, max: 20 } },
-          { weight: 14, value: { min: 21, max: 28 } },
-        ]);
-        const phraseWords = faker.lorem.words(faker.number.int(lengthRange));
-        appendPhrase(turnWords, phraseWords);
-
-        if (faker.datatype.boolean({ probability: 0.42 })) {
-          appendPhrase(turnWords, faker.helpers.arrayElement(bridges));
-        }
-
-        if (faker.datatype.boolean({ probability: 0.2 })) {
-          appendPhrase(turnWords, String(faker.number.int({ min: 2, max: 120 })));
-        }
-
-        if (faker.datatype.boolean({ probability: 0.3 })) {
-          appendPhrase(turnWords, faker.lorem.words(faker.number.int({ min: 3, max: 6 })));
-        }
-      }
-
-      if (faker.datatype.boolean({ probability: 0.35 })) {
-        appendPhrase(turnWords, faker.helpers.arrayElement(endCaps));
       }
     }
 
-    if (!turnWords.length) {
-      appendPhrase(turnWords, faker.lorem.words(faker.number.int({ min: 3, max: 7 })));
+    currentTimeMs += faker.number.int({ min: 400, max: 1200 });
+
+    if (faker.datatype.boolean({ probability: 0.2 })) {
+      currentTimeMs += faker.number.int({ min: 1000, max: 2500 });
     }
 
-    for (const raw of turnWords) {
-      const text = sanitizeWord(raw);
-      if (!text) {
-        continue;
-      }
-
-      const start_ms = currentTimeMs;
-      const durationMs = durationForWord(text);
-      const end_ms = start_ms + durationMs;
-
-      words.push({
-        user_id: DEFAULT_USER_ID,
-        created_at: faker.date.recent({ days: 30 }).toISOString(),
-        transcript_id: id(),
-        channel,
-        text,
-        start_ms,
-        end_ms,
-      });
-
-      currentTimeMs = end_ms;
-      const intraPause = faker.datatype.boolean({ probability: 0.22 })
-        ? faker.number.int({ min: 120, max: 360 })
-        : faker.number.int({ min: 40, max: 140 });
-      currentTimeMs += intraPause;
-    }
-
-    currentTimeMs += faker.number.int({ min: 260, max: 980 });
-
-    if (faker.datatype.boolean({ probability: 0.14 })) {
-      currentTimeMs += faker.number.int({ min: 1400, max: 3600 });
-    }
+    currentChannel = (currentChannel + 1) % channelCount;
   }
 
   return { words };

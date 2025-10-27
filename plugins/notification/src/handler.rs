@@ -1,10 +1,11 @@
 use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{Arc, RwLock};
 use std::thread::JoinHandle;
 
-use crate::NotificationPluginExt;
 use tauri::AppHandle;
-#[cfg(feature = "tauri-plugin-windows")]
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
+
+use crate::NotificationConfig;
 
 #[derive(Debug, Clone)]
 pub enum NotificationTrigger {
@@ -28,19 +29,22 @@ pub struct NotificationTriggerEvent {
 pub struct NotificationHandler {
     tx: Option<Sender<NotificationTrigger>>,
     handle: Option<JoinHandle<()>>,
+    config: Arc<RwLock<NotificationConfig>>,
 }
 
 impl NotificationHandler {
-    pub fn new(app_handle: AppHandle<tauri::Wry>) -> Self {
+    pub fn new(app_handle: AppHandle<tauri::Wry>, config: Arc<RwLock<NotificationConfig>>) -> Self {
         let (tx, rx) = std::sync::mpsc::channel::<NotificationTrigger>();
+        let config_clone = config.clone();
 
         let handle = std::thread::spawn(move || {
-            Self::worker_loop(rx, app_handle);
+            Self::worker_loop(rx, app_handle, config_clone);
         });
 
         Self {
             tx: Some(tx),
             handle: Some(handle),
+            config,
         }
     }
 
@@ -48,32 +52,33 @@ impl NotificationHandler {
         self.tx.clone()
     }
 
-    fn worker_loop(rx: Receiver<NotificationTrigger>, app_handle: AppHandle<tauri::Wry>) {
+    fn worker_loop(
+        rx: Receiver<NotificationTrigger>,
+        app_handle: AppHandle<tauri::Wry>,
+        config: Arc<RwLock<NotificationConfig>>,
+    ) {
         while let Ok(trigger) = rx.recv() {
             match trigger {
                 NotificationTrigger::Detect(t) => {
-                    if app_handle.get_detect_notification().unwrap_or(false) {
-                        Self::handle_detect_event(&app_handle, t);
-                    }
+                    Self::handle_detect_event(&app_handle, t, &config);
                 }
                 NotificationTrigger::Event(e) => {
-                    if app_handle.get_event_notification().unwrap_or(false) {
-                        Self::handle_calendar_event(&app_handle, e);
-                    }
+                    Self::handle_calendar_event(&app_handle, e, &config);
                 }
             }
         }
     }
 
-    fn handle_detect_event(app_handle: &AppHandle<tauri::Wry>, trigger: NotificationTriggerDetect) {
-        #[cfg(feature = "tauri-plugin-windows")]
+    fn handle_detect_event(
+        app_handle: &AppHandle<tauri::Wry>,
+        trigger: NotificationTriggerDetect,
+        config: &Arc<RwLock<NotificationConfig>>,
+    ) {
         let main_window_focused = app_handle
             .window_is_focused(AppWindow::Main)
             .unwrap_or(false);
-        #[cfg(not(feature = "tauri-plugin-windows"))]
-        let main_window_focused = false;
 
-        let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
+        let respect_do_not_disturb = config.read().unwrap().respect_do_not_disturb;
 
         if main_window_focused {
             tracing::info!(reason = "main_window_focused", "skip_handle_detect_event");
@@ -116,12 +121,10 @@ impl NotificationHandler {
                     return;
                 }
 
-                if apps.iter().any(|app| {
-                    app_handle
-                        .get_ignored_platforms()
-                        .unwrap_or_default()
-                        .contains(&app.name)
-                }) {
+                if apps
+                    .iter()
+                    .any(|app| config.read().unwrap().ignored_platforms.contains(&app.name))
+                {
                     tracing::info!(reason = "ignore_platforms_user", "skip_notification");
                     return;
                 }
@@ -163,16 +166,13 @@ impl NotificationHandler {
     fn handle_calendar_event(
         app_handle: &AppHandle<tauri::Wry>,
         trigger: NotificationTriggerEvent,
+        config: &Arc<RwLock<NotificationConfig>>,
     ) {
-        #[cfg(feature = "tauri-plugin-windows")]
         let main_window_focused = app_handle
             .window_is_focused(AppWindow::Main)
             .unwrap_or(false);
 
-        #[cfg(not(feature = "tauri-plugin-windows"))]
-        let main_window_focused = false;
-
-        let respect_do_not_disturb = app_handle.get_respect_do_not_disturb().unwrap_or(false);
+        let respect_do_not_disturb = config.read().unwrap().respect_do_not_disturb;
 
         if main_window_focused {
             tracing::info!(reason = "main_window_focused", "handle_calendar_event");

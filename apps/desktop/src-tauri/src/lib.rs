@@ -59,7 +59,6 @@ pub async fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_windows::init());
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]

@@ -10,44 +10,45 @@ export const commands = {
 async listApplications() : Promise<InstalledApp[]> {
     return await TAURI_INVOKE("plugin:notification|list_applications");
 },
-async showNotification(v: Notification) : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|show_notification", { v });
+async showNotification(v: Notification) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|show_notification", { v }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getEventNotification() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:notification|get_event_notification");
+async startDetectNotification(params: DetectNotificationParams) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|start_detect_notification", { params }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setEventNotification(enabled: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|set_event_notification", { enabled });
+async stopDetectNotification() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|stop_detect_notification") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getDetectNotification() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:notification|get_detect_notification");
+async startEventNotification(params: EventNotificationParams) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|start_event_notification", { params }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async getRespectDoNotDisturb() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:notification|get_respect_do_not_disturb");
-},
-async setRespectDoNotDisturb(enabled: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|set_respect_do_not_disturb", { enabled });
-},
-async setDetectNotification(enabled: boolean) : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|set_detect_notification", { enabled });
-},
-async startDetectNotification() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|start_detect_notification");
-},
-async stopDetectNotification() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|stop_detect_notification");
-},
-async startEventNotification() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|start_event_notification");
-},
-async stopEventNotification() : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|stop_event_notification");
-},
-async getIgnoredPlatforms() : Promise<string[]> {
-    return await TAURI_INVOKE("plugin:notification|get_ignored_platforms");
-},
-async setIgnoredPlatforms(platforms: string[]) : Promise<null> {
-    return await TAURI_INVOKE("plugin:notification|set_ignored_platforms", { platforms });
+async stopEventNotification() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|stop_event_notification") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -61,7 +62,9 @@ async setIgnoredPlatforms(platforms: string[]) : Promise<null> {
 
 /** user-defined types **/
 
+export type DetectNotificationParams = { respect_do_not_disturb: boolean; ignored_platforms: string[] }
 export type Duration = { secs: number; nanos: number }
+export type EventNotificationParams = { respect_do_not_disturb: boolean }
 export type InstalledApp = { id: string; name: string }
 export type Notification = { key: string | null; title: string; message: string; url: string | null; timeout: Duration | null }
 

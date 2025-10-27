@@ -12,7 +12,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
-tauri-plugin-store = { workspace = true }
 
 [dependencies]
 hypr-db-user = { workspace = true }
@@ -25,8 +24,7 @@ tauri-plugin-analytics = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-listener = { workspace = true }
-tauri-plugin-store2 = { workspace = true }
-tauri-plugin-windows = { workspace = true, optional = true }
+tauri-plugin-windows = { workspace = true }
 
 serde = { workspace = true }
 specta = { workspace = true }

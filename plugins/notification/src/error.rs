@@ -5,8 +5,6 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    Store(#[from] tauri_plugin_store2::Error),
-    #[error(transparent)]
     Db(#[from] hypr_db_user::Error),
     #[error("Channel closed unexpectedly")]
     ChannelClosed,

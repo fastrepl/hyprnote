@@ -54,7 +54,6 @@
     "updater:default",
     "deep-link:default",
     "store:default",
-    "store2:default",
     "process:default",
     "local-stt:default",
     "dialog:default",

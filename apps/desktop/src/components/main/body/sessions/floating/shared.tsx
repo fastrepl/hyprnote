@@ -28,7 +28,7 @@ export function FloatingButton({
   const button = (
     <Button
       size="lg"
-      className="rounded-lg"
+      className="rounded-lg disabled:opacity-100 disabled:bg-neutral-500"
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

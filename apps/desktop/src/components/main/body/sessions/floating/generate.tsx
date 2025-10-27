@@ -110,6 +110,12 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
             onRegenerate(null);
           }}
           disabled={!model}
+          tooltip={!model
+            ? {
+              content: "Language model not configured",
+              side: "top",
+            }
+            : undefined}
         >
           <span>Regenerate</span>
         </FloatingButton>

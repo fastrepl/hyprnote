@@ -1,5 +1,5 @@
 export const loadJsonData = async <T>(path: string): Promise<T> => {
-  const module = await import(path);
+  const module = await import(/* @vite-ignore */ path);
   return module.default;
 };
 

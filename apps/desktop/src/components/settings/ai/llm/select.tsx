@@ -134,7 +134,7 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)
 
           return [
             provider.id,
-            async () => ["auto"],
+            async () => ["Auto"],
           ];
         }
 

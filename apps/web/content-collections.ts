@@ -20,6 +20,23 @@ const posts = defineCollection({
   },
 });
 
+const changelogs = defineCollection({
+  name: "changelogs",
+  directory: "content/changelogs",
+  include: "*.mdx",
+  schema: z.object({
+    slug: z.string(),
+    version: z.string(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document);
+    return {
+      ...document,
+      mdx,
+    };
+  },
+});
+
 export default defineConfig({
-  collections: [posts],
+  collections: [posts, changelogs],
 });

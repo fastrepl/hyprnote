@@ -2,8 +2,8 @@ import React, { createContext, useContext, useMemo, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
-import { type AITaskStore, createAITaskStore } from "../../store/zustand/ai-task";
-import { type ToolScope, useRegisterTools } from "../tool";
+import { type AITaskStore, createAITaskStore } from "../store/zustand/ai-task";
+import { type ToolScope, useRegisterTools } from "./tool";
 
 const AITaskContext = createContext<AITaskStore | null>(null);
 

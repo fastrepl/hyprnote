@@ -3,6 +3,7 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { ToolRegistry } from "../../../contexts/tool-registry/core";
+import type { Store as PersistedStore } from "../../tinybase/persisted";
 import { applyTransforms } from "./shared/transform_infra";
 import { TASK_CONFIGS, type TaskType } from "./task-configs";
 
@@ -28,8 +29,10 @@ type StepInfo =
   | { type: "generating" }
   | { type: "tool-call" | "tool-result"; toolName: string };
 
+export type TaskStatus = "idle" | "generating" | "success" | "error";
+
 type TaskState = {
-  status: "idle" | "generating" | "success" | "error";
+  status: TaskStatus;
   streamedText: string;
   error?: Error;
   abortController: AbortController | null;
@@ -43,7 +46,7 @@ const initialState: TasksState = {
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
-  deps: { toolRegistry: ToolRegistry },
+  deps: { toolRegistry: ToolRegistry; persistedStore: PersistedStore },
 ): TasksState & TasksActions => ({
   ...initialState,
   getState: (taskId: string) => {
@@ -73,7 +76,10 @@ export const createTasksSlice = <T extends TasksState>(
   ) => {
     const abortController = new AbortController();
     const taskConfig = TASK_CONFIGS[config.taskType];
-    const prompt = taskConfig.getPrompt(config.args);
+    const [system, prompt] = await Promise.all([
+      taskConfig.getSystem(config.args, deps.persistedStore),
+      taskConfig.getPrompt?.(config.args, deps.persistedStore),
+    ]);
 
     set((state) =>
       mutate(state, (draft) => {
@@ -89,7 +95,7 @@ export const createTasksSlice = <T extends TasksState>(
 
     try {
       const agent = getAgentForTask(config.taskType, config.model, deps);
-      const result = agent.stream({ prompt });
+      const result = agent.stream({ prompt, system });
 
       let fullText = "";
 
@@ -193,7 +199,14 @@ export const createTasksSlice = <T extends TasksState>(
   },
 });
 
-function getAgentForTask(taskType: TaskType, model: LanguageModel, deps: { toolRegistry: ToolRegistry }) {
+function getAgentForTask(
+  taskType: TaskType,
+  model: LanguageModel,
+  deps: {
+    toolRegistry: ToolRegistry;
+    persistedStore: PersistedStore;
+  },
+) {
   const taskConfig = TASK_CONFIGS[taskType];
 
   if (taskConfig.getAgent) {

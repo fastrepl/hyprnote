@@ -20,7 +20,7 @@ function Component() {
 function Header() {
   return (
     <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-0 py-3 border-x border-neutral-100">
+      <div className="max-w-6xl mx-auto px-4 laptop:px-0 py-3 border-x border-neutral-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
@@ -95,7 +95,7 @@ function Footer() {
 
   return (
     <footer className="border-t border-neutral-100 bg-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-0 py-6 border-x border-neutral-100">
+      <div className="max-w-6xl mx-auto px-4 laptop:px-0 py-6 border-x border-neutral-100">
         <div className="flex items-center justify-between text-sm text-neutral-500">
           <p>© {currentYear} Fastrepl, Inc.</p>
           <div className="flex gap-6">

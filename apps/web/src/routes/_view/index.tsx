@@ -11,7 +11,7 @@ import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoPlayer } from "@/components/video-player";
 import { VideoThumbnail } from "@/components/video-thumbnail";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const Route = createFileRoute("/_view/")({
   component: Component,
@@ -19,7 +19,96 @@ export const Route = createFileRoute("/_view/")({
 
 function Component() {
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState(0);
+  const [selectedFeature, setSelectedFeature] = useState(0);
+  const detailsScrollRef = useRef<HTMLDivElement>(null);
+  const featuresScrollRef = useRef<HTMLDivElement>(null);
   const MUX_PLAYBACK_ID = "SGv6JaZsKqF50102xk6no2ybUqqSyngeWO401ic8qJdZR4";
+
+  const mainFeatures = [
+    {
+      icon: "mdi:text-box-outline",
+      title: "Transcript",
+      description: "Realtime transcript and speaker identification",
+      videoType: "player" as const,
+    },
+    {
+      icon: "mdi:file-document-outline",
+      title: "Summary",
+      description: "Create customized summaries with templates for various formats",
+      videoType: "player" as const,
+    },
+    {
+      icon: "mdi:chat-outline",
+      title: "Chat",
+      description: "Get context-aware answers in realtime, even from past meetings",
+      videoType: "player" as const,
+    },
+    {
+      icon: "mdi:window-restore",
+      title: "Floating Panel",
+      description: "Compact notepad with transcript, summary, and chat during meetings",
+      videoType: "player" as const,
+    },
+    {
+      icon: "mdi:calendar-check-outline",
+      title: "Daily Note",
+      description: "Track todos and navigate emails and events throughout the day",
+      videoType: "image" as const,
+      comingSoon: true,
+    },
+  ];
+
+  const detailsFeatures = [
+    {
+      icon: "mdi:text-box-edit-outline",
+      title: "Notion-like Editor",
+      description: "Full markdown support with distraction-free writing",
+      comingSoon: false,
+    },
+    {
+      icon: "mdi:upload-outline",
+      title: "Upload Audio",
+      description: "Import audio files or transcripts to convert into notes",
+      comingSoon: false,
+    },
+    {
+      icon: "mdi:account-multiple-outline",
+      title: "Contacts",
+      description: "Organize and manage your contacts with ease",
+      comingSoon: false,
+    },
+    {
+      icon: "mdi:calendar-outline",
+      title: "Calendar",
+      description: "Stay on top of your schedule with integrated calendar",
+      comingSoon: false,
+    },
+    {
+      icon: "mdi:bookshelf",
+      title: "Noteshelf",
+      description: "Browse and organize all your notes in one place",
+      comingSoon: true,
+    },
+  ];
+
+  const scrollToDetail = (index: number) => {
+    setSelectedDetail(index);
+    if (detailsScrollRef.current) {
+      const container = detailsScrollRef.current;
+      const scrollLeft = container.offsetWidth * index;
+      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+    }
+  };
+
+  const scrollToFeature = (index: number) => {
+    setSelectedFeature(index);
+    if (featuresScrollRef.current) {
+      const container = featuresScrollRef.current;
+      const scrollLeft = container.offsetWidth * index;
+      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+    }
+  };
   return (
     <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
       <div className="max-w-6xl mx-auto border-x border-neutral-100">
@@ -51,7 +140,7 @@ function Component() {
 
         <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
           <div className="flex flex-col items-center text-center">
-            <section className="flex flex-col items-center text-center gap-12 py-24">
+            <section className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
               <div className="space-y-6 max-w-4xl">
                 <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
                   The AI notepad for <br className="block sm:hidden" />private meetings
@@ -131,15 +220,13 @@ function Component() {
 
             {/* Testimonials - New Grid Layout */}
             <div className="w-full">
-              {/* Mobile: Horizontal scrollable layout */}
-              <div className="md:hidden overflow-x-auto pb-4">
-                <div className="flex w-max">
-                  <div className="shrink-0">
-                    <SocialCard
-                      platform="reddit"
-                      author="spilledcarryout"
-                      subreddit="macapps"
-                      body="Dear Hyprnote Team,
+              {/* Mobile: Column layout */}
+              <div className="md:hidden flex flex-col">
+                <SocialCard
+                  platform="reddit"
+                  author="spilledcarryout"
+                  subreddit="macapps"
+                  body="Dear Hyprnote Team,
 
 I wanted to take a moment to commend you on the impressive work you've done with Hyprnote. Your commitment to privacy, on-device AI, and transparency is truly refreshing in today's software landscape. The fact that all transcription and summarization happens locally and live!—without compromising data security—makes Hyprnote a standout solution, especially for those of us in compliance-sensitive environments.
 
@@ -152,18 +239,16 @@ Hyprnote is now part of that process.
 Thank you for your dedication and for building a tool that not only saves time, but also gives peace of mind. I look forward to seeing Hyprnote continue to evolve
 
 Cheers!"
-                      url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
-                      className="w-80 border-x-0"
-                    />
-                  </div>
+                  url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
+                  className="border-x-0"
+                />
 
-                  <div className="shrink-0">
-                    <SocialCard
-                      platform="linkedin"
-                      author="Flavius Catalin Miron"
-                      role="Product Engineer"
-                      company="Waveful"
-                      body="Guys at Hyprnote (YC S25) are wild.
+                <SocialCard
+                  platform="linkedin"
+                  author="Flavius Catalin Miron"
+                  role="Product Engineer"
+                  company="Waveful"
+                  body="Guys at Hyprnote (YC S25) are wild.
 
 Had a call with John Jeong about their product (privacy-first AI notepad).
 
@@ -186,33 +271,27 @@ Their repo: https://lnkd.in/dKCtxkA3 (mac only rn but they're releasing for wind
 Been using it for daily tasks, even simple note-taking is GREAT because I can review everything late, make action points etc.
 
 Mad respect to the team. This is how you build in 2025. 🚀"
-                      url="https://www.linkedin.com/posts/flaviews_guys-at-hyprnote-yc-s25-are-wild-had-activity-7360606765530386434-Klj-"
-                      className="w-80 border-x-0"
-                    />
-                  </div>
+                  url="https://www.linkedin.com/posts/flaviews_guys-at-hyprnote-yc-s25-are-wild-had-activity-7360606765530386434-Klj-"
+                  className="border-x-0"
+                />
 
-                  <div className="shrink-0">
-                    <SocialCard
-                      platform="twitter"
-                      author="yoran was here"
-                      username="yoran_beisher"
-                      body="Been using Hypernote for a while now, truly one of the best AI apps I've used all year. Like they said, the best thing since sliced bread"
-                      url="https://x.com/yoran_beisher/status/1953147865486012611"
-                      className="w-80 border-x-0"
-                    />
-                  </div>
+                <SocialCard
+                  platform="twitter"
+                  author="yoran was here"
+                  username="yoran_beisher"
+                  body="Been using Hypernote for a while now, truly one of the best AI apps I've used all year. Like they said, the best thing since sliced bread"
+                  url="https://x.com/yoran_beisher/status/1953147865486012611"
+                  className="border-x-0"
+                />
 
-                  <div className="shrink-0">
-                    <SocialCard
-                      platform="twitter"
-                      author="Tom Yang"
-                      username="tomyang11_"
-                      body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
-                      url="https://twitter.com/tomyang11_/status/1956395933538902092"
-                      className="w-80 border-x-0"
-                    />
-                  </div>
-                </div>
+                <SocialCard
+                  platform="twitter"
+                  author="Tom Yang"
+                  username="tomyang11_"
+                  body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
+                  url="https://twitter.com/tomyang11_/status/1956395933538902092"
+                  className="border-x-0"
+                />
               </div>
 
               {/* Desktop: Custom grid layout with big and small cards */}
@@ -320,10 +399,79 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </p>
           </div>
 
-          {/* Feature Cards Grid */}
-          <div className="grid grid-cols-6 gap-4 px-4 pb-4">
+          {/* Feature Cards Grid - Small screens */}
+          <div className="max-[800px]:block hidden px-4">
+            {/* Scrollable Cards */}
+            <div
+              ref={featuresScrollRef}
+              className="overflow-x-auto snap-x snap-mandatory scrollbar-hide scrollbar-none -mx-4"
+              onScroll={(e) => {
+                const container = e.currentTarget;
+                const scrollLeft = container.scrollLeft;
+                const itemWidth = container.offsetWidth;
+                const index = Math.round(scrollLeft / itemWidth);
+                setSelectedFeature(index);
+              }}
+            >
+              <div className="flex">
+                {mainFeatures.map((feature, index) => (
+                  <div key={index} className="w-full shrink-0 snap-center px-4">
+                    <div className="border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+                      <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                        {feature.videoType === "player"
+                          ? (
+                            <VideoPlayer
+                              playbackId={MUX_PLAYBACK_ID}
+                              onLearnMore={() => window.location.href = "#"}
+                              onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                            />
+                          )
+                          : (
+                            <img
+                              src="/static.gif"
+                              alt={`${feature.title} feature`}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                      </div>
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+                          {feature.comingSoon && (
+                            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                              Coming Soon
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-neutral-600">{feature.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Indicators */}
+            <div className="flex justify-center gap-2 py-6">
+              {mainFeatures.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollToFeature(index)}
+                  className={cn(
+                    "h-1 rounded-full transition-all cursor-pointer",
+                    selectedFeature === index
+                      ? "w-8 bg-stone-600"
+                      : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                  )}
+                  aria-label={`Go to feature ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Feature Cards Grid - Medium and Large screens */}
+          <div className="min-[800px]:grid hidden grid-cols-6 gap-4 px-4 laptop:px-0 pb-4">
             {/* Row 1: Transcript + Summary */}
-            {/* Transcript Feature - span 3 */}
             <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -343,7 +491,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Summary Feature - span 3 */}
             <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -364,7 +511,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
 
             {/* Row 2: Chat + Floating Panel + Daily Note */}
-            {/* Chat Feature - span 2 */}
             <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -384,7 +530,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Floating Panel Feature - span 2 */}
             <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -404,7 +549,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Daily Note Feature - span 2 */}
             <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <img src="/static.gif" alt="Daily Note feature" className="w-full h-full object-cover" />
@@ -426,89 +570,154 @@ Mad respect to the team. This is how you build in 2025. 🚀"
 
           {/* Details Section */}
           <div className="border-t border-neutral-100">
-            <div className="text-center py-12 px-6">
+            <div className="text-center py-12 px-4 laptop:px-0">
               <h2 className="text-3xl font-serif text-stone-600 mb-4">We focus on every bit of details</h2>
               <p className="text-neutral-600 max-w-lg mx-auto">
                 From powerful editing to seamless organization, every feature is crafted with care
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 border-t border-neutral-100">
-              {/* Details List */}
-              <div className="border-b md:border-b-0 md:border-r border-neutral-100">
-                {/* Notion-like Editor */}
-                <div className="p-6 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="mdi:text-box-edit-outline" className="text-2xl text-stone-600 mt-0.5" />
-                    <div>
-                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Notion-like Editor</h3>
-                      <p className="text-sm text-neutral-600">
-                        Full markdown support with distraction-free writing
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Upload Audio */}
-                <div className="p-6 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="mdi:upload-outline" className="text-2xl text-stone-600 mt-0.5" />
-                    <div>
-                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Upload Audio</h3>
-                      <p className="text-sm text-neutral-600">
-                        Import audio files or transcripts to convert into notes
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contacts View */}
-                <div className="p-6 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="mdi:account-multiple-outline" className="text-2xl text-stone-600 mt-0.5" />
-                    <div>
-                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Contacts View</h3>
-                      <p className="text-sm text-neutral-600">
-                        Organize and manage your contacts with ease
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calendar View */}
-                <div className="p-6 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="mdi:calendar-outline" className="text-2xl text-stone-600 mt-0.5" />
-                    <div>
-                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Calendar View</h3>
-                      <p className="text-sm text-neutral-600">
-                        Stay on top of your schedule with integrated calendar
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Noteshelf View */}
-                <div className="p-6 hover:bg-neutral-50 cursor-pointer transition-colors">
-                  <div className="flex items-start gap-3">
-                    <Icon icon="mdi:bookshelf" className="text-2xl text-stone-600 mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base font-serif font-medium text-stone-600">Noteshelf View</h3>
-                        <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
-                          Coming Soon
-                        </span>
+            {/* Small screens (w < 800px): Card + Indicators */}
+            <div className="max-[800px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
+              {/* Scrollable Cards */}
+              <div
+                ref={detailsScrollRef}
+                className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-hide -mx-4"
+                onScroll={(e) => {
+                  const container = e.currentTarget;
+                  const scrollLeft = container.scrollLeft;
+                  const itemWidth = container.offsetWidth;
+                  const index = Math.round(scrollLeft / itemWidth);
+                  setSelectedDetail(index);
+                }}
+              >
+                <div className="flex">
+                  {detailsFeatures.map((feature, index) => (
+                    <div key={index} className="w-full shrink-0 snap-center px-4">
+                      <div className="border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+                        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                          <VideoPlayer
+                            playbackId={MUX_PLAYBACK_ID}
+                            onLearnMore={() =>
+                              window.location.href = "#"}
+                            onExpandVideo={() =>
+                              setExpandedVideo(MUX_PLAYBACK_ID)}
+                          />
+                        </div>
+                        <div className="p-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+                            {feature.comingSoon && (
+                              <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-neutral-600">{feature.description}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-neutral-600">
-                        Browse and organize all your notes in one place
-                      </p>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
+              {/* Indicators */}
+              <div className="flex justify-center gap-2 py-6">
+                {detailsFeatures.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => scrollToDetail(index)}
+                    className={cn(
+                      "h-1 rounded-full transition-all cursor-pointer",
+                      selectedDetail === index
+                        ? "w-8 bg-stone-600"
+                        : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                    )}
+                    aria-label={`Go to detail ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Medium screens (800px < w < 1200px): Horizontal scroll + Video */}
+            <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
+              <div className="flex flex-col">
+                {/* Scrollable Title/Description Cards */}
+                <div className="overflow-x-auto scrollbar-none border-b border-neutral-100">
+                  <div className="flex">
+                    {detailsFeatures.map((feature, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedDetail(index)}
+                        className={cn(
+                          "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                          selectedDetail === index
+                            ? "bg-stone-50"
+                            : "hover:bg-neutral-50",
+                        )}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
+                            {feature.comingSoon && (
+                              <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-neutral-600">{feature.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Video */}
+                <div className="pt-4 pb-4">
+                  <div className="border border-neutral-100 rounded-sm overflow-hidden aspect-video">
+                    <VideoPlayer
+                      playbackId={MUX_PLAYBACK_ID}
+                      onLearnMore={() => window.location.href = "#"}
+                      onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Large screens (w > 1200px): Original Grid Layout */}
+            <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
+              {/* Details List */}
+              <div className="border-r border-neutral-100">
+                {detailsFeatures.map((feature, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "p-6 cursor-pointer transition-colors",
+                      index < detailsFeatures.length - 1 && "border-b border-neutral-100",
+                      "hover:bg-neutral-50",
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
+                          {feature.comingSoon && (
+                            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                              Coming Soon
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-neutral-600">{feature.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Asset Preview */}
-              <div className="aspect-video md:aspect-auto border-neutral-100 overflow-hidden">
+              <div className="aspect-video md:aspect-auto overflow-hidden">
                 <VideoPlayer
                   playbackId={MUX_PLAYBACK_ID}
                   onLearnMore={() => window.location.href = "#"}
@@ -523,7 +732,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         <GitHubOpenSource />
 
         {/* Manifesto Section */}
-        <section className="py-16 border-t border-neutral-100 px-4">
+        <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0">
           <div className="max-w-4xl mx-auto">
             <div
               className="border border-neutral-200 p-4"
@@ -585,7 +794,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           </div>
         </section>
 
-        <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30">
+        <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
           <div className="flex flex-col gap-6 items-center">
             <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
               <img

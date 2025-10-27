@@ -71,14 +71,14 @@ export function VideoPlayer({
               e.stopPropagation();
               onLearnMore?.();
             }}
-            className={cn(
+            className={cn([
               "flex-1 py-4 text-xs font-mono",
               "bg-stone-100/95 text-stone-800",
               "border-r border-stone-400/50",
               "hover:bg-stone-200/95 active:bg-stone-400/95",
               "transition-all duration-150",
               "backdrop-blur-sm",
-            )}
+            ])}
           >
             Learn more
           </button>
@@ -87,13 +87,13 @@ export function VideoPlayer({
               e.stopPropagation();
               onExpandVideo?.();
             }}
-            className={cn(
+            className={cn([
               "flex-1 py-4 text-xs font-mono",
               "bg-stone-100/95 text-stone-800",
               "hover:bg-stone-200/95 active:bg-stone-400/95",
               "transition-all duration-150",
               "backdrop-blur-sm",
-            )}
+            ])}
           >
             Expand video
           </button>

@@ -80,14 +80,14 @@ export function GitHubOpenSource() {
           <div className="text-center space-y-4">
             <h2 className="text-3xl font-serif text-stone-600">Open source</h2>
             <p className="text-lg text-neutral-600">
-              Hyprnote was built to be transparent from day one, attracting great engineers around the world
+              {"Hyprnote values privacy and community, so it's been transparent from day one"}
             </p>
             <a
               href={`https://github.com/${ORG_REPO}`}
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
-                "group px-6 h-12 inline-flex items-center justify-center gap-2 text-base sm:text-lg",
+                "group px-6 h-12 inline-flex items-center justify-center gap-2",
                 "bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full",
                 "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
                 "transition-all cursor-pointer",

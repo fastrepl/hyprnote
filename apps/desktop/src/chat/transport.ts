@@ -1,14 +1,14 @@
 import type { ChatTransport, LanguageModel } from "ai";
 import { convertToModelMessages, Experimental_Agent as Agent, stepCountIs } from "ai";
 
-import { ToolRegistry } from "../contexts/tool";
+import { type ToolRegistry } from "../contexts/tool";
 import type { HyprUIMessage } from "./types";
 
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   constructor(private registry: ToolRegistry, private model: LanguageModel) {}
 
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (options) => {
-    const tools = this.registry.getForTransport();
+    const tools = this.registry.getTools("chat");
 
     const agent = new Agent({
       model: this.model,

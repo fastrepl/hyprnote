@@ -1,13 +1,13 @@
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 
-import { toolFactories } from "../../../chat/tools";
+import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
 import { SearchUIProvider } from "../../../contexts/search/ui";
 import { ShellProvider } from "../../../contexts/shell";
-import { useToolRegistry } from "../../../contexts/tool";
+import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useTabs } from "../../../store/zustand/tabs";
 import { id } from "../../../utils";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/app/main/_layout")({
 });
 
 function Component() {
-  const { persistedStore, internalStore, aiTaskStore } = useRouteContext({ from: "__root__" });
+  const { persistedStore, internalStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
   const { registerOnClose, registerOnEmpty, currentTab, openNew, invalidateResource } = useTabs();
 
   const createDefaultSession = useCallback(() => {
@@ -71,7 +71,7 @@ function Component() {
     <SearchEngineProvider store={persistedStore}>
       <SearchUIProvider>
         <ShellProvider>
-          <ToolRegistryProvider>
+          <ToolRegistryProvider registry={toolRegistry}>
             <AITaskProvider store={aiTaskStore}>
               <ToolRegistration />
               <Outlet />
@@ -84,16 +84,13 @@ function Component() {
 }
 
 function ToolRegistration() {
-  const registry = useToolRegistry();
   const { search } = useSearchEngine();
 
-  useEffect(() => {
-    const deps = { search };
-
-    Object.entries(toolFactories).forEach(([key, factory]) => {
-      registry.register(key, factory(deps));
-    });
-  }, [registry, search]);
+  useRegisterTools(
+    "chat",
+    () => buildChatTools({ search }),
+    [search],
+  );
 
   return null;
 }

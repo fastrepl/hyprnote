@@ -1,75 +1,49 @@
-import { createContext, useCallback, useContext, useMemo, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo } from "react";
 
-export interface ToolRegistry {
-  getForTransport(): Record<string, any>;
-  invoke(key: string, input: any): Promise<any>;
-  getTool(key: string): any;
-  getAllTools(): Array<{ key: string; tool: any }>;
-  register(key: string, tool: any): void;
-}
+import { createToolRegistry, type ToolRegistry, type ToolScope } from "./tool-registry/core";
 
-interface ToolRegistryContextValue {
-  registry: ToolRegistry;
-}
+export type { ToolRegistry, ToolScope };
 
-const ToolRegistryContext = createContext<ToolRegistryContextValue | null>(null);
+const ToolRegistryContext = createContext<ToolRegistry | null>(null);
 
-export function ToolRegistryProvider({ children }: { children: React.ReactNode }) {
-  const toolsRef = useRef<Map<string, any>>(new Map());
+export function ToolRegistryProvider({
+  registry: providedRegistry,
+  children,
+}: {
+  registry?: ToolRegistry;
+  children: React.ReactNode;
+}) {
+  const registry = useMemo(() => providedRegistry ?? createToolRegistry(), [providedRegistry]);
 
-  const register = useCallback((key: string, tool: any) => {
-    toolsRef.current.set(key, tool);
-  }, []);
-
-  const getForTransport = useCallback((): Record<string, any> => {
-    const tools: Record<string, any> = {};
-    toolsRef.current.forEach((tool, key) => {
-      tools[key] = tool;
-    });
-    return tools;
-  }, []);
-
-  const invoke = useCallback(async (key: string, input: any): Promise<any> => {
-    const tool = toolsRef.current.get(key);
-    if (!tool) {
-      throw new Error(`Tool "${key}" not found in registry`);
-    }
-
-    if (!tool.execute) {
-      throw new Error(`Tool "${key}" does not have an execute function`);
-    }
-
-    return await tool.execute(input);
-  }, []);
-
-  const getTool = useCallback((key: string): any => {
-    return toolsRef.current.get(key);
-  }, []);
-
-  const getAllTools = useCallback((): Array<{ key: string; tool: any }> => {
-    return Array.from(toolsRef.current.entries()).map(([key, tool]) => ({ key, tool }));
-  }, []);
-
-  const registry: ToolRegistry = useMemo(
-    () => ({
-      getForTransport,
-      invoke,
-      getTool,
-      getAllTools,
-      register,
-    }),
-    [getForTransport, invoke, getTool, getAllTools, register],
+  return (
+    <ToolRegistryContext.Provider value={registry}>
+      {children}
+    </ToolRegistryContext.Provider>
   );
-
-  const value = useMemo(() => ({ registry }), [registry]);
-
-  return <ToolRegistryContext.Provider value={value}>{children}</ToolRegistryContext.Provider>;
 }
 
 export function useToolRegistry(): ToolRegistry {
-  const context = useContext(ToolRegistryContext);
-  if (!context) {
+  const registry = useContext(ToolRegistryContext);
+  if (!registry) {
     throw new Error("useToolRegistry must be used within ToolRegistryProvider");
   }
-  return context.registry;
+  return registry;
+}
+
+export function useRegisterTools(
+  scopes: ToolScope | ToolScope[],
+  factory: () => Record<string, any>,
+  deps: React.DependencyList,
+): void {
+  const registry = useToolRegistry();
+  const memoFactory = useCallback(factory, deps);
+
+  useEffect(() => {
+    const tools = memoFactory();
+    const ids = Object.entries(tools).map(([key, tool]) => registry.register(scopes, key, tool));
+
+    return () => {
+      ids.forEach((id) => registry.unregister(id));
+    };
+  }, [memoFactory, registry, scopes]);
 }

@@ -1,7 +1,7 @@
 import { Experimental_Agent as Agent, generateText, type LanguageModel, stepCountIs, Tool, tool } from "ai";
 import { z } from "zod";
 
-export function createEnhancingAgent(model: LanguageModel) {
+export function createEnhancingAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
   const system = `
   You are an expert at creating structured, comprehensive meeting summaries.
   
@@ -49,6 +49,7 @@ export function createEnhancingAgent(model: LanguageModel) {
         return output;
       },
     }),
+    ...extraTools,
   };
 
   return new Agent({
@@ -57,7 +58,6 @@ export function createEnhancingAgent(model: LanguageModel) {
     system,
     tools,
     prepareStep: async ({ stepNumber }) => {
-      console.log("prepareStep", stepNumber);
       if (stepNumber === 0) {
         return {
           toolChoice: { type: "tool", toolName: "analyzeStructure" },

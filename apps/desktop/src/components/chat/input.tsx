@@ -1,10 +1,9 @@
 import Editor from "@hypr/tiptap/editor";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 
-import { PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { SendIcon } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useShell } from "../../contexts/shell";
 
@@ -37,7 +36,6 @@ export function ChatMessageInput({
 }) {
   const editorRef = useRef<{ editor: any }>(null);
   const { chat } = useShell();
-  const [selectOpen, setSelectOpen] = useState(false);
 
   const handleSubmit = useCallback(() => {
     const json = editorRef.current?.editor?.getJSON();
@@ -96,39 +94,6 @@ export function ChatMessageInput({
         </div>
 
         <div className="flex items-center justify-between px-2 pb-2 -mt-4">
-          <div className="flex items-center">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-neutral-400 shrink-0"
-            >
-              <PaperclipIcon size={16} />
-            </Button>
-
-            <Select
-              open={selectOpen}
-              onOpenChange={(open) => {
-                setSelectOpen(open);
-                if (!open) {
-                  requestAnimationFrame(() => {
-                    editorRef.current?.editor?.commands.focus();
-                  });
-                }
-              }}
-              defaultValue="auto"
-            >
-              <SelectTrigger className="h-8 text-xs border-0 focus:ring-0 focus:ring-offset-0 shadow-none hover:bg-accent">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto">Auto</SelectItem>
-                <SelectItem value="all-notes">All Notes</SelectItem>
-                <SelectItem value="all-tabs">All Tabs</SelectItem>
-                <SelectItem value="current-tab">Current Tab</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="flex items-center gap-1">
             <Button
               onClick={handleSubmit}

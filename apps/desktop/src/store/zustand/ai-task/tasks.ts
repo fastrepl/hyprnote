@@ -2,6 +2,7 @@ import { Experimental_Agent as Agent, type LanguageModel, stepCountIs } from "ai
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
+import type { ToolRegistry } from "../../../contexts/tool-registry/core";
 import { applyTransforms } from "./shared/transform_infra";
 import { TASK_CONFIGS, type TaskType } from "./task-configs";
 
@@ -42,6 +43,7 @@ const initialState: TasksState = {
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
+  deps: { toolRegistry: ToolRegistry },
 ): TasksState & TasksActions => ({
   ...initialState,
   getState: (taskId: string) => {
@@ -86,7 +88,7 @@ export const createTasksSlice = <T extends TasksState>(
     );
 
     try {
-      const agent = getAgentForTask(config.taskType, config.model);
+      const agent = getAgentForTask(config.taskType, config.model, deps);
       const result = agent.stream({ prompt });
 
       let fullText = "";
@@ -191,11 +193,12 @@ export const createTasksSlice = <T extends TasksState>(
   },
 });
 
-function getAgentForTask(taskType: TaskType, model: LanguageModel) {
+function getAgentForTask(taskType: TaskType, model: LanguageModel, deps: { toolRegistry: ToolRegistry }) {
   const taskConfig = TASK_CONFIGS[taskType];
 
   if (taskConfig.getAgent) {
-    return taskConfig.getAgent(model);
+    const scopedTools = deps.toolRegistry.getTools("enhancing");
+    return taskConfig.getAgent(model, scopedTools);
   }
 
   return new Agent({

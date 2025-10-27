@@ -17,12 +17,14 @@ import {
   StoreComponent as StoreComponentPersisted,
 } from "./store/tinybase/persisted";
 
+import { createToolRegistry } from "./contexts/tool-registry/core";
 import { routeTree } from "./routeTree.gen";
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
 
+const toolRegistry = createToolRegistry();
 const listenerStore = createListenerStore();
-const aiTaskStore = createAITaskStore();
+const aiTaskStore = createAITaskStore({ toolRegistry });
 const queryClient = new QueryClient();
 
 const router = createRouter({ routeTree, context: undefined });
@@ -51,6 +53,7 @@ function App() {
         internalStore,
         listenerStore,
         aiTaskStore,
+        toolRegistry,
       }}
     />
   );

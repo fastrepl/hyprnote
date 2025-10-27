@@ -14,10 +14,10 @@ export const Route = createFileRoute("/_view/")({
 function Component() {
   return (
     <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
-      <div className="max-w-6xl mx-auto py-12 border-x border-neutral-100">
+      <div className="max-w-6xl mx-auto border-x border-neutral-100">
         <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
           <div className="flex flex-col items-center text-center">
-            <section className="flex flex-col items-center text-center gap-12 pt-12 pb-24">
+            <section className="flex flex-col items-center text-center gap-12 py-24">
               <div className="space-y-6 max-w-4xl">
                 <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
                   The AI notepad for <br className="block sm:hidden" />private meetings
@@ -468,60 +468,55 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         <GitHubOpenSource />
 
         {/* Manifesto Section */}
-        <section className="py-16 sm:py-24 border-t border-neutral-100">
-          <div className="max-w-4xl mx-auto px-6">
-            {/* Postcard */}
-            <div className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12">
-              <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
+        <section className="py-16 border-t border-neutral-100 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="border border-neutral-200 p-4" style={{ backgroundImage: 'url(/patterns/white_leather.png)' }}>
+              {/* Postcard */}
+              <div className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12" style={{ backgroundImage: 'url(/patterns/paper.png)' }}>
+                <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
 
-              <div className="space-y-4 text-neutral-700 leading-relaxed">
-                <p className="text-base sm:text-lg">
-                  Work should be about building, not busywork. Hyprnote exists to take care of everything that gets in
-                  the way — organizing notes, sending follow-ups, updating CRMs — so you can stay focused on what
-                  matters.
-                </p>
-
-                <p className="text-base sm:text-lg">
-                  We believe in a future where individuals are empowered to work faster and smarter without giving up
-                  control of their data. Built local-first and privacy-first, Hyprnote is here to make that future real.
-                </p>
-              </div>
-
-              {/* Team photos */}
-              <div className="flex gap-2 mt-12 mb-4">
-                <img
-                  src="/team/john.png"
-                  alt="John Jeong"
-                  className="size-8 rounded-full object-cover border border-neutral-200"
-                />
-                <img
-                  src="/team/yujong.png"
-                  alt="Yujong Lee"
-                  className="size-8 rounded-full object-cover border border-neutral-200"
-                />
-              </div>
-
-              {/* Team names and signature */}
-              <div className="space-y-4">
-                <div>
-                  <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
-                  <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
+                <div className="space-y-4 text-neutral-700 leading-relaxed">
+                  <p>We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not passive attendance. If you are not adding value, your time is better spent elsewhere for you and your team.</p>
+                  <p>Hyprnote exists to preserve what makes us human: conversations that spark ideas, collaborations that move work forward. We build tools that amplify human agency, not replace it. No ghost bots. No silent note lurkers. Just people, thinking together.</p>
+                  <p>We stand with those who value real connection and purposeful collaboration.</p>
                 </div>
 
-                {/* Signature SVG */}
-                <div>
+                {/* Team photos */}
+                <div className="flex gap-2 mt-12 mb-4">
                   <img
-                    src="/hyprnote_signature_light.svg"
-                    alt="Hyprnote Signature"
-                    className="w-32 h-auto opacity-80"
+                    src="/team/john.png"
+                    alt="John Jeong"
+                    className="size-8 rounded-full object-cover border border-neutral-200"
                   />
+                  <img
+                    src="/team/yujong.png"
+                    alt="Yujong Lee"
+                    className="size-8 rounded-full object-cover border border-neutral-200"
+                  />
+                </div>
+
+                {/* Team names and signature */}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
+                    <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
+                  </div>
+
+                  {/* Signature SVG */}
+                  <div>
+                    <img
+                      src="/hyprnote_signature_light.svg"
+                      alt="Hyprnote Signature"
+                      className="w-32 h-auto opacity-80"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="py-16 sm:py-24 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30">
+        <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30">
           <div className="flex flex-col gap-6 items-center">
             <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
               <img

@@ -6,6 +6,7 @@ import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
 import { id } from "../../utils";
 
+import { useLanguageModel } from "../../hooks/useLLMConnection";
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
@@ -16,6 +17,7 @@ export function ChatView() {
   const { groupId, setGroupId } = chat;
 
   const stableSessionId = useStableSessionId(groupId);
+  const model = useLanguageModel();
 
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
@@ -105,8 +107,10 @@ export function ChatView() {
               onStop={stop}
             />
             <ChatMessageInput
+              disabled={(status !== "ready" || !model)
+                ? { disabled: true, message: "Language model not configured." }
+                : false}
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
-              disabled={status !== "ready"}
             />
           </>
         )}

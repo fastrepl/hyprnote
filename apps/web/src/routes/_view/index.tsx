@@ -1,3 +1,5 @@
+import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -6,15 +8,47 @@ import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
 import { LogoCloud } from "@/components/logo-cloud";
 import { SocialCard } from "@/components/social-card";
+import { VideoModal } from "@/components/video-modal";
+import { VideoPlayer } from "@/components/video-player";
+import { VideoThumbnail } from "@/components/video-thumbnail";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_view/")({
   component: Component,
 });
 
 function Component() {
+  const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
+  const MUX_PLAYBACK_ID = "SGv6JaZsKqF50102xk6no2ybUqqSyngeWO401ic8qJdZR4";
   return (
     <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
       <div className="max-w-6xl mx-auto border-x border-neutral-100">
+        {/* Announcement Banner */}
+        <a
+          href="https://www.ycombinator.com/companies/hyprnote"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group"
+        >
+          <div
+            className={cn(
+              "flex items-center justify-center gap-2 text-center",
+              "bg-stone-50/70 border-b border-stone-100",
+              "py-3 px-4",
+              "font-serif text-sm text-stone-700",
+              "hover:bg-stone-50 transition-all",
+            )}
+          >
+            <span className="group-hover:font-medium">Backed by</span>
+            <img
+              src="/icons/yc_stone.svg"
+              alt="Y Combinator"
+              className={cn("h-4 w-4 inline-block group-hover:scale-105")}
+            />
+            <span className="group-hover:font-medium">Y Combinator</span>
+          </div>
+        </a>
+
         <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
           <div className="flex flex-col items-center text-center">
             <section className="flex flex-col items-center text-center gap-12 py-24">
@@ -45,13 +79,11 @@ function Component() {
             </section>
 
             {/* Video - Mobile First */}
-            <div className="relative aspect-video w-full max-w-4xl bg-linear-to-br from-stone-50 to-neutral-50 border-t border-neutral-100 md:hidden">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <Icon icon="mdi:play-circle-outline" className="text-6xl text-neutral-400 mx-auto" />
-                  <p className="text-neutral-500 font-medium">Demo video coming soon</p>
-                </div>
-              </div>
+            <div className="relative aspect-video w-full max-w-4xl border-t border-neutral-100 md:hidden overflow-hidden">
+              <VideoThumbnail
+                playbackId={MUX_PLAYBACK_ID}
+                onPlay={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+              />
             </div>
 
             {/* Feature Cards Row */}
@@ -78,13 +110,11 @@ function Component() {
               </div>
 
               {/* Video - Desktop (no gap) */}
-              <div className="relative aspect-video w-full bg-white border-t border-neutral-100 hidden md:block">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <Icon icon="mdi:play-circle-outline" className="text-6xl text-neutral-400 mx-auto" />
-                    <p className="text-neutral-500 font-medium">Demo video coming soon</p>
-                  </div>
-                </div>
+              <div className="relative aspect-video w-full border-t border-neutral-100 hidden md:block overflow-hidden">
+                <VideoThumbnail
+                  playbackId={MUX_PLAYBACK_ID}
+                  onPlay={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
             </div>
           </div>
@@ -93,7 +123,7 @@ function Component() {
         {/* Social Proof Section */}
         <section className="border-t border-neutral-100">
           <div className="text-center">
-            <p className="text-sm font-medium text-neutral-600 uppercase tracking-wide py-6">
+            <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
               Loved by professionals at
             </p>
 
@@ -279,24 +309,28 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           <div className="text-center py-16">
             <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
               <img
-                src="/hyprnote_with_noise.png"
+                src="/hyprnote/icon.png"
                 alt="Hyprnote"
                 className="size-24 rounded-3xl border border-neutral-100"
               />
             </div>
             <h2 className="text-3xl font-serif text-stone-600 mb-4">Hyprnote works like charm</h2>
             <p className="text-neutral-600 max-w-lg mx-auto">
-              {"Hyprnote is super simple and easy to use with its clean interface. It's getting better and better with every update."}
+              {"Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."}
             </p>
           </div>
 
           {/* Feature Cards Grid */}
-          <div className="grid grid-cols-6 border-t border-neutral-100">
+          <div className="grid grid-cols-6 gap-4 px-4 pb-4">
             {/* Row 1: Transcript + Summary */}
             {/* Transcript Feature - span 3 */}
-            <div className="col-span-6 md:col-span-3 border-b md:border-r border-neutral-100 flex flex-col">
-              <div className="aspect-video bg-neutral-50 border-b border-neutral-100 flex items-center justify-center">
-                <p className="text-neutral-400">Video preview</p>
+            <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+              <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
               <div className="p-6 flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -310,9 +344,13 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
 
             {/* Summary Feature - span 3 */}
-            <div className="col-span-6 md:col-span-3 border-b border-neutral-100 flex flex-col">
-              <div className="aspect-video bg-neutral-50 border-b border-neutral-100 flex items-center justify-center">
-                <p className="text-neutral-400">Video preview</p>
+            <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+              <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
               <div className="p-6 flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -327,9 +365,13 @@ Mad respect to the team. This is how you build in 2025. 🚀"
 
             {/* Row 2: Chat + Floating Panel + Daily Note */}
             {/* Chat Feature - span 2 */}
-            <div className="col-span-6 md:col-span-2 border-b md:border-b-0 md:border-r border-neutral-100 flex flex-col">
-              <div className="aspect-video bg-neutral-50 border-b border-neutral-100 flex items-center justify-center">
-                <p className="text-neutral-400">Video preview</p>
+            <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+              <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
               <div className="p-6 flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -343,9 +385,13 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
 
             {/* Floating Panel Feature - span 2 */}
-            <div className="col-span-6 md:col-span-2 border-b md:border-b-0 md:border-r border-neutral-100 flex flex-col">
-              <div className="aspect-video bg-neutral-50 border-b border-neutral-100 flex items-center justify-center">
-                <p className="text-neutral-400">Video preview</p>
+            <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+              <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
               <div className="p-6 flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -359,9 +405,9 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
 
             {/* Daily Note Feature - span 2 */}
-            <div className="col-span-6 md:col-span-2 flex flex-col">
-              <div className="aspect-video bg-neutral-50 border-b border-neutral-100 flex items-center justify-center">
-                <p className="text-neutral-400">Video preview</p>
+            <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+              <div className="aspect-video border-b border-neutral-100 overflow-hidden">
+                <img src="/static.gif" alt="Daily Note feature" className="w-full h-full object-cover" />
               </div>
               <div className="p-6 flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -395,7 +441,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <div className="flex items-start gap-3">
                     <Icon icon="mdi:text-box-edit-outline" className="text-2xl text-stone-600 mt-0.5" />
                     <div>
-                      <h3 className="text-base font-medium text-stone-600 mb-1">Notion-like Editor</h3>
+                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Notion-like Editor</h3>
                       <p className="text-sm text-neutral-600">
                         Full markdown support with distraction-free writing
                       </p>
@@ -408,7 +454,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <div className="flex items-start gap-3">
                     <Icon icon="mdi:upload-outline" className="text-2xl text-stone-600 mt-0.5" />
                     <div>
-                      <h3 className="text-base font-medium text-stone-600 mb-1">Upload Audio</h3>
+                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Upload Audio</h3>
                       <p className="text-sm text-neutral-600">
                         Import audio files or transcripts to convert into notes
                       </p>
@@ -421,7 +467,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <div className="flex items-start gap-3">
                     <Icon icon="mdi:account-multiple-outline" className="text-2xl text-stone-600 mt-0.5" />
                     <div>
-                      <h3 className="text-base font-medium text-stone-600 mb-1">Contacts View</h3>
+                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Contacts View</h3>
                       <p className="text-sm text-neutral-600">
                         Organize and manage your contacts with ease
                       </p>
@@ -434,7 +480,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <div className="flex items-start gap-3">
                     <Icon icon="mdi:calendar-outline" className="text-2xl text-stone-600 mt-0.5" />
                     <div>
-                      <h3 className="text-base font-medium text-stone-600 mb-1">Calendar View</h3>
+                      <h3 className="text-base font-serif font-medium text-stone-600 mb-1">Calendar View</h3>
                       <p className="text-sm text-neutral-600">
                         Stay on top of your schedule with integrated calendar
                       </p>
@@ -447,7 +493,12 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <div className="flex items-start gap-3">
                     <Icon icon="mdi:bookshelf" className="text-2xl text-stone-600 mt-0.5" />
                     <div>
-                      <h3 className="text-base font-medium text-stone-600 mb-1">Noteshelf View</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-base font-serif font-medium text-stone-600">Noteshelf View</h3>
+                        <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                          Coming Soon
+                        </span>
+                      </div>
                       <p className="text-sm text-neutral-600">
                         Browse and organize all your notes in one place
                       </p>
@@ -457,8 +508,12 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
 
               {/* Asset Preview */}
-              <div className="aspect-video md:aspect-auto bg-neutral-50 flex items-center justify-center border-neutral-100">
-                <p className="text-neutral-400">Selected detail preview</p>
+              <div className="aspect-video md:aspect-auto border-neutral-100 overflow-hidden">
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => setExpandedVideo(MUX_PLAYBACK_ID)}
+                />
               </div>
             </div>
           </div>
@@ -519,7 +574,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   {/* Signature SVG */}
                   <div>
                     <img
-                      src="/hyprnote_signature_light.svg"
+                      src="/hyprnote/signature.svg"
                       alt="Hyprnote Signature"
                       className="w-32 h-auto opacity-80"
                     />
@@ -534,7 +589,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           <div className="flex flex-col gap-6 items-center">
             <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
               <img
-                src="/hyprnote_with_noise.png"
+                src="/hyprnote/icon.png"
                 alt="Hyprnote"
                 className="size-36 mx-auto rounded-[40px] border border-neutral-100"
               />
@@ -552,6 +607,13 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           </div>
         </section>
       </div>
+
+      {/* Video Modal */}
+      <VideoModal
+        playbackId={expandedVideo || ""}
+        isOpen={expandedVideo !== null}
+        onClose={() => setExpandedVideo(null)}
+      />
     </main>
   );
 }

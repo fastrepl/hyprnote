@@ -27,7 +27,7 @@ function Header() {
               to="/"
               className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
             >
-              <img src="/hyprnote-logo.svg" alt="Hyprnote" className="h-6" />
+              <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
             </Link>
             <a
               href="https://docs.hyprnote.com"

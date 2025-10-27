@@ -470,14 +470,28 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         {/* Manifesto Section */}
         <section className="py-16 border-t border-neutral-100 px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="border border-neutral-200 p-4" style={{ backgroundImage: 'url(/patterns/white_leather.png)' }}>
+            <div
+              className="border border-neutral-200 p-4"
+              style={{ backgroundImage: "url(/patterns/white_leather.png)" }}
+            >
               {/* Postcard */}
-              <div className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12" style={{ backgroundImage: 'url(/patterns/paper.png)' }}>
+              <div
+                className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
+                style={{ backgroundImage: "url(/patterns/paper.png)" }}
+              >
                 <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
 
                 <div className="space-y-4 text-neutral-700 leading-relaxed">
-                  <p>We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not passive attendance. If you are not adding value, your time is better spent elsewhere for you and your team.</p>
-                  <p>Hyprnote exists to preserve what makes us human: conversations that spark ideas, collaborations that move work forward. We build tools that amplify human agency, not replace it. No ghost bots. No silent note lurkers. Just people, thinking together.</p>
+                  <p>
+                    We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not
+                    passive attendance. If you are not adding value, your time is better spent elsewhere for you and
+                    your team.
+                  </p>
+                  <p>
+                    Hyprnote exists to preserve what makes us human: conversations that spark ideas, collaborations that
+                    move work forward. We build tools that amplify human agency, not replace it. No ghost bots. No
+                    silent note lurkers. Just people, thinking together.
+                  </p>
                   <p>We stand with those who value real connection and purposeful collaboration.</p>
                 </div>
 

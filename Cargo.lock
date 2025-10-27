@@ -14744,7 +14744,6 @@ name = "tauri-plugin-template"
 version = "0.1.0"
 dependencies = [
  "gbnf",
- "insta",
  "serde_json",
  "specta",
  "specta-typescript",

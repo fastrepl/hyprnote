@@ -5,11 +5,13 @@ import { defineConfig } from "vite";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 
 import { cloudflare } from "@cloudflare/vite-plugin";
+import contentCollections from "@content-collections/vite";
 import { wrapVinxiConfigWithSentry } from "@sentry/tanstackstart-react";
 
 const config = defineConfig({
   plugins: [
     cloudflare({ viteEnvironment: { name: "ssr" } }),
+    contentCollections(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],

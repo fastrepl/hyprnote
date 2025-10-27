@@ -35,12 +35,12 @@ function Header() {
             >
               Docs
             </a>
-            <a
-              href="https://hyprnote.com/blog"
+            <Link
+              to="/blog"
               className="text-sm text-neutral-600 hover:text-neutral-800 transition-colors"
             >
               Blog
-            </a>
+            </Link>
             <Link
               to="/pricing"
               className="text-sm text-neutral-600 hover:text-neutral-800 transition-colors"

@@ -30,6 +30,7 @@
     "@hypr/plugin-listener": "workspace:*",
     "@hypr/plugin-local-stt": "workspace:*",
     "@hypr/plugin-misc": "workspace:*",
+    "@hypr/plugin-notification": "workspace:*",
     "@hypr/plugin-windows": "workspace:*",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",

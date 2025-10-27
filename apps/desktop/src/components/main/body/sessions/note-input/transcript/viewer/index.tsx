@@ -37,8 +37,8 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
           "sticky top-0 z-20",
           "-mx-3 px-3 py-1",
           "bg-background",
-          "border-b border-border",
-          "text-xs font-light",
+          "border-b border-neutral-200",
+          "text-neutral-500 text-xs font-light",
         ])}
       >
         Channel {segment.channel}

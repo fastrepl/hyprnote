@@ -25,7 +25,7 @@ function Header() {
           <div className="flex items-center gap-4">
             <Link
               to="/"
-              className="font-semibold text-2xl font-serif hover:scale-105 transition-transform"
+              className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
             >
               <img src="/hyprnote-logo.svg" alt="Hyprnote" className="h-6" />
             </Link>

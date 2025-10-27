@@ -1,4 +1,5 @@
 import { cn } from "@hypr/utils";
+import { useLayoutEffect, useRef } from "react";
 import { useSegments } from "./segment";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
@@ -7,12 +8,21 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
 }
 
 function Renderer({ segments }: { segments: ReturnType<typeof useSegments> }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, []);
+
   if (segments.length === 0) {
     return null;
   }
 
   return (
     <div
+      ref={containerRef}
       className={cn([
         "space-y-4 h-full overflow-y-auto overflow-x-hidden",
         "px-0.5 pb-16 scroll-pb-[4rem]",

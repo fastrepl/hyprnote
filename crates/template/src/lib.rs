@@ -19,12 +19,12 @@ pub enum Template {
     #[strum(serialize = "enhance.user")]
     #[serde(rename = "enhance.user")]
     EnhanceUser,
-    #[strum(serialize = "create_title.system")]
-    #[serde(rename = "create_title.system")]
-    CreateTitleSystem,
-    #[strum(serialize = "create_title.user")]
-    #[serde(rename = "create_title.user")]
-    CreateTitleUser,
+    #[strum(serialize = "title.system")]
+    #[serde(rename = "title.system")]
+    TitleSystem,
+    #[strum(serialize = "title.user")]
+    #[serde(rename = "title.user")]
+    TitleUser,
     #[strum(serialize = "suggest_tags.system")]
     #[serde(rename = "suggest_tags.system")]
     SuggestTagsSystem,
@@ -53,10 +53,8 @@ pub enum Template {
 
 pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinja");
 pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
-pub const CREATE_TITLE_SYSTEM_TPL: &str = include_str!("../assets/create_title.system.jinja");
-pub const CREATE_TITLE_USER_TPL: &str = include_str!("../assets/create_title.user.jinja");
-pub const SUGGEST_TAGS_SYSTEM_TPL: &str = include_str!("../assets/suggest_tags.system.jinja");
-pub const SUGGEST_TAGS_USER_TPL: &str = include_str!("../assets/suggest_tags.user.jinja");
+pub const TITLE_SYSTEM_TPL: &str = include_str!("../assets/title.system.jinja");
+pub const TITLE_USER_TPL: &str = include_str!("../assets/title.user.jinja");
 pub const AUTO_GENERATE_TAGS_SYSTEM_TPL: &str =
     include_str!("../assets/auto_generate_tags.system.jinja");
 pub const AUTO_GENERATE_TAGS_USER_TPL: &str =
@@ -79,19 +77,9 @@ fn init_environment() -> minijinja::Environment<'static> {
             .unwrap();
         env.add_template(Template::EnhanceUser.as_ref(), ENHANCE_USER_TPL)
             .unwrap();
-        env.add_template(
-            Template::CreateTitleSystem.as_ref(),
-            CREATE_TITLE_SYSTEM_TPL,
-        )
-        .unwrap();
-        env.add_template(Template::CreateTitleUser.as_ref(), CREATE_TITLE_USER_TPL)
+        env.add_template(Template::TitleSystem.as_ref(), TITLE_SYSTEM_TPL)
             .unwrap();
-        env.add_template(
-            Template::SuggestTagsSystem.as_ref(),
-            SUGGEST_TAGS_SYSTEM_TPL,
-        )
-        .unwrap();
-        env.add_template(Template::SuggestTagsUser.as_ref(), SUGGEST_TAGS_USER_TPL)
+        env.add_template(Template::TitleUser.as_ref(), TITLE_USER_TPL)
             .unwrap();
         env.add_template(Template::ChatSystem.as_ref(), CHAT_SYSTEM_TPL)
             .unwrap();

@@ -15,6 +15,7 @@ export function SettingsGeneral() {
     (row: Partial<internal.General>) => ({
       ...row,
       spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
+      ignored_platforms: row.ignored_platforms ? JSON.stringify(row.ignored_platforms) : undefined,
     } satisfies Partial<internal.GeneralStorage>),
     [],
     internal.STORE_ID,

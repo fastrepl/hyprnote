@@ -15,27 +15,7 @@ import { ChevronDown, ChevronUp, RefreshCcw } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { useSafeObjectUpdate } from "../../hooks/useSafeObjectUpdate";
-import * as internal from "../../store/tinybase/internal";
 import * as persisted from "../../store/tinybase/persisted";
-
-export const useUpdateGeneral = () => {
-  const _value = internal.UI.useValues(internal.STORE_ID);
-  const value = internal.generalSchema.parse(_value);
-
-  const cb = internal.UI.useSetPartialValuesCallback(
-    (
-      row: Partial<internal.General>,
-    ) => ({
-      ...row,
-      spoken_languages: JSON.stringify(row.spoken_languages),
-    } satisfies Partial<internal.GeneralStorage>),
-    [],
-    internal.STORE_ID,
-  );
-
-  const handle = useSafeObjectUpdate(internal.generalSchema, value, cb);
-  return { value, handle };
-};
 
 export const useUpdateTemplate = (id: string) => {
   const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);

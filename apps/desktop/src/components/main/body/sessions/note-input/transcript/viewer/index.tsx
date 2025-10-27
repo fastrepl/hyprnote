@@ -1,5 +1,5 @@
 import { cn } from "@hypr/utils";
-import { useLayoutEffect, useRef } from "react";
+import { DependencyList, useLayoutEffect, useRef } from "react";
 import { useSegments } from "./segment";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
@@ -8,13 +8,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
 }
 
 function Renderer({ segments }: { segments: ReturnType<typeof useSegments> }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, []);
+  const containerRef = useAutoScroll<HTMLDivElement>([segments]);
 
   if (segments.length === 0) {
     return null;
@@ -41,7 +35,7 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
       <p
         className={cn([
           "sticky top-0 z-20",
-          "-mx-3 px-3 py-1 mb-1.5",
+          "-mx-3 px-3 py-1",
           "bg-background",
           "border-b border-border",
           "text-xs font-light",
@@ -50,7 +44,7 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
         Channel {segment.channel}
       </p>
 
-      <div className="text-sm leading-relaxed break-words overflow-wrap-anywhere">
+      <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
         {segment.words.map((word, idx) => (
           <span
             key={`${word.start_ms}-${idx}`}
@@ -65,4 +59,24 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
       </div>
     </section>
   );
+}
+
+function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
+  const ref = useRef<T | null>(null);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const isAtTop = element.scrollTop === 0;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+
+    if (isAtTop || isNearBottom) {
+      element.scrollTop = element.scrollHeight;
+    }
+  }, deps);
+
+  return ref;
 }

@@ -18,8 +18,8 @@ function Renderer({ segments }: { segments: ReturnType<typeof useSegments> }) {
     <div
       ref={containerRef}
       className={cn([
-        "space-y-4 h-full overflow-y-auto overflow-x-hidden",
-        "px-0.5 pb-16 scroll-pb-[4rem]",
+        "space-y-8 h-full overflow-y-auto overflow-x-hidden",
+        "px-0.5 pb-32 scroll-pb-[8rem]",
       ])}
     >
       {segments.map(
@@ -30,6 +30,12 @@ function Renderer({ segments }: { segments: ReturnType<typeof useSegments> }) {
 }
 
 function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] }) {
+  const timestamp = segment.words.length > 0
+    ? `${formatTimestamp(segment.words[0].start_ms)} - ${
+      formatTimestamp(segment.words[segment.words.length - 1].end_ms)
+    }`
+    : "00:00 - 00:00";
+
   return (
     <section>
       <p
@@ -39,9 +45,11 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
           "bg-background",
           "border-b border-neutral-200",
           "text-neutral-500 text-xs font-light",
+          "flex items-center justify-between",
         ])}
       >
-        Channel {segment.channel}
+        <span>Channel {segment.channel}</span>
+        <span className="font-mono">{timestamp}</span>
       </p>
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
@@ -79,4 +87,17 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
   }, deps);
 
   return ref;
+}
+
+function formatTimestamp(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  }
+
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }

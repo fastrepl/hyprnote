@@ -23,7 +23,7 @@ const CURATED_PROFILES = [
 function ProfileGrid({ profiles, cols }: { profiles: string[]; cols: 2 | 3 }) {
   const count = cols === 2 ? 4 : 6;
   return (
-    <div className={`grid grid-cols-${cols} gap-3`}>
+    <div className={`grid grid-cols-${cols} gap-1`}>
       {profiles.slice(0, count).map((avatar, idx) => (
         <div
           key={`profile-${idx}`}
@@ -50,11 +50,11 @@ function StatBadge({
   const renderCount = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
   return (
-    <div className="flex flex-col gap-2 h-24 items-center justify-center border border-neutral-200 rounded-sm px-4 bg-neutral-100">
-      <p className="font-semibold text-stone-600 font-serif">
+    <div className="flex flex-col gap-1 text-stone-600 h-24 items-center justify-center border border-neutral-200 rounded-sm px-4 bg-neutral-100">
+      <p className="font-semibold font-serif">
         {type === "stars" ? "Stars" : "Forks"}
       </p>
-      <p className="text-sm font-medium text-stone-600 text-center">
+      <p className="text-sm font-medium text-center">
         {renderCount(count)}
       </p>
     </div>
@@ -67,10 +67,10 @@ export function GitHubOpenSource() {
 
   return (
     <section className="border-t border-neutral-100">
-      <div className="py-16 px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
+      <div className="py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 items-center max-w-6xl mx-auto">
           {/* Column 1: 2x2 grid + Stars badge + 3x2 grid */}
-          <div className="flex items-center gap-4 justify-center">
+          <div className="flex items-center gap-1 justify-center bg-red-100">
             <ProfileGrid profiles={CURATED_PROFILES.slice(0, 4)} cols={2} />
             <StatBadge type="stars" count={STARS_COUNT} />
             <ProfileGrid profiles={CURATED_PROFILES.slice(4, 10)} cols={3} />
@@ -80,25 +80,26 @@ export function GitHubOpenSource() {
           <div className="text-center space-y-4">
             <h2 className="text-3xl font-serif text-stone-600">Open source</h2>
             <p className="text-lg text-neutral-600">
-              Hyprnote was built to be transparent from day one.
+              Hyprnote was built to be transparent from day one, attracting great engineers around the world
             </p>
             <a
               href={`https://github.com/${ORG_REPO}`}
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
-                "inline-flex items-center gap-2 px-6 py-3 mt-4",
-                "bg-neutral-800 hover:bg-neutral-700 text-white rounded-sm",
-                "transition-all hover:scale-[102%] active:scale-[98%]",
+                "group px-6 h-12 inline-flex items-center justify-center gap-2 text-base sm:text-lg",
+                "bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all cursor-pointer",
               ])}
             >
               <Icon icon="mdi:github" className="text-xl" />
-              <span>View on GitHub</span>
+              View on GitHub
             </a>
           </div>
 
           {/* Column 3: 2x2 grid + Forks badge + 3x2 grid */}
-          <div className="flex items-center gap-4 justify-center">
+          <div className="flex items-center gap-1 justify-center">
             <ProfileGrid profiles={CURATED_PROFILES.slice(4, 10)} cols={3} />
             <StatBadge type="forks" count={FORKS_COUNT} />
             <ProfileGrid profiles={CURATED_PROFILES.slice(0, 4)} cols={2} />

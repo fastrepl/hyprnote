@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useAITask } from "../../../../../contexts/ai-task";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
+import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as persisted from "../../../../../store/tinybase/persisted";
 
 import { FloatingButton } from "./shared";
@@ -14,14 +15,6 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 
   const taskId = `${sessionId}-enhance`;
 
-  const { generate, status } = useAITask((state) => ({
-    generate: state.generate,
-    status: state.tasks[taskId]?.status ?? "idle",
-  }));
-
-  const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
-  const rawMd = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
-
   const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
@@ -30,20 +23,39 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
     persisted.STORE_ID,
   );
 
+  const { generate, rawStatus, streamedText, error } = useAITask((state) => ({
+    generate: state.generate,
+    rawStatus: state.tasks[taskId]?.status ?? "idle",
+    streamedText: state.tasks[taskId]?.streamedText ?? "",
+    error: state.tasks[taskId]?.error,
+  }));
+
+  const { isGenerating } = useTaskStatus(rawStatus, {
+    onSuccess: () => {
+      console.log("onSuccess", streamedText);
+      if (streamedText) {
+        updateEnhancedMd(streamedText);
+      }
+    },
+    onError: () => {
+      console.error("Generate failed:", error?.message || "Unknown error");
+    },
+  });
+
+  const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
+
   const onRegenerate = async (_templateId: string | null) => {
     if (!model) {
+      console.error("Generate failed: Language model not configured");
       return;
     }
 
     await generate(taskId, {
       model,
       taskType: "enhance",
-      args: { rawMd },
-      onComplete: updateEnhancedMd,
+      args: { sessionId },
     });
   };
-
-  const isGenerating = status === "generating";
 
   if (isGenerating) {
     return null;
@@ -97,6 +109,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
             setShowTemplates(false);
             onRegenerate(null);
           }}
+          disabled={!model}
         >
           <span>Regenerate</span>
         </FloatingButton>

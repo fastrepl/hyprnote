@@ -1,9 +1,10 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 
 import { useListener } from "../../../../../contexts/listener";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
+import { useCurrentTab } from "../shared";
 
 import { GenerateButton } from "./generate";
 import { ListenButton } from "./listen";
@@ -11,14 +12,15 @@ import { PlaybackButton } from "./playback";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const active = useListener((state) => state.status === "running_active");
+  const currentTab = useCurrentTab(tab);
 
   let button: ReactNode | null = null;
 
-  if (active || tab.state.editor === "raw") {
+  if (active || currentTab === "raw") {
     button = <ListenButton tab={tab} />;
-  } else if (tab.state.editor === "enhanced") {
+  } else if (currentTab === "enhanced") {
     button = <GenerateButton sessionId={tab.id} />;
-  } else if (tab.state.editor === "transcript") {
+  } else if (currentTab === "transcript") {
     button = <PlaybackButton sessionId={tab.id} />;
   }
 

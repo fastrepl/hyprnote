@@ -3,7 +3,7 @@ import "./styles/globals.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { StrictMode } from "react";
+import { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom/client";
 import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
 import { createManager } from "tinytick";
@@ -24,7 +24,6 @@ import { createListenerStore } from "./store/zustand/listener";
 
 const toolRegistry = createToolRegistry();
 const listenerStore = createListenerStore();
-const aiTaskStore = createAITaskStore({ toolRegistry });
 const queryClient = new QueryClient();
 
 const router = createRouter({ routeTree, context: undefined });
@@ -41,7 +40,14 @@ function App() {
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
   const internalStore = stores[STORE_ID_INTERNAL] as unknown as InternalStore;
 
-  if (!persistedStore || !internalStore) {
+  const aiTaskStore = useMemo(() => {
+    if (!persistedStore) {
+      return null;
+    }
+    return createAITaskStore({ toolRegistry, persistedStore });
+  }, [persistedStore]);
+
+  if (!persistedStore || !internalStore || !aiTaskStore) {
     return null;
   }
 

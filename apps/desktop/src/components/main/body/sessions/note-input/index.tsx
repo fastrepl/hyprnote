@@ -1,11 +1,11 @@
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
-import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
+import { useCurrentTab, useHasTranscript } from "../shared";
 import { Enhanced } from "./enhanced";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
@@ -14,8 +14,6 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-
-  const hasTranscript = useHasTranscript(tab.id);
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });
@@ -26,10 +24,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   };
 
   const sessionId = tab.id;
-  const currentTab = useMemo(
-    () => tab.state.editor ?? (hasTranscript ? "enhanced" : "raw"),
-    [tab.state.editor, hasTranscript],
-  );
+  const currentTab: EditorView = useCurrentTab(tab);
 
   return (
     <div className="flex flex-col h-full">
@@ -91,16 +86,6 @@ function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
   }
 
   return ["raw"];
-}
-
-function useHasTranscript(sessionId: string): boolean {
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptBySession,
-    sessionId,
-    persisted.STORE_ID,
-  );
-
-  return !!transcriptIds && transcriptIds.length > 0;
 }
 
 function labelForEditorView(view: EditorView): string {

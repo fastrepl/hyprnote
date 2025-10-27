@@ -50,6 +50,7 @@ export function AuthSection({ isAuthenticated, onSignIn, onSignOut }: AuthSectio
             <div className="space-y-2">
               <Input
                 type="text"
+                className="text-sm"
                 placeholder="hyprnote://auth?access_token=...&refresh_token=..."
                 value={callbackUrl}
                 onChange={(e) => setCallbackUrl(e.target.value)}

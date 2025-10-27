@@ -4,6 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
   clientPrefix: "VITE_",
   client: {
+    VITE_APP_URL: z.string().min(1).optional(),
     VITE_SUPABASE_URL: z.string().min(1).optional(),
     VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1).optional(),
   },

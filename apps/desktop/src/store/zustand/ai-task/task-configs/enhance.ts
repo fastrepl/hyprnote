@@ -11,7 +11,7 @@ export const enhance: TaskConfig = {
   getSystem,
   getPrompt,
   getAgent: (model, tools = {}) => getAgent(model, tools),
-  transforms: [trimBeforeMarker("##"), smoothStream({ delayInMs: 100, chunking: "line" })],
+  transforms: [trimBeforeMarker("##"), smoothStream({ delayInMs: 350, chunking: "line" })],
 };
 
 async function getSystem() {

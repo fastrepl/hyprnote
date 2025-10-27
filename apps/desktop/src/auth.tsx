@@ -117,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async () => {
-    await openUrl("http://localhost:3000/auth?flow=desktop");
+    const base = env.VITE_APP_URL ?? "http://localhost:3000";
+    await openUrl(`${base}/auth?flow=desktop`);
   };
 
   const signOut = async () => {

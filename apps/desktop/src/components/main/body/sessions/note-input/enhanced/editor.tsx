@@ -21,7 +21,7 @@ export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sess
         <NoteEditor
           ref={ref}
           key={`session-${sessionId}-enhanced`}
-          initialContent={value ?? ""}
+          initialContent={value}
           handleChange={handleEnhancedChange}
           mentionConfig={{
             trigger: "@",

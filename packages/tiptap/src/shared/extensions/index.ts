@@ -30,23 +30,6 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
       if (node.type.name === "paragraph") {
         return "Start taking notes...";
       }
-
-      if (node.type.name === "heading") {
-        return "Heading";
-      }
-
-      if (node.type.name === "orderedList" || node.type.name === "bulletList" || node.type.name === "listItem") {
-        return "List";
-      }
-
-      if (node.type.name === "taskList" || node.type.name === "taskItem") {
-        return "To-do";
-      }
-
-      if (node.type.name === "blockquote") {
-        return "Empty quote";
-      }
-
       return "";
     }),
     showOnlyWhenEditable: true,

@@ -12,8 +12,8 @@ import { mention, type MentionConfig } from "./mention";
 export type { TiptapEditor };
 
 interface EditorProps {
-  handleChange: (content: HTMLContent) => void;
-  initialContent: HTMLContent;
+  handleChange?: (content: HTMLContent) => void;
+  initialContent?: HTMLContent;
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
@@ -39,7 +39,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         return;
       }
 
-      handleChange(editor.getMarkdown());
+      if (handleChange) {
+        handleChange(editor.getMarkdown());
+      }
     };
 
     const editor = useEditor({
@@ -100,14 +102,17 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         previousContentRef.current = initialContent;
         if (setContentFromOutside) {
           const { from, to } = editor.state.selection;
-          editor.commands.setContent(initialContent);
-          editor.commands.markNewContent();
+          if (initialContent) {
+            editor.commands.markNewContent();
+          }
 
           if (from > 0 && to > 0 && from < editor.state.doc.content.size) {
             editor.commands.setTextSelection({ from, to });
           }
         } else if (!editor.isFocused) {
-          editor.commands.setContent(initialContent);
+          if (initialContent) {
+            editor.commands.setContent(initialContent);
+          }
         }
       }
     }, [editor, initialContent, setContentFromOutside]);

@@ -52,7 +52,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-row items-center gap-4",
           "p-4 rounded-md border border-neutral-500 bg-neutral-50",
-          (!!current_stt_provider && !!current_stt_model) ? "border-solid" : "border-dashed",
+          (!!current_stt_provider && !!current_stt_model) ? "border-solid" : "border-dashed border-red-400",
         ])}
       >
         <form.Field

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { signOutFn } from "@/functions/auth";
-import { createCheckoutSession, createPortalSession } from "@/functions/billing";
+import { createPortalSession } from "@/functions/billing";
 import { useMutation } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_view/app/account")({
@@ -64,18 +64,6 @@ function AccountSettingsCard() {
     try {
       // TODO: Implement pro trial start logic
       console.log("Starting pro trial...");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpgrade = async () => {
-    setLoading(true);
-    try {
-      const { url } = await createCheckoutSession();
-      if (url) {
-        window.location.href = url;
-      }
     } finally {
       setLoading(false);
     }

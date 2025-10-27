@@ -26,7 +26,7 @@ export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId
       <NoteEditor
         ref={ref}
         key={`session-${sessionId}-raw`}
-        initialContent={value ?? ""}
+        initialContent={value}
         handleChange={handleRawChange}
         mentionConfig={{
           trigger: "@",

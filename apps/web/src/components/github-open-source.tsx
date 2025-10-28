@@ -1,9 +1,9 @@
 import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 
 const ORG_REPO = "fastrepl/hyprnote";
 
-// Curated list of profiles to display
 const CURATED_PROFILES = [
   { username: "tobi", avatar: "https://avatars.githubusercontent.com/u/347?v=4" },
   { username: "DidierRLopes", avatar: "https://avatars.githubusercontent.com/u/25267873?v=4" },
@@ -82,9 +82,9 @@ function OpenSourceButton({ showStars = false, starCount }: { showStars?: boolea
   const renderCount = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
   return (
-    <div className="text-center space-y-4 w-full">
-      <h2 className="text-3xl font-serif text-stone-600">Open source</h2>
-      <p className="text-lg text-neutral-600">
+    <div className="text-center space-y-4 w-full max-w-md mx-auto">
+      <h2 className="text-2xl font-serif text-stone-600">Open source</h2>
+      <p className="text-neutral-600">
         {"Hyprnote values privacy and community, so it's been transparent from day one"}
       </p>
       <a
@@ -98,7 +98,7 @@ function OpenSourceButton({ showStars = false, starCount }: { showStars?: boolea
           "transition-all cursor-pointer",
         ])}
       >
-        <Icon icon="mdi:github" className="text-xl" />
+        <Icon icon="mdi:github" className="text-lg" />
         View on GitHub
         {showStars && starCount && (
           <>
@@ -141,37 +141,29 @@ export function GitHubOpenSource() {
 
   return (
     <section className="border-t border-neutral-100">
-      <div className="py-16 px-4">
-        {/* Small & Medium screens: button with star count */}
+      <div className="px-4 py-8">
         <div className="lg:hidden max-w-4xl mx-auto">
           <OpenSourceButton showStars={true} starCount={STARS_COUNT} />
         </div>
 
-        {/* Large screen: 3-column layout with symmetric left and right sides */}
         <div className="hidden lg:flex justify-between max-w-7xl mx-auto items-center">
-          {/* Left Side: 3 sub-columns with explicit widths */}
           <div className="flex gap-1">
-            {/* Left Sub-column 1: 2x4 grid */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(0, 2).map((profile) => (
                   <Avatar key={`left-c1-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 2 */}
               <GridRow>
                 {CURATED_PROFILES.slice(2, 4).map((profile) => (
                   <Avatar key={`left-c1-r2-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 3 */}
               <GridRow>
                 {CURATED_PROFILES.slice(4, 6).map((profile) => (
                   <Avatar key={`left-c1-r3-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(6, 8).map((profile) => (
                   <Avatar key={`left-c1-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />
@@ -179,17 +171,13 @@ export function GitHubOpenSource() {
               </GridRow>
             </div>
 
-            {/* Left Sub-column 2: 2 avatars + Stars badge (spans 2 rows) + 2 avatars */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(8, 10).map((profile) => (
                   <Avatar key={`left-c2-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Rows 2-3: Stars badge - spans 2 rows (40px + 4px + 40px = 84px) */}
               <StatBadge type="stars" count={STARS_COUNT} />
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(10, 12).map((profile) => (
                   <Avatar key={`left-c2-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />
@@ -197,27 +185,22 @@ export function GitHubOpenSource() {
               </GridRow>
             </div>
 
-            {/* Left Sub-column 3: 3x4 grid */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(12, 15).map((profile) => (
                   <Avatar key={`left-c3-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 2 */}
               <GridRow>
                 {CURATED_PROFILES.slice(15, 18).map((profile) => (
                   <Avatar key={`left-c3-r2-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 3 */}
               <GridRow>
                 {CURATED_PROFILES.slice(18, 21).map((profile) => (
                   <Avatar key={`left-c3-r3-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(21, 24).map((profile) => (
                   <Avatar key={`left-c3-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />
@@ -226,34 +209,27 @@ export function GitHubOpenSource() {
             </div>
           </div>
 
-          {/* Center Column: Open Source Button */}
           <div className="flex items-center justify-center">
             <OpenSourceButton />
           </div>
 
-          {/* Right Side: 3 sub-columns with explicit widths (symmetric) */}
           <div className="flex gap-1">
-            {/* Right Sub-column 1: 3x4 grid */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(24, 27).map((profile) => (
                   <Avatar key={`right-c1-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 2 */}
               <GridRow>
                 {CURATED_PROFILES.slice(27, 30).map((profile) => (
                   <Avatar key={`right-c1-r2-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 3 */}
               <GridRow>
                 {CURATED_PROFILES.slice(30, 33).map((profile) => (
                   <Avatar key={`right-c1-r3-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(33, 36).map((profile) => (
                   <Avatar key={`right-c1-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />
@@ -261,17 +237,13 @@ export function GitHubOpenSource() {
               </GridRow>
             </div>
 
-            {/* Right Sub-column 2: 2 avatars + Forks badge (spans 2 rows) + 2 avatars */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(36, 38).map((profile) => (
                   <Avatar key={`right-c2-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Rows 2-3: Forks badge - spans 2 rows (40px + 4px + 40px = 84px) */}
               <StatBadge type="forks" count={FORKS_COUNT} />
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(38, 40).map((profile) => (
                   <Avatar key={`right-c2-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />
@@ -279,27 +251,22 @@ export function GitHubOpenSource() {
               </GridRow>
             </div>
 
-            {/* Right Sub-column 3: 2x4 grid */}
             <div className="flex flex-col gap-1">
-              {/* Row 1 */}
               <GridRow>
                 {CURATED_PROFILES.slice(40, 42).map((profile) => (
                   <Avatar key={`right-c3-r1-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 2 */}
               <GridRow>
                 {CURATED_PROFILES.slice(42, 44).map((profile) => (
                   <Avatar key={`right-c3-r2-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 3 */}
               <GridRow>
                 {CURATED_PROFILES.slice(44, 46).map((profile) => (
                   <Avatar key={`right-c3-r3-${profile.username}`} username={profile.username} avatar={profile.avatar} />
                 ))}
               </GridRow>
-              {/* Row 4 */}
               <GridRow>
                 {CURATED_PROFILES.slice(46, 48).map((profile) => (
                   <Avatar key={`right-c3-r4-${profile.username}`} username={profile.username} avatar={profile.avatar} />

@@ -65,7 +65,7 @@ jobs:
       - run: pnpm -F ui build
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
-          aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
+          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:

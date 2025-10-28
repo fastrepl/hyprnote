@@ -50,11 +50,19 @@ function useAutoStartSTT() {
   const currentSttModel = internal.UI.useValue("current_stt_model", internal.STORE_ID);
 
   useEffect(() => {
-    if (currentSttProvider === "hyprnote") {
-      const model = currentSttModel as SupportedSttModel | undefined;
-      if (model && model.startsWith("am-")) {
-        localSttCommands.startServer(model).then(console.log).catch(console.error);
-      }
+    if (currentSttProvider !== "hyprnote") {
+      localSttCommands.stopServer("external");
+      return;
+    }
+
+    const model = currentSttModel as SupportedSttModel | undefined;
+    if (model && model.startsWith("am-")) {
+      localSttCommands
+        .stopServer("external")
+        .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
+        .then(() => localSttCommands.startServer(model))
+        .then(console.log)
+        .catch(console.error);
     }
   }, [currentSttProvider, currentSttModel]);
 }

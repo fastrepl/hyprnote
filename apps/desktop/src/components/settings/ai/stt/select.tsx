@@ -1,6 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 import * as internal from "../../../../store/tinybase/internal";
@@ -9,6 +11,30 @@ import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./s
 export function SelectProviderAndModel() {
   const { current_stt_provider, current_stt_model } = internal.UI.useValues(internal.STORE_ID);
   const configuredProviders = useConfiguredMapping();
+
+  const server = useQuery({
+    enabled: current_stt_provider === "hyprnote",
+    refetchInterval: 1000,
+    queryKey: ["local-stt-servers"],
+    queryFn: () => localSttCommands.getServers(),
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.external;
+    },
+  });
+
+  const experimental_handleServer = useCallback(() => {
+    if (current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-")) {
+      localSttCommands.stopServer("external")
+        .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
+        .then(() => localSttCommands.startServer(current_stt_model as SupportedSttModel))
+        .then(console.log)
+        .catch(console.error);
+    }
+  }, [current_stt_provider, current_stt_model]);
 
   const handleSelectProvider = internal.UI.useSetValueCallback(
     "current_stt_provider",
@@ -47,7 +73,20 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <div className="flex flex-row items-center gap-2">
+        <h3 className="text-md font-semibold" onClick={experimental_handleServer}>Model being used</h3>
+        <span
+          className={cn([
+            "text-sm w-2 h-2 rounded-full",
+            (current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-")) ? "visible" : "hidden",
+            server.data?.health === "ready"
+              ? "bg-green-200"
+              : server.data?.health === "loading"
+              ? "bg-yellow-200"
+              : "bg-red-200",
+          ])}
+        />
+      </div>
       <div
         className={cn([
           "flex flex-row items-center gap-4",

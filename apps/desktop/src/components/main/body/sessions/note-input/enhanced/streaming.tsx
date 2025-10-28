@@ -13,7 +13,7 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
   const containerRef = useAutoScrollToBottom(text);
 
   return (
-    <div ref={containerRef} className="flex flex-col pb-20 space-y-4">
+    <div ref={containerRef} className="flex flex-col pb-2 space-y-4">
       <div
         className={cn([
           "text-sm leading-relaxed",
@@ -33,9 +33,9 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, layout: { duration: 0.15 } }}
         className={cn([
-          "flex items-center justify-center",
-          "w-[calc(100%-24px)] bg-neutral-800 rounded-lg py-3",
+          "flex items-center justify-center w-[calc(100%-24px)] gap-3",
           "border border-neutral-200",
+          "bg-neutral-800 rounded-lg py-3",
         ])}
       >
         <Status taskId={taskId} />

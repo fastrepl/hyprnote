@@ -3,6 +3,8 @@ import { useRef } from "react";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
+import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
+import { useAutoGenerateTitle } from "../../../../../hooks/useAutoGenerateTitle";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentTab, useHasTranscript } from "../shared";
@@ -15,6 +17,10 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
+  const sessionId = tab.id;
+  useAutoEnhance(tab);
+  useAutoGenerateTitle(tab);
+
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });
   };
@@ -23,7 +29,6 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     editorRef.current?.editor?.commands.focus();
   };
 
-  const sessionId = tab.id;
   const currentTab: EditorView = useCurrentTab(tab);
 
   return (
@@ -33,7 +38,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
         className={cn([
           "flex-1",
           "mt-3",
-          currentTab === "transcript" ? "overflow-hidden" : "overflow-auto",
+          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-8"],
         ])}
         onClick={handleContainerClick}
       >
@@ -61,13 +66,13 @@ function Header(
   }
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-1">
       {editorTabs.map((view) => (
         <button
           key={view}
           onClick={() => handleTabChange(view)}
           className={cn([
-            "relative py-2 text-xs font-medium transition-all duration-200 border-b-2 -mb-px",
+            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
             currentTab === view
               ? ["text-neutral-900", "border-neutral-900"]
               : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],

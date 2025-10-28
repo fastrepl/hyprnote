@@ -1,0 +1,63 @@
+import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { useEffect } from "react";
+
+import { useAITask } from "../contexts/ai-task";
+import * as persisted from "../store/tinybase/persisted";
+import { createTaskId } from "../store/zustand/ai-task/task-configs";
+import type { Tab } from "../store/zustand/tabs/schema";
+import { useLanguageModel } from "./useLLMConnection";
+import { useTaskStatus } from "./useTaskStatus";
+
+export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
+  const sessionId = tab.id;
+  const model = useLanguageModel();
+
+  const rawMd = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
+  const enhancedMd = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
+  const prevRawMd = usePreviousValue(rawMd);
+
+  const taskId = createTaskId(sessionId, "enhance");
+
+  const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ enhanced_md: input }),
+    [],
+    persisted.STORE_ID,
+  );
+
+  const { generate, rawStatus, streamedText, error } = useAITask((state) => ({
+    generate: state.generate,
+    rawStatus: state.tasks[taskId]?.status ?? "idle",
+    streamedText: state.tasks[taskId]?.streamedText ?? "",
+    error: state.tasks[taskId]?.error,
+  }));
+
+  const { isGenerating } = useTaskStatus(rawStatus, {
+    onSuccess: () => {
+      if (streamedText) {
+        updateEnhancedMd(streamedText);
+      }
+    },
+    onError: () => {
+      console.error("Auto-enhance failed:", error?.message || "Unknown error");
+    },
+  });
+
+  useEffect(() => {
+    if (!model || isGenerating) {
+      return;
+    }
+
+    const hasNewContent = rawMd && rawMd !== prevRawMd;
+    const needsEnhancement = rawMd && !enhancedMd;
+
+    if (hasNewContent && needsEnhancement) {
+      void generate(taskId, {
+        model,
+        taskType: "enhance",
+        args: { sessionId },
+      });
+    }
+  }, [rawMd, prevRawMd, enhancedMd, model, isGenerating, generate, taskId, sessionId]);
+}

@@ -6,6 +6,7 @@ import { useAITask } from "../../../../../contexts/ai-task";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as persisted from "../../../../../store/tinybase/persisted";
+import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 
 import { FloatingButton } from "./shared";
 
@@ -13,7 +14,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const model = useLanguageModel();
 
-  const taskId = `${sessionId}-enhance`;
+  const taskId = createTaskId(sessionId, "enhance");
 
   const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
     "sessions",

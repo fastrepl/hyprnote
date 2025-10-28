@@ -5,19 +5,19 @@ import type { StoreApi } from "zustand";
 import type { ToolRegistry } from "../../../contexts/tool-registry/core";
 import type { Store as PersistedStore } from "../../tinybase/persisted";
 import { applyTransforms } from "./shared/transform_infra";
-import { TASK_CONFIGS, type TaskType } from "./task-configs";
+import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType } from "./task-configs";
 
 export type TasksState = {
   tasks: Record<string, TaskState>;
 };
 
 export type TasksActions = {
-  generate: (
-    taskId: string,
+  generate: <T extends TaskType>(
+    taskId: TaskId<T>,
     config: {
       model: LanguageModel;
-      taskType: TaskType;
-      args?: Record<string, unknown>;
+      taskType: T;
+      args: TaskArgsMap[T];
       onComplete?: (text: string) => void;
     },
   ) => Promise<void>;
@@ -70,7 +70,7 @@ export const createTasksSlice = <T extends TasksState>(
     config: {
       model: LanguageModel;
       taskType: TaskType;
-      args?: Record<string, unknown>;
+      args: TaskArgsMap[TaskType];
       onComplete?: (text: string) => void;
     },
   ) => {
@@ -78,7 +78,7 @@ export const createTasksSlice = <T extends TasksState>(
     const taskConfig = TASK_CONFIGS[config.taskType];
     const [system, prompt] = await Promise.all([
       taskConfig.getSystem(config.args, deps.persistedStore),
-      taskConfig.getPrompt?.(config.args, deps.persistedStore),
+      taskConfig.getPrompt(config.args, deps.persistedStore),
     ]);
 
     set((state) =>

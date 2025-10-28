@@ -6,14 +6,31 @@ import { enhance } from "./enhance";
 import { title } from "./title";
 
 export type TaskType = "enhance" | "title";
-type TaskConfigMap = Record<TaskType, TaskConfig>;
 
-export interface TaskConfig {
+export interface TaskArgsMap {
+  enhance: { sessionId: string };
+  title: { sessionId: string };
+}
+
+export type TaskId<T extends TaskType = TaskType> = `${string}-${T}`;
+
+export function createTaskId<T extends TaskType>(
+  entityId: string,
+  taskType: T,
+): TaskId<T> {
+  return `${entityId}-${taskType}` as TaskId<T>;
+}
+
+export interface TaskConfig<T extends TaskType = TaskType> {
   getAgent: (model: LanguageModel, tools?: Record<string, Tool>) => Agent<any, any, any>;
-  getPrompt: (args?: Record<string, unknown>, store?: PersistedStore) => Promise<string>;
-  getSystem: (args?: Record<string, unknown>, store?: PersistedStore) => Promise<string>;
+  getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
+  getSystem: (args?: TaskArgsMap[T], store?: PersistedStore) => Promise<string>;
   transforms?: StreamTransform[];
 }
+
+type TaskConfigMap = {
+  [K in TaskType]: TaskConfig<K>;
+};
 
 export const TASK_CONFIGS: TaskConfigMap = {
   enhance,

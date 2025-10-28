@@ -69,7 +69,7 @@ export function SelectProviderAndModel() {
                   <SelectValue placeholder="Select a provider" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROVIDERS.map((provider) => (
+                  {PROVIDERS.filter(({ disabled }) => !disabled).map((provider) => (
                     <SelectItem
                       key={provider.id}
                       value={provider.id}

@@ -5,9 +5,9 @@ import { z } from "zod";
 import { commands as templateCommands } from "@hypr/plugin-template";
 import type { Store as PersistedStore } from "../../../tinybase/persisted";
 import { trimBeforeMarker } from "../shared/transform_impl";
-import type { TaskConfig } from ".";
+import type { TaskArgsMap, TaskConfig } from ".";
 
-export const enhance: TaskConfig = {
+export const enhance: TaskConfig<"enhance"> = {
   getSystem,
   getPrompt,
   getAgent: (model, tools = {}) => getAgent(model, tools),
@@ -23,14 +23,8 @@ async function getSystem() {
   throw new Error(result.error);
 }
 
-async function getPrompt(args?: Record<string, unknown>, store?: PersistedStore) {
-  if (!store || !args?.sessionId) {
-    const error = "Session ID is required";
-    console.error("Failed to get enhance prompt:", error);
-    throw new Error(error);
-  }
-
-  const sessionId = args.sessionId as string;
+async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
+  const { sessionId } = args;
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
   const sessionData = getSessionData(sessionId, store);
   const participants = getParticipants(sessionId, store);
@@ -96,7 +90,6 @@ function getAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
   return new Agent({
     model,
     stopWhen: stepCountIs(10),
-    system: AGENT_SYSTEM_PROMPT,
     tools,
     prepareStep: async ({ stepNumber }) => {
       if (stepNumber === 0) {
@@ -137,21 +130,3 @@ Content: ${input}`,
     },
   });
 }
-
-const AGENT_SYSTEM_PROMPT = `
-You are an expert at creating structured, comprehensive meeting summaries.
-
-Format requirements:
-- Do not use h1, start with h2(##)
-- Use h2 and h3 headers for sections (no deeper than h3)
-- Each section should have at least 5 detailed bullet points
-
-Workflow:
-1. User provides raw meeting content.
-2. You analyze the content and decide the sections to use. (Using analyzeStructure)
-3. You generate a well-formatted markdown summary, following the format requirements.
-
-IMPORTANT: Your final output MUST be ONLY the markdown summary itself.
-Do NOT include any explanations, commentary, or meta-discussion.
-Do NOT say things like "Here's the summary" or "I've analyzed".
-`.trim();

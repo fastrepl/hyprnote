@@ -1,31 +1,43 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { corsHeaders } from "../_shared/cors.ts";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { createClient } from "supabase-js";
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+const app = new Hono().basePath("/llm");
+
+app.use(
+  "*",
+  cors({
+    origin: "*",
+    allowHeaders: ["authorization", "x-client-info", "apikey", "content-type", "user-agent"],
+    allowMethods: ["POST", "GET", "OPTIONS"],
+  }),
+);
+
+app.use("*", async (c, next) => {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader) {
+    return c.text("unauthorized", 401);
   }
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: req.headers.get("Authorization")! } } },
+    { global: { headers: { Authorization: authHeader } } },
   );
 
-  const user = await authenticateUser(req, supabaseClient);
-  if (!user) {
-    return new Response("unauthorized", { status: 401, headers: corsHeaders });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+
+  if (error || !user) {
+    return c.text("unauthorized", 401);
   }
 
-  const url = new URL(req.url);
+  await next();
+});
 
-  if (!url.pathname.includes("chat/completions")) {
-    return new Response("not_found", { status: 404, headers: corsHeaders });
-  }
+app.post("/chat/completions", async (c) => {
+  const requestBody = await c.req.json();
 
-  const requestBody = await req.json();
-
-  // https://openrouter.ai/docs/api-reference/parameters#tool-choice
   const needsToolCalling = requestBody.tools && requestBody.tool_choice !== "none";
 
   const modelsToUse = needsToolCalling
@@ -39,10 +51,8 @@ Deno.serve(async (req) => {
     models: modelsToUse,
   };
 
-  const targetUrl = "https://openrouter.ai/api/v1/chat/completions";
-
-  const response = await fetch(targetUrl, {
-    method: req.method,
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${Deno.env.get("OPENROUTER_API_KEY")}`,
@@ -53,24 +63,11 @@ Deno.serve(async (req) => {
   return new Response(response.body, {
     status: response.status,
     headers: {
-      ...corsHeaders,
       "Content-Type": response.headers.get("Content-Type") || "application/json",
     },
   });
 });
 
-async function authenticateUser(req: Request, supabaseClient: SupabaseClient) {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return null;
-  }
+app.notFound((c) => c.text("not_found", 404));
 
-  const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error } = await supabaseClient.auth.getUser(token);
-
-  if (error || !user) {
-    return null;
-  }
-
-  return user;
-}
+Deno.serve(app.fetch);

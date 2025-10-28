@@ -12,7 +12,6 @@ import {
 } from "@hypr/ui/components/ui/dialog";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
-import * as persisted from "../../store/tinybase/persisted";
 
 interface ConnectedServiceCardProps {
   icon: ReactNode;
@@ -200,33 +199,4 @@ export function ConnectedServiceCard({
       )}
     </div>
   );
-}
-
-export function useUpdateTemplate(id: string) {
-  const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
-
-  const value = _value
-    ? persisted.templateSchema.parse({
-      ..._value,
-      sections: typeof _value.sections === "string" ? JSON.parse(_value.sections) : _value.sections,
-    })
-    : undefined;
-
-  const setPartialValues = persisted.UI.useSetPartialValuesCallback(
-    (row: Partial<persisted.Template>) => ({
-      ...row,
-      sections: row.sections ? JSON.stringify(row.sections) : undefined,
-    } satisfies Partial<persisted.TemplateStorage>),
-    [id],
-    persisted.STORE_ID,
-  );
-
-  return {
-    value: value || { title: "", description: "", sections: [] },
-    handle: {
-      setField: (field: string, val: any) => {
-        setPartialValues({ [field]: val } as Partial<persisted.Template>);
-      },
-    },
-  };
 }

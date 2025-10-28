@@ -8,7 +8,6 @@ import {
   Brain,
   CalendarDays,
   CreditCard,
-  Edit,
   ExternalLinkIcon,
   MessageCircleQuestion,
   MoreVertical,
@@ -17,7 +16,7 @@ import {
   Settings2,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback } from "react";
 import { z } from "zod";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -27,10 +26,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
-import { useUpdateTemplate } from "../../../components/settings/shared";
 import { useTemplateNavigation } from "../../../components/settings/template/use-template-navigation";
+import * as persisted from "../../../store/tinybase/persisted";
 
 const TABS = [
   "general",
@@ -257,26 +255,14 @@ function TopLevelHeader() {
 }
 
 function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
-  const { value, handle } = useUpdateTemplate(templateId);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
-  const handleDuplicate = () => {
-    // TODO: Implement duplicate logic
-    console.log("Duplicate template:", templateId);
-  };
-
-  const handleDelete = () => {
-    // TODO: Implement delete logic with confirmation dialog
-    console.log("Delete template:", templateId);
-    onBack();
-  };
+  const value = persisted.UI.useCell("templates", templateId, "title", persisted.STORE_ID);
+  const handleDelete = useDeleteTemplate(templateId);
 
   return (
     <header
       data-tauri-drag-region
       className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center px-2 relative"
     >
-      {/* Left side - Back button */}
       <div className="absolute left-2">
         <Button
           variant="ghost"
@@ -288,45 +274,13 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
         </Button>
       </div>
 
-      {/* Center - Title */}
       <div className="flex items-center justify-center gap-2 max-w-md">
-        {isEditingTitle
-          ? (
-            <Input
-              autoFocus
-              value={value.title || ""}
-              onChange={(e) => handle.setField("title", e.target.value)}
-              onBlur={() => setIsEditingTitle(false)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setIsEditingTitle(false);
-                }
-              }}
-              className="text-sm font-semibold border-none p-0 h-auto focus-visible:ring-0 bg-transparent text-center"
-              placeholder="Untitled"
-            />
-          )
-          : (
-            <h1
-              onClick={() => setIsEditingTitle(true)}
-              className="text-sm font-semibold cursor-pointer hover:text-neutral-600 transition-colors truncate"
-            >
-              {value.title || "Untitled Template"}
-            </h1>
-          )}
+        <h1 className="text-sm font-semibold cursor-pointer hover:text-neutral-600 transition-colors truncate">
+          {value || "Untitled"}
+        </h1>
       </div>
 
-      {/* Right side - Edit and More buttons */}
       <div className="absolute right-2 flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsEditingTitle(true)}
-          className="h-7 w-7"
-        >
-          <Edit className="w-4 h-4" />
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -338,9 +292,6 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleDuplicate}>
-              Duplicate
-            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleDelete}
               className="text-red-600 focus:text-red-600"
@@ -352,4 +303,21 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
       </div>
     </header>
   );
+}
+
+function useDeleteTemplate(templateId: string) {
+  const handleDeleteRow = persisted.UI.useDelRowCallback(
+    "templates",
+    templateId,
+    persisted.STORE_ID,
+  );
+
+  const navigate = Route.useNavigate();
+
+  const handleDelete = useCallback(() => {
+    handleDeleteRow();
+    navigate({ search: { tab: "templates" } });
+  }, [handleDeleteRow, navigate]);
+
+  return handleDelete;
 }

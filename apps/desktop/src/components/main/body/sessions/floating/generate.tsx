@@ -1,6 +1,7 @@
 import { SparklesIcon } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 import { useAITask } from "../../../../../contexts/ai-task";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
@@ -15,6 +16,17 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
   const model = useLanguageModel();
 
   const taskId = createTaskId(sessionId, "enhance");
+
+  const handleGoToTemplates = useCallback(() => {
+    windowsCommands.windowShow({ type: "settings" })
+      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+      .then(() =>
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "templates" },
+        })
+      );
+  }, []);
 
   const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
     "sessions",
@@ -85,47 +97,37 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
             {Object.entries(templates).length > 0
               ? (
                 Object.entries(templates).map(([templateId, template]) => (
-                  <button
+                  <TemplateButton
                     key={templateId}
-                    className={cn([
-                      "text-center text-base",
-                      "py-2 rounded-lg hover:bg-neutral-100 transition-colors",
-                    ])}
+                    className="hover:bg-neutral-100"
                     onClick={() => {
                       setShowTemplates(false);
                       onRegenerate(templateId);
                     }}
                   >
                     {template.title}
-                  </button>
+                  </TemplateButton>
                 ))
               )
               : (
-                <button
-                  className={cn([
-                    "text-center text-base text-neutral-500",
-                    "py-2",
-                    "hover:bg-neutral-100 transition-colors",
-                    "rounded",
-                  ])}
+                <TemplateButton
+                  className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
                   onClick={() => {
-                    console.log("Navigate to template creation");
                     setShowTemplates(false);
+                    handleGoToTemplates();
                   }}
                 >
                   Create templates
-                </button>
+                </TemplateButton>
               )}
           </div>
 
           <Divider />
 
-          <button
+          <TemplateButton
             className={cn([
               "flex items-center justify-center gap-2 w-full",
-              "text-center text-base text-neutral-100",
-              "rounded-lg py-2 mt-3",
-              "bg-neutral-800 hover:bg-neutral-700 transition-colors",
+              "text-neutral-100 bg-neutral-800 hover:bg-neutral-700 mt-3",
             ])}
             onClick={() => {
               setShowTemplates(false);
@@ -134,7 +136,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
           >
             <SparklesIcon className="w-4 h-4" />
             <span className="text-sm">Auto</span>
-          </button>
+          </TemplateButton>
         </div>
       </div>
 
@@ -159,6 +161,28 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
         </FloatingButton>
       </div>
     </div>
+  );
+}
+
+function TemplateButton({
+  children,
+  onClick,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      className={cn([
+        "text-center text-base py-2 rounded-lg transition-colors",
+        className,
+      ])}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }
 

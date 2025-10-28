@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import * as persisted from "../../../store/tinybase/persisted";
@@ -10,12 +9,17 @@ export function TemplateEditor({ id }: { id: string }) {
   const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
   const value = _value
     ? persisted.templateSchema.parse({
-      ..._value,
-      sections: typeof _value.sections === "string" ? JSON.parse(_value.sections) : _value.sections,
+      user_id: _value.user_id ?? "",
+      created_at: _value.created_at ?? new Date().toISOString(),
+      title: _value.title ?? "",
+      description: _value.description ?? "",
+      sections: typeof _value.sections === "string" ? JSON.parse(_value.sections) : _value.sections ?? [],
     })
     : undefined;
 
-  const setPartialValues = persisted.UI.useSetPartialValuesCallback(
+  const handleUpdate = persisted.UI.useSetPartialRowCallback(
+    "templates",
+    id,
     (row: Partial<persisted.Template>) => ({
       ...row,
       sections: row.sections ? JSON.stringify(row.sections) : undefined,
@@ -32,15 +36,16 @@ export function TemplateEditor({ id }: { id: string }) {
     },
     listeners: {
       onChange: ({ formApi }) => {
-        const { form: { errors } } = formApi.getAllErrors();
-        if (errors.length > 0) {
-          console.log(errors);
-        }
-        formApi.handleSubmit();
+        queueMicrotask(() => {
+          const { form: { errors } } = formApi.getAllErrors();
+          if (errors.length === 0) {
+            formApi.handleSubmit();
+          }
+        });
       },
     },
     onSubmit: ({ value }) => {
-      setPartialValues(value);
+      handleUpdate(value);
     },
   });
 
@@ -88,12 +93,6 @@ export function TemplateEditor({ id }: { id: string }) {
           </div>
         )}
       />
-
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm">
-          Back
-        </Button>
-      </div>
     </div>
   );
 }

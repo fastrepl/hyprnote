@@ -15,7 +15,7 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
   const containerRef = useAutoScrollToBottom(text);
 
   return (
-    <div ref={containerRef} className="flex flex-col pb-2 space-y-4">
+    <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
       <div
         className={cn([
           "text-sm leading-relaxed",
@@ -23,7 +23,7 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
         ])}
       >
         <Streamdown
-          disallowedElements={["code", "pre", "h1"]}
+          disallowedElements={["code", "pre"]}
           components={components}
         >
           {text}
@@ -47,8 +47,8 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
 }
 
 const components = {
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-    return <h2 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h2>;
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h1 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h1>;
   },
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
     return <ul className="list-disc list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ul>;

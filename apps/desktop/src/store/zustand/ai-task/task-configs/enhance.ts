@@ -12,7 +12,7 @@ export const enhance: TaskConfig<"enhance"> = {
   getPrompt,
   getTools,
   getAgent: (model, tools = {}) => getAgent(model, tools),
-  transforms: [trimBeforeMarker("##"), smoothStream({ delayInMs: 350, chunking: "line" })],
+  transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
 };
 
 async function getSystem() {

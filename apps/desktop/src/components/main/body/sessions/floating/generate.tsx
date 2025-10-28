@@ -1,14 +1,13 @@
-import { cn } from "@hypr/utils";
 import { SparklesIcon } from "lucide-react";
 import { useState } from "react";
 
+import { cn } from "@hypr/utils";
 import { useAITask } from "../../../../../contexts/ai-task";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
-
 import { FloatingButton } from "./shared";
 
 export function GenerateButton({ sessionId }: { sessionId: string }) {
@@ -71,7 +70,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
       <div
         className={cn([
           "absolute left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-lg border",
-          "px-6 pb-14 overflow-visible",
+          "px-6 pb-4 overflow-visible",
           "transition-all duration-300",
           showTemplates
             ? ["opacity-100 bottom-[-14px] pt-2 w-[270px]", "pointer-events-auto"]
@@ -83,25 +82,59 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
       >
         <div className={cn(["transition-opacity duration-200", showTemplates ? "opacity-100" : "opacity-0"])}>
           <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
-            {Object.entries(templates).map(([templateId, template]) => (
-              <button
-                key={templateId}
-                className="text-center py-2 hover:bg-neutral-100 rounded transition-colors text-base"
-                onClick={() => {
-                  setShowTemplates(false);
-                  onRegenerate(templateId);
-                }}
-              >
-                {template.title}
-              </button>
-            ))}
+            {Object.entries(templates).length > 0
+              ? (
+                Object.entries(templates).map(([templateId, template]) => (
+                  <button
+                    key={templateId}
+                    className={cn([
+                      "text-center text-base",
+                      "py-2 rounded-lg hover:bg-neutral-100 transition-colors",
+                    ])}
+                    onClick={() => {
+                      setShowTemplates(false);
+                      onRegenerate(templateId);
+                    }}
+                  >
+                    {template.title}
+                  </button>
+                ))
+              )
+              : (
+                <button
+                  className={cn([
+                    "text-center text-base text-neutral-500",
+                    "py-2",
+                    "hover:bg-neutral-100 transition-colors",
+                    "rounded",
+                  ])}
+                  onClick={() => {
+                    console.log("Navigate to template creation");
+                    setShowTemplates(false);
+                  }}
+                >
+                  Create templates
+                </button>
+              )}
           </div>
 
-          <div className="flex items-center gap-3 text-neutral-400 text-sm mt-3">
-            <div className="flex-1 h-px bg-neutral-300"></div>
-            <span>or</span>
-            <div className="flex-1 h-px bg-neutral-300"></div>
-          </div>
+          <Divider />
+
+          <button
+            className={cn([
+              "flex items-center justify-center gap-2 w-full",
+              "text-center text-base text-neutral-100",
+              "rounded-lg py-2 mt-3",
+              "bg-neutral-800 hover:bg-neutral-700 transition-colors",
+            ])}
+            onClick={() => {
+              setShowTemplates(false);
+              onRegenerate(null);
+            }}
+          >
+            <SparklesIcon className="w-4 h-4" />
+            <span className="text-sm">Auto</span>
+          </button>
         </div>
       </div>
 
@@ -125,6 +158,16 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
           <span>Regenerate</span>
         </FloatingButton>
       </div>
+    </div>
+  );
+}
+
+function Divider() {
+  return (
+    <div className="flex items-center gap-3 text-neutral-400 text-sm mt-3">
+      <div className="flex-1 h-px bg-neutral-300"></div>
+      <span>or</span>
+      <div className="flex-1 h-px bg-neutral-300"></div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_view")({
 
 function Component() {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
         <Outlet />

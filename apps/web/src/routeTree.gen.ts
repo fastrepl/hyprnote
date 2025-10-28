@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
@@ -28,6 +29,11 @@ import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
+const CalRoute = CalRouteImport.update({
+  id: '/cal',
+  path: '/cal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -120,6 +126,7 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/cal': typeof CalRoute
   '/app': typeof ViewAppRouteRouteWithChildren
   '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/cal': typeof CalRoute
   '/downloads': typeof ViewDownloadsRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cal': typeof CalRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/downloads': typeof ViewDownloadsRoute
   '/_view/pricing': typeof ViewPricingRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
+    | '/cal'
     | '/app'
     | '/downloads'
     | '/pricing'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/cal'
     | '/downloads'
     | '/pricing'
     | '/webhook/nango'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/auth'
+    | '/cal'
     | '/_view/app'
     | '/_view/downloads'
     | '/_view/pricing'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CalRoute: typeof CalRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
@@ -247,6 +260,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/cal': {
+      id: '/cal'
+      path: '/cal'
+      fullPath: '/cal'
+      preLoaderRoute: typeof CalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -423,6 +443,7 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CalRoute: CalRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,

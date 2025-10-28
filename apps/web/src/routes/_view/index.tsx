@@ -6,6 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
+import { JoinWaitlistButton } from "@/components/join-waitlist-button";
 import { LogoCloud } from "@/components/logo-cloud";
 import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
@@ -153,7 +154,7 @@ function Component() {
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <DownloadButton />
+                <JoinWaitlistButton />
                 <p className="text-neutral-500">
                   Free and{" "}
                   <a

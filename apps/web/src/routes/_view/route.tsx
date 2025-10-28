@@ -50,43 +50,19 @@ function Header() {
           </div>
           <nav className="flex items-center gap-6">
             <div className="flex gap-3">
-              <HeaderUser />
-              <Link
-                to="/downloads"
+              <a
+                href="https://tally.so/r/mJaRDY"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
               >
-                Download
-              </Link>
+                Join waitlist
+              </a>
             </div>
           </nav>
         </div>
       </div>
     </header>
-  );
-}
-
-function HeaderUser() {
-  const { user } = Route.useLoaderData();
-
-  if (user) {
-    return (
-      <Link
-        to="/app/account"
-        className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-      >
-        Account
-      </Link>
-    );
-  }
-
-  return (
-    <Link
-      to="/auth"
-      search={{ flow: "web" }}
-      className="px-3 h-8 flex items-center text-sm text-neutral-500 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-    >
-      Get Started
-    </Link>
   );
 }
 

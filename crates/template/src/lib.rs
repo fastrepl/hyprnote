@@ -51,18 +51,28 @@ pub enum Template {
     PostprocessTranscriptUser,
 }
 
+#[cfg(not(debug_assertions))]
 pub const ENHANCE_SYSTEM_TPL: &str = include_str!("../assets/enhance.system.jinja");
+#[cfg(not(debug_assertions))]
 pub const ENHANCE_USER_TPL: &str = include_str!("../assets/enhance.user.jinja");
+#[cfg(not(debug_assertions))]
 pub const TITLE_SYSTEM_TPL: &str = include_str!("../assets/title.system.jinja");
+#[cfg(not(debug_assertions))]
 pub const TITLE_USER_TPL: &str = include_str!("../assets/title.user.jinja");
+#[cfg(not(debug_assertions))]
 pub const AUTO_GENERATE_TAGS_SYSTEM_TPL: &str =
     include_str!("../assets/auto_generate_tags.system.jinja");
+#[cfg(not(debug_assertions))]
 pub const AUTO_GENERATE_TAGS_USER_TPL: &str =
     include_str!("../assets/auto_generate_tags.user.jinja");
+#[cfg(not(debug_assertions))]
 pub const CHAT_SYSTEM_TPL: &str = include_str!("../assets/chat.system.jinja");
+#[cfg(not(debug_assertions))]
 pub const CHAT_USER_TPL: &str = include_str!("../assets/chat.user.jinja");
+#[cfg(not(debug_assertions))]
 pub const POSTPROCESS_TRANSCRIPT_SYSTEM_TPL: &str =
     include_str!("../assets/postprocess_transcript.system.jinja");
+#[cfg(not(debug_assertions))]
 pub const POSTPROCESS_TRANSCRIPT_USER_TPL: &str =
     include_str!("../assets/postprocess_transcript.user.jinja");
 
@@ -72,6 +82,20 @@ fn init_environment() -> minijinja::Environment<'static> {
     let mut env = minijinja::Environment::new();
     env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
 
+    #[cfg(debug_assertions)]
+    {
+        let template_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("assets");
+        let base_loader = minijinja::path_loader(&template_dir);
+
+        env.set_loader(
+            move |name: &str| -> Result<Option<String>, minijinja::Error> {
+                let name_with_ext = format!("{}.jinja", name);
+                base_loader(&name_with_ext)
+            },
+        );
+    }
+
+    #[cfg(not(debug_assertions))]
     {
         env.add_template(Template::EnhanceSystem.as_ref(), ENHANCE_SYSTEM_TPL)
             .unwrap();
@@ -131,12 +155,36 @@ pub fn render(
     template: Template,
     ctx: &serde_json::Map<String, serde_json::Value>,
 ) -> Result<String, crate::Error> {
-    let env = get_environment();
-    let tpl = env.get_template(template.as_ref())?;
+    #[cfg(debug_assertions)]
+    {
+        let env = init_environment();
+        let tpl = env.get_template(template.as_ref())?;
+        tpl.render(ctx).map_err(Into::into).map(|s| {
+            println!("--\n{}\n--", s);
+            s
+        })
+    }
 
-    tpl.render(ctx).map_err(Into::into).map(|s| {
-        #[cfg(debug_assertions)]
-        println!("--\n{}\n--", s);
-        s
-    })
+    #[cfg(not(debug_assertions))]
+    {
+        let env = get_environment();
+        let tpl = env.get_template(template.as_ref())?;
+        tpl.render(ctx).map_err(Into::into)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(debug_assertions)]
+    #[test]
+    fn test_loader_in_debug_mode() {
+        let env = get_environment();
+        let template = env.get_template("enhance.system");
+        assert!(
+            template.is_ok(),
+            "In debug mode, loader should find template by appending .jinja"
+        );
+    }
 }

@@ -1,21 +1,16 @@
-import {
-  createRootRouteWithContext,
-  ErrorComponentProps,
-  NotFoundRouteProps,
-  Outlet,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
 import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
+import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({
   component: Component,
-  errorComponent: (props: ErrorComponentProps) => <pre>{JSON.stringify(props, null, 2)}</pre>,
-  notFoundComponent: (props: NotFoundRouteProps) => <pre>{JSON.stringify(props, null, 2)}</pre>,
+  errorComponent: ErrorComponent,
+  notFoundComponent: NotFoundComponent,
 });
 
 function Component() {

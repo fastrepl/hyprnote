@@ -122,18 +122,20 @@ function Component() {
         >
           <div
             className={cn(
-              "flex items-center justify-center gap-2 text-center",
-              "bg-stone-50/70 border-b border-stone-100",
-              "py-3 px-4",
-              "font-serif text-sm text-stone-700",
-              "hover:bg-stone-50 transition-all",
+              [
+                "flex items-center justify-center gap-2 text-center",
+                "bg-stone-50/70 border-b border-stone-100",
+                "py-3 px-4",
+                "font-serif text-sm text-stone-700",
+                "hover:bg-stone-50 transition-all",
+              ],
             )}
           >
             <span className="group-hover:font-medium">Backed by</span>
             <img
               src="/icons/yc_stone.svg"
               alt="Y Combinator"
-              className={cn("h-4 w-4 inline-block group-hover:scale-105")}
+              className="h-4 w-4 inline-block group-hover:scale-105"
             />
             <span className="group-hover:font-medium">Y Combinator</span>
           </div>
@@ -459,10 +461,12 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   key={index}
                   onClick={() => scrollToFeature(index)}
                   className={cn(
-                    "h-1 rounded-full transition-all cursor-pointer",
-                    selectedFeature === index
-                      ? "w-8 bg-stone-600"
-                      : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                    [
+                      "h-1 rounded-full transition-all cursor-pointer",
+                      selectedFeature === index
+                        ? "w-8 bg-stone-600"
+                        : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                    ],
                   )}
                   aria-label={`Go to feature ${index + 1}`}
                 />
@@ -629,10 +633,12 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                     key={index}
                     onClick={() => scrollToDetail(index)}
                     className={cn(
-                      "h-1 rounded-full transition-all cursor-pointer",
-                      selectedDetail === index
-                        ? "w-8 bg-stone-600"
-                        : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                      [
+                        "h-1 rounded-full transition-all cursor-pointer",
+                        selectedDetail === index
+                          ? "w-8 bg-stone-600"
+                          : "w-8 bg-neutral-300 hover:bg-neutral-400",
+                      ],
                     )}
                     aria-label={`Go to detail ${index + 1}`}
                   />

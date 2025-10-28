@@ -14,7 +14,7 @@ export function VideoThumbnail({
   onPlay,
 }: VideoThumbnailProps) {
   return (
-    <div className={cn("relative w-full h-full overflow-hidden group cursor-pointer", className)} onClick={onPlay}>
+    <div className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])} onClick={onPlay}>
       {/* Static thumbnail from Mux */}
       <MuxPlayer
         playbackId={playbackId}
@@ -34,12 +34,12 @@ export function VideoThumbnail({
             e.stopPropagation();
             onPlay?.();
           }}
-          className={cn(
+          className={cn([
             "size-16 rounded-full bg-white/90 backdrop-blur-sm",
             "flex items-center justify-center",
             "hover:bg-white hover:scale-110 transition-all duration-200",
             "shadow-xl",
-          )}
+          ])}
           aria-label="Play video"
         >
           <Icon icon="mdi:play" className="text-4xl text-stone-700 ml-1" />

@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
+import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
@@ -21,10 +23,23 @@ function Component() {
       <Outlet />
       <Suspense>
         <TinybaseInspector />
-        <Devtool />
+        <DevtoolWrapper />
       </Suspense>
     </AuthProvider>
   );
+}
+
+function DevtoolWrapper() {
+  const { data: appIdentifier } = useQuery({
+    queryKey: ["appIdentifier"],
+    queryFn: () => app.getIdentifier(),
+  });
+
+  if (["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")) {
+    return <Devtool />;
+  }
+
+  return null;
 }
 
 const useNavigationEvents = () => {
@@ -67,10 +82,8 @@ const TinybaseInspector = process.env.NODE_ENV === "production"
     }))
   );
 
-const Devtool = process.env.NODE_ENV === "production"
-  ? () => null
-  : lazy(() =>
-    import("../devtool/index").then(({ Devtool }) => ({
-      default: Devtool,
-    }))
-  );
+const Devtool = lazy(() =>
+  import("../devtool/index").then(({ Devtool }) => ({
+    default: Devtool,
+  }))
+);

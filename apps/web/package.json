@@ -7,7 +7,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "deploy": "wrangler deploy",
-    "typecheck": "pnpm -F @hypr/web build && deno check supabase/functions/**/*.ts && tsc --noEmit"
+    "typecheck": "pnpm -F @hypr/web build && (cd supabase/functions/llm && deno check index.ts) && (cd supabase/functions/stripe && deno check index.ts) && tsc --noEmit"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.13.15",

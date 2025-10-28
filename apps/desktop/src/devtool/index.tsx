@@ -67,10 +67,6 @@ export function Devtool() {
     [persistedStore],
   );
 
-  if (!import.meta.env.DEV) {
-    return null;
-  }
-
   if (!persistedStore) {
     return null;
   }

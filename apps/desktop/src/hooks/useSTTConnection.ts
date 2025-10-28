@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Effect, Exit } from "effect";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { ProviderId } from "../components/settings/ai/stt/shared";
-import { fromResult } from "../effect";
 import * as internal from "../store/tinybase/internal";
 
 type Connection = {
@@ -28,41 +26,36 @@ export const useSTTConnection = (): Connection | null => {
   const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-");
 
   const { data: localConnection } = useQuery({
-    enabled: isLocalModel && !!current_stt_model,
+    enabled: current_stt_provider === "hyprnote",
     queryKey: ["stt-connection", isLocalModel, current_stt_model],
+    refetchInterval: 1000,
     queryFn: async () => {
       if (!isLocalModel || !current_stt_model) {
         return null;
       }
 
-      const program = Effect.gen(function*() {
-        const servers = yield* fromResult(localSttCommands.getServers());
-        const externalServer = servers.external;
+      try {
+        const servers = await localSttCommands.getServers();
 
-        if (externalServer?.health === "ready" && externalServer.url) {
-          return { baseUrl: externalServer.url, apiKey: "" };
+        if (servers.status !== "ok") {
+          return null;
         }
 
-        return null;
-      });
+        const externalServer = servers.data.external;
 
-      const exit = await Effect.runPromiseExit(program);
-      return Exit.match(exit, {
-        onFailure: (cause) => {
-          console.error("[useSTTConnection] Effect failed", cause);
-          return null;
-        },
-        onSuccess: (connection) => {
-          if (!connection) {
-            return null;
-          }
+        if (externalServer?.health === "ready" && externalServer.url) {
           return {
             provider: current_stt_provider!,
             model: current_stt_model,
-            ...connection,
+            baseUrl: externalServer.url,
+            apiKey: "",
           };
-        },
-      });
+        }
+
+        return null;
+      } catch {
+        return null;
+      }
     },
   });
 

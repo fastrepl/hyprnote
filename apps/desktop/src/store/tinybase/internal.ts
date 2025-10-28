@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import { DEFAULT_USER_ID } from "../../utils";
-import { createLocalPersister } from "./localPersister";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const generalSchema = z.object({
@@ -83,11 +82,9 @@ export const SCHEMA = {
 
 const {
   useCreateMergeableStore,
-  useCreatePersister,
   useCreateSynchronizer,
   useCreateQueries,
   useProvideStore,
-  useProvidePersister,
   useProvideQueries,
   useProvideSynchronizer,
 } = _UI as _UI.WithSchemas<Schemas>;
@@ -118,18 +115,6 @@ export const useStore = () => {
       ).startSync(),
   );
 
-  const localPersister = useCreatePersister(
-    store,
-    (store) =>
-      createLocalPersister<Schemas>(store as Store, {
-        storeTableName: STORE_ID,
-        storeIdColumnName: "id",
-        autoLoadIntervalSeconds: 9999,
-      }),
-    [],
-    (persister) => persister.startAutoPersisting(),
-  );
-
   const queries = useCreateQueries(
     store,
     (store) =>
@@ -158,7 +143,6 @@ export const useStore = () => {
   )!;
 
   useProvideStore(STORE_ID, store);
-  useProvidePersister(STORE_ID, localPersister);
   useProvideQueries(STORE_ID, queries);
   useProvideSynchronizer(STORE_ID, synchronizer);
 

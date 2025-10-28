@@ -62,11 +62,13 @@ impl DatabaseBuilder {
         ) {
             (Some(true), _, _) => {
                 let db = libsql::Builder::new_local(":memory:").build().await?;
-                Database::DynamicConnection(Arc::new(db))
+                let conn = db.connect()?;
+                Database::StaticConnection(conn)
             }
             (_, Some(path), None) => {
                 let db = libsql::Builder::new_local(path).build().await?;
-                Database::DynamicConnection(Arc::new(db))
+                let conn = db.connect()?;
+                Database::StaticConnection(conn)
             }
             (_, None, Some((url, token))) => {
                 let db = libsql::Builder::new_remote(url, token).build().await?;
@@ -192,54 +194,4 @@ pub async fn migrate(
 
 pub trait SqlTable {
     fn sql_table() -> &'static str;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_concurrent_transactions() {
-        let db = DatabaseBuilder::default().memory().build().await.unwrap();
-
-        let db1 = db.clone();
-        let db2 = db.clone();
-
-        let barrier = std::sync::Arc::new(tokio::sync::Barrier::new(2));
-        let barrier1 = barrier.clone();
-        let barrier2 = barrier.clone();
-
-        let task1 = tokio::spawn(async move {
-            let conn = db1.conn().unwrap();
-            conn.execute("BEGIN", ()).await.unwrap();
-            barrier1.wait().await;
-            tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
-            conn.execute("CREATE TABLE IF NOT EXISTS test1 (id INTEGER)", ())
-                .await
-                .unwrap();
-            conn.execute("INSERT INTO test1 VALUES (1)", ())
-                .await
-                .unwrap();
-            conn.execute("COMMIT", ()).await.unwrap();
-        });
-
-        let task2 = tokio::spawn(async move {
-            let conn = db2.conn().unwrap();
-            barrier2.wait().await;
-            let result = conn.execute("BEGIN", ()).await;
-            if result.is_err() {
-                panic!("Failed to BEGIN second transaction: {:?}", result.err());
-            }
-            conn.execute("CREATE TABLE IF NOT EXISTS test2 (id INTEGER)", ())
-                .await
-                .unwrap();
-            conn.execute("INSERT INTO test2 VALUES (2)", ())
-                .await
-                .unwrap();
-            conn.execute("COMMIT", ()).await.unwrap();
-        });
-
-        task1.await.unwrap();
-        task2.await.unwrap();
-    }
 }

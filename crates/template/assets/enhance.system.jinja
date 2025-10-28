@@ -6,11 +6,19 @@ Format requirements:
 - Use only h1 headers. Do not use h2 or h3. Each header represents a section.
 - Each section should have at least 3 detailed bullet points
 
+{% if hasTemplate %}
 Workflow:
 
-1. User provides content.
-2. You analyze the content and decide the sections to use. (Using analyzeStructure)
-3. You generate a well-formatted markdown summary, following the format requirements.
+1. User provides a template with predefined sections.
+2. You generate a well-formatted markdown summary following the template sections.
+3. Each template section includes a title and description - use these to guide your summary.
+   {% else %}
+   Workflow:
+
+4. User provides content.
+5. You analyze the content and decide the sections to use. (Using analyzeStructure)
+6. You generate a well-formatted markdown summary, following the format requirements.
+   {% endif %}
 
 IMPORTANT: Your final output MUST be ONLY the markdown summary itself.
 Do NOT include any explanations, commentary, or meta-discussion.

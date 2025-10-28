@@ -106,7 +106,7 @@ export const createTasksSlice = <T extends TasksState>(
     );
 
     try {
-      const agent = getAgentForTask(config.taskType, config.model, deps);
+      const agent = getAgentForTask(config.taskType, config.model, config.args, deps);
       const result = agent.stream({ prompt, system });
 
       let fullText = "";
@@ -216,9 +216,10 @@ export const createTasksSlice = <T extends TasksState>(
   },
 });
 
-function getAgentForTask(
-  taskType: TaskType,
+function getAgentForTask<T extends TaskType>(
+  taskType: T,
   model: LanguageModel,
+  args: TaskArgsMap[T],
   deps: {
     toolRegistry: ToolRegistry;
     persistedStore: PersistedStore;
@@ -228,7 +229,7 @@ function getAgentForTask(
 
   if (taskConfig.getAgent) {
     const scopedTools = deps.toolRegistry.getTools("enhancing");
-    return taskConfig.getAgent(model, scopedTools);
+    return taskConfig.getAgent(model, args, scopedTools);
   }
 
   return new Agent({

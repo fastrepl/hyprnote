@@ -11,12 +11,14 @@ export const enhance: TaskConfig<"enhance"> = {
   getSystem,
   getPrompt,
   getTools,
-  getAgent: (model, tools = {}) => getAgent(model, tools),
+  getAgent: (model, args, tools = {}) => getAgent(model, args, tools),
   transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
 };
 
-async function getSystem() {
-  const result = await templateCommands.render("enhance.system", {});
+async function getSystem(args: TaskArgsMap["enhance"]) {
+  const result = await templateCommands.render("enhance.system", {
+    hasTemplate: !!args.templateId,
+  });
   if (result.status === "ok") {
     return result.data;
   }
@@ -110,7 +112,7 @@ function getTools(model: LanguageModel) {
   } as const;
 }
 
-function getAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
+function getAgent(model: LanguageModel, args: TaskArgsMap["enhance"], extraTools: Record<string, Tool> = {}) {
   const tools = { ...getTools(model), ...extraTools };
 
   return new Agent({
@@ -118,10 +120,12 @@ function getAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
     stopWhen: stepCountIs(10),
     tools,
     prepareStep: async ({ stepNumber }) => {
-      if (stepNumber === 0) {
+      if (stepNumber === 0 && !args.templateId) {
         return { toolChoice: { type: "tool", toolName: "analyzeStructure" } };
       }
-      return { toolChoice: "none" };
+      if (stepNumber > 0) {
+        return { toolChoice: "none" };
+      }
     },
   });
 }

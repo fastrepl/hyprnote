@@ -8,11 +8,11 @@ export const title: TaskConfig<"title"> = {
   getSystem,
   getPrompt,
   getTools: () => ({}) as const,
-  getAgent: (model, tools = {}) => getAgent(model, tools),
+  getAgent: (model, _args, tools = {}) => getAgent(model, tools),
   transforms: [],
 };
 
-async function getSystem() {
+async function getSystem(_args: TaskArgsMap["title"]) {
   const result = await templateCommands.render("title.system", {});
   if (result.status === "ok") {
     return result.data;

@@ -2,12 +2,14 @@ import type { Experimental_Agent as Agent, LanguageModel, Tool } from "ai";
 
 import type { Store as PersistedStore } from "../../../tinybase/persisted";
 import { StreamTransform } from "../shared/transform_infra";
+import { chat } from "./chat";
 import { enhance } from "./enhance";
 import { title } from "./title";
 
-export type TaskType = "enhance" | "title";
+export type TaskType = "chat" | "enhance" | "title";
 
 export interface TaskArgsMap {
+  chat: Record<string, never>;
   enhance: { sessionId: string; templateId?: string };
   title: { sessionId: string };
 }
@@ -22,9 +24,9 @@ export function createTaskId<T extends TaskType>(
 }
 
 export interface TaskConfig<T extends TaskType = TaskType> {
-  getAgent: (model: LanguageModel, tools?: Record<string, Tool>) => Agent<any, any, any>;
+  getAgent: (model: LanguageModel, args: TaskArgsMap[T], tools?: Record<string, Tool>) => Agent<any, any, any>;
   getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
-  getSystem: (args?: TaskArgsMap[T], store?: PersistedStore) => Promise<string>;
+  getSystem: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
   getTools?: (model: LanguageModel) => Record<string, Tool>;
   transforms?: StreamTransform[];
 }
@@ -34,11 +36,13 @@ type TaskConfigMap = {
 };
 
 export const TASK_CONFIGS: TaskConfigMap = {
+  chat,
   enhance,
   title,
 };
 
 export type ToolNamesByTask = {
+  chat: never;
   enhance: "analyzeStructure";
   title: never;
 };

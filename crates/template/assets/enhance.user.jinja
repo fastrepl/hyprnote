@@ -25,5 +25,19 @@ Participants: {% for p in participants %}{{ p.name }}{% if p.job_title %} ({{ p.
 {%- endif %}
 {% endif %}
 
+{% if template %}
+Template: {{ template.title }}
+{%- if template.description %}
+Description: {{ template.description }}
+{%- endif %}
+
+Sections to cover:
+{%- for section in template.sections %}
+
+- {{ section.title }}{% if section.description %}: {{ section.description }}{% endif %}
+  {%- endfor %}
+
+{% endif %}
+
 Raw meeting content:
 {{ content }}

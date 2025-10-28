@@ -23,7 +23,6 @@ function Component() {
         </div>
 
         <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
-          {/* Profile Info Section */}
           <section>
             <h2 className="text-lg font-medium mb-4 font-serif">Profile info</h2>
             <div className="space-y-2">

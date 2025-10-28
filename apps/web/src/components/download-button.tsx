@@ -1,10 +1,11 @@
 import { cn } from "@hypr/utils";
+
 import { Link } from "@tanstack/react-router";
 
 export function DownloadButton() {
   return (
     <Link
-      to="/downloads"
+      to="/download"
       className={cn([
         "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
         "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",

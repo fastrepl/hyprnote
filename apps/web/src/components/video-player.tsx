@@ -1,4 +1,5 @@
 import { cn } from "@hypr/utils";
+
 import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -24,9 +25,7 @@ export function VideoPlayer({
   useEffect(() => {
     if (playerRef.current) {
       if (isHovered) {
-        playerRef.current.play().catch(() => {
-          // Ignore autoplay errors
-        });
+        playerRef.current.play().catch(() => {});
         setShowControls(true);
       } else {
         playerRef.current.pause();
@@ -56,7 +55,6 @@ export function VideoPlayer({
         } as React.CSSProperties}
       />
 
-      {/* Buttons overlay - slide up from bottom */}
       {showButtons && showControls && (
         <div
           className={cn(

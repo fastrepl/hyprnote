@@ -1,4 +1,5 @@
 import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import MuxPlayer from "@mux/mux-player-react";
 
@@ -15,7 +16,6 @@ export function VideoThumbnail({
 }: VideoThumbnailProps) {
   return (
     <div className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])} onClick={onPlay}>
-      {/* Static thumbnail from Mux */}
       <MuxPlayer
         playbackId={playbackId}
         muted
@@ -27,7 +27,6 @@ export function VideoThumbnail({
         } as React.CSSProperties}
       />
 
-      {/* Overlay with play button */}
       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
         <button
           onClick={(e) => {

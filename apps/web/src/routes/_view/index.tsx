@@ -113,7 +113,6 @@ function Component() {
   return (
     <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
       <div className="max-w-6xl mx-auto border-x border-neutral-100">
-        {/* Announcement Banner */}
         <a
           href="https://www.ycombinator.com/companies/hyprnote"
           target="_blank"
@@ -154,7 +153,6 @@ function Component() {
                 </p>
               </div>
 
-              {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <JoinWaitlistButton />
                 <p className="text-neutral-500">
@@ -170,7 +168,6 @@ function Component() {
               </div>
             </section>
 
-            {/* Video - Mobile First */}
             <div className="relative aspect-video w-full max-w-4xl border-t border-neutral-100 md:hidden overflow-hidden">
               <VideoThumbnail
                 playbackId={MUX_PLAYBACK_ID}
@@ -178,7 +175,6 @@ function Component() {
               />
             </div>
 
-            {/* Feature Cards Row */}
             <div className="w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 border-t border-neutral-100">
                 <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
@@ -201,7 +197,6 @@ function Component() {
                 </div>
               </div>
 
-              {/* Video - Desktop (no gap) */}
               <div className="relative aspect-video w-full border-t border-neutral-100 hidden md:block overflow-hidden">
                 <VideoThumbnail
                   playbackId={MUX_PLAYBACK_ID}
@@ -212,7 +207,6 @@ function Component() {
           </div>
         </div>
 
-        {/* Social Proof Section */}
         <section className="border-t border-neutral-100">
           <div className="text-center">
             <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
@@ -221,9 +215,7 @@ function Component() {
 
             <LogoCloud />
 
-            {/* Testimonials - New Grid Layout */}
             <div className="w-full">
-              {/* Mobile: Column layout */}
               <div className="md:hidden flex flex-col">
                 <SocialCard
                   platform="reddit"
@@ -297,9 +289,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                 />
               </div>
 
-              {/* Desktop: Custom grid layout with big and small cards */}
               <div className="hidden md:grid md:grid-cols-3">
-                {/* Left column - Big card (row-span-2) */}
                 <div className="row-span-2">
                   <SocialCard
                     platform="reddit"
@@ -323,7 +313,6 @@ Cheers!"
                   />
                 </div>
 
-                {/* Middle column - Big card (row-span-2) */}
                 <div className="row-span-2">
                   <SocialCard
                     platform="linkedin"
@@ -358,7 +347,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   />
                 </div>
 
-                {/* Right column - Small card (top) */}
                 <div className="h-[260px]">
                   <SocialCard
                     platform="twitter"
@@ -370,7 +358,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   />
                 </div>
 
-                {/* Right column - Small card (bottom) */}
                 <div className="h-[260px]">
                   <SocialCard
                     platform="twitter"
@@ -386,7 +373,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           </div>
         </section>
 
-        {/* Features Section */}
         <section>
           <div className="text-center py-16">
             <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
@@ -402,9 +388,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </p>
           </div>
 
-          {/* Feature Cards Grid - Small screens */}
           <div className="max-[800px]:block hidden px-4">
-            {/* Scrollable Cards */}
             <div
               ref={featuresScrollRef}
               className="overflow-x-auto snap-x snap-mandatory scrollbar-hide scrollbar-none -mx-4"
@@ -454,7 +438,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Indicators */}
             <div className="flex justify-center gap-2 py-6">
               {mainFeatures.map((_, index) => (
                 <button
@@ -474,9 +457,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
           </div>
 
-          {/* Feature Cards Grid - Medium and Large screens */}
           <div className="min-[800px]:grid hidden grid-cols-6 gap-4 px-4 laptop:px-0 pb-4">
-            {/* Row 1: Transcript + Summary */}
             <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -515,7 +496,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Row 2: Chat + Floating Panel + Daily Note */}
             <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
               <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                 <VideoPlayer
@@ -573,7 +553,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
             </div>
           </div>
 
-          {/* Details Section */}
           <div className="border-t border-neutral-100">
             <div className="text-center py-12 px-4 laptop:px-0">
               <h2 className="text-3xl font-serif text-stone-600 mb-4">We focus on every bit of details</h2>
@@ -582,9 +561,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </p>
             </div>
 
-            {/* Small screens (w < 800px): Card + Indicators */}
             <div className="max-[800px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
-              {/* Scrollable Cards */}
               <div
                 ref={detailsScrollRef}
                 className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-hide -mx-4"
@@ -626,7 +603,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                 </div>
               </div>
 
-              {/* Indicators */}
               <div className="flex justify-center gap-2 py-6">
                 {detailsFeatures.map((_, index) => (
                   <button
@@ -646,10 +622,8 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Medium screens (800px < w < 1200px): Horizontal scroll + Video */}
             <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
               <div className="flex flex-col">
-                {/* Scrollable Title/Description Cards */}
                 <div className="overflow-x-auto scrollbar-none border-b border-neutral-100">
                   <div className="flex">
                     {detailsFeatures.map((feature, index) => (
@@ -679,7 +653,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   </div>
                 </div>
 
-                {/* Video */}
                 <div className="pt-4 pb-4">
                   <div className="border border-neutral-100 rounded-sm overflow-hidden aspect-video">
                     <VideoPlayer
@@ -692,9 +665,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
               </div>
             </div>
 
-            {/* Large screens (w > 1200px): Original Grid Layout */}
             <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
-              {/* Details List */}
               <div className="border-r border-neutral-100">
                 {detailsFeatures.map((feature, index) => (
                   <div
@@ -723,7 +694,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                 ))}
               </div>
 
-              {/* Asset Preview */}
               <div className="aspect-video md:aspect-auto overflow-hidden">
                 <VideoPlayer
                   playbackId={MUX_PLAYBACK_ID}
@@ -735,17 +705,14 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           </div>
         </section>
 
-        {/* Open Source Section */}
         <GitHubOpenSource />
 
-        {/* Manifesto Section */}
         <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0">
           <div className="max-w-4xl mx-auto">
             <div
               className="border border-neutral-200 p-4"
               style={{ backgroundImage: "url(/patterns/white_leather.png)" }}
             >
-              {/* Postcard */}
               <div
                 className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
                 style={{ backgroundImage: "url(/patterns/paper.png)" }}
@@ -766,7 +733,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   <p>We stand with those who value real connection and purposeful collaboration.</p>
                 </div>
 
-                {/* Team photos */}
                 <div className="flex gap-2 mt-12 mb-4">
                   <img
                     src="/team/john.png"
@@ -780,14 +746,12 @@ Mad respect to the team. This is how you build in 2025. 🚀"
                   />
                 </div>
 
-                {/* Team names and signature */}
                 <div className="space-y-4">
                   <div>
                     <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
                     <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
                   </div>
 
-                  {/* Signature SVG */}
                   <div>
                     <img
                       src="/hyprnote/signature.svg"
@@ -824,7 +788,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         </section>
       </div>
 
-      {/* Video Modal */}
       <VideoModal
         playbackId={expandedVideo || ""}
         isOpen={expandedVideo !== null}

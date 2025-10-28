@@ -8,7 +8,6 @@ export interface SocialCardProps {
   body: string;
   url: string;
   className?: string;
-  // Platform-specific metadata
   username?: string; // for Twitter
   subreddit?: string; // for Reddit
   role?: string; // for LinkedIn

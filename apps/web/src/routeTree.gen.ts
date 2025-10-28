@@ -16,7 +16,7 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
-import { Route as ViewDownloadsRouteImport } from './routes/_view/downloads'
+import { Route as ViewDownloadRouteImport } from './routes/_view/download'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
@@ -63,9 +63,9 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewDownloadsRoute = ViewDownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
+const ViewDownloadRoute = ViewDownloadRouteImport.update({
+  id: '/download',
+  path: '/download',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -128,7 +128,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/app': typeof ViewAppRouteRouteWithChildren
-  '/downloads': typeof ViewDownloadsRoute
+  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -147,7 +147,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
-  '/downloads': typeof ViewDownloadsRoute
+  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -169,7 +169,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
-  '/_view/downloads': typeof ViewDownloadsRoute
+  '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -191,7 +191,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/app'
-    | '/downloads'
+    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -210,7 +210,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/cal'
-    | '/downloads'
+    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -231,7 +231,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/_view/app'
-    | '/_view/downloads'
+    | '/_view/download'
     | '/_view/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -309,11 +309,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPricingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/downloads': {
-      id: '/_view/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof ViewDownloadsRouteImport
+    '/_view/download': {
+      id: '/_view/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof ViewDownloadRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/app': {
@@ -414,7 +414,7 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
-  ViewDownloadsRoute: typeof ViewDownloadsRoute
+  ViewDownloadRoute: typeof ViewDownloadRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
@@ -426,7 +426,7 @@ interface ViewRouteRouteChildren {
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
-  ViewDownloadsRoute: ViewDownloadsRoute,
+  ViewDownloadRoute: ViewDownloadRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,

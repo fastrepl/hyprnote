@@ -3,8 +3,6 @@ import type { Tables } from "tinybase/with-schemas";
 
 import type { Schemas } from "../../../store/tinybase/persisted";
 import type { Store as PersistedStore } from "../../../store/tinybase/persisted";
-import { DEFAULT_USER_ID, id } from "../../../utils";
-import exampleSessions from "../data/example-sessions.json";
 import type { SeedDefinition } from "../shared";
 import {
   buildCalendars,
@@ -16,90 +14,74 @@ import {
   buildMemories,
   buildOrganizations,
   buildSessionParticipants,
-  buildSessions,
+  buildSessionsPerHuman,
   buildSessionTags,
   buildTags,
   buildTemplates,
   buildTranscriptsForSessions,
 } from "../shared";
 
-faker.seed(456);
+faker.seed(123);
 
-const V2 = (() => {
-  const organizations = buildOrganizations(2);
+const RANDOM_DATA = (() => {
+  const organizations = buildOrganizations(4);
   const orgIds = Object.keys(organizations);
 
   const humans = buildHumans(orgIds, {
     includeCurrentUser: true,
-    countPerOrg: { min: 1, max: 3 },
+    countPerOrg: { min: 2, max: 5 },
   });
   const humanIds = Object.keys(humans);
 
-  const calendars = buildCalendars(2);
+  const calendars = buildCalendars(3);
   const calendarIds = Object.keys(calendars);
 
-  const { events } = buildEventsByHuman(humanIds, calendarIds, {
-    min: 0,
-    max: 2,
+  const { events, eventsByHuman } = buildEventsByHuman(humanIds, calendarIds, {
+    min: 1,
+    max: 4,
   });
 
-  const folders = buildFolders(2, { min: 0, max: 2 });
+  const folders = buildFolders(3, { min: 0, max: 3 });
   const folderIds = Object.keys(folders);
 
-  const tags = buildTags(5);
+  const tags = buildTags(8);
   const tagIds = Object.keys(tags);
 
-  const templates = buildTemplates(3);
+  const templates = buildTemplates(5);
 
-  const generatedSessions = buildSessions(5, {
+  const sessions = buildSessionsPerHuman(humanIds, { min: 1, max: 4 }, {
+    eventsByHuman,
     folderIds,
-    folderProbability: 0.5,
+    eventLinkProbability: 0.6,
+    folderProbability: 0.6,
   });
-
-  const richSessions = {
-    ...generatedSessions,
-  };
-
-  exampleSessions.forEach((session) => {
-    const sessionId = id();
-    richSessions[sessionId] = {
-      user_id: DEFAULT_USER_ID,
-      title: session.title,
-      raw_md: session.raw_md,
-      enhanced_md: session.enhanced_md,
-      created_at: faker.date.recent({ days: 30 }).toISOString(),
-      event_id: undefined,
-      folder_id: folderIds.length > 0 ? faker.helpers.arrayElement(folderIds) : undefined,
-    };
-  });
-
-  const sessionIds = Object.keys(richSessions);
+  const sessionIds = Object.keys(sessions);
 
   const { transcripts, words } = buildTranscriptsForSessions(sessionIds);
 
   const mapping_session_participant = buildSessionParticipants(sessionIds, humanIds, {
     min: 1,
-    max: 2,
+    max: 4,
   });
 
   const mapping_tag_session = buildSessionTags(sessionIds, tagIds, {
-    tagProbability: 0.4,
-    tagsPerSession: { min: 1, max: 2 },
+    tagProbability: 0.6,
+    tagsPerSession: { min: 1, max: 3 },
   });
 
-  const chat_groups = buildChatGroups(3);
+  const chat_groups = buildChatGroups(5);
   const chatGroupIds = Object.keys(chat_groups);
 
-  const chat_messages = buildChatMessages(chatGroupIds, { min: 2, max: 6 });
+  const chat_messages = buildChatMessages(chatGroupIds, { min: 3, max: 10 });
 
-  const memories = buildMemories("vocab", 5);
+  const memories = buildMemories("vocab", 8);
 
   return {
     organizations,
     humans,
     calendars,
     folders,
-    sessions: richSessions,
+    sessions,
     transcripts,
     words,
     events,
@@ -113,11 +95,11 @@ const V2 = (() => {
   } satisfies Tables<Schemas[0]>;
 })();
 
-export const v2Seed: SeedDefinition = {
-  id: "v2",
-  label: "Seed V2 (Rich Content)",
+export const randomSeed: SeedDefinition = {
+  id: "random",
+  label: "Random",
   run: (store: PersistedStore) => {
     store.delTables();
-    store.setTables(V2);
+    store.setTables(RANDOM_DATA);
   },
 };

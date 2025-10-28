@@ -3,7 +3,7 @@ import type { SeedDefinition } from "../shared";
 
 export const emptySeed: SeedDefinition = {
   id: "empty",
-  label: "Empty State",
+  label: "Empty",
   run: (store: PersistedStore) => {
     store.delTables();
   },

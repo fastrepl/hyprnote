@@ -88,7 +88,7 @@ function DevtoolTrigger({ onToggle }: { onToggle: () => void }) {
     <button
       type="button"
       className={cn([
-        "fixed right-6 bottom-1 z-[2147483001]",
+        "fixed right-16 bottom-2 z-[2147483001]",
         "w-8 h-8 rounded-md",
         "bg-[#121214]/90 border border-white/16",
         "text-[#f5f5f5] text-[11px] font-semibold",

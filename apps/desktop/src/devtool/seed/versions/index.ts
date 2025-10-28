@@ -1,3 +1,3 @@
+export { curatedSeed } from "./curated";
 export { emptySeed } from "./empty";
-export { v1Seed } from "./v1";
-export { v2Seed } from "./v2";
+export { randomSeed } from "./random";

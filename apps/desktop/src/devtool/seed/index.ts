@@ -1,6 +1,6 @@
 import type { SeedDefinition } from "./shared";
-import { emptySeed, v1Seed, v2Seed } from "./versions";
+import { curatedSeed, emptySeed, randomSeed } from "./versions";
 
 export { type SeedDefinition } from "./shared";
 
-export const seeds: SeedDefinition[] = [emptySeed, v1Seed, v2Seed];
+export const seeds: SeedDefinition[] = [emptySeed, randomSeed, curatedSeed];

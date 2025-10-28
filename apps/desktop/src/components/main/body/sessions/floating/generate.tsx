@@ -7,6 +7,7 @@ import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
+import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
 
 import { FloatingButton } from "./shared";
 
@@ -24,12 +25,15 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
     persisted.STORE_ID,
   );
 
-  const { generate, rawStatus, streamedText, error } = useAITask((state) => ({
-    generate: state.generate,
-    rawStatus: state.tasks[taskId]?.status ?? "idle",
-    streamedText: state.tasks[taskId]?.streamedText ?? "",
-    error: state.tasks[taskId]?.error,
-  }));
+  const { generate, rawStatus, streamedText, error } = useAITask((state) => {
+    const taskState = getTaskState(state.tasks, taskId);
+    return {
+      generate: state.generate,
+      rawStatus: taskState?.status ?? "idle",
+      streamedText: taskState?.streamedText ?? "",
+      error: taskState?.error,
+    };
+  });
 
   const { isGenerating } = useTaskStatus(rawStatus, {
     onSuccess: () => {
@@ -45,7 +49,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 
   const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
 
-  const onRegenerate = async (_templateId: string | null) => {
+  const onRegenerate = async (templateId: string | null) => {
     if (!model) {
       console.error("Generate failed: Language model not configured");
       return;
@@ -54,7 +58,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
     await generate(taskId, {
       model,
       taskType: "enhance",
-      args: { sessionId },
+      args: { sessionId, templateId: templateId ?? undefined },
     });
   };
 

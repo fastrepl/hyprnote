@@ -5,10 +5,12 @@ import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
 import { useAITask } from "../../../../../../contexts/ai-task";
+import { createTaskId, type TaskId } from "../../../../../../store/zustand/ai-task/task-configs";
+import { getTaskState, type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks";
 
 export function StreamingView({ sessionId }: { sessionId: string }) {
-  const taskId = `${sessionId}-enhance`;
-  const text = useAITask((state) => (state.tasks[taskId]?.streamedText ?? ""));
+  const taskId = createTaskId(sessionId, "enhance");
+  const text = useAITask((state) => getTaskState(state.tasks, taskId)?.streamedText ?? "");
 
   const containerRef = useAutoScrollToBottom(text);
 
@@ -59,8 +61,10 @@ const components = {
   },
 } as const;
 
-function Status({ taskId }: { taskId: string }) {
-  const step = useAITask((state) => (state.tasks[taskId]?.currentStep));
+function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
+  const step = useAITask((state) => getTaskState(state.tasks, taskId)?.currentStep) as
+    | TaskStepInfo<"enhance">
+    | undefined;
 
   if (!step) {
     return (
@@ -84,16 +88,20 @@ function Status({ taskId }: { taskId: string }) {
     );
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      {step.type === "tool-call"
-        ? <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-        : <CheckCircle2Icon className="w-4 h-4 text-neutral-50" />}
-      <span className="text-xs text-neutral-50">
-        {step.toolName.charAt(0).toUpperCase() + step.toolName.slice(1)}
-      </span>
-    </div>
-  );
+  const icon = step.type === "tool-call"
+    ? <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
+    : <CheckCircle2Icon className="w-4 h-4 text-neutral-50" />;
+
+  if (step.toolName === "analyzeStructure") {
+    return (
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-xs text-neutral-50">
+          Analyzing structure...
+        </span>
+      </div>
+    );
+  }
 }
 
 function useAutoScrollToBottom(text: string) {

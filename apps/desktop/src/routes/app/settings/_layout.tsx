@@ -1,13 +1,3 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
-import { Input } from "@hypr/ui/components/ui/input";
-import { cn } from "@hypr/utils";
-
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
@@ -30,7 +20,17 @@ import {
 import { useState } from "react";
 import { z } from "zod";
 
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
+import { Input } from "@hypr/ui/components/ui/input";
+import { cn } from "@hypr/utils";
 import { useUpdateTemplate } from "../../../components/settings/shared";
+import { useTemplateNavigation } from "../../../components/settings/template/use-template-navigation";
 
 const TABS = [
   "general",
@@ -58,18 +58,10 @@ export const Route = createFileRoute("/app/settings/_layout")({
 
 function Component() {
   const search = Route.useSearch();
-  const navigate = Route.useNavigate();
 
   const group1Tabs = TABS.filter((tab) => info(tab).group === 1);
   const group2Tabs = TABS.filter((tab) => info(tab).group === 2);
   const group3Tabs = TABS.filter((tab) => info(tab).group === 3);
-
-  const handleCreateTemplate = () => {
-    // TODO: Implement create template logic
-    console.log("Create new template");
-  };
-
-  const isEditingTemplate = search.tab === "templates" && search.templateId;
 
   return (
     <div className={cn(["flex h-full p-1 gap-1"])}>
@@ -80,34 +72,7 @@ function Component() {
       </aside>
 
       <div className="flex-1 flex flex-col gap-1 h-full w-full overflow-hidden bg-white">
-        {isEditingTemplate
-          ? (
-            <TemplateEditorHeader
-              templateId={search.templateId!}
-              onBack={() => navigate({ search: { tab: "templates" } })}
-            />
-          )
-          : (
-            <header
-              data-tauri-drag-region
-              className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center relative"
-            >
-              <h1 data-tauri-drag-region className="font-semibold capitalize select-none cursor-default">
-                {info(search.tab).label}
-              </h1>
-              {search.tab === "templates" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 h-7 w-7"
-                  onClick={handleCreateTemplate}
-                >
-                  <Plus size={16} />
-                </Button>
-              )}
-            </header>
-          )}
-
+        <Header />
         <div className="flex-1 w-full overflow-y-auto scrollbar-none p-6 border border-neutral-200 rounded-lg">
           <Outlet />
         </div>
@@ -247,7 +212,51 @@ const info = (tab: typeof TABS[number]) => {
   }
 };
 
-function TemplateEditorHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
+function Header() {
+  const search = Route.useSearch();
+  const { goToList } = useTemplateNavigation();
+
+  return (
+    <>
+      {search.tab === "templates" && search.templateId
+        ? (
+          <InnerHeader
+            templateId={search.templateId}
+            onBack={goToList}
+          />
+        )
+        : <TopLevelHeader />}
+    </>
+  );
+}
+
+function TopLevelHeader() {
+  const search = Route.useSearch();
+  const { createAndEdit } = useTemplateNavigation();
+
+  return (
+    <header
+      data-tauri-drag-region
+      className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center relative"
+    >
+      <h1 data-tauri-drag-region className="font-semibold capitalize select-none cursor-default">
+        {info(search.tab).label}
+      </h1>
+      {search.tab === "templates" && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 h-7 w-7"
+          onClick={createAndEdit}
+        >
+          <Plus size={16} />
+        </Button>
+      )}
+    </header>
+  );
+}
+
+function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
   const { value, handle } = useUpdateTemplate(templateId);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 

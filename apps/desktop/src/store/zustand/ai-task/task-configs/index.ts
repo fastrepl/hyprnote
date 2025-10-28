@@ -8,7 +8,7 @@ import { title } from "./title";
 export type TaskType = "enhance" | "title";
 
 export interface TaskArgsMap {
-  enhance: { sessionId: string };
+  enhance: { sessionId: string; templateId?: string };
   title: { sessionId: string };
 }
 
@@ -25,6 +25,7 @@ export interface TaskConfig<T extends TaskType = TaskType> {
   getAgent: (model: LanguageModel, tools?: Record<string, Tool>) => Agent<any, any, any>;
   getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
   getSystem: (args?: TaskArgsMap[T], store?: PersistedStore) => Promise<string>;
+  getTools?: (model: LanguageModel) => Record<string, Tool>;
   transforms?: StreamTransform[];
 }
 
@@ -35,4 +36,9 @@ type TaskConfigMap = {
 export const TASK_CONFIGS: TaskConfigMap = {
   enhance,
   title,
+};
+
+export type ToolNamesByTask = {
+  enhance: "analyzeStructure";
+  title: never;
 };

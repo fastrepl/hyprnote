@@ -7,6 +7,7 @@ import type { TaskArgsMap, TaskConfig } from ".";
 export const title: TaskConfig<"title"> = {
   getSystem,
   getPrompt,
+  getTools: () => ({}) as const,
   getAgent: (model, tools = {}) => getAgent(model, tools),
   transforms: [],
 };

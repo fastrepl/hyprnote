@@ -10,11 +10,12 @@ import { cn } from "@hypr/utils";
 import * as internal from "../../../store/tinybase/internal";
 import * as persisted from "../../../store/tinybase/persisted";
 import { TemplateEditor } from "./editor";
+import { useTemplateNavigation } from "./use-template-navigation";
 
 type FilterStatus = "all" | "favorite";
 
 export function SettingsTemplates() {
-  const [currentTemplate, setCurrentTemplate] = useState<string | null>(null);
+  const { templateId } = useTemplateNavigation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const templates = useTemplates();
@@ -37,8 +38,8 @@ export function SettingsTemplates() {
     return filtered;
   }, [searchQuery, templates]);
 
-  if (currentTemplate) {
-    return <TemplateEditor id={currentTemplate} />;
+  if (templateId) {
+    return <TemplateEditor id={templateId} />;
   }
 
   return (
@@ -92,9 +93,9 @@ export function SettingsTemplates() {
               filteredTemplates.map(([id, template]) => (
                 <TemplateCard
                   key={id}
+                  id={id}
                   title={template.title || "Untitled"}
                   description={template.description || ""}
-                  onClick={() => setCurrentTemplate(id)}
                 />
               ))
             )}
@@ -105,17 +106,19 @@ export function SettingsTemplates() {
 }
 
 function TemplateCard({
+  id,
   title,
   description,
-  onClick,
 }: {
+  id: string;
   title: string;
   description: string;
-  onClick: () => void;
 }) {
+  const { goToEdit } = useTemplateNavigation();
+
   return (
     <div
-      onClick={onClick}
+      onClick={() => goToEdit(id)}
       className={cn([
         "flex items-start gap-4",
         "cursor-pointer transition-colors",

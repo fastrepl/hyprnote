@@ -10,6 +10,7 @@ import type { TaskArgsMap, TaskConfig } from ".";
 export const enhance: TaskConfig<"enhance"> = {
   getSystem,
   getPrompt,
+  getTools,
   getAgent: (model, tools = {}) => getAgent(model, tools),
   transforms: [trimBeforeMarker("##"), smoothStream({ delayInMs: 350, chunking: "line" })],
 };
@@ -24,15 +25,18 @@ async function getSystem() {
 }
 
 async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
-  const { sessionId } = args;
+  const { sessionId, templateId } = args;
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
   const sessionData = getSessionData(sessionId, store);
   const participants = getParticipants(sessionId, store);
+
+  const templateData = templateId ? getTemplateData(templateId, store) : undefined;
 
   const result = await templateCommands.render("enhance.user", {
     content: rawMd,
     session: sessionData,
     participants,
+    template: templateData,
   });
   if (result.status === "ok") {
     return result.data;
@@ -81,11 +85,33 @@ function getParticipants(sessionId: string, store: PersistedStore) {
   })).filter((p) => p.name);
 }
 
-function getAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
-  const tools: Record<string, Tool> = {
-    analyzeStructure: createAnalyzeStructureTool(model),
-    ...extraTools,
+function getTemplateData(templateId: string, store: PersistedStore) {
+  const title = store.getCell("templates", templateId, "title") as string;
+  const description = store.getCell("templates", templateId, "description") as string;
+  const sectionsRaw = store.getCell("templates", templateId, "sections");
+
+  let sections: Array<{ title: string; description: string }> = [];
+  if (typeof sectionsRaw === "string") {
+    sections = JSON.parse(sectionsRaw) as Array<{ title: string; description: string }>;
+  } else if (sectionsRaw !== undefined) {
+    sections = (sectionsRaw as unknown) as Array<{ title: string; description: string }>;
+  }
+
+  return {
+    title,
+    description,
+    sections,
   };
+}
+
+function getTools(model: LanguageModel) {
+  return {
+    analyzeStructure: createAnalyzeStructureTool(model),
+  } as const;
+}
+
+function getAgent(model: LanguageModel, extraTools: Record<string, Tool> = {}) {
+  const tools = { ...getTools(model), ...extraTools };
 
   return new Agent({
     model,

@@ -5,7 +5,7 @@ import type { StoreApi } from "zustand";
 import type { ToolRegistry } from "../../../contexts/tool-registry/core";
 import type { Store as PersistedStore } from "../../tinybase/persisted";
 import { applyTransforms } from "./shared/transform_infra";
-import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType } from "./task-configs";
+import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType, type ToolNamesByTask } from "./task-configs";
 
 export type TasksState = {
   tasks: Record<string, TaskState>;
@@ -22,22 +22,39 @@ export type TasksActions = {
     },
   ) => Promise<void>;
   cancel: (taskId: string) => void;
-  getState: (taskId: string) => TaskState;
+  getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
-type StepInfo =
+export type TaskStepInfo<T extends TaskType = TaskType> =
   | { type: "generating" }
-  | { type: "tool-call" | "tool-result"; toolName: string };
+  | (ToolNamesByTask[T] extends never ? never
+    : {
+      type: "tool-call" | "tool-result";
+      toolName: ToolNamesByTask[T];
+      taskType: T;
+    });
 
 export type TaskStatus = "idle" | "generating" | "success" | "error";
 
-type TaskState = {
+export type TaskState<T extends TaskType = TaskType> = {
+  taskType: T;
   status: TaskStatus;
   streamedText: string;
   error?: Error;
   abortController: AbortController | null;
-  currentStep?: StepInfo;
+  currentStep?: TaskStepInfo<T>;
 };
+
+export function getTaskState<T extends TaskType>(
+  tasks: TasksState["tasks"],
+  taskId: TaskId<T>,
+): TaskState<T> | undefined {
+  const state = tasks[taskId];
+  if (state?.taskType) {
+    return state as TaskState<T>;
+  }
+  return undefined;
+}
 
 const initialState: TasksState = {
   tasks: {},
@@ -49,15 +66,9 @@ export const createTasksSlice = <T extends TasksState>(
   deps: { toolRegistry: ToolRegistry; persistedStore: PersistedStore },
 ): TasksState & TasksActions => ({
   ...initialState,
-  getState: (taskId: string) => {
-    const state = get().tasks[taskId];
-    return {
-      status: state?.status ?? "idle",
-      streamedText: state?.streamedText ?? "",
-      error: state?.error,
-      abortController: state?.abortController ?? null,
-      currentStep: state?.currentStep,
-    };
+  getState: <Task extends TaskType>(taskId: TaskId<Task>): TaskState<Task> | undefined => {
+    const task = get().tasks[taskId];
+    return task as TaskState<Task> | undefined;
   },
   cancel: (taskId: string) => {
     const state = get().tasks[taskId];
@@ -65,12 +76,12 @@ export const createTasksSlice = <T extends TasksState>(
       state.abortController.abort();
     }
   },
-  generate: async (
-    taskId: string,
+  generate: async <Task extends TaskType>(
+    taskId: TaskId<Task>,
     config: {
       model: LanguageModel;
-      taskType: TaskType;
-      args: TaskArgsMap[TaskType];
+      taskType: Task;
+      args: TaskArgsMap[Task];
       onComplete?: (text: string) => void;
     },
   ) => {
@@ -84,6 +95,7 @@ export const createTasksSlice = <T extends TasksState>(
     set((state) =>
       mutate(state, (draft) => {
         draft.tasks[taskId] = {
+          taskType: config.taskType,
           status: "generating",
           streamedText: "",
           error: undefined,
@@ -132,10 +144,11 @@ export const createTasksSlice = <T extends TasksState>(
           set((state) =>
             mutate(state, (draft) => {
               const currentState = draft.tasks[taskId];
-              if (currentState) {
-                currentState.currentStep = {
+              if (currentState?.taskType === config.taskType) {
+                (currentState as any).currentStep = {
                   type: "tool-call",
-                  toolName: chunk.toolName,
+                  toolName: chunk.toolName as ToolNamesByTask[typeof config.taskType],
+                  taskType: config.taskType,
                 };
               }
             })
@@ -144,10 +157,11 @@ export const createTasksSlice = <T extends TasksState>(
           set((state) =>
             mutate(state, (draft) => {
               const currentState = draft.tasks[taskId];
-              if (currentState) {
-                currentState.currentStep = {
+              if (currentState?.taskType === config.taskType) {
+                (currentState as any).currentStep = {
                   type: "tool-result",
-                  toolName: chunk.toolName,
+                  toolName: chunk.toolName as ToolNamesByTask[typeof config.taskType],
+                  taskType: config.taskType,
                 };
               }
             })
@@ -158,6 +172,7 @@ export const createTasksSlice = <T extends TasksState>(
       set((state) =>
         mutate(state, (draft) => {
           draft.tasks[taskId] = {
+            taskType: config.taskType,
             status: "success",
             streamedText: fullText,
             error: undefined,
@@ -173,6 +188,7 @@ export const createTasksSlice = <T extends TasksState>(
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {
+              taskType: config.taskType,
               status: "idle",
               streamedText: "",
               error: undefined,
@@ -186,6 +202,7 @@ export const createTasksSlice = <T extends TasksState>(
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {
+              taskType: config.taskType,
               status: "error",
               streamedText: "",
               error,

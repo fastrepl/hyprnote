@@ -18,7 +18,7 @@ export type { PlaceholderFunction };
 
 export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
   StarterKit.configure({
-    heading: { levels: [1] },
+    heading: { levels: [1, 2, 3] },
     underline: false,
     link: false,
     listKeymap: false,

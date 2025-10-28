@@ -111,7 +111,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         } else if (!editor.isFocused) {
           if (initialContent) {
-            editor.commands.setContent(initialContent);
+            editor.commands.setContent(initialContent, { contentType: "markdown" });
           }
         }
       }

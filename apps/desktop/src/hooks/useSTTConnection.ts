@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Effect, Exit } from "effect";
 
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { ProviderId } from "../components/settings/ai/stt/shared";
 import { fromResult } from "../effect";
 import * as internal from "../store/tinybase/internal";
 
 type Connection = {
+  provider: ProviderId;
   model: string;
   baseUrl: string;
   apiKey: string;
@@ -42,12 +43,7 @@ export const useSTTConnection = (): Connection | null => {
           return { baseUrl: externalServer.url, apiKey: "" };
         }
 
-        if (externalServer?.health === "loading") {
-          yield* fromResult(localSttCommands.stopServer("external"));
-        }
-
-        const baseUrl = yield* fromResult(localSttCommands.startServer(current_stt_model as SupportedSttModel));
-        return { baseUrl, apiKey: "" };
+        return null;
       });
 
       const exit = await Effect.runPromiseExit(program);
@@ -56,10 +52,16 @@ export const useSTTConnection = (): Connection | null => {
           console.error("[useSTTConnection] Effect failed", cause);
           return null;
         },
-        onSuccess: (connection) => ({
-          model: current_stt_model,
-          ...connection,
-        }),
+        onSuccess: (connection) => {
+          if (!connection) {
+            return null;
+          }
+          return {
+            provider: current_stt_provider!,
+            model: current_stt_model,
+            ...connection,
+          };
+        },
       });
     },
   });
@@ -80,6 +82,7 @@ export const useSTTConnection = (): Connection | null => {
   }
 
   return {
+    provider: current_stt_provider,
     model: current_stt_model,
     baseUrl,
     apiKey,

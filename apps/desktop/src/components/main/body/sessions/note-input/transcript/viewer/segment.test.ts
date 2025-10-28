@@ -2,7 +2,13 @@ import { describe, expect, test } from "vitest";
 import { word } from "./test-utils";
 import "./test-utils";
 
-import { buildSegments, groupIntoTurns, mergeWordsByChannel, splitIntoSegments } from "./segment";
+import {
+  buildSegments,
+  groupIntoTurns,
+  mergeSameChannelSegments,
+  mergeWordsByChannel,
+  splitIntoSegments,
+} from "../../../../../../../utils/segments";
 
 describe("buildSegments", () => {
   test("merges partial and final words and groups by channel turns", () => {
@@ -43,13 +49,16 @@ describe("buildSegments", () => {
 
     const segments = buildSegments(finalWords, partialWords);
 
-    expect(segments).toHaveLength(3);
+    expect(segments).toHaveLength(2);
     expect(segments[0].channel).toBe(0);
+    expect(segments[0].words).toHaveLength(2);
     expect(segments[0].words[0].isFinal).toBe(true);
+    expect(segments[0].words[0].text).toBe("first");
+    expect(segments[0].words[1].isFinal).toBe(false);
+    expect(segments[0].words[1].text).toBe("second");
     expect(segments[1].channel).toBe(1);
     expect(segments[1].words[0].isFinal).toBe(false);
-    expect(segments[2].channel).toBe(0);
-    expect(segments[2].words[0].isFinal).toBe(false);
+    expect(segments[1].words[0].text).toBe("other");
   });
 });
 
@@ -410,6 +419,145 @@ describe("splitIntoSegments", () => {
 
       expect(segments).toHaveLength(1);
       expect(segments[0]).toHaveLength(2);
+    });
+  });
+});
+
+describe("mergeSameChannelSegments", () => {
+  describe("basic merging", () => {
+    test("merges same-channel segments within 2s gap", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [
+            { text: "hello", start_ms: 0, end_ms: 500, channel: 0, isFinal: true },
+            { text: "there", start_ms: 600, end_ms: 1000, channel: 0, isFinal: true },
+          ],
+        },
+        {
+          channel: 0,
+          words: [
+            { text: "friend", start_ms: 1500, end_ms: 2000, channel: 0, isFinal: true },
+          ],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(1);
+      expect(merged[0].channel).toBe(0);
+      expect(merged[0].words.map((w) => w.text)).toEqual(["hello", "there", "friend"]);
+    });
+
+    test("keeps segments separated when gap is 2s or more", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [
+            { text: "hello", start_ms: 0, end_ms: 500, channel: 0, isFinal: true },
+          ],
+        },
+        {
+          channel: 0,
+          words: [
+            { text: "there", start_ms: 2500, end_ms: 3000, channel: 0, isFinal: true },
+          ],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(2);
+      expect(merged[0].channel).toBe(0);
+      expect(merged[0].words.map((w) => w.text)).toEqual(["hello"]);
+      expect(merged[1].channel).toBe(0);
+      expect(merged[1].words.map((w) => w.text)).toEqual(["there"]);
+    });
+
+    test("merges same-channel segments even when interrupted by opposite channel", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [{ text: "first", start_ms: 0, end_ms: 500, channel: 0, isFinal: true }],
+        },
+        {
+          channel: 1,
+          words: [{ text: "second", start_ms: 600, end_ms: 1100, channel: 1, isFinal: true }],
+        },
+        {
+          channel: 0,
+          words: [{ text: "third", start_ms: 1200, end_ms: 1700, channel: 0, isFinal: true }],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(2);
+      expect(merged[0].channel).toBe(0);
+      expect(merged[0].words.map((w) => w.text)).toEqual(["first", "third"]);
+      expect(merged[1].channel).toBe(1);
+      expect(merged[1].words.map((w) => w.text)).toEqual(["second"]);
+    });
+
+    test("merges multiple consecutive same-channel segments", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [{ text: "one", start_ms: 0, end_ms: 500, channel: 0, isFinal: true }],
+        },
+        {
+          channel: 0,
+          words: [{ text: "two", start_ms: 700, end_ms: 1200, channel: 0, isFinal: true }],
+        },
+        {
+          channel: 0,
+          words: [{ text: "three", start_ms: 1400, end_ms: 1900, channel: 0, isFinal: true }],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(1);
+      expect(merged[0].words.map((w) => w.text)).toEqual(["one", "two", "three"]);
+    });
+  });
+
+  describe("edge cases", () => {
+    test("handles empty array", () => {
+      const merged = mergeSameChannelSegments([]);
+      expect(merged).toHaveLength(0);
+    });
+
+    test("handles single segment", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [{ text: "solo", start_ms: 0, end_ms: 500, channel: 0, isFinal: true }],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(1);
+      expect(merged[0].channel).toBe(0);
+      expect(merged[0].words.map((w) => w.text)).toEqual(["solo"]);
+    });
+
+    test("handles segments with empty words", () => {
+      const segments = [
+        {
+          channel: 0,
+          words: [],
+        },
+        {
+          channel: 0,
+          words: [{ text: "hello", start_ms: 0, end_ms: 500, channel: 0, isFinal: true }],
+        },
+      ];
+
+      const merged = mergeSameChannelSegments(segments);
+
+      expect(merged).toHaveLength(2);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
 import type * as persisted from "../../../../../../../store/tinybase/persisted";
-import type { MaybePartialWord } from "./segment";
+import type { MaybePartialWord } from "../../../../../../../utils/segments";
 
 interface CustomMatchers<R = unknown> {
   toHaveChannels: (...channels: number[]) => R;

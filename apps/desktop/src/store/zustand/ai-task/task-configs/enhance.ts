@@ -3,6 +3,7 @@ import { Experimental_Agent as Agent, generateText, type LanguageModel, stepCoun
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
+import { buildSegments } from "../../../../utils/segments";
 import type { Store as PersistedStore } from "../../../tinybase/persisted";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
@@ -31,6 +32,7 @@ async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
   const sessionData = getSessionData(sessionId, store);
   const participants = getParticipants(sessionId, store);
+  const segments = getTranscriptSegments(sessionId, store);
 
   const templateData = templateId ? getTemplateData(templateId, store) : undefined;
 
@@ -39,6 +41,7 @@ async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
     session: sessionData,
     participants,
     template: templateData,
+    segments,
   });
   if (result.status === "ok") {
     return result.data;
@@ -104,6 +107,54 @@ function getTemplateData(templateId: string, store: PersistedStore) {
     description,
     sections,
   };
+}
+
+function getTranscriptSegments(sessionId: string, store: PersistedStore) {
+  const transcriptIds: string[] = [];
+
+  store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
+    const transcriptSessionId = store.getCell("transcripts", transcriptId, "session_id");
+    if (transcriptSessionId === sessionId) {
+      transcriptIds.push(transcriptId);
+    }
+  });
+
+  if (transcriptIds.length === 0) {
+    return [];
+  }
+
+  const transcriptId = transcriptIds[0];
+  const wordIds: string[] = [];
+
+  store.forEachRow("words", (wordId, _forEachCell) => {
+    const wordTranscriptId = store.getCell("words", wordId, "transcript_id");
+    if (wordTranscriptId === transcriptId) {
+      wordIds.push(wordId);
+    }
+  });
+
+  const finalWords: Record<string, any> = {};
+
+  wordIds.forEach((wordId) => {
+    const word = store.getRow("words", wordId);
+    if (word) {
+      finalWords[wordId] = word;
+    }
+  });
+
+  const segments = buildSegments(finalWords, {});
+
+  return segments.map((segment) => ({
+    channel: segment.channel,
+    start_ms: segment.words[0]?.start_ms ?? 0,
+    end_ms: segment.words[segment.words.length - 1]?.end_ms ?? 0,
+    text: segment.words.map((w) => w.text).join(" "),
+    words: segment.words.map((w) => ({
+      text: w.text,
+      start_ms: w.start_ms,
+      end_ms: w.end_ms,
+    })),
+  }));
 }
 
 function getTools(model: LanguageModel) {

@@ -2,9 +2,11 @@ import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
 import { useEffect } from "react";
 
 import { useAITask } from "../contexts/ai-task";
+import { useListener } from "../contexts/listener";
 import * as persisted from "../store/tinybase/persisted";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../store/zustand/ai-task/tasks";
+import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";
 import { useLanguageModel } from "./useLLMConnection";
 import { useTaskStatus } from "./useTaskStatus";
@@ -12,10 +14,17 @@ import { useTaskStatus } from "./useTaskStatus";
 export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
   const model = useLanguageModel();
+  const { updateSessionTabState } = useTabs();
 
-  const rawMd = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
-  const enhancedMd = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
-  const prevRawMd = usePreviousValue(rawMd);
+  const listenerStatus = useListener((state) => state.status);
+  const prevListenerStatus = usePreviousValue(listenerStatus);
+
+  const transcriptIds = persisted.UI.useSliceRowIds(
+    persisted.INDEXES.transcriptBySession,
+    sessionId,
+    persisted.STORE_ID,
+  );
+  const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
 
   const taskId = createTaskId(sessionId, "enhance");
 
@@ -41,6 +50,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     onSuccess: () => {
       if (streamedText) {
         updateEnhancedMd(streamedText);
+        updateSessionTabState(tab, { editor: "enhanced" });
       }
     },
     onError: () => {
@@ -53,15 +63,14 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       return;
     }
 
-    const hasNewContent = rawMd && rawMd !== prevRawMd;
-    const needsEnhancement = rawMd && !enhancedMd;
+    const justStoppedListening = prevListenerStatus === "running_active" && listenerStatus !== "running_active";
 
-    if (hasNewContent && needsEnhancement) {
+    if (justStoppedListening && hasTranscript) {
       void generate(taskId, {
         model,
         taskType: "enhance",
         args: { sessionId },
       });
     }
-  }, [rawMd, prevRawMd, enhancedMd, model, isGenerating, generate, taskId, sessionId]);
+  }, [listenerStatus, prevListenerStatus, hasTranscript, model, isGenerating, generate, taskId, sessionId]);
 }

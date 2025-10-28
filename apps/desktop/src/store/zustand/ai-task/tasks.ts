@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, type LanguageModel, stepCountIs } from "ai";
+import type { LanguageModel } from "ai";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
@@ -226,14 +226,6 @@ function getAgentForTask<T extends TaskType>(
   },
 ) {
   const taskConfig = TASK_CONFIGS[taskType];
-
-  if (taskConfig.getAgent) {
-    const scopedTools = deps.toolRegistry.getTools("enhancing");
-    return taskConfig.getAgent(model, args, scopedTools);
-  }
-
-  return new Agent({
-    model,
-    stopWhen: stepCountIs(10),
-  });
+  const scopedTools = deps.toolRegistry.getTools("enhancing");
+  return taskConfig.getAgent(model, args, scopedTools);
 }

@@ -1,10 +1,8 @@
 import { Experimental_Agent as Agent, type LanguageModel, stepCountIs, type Tool } from "ai";
 
-import type { TaskConfig } from ".";
+import type { AgentConfig } from ".";
 
-export const chat: TaskConfig<"chat"> = {
-  getSystem: async () => "",
-  getPrompt: async () => "",
+export const chat: AgentConfig<"chat"> = {
   getAgent: (model, _args, tools = {}) => getAgent(model, tools),
 };
 

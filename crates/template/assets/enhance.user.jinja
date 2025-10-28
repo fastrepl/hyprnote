@@ -11,9 +11,6 @@ Time: {{ session.started_at }} - {{ session.ended_at }}
 {%- if session.location %}
 Location: {{ session.location }}
 {%- endif %}
-{%- if session.description %}
-Description: {{ session.description }}
-{%- endif %}
 {%- else %}
 {%- if session.title %}
 Session: {{ session.title }}
@@ -39,5 +36,14 @@ Sections to cover:
 
 {% endif %}
 
+{% if segments and segments | length > 0 %}
+Transcript:
+{% for segment in segments %}
+[Channel {{ segment.channel }}]
+{{ segment.text }}
+
+{% endfor %}
+{% elif content %}
 Raw meeting content:
 {{ content }}
+{% endif %}

@@ -1,8 +1,4 @@
-use codes_iso_639::part_1::LanguageCode;
 use std::sync::OnceLock;
-
-mod filters;
-mod testers;
 
 mod error;
 pub use error::*;
@@ -129,19 +125,6 @@ fn init_environment() -> minijinja::Environment<'static> {
             POSTPROCESS_TRANSCRIPT_USER_TPL,
         )
         .unwrap();
-    }
-
-    {
-        env.add_filter("timeline", filters::timeline);
-        env.add_filter("language", filters::language);
-        [LanguageCode::En, LanguageCode::Ko]
-            .iter()
-            .for_each(|lang| {
-                env.add_test(
-                    lang.language_name().to_lowercase(),
-                    testers::language(*lang),
-                );
-            });
     }
 
     env

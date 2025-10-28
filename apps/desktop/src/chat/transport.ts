@@ -2,7 +2,7 @@ import type { ChatTransport, LanguageModel } from "ai";
 import { convertToModelMessages } from "ai";
 
 import { type ToolRegistry } from "../contexts/tool";
-import { TASK_CONFIGS } from "../store/zustand/ai-task/task-configs";
+import { AGENT_CONFIGS } from "../store/zustand/ai-task/task-configs";
 import type { HyprUIMessage } from "./types";
 
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
@@ -10,7 +10,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
 
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (options) => {
     const tools = this.registry.getTools("chat");
-    const agent = TASK_CONFIGS.chat.getAgent(this.model, {}, tools);
+    const agent = AGENT_CONFIGS.chat.getAgent(this.model, {}, tools);
     const result = agent.stream({ messages: convertToModelMessages(options.messages) });
 
     return result.toUIMessageStream({

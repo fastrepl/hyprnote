@@ -6,10 +6,14 @@ import { chat } from "./chat";
 import { enhance } from "./enhance";
 import { title } from "./title";
 
-export type TaskType = "chat" | "enhance" | "title";
+export type AgentType = "chat";
+export type TaskType = "enhance" | "title";
+
+export interface AgentArgsMap {
+  chat: Record<string, never>;
+}
 
 export interface TaskArgsMap {
-  chat: Record<string, never>;
   enhance: { sessionId: string; templateId?: string };
   title: { sessionId: string };
 }
@@ -23,6 +27,10 @@ export function createTaskId<T extends TaskType>(
   return `${entityId}-${taskType}` as TaskId<T>;
 }
 
+export interface AgentConfig<T extends AgentType = AgentType> {
+  getAgent: (model: LanguageModel, args: AgentArgsMap[T], tools?: Record<string, Tool>) => Agent<any, any, any>;
+}
+
 export interface TaskConfig<T extends TaskType = TaskType> {
   getAgent: (model: LanguageModel, args: TaskArgsMap[T], tools?: Record<string, Tool>) => Agent<any, any, any>;
   getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
@@ -31,18 +39,24 @@ export interface TaskConfig<T extends TaskType = TaskType> {
   transforms?: StreamTransform[];
 }
 
+type AgentConfigMap = {
+  [K in AgentType]: AgentConfig<K>;
+};
+
 type TaskConfigMap = {
   [K in TaskType]: TaskConfig<K>;
 };
 
-export const TASK_CONFIGS: TaskConfigMap = {
+export const AGENT_CONFIGS: AgentConfigMap = {
   chat,
+};
+
+export const TASK_CONFIGS: TaskConfigMap = {
   enhance,
   title,
 };
 
 export type ToolNamesByTask = {
-  chat: never;
   enhance: "analyzeStructure";
   title: never;
 };

@@ -1,3 +1,6 @@
+import { ChevronDown, ChevronUp, RefreshCcw } from "lucide-react";
+import { type ReactNode, useState } from "react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Dialog,
@@ -8,55 +11,8 @@ import {
   DialogTitle,
 } from "@hypr/ui/components/ui/dialog";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
-
-import { ChevronDown, ChevronUp, RefreshCcw } from "lucide-react";
-import { type ReactNode, useState } from "react";
-
-import { useSafeObjectUpdate } from "../../hooks/useSafeObjectUpdate";
 import * as persisted from "../../store/tinybase/persisted";
-
-export const useUpdateTemplate = (id: string) => {
-  const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
-  const value = persisted.templateSchema.parse(_value);
-
-  const cb = persisted.UI.useSetPartialRowCallback(
-    "templates",
-    id,
-    (row: Partial<persisted.Template>) => ({
-      ...row,
-      sections: JSON.stringify(row.sections),
-    } satisfies Partial<persisted.TemplateStorage>),
-    [id],
-    persisted.STORE_ID,
-  );
-
-  const handle = useSafeObjectUpdate(persisted.templateSchema, value, cb);
-  return { value, handle };
-};
-
-export function SettingRow({
-  title,
-  description,
-  checked,
-  onChange,
-}: {
-  title: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">{title}</h3>
-        <p className="text-xs text-neutral-600">{description}</p>
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
-    </div>
-  );
-}
 
 interface ConnectedServiceCardProps {
   icon: ReactNode;
@@ -244,4 +200,33 @@ export function ConnectedServiceCard({
       )}
     </div>
   );
+}
+
+export function useUpdateTemplate(id: string) {
+  const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
+
+  const value = _value
+    ? persisted.templateSchema.parse({
+      ..._value,
+      sections: typeof _value.sections === "string" ? JSON.parse(_value.sections) : _value.sections,
+    })
+    : undefined;
+
+  const setPartialValues = persisted.UI.useSetPartialValuesCallback(
+    (row: Partial<persisted.Template>) => ({
+      ...row,
+      sections: row.sections ? JSON.stringify(row.sections) : undefined,
+    } satisfies Partial<persisted.TemplateStorage>),
+    [id],
+    persisted.STORE_ID,
+  );
+
+  return {
+    value: value || { title: "", description: "", sections: [] },
+    handle: {
+      setField: (field: string, val: any) => {
+        setPartialValues({ [field]: val } as Partial<persisted.Template>);
+      },
+    },
+  };
 }

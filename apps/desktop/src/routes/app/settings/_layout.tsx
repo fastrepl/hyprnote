@@ -30,7 +30,7 @@ import {
 import { useState } from "react";
 import { z } from "zod";
 
-import { useUpdateTemplate } from "../../../components/settings/shared.tsx";
+import { useUpdateTemplate } from "../../../components/settings/shared";
 
 const TABS = [
   "general",

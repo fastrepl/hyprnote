@@ -1,4 +1,4 @@
-import { SettingRow } from "../shared";
+import { Switch } from "@hypr/ui/components/ui/switch";
 
 interface SettingItem {
   title: string;
@@ -49,6 +49,28 @@ export function AppSettingsView({
           onChange={telemetryConsent.onChange}
         />
       </div>
+    </div>
+  );
+}
+
+function SettingRow({
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex-1">
+        <h3 className="text-sm font-medium mb-1">{title}</h3>
+        <p className="text-xs text-neutral-600">{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }

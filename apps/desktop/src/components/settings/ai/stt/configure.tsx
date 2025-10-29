@@ -248,7 +248,6 @@ function LocalModelAction({
       size="sm"
       className="w-[110px] relative overflow-hidden group"
       variant={isDownloaded ? "outline" : "default"}
-      disabled={false}
       onClick={isDownloaded ? onOpen : (showProgress ? onCancel : onDownload)}
     >
       {showProgress && (
@@ -337,15 +336,15 @@ function useLocalModelDownload(model: SupportedSttModel) {
   }, [model]);
 
   useEffect(() => {
-    if (isDownloaded.data?.status === "ok" && isDownloaded.data.data && taskRunId) {
+    if (isDownloaded.data && taskRunId) {
       setTaskRunId(null);
       setProgress(0);
     }
   }, [isDownloaded.data, taskRunId]);
 
   useEffect(() => {
-    const isNotDownloading = !(isDownloading.data?.status === "ok" && isDownloading.data.data);
-    const isNotDownloaded = !(isDownloaded.data?.status === "ok" && isDownloaded.data.data);
+    const isNotDownloading = !isDownloading.data;
+    const isNotDownloaded = !isDownloaded.data;
     if (isNotDownloading && isNotDownloaded && taskRunId) {
       setTaskRunId(null);
       setProgress(0);
@@ -353,7 +352,7 @@ function useLocalModelDownload(model: SupportedSttModel) {
   }, [isDownloading.data, isDownloaded.data, taskRunId]);
 
   const handleDownload = () => {
-    if (!manager || (isDownloaded.data?.status === "ok" && isDownloaded.data?.data)) {
+    if (!manager || isDownloaded.data) {
       return;
     }
     const runId = manager.scheduleTaskRun(DOWNLOAD_MODEL_TASK_ID, model);
@@ -372,12 +371,12 @@ function useLocalModelDownload(model: SupportedSttModel) {
     setProgress(0);
   };
 
-  const showProgress = !(isDownloaded.data?.status === "ok" && isDownloaded.data?.data) && taskRunId !== null
-    && (isDownloading.data?.status === "ok" && isDownloading.data?.data || isTaskRunning);
+  const showProgress = !isDownloaded.data && taskRunId !== null
+    && (isDownloading.data || isTaskRunning);
 
   return {
     progress,
-    isDownloaded: isDownloaded.data?.status === "ok" ? isDownloaded.data?.data ?? false : false,
+    isDownloaded: isDownloaded.data ?? false,
     showProgress,
     handleDownload,
     handleCancel,

@@ -145,8 +145,8 @@ export function SelectProviderAndModel() {
                   </SelectTrigger>
                   <SelectContent>
                     {models.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {displayModelId(model)}
+                      <SelectItem key={model.id} value={model.id} disabled={!model.isDownloaded}>
+                        {displayModelId(model.id)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -160,7 +160,7 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<ProviderId, string[]> {
+function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>> {
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.sttProviders, internal.STORE_ID);
 
   const [p2, p3] = useQueries({
@@ -176,19 +176,19 @@ function useConfiguredMapping(): Record<ProviderId, string[]> {
         return [
           provider.id,
           [
-            p2.data ? "am-parakeet-v2" : null,
-            p3.data ? "am-parakeet-v3" : null,
-          ].filter(Boolean) as string[],
+            { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
+            { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+          ],
         ];
       }
 
       const config = configuredProviders[provider.id] as internal.AIProviderStorage | undefined;
 
       if (!config) {
-        return [provider.id, null];
+        return [provider.id, []];
       }
 
-      return [provider.id, provider.models];
+      return [provider.id, provider.models.map((model) => ({ id: model, isDownloaded: true }))];
     }),
-  );
+  ) as Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>>;
 }

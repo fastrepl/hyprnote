@@ -70,14 +70,28 @@ export const PROVIDERS = [
 export const sttModelQueries = {
   isDownloaded: (model: SupportedSttModel) =>
     queryOptions({
+      refetchInterval: 1000,
       queryKey: ["stt", "model", model, "downloaded"],
       queryFn: () => localSttCommands.isModelDownloaded(model),
-      refetchInterval: 1500,
+      select: (result) => {
+        if (result.status === "error") {
+          throw new Error(result.error);
+        }
+
+        return result.data;
+      },
     }),
   isDownloading: (model: SupportedSttModel) =>
     queryOptions({
+      refetchInterval: 1000,
       queryKey: ["stt", "model", model, "downloading"],
       queryFn: () => localSttCommands.isModelDownloading(model),
-      refetchInterval: 500,
+      select: (result) => {
+        if (result.status === "error") {
+          throw new Error(result.error);
+        }
+
+        return result.data;
+      },
     }),
 };

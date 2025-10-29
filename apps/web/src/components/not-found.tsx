@@ -72,7 +72,7 @@ function Header() {
                 Get Started
               </Link>
               <Link
-                to="/downloads"
+                to="/download"
                 className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
               >
                 Download

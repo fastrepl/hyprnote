@@ -23,7 +23,6 @@ function Component() {
         </div>
 
         <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
-          {/* Profile Info Section */}
           <section>
             <h2 className="text-lg font-medium mb-4 font-serif">Profile info</h2>
             <div className="space-y-2">
@@ -156,7 +155,7 @@ function AccountSettingsCard() {
   };
 
   return (
-    <div className="border border-neutral-200 rounded-sm">
+    <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
         <h3 className="font-serif text-lg font-semibold mb-2">Account Settings</h3>
         <p className="text-sm text-neutral-600">
@@ -164,7 +163,7 @@ function AccountSettingsCard() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-200 p-4">
+      <div className="flex items-center justify-between border-t border-neutral-100 p-4">
         <div className="text-sm">
           Current plan: <span className="font-medium">{getPlanDisplay()}</span>
         </div>
@@ -178,7 +177,7 @@ function IntegrationsSettingsCard() {
   const [connectedApps] = useState(0); // TODO: Get actual count from API
 
   return (
-    <div className="border border-neutral-200 rounded-sm">
+    <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
         <h3 className="font-serif text-lg font-semibold mb-2">Integrations Settings</h3>
         <p className="text-sm text-neutral-600">
@@ -186,7 +185,7 @@ function IntegrationsSettingsCard() {
         </p>
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-200 p-4">
+      <div className="flex items-center justify-between border-t border-neutral-100 p-4">
         <div className="text-sm">
           {connectedApps} {connectedApps === 1 ? "app is" : "apps are"} connected to Hyprnote
         </div>

@@ -14,6 +14,7 @@
     "@hypr/ui": "workspace:*",
     "@hypr/utils": "workspace:*",
     "@iconify-icon/react": "^3.0.1",
+    "@mux/mux-player-react": "^3.7.0",
     "@nangohq/frontend": "^0.69.5",
     "@nangohq/node": "^0.69.5",
     "@sentry/tanstackstart-react": "^10.22.0",

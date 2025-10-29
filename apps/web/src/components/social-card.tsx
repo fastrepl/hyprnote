@@ -8,7 +8,6 @@ export interface SocialCardProps {
   body: string;
   url: string;
   className?: string;
-  // Platform-specific metadata
   username?: string; // for Twitter
   subreddit?: string; // for Reddit
   role?: string; // for LinkedIn
@@ -75,7 +74,7 @@ export function SocialCard({
             <path d={config.iconPath} />
           </svg>
         </div>
-        <p className="text-neutral-700 leading-relaxed line-clamp-15 overflow-hidden">{body}</p>
+        <p className="text-neutral-700 leading-relaxed line-clamp-4 md:line-clamp-15 overflow-hidden">{body}</p>
       </div>
     </a>
   );

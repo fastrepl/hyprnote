@@ -1,3 +1,5 @@
+import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
@@ -5,7 +7,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { doAuth } from "@/functions/auth";
-import { cn } from "@hypr/utils";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
@@ -37,14 +38,12 @@ function Container({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn([
-        "flex items-center justify-center min-h-screen",
+        "flex items-center justify-center min-h-screen p-4",
         "bg-linear-to-b from-stone-50 via-stone-100/50 to-stone-50",
       ])}
     >
-      <div className="w-full max-w-md px-6">
-        <div className="bg-white border border-neutral-200 rounded-sm p-8">
-          {children}
-        </div>
+      <div className="bg-white border border-neutral-200 rounded-sm p-8 max-w-md mx-auto">
+        {children}
       </div>
     </div>
   );
@@ -62,7 +61,7 @@ function Header() {
         ])}
       >
         <img
-          src="/hyprnote_with_noise.png"
+          src="/hyprnote/icon.png"
           alt="Hyprnote"
           className={cn([
             "size-24",
@@ -208,7 +207,6 @@ function OAuthButton({ flow, provider }: { flow: "desktop" | "web"; provider: "g
       }
     },
   });
-
   return (
     <button
       onClick={() => oauthMutation.mutate(provider)}

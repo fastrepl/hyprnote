@@ -15,14 +15,14 @@ function LogoCard({ logo, className, children, ...props }: LogoCardProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center bg-transparent px-4 py-8 md:p-8 hover:bg-neutral-50 transition-colors cursor-pointer",
+        "flex items-center justify-center bg-transparent px-4 py-8 md:p-8 hover:bg-neutral-50 transition-colors",
         className,
       )}
       {...props}
     >
       <img
         alt={logo.alt}
-        className="pointer-events-none h-4 select-none md:h-5"
+        className="pointer-events-none h-5 select-none md:h-6"
         height={logo.height || "auto"}
         src={logo.src}
         width={logo.width || "auto"}

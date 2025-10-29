@@ -9,13 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
-import { Route as ViewDownloadsRouteImport } from './routes/_view/downloads'
+import { Route as ViewDownloadRouteImport } from './routes/_view/download'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
@@ -28,6 +29,11 @@ import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
+const CalRoute = CalRouteImport.update({
+  id: '/cal',
+  path: '/cal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -57,9 +63,9 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewDownloadsRoute = ViewDownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
+const ViewDownloadRoute = ViewDownloadRouteImport.update({
+  id: '/download',
+  path: '/download',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -120,8 +126,9 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/cal': typeof CalRoute
   '/app': typeof ViewAppRouteRouteWithChildren
-  '/downloads': typeof ViewDownloadsRoute
+  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -139,7 +146,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
-  '/downloads': typeof ViewDownloadsRoute
+  '/cal': typeof CalRoute
+  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -159,8 +167,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cal': typeof CalRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
-  '/_view/downloads': typeof ViewDownloadsRoute
+  '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -180,8 +189,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
+    | '/cal'
     | '/app'
-    | '/downloads'
+    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -199,7 +209,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
-    | '/downloads'
+    | '/cal'
+    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -218,8 +229,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/auth'
+    | '/cal'
     | '/_view/app'
-    | '/_view/downloads'
+    | '/_view/download'
     | '/_view/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CalRoute: typeof CalRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
@@ -247,6 +260,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/cal': {
+      id: '/cal'
+      path: '/cal'
+      fullPath: '/cal'
+      preLoaderRoute: typeof CalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -289,11 +309,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPricingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/downloads': {
-      id: '/_view/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof ViewDownloadsRouteImport
+    '/_view/download': {
+      id: '/_view/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof ViewDownloadRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/app': {
@@ -394,7 +414,7 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
-  ViewDownloadsRoute: typeof ViewDownloadsRoute
+  ViewDownloadRoute: typeof ViewDownloadRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
@@ -406,7 +426,7 @@ interface ViewRouteRouteChildren {
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
-  ViewDownloadsRoute: ViewDownloadsRoute,
+  ViewDownloadRoute: ViewDownloadRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
@@ -423,6 +443,7 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CalRoute: CalRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,

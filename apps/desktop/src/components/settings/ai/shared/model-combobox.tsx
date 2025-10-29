@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, CirclePlus } from "lucide-react";
+import { Check, ChevronsUpDown, CirclePlus, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@hypr/ui/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
+import type { ListModelsResult } from "./list-models";
 
 export function ModelCombobox({
   providerId,
@@ -25,21 +26,22 @@ export function ModelCombobox({
   providerId: string;
   value: string;
   onChange: (value: string) => void;
-  listModels: () => Promise<string[]> | string[];
+  listModels: () => Promise<ListModelsResult> | ListModelsResult;
   disabled?: boolean;
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [showIgnored, setShowIgnored] = useState(false);
 
-  const { data: fetchedModels, isLoading } = useQuery({
+  const { data: fetchedResult, isLoading } = useQuery({
     queryKey: ["models", providerId, listModels],
     queryFn: listModels,
     retry: 3,
     retryDelay: 300,
   });
 
-  const options: string[] = fetchedModels ?? [];
+  const options: string[] = fetchedResult?.models ?? [];
   const trimmedQuery = query.trim();
   const hasExactMatch = options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase());
   const canSelectFreeform = trimmedQuery.length > 0 && !hasExactMatch;
@@ -113,7 +115,7 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:!bg-blue-200 hover:!bg-blue-200 aria-selected:bg-transparent",
+                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
                   <Check
@@ -122,7 +124,36 @@ export function ModelCombobox({
                       value === option ? "opacity-100" : "opacity-0",
                     ])}
                   />
-                  {option}
+                  <span className="truncate">{option}</span>
+                </CommandItem>
+              ))}
+
+              {showIgnored && fetchedResult?.ignored.map((option) => (
+                <CommandItem
+                  key={`ignored-${option}`}
+                  tabIndex={0}
+                  value={option}
+                  onSelect={() => {
+                    handleSelect(option);
+                  }}
+                  onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                    if (event.key === "Enter") {
+                      event.stopPropagation();
+                      handleSelect(option);
+                    }
+                  }}
+                  className={cn([
+                    "cursor-pointer opacity-50",
+                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
+                  ])}
+                >
+                  <Check
+                    className={cn([
+                      "mr-2 h-4 w-4 min-h-4 min-w-4",
+                      value === option ? "opacity-100" : "opacity-0",
+                    ])}
+                  />
+                  <span className="truncate">{option}</span>
                 </CommandItem>
               ))}
 
@@ -142,68 +173,35 @@ export function ModelCombobox({
                   }}
                   className={cn([
                     "cursor-pointer",
-                    "focus:!bg-blue-200 hover:!bg-blue-200 aria-selected:bg-transparent",
+                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
                   <CirclePlus className="mr-2 h-4 w-4" />
-                  Select "{trimmedQuery}"
+                  <span className="truncate">Select "{trimmedQuery}"</span>
                 </CommandItem>
               )}
             </CommandGroup>
           </CommandList>
+
+          {fetchedResult && fetchedResult.ignored.length > 0 && (
+            <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
+              <span>
+                {showIgnored
+                  ? `Showing ${fetchedResult.ignored.length} more items.`
+                  : `${fetchedResult.ignored.length} items ignored.`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowIgnored(!showIgnored)}
+                className="flex items-center gap-1 text-xs hover:text-foreground transition-colors"
+              >
+                {showIgnored ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                {showIgnored ? "Hide" : "Show"}
+              </button>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
   );
 }
-
-// https://openrouter.ai/docs/overview/models#model-object-schema
-// https://platform.openai.com/docs/api-reference/models/list
-export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string): Promise<string[]> => {
-  if (!baseUrl) {
-    return [];
-  }
-
-  try {
-    const response = await fetch(
-      `${baseUrl}/models`,
-      { headers: { "Authorization": `Bearer ${apiKey}` } },
-    );
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const { data } = await response.json() as {
-      data: {
-        id: string;
-        supported_parameters?: string[];
-        architecture?: {
-          input_modalities?: string[];
-          output_modalities?: string[];
-        };
-      }[];
-    };
-
-    const removeNonToolModels = data
-      .filter((model) => !["audio", "image", "code", "embed"].some((keyword) => model.id.includes(keyword)))
-      .filter((model) => {
-        if (
-          Array.isArray(model.architecture?.input_modalities)
-          && !model.architecture.input_modalities.includes("text")
-        ) {
-          return false;
-        }
-
-        if (!model.supported_parameters) {
-          return true;
-        }
-
-        return ["tools", "tool_choice"].every((parameter) => model.supported_parameters?.includes(parameter));
-      });
-
-    return removeNonToolModels.map((model) => model.id);
-  } catch (error) {
-    return [];
-  }
-};

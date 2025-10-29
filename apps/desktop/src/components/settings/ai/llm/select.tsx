@@ -5,7 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
 import * as internal from "../../../../store/tinybase/internal";
-import { ModelCombobox, openaiCompatibleListModels } from "../shared/model-combobox";
+import {
+  listAnthropicModels,
+  listGenericModels,
+  listLMStudioModels,
+  type ListModelsResult,
+  listOllamaModels,
+  listOpenAIModels,
+  listOpenRouterModels,
+} from "../shared/list-models";
+import { ModelCombobox } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
@@ -97,7 +106,7 @@ export function SelectProviderAndModel() {
 
             const listModels = () => {
               if (!maybeListModels) {
-                return [];
+                return { models: [], ignored: [] };
               }
               return maybeListModels();
             };
@@ -120,7 +129,7 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)> {
+function useConfiguredMapping(): Record<string, null | (() => Promise<ListModelsResult>)> {
   const auth = useAuth();
   const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
 
@@ -134,7 +143,7 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)
 
           return [
             provider.id,
-            async () => ["Auto"],
+            async () => ({ models: ["Auto"], ignored: [] }),
           ];
         }
 
@@ -149,13 +158,37 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)
         }
 
         const { base_url, api_key } = config;
+        const baseUrl = String(base_url);
+        const apiKey = String(api_key);
 
-        return [
-          provider.id,
-          () => openaiCompatibleListModels(String(base_url), String(api_key)),
-        ];
+        let listModelsFunc: () => Promise<ListModelsResult>;
+
+        switch (provider.id) {
+          case "openai":
+            listModelsFunc = () => listOpenAIModels(baseUrl, apiKey);
+            break;
+          case "anthropic":
+            listModelsFunc = () => listAnthropicModels(baseUrl, apiKey);
+            break;
+          case "openrouter":
+            listModelsFunc = () => listOpenRouterModels(baseUrl, apiKey);
+            break;
+          case "ollama":
+            listModelsFunc = () => listOllamaModels(baseUrl, apiKey);
+            break;
+          case "lmstudio":
+            listModelsFunc = () => listLMStudioModels(baseUrl, apiKey);
+            break;
+          case "custom":
+            listModelsFunc = () => listGenericModels(baseUrl, apiKey);
+            break;
+          default:
+            listModelsFunc = () => listGenericModels(baseUrl, apiKey);
+        }
+
+        return [provider.id, listModelsFunc];
       }),
-    ) as Record<string, null | (() => Promise<string[]>)>;
+    ) as Record<string, null | (() => Promise<ListModelsResult>)>;
   }, [configuredProviders, auth]);
 
   return mapping;

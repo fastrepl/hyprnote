@@ -1,6 +1,7 @@
 import { SendIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
+import type { TiptapEditor } from "@hypr/tiptap/editor";
 import Editor from "@hypr/tiptap/editor";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -14,7 +15,7 @@ export function ChatMessageInput({
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
 }) {
-  const editorRef = useRef<{ editor: any }>(null);
+  const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
   const disabled = typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
   const disabledMessage = typeof disabledProp === "object" ? disabledProp.message : undefined;
@@ -32,24 +33,13 @@ export function ChatMessageInput({
   }, [disabled, onSendMessage]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleSubmit();
-      }
-    };
-
-    const editorEl = editorRef.current?.editor?.view?.dom;
-    if (editorEl) {
-      editorEl.addEventListener("keydown", handleKeyDown, true);
-      return () => editorEl.removeEventListener("keydown", handleKeyDown, true);
+    const editor = editorRef.current?.editor;
+    if (!editor || editor.isDestroyed || !editor.isInitialized) {
+      return;
     }
-  }, [handleSubmit]);
 
-  useEffect(() => {
-    editorRef.current?.editor?.commands.focus();
-  }, []);
+    editor.commands.focus();
+  });
 
   if (disabled && disabledMessage) {
     return (

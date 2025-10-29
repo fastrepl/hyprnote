@@ -7,8 +7,8 @@ use tauri_specta::Event;
 
 #[cfg(target_os = "macos")]
 use {
-    objc2::{class, msg_send, runtime::Bool},
-    objc2_foundation::NSString,
+    block2::StackBlock,
+    objc2_av_foundation::{AVAuthorizationStatus, AVCaptureDevice, AVMediaTypeAudio},
 };
 
 use crate::{
@@ -79,18 +79,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn check_microphone_access(&self) -> Result<bool, crate::Error> {
         #[cfg(target_os = "macos")]
-        // https://github.com/ayangweb/tauri-plugin-macos-permissions/blob/c025ab4/src/commands.rs#L157
         {
-            unsafe {
-                let av_media_type = NSString::from_str("soun");
-                let status: i32 = msg_send![
-                    class!(AVCaptureDevice),
-                    authorizationStatusForMediaType: &*av_media_type
-                ];
+            let status = unsafe {
+                let media_type = AVMediaTypeAudio.unwrap();
+                AVCaptureDevice::authorizationStatusForMediaType(media_type)
+            };
 
-                tracing::info!(status = status, "microphone_permission_check");
-                Ok(status == 3)
-            }
+            tracing::info!(status = ?status, "microphone_permission_check");
+            Ok(status == AVAuthorizationStatus::Authorized)
         }
 
         #[cfg(not(target_os = "macos"))]
@@ -112,30 +108,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     async fn request_microphone_access(&self) -> Result<(), crate::Error> {
         #[cfg(target_os = "macos")]
         {
-            /*
-            {
-                use tauri_plugin_shell::ShellExt;
-
-                let bundle_id = self.config().identifier.clone();
-                self.app_handle()
-                    .shell()
-                    .command("tccutil")
-                    .args(["reset", "Microphone", &bundle_id])
-                    .spawn()
-                    .ok();
-            }
-            */
-
-            // https://github.com/ayangweb/tauri-plugin-macos-permissions/blob/c025ab4/src/commands.rs#L184
             unsafe {
-                let av_media_type = NSString::from_str("soun");
-                type CompletionBlock = Option<extern "C" fn(Bool)>;
-                let completion_block: CompletionBlock = None;
-                let _: () = msg_send![
-                    class!(AVCaptureDevice),
-                    requestAccessForMediaType: &*av_media_type,
-                    completionHandler: completion_block
-                ];
+                let media_type = AVMediaTypeAudio.unwrap();
+                let block = StackBlock::new(|_granted| {});
+                AVCaptureDevice::requestAccessForMediaType_completionHandler(media_type, &block);
             }
         }
 

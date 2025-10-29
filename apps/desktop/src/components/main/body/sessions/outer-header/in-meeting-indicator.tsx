@@ -1,9 +1,54 @@
-import { useHover } from "@uidotdev/usehooks";
-
 import { Button } from "@hypr/ui/components/ui/button";
+import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { cn } from "@hypr/utils";
+
+import { useHover } from "@uidotdev/usehooks";
+import { useEffect, useState } from "react";
+
 import { useListener } from "../../../../../contexts/listener";
-import { SoundIndicator } from "../../shared";
+
+type SoundIndicatorProps = {
+  value: number | Array<number>;
+  color?: string;
+  size?: "default" | "long";
+  height?: number;
+  width?: number;
+  stickWidth?: number;
+  gap?: number;
+};
+
+export function SoundIndicator({
+  value,
+  color,
+  size = "long",
+  height,
+  width,
+  stickWidth,
+  gap,
+}: SoundIndicatorProps) {
+  const u16max = 65535;
+
+  const [amplitude, setAmplitude] = useState(0);
+
+  useEffect(() => {
+    const sample = Array.isArray(value)
+      ? (value.reduce((sum, v) => sum + v, 0) / value.length) / u16max
+      : value / u16max;
+    setAmplitude(Math.min(sample, 1));
+  }, [value]);
+
+  return (
+    <DancingSticks
+      amplitude={amplitude}
+      color={color}
+      size={size}
+      height={height}
+      width={width}
+      stickWidth={stickWidth}
+      gap={gap}
+    />
+  );
+}
 
 export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();

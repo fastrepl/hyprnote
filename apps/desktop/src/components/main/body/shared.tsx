@@ -1,13 +1,10 @@
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
-
 import { cn } from "@hypr/utils";
-import { useListener } from "../../../contexts/listener";
+
+import { X } from "lucide-react";
+
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";
@@ -44,7 +41,6 @@ export function TabItemBase(
   }: TabItemBaseProps,
 ) {
   const isCmdPressed = useCmdKeyPressed();
-  const amplitude = useListener((state) => (active ? state.amplitude : ZERO_AMPLITUDE));
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1) {
@@ -80,21 +76,15 @@ export function TabItemBase(
       ])}
     >
       <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
-        <div className="flex-shrink-0">
-          {active
-            ? (
-              <SoundIndicator
-                value={[amplitude.mic, amplitude.speaker]}
-                color="#ef4444"
-                size="long"
-                height={24}
-                width={16}
-                stickWidth={8}
-                gap={1}
-              />
-            )
-            : icon}
-        </div>
+        {active
+          ? (
+            <div className="relative size-2">
+              <div className="absolute inset-0 rounded-full bg-red-600"></div>
+              <div className="absolute inset-0 rounded-full bg-red-300 animate-ping">
+              </div>
+            </div>
+          )
+          : icon}
         <span className="truncate">{title}</span>
       </div>
       <Button
@@ -118,55 +108,11 @@ export function TabItemBase(
       {showShortcut && (
         <div className="absolute top-[3px] right-2 pointer-events-none">
           <KbdGroup>
-            <Kbd className="bg-neutral-200">⌘</Kbd>
-            <Kbd className="bg-neutral-200">{tabIndex}</Kbd>
+            <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
+            <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>{tabIndex}</Kbd>
           </KbdGroup>
         </div>
       )}
     </InteractiveButton>
-  );
-}
-
-const ZERO_AMPLITUDE = { mic: 0, speaker: 0 } as const;
-
-type SoundIndicatorProps = {
-  value: number | Array<number>;
-  color?: string;
-  size?: "default" | "long";
-  height?: number;
-  width?: number;
-  stickWidth?: number;
-  gap?: number;
-};
-
-export function SoundIndicator({
-  value,
-  color,
-  size = "long",
-  height,
-  width,
-  stickWidth,
-  gap,
-}: SoundIndicatorProps) {
-  const [amplitude, setAmplitude] = useState(0);
-
-  const u16max = 65535;
-  useEffect(() => {
-    const sample = Array.isArray(value)
-      ? (value.reduce((sum, v) => sum + v, 0) / value.length) / u16max
-      : value / u16max;
-    setAmplitude(Math.min(sample, 1));
-  }, [value]);
-
-  return (
-    <DancingSticks
-      amplitude={amplitude}
-      color={color}
-      size={size}
-      height={height}
-      width={width}
-      stickWidth={stickWidth}
-      gap={gap}
-    />
   );
 }

@@ -96,7 +96,7 @@ function ParticipantChip({ participant, currentUserId, attended = true, onRemove
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
                 >
-                  <Icon icon="logos:linkedin-icon" className="size-3.5" />
+                  <Icon icon="logos:linkedin-icon" size={14} />
                   linkedin.com/in/{participant.linkedin_username}
                 </a>
               )}

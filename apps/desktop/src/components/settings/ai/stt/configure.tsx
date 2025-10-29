@@ -269,18 +269,18 @@ function LocalModelAction({
         ? (
           <>
             <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
-              <Icon icon="mdi:loading" className="size-4 mt-1 animate-spin" />
+              <Icon icon="mdi:loading" size={16} className="animate-spin" />
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
-              <Icon icon="mdi:close" className="size-4 mt-1" />
+              <Icon icon="mdi:close" size={16} />
               <span>Cancel</span>
             </div>
           </>
         )
         : (
           <div className="relative z-10 flex items-center gap-2">
-            <Icon icon="mdi:download" className="size-4 mt-1" />
+            <Icon icon="mdi:download" size={16} />
             <span>Download</span>
           </div>
         )}

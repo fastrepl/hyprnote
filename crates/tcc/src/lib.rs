@@ -1,8 +1,8 @@
 #[cfg(target_os = "macos")]
-use swift_rs::{swift, Bool, SRString};
+use swift_rs::{swift, Bool, Int, SRString};
 
 #[cfg(target_os = "macos")]
-swift!(fn _audio_capture_permission_granted() -> Bool);
+swift!(fn _audio_capture_permission_status() -> Int);
 
 #[cfg(target_os = "macos")]
 swift!(fn _reset_audio_capture_permission(bundle_id: SRString) -> Bool);
@@ -10,14 +10,19 @@ swift!(fn _reset_audio_capture_permission(bundle_id: SRString) -> Bool);
 #[cfg(target_os = "macos")]
 swift!(fn _reset_microphone_permission(bundle_id: SRString) -> Bool);
 
-pub fn audio_capture_permission_granted() -> bool {
+pub const TCC_ERROR: isize = -1;
+pub const NEVER_ASKED: isize = 2;
+pub const DENIED: isize = 1;
+pub const GRANTED: isize = 0;
+
+pub fn audio_capture_permission_status() -> isize {
     #[cfg(target_os = "macos")]
     unsafe {
-        _audio_capture_permission_granted()
+        _audio_capture_permission_status()
     }
 
     #[cfg(not(target_os = "macos"))]
-    true
+    2
 }
 
 #[cfg(target_os = "macos")]
@@ -47,12 +52,12 @@ mod tests {
     #[test]
     fn test_audio_capture_permission_granted() {
         #[cfg(target_os = "macos")]
-        let result = audio_capture_permission_granted();
+        let result = audio_capture_permission_status();
 
         #[cfg(not(target_os = "macos"))]
-        let result = audio_capture_permission_granted();
+        let result = audio_capture_permission_status();
 
-        assert!(result);
+        assert!(result == NEVER_ASKED);
     }
 
     #[test]

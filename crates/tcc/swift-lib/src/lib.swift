@@ -12,16 +12,17 @@ private let apiHandle: UnsafeMutableRawPointer? = {
 private typealias PreflightFuncType = @convention(c) (CFString, CFDictionary?) -> Int
 private typealias ResetFuncType = @convention(c) (CFString, CFString?) -> Int
 
-@_cdecl("_audio_capture_permission_granted")
-public func _audio_capture_permission_granted() -> Bool {
+@_cdecl("_audio_capture_permission_status")
+public func _audio_capture_permission_status() -> Int {
   guard let apiHandle,
     let funcSym = dlsym(apiHandle, "TCCAccessPreflight"),
     let preflight = unsafeBitCast(funcSym, to: PreflightFuncType.self) as PreflightFuncType?
   else {
-    return false
+    return -1
   }
 
-  return preflight("kTCCServiceAudioCapture" as CFString, nil) == 0
+  let result = preflight("kTCCServiceAudioCapture" as CFString, nil)
+  return result
 }
 
 @_cdecl("_reset_audio_capture_permission")

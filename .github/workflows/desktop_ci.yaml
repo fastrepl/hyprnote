@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v2
       - run: pnpm -F ui build
       - run: pnpm -r typecheck
       - run: pnpm -r test

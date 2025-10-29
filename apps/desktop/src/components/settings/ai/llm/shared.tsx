@@ -42,7 +42,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <Ollama size={16} />,
     apiKey: false,
-    baseUrl: "http://localhost:11434",
+    baseUrl: "http://127.0.0.1:11434/v1",
   },
   {
     id: "lmstudio",
@@ -50,7 +50,7 @@ export const PROVIDERS = [
     badge: null,
     icon: <LmStudio size={16} />,
     apiKey: false,
-    baseUrl: "http://localhost:8000",
+    baseUrl: "http://127.0.0.1:1234/v1",
   },
   {
     id: "custom",

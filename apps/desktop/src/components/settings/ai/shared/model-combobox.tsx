@@ -184,8 +184,9 @@ export const openaiCompatibleListModels = async (baseUrl: string, apiKey: string
         };
       }[];
     };
+
     const removeNonToolModels = data
-      .filter((model) => !["audio", "image", "code"].some((keyword) => model.id.includes(keyword)))
+      .filter((model) => !["audio", "image", "code", "embed"].some((keyword) => model.id.includes(keyword)))
       .filter((model) => {
         if (
           Array.isArray(model.architecture?.input_modalities)

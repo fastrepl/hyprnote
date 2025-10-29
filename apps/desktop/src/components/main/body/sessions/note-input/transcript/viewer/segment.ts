@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
 import { useListener } from "../../../../../../../contexts/listener";
-import * as persisted from "../../../../../../../store/tinybase/persisted";
+import * as main from "../../../../../../../store/tinybase/main";
 import { buildSegments, mergeWordsByChannel, type PartialWord } from "../../../../../../../utils/segments";
 
 export function useMergedWordsByChannel(
-  finalWords: Record<string, persisted.Word>,
+  finalWords: Record<string, main.Word>,
   partialWords: Record<number, PartialWord[]>,
 ) {
   return useMemo(
@@ -19,19 +19,19 @@ export function usePartialWords() {
 }
 
 export function useFinalWords(sessionId: string) {
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptBySession,
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
     sessionId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
   const transcriptId = transcriptIds?.[0];
 
-  const wordIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.wordsByTranscript,
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
     transcriptId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return useMemo(() => {
@@ -39,11 +39,11 @@ export function useFinalWords(sessionId: string) {
       return {};
     }
 
-    const words: Record<string, persisted.Word> = {};
+    const words: Record<string, main.Word> = {};
     wordIds?.forEach((wordId) => {
       const word = store.getRow("words", wordId);
       if (word) {
-        words[wordId] = word as persisted.Word;
+        words[wordId] = word as main.Word;
       }
     });
     return words;

@@ -9,21 +9,21 @@ import {
 
 import { FolderIcon } from "lucide-react";
 
-import * as persisted from "../../../../../store/tinybase/persisted";
+import * as main from "../../../../../store/tinybase/main";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
 import { SearchableFolderDropdown } from "./shared/folder";
 
 export function FolderChain({ sessionId }: { sessionId: string }) {
-  const folderId = persisted.UI.useCell("sessions", sessionId, "folder_id", persisted.STORE_ID);
-  const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID) ?? "Untitled";
+  const folderId = main.UI.useCell("sessions", sessionId, "folder_id", main.STORE_ID);
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) ?? "Untitled";
 
-  const handleChangeTitle = persisted.UI.useSetPartialRowCallback(
+  const handleChangeTitle = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (title: string) => ({ title }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (

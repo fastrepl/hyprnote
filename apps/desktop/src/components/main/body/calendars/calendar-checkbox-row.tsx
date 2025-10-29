@@ -1,11 +1,11 @@
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 
 export function CalendarCheckboxRow(
   { id, checked, onToggle }: { id: string; checked: boolean; onToggle: (checked: boolean) => void },
 ) {
-  const calendar = persisted.UI.useRow("calendars", id, persisted.STORE_ID);
+  const calendar = main.UI.useRow("calendars", id, main.STORE_ID);
   return (
     <div className="flex items-center space-x-2">
       <Checkbox

@@ -9,7 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Disclosure } from "../shared";
 import { ToolRenderer } from "../types";
@@ -91,7 +91,7 @@ function RenderContent({ part }: { part: Part }) {
 }
 
 function RenderSession({ sessionId }: { sessionId: string }) {
-  const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
   const { openNew } = useTabs();
 
   const handleClick = useCallback(() => {

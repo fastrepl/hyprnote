@@ -1,7 +1,7 @@
 import { Experimental_Agent as Agent, type LanguageModel, Tool } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import type { Store as PersistedStore } from "../../../tinybase/persisted";
+import type { Store as PersistedStore } from "../../../tinybase/main";
 import type { TaskArgsMap, TaskConfig } from ".";
 
 export const title: TaskConfig<"title"> = {

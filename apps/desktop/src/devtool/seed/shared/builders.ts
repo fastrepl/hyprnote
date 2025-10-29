@@ -16,7 +16,7 @@ import type {
   TemplateStorage,
   Transcript,
   Word,
-} from "../../../store/tinybase/persisted";
+} from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";

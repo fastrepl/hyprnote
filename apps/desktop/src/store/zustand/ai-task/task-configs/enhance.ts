@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { buildSegments } from "../../../../utils/segments";
-import type { Store as PersistedStore } from "../../../tinybase/persisted";
+import type { Store as PersistedStore } from "../../../tinybase/main";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
 

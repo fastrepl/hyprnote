@@ -5,7 +5,7 @@ import { type ReactNode, useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
@@ -197,13 +197,13 @@ function TodayBucket({
 }
 
 function useTimelineData(): TimelineBucket[] {
-  const eventsWithoutSessionTable = persisted.UI.useResultTable(
-    persisted.QUERIES.eventsWithoutSession,
-    persisted.STORE_ID,
+  const eventsWithoutSessionTable = main.UI.useResultTable(
+    main.QUERIES.eventsWithoutSession,
+    main.STORE_ID,
   );
-  const sessionsWithMaybeEventTable = persisted.UI.useResultTable(
-    persisted.QUERIES.sessionsWithMaybeEvent,
-    persisted.STORE_ID,
+  const sessionsWithMaybeEventTable = main.UI.useResultTable(
+    main.QUERIES.sessionsWithMaybeEvent,
+    main.STORE_ID,
   );
 
   return useMemo(

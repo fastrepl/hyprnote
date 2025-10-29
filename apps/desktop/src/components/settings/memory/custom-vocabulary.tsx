@@ -6,7 +6,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import * as internal from "../../../store/tinybase/internal";
-import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/persisted";
+import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
 
 interface CustomVocabularyViewProps {

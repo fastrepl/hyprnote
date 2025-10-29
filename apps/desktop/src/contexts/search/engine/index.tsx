@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { create, search as oramaSearch } from "@orama/orama";
 import { pluginQPS } from "@orama/plugin-qps";
 
-import { type Store as PersistedStore } from "../../../store/tinybase/persisted";
+import { type Store as PersistedStore } from "../../../store/tinybase/main";
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
 import { createHumanListener, createOrganizationListener, createSessionListener } from "./listeners";

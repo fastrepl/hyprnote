@@ -3,7 +3,7 @@ import { cn } from "@hypr/utils";
 
 import { useCallback, useMemo } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
 import { type TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
@@ -11,7 +11,7 @@ import { InteractiveButton } from "../../../interactive-button";
 
 export function TimelineItemComponent({ item, precision }: { item: TimelineItem; precision: TimelinePrecision }) {
   const { currentTab, openCurrent, openNew, invalidateResource } = useTabs();
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const title = item.data.title || "Untitled";
   const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;

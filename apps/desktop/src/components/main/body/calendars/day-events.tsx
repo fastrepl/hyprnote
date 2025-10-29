@@ -5,23 +5,23 @@ import { cn, format, isSameDay } from "@hypr/utils";
 import { Calendar, Pen, StickyNote } from "lucide-react";
 import { useState } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 
 export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
-  const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
+  const event = main.UI.useRow("events", eventId, main.STORE_ID);
   const [open, setOpen] = useState(false);
   const { openNew } = useTabs();
 
   const title = event?.title || "Untitled Event";
 
-  const sessionIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionsByEvent,
+  const sessionIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionsByEvent,
     eventId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
   const linkedSessionId = sessionIds[0];
-  const linkedSession = persisted.UI.useRow("sessions", linkedSessionId || "dummy", persisted.STORE_ID);
+  const linkedSession = main.UI.useRow("sessions", linkedSessionId || "dummy", main.STORE_ID);
 
   const handleOpenNote = () => {
     setOpen(false);

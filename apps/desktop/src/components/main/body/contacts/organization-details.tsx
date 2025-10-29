@@ -5,7 +5,7 @@ import { Icon } from "@iconify-icon/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Building2, Mail } from "lucide-react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { getInitials } from "./shared";
 
 export function OrganizationDetailsColumn({
@@ -17,15 +17,15 @@ export function OrganizationDetailsColumn({
   handleDeleteOrganization: (id: string) => void;
   onPersonClick?: (personId: string) => void;
 }) {
-  const selectedOrgData = persisted.UI.useRow("organizations", selectedOrganizationId ?? "", persisted.STORE_ID);
+  const selectedOrgData = main.UI.useRow("organizations", selectedOrganizationId ?? "", main.STORE_ID);
 
-  const peopleInOrg = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.humansByOrg,
+  const peopleInOrg = main.UI.useSliceRowIds(
+    main.INDEXES.humansByOrg,
     selectedOrganizationId ?? "",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const allHumans = persisted.UI.useTable("humans", persisted.STORE_ID);
+  const allHumans = main.UI.useTable("humans", main.STORE_ID);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -168,15 +168,15 @@ export function OrganizationDetailsColumn({
 }
 
 function EditableOrganizationNameField({ organizationId }: { organizationId: string }) {
-  const value = persisted.UI.useCell("organizations", organizationId, "name", persisted.STORE_ID);
+  const value = main.UI.useCell("organizations", organizationId, "name", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "organizations",
     organizationId,
     "name",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (

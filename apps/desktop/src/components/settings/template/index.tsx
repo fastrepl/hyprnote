@@ -8,7 +8,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
 import * as internal from "../../../store/tinybase/internal";
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 import { TemplateEditor } from "./editor";
 import { useTemplateNavigation } from "./use-template-navigation";
 
@@ -135,11 +135,11 @@ function TemplateCard({
 
 function useTemplates() {
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const USER_TEMPLATE_QUERY = "user_templates";
 
-  const quries = persisted.UI.useCreateQueries(
+  const quries = main.UI.useCreateQueries(
     store,
     (store) =>
       createQueries(store).setQueryDefinition(USER_TEMPLATE_QUERY, "templates", ({ select, where }) => {
@@ -151,6 +151,6 @@ function useTemplates() {
     [user_id],
   );
 
-  const templates = persisted.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
-  return templates as unknown as Record<string, persisted.Template>;
+  const templates = main.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
+  return templates as unknown as Record<string, main.Template>;
 }

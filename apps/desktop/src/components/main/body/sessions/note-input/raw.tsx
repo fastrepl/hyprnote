@@ -7,19 +7,19 @@ import { forwardRef, useCallback } from "react";
 
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/utils";
-import * as persisted from "../../../../../store/tinybase/persisted";
+import * as main from "../../../../../store/tinybase/main";
 import { commands } from "../../../../../types/tauri.gen";
 
 export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
   ({ sessionId }, ref) => {
-    const value = persisted.UI.useCell("sessions", sessionId, "raw_md", persisted.STORE_ID);
+    const value = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 
-    const handleRawChange = persisted.UI.useSetPartialRowCallback(
+    const handleRawChange = main.UI.useSetPartialRowCallback(
       "sessions",
       sessionId,
       (input: string) => ({ raw_md: input }),
       [],
-      persisted.STORE_ID,
+      main.STORE_ID,
     );
 
     return (

@@ -2,7 +2,7 @@ import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 
 import { useAITask } from "../contexts/ai-task";
-import * as persisted from "../store/tinybase/persisted";
+import * as main from "../store/tinybase/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../store/zustand/ai-task/tasks";
 import type { Tab } from "../store/zustand/tabs/schema";
@@ -13,18 +13,18 @@ export function useAutoGenerateTitle(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
   const model = useLanguageModel();
 
-  const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
-  const enhancedMd = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
+  const enhancedMd = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
   const prevEnhancedMd = usePrevious(enhancedMd);
 
   const taskId = createTaskId(sessionId, "title");
 
-  const updateTitle = persisted.UI.useSetPartialRowCallback(
+  const updateTitle = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: string) => ({ title: input }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const { generate, rawStatus, streamedText, error } = useAITask((state) => {

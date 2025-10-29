@@ -1,6 +1,6 @@
 import type { Tables } from "tinybase/with-schemas";
 
-import type { Schemas } from "../../../store/tinybase/persisted";
+import type { Schemas } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import { type CuratedData, CuratedDataSchema } from "./schema";
 

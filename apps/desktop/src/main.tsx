@@ -15,7 +15,7 @@ import {
   type Store as PersistedStore,
   STORE_ID as STORE_ID_PERSISTED,
   StoreComponent as StoreComponentPersisted,
-} from "./store/tinybase/persisted";
+} from "./store/tinybase/main";
 
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { routeTree } from "./routeTree.gen";

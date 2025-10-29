@@ -8,7 +8,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useQuery } from "../../../../../../hooks/useQuery";
 import * as internal from "../../../../../../store/tinybase/internal";
-import * as persisted from "../../../../../../store/tinybase/persisted";
+import * as main from "../../../../../../store/tinybase/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
 import { getInitials } from "../../../contacts/shared";
 
@@ -115,13 +115,13 @@ export function MeetingParticipants({ sessionId }: { sessionId: string }) {
   const { openNew } = useTabs();
   const { user_id } = internal.UI.useValues(internal.STORE_ID);
 
-  const store = persisted.UI.useStore(persisted.STORE_ID);
-  const indexes = persisted.UI.useIndexes(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
-  const participantMappingIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionParticipantsBySession,
+  const participantMappingIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionParticipantsBySession,
     sessionId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   // Get participants with full data
@@ -166,7 +166,7 @@ export function MeetingParticipants({ sessionId }: { sessionId: string }) {
       const existingParticipantIds = new Set<string>();
 
       const participantMappings = indexes!.getSliceRowIds(
-        persisted.INDEXES.sessionParticipantsBySession,
+        main.INDEXES.sessionParticipantsBySession,
         sessionId,
       );
       participantMappings?.forEach((mappingId: string) => {

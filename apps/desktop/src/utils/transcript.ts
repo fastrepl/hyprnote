@@ -1,4 +1,4 @@
-import type { Word } from "../store/tinybase/persisted";
+import type { Word } from "../store/tinybase/main";
 
 type Segment = {
   text: string;

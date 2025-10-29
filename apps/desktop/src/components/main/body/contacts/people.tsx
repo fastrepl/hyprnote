@@ -2,7 +2,7 @@ import { cn } from "@hypr/utils";
 
 import { useMemo, useState } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { ColumnHeader, getInitials, type SortOption } from "./shared";
 
 export function PeopleColumn({
@@ -17,7 +17,7 @@ export function PeopleColumn({
   const [searchValue, setSearchValue] = useState("");
   const { humanIds, sortOption, setSortOption } = useSortedHumanIds(currentOrgId);
 
-  const allHumans = persisted.UI.useTable("humans", persisted.STORE_ID);
+  const allHumans = main.UI.useTable("humans", main.STORE_ID);
 
   const filteredHumanIds = useMemo(() => {
     if (!searchValue.trim()) {
@@ -62,43 +62,43 @@ export function PeopleColumn({
 export function useSortedHumanIds(currentOrgId?: string | null) {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
 
-  const allAlphabeticalIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleHumans,
+  const allAlphabeticalIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleHumans,
     "name",
     false,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const allReverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleHumans,
+  const allReverseAlphabeticalIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleHumans,
     "name",
     true,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const allNewestIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleHumans,
+  const allNewestIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleHumans,
     "created_at",
     true,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const allOldestIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleHumans,
+  const allOldestIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleHumans,
     "created_at",
     false,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const thisOrgHumanIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.humansByOrg,
+  const thisOrgHumanIds = main.UI.useSliceRowIds(
+    main.INDEXES.humansByOrg,
     currentOrgId ?? "",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const humanIds = currentOrgId
@@ -129,7 +129,7 @@ function PersonItem({
   active: boolean;
   setSelectedPerson: (id: string | null) => void;
 }) {
-  const person = persisted.UI.useRow("humans", humanId, persisted.STORE_ID);
+  const person = main.UI.useRow("humans", humanId, main.STORE_ID);
 
   return (
     <button

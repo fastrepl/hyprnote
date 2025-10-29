@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Folder } from "../../../store/tinybase/persisted";
+import type { Folder } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 export const createFolder = (parentFolderId?: string) => ({

@@ -15,7 +15,7 @@ import {
 import { Calendar, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -58,7 +58,7 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
 
   const { openCurrent } = useTabs();
 
-  const calendarIds = persisted.UI.useRowIds("calendars", persisted.STORE_ID);
+  const calendarIds = main.UI.useRowIds("calendars", main.STORE_ID);
 
   const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(() => new Set(calendarIds));
 

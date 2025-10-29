@@ -1,4 +1,4 @@
-import type { Store as PersistedStore } from "../../../store/tinybase/persisted";
+import type { Store as PersistedStore } from "../../../store/tinybase/main";
 
 export * from "./builders";
 export { createCalendar } from "./calendar";

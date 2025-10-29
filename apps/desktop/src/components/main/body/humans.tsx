@@ -1,6 +1,6 @@
 import { UserIcon } from "lucide-react";
 
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 import { type Tab } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
@@ -13,7 +13,7 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
-  const title = persisted.UI.useCell("humans", tab.id, "name", persisted.STORE_ID);
+  const title = main.UI.useCell("humans", tab.id, "name", main.STORE_ID);
 
   return (
     <TabItemBase

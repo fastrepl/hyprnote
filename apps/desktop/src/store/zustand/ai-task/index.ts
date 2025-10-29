@@ -1,7 +1,7 @@
 import { createStore } from "zustand";
 
 import type { ToolRegistry } from "../../../contexts/tool-registry/core";
-import type { Store as PersistedStore } from "../../tinybase/persisted";
+import type { Store as PersistedStore } from "../../tinybase/main";
 import { createTasksSlice, type TasksActions, type TasksState } from "./tasks";
 
 type State = TasksState;

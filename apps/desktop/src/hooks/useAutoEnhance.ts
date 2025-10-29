@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 import { useAITask } from "../contexts/ai-task";
 import { useListener } from "../contexts/listener";
-import * as persisted from "../store/tinybase/persisted";
+import * as main from "../store/tinybase/main";
 import { createTaskId } from "../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../store/zustand/ai-task/tasks";
 import { useTabs } from "../store/zustand/tabs";
@@ -19,21 +19,21 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const listenerStatus = useListener((state) => state.status);
   const prevListenerStatus = usePrevious(listenerStatus);
 
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptBySession,
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
     sessionId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
 
   const taskId = createTaskId(sessionId, "enhance");
 
-  const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
+  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: string) => ({ enhanced_md: input }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const { generate, rawStatus, streamedText, error } = useAITask((state) => {

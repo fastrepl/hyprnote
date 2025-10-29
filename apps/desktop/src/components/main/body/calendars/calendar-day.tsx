@@ -2,7 +2,7 @@ import { cn, format, getDay } from "@hypr/utils";
 
 import { useEffect, useRef, useState } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { TabContentCalendarDayEvents } from "./day-events";
 import { TabContentCalendarDayMore } from "./day-more";
 import { TabContentCalendarDaySessions } from "./day-sessions";
@@ -24,23 +24,23 @@ export function TabContentCalendarDay({
   const contentRef = useRef<HTMLDivElement>(null);
   const [maxVisibleItems, setMaxVisibleItems] = useState(5);
 
-  const allEventIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.eventsByDate,
+  const allEventIds = main.UI.useSliceRowIds(
+    main.INDEXES.eventsByDate,
     day,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const eventIds = allEventIds.filter((eventId) => {
     const event = store?.getRow("events", eventId);
     return event?.calendar_id && selectedCalendars.has(event.calendar_id as string);
   });
 
-  const sessionIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionByDateWithoutEvent,
+  const sessionIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionByDateWithoutEvent,
     day,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const dayNumber = format(new Date(day), "d");

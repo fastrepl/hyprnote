@@ -16,19 +16,16 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
 
   return (
     <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
-      <div
+      <Streamdown
+        components={streamdownComponents}
+        disallowedElements={["code", "pre"]}
         className={cn([
-          "text-sm leading-relaxed",
-          "whitespace-pre-wrap break-words",
+          "space-y-2",
         ])}
       >
-        <Streamdown
-          disallowedElements={["code", "pre"]}
-          components={components}
-        >
-          {text}
-        </Streamdown>
-      </div>
+        {text}
+      </Streamdown>
+
       <motion.div
         layout
         initial={{ opacity: 0, y: 10 }}
@@ -46,18 +43,35 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
   );
 }
 
-const components = {
+const HEADING_SHARED = "text-gray-700 font-semibold text-sm mt-0 mb-1 min-h-6";
+
+const streamdownComponents = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-    return <h1 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h1>;
+    return <h1 className={cn([HEADING_SHARED, "text-xl"])}>{props.children as React.ReactNode}</h1>;
+  },
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h2 className={cn([HEADING_SHARED, "text-lg"])}>{props.children as React.ReactNode}</h2>;
+  },
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h3 className={cn([HEADING_SHARED, "text-base"])}>{props.children as React.ReactNode}</h3>;
+  },
+  h4: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h4 className={cn([HEADING_SHARED, "text-sm"])}>{props.children as React.ReactNode}</h4>;
+  },
+  h5: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h5 className={cn([HEADING_SHARED, "text-sm"])}>{props.children as React.ReactNode}</h5>;
+  },
+  h6: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
+    return <h6 className={cn([HEADING_SHARED, "text-xs"])}>{props.children as React.ReactNode}</h6>;
   },
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
-    return <ul className="list-disc list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ul>;
+    return <ul className="list-disc pl-6 mb-1 block relative">{props.children as React.ReactNode}</ul>;
   },
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
-    return <ol className="list-decimal list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ol>;
+    return <ol className="list-decimal pl-6 mb-1 block relative">{props.children as React.ReactNode}</ol>;
   },
   li: (props: React.HTMLAttributes<HTMLLIElement>) => {
-    return <li className="list-item">{props.children as React.ReactNode}</li>;
+    return <li className="mb-1">{props.children as React.ReactNode}</li>;
   },
 } as const;
 

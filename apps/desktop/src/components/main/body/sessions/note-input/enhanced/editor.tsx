@@ -8,7 +8,12 @@ export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sess
   ({ sessionId }, ref) => {
     const value = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
 
-    const handleEnhancedChange = persisted.UI.useSetPartialRowCallback(
+    const handleEnhancedChange = (c: string) => {
+      console.log("handleEnhancedChange", c);
+      _handleEnhancedChange(c);
+    };
+
+    const _handleEnhancedChange = persisted.UI.useSetPartialRowCallback(
       "sessions",
       sessionId,
       (input: string) => ({ enhanced_md: input }),

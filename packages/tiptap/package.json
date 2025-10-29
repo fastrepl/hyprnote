@@ -7,7 +7,8 @@
     "./editor": "./src/editor/index.tsx",
     "./renderer": "./src/renderer/index.tsx",
     "./transcript": "./src/transcript/index.tsx",
-    "./shared": "./src/shared/index.ts"
+    "./shared": "./src/shared/index.ts",
+    "./styles.css": "./styles.css"
   },
   "peerDependencies": {
     "react": "^19.2",

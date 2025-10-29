@@ -165,15 +165,15 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 icon={feature.included === true
                   ? "mdi:check-circle"
                   : feature.included === "partial"
-                    ? "mdi:minus-circle"
-                    : "mdi:close-circle"}
+                  ? "mdi:minus-circle"
+                  : "mdi:close-circle"}
                 className={cn(
                   "text-lg mt-0.5 shrink-0",
                   feature.included === true
                     ? "text-green-700"
                     : feature.included === "partial"
-                      ? "text-yellow-600"
-                      : "text-neutral-300",
+                    ? "text-yellow-600"
+                    : "text-neutral-300",
                 )}
               />
               <div className="flex-1">
@@ -184,8 +184,8 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                       feature.included === true
                         ? "text-neutral-900"
                         : feature.included === "partial"
-                          ? "text-neutral-700"
-                          : "text-neutral-400",
+                        ? "text-neutral-700"
+                        : "text-neutral-400",
                     )}
                   >
                     {feature.label}

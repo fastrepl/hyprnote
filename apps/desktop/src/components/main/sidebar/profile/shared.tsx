@@ -26,7 +26,7 @@ export function MenuItem(
       onClick={onClick}
     >
       <Icon className={cn("h-4 w-4 flex-shrink-0", "text-black")} />
-      <span className={cn("flex-1", "text-left")}>{label}</span>
+      <span className={cn(["flex-1", "text-left", "truncate"])}>{label}</span>
       {badge && (
         typeof badge === "number"
           ? (

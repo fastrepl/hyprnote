@@ -1,6 +1,7 @@
 import { FileTextIcon, FolderIcon, Link2Icon, MicIcon, MicOffIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
+import * as persisted from "../../../../../store/tinybase/persisted";
 import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
@@ -32,21 +34,22 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
         <DropdownMenuSeparator />
         <Listening sessionId={sessionId} />
         <DropdownMenuSeparator />
-        <DeleteNote />
-        <DeleteRecording />
+        <DeleteNote sessionId={sessionId} />
+        <DeleteRecording sessionId={sessionId} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 function Copy() {
-  const handleCopyLink = () => {
-    // TODO: Implement copy link functionality
-    console.log("Copy link");
-  };
+  const handleCopyLink = () => {};
 
   return (
-    <DropdownMenuItem className="cursor-pointer" onClick={handleCopyLink}>
+    <DropdownMenuItem
+      disabled={true}
+      className="cursor-pointer"
+      onClick={handleCopyLink}
+    >
       <Link2Icon />
       <span>Copy link</span>
     </DropdownMenuItem>
@@ -104,11 +107,17 @@ function Listening({ sessionId }: { sessionId: string }) {
   );
 }
 
-function DeleteNote() {
-  const handleDeleteNote = () => {
-    // TODO: Implement delete note functionality
-    console.log("Delete note");
-  };
+function DeleteNote({ sessionId }: { sessionId: string }) {
+  const deleteRow = persisted.UI.useDelRowCallback(
+    "sessions",
+    sessionId,
+    persisted.STORE_ID,
+  );
+
+  const handleDeleteNote = useCallback(() => {
+    deleteRow();
+    miscCommands.audioDelete(sessionId);
+  }, [sessionId, deleteRow]);
 
   return (
     <DropdownMenuItem
@@ -121,11 +130,10 @@ function DeleteNote() {
   );
 }
 
-function DeleteRecording() {
-  const handleDeleteRecording = () => {
-    // TODO: Implement delete recording functionality
-    console.log("Delete recording");
-  };
+function DeleteRecording({ sessionId }: { sessionId: string }) {
+  const handleDeleteRecording = useCallback(() => {
+    miscCommands.audioDelete(sessionId);
+  }, [sessionId]);
 
   return (
     <DropdownMenuItem

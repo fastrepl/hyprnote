@@ -42,7 +42,7 @@ export function UpdateChecker() {
     return (
       <MenuItem
         icon={AlertCircle}
-        label={error || "Update check failed"}
+        label={error || "Update failed"}
         badge={
           <button
             onClick={(e) => {

@@ -86,10 +86,13 @@ function Header(
 }
 
 function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
-  const status = useListener((state) => state.status);
+  const { status, sessionId: activeSessionId } = useListener((state) => ({
+    status: state.status,
+    sessionId: state.sessionId,
+  }));
   const hasTranscript = useHasTranscript(sessionId);
 
-  if (status === "running_active") {
+  if (status === "running_active" && activeSessionId === sessionId) {
     return ["raw", "transcript"];
   }
 

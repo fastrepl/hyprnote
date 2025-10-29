@@ -72,8 +72,7 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
     }
   };
 
-  // TODO: not ideal
-  const active = currentTab?.type === "sessions" && (
+  const selected = currentTab?.type === "sessions" && (
     (item.type === "session" && currentTab.id === item.id)
     || (item.type === "event" && item.id === eventId && (() => {
       if (!store) {
@@ -137,8 +136,8 @@ export function TimelineItemComponent({ item, precision }: { item: TimelineItem;
       contextMenu={contextMenu}
       className={cn([
         "w-full text-left px-3 py-2 rounded-lg",
-        active && "bg-neutral-200",
-        !active && "hover:bg-neutral-100",
+        selected && "bg-neutral-200",
+        !selected && "hover:bg-neutral-100",
       ])}
     >
       <div className="flex flex-col gap-0.5">

@@ -19,7 +19,7 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
     <TabItemBase
       icon={<UserIcon className="w-4 h-4" />}
       title={title ?? "Human"}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

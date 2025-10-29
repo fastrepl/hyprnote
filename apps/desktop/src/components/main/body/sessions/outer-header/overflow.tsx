@@ -80,10 +80,12 @@ function ExportPDF() {
 }
 
 function Listening({ sessionId }: { sessionId: string }) {
-  const { stop, isListening } = useListener((state) => ({
+  const { stop, status, activeSessionId } = useListener((state) => ({
     stop: state.stop,
-    isListening: state.status === "running_active",
+    status: state.status,
+    activeSessionId: state.sessionId,
   }));
+  const isListening = status === "running_active" && activeSessionId === sessionId;
   const startListening = useStartListening(sessionId);
 
   const handleToggleListening = () => {

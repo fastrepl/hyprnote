@@ -34,7 +34,7 @@ const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = (
     <TabItemBase
       icon={<FoldersIcon className="w-4 h-4" />}
       title={"Folders"}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
@@ -60,7 +60,7 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
     <TabItemBase
       icon={<FolderIcon className="w-4 h-4" />}
       title={title}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

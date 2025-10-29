@@ -21,7 +21,7 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
     <TabItemBase
       icon={<CalendarIcon className="w-4 h-4" />}
       title={title ?? ""}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

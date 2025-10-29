@@ -1,16 +1,13 @@
 import { Icon } from "@iconify-icon/react";
 import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
-import { useCallback, useEffect, useState } from "react";
 
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
-import { FloatingButton, formatTime } from "./shared";
-
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
+import { FloatingButton } from "./shared";
 
 import * as persisted from "../../../../../store/tinybase/persisted";
 import { type Tab } from "../../../../../store/zustand/tabs";
@@ -33,10 +30,6 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
 
   if (status === "inactive") {
     return <BeforeMeeingButton tab={tab} />;
-  }
-
-  if (status === "running_active") {
-    return <DuringMeetingButton />;
   }
 }
 
@@ -128,49 +121,6 @@ function StartButton({
         : undefined}
     >
       {text}
-    </FloatingButton>
-  );
-}
-
-function SoundIndicator({ value, color }: { value: number | Array<number>; color?: string }) {
-  const [amplitude, setAmplitude] = useState(0);
-
-  const u16max = 65535;
-  useEffect(() => {
-    const sample = Array.isArray(value)
-      ? (value.reduce((sum, v) => sum + v, 0) / value.length) / u16max
-      : value / u16max;
-    setAmplitude(Math.min(sample, 1));
-  }, [value]);
-
-  return <DancingSticks amplitude={amplitude} color={color} size="long" />;
-}
-
-function DuringMeetingButton() {
-  const stop = useListener((state) => state.stop);
-  const { amplitude, seconds } = useListener(({ amplitude, seconds }) => ({ amplitude, seconds }));
-  const [hovered, setHovered] = useState(false);
-
-  const handleMouseEnter = useCallback(() => setHovered(true), []);
-  const handleMouseLeave = useCallback(() => setHovered(false), []);
-
-  return (
-    <FloatingButton
-      onClick={stop}
-      icon={hovered ? <Icon icon="lucide:stop-circle" className="w-5 h-5 mt-1.5" /> : undefined}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <span>
-        {hovered
-          ? "Stop listening"
-          : (
-            <div className="flex flex-row items-center gap-4">
-              <span className="text-neutral-500 text-sm">{formatTime(seconds)}</span>
-              <SoundIndicator value={[amplitude.mic, amplitude.speaker]} color="#ef4444" />
-            </div>
-          )}
-      </span>
     </FloatingButton>
   );
 }

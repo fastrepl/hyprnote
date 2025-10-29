@@ -26,7 +26,7 @@ export function MeetingLink({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 -ml-2.5">
+    <div className="flex items-center justify-between gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="ghost" className="shrink-0">

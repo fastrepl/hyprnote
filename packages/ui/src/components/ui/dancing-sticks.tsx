@@ -13,17 +13,19 @@ type EqualizerStickProps = {
   baseLength: number;
   amplitude: number;
   color: string;
+  height: number;
+  stickWidth: number;
 };
 
-function EqualizerStick({ baseLength, amplitude, color }: EqualizerStickProps) {
+function EqualizerStick({ baseLength, amplitude, color, height, stickWidth }: EqualizerStickProps) {
   const scaledBaseLength = baseLength * Math.max(0.2, Math.max(amplitude, 0.1));
 
   return (
     <motion.div
       className="rounded-full"
-      style={{ width: "2px", backgroundColor: color }}
+      style={{ width: stickWidth, backgroundColor: color }}
       animate={{
-        height: getRandomValues(16, 6, scaledBaseLength),
+        height: getRandomValues(height, 6, scaledBaseLength),
       }}
       transition={{
         duration: 1.1,
@@ -39,6 +41,10 @@ type DancingSticksProps = {
   color?: string;
   amplitude: number;
   size?: "default" | "long";
+  height?: number;
+  width?: number;
+  stickWidth?: number;
+  gap?: number;
 };
 
 const STICK_PATTERNS = {
@@ -46,27 +52,49 @@ const STICK_PATTERNS = {
   long: [50, 65, 75, 85, 95, 100, 95, 85, 75, 65, 50],
 };
 
-export function DancingSticks({ color = "#e5e5e5", amplitude, size = "default" }: DancingSticksProps) {
+export function DancingSticks({
+  color = "#e5e5e5",
+  amplitude,
+  size = "default",
+  height,
+  width,
+  stickWidth,
+  gap,
+}: DancingSticksProps) {
+  const resolvedHeight = height ?? 16;
+  const resolvedWidth = width ?? (size === "long" ? 32 : 17);
+  const resolvedStickWidth = stickWidth ?? 2;
+  const resolvedGap = gap ?? 1;
   const isFlat = amplitude === 0;
   const pattern = STICK_PATTERNS[size];
-  const width = size === "long" ? "w-[32px]" : "w-[17px]";
 
   if (isFlat) {
     return (
-      <div className={`flex h-4 ${width} items-center justify-center`}>
-        <div className={`${width} h-px rounded-full`} style={{ backgroundColor: color }} />
+      <div
+        className="flex items-center justify-center"
+        style={{ height: resolvedHeight, width: resolvedWidth }}
+      >
+        <div
+          className="rounded-full"
+          style={{ width: resolvedWidth, height: 1, backgroundColor: color }}
+        />
       </div>
     );
   }
 
   return (
-    <div className={`flex h-4 ${width} items-center justify-center gap-[1px]`}>
+    <div
+      className="flex items-center justify-center"
+      style={{ height: resolvedHeight, width: resolvedWidth, gap: resolvedGap }}
+    >
       {pattern.map((baseLength, index) => (
         <EqualizerStick
           key={`${size}-${index}`}
           baseLength={baseLength}
           amplitude={amplitude}
           color={color}
+          height={resolvedHeight}
+          stickWidth={resolvedStickWidth}
         />
       ))}
     </div>

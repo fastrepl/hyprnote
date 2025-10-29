@@ -19,6 +19,7 @@ export type GeneralState = {
   amplitude: { mic: number; speaker: number };
   seconds: number;
   intervalId?: NodeJS.Timeout;
+  sessionId: string | null;
 };
 
 export type GeneralActions = {
@@ -34,6 +35,7 @@ const initialState: GeneralState = {
   loading: false,
   amplitude: { mic: 0, speaker: 0 },
   seconds: 0,
+  sessionId: null,
 };
 
 const listenToSessionEvents = (
@@ -56,6 +58,7 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
     set((state) =>
       mutate(state, (draft) => {
         draft.loading = true;
+        draft.sessionId = params.session_id ?? null;
       })
     );
 
@@ -93,6 +96,7 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
             draft.loading = false;
             draft.seconds = 0;
             draft.intervalId = intervalId;
+            draft.sessionId = currentState.sessionId ?? null;
           })
         );
       } else if (payload.type === "inactive") {
@@ -104,6 +108,7 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
             }
             draft.status = "inactive";
             draft.loading = false;
+            draft.sessionId = null;
           })
         );
 
@@ -128,6 +133,7 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
         mutate(state, (draft) => {
           draft.status = "running_active";
           draft.loading = false;
+          draft.sessionId = params.session_id ?? null;
         })
       );
     });

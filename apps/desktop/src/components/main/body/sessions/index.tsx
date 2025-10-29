@@ -4,6 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
 
 import AudioPlayer from "../../../../contexts/audio-player";
+import { useListener } from "../../../../contexts/listener";
 import * as persisted from "../../../../store/tinybase/persisted";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -24,12 +25,15 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
   },
 ) => {
   const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
+  const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
+  const isActive = status === "running_active" && sessionId === tab.id;
 
   return (
     <TabItemBase
       icon={<StickyNoteIcon className="w-4 h-4" />}
       title={title || "Untitled"}
-      active={tab.active}
+      selected={tab.active}
+      active={isActive}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

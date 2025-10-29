@@ -36,7 +36,7 @@ export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = (
     <TabItemBase
       icon={<Calendar size={16} />}
       title={"Calendar"}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

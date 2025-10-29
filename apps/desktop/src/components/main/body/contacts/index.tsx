@@ -26,7 +26,7 @@ export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
     <TabItemBase
       icon={<Contact2Icon className="w-4 h-4" />}
       title={"Contacts"}
-      active={tab.active}
+      selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}

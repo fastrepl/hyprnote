@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useEffect } from "react";
 import { Streamdown } from "streamdown";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
@@ -33,6 +34,16 @@ export function ConfigureProviders() {
 
 function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   const [provider, setProvider] = useProvider(config.id);
+
+  useEffect(() => {
+    if (!provider && config.baseUrl && !config.apiKey) {
+      setProvider({
+        type: "llm",
+        base_url: config.baseUrl,
+        api_key: "",
+      });
+    }
+  }, [provider, config.baseUrl, config.apiKey, setProvider]);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),

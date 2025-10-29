@@ -138,15 +138,17 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<string[]>)
           ];
         }
 
-        if (
-          !configuredProviders[provider.id]
-          || !configuredProviders[provider.id]?.base_url
-          || !configuredProviders[provider.id]?.api_key
-        ) {
+        const config = configuredProviders[provider.id];
+
+        if (!config || !config.base_url) {
           return [provider.id, null];
         }
 
-        const { base_url, api_key } = configuredProviders[provider.id];
+        if (provider.apiKey && !config.api_key) {
+          return [provider.id, null];
+        }
+
+        const { base_url, api_key } = config;
 
         return [
           provider.id,

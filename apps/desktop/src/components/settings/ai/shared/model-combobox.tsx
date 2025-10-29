@@ -97,13 +97,6 @@ export function ModelCombobox({
 
           <CommandList>
             <CommandGroup className="overflow-y-auto">
-              {options.length === 0 && !trimmedQuery && (
-                <div className="py-1.5 px-2 text-sm text-muted-foreground">
-                  <p>No models</p>
-                  <p>Enter a value to create a new one</p>
-                </div>
-              )}
-
               {options.map((option) => (
                 <CommandItem
                   key={option}

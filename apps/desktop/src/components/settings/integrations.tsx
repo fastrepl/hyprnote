@@ -80,7 +80,7 @@ function getProviderIcon(provider: IntegrationProvider) {
     jira: "logos:jira",
   };
 
-  return <Icon icon={iconMap[provider]} className="w-5 h-5" />;
+  return <Icon icon={iconMap[provider]} size={20} />;
 }
 
 type FilterStatus = "all" | "connected" | "not-connected";

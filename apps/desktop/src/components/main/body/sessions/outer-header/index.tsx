@@ -9,7 +9,7 @@ export function OuterHeader({ sessionId }: { sessionId: string }) {
     <div className="flex items-center justify-between">
       <FolderChain sessionId={sessionId} />
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center">
         <MeetingMetadata sessionId={sessionId} />
         <InMeetingIndicator sessionId={sessionId} />
         <ShareButton sessionId={sessionId} />

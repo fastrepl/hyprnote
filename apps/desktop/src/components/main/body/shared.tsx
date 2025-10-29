@@ -7,7 +7,6 @@ import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 
 import { cn } from "@hypr/utils";
-import { useListener } from "../../../contexts/listener";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";
@@ -44,7 +43,6 @@ export function TabItemBase(
   }: TabItemBaseProps,
 ) {
   const isCmdPressed = useCmdKeyPressed();
-  const amplitude = useListener((state) => (active ? state.amplitude : ZERO_AMPLITUDE));
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button === 1) {
@@ -83,15 +81,11 @@ export function TabItemBase(
         <div className="flex-shrink-0">
           {active
             ? (
-              <SoundIndicator
-                value={[amplitude.mic, amplitude.speaker]}
-                color="#ef4444"
-                size="long"
-                height={24}
-                width={16}
-                stickWidth={8}
-                gap={1}
-              />
+              <div className="relative size-2">
+                <div className="absolute inset-0 rounded-full bg-red-600"></div>
+                <div className="absolute inset-0 rounded-full bg-red-300 animate-ping">
+                </div>
+              </div>
             )
             : icon}
         </div>
@@ -118,16 +112,14 @@ export function TabItemBase(
       {showShortcut && (
         <div className="absolute top-[3px] right-2 pointer-events-none">
           <KbdGroup>
-            <Kbd className="bg-neutral-200">⌘</Kbd>
-            <Kbd className="bg-neutral-200">{tabIndex}</Kbd>
+            <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
+            <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>{tabIndex}</Kbd>
           </KbdGroup>
         </div>
       )}
     </InteractiveButton>
   );
 }
-
-const ZERO_AMPLITUDE = { mic: 0, speaker: 0 } as const;
 
 type SoundIndicatorProps = {
   value: number | Array<number>;

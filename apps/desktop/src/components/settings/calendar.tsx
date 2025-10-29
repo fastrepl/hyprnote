@@ -55,7 +55,7 @@ function getProviderIcon(provider: CalendarProvider) {
     icloud: "logos:apple",
   };
 
-  return <Icon icon={iconMap[provider]} className="w-5 h-5 shrink-0" />;
+  return <Icon icon={iconMap[provider]} size={20} />;
 }
 
 function getProviderName(provider: CalendarProvider) {

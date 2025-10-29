@@ -63,7 +63,7 @@ export function FormField({
       </InputGroup>
       {errorMessage && (
         <p className="text-destructive text-xs flex items-center gap-1.5">
-          <Icon icon="mdi:alert-circle" className="size-3.5" />
+          <Icon icon="mdi:alert-circle" size={14} />
           <span>{errorMessage}</span>
         </p>
       )}

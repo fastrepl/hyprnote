@@ -104,26 +104,26 @@ function Permissions() {
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
-    queryFn: async () => {
-      const result = await listenerCommands.checkMicrophoneAccess();
+    queryFn: () => listenerCommands.checkMicrophoneAccess(),
+    refetchInterval: 1000,
+    select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);
       }
       return result.data;
     },
-    refetchInterval: 1000,
   });
 
   const systemAudioPermissionStatus = useQuery({
     queryKey: ["systemAudioPermission"],
-    queryFn: async () => {
-      const result = await listenerCommands.checkSystemAudioAccess();
+    queryFn: () => listenerCommands.checkSystemAudioAccess(),
+    refetchInterval: 1000,
+    select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);
       }
       return result.data;
     },
-    refetchInterval: 1000,
   });
 
   const micPermission = useMutation({
@@ -152,14 +152,15 @@ function Permissions() {
   });
 
   const handleMicPermissionAction = () => {
-    if (micPermissionRequested && !micPermissionStatus.data) {
+    if (micPermissionRequested && micPermissionStatus.data !== "Authorized") {
       listenerCommands.openMicrophoneAccessSettings();
     } else {
       micPermission.mutate();
     }
   };
 
-  const allPermissionsGranted = micPermissionStatus.data && systemAudioPermissionStatus.data;
+  const allPermissionsGranted = micPermissionStatus.data === "Authorized"
+    && systemAudioPermissionStatus.data === "Authorized";
 
   return (
     <OnboardingContainer
@@ -172,16 +173,16 @@ function Permissions() {
           icon={<MicIcon className="h-5 w-5" />}
           title="Microphone access"
           description="Required for meeting transcription"
-          done={micPermissionStatus.data}
+          done={micPermissionStatus.data === "Authorized"}
           isPending={micPermission.isPending}
           onAction={handleMicPermissionAction}
-          buttonText={micPermissionRequested && !micPermissionStatus.data ? "Open Settings" : "Enable"}
+          buttonText={micPermissionRequested && micPermissionStatus.data !== "Authorized" ? "Open Settings" : "Enable"}
         />
         <PermissionRow
           icon={<Volume2Icon className="h-5 w-5" />}
           title="System audio access"
           description="Required for meeting transcription"
-          done={systemAudioPermissionStatus.data}
+          done={systemAudioPermissionStatus.data === "Authorized"}
           isPending={capturePermission.isPending}
           onAction={() => capturePermission.mutate(undefined)}
           buttonText="Enable"
@@ -215,18 +216,18 @@ function Calendars({ local }: { local: boolean }) {
           ? (
             <>
               <IntegrationRow
-                icon={<Icon icon="logos:google-calendar" width="24" height="24" />}
+                icon={<Icon icon="logos:google-calendar" size={24} />}
                 name="Google Calendar"
                 description="Connect your Google Calendar"
               />
               <IntegrationRow
-                icon={<Icon icon="vscode-icons:file-type-outlook" width="24" height="24" />}
+                icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
                 name="Outlook"
                 description="Connect your Outlook Calendar"
               />
               <Divider text="Directly connecting Google/Outlook works better" />
               <IntegrationRow
-                icon={<Icon icon="logos:apple" width="24" height="24" />}
+                icon={<Icon icon="logos:apple" size={24} />}
                 name="Apple Calendar"
                 description="Connect your Apple Calendar"
               />
@@ -235,19 +236,19 @@ function Calendars({ local }: { local: boolean }) {
           : (
             <>
               <IntegrationRow
-                icon={<Icon icon="logos:apple" width="24" height="24" />}
+                icon={<Icon icon="logos:apple" size={24} />}
                 name="Apple Calendar"
                 description="Connect your Apple Calendar"
               />
               <Divider text="You need account" />
               <IntegrationRow
-                icon={<Icon icon="logos:google-calendar" width="24" height="24" />}
+                icon={<Icon icon="logos:google-calendar" size={24} />}
                 name="Google Calendar"
                 description="Connect your Google Calendar"
                 disabled
               />
               <IntegrationRow
-                icon={<Icon icon="vscode-icons:file-type-outlook" width="24" height="24" />}
+                icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
                 name="Outlook"
                 description="Connect your Outlook Calendar"
                 disabled

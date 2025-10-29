@@ -57,7 +57,7 @@ function ParticipantChip({ participant, currentUserId, attended = true, onRemove
               }}
               className="hidden group-hover:block text-neutral-500 hover:text-red-600 transition-colors"
             >
-              <MinusCircleIcon className="size-3.5" />
+              <MinusCircleIcon size={14} />
             </button>
           </div>
         </div>
@@ -85,7 +85,7 @@ function ParticipantChip({ participant, currentUserId, attended = true, onRemove
                   href={`mailto:${participant.email}`}
                   className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
                 >
-                  <MailIcon className="size-3.5" />
+                  <MailIcon size={14} />
                   {participant.email}
                 </a>
               )}
@@ -96,7 +96,7 @@ function ParticipantChip({ participant, currentUserId, attended = true, onRemove
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-900 transition-colors"
                 >
-                  <Icon icon="logos:linkedin-icon" className="size-3.5" />
+                  <Icon icon="logos:linkedin-icon" size={14} />
                   linkedin.com/in/{participant.linkedin_username}
                 </a>
               )}

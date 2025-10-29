@@ -1,4 +1,4 @@
-use crate::{actors::SessionParams, ListenerPluginExt};
+use crate::{actors::SessionParams, ListenerPluginExt, PermissionStatus};
 
 #[tauri::command]
 #[specta::specta]
@@ -35,7 +35,7 @@ pub async fn set_microphone_device<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn check_microphone_access<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<bool, String> {
+) -> Result<PermissionStatus, String> {
     app.check_microphone_access()
         .await
         .map_err(|e| e.to_string())
@@ -45,7 +45,7 @@ pub async fn check_microphone_access<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn check_system_audio_access<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<bool, String> {
+) -> Result<PermissionStatus, String> {
     app.check_system_audio_access()
         .await
         .map_err(|e| e.to_string())

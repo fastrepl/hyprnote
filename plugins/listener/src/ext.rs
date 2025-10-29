@@ -2,7 +2,6 @@ use std::future::Future;
 
 use futures_util::StreamExt;
 use ractor::{call_t, concurrency, registry, Actor, ActorRef};
-
 use tauri_specta::Event;
 
 #[cfg(target_os = "macos")]
@@ -26,8 +25,12 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
         device_name: impl Into<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn check_microphone_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
-    fn check_system_audio_access(&self) -> impl Future<Output = Result<bool, crate::Error>>;
+    fn check_microphone_access(
+        &self,
+    ) -> impl Future<Output = Result<PermissionStatus, crate::Error>>;
+    fn check_system_audio_access(
+        &self,
+    ) -> impl Future<Output = Result<PermissionStatus, crate::Error>>;
     fn request_microphone_access(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn request_system_audio_access(&self) -> impl Future<Output = Result<(), crate::Error>>;
     fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
@@ -77,7 +80,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn check_microphone_access(&self) -> Result<bool, crate::Error> {
+    async fn check_microphone_access(&self) -> Result<PermissionStatus, crate::Error> {
         #[cfg(target_os = "macos")]
         {
             let status = unsafe {
@@ -86,7 +89,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             };
 
             tracing::info!(status = ?status, "microphone_permission_check");
-            Ok(status == AVAuthorizationStatus::Authorized)
+            Ok(status.into())
         }
 
         #[cfg(not(target_os = "macos"))]
@@ -98,10 +101,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn check_system_audio_access(&self) -> Result<bool, crate::Error> {
+    async fn check_system_audio_access(&self) -> Result<PermissionStatus, crate::Error> {
         let status = hypr_tcc::audio_capture_permission_status();
         tracing::info!(status = status, "system_audio_permission_check");
-        Ok(status == hypr_tcc::GRANTED)
+        Ok(status.into())
     }
 
     #[tracing::instrument(skip_all)]
@@ -247,6 +250,33 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let guard = state.lock().await;
                 SessionEvent::Inactive {}.emit(&guard.app).unwrap();
             }
+        }
+    }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub enum PermissionStatus {
+    NeverRequested,
+    Denied,
+    Authorized,
+}
+
+impl From<isize> for PermissionStatus {
+    fn from(status: isize) -> Self {
+        match status {
+            hypr_tcc::GRANTED => Self::Authorized,
+            hypr_tcc::NEVER_ASKED => Self::NeverRequested,
+            _ => Self::Denied,
+        }
+    }
+}
+
+impl From<AVAuthorizationStatus> for PermissionStatus {
+    fn from(status: AVAuthorizationStatus) -> Self {
+        match status {
+            AVAuthorizationStatus::NotDetermined => Self::NeverRequested,
+            AVAuthorizationStatus::Authorized => Self::Authorized,
+            _ => Self::Denied,
         }
     }
 }

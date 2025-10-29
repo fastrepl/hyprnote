@@ -31,7 +31,7 @@ async setMicrophoneDevice(deviceName: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async checkMicrophoneAccess() : Promise<Result<boolean, string>> {
+async checkMicrophoneAccess() : Promise<Result<PermissionStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:listener|check_microphone_access") };
 } catch (e) {
@@ -39,7 +39,7 @@ async checkMicrophoneAccess() : Promise<Result<boolean, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async checkSystemAudioAccess() : Promise<Result<boolean, string>> {
+async checkSystemAudioAccess() : Promise<Result<PermissionStatus, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:listener|check_system_audio_access") };
 } catch (e) {
@@ -156,6 +156,7 @@ export type Alternatives = { transcript: string; words: Word[]; confidence: numb
 export type Channel = { alternatives: Alternatives[] }
 export type Metadata = { request_id: string; model_info: ModelInfo; model_uuid: string }
 export type ModelInfo = { name: string; version: string; arch: string }
+export type PermissionStatus = "NeverRequested" | "Denied" | "Authorized"
 export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse }
 export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
 export type StreamResponse = { type: "Results"; start: number; duration: number; is_final: boolean; speech_final: boolean; from_finalize: boolean; channel: Channel; metadata: Metadata; channel_index: number[] } | { type: "Metadata"; request_id: string; created: string; duration: number; channels: number } | { type: "SpeechStarted"; channel: number[]; timestamp: number } | { type: "UtteranceEnd"; channel: number[]; last_word_end: number }

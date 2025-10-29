@@ -112,7 +112,7 @@ export function SelectProviderAndModel() {
                     <SelectItem
                       key={provider.id}
                       value={provider.id}
-                      disabled={provider.disabled || !configuredProviders[provider.id]}
+                      disabled={provider.disabled || (configuredProviders[provider.id]?.length ?? 0) === 0}
                     >
                       <div className="flex items-center gap-2">
                         {provider.icon}

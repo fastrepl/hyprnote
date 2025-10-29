@@ -1,7 +1,7 @@
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
-import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
+import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
 import { forwardRef, useCallback } from "react";
 

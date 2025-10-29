@@ -1,4 +1,4 @@
-import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
+import { useMediaQuery } from "@uidotdev/usehooks";
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 

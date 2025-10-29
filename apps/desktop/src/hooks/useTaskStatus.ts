@@ -1,4 +1,4 @@
-import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect, useRef } from "react";
 
 import type { TaskStatus } from "../store/zustand/ai-task/tasks";
@@ -10,7 +10,7 @@ export function useTaskStatus(
     onError: () => void;
   }>,
 ) {
-  const prevStatus = usePreviousValue(status);
+  const prevStatus = usePrevious(status);
   const onSuccessRef = useRef(options?.onSuccess);
   const onErrorRef = useRef(options?.onError);
 

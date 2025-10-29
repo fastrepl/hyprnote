@@ -1,4 +1,4 @@
-import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 
 import { useAITask } from "../contexts/ai-task";
@@ -17,7 +17,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const { updateSessionTabState } = useTabs();
 
   const listenerStatus = useListener((state) => state.status);
-  const prevListenerStatus = usePreviousValue(listenerStatus);
+  const prevListenerStatus = usePrevious(listenerStatus);
 
   const transcriptIds = persisted.UI.useSliceRowIds(
     persisted.INDEXES.transcriptBySession,
@@ -59,18 +59,31 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   useEffect(() => {
-    if (!model || isGenerating) {
+    if (!model) {
+      console.log("[AutoEnhance] Skip: No language model available");
+      return;
+    }
+
+    if (isGenerating) {
+      console.log("[AutoEnhance] Skip: Already generating");
       return;
     }
 
     const justStoppedListening = prevListenerStatus === "running_active" && listenerStatus !== "running_active";
 
-    if (justStoppedListening && hasTranscript) {
-      void generate(taskId, {
-        model,
-        taskType: "enhance",
-        args: { sessionId },
-      });
+    if (!justStoppedListening) {
+      return;
     }
-  }, [listenerStatus, prevListenerStatus, hasTranscript, model, isGenerating, generate, taskId, sessionId]);
+
+    if (!hasTranscript) {
+      console.log("[AutoEnhance] Skip: No transcript available after stopping");
+      return;
+    }
+
+    void generate(taskId, {
+      model,
+      taskType: "enhance",
+      args: { sessionId },
+    });
+  }, [listenerStatus, prevListenerStatus, hasTranscript, model, generate, taskId, sessionId]);
 }

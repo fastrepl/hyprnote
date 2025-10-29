@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import useMediaQuery from "beautiful-react-hooks/useMediaQuery";
+import { useMediaQuery } from "@uidotdev/usehooks";
 
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";

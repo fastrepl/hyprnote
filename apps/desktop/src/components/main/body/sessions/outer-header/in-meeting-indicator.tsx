@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useHover } from "@uidotdev/usehooks";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -6,7 +6,8 @@ import { useListener } from "../../../../../contexts/listener";
 import { SoundIndicator } from "../../shared";
 
 export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
-  const [hovered, setHovered] = useState(false);
+  const [ref, hovered] = useHover();
+
   const { active, stop, amplitude } = useListener((state) => ({
     active: state.status === "running_active" && state.sessionId === sessionId,
     stop: state.stop,
@@ -19,10 +20,9 @@ export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
 
   return (
     <Button
+      ref={ref}
       size="sm"
       variant="ghost"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onClick={stop}
       className={cn([
         "text-red-500 hover:text-red-600",

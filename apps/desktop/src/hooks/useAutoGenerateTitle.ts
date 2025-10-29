@@ -1,4 +1,4 @@
-import usePreviousValue from "beautiful-react-hooks/usePreviousValue";
+import { usePrevious } from "@uidotdev/usehooks";
 import { useEffect } from "react";
 
 import { useAITask } from "../contexts/ai-task";
@@ -15,7 +15,7 @@ export function useAutoGenerateTitle(tab: Extract<Tab, { type: "sessions" }>) {
 
   const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
   const enhancedMd = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
-  const prevEnhancedMd = usePreviousValue(enhancedMd);
+  const prevEnhancedMd = usePrevious(enhancedMd);
 
   const taskId = createTaskId(sessionId, "title");
 

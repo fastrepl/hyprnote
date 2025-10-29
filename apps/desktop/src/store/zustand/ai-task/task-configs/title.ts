@@ -25,7 +25,7 @@ async function getPrompt(args: TaskArgsMap["title"], store: PersistedStore) {
   const enhancedMd = (store.getCell("sessions", sessionId, "enhanced_md") as string) || "";
 
   const result = await templateCommands.render("title.user", {
-    content: enhancedMd,
+    enhanced_note: enhancedMd,
   });
   if (result.status === "ok") {
     return result.data;

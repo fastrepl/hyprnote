@@ -149,6 +149,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ^2.9.0
         version: 2.9.0
+      '@uidotdev/usehooks':
+        specifier: ^2.4.1
+        version: 2.4.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@wavesurfer/react':
         specifier: ^1.0.11
         version: 1.0.11(react@19.2.0)(wavesurfer.js@7.11.0)
@@ -158,9 +161,6 @@ importers:
       ai:
         specifier: ^5.0.78
         version: 5.0.78(zod@4.1.12)
-      beautiful-react-hooks:
-        specifier: ^5.0.3
-        version: 5.0.3(react-dom@19.2.0(react@19.2.0))(react-router-dom@7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(rxjs@7.8.2)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -4356,6 +4356,13 @@ packages:
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
+  '@uidotdev/usehooks@2.4.1':
+    resolution: {integrity: sha512-1I+RwWyS+kdv3Mv0Vmc+p0dPYH0DTRAo04HLyXReYBL9AeseDWUJyi4THuksBJcu9F0Pih69Ak150VDnqbVnXg==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
@@ -4647,14 +4654,6 @@ packages:
   baseline-browser-mapping@2.8.20:
     resolution: {integrity: sha512-JMWsdF+O8Orq3EMukbUN1QfbLK9mX2CkUmQBcW2T0s8OmdAUL5LLM/6wFwSrqXzlXB13yhyK9gTKS1rIizOduQ==}
     hasBin: true
-
-  beautiful-react-hooks@5.0.3:
-    resolution: {integrity: sha512-OuRRpxKhczpNoYoMzjqqGsZj/TG6xIRdQNUUp83nE7Ea5XiM+j84ImkvzK/rKuW7ltZbakwWDuuiSjU16UkzBw==}
-    peerDependencies:
-      react: '>=18.2.0 <20.0.0'
-      react-dom: '>=18.2.0 <20.0.0'
-      react-router-dom: '>=5.0.0'
-      rxjs: '>=7.0.0'
 
   bidi-js@1.0.3:
     resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
@@ -6466,9 +6465,6 @@ packages:
   lodash.sortby@4.7.0:
     resolution: {integrity: sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==}
 
-  lodash.throttle@4.1.1:
-    resolution: {integrity: sha512-wIkUCfVKpVsWo3JSZlc+8MB5it+2AN5W8J7YVMST30UrvcQNZ1Okbj+rbVniijTWE6FGYy4XJq/rHkas8qJMLQ==}
-
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
@@ -7812,23 +7808,6 @@ packages:
       react: '>=16.3.0'
       react-dom: '>=16.3.0'
 
-  react-router-dom@7.9.4:
-    resolution: {integrity: sha512-f30P6bIkmYvnHHa5Gcu65deIXoA2+r3Eb6PJIAddvsT9aGlchMatJ51GgpU470aSqRRbFX22T70yQNUGuW3DfA==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-
-  react-router@7.9.4:
-    resolution: {integrity: sha512-SD3G8HKviFHg9xj7dNODUKDFgpG4xqD5nhyd0mYoB5iISepuZAvzSr8ywxgxKJ52yRzf/HWtVHc9AWwoTbljvA==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      react: '>=18'
-      react-dom: '>=18'
-    peerDependenciesMeta:
-      react-dom:
-        optional: true
-
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
     engines: {node: '>=10'}
@@ -8026,9 +8005,6 @@ packages:
   rw@1.3.3:
     resolution: {integrity: sha512-PdhdWy89SiZogBLaw42zdeqtRJ//zFd2PgQavcICDUgJT5oW10QCRKbJ6bg4r0/UY2M6BWd5tkxuGFRvCkgfHQ==}
 
-  rxjs@7.8.2:
-    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
-
   safe-buffer@5.1.2:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
 
@@ -8105,9 +8081,6 @@ packages:
   serve-static@2.2.0:
     resolution: {integrity: sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ==}
     engines: {node: '>= 18'}
-
-  set-cookie-parser@2.7.1:
-    resolution: {integrity: sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==}
 
   set-value@2.0.1:
     resolution: {integrity: sha512-JxHc1weCN68wRY0fhCoXpyK55m/XPHafOmK4UWD7m2CI14GMcFypt4w/0+NV5f/ZMby2F6S2wwA7fgynh9gWSw==}
@@ -13427,6 +13400,11 @@ snapshots:
     dependencies:
       '@types/node': 24.9.1
 
+  '@uidotdev/usehooks@2.4.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+
   '@ungap/structured-clone@1.3.0': {}
 
   '@use-gesture/core@10.3.1': {}
@@ -13807,15 +13785,6 @@ snapshots:
   base64-js@1.5.1: {}
 
   baseline-browser-mapping@2.8.20: {}
-
-  beautiful-react-hooks@5.0.3(react-dom@19.2.0(react@19.2.0))(react-router-dom@7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(rxjs@7.8.2):
-    dependencies:
-      lodash.debounce: 4.0.8
-      lodash.throttle: 4.1.1
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      react-router-dom: 7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      rxjs: 7.8.2
 
   bidi-js@1.0.3:
     dependencies:
@@ -15732,8 +15701,6 @@ snapshots:
 
   lodash.sortby@4.7.0: {}
 
-  lodash.throttle@4.1.1: {}
-
   lodash@4.17.21: {}
 
   log-symbols@6.0.0:
@@ -17552,20 +17519,6 @@ snapshots:
       react-draggable: 4.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       tslib: 2.6.2
 
-  react-router-dom@7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      react: 19.2.0
-      react-dom: 19.2.0(react@19.2.0)
-      react-router: 7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-
-  react-router@7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
-    dependencies:
-      cookie: 1.0.2
-      react: 19.2.0
-      set-cookie-parser: 2.7.1
-    optionalDependencies:
-      react-dom: 19.2.0(react@19.2.0)
-
   react-style-singleton@2.2.3(@types/react@19.2.2)(react@19.2.0):
     dependencies:
       get-nonce: 1.0.1
@@ -17879,10 +17832,6 @@ snapshots:
 
   rw@1.3.3: {}
 
-  rxjs@7.8.2:
-    dependencies:
-      tslib: 2.8.1
-
   safe-buffer@5.1.2: {}
 
   safe-buffer@5.2.1: {}
@@ -17958,8 +17907,6 @@ snapshots:
       send: 1.2.0
     transitivePeerDependencies:
       - supports-color
-
-  set-cookie-parser@2.7.1: {}
 
   set-value@2.0.1:
     dependencies:

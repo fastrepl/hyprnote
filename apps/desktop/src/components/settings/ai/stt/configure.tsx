@@ -259,12 +259,8 @@ function LocalModelAction({
       {isDownloaded
         ? (
           <>
-            <div className="relative z-10 flex items-center gap-1 group-hover:hidden">
-              <Icon icon="mdi:check" className="size-4 mt-1" />
-              <span>Downloaded</span>
-            </div>
-            <div className="relative z-10 hidden items-center gap-1 group-hover:flex">
-              <Icon icon="mdi:folder-open" className="size-4 mt-1" />
+            <div className="relative z-10 flex items-center gap-1">
+              <Icon icon="mdi:folder-open" size={16} />
               <span>Show Model</span>
             </div>
           </>

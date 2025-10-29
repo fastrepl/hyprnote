@@ -62,6 +62,17 @@
     "notification:default",
     "shell:default",
     "misc:default",
-    "os:default"
+    "os:default",
+    "http:default",
+    {
+      "identifier": "http:default",
+      "deny": [],
+      "allow": [
+        { "url": "http://localhost:*/**" },
+        { "url": "http://*.*.*.*:*/**" },
+        { "url": "https://**" },
+        { "url": "http://**" }
+      ]
+    }
   ]
 }

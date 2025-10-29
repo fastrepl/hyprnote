@@ -2,6 +2,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import type { LanguageModel } from "ai";
 import { useMemo } from "react";
 
@@ -20,6 +21,7 @@ export const useLanguageModel = (): LanguageModel | null => {
 
     if (connection.providerId === "hyprnote") {
       const hyprnoteProvider = createOpenAICompatible({
+        fetch: tauriFetch,
         name: "hyprnote",
         baseURL: connection.baseUrl,
         apiKey: connection.apiKey,
@@ -33,6 +35,7 @@ export const useLanguageModel = (): LanguageModel | null => {
 
     if (connection.providerId === "anthropic") {
       const anthropicProvider = createAnthropic({
+        fetch: tauriFetch,
         apiKey: connection.apiKey,
       });
 
@@ -41,6 +44,7 @@ export const useLanguageModel = (): LanguageModel | null => {
 
     if (connection.providerId === "openrouter") {
       const openRouterProvider = createOpenRouter({
+        fetch: tauriFetch,
         apiKey: connection.apiKey,
       });
 
@@ -49,17 +53,24 @@ export const useLanguageModel = (): LanguageModel | null => {
 
     if (connection.providerId === "openai") {
       const openAIProvider = createOpenAI({
+        fetch: tauriFetch,
         apiKey: connection.apiKey,
       });
 
       return openAIProvider(connection.modelId);
     }
 
-    const openAICompatibleProvider = createOpenAICompatible({
+    const config: Parameters<typeof createOpenAICompatible>[0] = {
+      fetch: tauriFetch,
       name: connection.providerId,
       baseURL: connection.baseUrl,
-      apiKey: connection.apiKey,
-    });
+    };
+
+    if (connection.apiKey) {
+      config.apiKey = connection.apiKey;
+    }
+
+    const openAICompatibleProvider = createOpenAICompatible(config);
 
     return openAICompatibleProvider.chatModel(connection.modelId);
   }, [connection]);

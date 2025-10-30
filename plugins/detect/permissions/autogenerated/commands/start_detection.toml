@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-start-detection"
+description = "Enables the start_detection command without any pre-configured scope."
+commands.allow = ["start_detection"]
+
+[[permission]]
+identifier = "deny-start-detection"
+description = "Denies the start_detection command without any pre-configured scope."
+commands.deny = ["start_detection"]

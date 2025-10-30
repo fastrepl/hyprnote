@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-stop-detection"
+description = "Enables the stop_detection command without any pre-configured scope."
+commands.allow = ["stop_detection"]
+
+[[permission]]
+identifier = "deny-stop-detection"
+description = "Denies the stop_detection command without any pre-configured scope."
+commands.deny = ["stop_detection"]

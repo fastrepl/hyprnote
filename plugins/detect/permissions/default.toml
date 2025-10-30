@@ -1,0 +1,11 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+    "allow-check-accessibility-permission",
+    "allow-request-accessibility-permission",
+    "allow-start-detection",
+    "allow-stop-detection",
+    "allow-get-state",
+    "allow-list-installed-apps",
+    "allow-list-mic-using-apps",
+]

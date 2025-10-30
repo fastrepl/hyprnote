@@ -3869,6 +3869,7 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
+ "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-http",
@@ -14470,9 +14471,14 @@ dependencies = [
  "detect",
  "intercept",
  "serde",
+ "specta",
+ "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-specta",
  "thiserror 2.0.17",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

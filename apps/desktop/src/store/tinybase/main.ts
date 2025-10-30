@@ -64,8 +64,6 @@ export const StoreComponent = () => {
       .setValuesSchema(SCHEMA.value)
   );
 
-  store.setValue("user_id", DEFAULT_USER_ID);
-
   useDidFinishTransactionListener(
     () => {
       const [changedTables, _changedValues] = store.getTransactionChanges();
@@ -97,10 +95,18 @@ export const StoreComponent = () => {
       createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
-        autoLoadIntervalSeconds: 9999,
       }),
     [],
-    (persister) => persister.startAutoPersisting(),
+    async (persister) => {
+      await persister.load();
+
+      if (!store.getValue("user_id")) {
+        store.setValue("user_id", DEFAULT_USER_ID);
+      }
+
+      await persister.startAutoSave();
+      await persister.startAutoLoad();
+    },
   );
 
   const synchronizer = useCreateSynchronizer(

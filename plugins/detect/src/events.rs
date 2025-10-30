@@ -13,6 +13,8 @@ common_event_derives! {
         MicStarted { apps: Vec<hypr_detect::InstalledApp> },
         #[serde(rename = "micStopped")]
         MicStopped {},
+        #[serde(rename = "micMuted")]
+        MicMuteStateChanged { value: bool },
     }
 }
 
@@ -21,6 +23,10 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
         match event {
             hypr_detect::DetectEvent::MicStarted(apps) => Self::MicStarted { apps },
             hypr_detect::DetectEvent::MicStopped => Self::MicStopped {},
+            #[cfg(target_os = "macos")]
+            hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
+                Self::MicMuteStateChanged { value }
+            }
         }
     }
 }

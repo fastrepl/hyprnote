@@ -57,8 +57,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_custom_models::<Wry>,
             commands::get_current_model_selection::<Wry>,
             commands::set_current_model_selection::<Wry>,
-            commands::generate_title::<Wry>,
-            commands::generate_tags::<Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
@@ -108,7 +106,6 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             Ok(())
         })
-        .on_event(on_event)
         .build()
 }
 

@@ -1,9 +1,21 @@
+use tauri::Manager;
+
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
-    _app: tauri::AppHandle<R>,
+    app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
-    hypr_intercept::setup_quit_handler(|| true);
+    hypr_intercept::setup_quit_handler(move || {
+        for (_, window) in app.webview_windows() {
+            let _ = window.close();
+        }
+
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+
+        false
+    });
+
     Ok(())
 }
 

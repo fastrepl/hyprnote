@@ -3879,6 +3879,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
+ "tauri-plugin-permissions",
  "tauri-plugin-process",
  "tauri-plugin-sentry",
  "tauri-plugin-shell",
@@ -3900,7 +3901,6 @@ version = "0.1.0"
 dependencies = [
  "cidre",
  "lazy_static",
- "macos-accessibility-client",
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-application-services",
@@ -14469,6 +14469,7 @@ name = "tauri-plugin-detect"
 version = "0.1.0"
 dependencies = [
  "detect",
+ "host",
  "intercept",
  "serde",
  "specta",
@@ -14552,7 +14553,6 @@ dependencies = [
  "agc",
  "audio",
  "audio-utils",
- "block2 0.6.2",
  "bytes",
  "chrono",
  "codes-iso-639",
@@ -14563,7 +14563,6 @@ dependencies = [
  "insta",
  "language",
  "llm",
- "objc2-av-foundation",
  "ordered-float 5.1.0",
  "owhisper-client",
  "owhisper-interface",
@@ -14577,10 +14576,8 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-local-stt",
- "tauri-plugin-shell",
  "tauri-plugin-tray",
  "tauri-specta",
- "tcc",
  "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
@@ -14796,6 +14793,26 @@ dependencies = [
  "sys-locale",
  "tauri",
  "tauri-plugin",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-permissions"
+version = "0.1.0"
+dependencies = [
+ "audio",
+ "block2 0.6.2",
+ "futures-util",
+ "macos-accessibility-client",
+ "objc2-av-foundation",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-shell",
+ "tauri-specta",
+ "tcc",
  "thiserror 2.0.17",
 ]
 

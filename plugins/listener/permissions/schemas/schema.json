@@ -295,30 +295,6 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the check_microphone_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-check-microphone-access",
-          "markdownDescription": "Enables the check_microphone_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the check_microphone_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-check-microphone-access",
-          "markdownDescription": "Denies the check_microphone_access command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the check_system_audio_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-check-system-audio-access",
-          "markdownDescription": "Enables the check_system_audio_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the check_system_audio_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-check-system-audio-access",
-          "markdownDescription": "Denies the check_system_audio_access command without any pre-configured scope."
-        },
-        {
           "description": "Enables the get_current_microphone_device command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-current-microphone-device",
@@ -391,54 +367,6 @@
           "markdownDescription": "Denies the list_microphone_devices command without any pre-configured scope."
         },
         {
-          "description": "Enables the open_microphone_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-open-microphone-access-settings",
-          "markdownDescription": "Enables the open_microphone_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the open_microphone_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-open-microphone-access-settings",
-          "markdownDescription": "Denies the open_microphone_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the open_system_audio_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-open-system-audio-access-settings",
-          "markdownDescription": "Enables the open_system_audio_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the open_system_audio_access_settings command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-open-system-audio-access-settings",
-          "markdownDescription": "Denies the open_system_audio_access_settings command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the request_microphone_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-request-microphone-access",
-          "markdownDescription": "Enables the request_microphone_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the request_microphone_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-request-microphone-access",
-          "markdownDescription": "Denies the request_microphone_access command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the request_system_audio_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-request-system-audio-access",
-          "markdownDescription": "Enables the request_system_audio_access command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the request_system_audio_access command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-request-system-audio-access",
-          "markdownDescription": "Denies the request_system_audio_access command without any pre-configured scope."
-        },
-        {
           "description": "Enables the set_mic_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-mic-muted",
@@ -499,10 +427,10 @@
           "markdownDescription": "Denies the stop_session command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
         }
       ]
     }

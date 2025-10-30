@@ -48,6 +48,7 @@ pub async fn main() {
         .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_local_stt::init())
+        .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))

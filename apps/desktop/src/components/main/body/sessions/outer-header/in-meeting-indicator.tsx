@@ -1,4 +1,5 @@
 import { useHover } from "@uidotdev/usehooks";
+import { MicOff } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -8,10 +9,11 @@ import { SoundIndicator } from "../../shared";
 export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
-  const { active, stop, amplitude } = useListener((state) => ({
+  const { active, stop, amplitude, muted } = useListener((state) => ({
     active: state.status === "running_active" && state.sessionId === sessionId,
     stop: state.stop,
     amplitude: state.amplitude,
+    muted: state.muted,
   }));
 
   if (!active) {
@@ -35,6 +37,12 @@ export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 bg-red-500 rounded-none" />
             <span>Stop</span>
+          </div>
+        )
+        : muted
+        ? (
+          <div className="flex items-center gap-1.5">
+            <MicOff size={14} />
           </div>
         )
         : (

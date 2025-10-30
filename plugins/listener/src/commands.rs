@@ -1,4 +1,4 @@
-use crate::{actors::SessionParams, ListenerPluginExt, PermissionStatus};
+use crate::{actors::SessionParams, ListenerPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -27,66 +27,6 @@ pub async fn set_microphone_device<R: tauri::Runtime>(
     device_name: String,
 ) -> Result<(), String> {
     app.set_microphone_device(device_name)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn check_microphone_access<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<PermissionStatus, String> {
-    app.check_microphone_access()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn check_system_audio_access<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<PermissionStatus, String> {
-    app.check_system_audio_access()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn request_microphone_access<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.request_microphone_access()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn request_system_audio_access<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.request_system_audio_access()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn open_microphone_access_settings<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.open_microphone_access_settings()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn open_system_audio_access_settings<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<(), String> {
-    app.open_system_audio_access_settings()
         .await
         .map_err(|e| e.to_string())
 }

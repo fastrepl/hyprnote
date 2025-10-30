@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
+import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import * as main from "../store/tinybase/main";
 import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
@@ -16,6 +17,7 @@ export const ListenerProvider = ({
   store: ListenerStore;
 }) => {
   useAutoStartSTT();
+  useHandleMuteAndStop(store);
 
   const storeRef = useRef<ListenerStore | null>(null);
   if (!storeRef.current) {
@@ -66,3 +68,28 @@ function useAutoStartSTT() {
     }
   }, [currentSttProvider, currentSttModel]);
 }
+
+const useHandleMuteAndStop = (store: ListenerStore) => {
+  const stop = useStore(store, (state) => state.stop);
+  const setMuted = useStore(store, (state) => state.setMuted);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    detectEvents.detectEvent.listen(({ payload }) => {
+      if (payload.type === "micStarted") {
+        console.log("mic_started", payload.apps);
+      } else if (payload.type === "micStopped") {
+        stop();
+      } else if (payload.type === "micMuted") {
+        setMuted(payload.value);
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, [stop, setMuted]);
+};

@@ -74,6 +74,9 @@ importers:
       '@hypr/plugin-notification':
         specifier: workspace:*
         version: link:../../plugins/notification
+      '@hypr/plugin-permissions':
+        specifier: workspace:*
+        version: link:../../plugins/permissions
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
@@ -146,6 +149,9 @@ importers:
       '@tauri-apps/plugin-process':
         specifier: ^2.3.1
         version: 2.3.1
+      '@tauri-apps/plugin-shell':
+        specifier: ^2.3.3
+        version: 2.3.3
       '@tauri-apps/plugin-store':
         specifier: ^2.4.1
         version: 2.4.1
@@ -897,6 +903,12 @@ importers:
         version: 2.9.0
 
   plugins/notification:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.0
+        version: 2.9.0
+
+  plugins/permissions:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.0
@@ -3908,6 +3920,9 @@ packages:
 
   '@tauri-apps/plugin-process@2.3.1':
     resolution: {integrity: sha512-nCa4fGVaDL/B9ai03VyPOjfAHRHSBz5v6F/ObsB73r/dA3MHHhZtldaDMIc0V/pnUw9ehzr2iEG+XkSEyC0JJA==}
+
+  '@tauri-apps/plugin-shell@2.3.3':
+    resolution: {integrity: sha512-Xod+pRcFxmOWFWEnqH5yZcA7qwAMuaaDkMR1Sply+F8VfBj++CGnj2xf5UoialmjZ2Cvd8qrvSCbU+7GgNVsKQ==}
 
   '@tauri-apps/plugin-store@2.4.1':
     resolution: {integrity: sha512-ckGSEzZ5Ii4Hf2D5x25Oqnm2Zf9MfDWAzR+volY0z/OOBz6aucPKEY0F649JvQ0Vupku6UJo7ugpGRDOFOunkA==}
@@ -12914,6 +12929,10 @@ snapshots:
       '@tauri-apps/api': 2.9.0
 
   '@tauri-apps/plugin-process@2.3.1':
+    dependencies:
+      '@tauri-apps/api': 2.9.0
+
+  '@tauri-apps/plugin-shell@2.3.3':
     dependencies:
       '@tauri-apps/api': 2.9.0
 

@@ -447,11 +447,6 @@ mod tests {
         Llama::new(model_path).unwrap()
     }
 
-    #[test]
-    fn test_tag() {
-        assert!(hypr_template::ENHANCE_USER_TPL.contains("<headers>"));
-    }
-
     fn get_request() -> LlamaRequest {
         LlamaRequest {
             grammar: Some(hypr_gbnf::Grammar::Enhance { sections: None }.build()),

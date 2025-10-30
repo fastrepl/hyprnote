@@ -20,6 +20,7 @@ export type GeneralState = {
   seconds: number;
   intervalId?: NodeJS.Timeout;
   sessionId: string | null;
+  muted: boolean;
 };
 
 export type GeneralActions = {
@@ -28,6 +29,7 @@ export type GeneralActions = {
     options?: { persistFinal?: PersistFinalCallback },
   ) => void;
   stop: () => void;
+  setMuted: (value: boolean) => void;
 };
 
 const initialState: GeneralState = {
@@ -36,6 +38,7 @@ const initialState: GeneralState = {
   amplitude: { mic: 0, speaker: 0 },
   seconds: 0,
   sessionId: null,
+  muted: false,
 };
 
 const listenToSessionEvents = (
@@ -183,5 +186,13 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
         onSuccess: () => {},
       });
     });
+  },
+  setMuted: (value) => {
+    set((state) =>
+      mutate(state, (draft) => {
+        draft.muted = value;
+        listenerCommands.setMicMuted(value);
+      })
+    );
   },
 });

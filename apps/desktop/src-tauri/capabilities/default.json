@@ -60,10 +60,11 @@
     "listener:default",
     "template:default",
     "notification:default",
-    "shell:default",
+    "shell:allow-open",
     "misc:default",
     "os:default",
     "detect:default",
+    "permissions:default",
     {
       "identifier": "http:default",
       "deny": [],

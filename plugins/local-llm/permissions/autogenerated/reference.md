@@ -19,7 +19,6 @@ Default permissions for the plugin
 - `allow-list-custom-models`
 - `allow-get-current-model-selection`
 - `allow-set-current-model-selection`
-- `allow-generate-title`
 
 ## Permission Table
 
@@ -52,58 +51,6 @@ Enables the download_model command without any pre-configured scope.
 <td>
 
 Denies the download_model command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:allow-generate-tags`
-
-</td>
-<td>
-
-Enables the generate_tags command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-generate-tags`
-
-</td>
-<td>
-
-Denies the generate_tags command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:allow-generate-title`
-
-</td>
-<td>
-
-Enables the generate_title command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`local-llm:deny-generate-title`
-
-</td>
-<td>
-
-Denies the generate_title command without any pre-configured scope.
 
 </td>
 </tr>

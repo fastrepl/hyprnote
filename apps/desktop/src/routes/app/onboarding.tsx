@@ -1,18 +1,15 @@
 import { Icon } from "@iconify-icon/react";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { message } from "@tauri-apps/plugin-dialog";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { ArrowRightIcon, CheckCircle2Icon, CircleQuestionMarkIcon, MicIcon, Volume2Icon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ArrowRightIcon, CircleQuestionMarkIcon, EyeIcon, MicIcon, Volume2Icon } from "lucide-react";
+import { useCallback } from "react";
 import { z } from "zod";
 
-import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 import { cn } from "@hypr/utils";
+import { PermissionRow } from "../../components/shared/permission-row";
+import { usePermissions } from "../../hooks/use-permissions";
 
 const STEPS = ["welcome", "calendars", "permissions"] as const;
 
@@ -100,71 +97,25 @@ function Welcome() {
 
 function Permissions() {
   const { goNext } = useOnboarding();
-  const [micPermissionRequested, setMicPermissionRequested] = useState(false);
+  const {
+    micPermissionStatus,
+    systemAudioPermissionStatus,
+    accessibilityPermissionStatus,
+    micPermission,
+    systemAudioPermission,
+    accessibilityPermission,
+    handleMicPermissionAction,
+    handleSystemAudioPermissionAction,
+    handleAccessibilityPermissionAction,
+  } = usePermissions();
 
-  const micPermissionStatus = useQuery({
-    queryKey: ["micPermission"],
-    queryFn: () => listenerCommands.checkMicrophoneAccess(),
-    refetchInterval: 1000,
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-
-  const systemAudioPermissionStatus = useQuery({
-    queryKey: ["systemAudioPermission"],
-    queryFn: () => listenerCommands.checkSystemAudioAccess(),
-    refetchInterval: 1000,
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-
-  const micPermission = useMutation({
-    mutationFn: () => listenerCommands.requestMicrophoneAccess(),
-    onSuccess: () => {
-      setMicPermissionRequested(true);
-      setTimeout(() => {
-        micPermissionStatus.refetch();
-      }, 3000);
-    },
-    onError: (error) => {
-      setMicPermissionRequested(true);
-      console.error(error);
-    },
-  });
-
-  const capturePermission = useMutation({
-    mutationFn: () => listenerCommands.requestSystemAudioAccess(),
-    onSuccess: () => {
-      message("The app will now restart to apply the changes", { kind: "info", title: "System Audio Status Changed" });
-      setTimeout(() => {
-        relaunch();
-      }, 2000);
-    },
-    onError: console.error,
-  });
-
-  const handleMicPermissionAction = () => {
-    if (micPermissionRequested && micPermissionStatus.data !== "Authorized") {
-      listenerCommands.openMicrophoneAccessSettings();
-    } else {
-      micPermission.mutate();
-    }
-  };
-
-  const allPermissionsGranted = micPermissionStatus.data === "Authorized"
-    && systemAudioPermissionStatus.data === "Authorized";
+  const allPermissionsGranted = micPermissionStatus.data === "authorized"
+    && systemAudioPermissionStatus.data === "authorized"
+    && accessibilityPermissionStatus.data === "authorized";
 
   return (
     <OnboardingContainer
-      title="Just two quick permissions before we begin"
+      title="Just three quick permissions before we begin"
       description="After you grant system audio access, app will restart to apply the changes"
       action={{ kind: "next", hide: !allPermissionsGranted, onClick: () => goNext() }}
     >
@@ -173,19 +124,25 @@ function Permissions() {
           icon={<MicIcon className="h-5 w-5" />}
           title="Microphone access"
           description="Required for meeting transcription"
-          done={micPermissionStatus.data === "Authorized"}
+          status={micPermissionStatus.data}
           isPending={micPermission.isPending}
           onAction={handleMicPermissionAction}
-          buttonText={micPermissionRequested && micPermissionStatus.data !== "Authorized" ? "Open Settings" : "Enable"}
         />
         <PermissionRow
           icon={<Volume2Icon className="h-5 w-5" />}
           title="System audio access"
           description="Required for meeting transcription"
-          done={systemAudioPermissionStatus.data === "Authorized"}
-          isPending={capturePermission.isPending}
-          onAction={() => capturePermission.mutate(undefined)}
-          buttonText="Enable"
+          status={systemAudioPermissionStatus.data}
+          isPending={systemAudioPermission.isPending}
+          onAction={handleSystemAudioPermissionAction}
+        />
+        <PermissionRow
+          icon={<EyeIcon className="h-5 w-5" />}
+          title="Accessibility access"
+          description="Required for detecting active applications"
+          status={accessibilityPermissionStatus.data}
+          isPending={accessibilityPermission.isPending}
+          onAction={handleAccessibilityPermissionAction}
         />
       </div>
 
@@ -197,7 +154,7 @@ function Permissions() {
 
       {!allPermissionsGranted && (
         <p className="text-xs text-muted-foreground text-center">
-          Grant both permissions to continue
+          Grant all permissions to continue
         </p>
       )}
     </OnboardingContainer>
@@ -292,83 +249,6 @@ function OnboardingContainer({
           >
             {action.kind}
           </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PermissionRow({
-  icon,
-  title,
-  description,
-  done,
-  isPending,
-  onAction,
-  buttonText,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  done: boolean | undefined;
-  isPending: boolean;
-  onAction: () => void;
-  buttonText: string;
-}) {
-  return (
-    <div
-      className={cn([
-        "flex items-center justify-between rounded-2xl border px-6 py-5",
-        "transition-all duration-200",
-        done ? "border-blue-500 bg-blue-50" : "bg-white border-neutral-200",
-      ])}
-    >
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div
-          className={cn([
-            "flex size-10 items-center justify-center rounded-full flex-shrink-0",
-            done ? "bg-blue-100" : "bg-neutral-50",
-          ])}
-        >
-          <div className={cn(done ? "text-blue-600" : "text-neutral-500")}>{icon}</div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-medium truncate">{title}</div>
-          <div className="text-sm text-muted-foreground">
-            {done
-              ? (
-                <span className="text-blue-600 flex items-center gap-1">
-                  <CheckCircle2Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                  Access Granted
-                </span>
-              )
-              : <span className="block truncate pr-2">{description}</span>}
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {!done && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAction}
-            disabled={isPending}
-            className="min-w-20"
-          >
-            {isPending
-              ? (
-                <>
-                  <Spinner className="mr-2" />
-                  Requesting...
-                </>
-              )
-              : <p>{buttonText}</p>}
-          </Button>
-        )}
-        {done && (
-          <div className="flex size-8 items-center justify-center rounded-full bg-blue-100">
-            <CheckCircle2Icon className="w-4 h-4 text-blue-600" />
-          </div>
         )}
       </div>
     </div>

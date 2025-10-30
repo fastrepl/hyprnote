@@ -22,6 +22,22 @@ async stopDetection() : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async listInstalledApplications() : Promise<Result<InstalledApp[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|list_installed_applications") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listMicUsingApplications() : Promise<Result<InstalledApp[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|list_mic_using_applications") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

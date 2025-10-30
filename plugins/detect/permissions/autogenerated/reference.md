@@ -4,13 +4,10 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-check-accessibility-permission`
-- `allow-request-accessibility-permission`
 - `allow-start-detection`
 - `allow-stop-detection`
-- `allow-get-state`
-- `allow-list-installed-apps`
-- `allow-list-mic-using-apps`
+- `allow-list-installed-applications`
+- `allow-list-mic-using-applications`
 
 ## Permission Table
 
@@ -24,25 +21,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`detect:allow-check-accessibility-permission`
+`detect:allow-list-installed-applications`
 
 </td>
 <td>
 
-Enables the check_accessibility_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-check-accessibility-permission`
-
-</td>
-<td>
-
-Denies the check_accessibility_permission command without any pre-configured scope.
+Enables the list_installed_applications command without any pre-configured scope.
 
 </td>
 </tr>
@@ -50,25 +34,12 @@ Denies the check_accessibility_permission command without any pre-configured sco
 <tr>
 <td>
 
-`detect:allow-get-state`
+`detect:deny-list-installed-applications`
 
 </td>
 <td>
 
-Enables the get_state command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-get-state`
-
-</td>
-<td>
-
-Denies the get_state command without any pre-configured scope.
+Denies the list_installed_applications command without any pre-configured scope.
 
 </td>
 </tr>
@@ -76,25 +47,12 @@ Denies the get_state command without any pre-configured scope.
 <tr>
 <td>
 
-`detect:allow-list-installed-apps`
+`detect:allow-list-mic-using-applications`
 
 </td>
 <td>
 
-Enables the list_installed_apps command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-list-installed-apps`
-
-</td>
-<td>
-
-Denies the list_installed_apps command without any pre-configured scope.
+Enables the list_mic_using_applications command without any pre-configured scope.
 
 </td>
 </tr>
@@ -102,77 +60,12 @@ Denies the list_installed_apps command without any pre-configured scope.
 <tr>
 <td>
 
-`detect:allow-list-mic-using-apps`
+`detect:deny-list-mic-using-applications`
 
 </td>
 <td>
 
-Enables the list_mic_using_apps command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-list-mic-using-apps`
-
-</td>
-<td>
-
-Denies the list_mic_using_apps command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:allow-request-accessibility-permission`
-
-</td>
-<td>
-
-Enables the request_accessibility_permission command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-request-accessibility-permission`
-
-</td>
-<td>
-
-Denies the request_accessibility_permission command without any pre-configured scope.
+Denies the list_mic_using_applications command without any pre-configured scope.
 
 </td>
 </tr>

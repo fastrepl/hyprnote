@@ -59,6 +59,9 @@ importers:
       '@hypr/plugin-db2':
         specifier: workspace:*
         version: link:../../plugins/db2
+      '@hypr/plugin-detect':
+        specifier: workspace:*
+        version: link:../../plugins/detect
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener

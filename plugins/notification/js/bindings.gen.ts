@@ -7,9 +7,6 @@
 
 
 export const commands = {
-async listApplications() : Promise<InstalledApp[]> {
-    return await TAURI_INVOKE("plugin:notification|list_applications");
-},
 async showNotification(v: Notification) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:notification|show_notification", { v }) };
@@ -18,33 +15,9 @@ async showNotification(v: Notification) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async startDetectNotification(params: DetectNotificationParams) : Promise<Result<null, string>> {
+async clearNotifications() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|start_detect_notification", { params }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async stopDetectNotification() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|stop_detect_notification") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async startEventNotification(params: EventNotificationParams) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|start_event_notification", { params }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async stopEventNotification() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|stop_event_notification") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:notification|clear_notifications") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -62,10 +35,7 @@ async stopEventNotification() : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type DetectNotificationParams = { respect_do_not_disturb: boolean; ignored_platforms: string[] }
 export type Duration = { secs: number; nanos: number }
-export type EventNotificationParams = { respect_do_not_disturb: boolean }
-export type InstalledApp = { id: string; name: string }
 export type Notification = { key: string | null; title: string; message: string; url: string | null; timeout: Duration | null }
 
 /** tauri-specta globals **/

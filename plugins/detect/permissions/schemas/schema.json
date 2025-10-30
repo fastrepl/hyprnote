@@ -295,76 +295,28 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the check_accessibility_permission command without any pre-configured scope.",
+          "description": "Enables the list_installed_applications command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-check-accessibility-permission",
-          "markdownDescription": "Enables the check_accessibility_permission command without any pre-configured scope."
+          "const": "allow-list-installed-applications",
+          "markdownDescription": "Enables the list_installed_applications command without any pre-configured scope."
         },
         {
-          "description": "Denies the check_accessibility_permission command without any pre-configured scope.",
+          "description": "Denies the list_installed_applications command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-check-accessibility-permission",
-          "markdownDescription": "Denies the check_accessibility_permission command without any pre-configured scope."
+          "const": "deny-list-installed-applications",
+          "markdownDescription": "Denies the list_installed_applications command without any pre-configured scope."
         },
         {
-          "description": "Enables the get_state command without any pre-configured scope.",
+          "description": "Enables the list_mic_using_applications command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-get-state",
-          "markdownDescription": "Enables the get_state command without any pre-configured scope."
+          "const": "allow-list-mic-using-applications",
+          "markdownDescription": "Enables the list_mic_using_applications command without any pre-configured scope."
         },
         {
-          "description": "Denies the get_state command without any pre-configured scope.",
+          "description": "Denies the list_mic_using_applications command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-get-state",
-          "markdownDescription": "Denies the get_state command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the list_installed_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-list-installed-apps",
-          "markdownDescription": "Enables the list_installed_apps command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the list_installed_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-list-installed-apps",
-          "markdownDescription": "Denies the list_installed_apps command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the list_mic_using_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-list-mic-using-apps",
-          "markdownDescription": "Enables the list_mic_using_apps command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the list_mic_using_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-list-mic-using-apps",
-          "markdownDescription": "Denies the list_mic_using_apps command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the request_accessibility_permission command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-request-accessibility-permission",
-          "markdownDescription": "Enables the request_accessibility_permission command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the request_accessibility_permission command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-request-accessibility-permission",
-          "markdownDescription": "Denies the request_accessibility_permission command without any pre-configured scope."
+          "const": "deny-list-mic-using-applications",
+          "markdownDescription": "Denies the list_mic_using_applications command without any pre-configured scope."
         },
         {
           "description": "Enables the start_detection command without any pre-configured scope.",
@@ -391,10 +343,10 @@
           "markdownDescription": "Denies the stop_detection command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`\n- `allow-start-detection`\n- `allow-stop-detection`\n- `allow-get-state`\n- `allow-list-installed-apps`\n- `allow-list-mic-using-apps`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start-detection`\n- `allow-stop-detection`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-check-accessibility-permission`\n- `allow-request-accessibility-permission`\n- `allow-start-detection`\n- `allow-stop-detection`\n- `allow-get-state`\n- `allow-list-installed-apps`\n- `allow-list-mic-using-apps`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start-detection`\n- `allow-stop-detection`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`"
         }
       ]
     }

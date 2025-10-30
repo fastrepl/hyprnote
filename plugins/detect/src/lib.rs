@@ -23,6 +23,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::start_detection::<tauri::Wry>,
             commands::stop_detection::<tauri::Wry>,
+            commands::list_installed_applications::<tauri::Wry>,
+            commands::list_mic_using_applications::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![DetectEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -36,7 +38,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let app_handle = app.app_handle().clone();
+            let _app_handle = app.app_handle().clone();
             let state = State::default();
 
             app.manage(state);

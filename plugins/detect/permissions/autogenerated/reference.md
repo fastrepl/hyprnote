@@ -4,8 +4,8 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-start-detection`
-- `allow-stop-detection`
+- `allow-set_quit_handler`
+- `allow-reset_quit_handler`
 - `allow-list-installed-applications`
 - `allow-list-mic-using-applications`
 
@@ -73,25 +73,12 @@ Denies the list_mic_using_applications command without any pre-configured scope.
 <tr>
 <td>
 
-`detect:allow-start-detection`
+`detect:allow-reset-quit-handler`
 
 </td>
 <td>
 
-Enables the start_detection command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`detect:deny-start-detection`
-
-</td>
-<td>
-
-Denies the start_detection command without any pre-configured scope.
+Enables the reset_quit_handler command without any pre-configured scope.
 
 </td>
 </tr>
@@ -99,12 +86,12 @@ Denies the start_detection command without any pre-configured scope.
 <tr>
 <td>
 
-`detect:allow-stop-detection`
+`detect:deny-reset-quit-handler`
 
 </td>
 <td>
 
-Enables the stop_detection command without any pre-configured scope.
+Denies the reset_quit_handler command without any pre-configured scope.
 
 </td>
 </tr>
@@ -112,12 +99,25 @@ Enables the stop_detection command without any pre-configured scope.
 <tr>
 <td>
 
-`detect:deny-stop-detection`
+`detect:allow-set-quit-handler`
 
 </td>
 <td>
 
-Denies the stop_detection command without any pre-configured scope.
+Enables the set_quit_handler command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-set-quit-handler`
+
+</td>
+<td>
+
+Denies the set_quit_handler command without any pre-configured scope.
 
 </td>
 </tr>

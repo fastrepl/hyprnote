@@ -7,17 +7,17 @@
 
 
 export const commands = {
-async startDetection() : Promise<Result<null, string>> {
+async setQuitHandler() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|start_detection") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_quit_handler") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async stopDetection() : Promise<Result<null, string>> {
+async resetQuitHandler() : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|stop_detection") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|reset_quit_handler") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

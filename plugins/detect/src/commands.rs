@@ -1,16 +1,18 @@
-use crate::DetectPluginExt;
-
 #[tauri::command]
 #[specta::specta]
-pub async fn start_detection<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.start_detection().await;
+pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    hypr_intercept::setup_quit_handler(|| true);
     Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn stop_detection<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
-    app.stop_detection().await;
+pub(crate) async fn reset_quit_handler<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    hypr_intercept::reset_quit_handler();
     Ok(())
 }
 

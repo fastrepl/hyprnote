@@ -1,8 +1,8 @@
 [default]
 description = "Default permissions for the plugin"
 permissions = [
-    "allow-start-detection",
-    "allow-stop-detection",
+    "allow-set_quit_handler",
+    "allow-reset_quit_handler",
     "allow-list-installed-applications",
     "allow-list-mic-using-applications",
 ]

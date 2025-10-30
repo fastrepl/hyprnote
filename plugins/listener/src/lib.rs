@@ -39,8 +39,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_microphone_device::<tauri::Wry>,
             commands::get_mic_muted::<tauri::Wry>,
             commands::set_mic_muted::<tauri::Wry>,
-            commands::get_speaker_muted::<tauri::Wry>,
-            commands::set_speaker_muted::<tauri::Wry>,
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,

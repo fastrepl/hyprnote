@@ -43,6 +43,15 @@ export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         ? (
           <div className="flex items-center gap-1.5">
             <MicOff size={14} />
+            <SoundIndicator
+              value={[amplitude.mic, amplitude.speaker]}
+              color="#ef4444"
+              size="long"
+              height={16}
+              width={32}
+              stickWidth={2}
+              gap={1}
+            />
           </div>
         )
         : (

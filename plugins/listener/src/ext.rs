@@ -19,9 +19,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn get_mic_muted(&self) -> impl Future<Output = bool>;
-    fn get_speaker_muted(&self) -> impl Future<Output = bool>;
     fn set_mic_muted(&self, muted: bool) -> impl Future<Output = ()>;
-    fn set_speaker_muted(&self, muted: bool) -> impl Future<Output = ()>;
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
@@ -85,32 +83,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_speaker_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-
-            match call_t!(actor, SessionMsg::GetSpeakerMute, 100) {
-                Ok(muted) => muted,
-                Err(_) => false,
-            }
-        } else {
-            false
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
         if let Some(cell) = registry::where_is(SessionActor::name()) {
             let actor: ActorRef<SessionMsg> = cell.into();
             let _ = actor.cast(SessionMsg::SetMicMute(muted));
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn set_speaker_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::SetSpeakerMute(muted));
         }
     }
 

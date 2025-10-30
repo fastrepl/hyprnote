@@ -39,29 +39,11 @@ pub async fn get_mic_muted<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Resul
 
 #[tauri::command]
 #[specta::specta]
-pub async fn get_speaker_muted<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Result<bool, String> {
-    Ok(app.get_speaker_muted().await)
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn set_mic_muted<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     muted: bool,
 ) -> Result<(), String> {
     app.set_mic_muted(muted).await;
-    Ok(())
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn set_speaker_muted<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    muted: bool,
-) -> Result<(), String> {
-    app.set_speaker_muted(muted).await;
     Ok(())
 }
 

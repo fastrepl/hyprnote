@@ -11,8 +11,6 @@ Default permissions for the plugin
 - `allow-stop-session`
 - `allow-get-mic-muted`
 - `allow-set-mic-muted`
-- `allow-get-speaker-muted`
-- `allow-set-speaker-muted`
 - `allow-get-state`
 
 ## Permission Table
@@ -72,32 +70,6 @@ Enables the get_mic_muted command without any pre-configured scope.
 <td>
 
 Denies the get_mic_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-get-speaker-muted`
-
-</td>
-<td>
-
-Enables the get_speaker_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-get-speaker-muted`
-
-</td>
-<td>
-
-Denies the get_speaker_muted command without any pre-configured scope.
 
 </td>
 </tr>
@@ -228,32 +200,6 @@ Enables the set_microphone_device command without any pre-configured scope.
 <td>
 
 Denies the set_microphone_device command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-set-speaker-muted`
-
-</td>
-<td>
-
-Enables the set_speaker_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-set-speaker-muted`
-
-</td>
-<td>
-
-Denies the set_speaker_muted command without any pre-configured scope.
 
 </td>
 </tr>

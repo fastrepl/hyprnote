@@ -4,8 +4,6 @@ const COMMANDS: &[&str] = &[
     "set_microphone_device",
     "get_mic_muted",
     "set_mic_muted",
-    "get_speaker_muted",
-    "set_speaker_muted",
     "start_session",
     "stop_session",
     "get_state",

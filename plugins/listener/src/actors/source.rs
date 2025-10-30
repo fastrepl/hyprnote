@@ -18,8 +18,6 @@ const SAMPLE_RATE: u32 = 16000;
 pub enum SourceMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
-    SetSpkMute(bool),
-    GetSpkMute(RpcReplyPort<bool>),
     SetMicDevice(Option<String>),
     GetMicDevice(RpcReplyPort<Option<String>>),
 }
@@ -35,7 +33,6 @@ pub struct SourceState {
     token: CancellationToken,
     onboarding: bool,
     mic_muted: Arc<AtomicBool>,
-    spk_muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
     stream_cancel_token: Option<CancellationToken>,
     _device_monitor_handle: Option<DeviceMonitorHandle>,
@@ -115,7 +112,6 @@ impl Actor for SourceActor {
             token: args.token,
             onboarding: args.onboarding,
             mic_muted: Arc::new(AtomicBool::new(false)),
-            spk_muted: Arc::new(AtomicBool::new(false)),
             run_task: None,
             stream_cancel_token: None,
             _device_monitor_handle: Some(device_monitor_handle),
@@ -140,14 +136,6 @@ impl Actor for SourceActor {
             SourceMsg::GetMicMute(reply) => {
                 if !reply.is_closed() {
                     let _ = reply.send(st.mic_muted.load(Ordering::Relaxed));
-                }
-            }
-            SourceMsg::SetSpkMute(muted) => {
-                st.spk_muted.store(muted, Ordering::Relaxed);
-            }
-            SourceMsg::GetSpkMute(reply) => {
-                if !reply.is_closed() {
-                    let _ = reply.send(st.spk_muted.load(Ordering::Relaxed));
                 }
             }
             SourceMsg::GetMicDevice(reply) => {
@@ -195,7 +183,6 @@ async fn start_source_loop(
     let myself2 = myself.clone();
     let token = st.token.clone();
     let mic_muted = st.mic_muted.clone();
-    let spk_muted = st.spk_muted.clone();
     let mic_device = st.mic_device.clone();
 
     let stream_cancel_token = CancellationToken::new();
@@ -213,43 +200,58 @@ async fn start_source_loop(
         #[cfg(target_os = "macos")]
         {
             tokio::spawn(async move {
-                let mixed_stream = {
-                    let mut mixed_input = AudioInput::from_mic(mic_device).unwrap();
-                    ResampledAsyncSource::new(mixed_input.stream(), SAMPLE_RATE)
+                let mic_stream = {
+                    let mut mic_input = AudioInput::from_mic(mic_device).unwrap();
+                    ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE)
+                        .chunks(AEC_BLOCK_SIZE)
+                };
+                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+                let spk_stream = {
+                    let mut spk_input = hypr_audio::AudioInput::from_speaker();
+                    ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE)
                         .chunks(AEC_BLOCK_SIZE)
                 };
 
-                tokio::pin!(mixed_stream);
+                tokio::pin!(mic_stream);
+                tokio::pin!(spk_stream);
 
                 loop {
+                    let Some(cell) = registry::where_is(ProcessorActor::name()) else {
+                        tracing::warn!("processor_actor_not_found");
+                        continue;
+                    };
+                    let proc: ActorRef<ProcMsg> = cell.into();
+
                     tokio::select! {
                         _ = token.cancelled() => {
-                            drop(mixed_stream);
+                            drop(mic_stream);
+                            drop(spk_stream);
                             myself2.stop(None);
                             return;
                         }
                         _ = stream_cancel_token.cancelled() => {
-                            drop(mixed_stream);
+                            drop(mic_stream);
+                            drop(spk_stream);
                             return;
                         }
-                        mixed_next = mixed_stream.next() => {
-                            if let Some(data) = mixed_next {
-                                // TODO: should be able to mute each stream
-                                let output_data = if mic_muted.load(Ordering::Relaxed) && spk_muted.load(Ordering::Relaxed) {
-                                    vec![0.0; data.len()]
+                        mic_next = mic_stream.next() => {
+                            if let Some(data) = mic_next {
+                                if mic_muted.load(Ordering::Relaxed) {
+                                    let msg = ProcMsg::Mic(AudioChunk{ data: vec![0.0; data.len()] });
+                                    let _ = proc.cast(msg);
                                 } else {
-                                    data
-                                };
-                                let msg = ProcMsg::Mixed(AudioChunk{ data: output_data });
-
-                                let Some(cell) = registry::where_is(ProcessorActor::name()) else {
-                                    tracing::warn!("processor_actor_not_found");
-                                    continue;
-                                };
-
-                                let actor: ActorRef<ProcMsg> = cell.into();
-                                if let Err(e) = actor.cast(msg) {
-                                    tracing::error!(error = %e, "cast_error");
+                                    let msg = ProcMsg::Mixed(AudioChunk{ data });
+                                    let _ = proc.cast(msg);
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        spk_next = spk_stream.next() => {
+                            if let Some(data) = spk_next {
+                                if mic_muted.load(Ordering::Relaxed) {
+                                    let msg = ProcMsg::Speaker(AudioChunk{ data });
+                                    let _ = proc.cast(msg);
                                 }
                             } else {
                                 break;
@@ -312,13 +314,7 @@ async fn start_source_loop(
                     }
                     spk_next = spk_stream.next() => {
                         if let Some(data) = spk_next {
-                            let output_data = if spk_muted.load(Ordering::Relaxed) {
-                                vec![0.0; data.len()]
-                            } else {
-                                data
-                            };
-
-                            let msg = ProcMsg::Speaker(AudioChunk{ data: output_data });
+                            let msg = ProcMsg::Speaker(AudioChunk{ data });
                             let _ = proc.cast(msg);
                         } else {
                             break;

@@ -18,9 +18,7 @@ use crate::{
 #[derive(Debug)]
 pub enum SessionMsg {
     SetMicMute(bool),
-    SetSpeakerMute(bool),
     GetMicMute(RpcReplyPort<bool>),
-    GetSpeakerMute(RpcReplyPort<bool>),
     GetMicDeviceName(RpcReplyPort<Option<String>>),
     ChangeMicDevice(Option<String>),
 }
@@ -103,14 +101,6 @@ impl Actor for SessionActor {
                 SessionEvent::MicMuted { value: muted }.emit(&state.app)?;
             }
 
-            SessionMsg::SetSpeakerMute(muted) => {
-                if let Some(cell) = registry::where_is(SourceActor::name()) {
-                    let actor: ActorRef<SourceMsg> = cell.into();
-                    actor.cast(SourceMsg::SetSpkMute(muted))?;
-                }
-                SessionEvent::SpeakerMuted { value: muted }.emit(&state.app)?;
-            }
-
             SessionMsg::GetMicDeviceName(reply) => {
                 if !reply.is_closed() {
                     let device_name = if let Some(cell) = registry::where_is(SourceActor::name()) {
@@ -128,19 +118,6 @@ impl Actor for SessionActor {
                 let muted = if let Some(cell) = registry::where_is(SourceActor::name()) {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     call_t!(actor, SourceMsg::GetMicMute, 100)?
-                } else {
-                    false
-                };
-
-                if !reply.is_closed() {
-                    let _ = reply.send(muted);
-                }
-            }
-
-            SessionMsg::GetSpeakerMute(reply) => {
-                let muted = if let Some(cell) = registry::where_is(SourceActor::name()) {
-                    let actor: ActorRef<SourceMsg> = cell.into();
-                    call_t!(actor, SourceMsg::GetSpkMute, 100)?
                 } else {
                     false
                 };

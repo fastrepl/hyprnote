@@ -8,7 +8,5 @@ permissions = [
     "allow-stop-session",
     "allow-get-mic-muted",
     "allow-set-mic-muted",
-    "allow-get-speaker-muted",
-    "allow-set-speaker-muted",
     "allow-get-state",
 ]

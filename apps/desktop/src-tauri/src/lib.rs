@@ -63,7 +63,11 @@ pub async fn main() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_windows::init());
+        .plugin(tauri_plugin_windows::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--background"]),
+        ));
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {
@@ -85,6 +89,12 @@ pub async fn main() {
                 use tauri_plugin_tray::TrayPluginExt;
                 app.create_tray_menu().unwrap();
                 app.create_app_menu().unwrap();
+            }
+
+            {
+                use tauri_plugin_autostart::ManagerExt;
+                let autostart_manager = app.autolaunch();
+                let _ = autostart_manager.disable();
             }
 
             tokio::spawn(async move {

@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { createClient } from "supabase-js";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_API_KEY") as string, {
-  apiVersion: "2025-09-30.clover",
+  apiVersion: "2025-10-29.clover",
 });
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider();

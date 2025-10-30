@@ -1,13 +1,13 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@hono/hono@^4.10.3": "4.10.3",
+    "jsr:@hono/hono@^4.10.4": "4.10.4",
     "npm:@supabase/supabase-js@2.76.1": "2.76.1",
-    "npm:stripe@^19.1.0": "19.1.0"
+    "npm:stripe@^19.2.0": "19.2.0"
   },
   "jsr": {
-    "@hono/hono@4.10.3": {
-      "integrity": "d37db91cace43d80dccdbb49b396bd4f97e019c8566c20201cb1d9e4a3009e45"
+    "@hono/hono@4.10.4": {
+      "integrity": "e54d00c4cf994e7ae297d7321793cf940656b9c5e934564c03ffc15499041b9e"
     }
   },
   "npm": {
@@ -200,8 +200,8 @@
         "side-channel-weakmap"
       ]
     },
-    "stripe@19.1.0": {
-      "integrity": "sha512-FjgIiE98dMMTNssfdjMvFdD4eZyEzdWAOwPYqzhPRNZeg9ggFWlPXmX1iJKD5pPIwZBaPlC3SayQQkwsPo6/YQ==",
+    "stripe@19.2.0": {
+      "integrity": "sha512-strzN8luMGMC1LEleGKg7pJGXFx0kSS4y/uSjK8yPQV9SUBMtJVAp/v8XMQLRnMbXaSaWLrIaHcMlKcsizdRDQ==",
       "dependencies": [
         "qs"
       ]
@@ -231,9 +231,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@hono/hono@^4.10.3",
+      "jsr:@hono/hono@^4.10.4",
       "npm:@supabase/supabase-js@2.76.1",
-      "npm:stripe@^19.1.0"
+      "npm:stripe@^19.2.0"
     ]
   }
 }

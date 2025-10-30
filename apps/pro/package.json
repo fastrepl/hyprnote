@@ -14,12 +14,12 @@
     "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
     "exa-js": "^1.10.2",
-    "hono": "^4.10.2",
+    "hono": "^4.10.4",
     "hono-rate-limiter": "^0.4.2",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^20.19.23",
+    "@types/node": "^20.19.24",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

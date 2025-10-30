@@ -1,7 +1,7 @@
 import { FolderIcon, FoldersIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -53,7 +53,7 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleCloseAll,
 }) => {
   const folders = useFolderChain(tab?.id ?? "");
-  const name = persisted.UI.useCell("folders", tab?.id ?? "", "name", persisted.STORE_ID);
+  const name = main.UI.useCell("folders", tab?.id ?? "", "name", main.STORE_ID);
   const title = " .. / ".repeat(folders.length - 1) + name;
 
   return (
@@ -83,10 +83,10 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
 }
 
 function TabContentFolderTopLevel() {
-  const topLevelFolderIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.foldersByParent,
+  const topLevelFolderIds = main.UI.useSliceRowIds(
+    main.INDEXES.foldersByParent,
     "",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -111,19 +111,19 @@ function TabContentFolderTopLevel() {
 }
 
 function FolderCard({ folderId }: { folderId: string }) {
-  const folder = persisted.UI.useRow("folders", folderId, persisted.STORE_ID);
+  const folder = main.UI.useRow("folders", folderId, main.STORE_ID);
   const { openCurrent } = useTabs();
 
-  const childFolderIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.foldersByParent,
+  const childFolderIds = main.UI.useSliceRowIds(
+    main.INDEXES.foldersByParent,
     folderId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const sessionIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionsByFolder,
+  const sessionIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionsByFolder,
     folderId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const childCount = (childFolderIds?.length ?? 0) + (sessionIds?.length ?? 0);
@@ -144,16 +144,16 @@ function FolderCard({ folderId }: { folderId: string }) {
 }
 
 function TabContentFolderSpecific({ folderId }: { folderId: string }) {
-  const childFolderIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.foldersByParent,
+  const childFolderIds = main.UI.useSliceRowIds(
+    main.INDEXES.foldersByParent,
     folderId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const sessionIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionsByFolder,
+  const sessionIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionsByFolder,
     folderId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const isEmpty = (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
@@ -226,7 +226,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
 }
 
 function FolderSessionItem({ sessionId }: { sessionId: string }) {
-  const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
   const { openCurrent } = useTabs();
 
   return (

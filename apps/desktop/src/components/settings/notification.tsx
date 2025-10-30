@@ -9,40 +9,40 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
-import * as internal from "../../store/tinybase/internal";
+import * as main from "../../store/tinybase/main";
 
 export function SettingsNotifications() {
-  const values = internal.UI.useValues(internal.STORE_ID);
+  const values = main.UI.useValues(main.STORE_ID);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
   const [applications, setApplications] = useState<string[]>([]);
 
-  const handleSetNotificationEvent = internal.UI.useSetValueCallback(
+  const handleSetNotificationEvent = main.UI.useSetValueCallback(
     "notification_event",
     (value: boolean) => value,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
-  const handleSetNotificationDetect = internal.UI.useSetValueCallback(
+  const handleSetNotificationDetect = main.UI.useSetValueCallback(
     "notification_detect",
     (value: boolean) => value,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
-  const handleSetRespectDnd = internal.UI.useSetValueCallback(
+  const handleSetRespectDnd = main.UI.useSetValueCallback(
     "respect_dnd",
     (value: boolean) => value,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
-  const handleSetIgnoredPlatforms = internal.UI.useSetValueCallback(
+  const handleSetIgnoredPlatforms = main.UI.useSetValueCallback(
     "ignored_platforms",
     (value: string[]) => JSON.stringify(value),
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
   const form = useForm({

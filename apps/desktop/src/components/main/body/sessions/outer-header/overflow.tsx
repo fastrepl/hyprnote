@@ -14,7 +14,7 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import * as persisted from "../../../../../store/tinybase/persisted";
+import * as main from "../../../../../store/tinybase/main";
 import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
@@ -108,10 +108,10 @@ function Listening({ sessionId }: { sessionId: string }) {
 }
 
 function DeleteNote({ sessionId }: { sessionId: string }) {
-  const deleteRow = persisted.UI.useDelRowCallback(
+  const deleteRow = main.UI.useDelRowCallback(
     "sessions",
     sessionId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const handleDeleteNote = useCallback(() => {

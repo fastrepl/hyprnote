@@ -11,8 +11,8 @@ import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-import * as internal from "../../../../store/tinybase/internal";
-import { aiProviderSchema } from "../../../../store/tinybase/internal";
+import * as main from "../../../../store/tinybase/main";
+import { aiProviderSchema } from "../../../../store/tinybase/main";
 import {
   DOWNLOAD_MODEL_TASK_ID,
   registerDownloadProgressCallback,
@@ -54,7 +54,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
         type: "stt",
         base_url: config.baseUrl ?? "",
         api_key: "",
-      } satisfies internal.AIProvider),
+      } satisfies main.AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {

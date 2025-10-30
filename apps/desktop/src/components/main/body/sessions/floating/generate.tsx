@@ -6,7 +6,7 @@ import { cn } from "@hypr/utils";
 import { useAITask } from "../../../../../contexts/ai-task";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
-import * as persisted from "../../../../../store/tinybase/persisted";
+import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
 import { FloatingButton } from "./shared";
@@ -28,12 +28,12 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
       );
   }, []);
 
-  const updateEnhancedMd = persisted.UI.useSetPartialRowCallback(
+  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: string) => ({ enhanced_md: input }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const { generate, rawStatus, streamedText, error } = useAITask((state) => {
@@ -58,7 +58,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
     },
   });
 
-  const templates = persisted.UI.useResultTable(persisted.QUERIES.visibleTemplates, persisted.STORE_ID);
+  const templates = main.UI.useResultTable(main.QUERIES.visibleTemplates, main.STORE_ID);
 
   const onRegenerate = async (templateId: string | null) => {
     if (!model) {

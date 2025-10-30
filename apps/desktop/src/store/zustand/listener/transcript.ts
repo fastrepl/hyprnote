@@ -2,9 +2,9 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { StreamResponse, Word } from "@hypr/plugin-listener";
-import * as persisted from "../../tinybase/persisted";
+import * as main from "../../tinybase/main";
 
-type PartialWord = Pick<persisted.Word, "text" | "start_ms" | "end_ms" | "channel">;
+type PartialWord = Pick<main.Word, "text" | "start_ms" | "end_ms" | "channel">;
 type WordsByChannel = Record<number, PartialWord[]>;
 
 export type PersistFinalCallback = (words: PartialWord[]) => void;

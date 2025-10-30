@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Event } from "../../../store/tinybase/persisted";
+import type { Event } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 const MEETING_TITLES = [

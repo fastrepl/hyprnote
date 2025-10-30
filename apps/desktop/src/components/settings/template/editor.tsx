@@ -2,13 +2,13 @@ import { useForm } from "@tanstack/react-form";
 
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 import { SectionsList } from "./sections-list";
 
 export function TemplateEditor({ id }: { id: string }) {
-  const _value = persisted.UI.useRow("templates", id, persisted.STORE_ID);
+  const _value = main.UI.useRow("templates", id, main.STORE_ID);
   const value = _value
-    ? persisted.templateSchema.parse({
+    ? main.templateSchema.parse({
       user_id: _value.user_id ?? "",
       created_at: _value.created_at ?? new Date().toISOString(),
       title: _value.title ?? "",
@@ -17,15 +17,15 @@ export function TemplateEditor({ id }: { id: string }) {
     })
     : undefined;
 
-  const handleUpdate = persisted.UI.useSetPartialRowCallback(
+  const handleUpdate = main.UI.useSetPartialRowCallback(
     "templates",
     id,
-    (row: Partial<persisted.Template>) => ({
+    (row: Partial<main.Template>) => ({
       ...row,
       sections: row.sections ? JSON.stringify(row.sections) : undefined,
-    } satisfies Partial<persisted.TemplateStorage>),
+    } satisfies Partial<main.TemplateStorage>),
     [id],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const form = useForm({

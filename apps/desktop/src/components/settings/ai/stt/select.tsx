@@ -5,11 +5,11 @@ import { useCallback } from "react";
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
-import * as internal from "../../../../store/tinybase/internal";
+import * as main from "../../../../store/tinybase/main";
 import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
-  const { current_stt_provider, current_stt_model } = internal.UI.useValues(internal.STORE_ID);
+  const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
   const configuredProviders = useConfiguredMapping();
 
   const server = useQuery({
@@ -36,18 +36,18 @@ export function SelectProviderAndModel() {
     }
   }, [current_stt_provider, current_stt_model]);
 
-  const handleSelectProvider = internal.UI.useSetValueCallback(
+  const handleSelectProvider = main.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
-  const handleSelectModel = internal.UI.useSetValueCallback(
+  const handleSelectModel = main.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
   const form = useForm({
@@ -161,7 +161,7 @@ export function SelectProviderAndModel() {
 }
 
 function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>> {
-  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.sttProviders, internal.STORE_ID);
+  const configuredProviders = main.UI.useResultTable(main.QUERIES.sttProviders, main.STORE_ID);
 
   const [p2, p3] = useQueries({
     queries: [
@@ -182,7 +182,7 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
         ];
       }
 
-      const config = configuredProviders[provider.id] as internal.AIProviderStorage | undefined;
+      const config = configuredProviders[provider.id] as main.AIProviderStorage | undefined;
 
       if (!config) {
         return [provider.id, []];

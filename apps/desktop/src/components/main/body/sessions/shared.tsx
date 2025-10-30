@@ -1,15 +1,15 @@
 import { useMemo } from "react";
 
 import { useListener } from "../../../../contexts/listener";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import type { Tab } from "../../../../store/zustand/tabs/schema";
 import { type EditorView } from "../../../../store/zustand/tabs/schema";
 
 export function useHasTranscript(sessionId: string): boolean {
-  const transcriptIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.transcriptBySession,
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
     sessionId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return !!transcriptIds && transcriptIds.length > 0;

@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 import { type SearchResult } from "../../../../contexts/search/ui";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 
@@ -67,10 +67,10 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
 }
 
 function OrganizationSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
-  const humanIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.humansByOrg,
+  const humanIds = main.UI.useSliceRowIds(
+    main.INDEXES.humansByOrg,
     result.id,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const sanitizedTitle = useMemo(

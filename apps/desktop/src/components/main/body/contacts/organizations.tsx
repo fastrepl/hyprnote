@@ -3,7 +3,7 @@ import { cn } from "@hypr/utils";
 import { Building2, CornerDownLeft, User } from "lucide-react";
 import React, { useState } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { ColumnHeader, type SortOption } from "./shared";
 
 export function OrganizationsColumn({
@@ -19,7 +19,7 @@ export function OrganizationsColumn({
   const [searchValue, setSearchValue] = useState("");
   const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
 
-  const allOrgs = persisted.UI.useTable("organizations", persisted.STORE_ID);
+  const allOrgs = main.UI.useTable("organizations", main.STORE_ID);
 
   const filteredOrganizationIds = React.useMemo(() => {
     if (!searchValue.trim()) {
@@ -79,37 +79,37 @@ export function OrganizationsColumn({
 function useSortedOrganizationIds() {
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical");
 
-  const alphabeticalIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleOrganizations,
+  const alphabeticalIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleOrganizations,
     "name",
     false,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const reverseAlphabeticalIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleOrganizations,
+  const reverseAlphabeticalIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleOrganizations,
     "name",
     true,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const newestIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleOrganizations,
+  const newestIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleOrganizations,
     "created_at",
     true,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const oldestIds = persisted.UI.useResultSortedRowIds(
-    persisted.QUERIES.visibleOrganizations,
+  const oldestIds = main.UI.useResultSortedRowIds(
+    main.QUERIES.visibleOrganizations,
     "created_at",
     false,
     0,
     undefined,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const organizationIds = sortOption === "alphabetical"
@@ -134,7 +134,7 @@ function OrganizationItem({
   isViewingDetails: boolean;
   setSelectedOrganization: (id: string | null) => void;
 }) {
-  const organization = persisted.UI.useRow("organizations", organizationId, persisted.STORE_ID);
+  const organization = main.UI.useRow("organizations", organizationId, main.STORE_ID);
   if (!organization) {
     return null;
   }
@@ -167,7 +167,7 @@ function NewOrganizationForm({
 }) {
   const [name, setName] = useState("");
 
-  const handleAdd = persisted.UI.useAddRowCallback(
+  const handleAdd = main.UI.useAddRowCallback(
     "organizations",
     () => ({
       name: name.trim(),
@@ -175,7 +175,7 @@ function NewOrganizationForm({
       updated_at: new Date().toISOString(),
     }),
     [name],
-    persisted.STORE_ID,
+    main.STORE_ID,
     () => {
       setName("");
       onSave();

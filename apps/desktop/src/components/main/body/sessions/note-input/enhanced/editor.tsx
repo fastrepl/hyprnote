@@ -2,23 +2,23 @@ import { forwardRef } from "react";
 
 import { TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
-import * as persisted from "../../../../../../store/tinybase/persisted";
+import * as main from "../../../../../../store/tinybase/main";
 
 export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
   ({ sessionId }, ref) => {
-    const value = persisted.UI.useCell("sessions", sessionId, "enhanced_md", persisted.STORE_ID);
+    const value = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
 
     const handleEnhancedChange = (c: string) => {
       console.log("handleEnhancedChange", c);
       _handleEnhancedChange(c);
     };
 
-    const _handleEnhancedChange = persisted.UI.useSetPartialRowCallback(
+    const _handleEnhancedChange = main.UI.useSetPartialRowCallback(
       "sessions",
       sessionId,
       (input: string) => ({ enhanced_md: input }),
       [],
-      persisted.STORE_ID,
+      main.STORE_ID,
     );
 
     return (

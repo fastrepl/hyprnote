@@ -10,12 +10,7 @@ import { createManager } from "tinytick";
 import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
 
 import { TaskManager } from "./components/task-manager";
-import { type Store as InternalStore, STORE_ID as STORE_ID_INTERNAL } from "./store/tinybase/internal";
-import {
-  type Store as PersistedStore,
-  STORE_ID as STORE_ID_PERSISTED,
-  StoreComponent as StoreComponentPersisted,
-} from "./store/tinybase/persisted";
+import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
 
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { routeTree } from "./routeTree.gen";
@@ -37,17 +32,16 @@ declare module "@tanstack/react-router" {
 function App() {
   const stores = useStores();
 
-  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore;
-  const internalStore = stores[STORE_ID_INTERNAL] as unknown as InternalStore;
+  const store = stores[STORE_ID] as unknown as Store;
 
   const aiTaskStore = useMemo(() => {
-    if (!persistedStore) {
+    if (!store) {
       return null;
     }
-    return createAITaskStore({ toolRegistry, persistedStore });
-  }, [persistedStore]);
+    return createAITaskStore({ toolRegistry, persistedStore: store });
+  }, [store]);
 
-  if (!persistedStore || !internalStore || !aiTaskStore) {
+  if (!store || !aiTaskStore) {
     return null;
   }
 
@@ -55,8 +49,8 @@ function App() {
     <RouterProvider
       router={router}
       context={{
-        persistedStore,
-        internalStore,
+        persistedStore: store,
+        internalStore: store,
         listenerStore,
         aiTaskStore,
         toolRegistry,
@@ -75,7 +69,7 @@ function AppWithTiny() {
       <TinyTickProvider manager={manager}>
         <TinyBaseProvider>
           <App />
-          <StoreComponentPersisted />
+          <StoreComponent />
           <TaskManager />
         </TinyBaseProvider>
       </TinyTickProvider>

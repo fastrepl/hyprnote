@@ -10,242 +10,26 @@ import {
   type TablesSchema,
   ValuesSchema,
 } from "tinybase/with-schemas";
-import { z } from "zod";
 
-import {
-  calendarSchema as baseCalendarSchema,
-  chatGroupSchema as baseChatGroupSchema,
-  chatMessageSchema as baseChatMessageSchema,
-  eventSchema as baseEventSchema,
-  folderSchema as baseFolderSchema,
-  humanSchema as baseHumanSchema,
-  mappingSessionParticipantSchema as baseMappingSessionParticipantSchema,
-  mappingTagSessionSchema as baseMappingTagSessionSchema,
-  memorySchema as baseMemorySchema,
-  organizationSchema as baseOrganizationSchema,
-  sessionSchema as baseSessionSchema,
-  TABLE_HUMANS,
-  TABLE_SESSIONS,
-  tagSchema as baseTagSchema,
-  templateSchema as baseTemplateSchema,
-  transcriptSchema as baseTranscriptSchema,
-  wordSchema,
-} from "@hypr/db";
+import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
-import * as internal from "./internal";
+import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
-import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
+import { externalTableSchemaForTinybase } from "./schema-external";
+import { internalSchemaForTinybase } from "./schema-internal";
 
-export const STORE_ID = "persisted";
+export * from "./schema-external";
+export * from "./schema-internal";
 
-export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  job_title: z.preprocess(val => val ?? undefined, z.string().optional()),
-  linkedin_username: z.preprocess(val => val ?? undefined, z.string().optional()),
-  is_user: z.preprocess(val => val ?? undefined, z.boolean().optional()),
-  memo: z.preprocess(val => val ?? undefined, z.string().optional()),
-});
-
-export const eventSchema = baseEventSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  started_at: z.string(),
-  ended_at: z.string(),
-  location: z.preprocess(val => val ?? undefined, z.string().optional()),
-  meeting_link: z.preprocess(val => val ?? undefined, z.string().optional()),
-  description: z.preprocess(val => val ?? undefined, z.string().optional()),
-  note: z.preprocess(val => val ?? undefined, z.string().optional()),
-});
-
-export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({ created_at: z.string() });
-
-export const organizationSchema = baseOrganizationSchema.omit({ id: true }).extend({ created_at: z.string() });
-
-export const folderSchema = baseFolderSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  parent_folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
-});
-
-export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  event_id: z.preprocess(val => val ?? undefined, z.string().optional()),
-  folder_id: z.preprocess(val => val ?? undefined, z.string().optional()),
-});
-
-export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-});
-
-export const mappingSessionParticipantSchema = baseMappingSessionParticipantSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-});
-
-export const tagSchema = baseTagSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-});
-
-export const mappingTagSessionSchema = baseMappingTagSessionSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-});
-
-export const templateSectionSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-});
-
-export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  sections: jsonObject(z.array(templateSectionSchema)),
-});
-
-export const chatGroupSchema = baseChatGroupSchema.omit({ id: true }).extend({ created_at: z.string() });
-export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  metadata: jsonObject(z.any()),
-  parts: jsonObject(z.any()),
-});
-
-export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
-  created_at: z.string(),
-});
-
-export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  speaker: z.preprocess(val => val ?? undefined, z.string().optional()),
-  transcript_id: z.string(),
-});
-
-export type Human = z.infer<typeof humanSchema>;
-export type Event = z.infer<typeof eventSchema>;
-export type Calendar = z.infer<typeof calendarSchema>;
-export type Organization = z.infer<typeof organizationSchema>;
-export type Folder = z.infer<typeof folderSchema>;
-export type Session = z.infer<typeof sessionSchema>;
-export type Transcript = z.infer<typeof transcriptSchema>;
-export type Word = z.infer<typeof wordSchemaOverride>;
-export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
-export type Tag = z.infer<typeof tagSchema>;
-export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
-export type Template = z.infer<typeof templateSchema>;
-export type TemplateSection = z.infer<typeof templateSectionSchema>;
-export type ChatGroup = z.infer<typeof chatGroupSchema>;
-export type ChatMessage = z.infer<typeof chatMessageSchema>;
-export type Memory = z.infer<typeof memorySchema>;
-
-export type SessionStorage = ToStorageType<typeof sessionSchema>;
-export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
-export type TemplateStorage = ToStorageType<typeof templateSchema>;
-export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
-export type MemoryStorage = ToStorageType<typeof memorySchema>;
+export const STORE_ID = "main";
 
 const SCHEMA = {
-  value: {} as const satisfies ValuesSchema,
+  value: {
+    ...internalSchemaForTinybase.value,
+  } as const satisfies ValuesSchema,
   table: {
-    folders: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      name: { type: "string" },
-      parent_folder_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof folderSchema>,
-    sessions: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      folder_id: { type: "string" },
-      event_id: { type: "string" },
-      title: { type: "string" },
-      raw_md: { type: "string" },
-      enhanced_md: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof sessionSchema>,
-    transcripts: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      session_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof transcriptSchema>,
-    words: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      text: { type: "string" },
-      transcript_id: { type: "string" },
-      start_ms: { type: "number" },
-      end_ms: { type: "number" },
-      channel: { type: "number" },
-    } satisfies InferTinyBaseSchema<typeof wordSchema>,
-    humans: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      name: { type: "string" },
-      email: { type: "string" },
-      org_id: { type: "string" },
-      job_title: { type: "string" },
-      linkedin_username: { type: "string" },
-      is_user: { type: "boolean" },
-      memo: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof humanSchema>,
-    organizations: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof organizationSchema>,
-    calendars: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof calendarSchema>,
-    events: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      calendar_id: { type: "string" },
-      title: { type: "string" },
-      started_at: { type: "string" },
-      ended_at: { type: "string" },
-      location: { type: "string" },
-      meeting_link: { type: "string" },
-      description: { type: "string" },
-      note: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof eventSchema>,
-    mapping_session_participant: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      session_id: { type: "string" },
-      human_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof mappingSessionParticipantSchema>,
-    tags: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      name: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof tagSchema>,
-    mapping_tag_session: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      tag_id: { type: "string" },
-      session_id: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
-    templates: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      title: { type: "string" },
-      description: { type: "string" },
-      sections: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof templateSchema>,
-    chat_groups: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      title: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
-    chat_messages: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      chat_group_id: { type: "string" },
-      role: { type: "string" },
-      content: { type: "string" },
-      metadata: { type: "string" },
-      parts: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
-    memories: {
-      user_id: { type: "string" },
-      created_at: { type: "string" },
-      type: { type: "string" },
-      text: { type: "string" },
-    } satisfies InferTinyBaseSchema<typeof memorySchema>,
+    ...externalTableSchemaForTinybase,
+    ...internalSchemaForTinybase.table,
   } as const satisfies TablesSchema,
 };
 
@@ -274,7 +58,11 @@ export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 export const StoreComponent = () => {
-  const store2 = internal.useStore();
+  const store = useCreateMergeableStore(() =>
+    createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value)
+  );
 
   useDidFinishTransactionListener(
     () => {
@@ -286,9 +74,9 @@ export const StoreComponent = () => {
         }
 
         Object.entries(rows).forEach(([rowId, cells]) => {
-          const id = internal.rowIdOfChange(tableId, rowId);
+          const id = rowIdOfChange(tableId, rowId);
 
-          store2.setRow("changes", id, {
+          store.setRow("changes", id, {
             row_id: rowId,
             table: tableId,
             deleted: !cells,
@@ -301,22 +89,24 @@ export const StoreComponent = () => {
     STORE_ID,
   );
 
-  const store = useCreateMergeableStore(() =>
-    createMergeableStore()
-      .setTablesSchema(SCHEMA.table)
-      .setValuesSchema(SCHEMA.value)
-  );
-
   const localPersister = useCreatePersister(
     store,
     (store) =>
       createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
-        autoLoadIntervalSeconds: 9999,
       }),
     [],
-    (persister) => persister.startAutoPersisting(),
+    async (persister) => {
+      await persister.load();
+
+      if (!store.getValue("user_id")) {
+        store.setValue("user_id", DEFAULT_USER_ID);
+      }
+
+      await persister.startAutoSave();
+      await persister.startAutoLoad();
+    },
   );
 
   const synchronizer = useCreateSynchronizer(
@@ -493,8 +283,28 @@ export const StoreComponent = () => {
             select("created_at");
             where((getCell) => getCell("type") === "vocab");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.llmProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "llm");
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.sttProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "stt");
+          },
         ),
-    [store2],
+    [],
   )!;
 
   const indexes = useCreateIndexes(store, (store) =>
@@ -581,6 +391,8 @@ export const StoreComponent = () => {
   return null;
 };
 
+export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;
+
 export const QUERIES = {
   eventsWithoutSession: "eventsWithoutSession",
   sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
@@ -589,6 +401,8 @@ export const QUERIES = {
   visibleTemplates: "visibleTemplates",
   visibleFolders: "visibleFolders",
   visibleVocabs: "visibleVocabs",
+  llmProviders: "llmProviders",
+  sttProviders: "sttProviders",
 };
 
 export const METRICS = {

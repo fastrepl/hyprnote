@@ -4,8 +4,8 @@ import { Streamdown } from "streamdown";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { cn } from "@hypr/utils";
-import { aiProviderSchema } from "../../../../store/tinybase/internal";
-import * as internal from "../../../../store/tinybase/internal";
+import { aiProviderSchema } from "../../../../store/tinybase/main";
+import * as main from "../../../../store/tinybase/main";
 import { FormField, useProvider } from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
@@ -52,7 +52,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
         type: "llm",
         base_url: config.baseUrl ?? "",
         api_key: "",
-      } satisfies internal.AIProvider),
+      } satisfies main.AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {

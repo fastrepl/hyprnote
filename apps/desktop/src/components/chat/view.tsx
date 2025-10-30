@@ -2,8 +2,7 @@ import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
-import * as internal from "../../store/tinybase/internal";
-import * as persisted from "../../store/tinybase/persisted";
+import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 
 import { useLanguageModel } from "../../hooks/useLLMConnection";
@@ -19,9 +18,9 @@ export function ChatView() {
   const stableSessionId = useStableSessionId(groupId);
   const model = useLanguageModel();
 
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
-  const createChatGroup = persisted.UI.useSetRowCallback(
+  const createChatGroup = main.UI.useSetRowCallback(
     "chat_groups",
     (p: { groupId: string; title: string }) => p.groupId,
     (p: { groupId: string; title: string }) => ({
@@ -30,10 +29,10 @@ export function ChatView() {
       title: p.title,
     }),
     [user_id],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const createChatMessage = persisted.UI.useSetRowCallback(
+  const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",
     (p: { id: string; chat_group_id: string; content: string; role: string; parts: any; metadata: any }) => p.id,
     (p: { id: string; chat_group_id: string; content: string; role: string; parts: any; metadata: any }) => ({
@@ -46,7 +45,7 @@ export function ChatView() {
       parts: JSON.stringify(p.parts),
     }),
     [user_id],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const handleSendMessage = useCallback(

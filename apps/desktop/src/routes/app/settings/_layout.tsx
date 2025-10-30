@@ -28,7 +28,7 @@ import {
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 import { useTemplateNavigation } from "../../../components/settings/template/use-template-navigation";
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 
 const TABS = [
   "general",
@@ -255,7 +255,7 @@ function TopLevelHeader() {
 }
 
 function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
-  const value = persisted.UI.useCell("templates", templateId, "title", persisted.STORE_ID);
+  const value = main.UI.useCell("templates", templateId, "title", main.STORE_ID);
   const handleDelete = useDeleteTemplate(templateId);
 
   return (
@@ -306,10 +306,10 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
 }
 
 function useDeleteTemplate(templateId: string) {
-  const handleDeleteRow = persisted.UI.useDelRowCallback(
+  const handleDeleteRow = main.UI.useDelRowCallback(
     "templates",
     templateId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const navigate = Route.useNavigate();

@@ -1,9 +1,6 @@
-import * as _UI from "tinybase/ui-react/with-schemas";
-import { createMergeableStore, createQueries, type MergeableStore, type TablesSchema } from "tinybase/with-schemas";
+import type { TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
-import { DEFAULT_USER_ID } from "../../utils";
 import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const generalSchema = z.object({
@@ -36,14 +33,12 @@ export const aiProviderSchema = z.object({
 );
 
 export type AIProvider = z.infer<typeof aiProviderSchema>;
-export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
-
 export type General = z.infer<typeof generalSchema>;
+
+export type AIProviderStorage = ToStorageType<typeof aiProviderSchema>;
 export type GeneralStorage = ToStorageType<typeof generalSchema>;
 
-export const STORE_ID = "internal";
-
-export const SCHEMA = {
+export const internalSchemaForTinybase = {
   value: {
     user_id: { type: "string" },
     autostart: { type: "boolean" },
@@ -78,80 +73,4 @@ export const SCHEMA = {
       table: { type: "string" },
     },
   } as const satisfies TablesSchema,
-};
-
-const {
-  useCreateMergeableStore,
-  useCreateSynchronizer,
-  useCreateQueries,
-  useProvideStore,
-  useProvideQueries,
-  useProvideSynchronizer,
-} = _UI as _UI.WithSchemas<Schemas>;
-
-export const UI = _UI as _UI.WithSchemas<Schemas>;
-export type Store = MergeableStore<Schemas>;
-export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
-
-export const createStore = () => {
-  const store = createMergeableStore()
-    .setTablesSchema(SCHEMA.table)
-    .setValuesSchema(SCHEMA.value);
-
-  return store;
-};
-
-export const useStore = () => {
-  const store = useCreateMergeableStore(() => createStore());
-
-  store.setValue("user_id", DEFAULT_USER_ID);
-
-  const synchronizer = useCreateSynchronizer(
-    store,
-    async (store) =>
-      createBroadcastChannelSynchronizer(
-        store,
-        "hypr-sync-internal",
-      ).startSync(),
-  );
-
-  const queries = useCreateQueries(
-    store,
-    (store) =>
-      createQueries(store)
-        .setQueryDefinition(
-          QUERIES.llmProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "llm");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.sttProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "stt");
-          },
-        ),
-    [],
-  )!;
-
-  useProvideStore(STORE_ID, store);
-  useProvideQueries(STORE_ID, queries);
-  useProvideSynchronizer(STORE_ID, synchronizer);
-
-  return store;
-};
-
-export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;
-
-export const QUERIES = {
-  llmProviders: "llmProviders",
-  sttProviders: "sttProviders",
 };

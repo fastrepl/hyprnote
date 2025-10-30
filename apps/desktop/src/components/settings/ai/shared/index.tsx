@@ -2,21 +2,21 @@ import { Icon } from "@iconify-icon/react";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
 import { type AnyFieldApi } from "@tanstack/react-form";
-import * as internal from "../../../../store/tinybase/internal";
+import * as main from "../../../../store/tinybase/main";
 
 export * from "./model-combobox";
 
 export function useProvider(id: string) {
-  const providerRow = internal.UI.useRow("ai_providers", id, internal.STORE_ID);
-  const setProvider = internal.UI.useSetPartialRowCallback(
+  const providerRow = main.UI.useRow("ai_providers", id, main.STORE_ID);
+  const setProvider = main.UI.useSetPartialRowCallback(
     "ai_providers",
     id,
-    (row: Partial<internal.AIProvider>) => row,
+    (row: Partial<main.AIProvider>) => row,
     [id],
-    internal.STORE_ID,
-  ) as (row: Partial<internal.AIProvider>) => void;
+    main.STORE_ID,
+  ) as (row: Partial<main.AIProvider>) => void;
 
-  const { data } = internal.aiProviderSchema.safeParse(providerRow);
+  const { data } = main.aiProviderSchema.safeParse(providerRow);
   return [data, setProvider] as const;
 }
 

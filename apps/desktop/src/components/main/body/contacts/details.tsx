@@ -5,7 +5,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { getInitials } from "./shared";
 
 export function DetailsColumn({
@@ -17,16 +17,16 @@ export function DetailsColumn({
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
 }) {
-  const selectedPersonData = persisted.UI.useRow("humans", selectedHumanId ?? "", persisted.STORE_ID);
+  const selectedPersonData = main.UI.useRow("humans", selectedHumanId ?? "", main.STORE_ID);
 
-  const mappingIdsByHuman = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.sessionsByHuman,
+  const mappingIdsByHuman = main.UI.useSliceRowIds(
+    main.INDEXES.sessionsByHuman,
     selectedHumanId ?? "",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const allMappings = persisted.UI.useTable("mapping_session_participant", persisted.STORE_ID);
-  const allSessions = persisted.UI.useTable("sessions", persisted.STORE_ID);
+  const allMappings = main.UI.useTable("mapping_session_participant", main.STORE_ID);
+  const allSessions = main.UI.useTable("sessions", main.STORE_ID);
 
   const personSessions = React.useMemo(() => {
     if (!mappingIdsByHuman || mappingIdsByHuman.length === 0) {
@@ -185,15 +185,15 @@ export function DetailsColumn({
 }
 
 function EditablePersonNameField({ personId }: { personId: string }) {
-  const value = persisted.UI.useCell("humans", personId, "name", persisted.STORE_ID);
+  const value = main.UI.useCell("humans", personId, "name", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "name",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -207,15 +207,15 @@ function EditablePersonNameField({ personId }: { personId: string }) {
 }
 
 function EditablePersonJobTitleField({ personId }: { personId: string }) {
-  const value = persisted.UI.useCell("humans", personId, "job_title", persisted.STORE_ID);
+  const value = main.UI.useCell("humans", personId, "job_title", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "job_title",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -234,15 +234,15 @@ function EditablePersonJobTitleField({ personId }: { personId: string }) {
 }
 
 function EditablePersonEmailField({ personId }: { personId: string }) {
-  const value = persisted.UI.useCell("humans", personId, "email", persisted.STORE_ID);
+  const value = main.UI.useCell("humans", personId, "email", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "email",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -262,15 +262,15 @@ function EditablePersonEmailField({ personId }: { personId: string }) {
 }
 
 function EditablePersonLinkedInField({ personId }: { personId: string }) {
-  const value = persisted.UI.useCell("humans", personId, "linkedin_username", persisted.STORE_ID);
+  const value = main.UI.useCell("humans", personId, "linkedin_username", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "linkedin_username",
     (e: React.ChangeEvent<HTMLInputElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -289,15 +289,15 @@ function EditablePersonLinkedInField({ personId }: { personId: string }) {
 }
 
 function EditablePersonMemoField({ personId }: { personId: string }) {
-  const value = persisted.UI.useCell("humans", personId, "memo", persisted.STORE_ID);
+  const value = main.UI.useCell("humans", personId, "memo", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "memo",
     (e: React.ChangeEvent<HTMLTextAreaElement>) => e.target.value,
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -318,16 +318,16 @@ function EditablePersonMemoField({ personId }: { personId: string }) {
 
 function EditPersonOrganizationSelector({ personId }: { personId: string }) {
   const [open, setOpen] = useState(false);
-  const orgId = persisted.UI.useCell("humans", personId, "org_id", persisted.STORE_ID) as string | null;
-  const organization = persisted.UI.useRow("organizations", orgId ?? "", persisted.STORE_ID);
+  const orgId = main.UI.useCell("humans", personId, "org_id", main.STORE_ID) as string | null;
+  const organization = main.UI.useRow("organizations", orgId ?? "", main.STORE_ID);
 
-  const handleChange = persisted.UI.useSetCellCallback(
+  const handleChange = main.UI.useSetCellCallback(
     "humans",
     personId,
     "org_id",
     (newOrgId: string | null) => newOrgId ?? "",
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const handleRemoveOrganization = () => {
@@ -373,7 +373,7 @@ function OrganizationControl({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const organizationsData = persisted.UI.useResultTable(persisted.QUERIES.visibleOrganizations, persisted.STORE_ID);
+  const organizationsData = main.UI.useResultTable(main.QUERIES.visibleOrganizations, main.STORE_ID);
 
   const allOrganizations = Object.entries(organizationsData).map(([id, data]) => ({
     id,

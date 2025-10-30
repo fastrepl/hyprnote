@@ -6,8 +6,7 @@ import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
-import * as internal from "../../store/tinybase/internal";
-import * as persisted from "../../store/tinybase/persisted";
+import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 
 interface ChatSessionProps {
@@ -29,14 +28,14 @@ export function ChatSession({
   children,
 }: ChatSessionProps) {
   const transport = useTransport();
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
 
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
-  const createChatMessage = persisted.UI.useSetRowCallback(
+  const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",
-    (p: Omit<persisted.ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
-    (p: Omit<persisted.ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
+    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
+    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
       user_id,
       chat_group_id: p.chat_group_id,
       content: p.content,
@@ -44,15 +43,15 @@ export function ChatSession({
       role: p.role,
       metadata: JSON.stringify(p.metadata),
       parts: JSON.stringify(p.parts),
-    } satisfies persisted.ChatMessageStorage),
+    } satisfies main.ChatMessageStorage),
     [user_id],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
-  const messageIds = persisted.UI.useSliceRowIds(
-    persisted.INDEXES.chatMessagesByGroup,
+  const messageIds = main.UI.useSliceRowIds(
+    main.INDEXES.chatMessagesByGroup,
     chatGroupId ?? "",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const initialMessages = useMemo((): HyprUIMessage[] => {

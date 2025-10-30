@@ -1,7 +1,7 @@
-import type * as persisted from "../store/tinybase/persisted";
+import type * as main from "../store/tinybase/main";
 
 export type MaybePartialWord = Omit<
-  persisted.Word & { isFinal: boolean },
+  main.Word & { isFinal: boolean },
   "transcript_id" | "user_id" | "created_at"
 >;
 
@@ -18,7 +18,7 @@ export type Segment = {
 };
 
 export function mergeWordsByChannel(
-  finalWords: Record<string, persisted.Word>,
+  finalWords: Record<string, main.Word>,
   partialWords: Record<number, PartialWord[]>,
 ): Map<number, MaybePartialWord[]> {
   const channels = new Map<number, MaybePartialWord[]>();
@@ -210,7 +210,7 @@ export function mergeSameChannelSegments(segments: Segment[]): Segment[] {
 }
 
 export function buildSegments(
-  finalWords: Record<string, persisted.Word>,
+  finalWords: Record<string, main.Word>,
   partialWords: Record<number, PartialWord[]>,
 ): Segment[] {
   const turns = groupIntoTurns(mergeWordsByChannel(finalWords, partialWords));

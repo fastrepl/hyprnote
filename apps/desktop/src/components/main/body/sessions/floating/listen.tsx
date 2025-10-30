@@ -9,7 +9,7 @@ import { useStartListening } from "../../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import { FloatingButton } from "./shared";
 
-import * as persisted from "../../../../../store/tinybase/persisted";
+import * as main from "../../../../../store/tinybase/main";
 import { type Tab } from "../../../../../store/zustand/tabs";
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
@@ -128,8 +128,8 @@ function StartButton({
 type RemoteMeeting = { type: "zoom" | "google-meet" | "webex" | "teams"; url: string | null };
 
 function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const eventId = persisted.UI.useRemoteRowId(persisted.RELATIONSHIPS.sessionToEvent, sessionId);
-  const note = persisted.UI.useCell("events", eventId ?? "", "note", persisted.STORE_ID);
+  const eventId = main.UI.useRemoteRowId(main.RELATIONSHIPS.sessionToEvent, sessionId);
+  const note = main.UI.useCell("events", eventId ?? "", "note", main.STORE_ID);
 
   if (!note) {
     return null;

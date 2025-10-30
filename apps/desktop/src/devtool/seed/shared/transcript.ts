@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Word } from "../../../store/tinybase/persisted";
+import type { Word } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 const selectWeighted = <T>(choices: Array<{ weight: number; value: T }>): T =>

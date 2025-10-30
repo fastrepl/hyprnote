@@ -1,6 +1,6 @@
 import type { Experimental_Agent as Agent, LanguageModel, Tool } from "ai";
 
-import type { Store as PersistedStore } from "../../../tinybase/persisted";
+import type { Store as PersistedStore } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import { chat } from "./chat";
 import { enhance } from "./enhance";

@@ -2,15 +2,15 @@ import { Button } from "@hypr/ui/components/ui/button";
 
 import { StickyNote } from "lucide-react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 
 export function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
-  const session = persisted.UI.useRow("sessions", sessionId, persisted.STORE_ID);
+  const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
   const { openNew } = useTabs();
 
   const eventId = session?.event_id ?? "";
-  const event = persisted.UI.useRow("events", eventId, persisted.STORE_ID);
+  const event = main.UI.useRow("events", eventId, main.STORE_ID);
 
   const handleClick = () => {
     openNew({ type: "sessions", id: sessionId });

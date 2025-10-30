@@ -1,8 +1,8 @@
 import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
-import { Schemas } from "../../../store/tinybase/persisted";
-import { type Store as PersistedStore } from "../../../store/tinybase/persisted";
+import { Schemas } from "../../../store/tinybase/main";
+import { type Store as PersistedStore } from "../../../store/tinybase/main";
 import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";

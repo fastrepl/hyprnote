@@ -3,7 +3,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
-import * as internal from "../store/tinybase/internal";
+import * as main from "../store/tinybase/main";
 import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
 
 const ListenerContext = createContext<ListenerStore | null>(null);
@@ -46,8 +46,8 @@ export const useListener = <T,>(
 };
 
 function useAutoStartSTT() {
-  const currentSttProvider = internal.UI.useValue("current_stt_provider", internal.STORE_ID);
-  const currentSttModel = internal.UI.useValue("current_stt_model", internal.STORE_ID);
+  const currentSttProvider = main.UI.useValue("current_stt_provider", main.STORE_ID);
+  const currentSttModel = main.UI.useValue("current_stt_model", main.STORE_ID);
 
   useEffect(() => {
     if (currentSttProvider !== "hyprnote") {

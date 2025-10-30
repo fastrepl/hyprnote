@@ -1,24 +1,24 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 
-import * as internal from "../../../store/tinybase/internal";
+import * as main from "../../../store/tinybase/main";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
 export function SettingsGeneral() {
-  const _value = internal.UI.useValues(internal.STORE_ID);
-  const value = internal.generalSchema.parse(_value);
+  const _value = main.UI.useValues(main.STORE_ID);
+  const value = main.generalSchema.parse(_value);
 
-  const setPartialValues = internal.UI.useSetPartialValuesCallback(
-    (row: Partial<internal.General>) => ({
+  const setPartialValues = main.UI.useSetPartialValuesCallback(
+    (row: Partial<main.General>) => ({
       ...row,
       spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
       ignored_platforms: row.ignored_platforms ? JSON.stringify(row.ignored_platforms) : undefined,
-    } satisfies Partial<internal.GeneralStorage>),
+    } satisfies Partial<main.GeneralStorage>),
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
   const form = useForm({

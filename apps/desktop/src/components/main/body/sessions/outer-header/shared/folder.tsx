@@ -16,18 +16,18 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 
-import * as persisted from "../../../../../../store/tinybase/persisted";
+import * as main from "../../../../../../store/tinybase/main";
 
 export function SearchableFolderDropdown({ sessionId, trigger }: { sessionId: string; trigger: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
+  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
 
-  const handleSelectFolder = persisted.UI.useSetPartialRowCallback(
+  const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (folderId: string) => ({ folder_id: folderId }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -45,14 +45,14 @@ export function SearchableFolderDropdown({ sessionId, trigger }: { sessionId: st
 export function SearchableFolderSubmenuContent(
   { sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void },
 ) {
-  const folders = persisted.UI.useResultTable(persisted.QUERIES.visibleFolders, persisted.STORE_ID);
+  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
 
-  const handleSelectFolder = persisted.UI.useSetPartialRowCallback(
+  const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (folderId: string) => ({ folder_id: folderId }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (

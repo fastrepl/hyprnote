@@ -1,18 +1,18 @@
 import { cn } from "@hypr/utils";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
 export function TitleInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { id: sessionId, state: { editor } } = tab;
-  const title = persisted.UI.useCell("sessions", sessionId, "title", persisted.STORE_ID);
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
 
-  const handleEditTitle = persisted.UI.useSetPartialRowCallback(
+  const handleEditTitle = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (title: string) => ({ title }),
     [],
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (

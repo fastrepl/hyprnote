@@ -1,6 +1,6 @@
 import { CalendarIcon } from "lucide-react";
 
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 import { rowIdfromTab, type Tab } from "../../../store/zustand/tabs";
 import { StandardTabWrapper } from "./index";
 import { type TabItem, TabItemBase } from "./shared";
@@ -15,7 +15,7 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
     handleCloseAll,
   },
 ) => {
-  const title = persisted.UI.useCell("events", rowIdfromTab(tab), "title", persisted.STORE_ID);
+  const title = main.UI.useCell("events", rowIdfromTab(tab), "title", main.STORE_ID);
 
   return (
     <TabItemBase
@@ -33,7 +33,7 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = (
 
 export function TabContentEvent({ tab }: { tab: Extract<Tab, { type: "events" }> }) {
   const id = rowIdfromTab(tab);
-  const event = persisted.UI.useRow("events", id, persisted.STORE_ID);
+  const event = main.UI.useRow("events", id, main.STORE_ID);
 
   return (
     <StandardTabWrapper>

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { ProviderId } from "../components/settings/ai/stt/shared";
-import * as internal from "../store/tinybase/internal";
+import * as main from "../store/tinybase/main";
 
 type Connection = {
   provider: ProviderId;
@@ -12,16 +12,16 @@ type Connection = {
 };
 
 export const useSTTConnection = (): Connection | null => {
-  const { current_stt_provider, current_stt_model } = internal.UI.useValues(internal.STORE_ID) as {
+  const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID) as {
     current_stt_provider: ProviderId | undefined;
     current_stt_model: string | undefined;
   };
 
-  const providerConfig = internal.UI.useRow(
+  const providerConfig = main.UI.useRow(
     "ai_providers",
     current_stt_provider ?? "",
-    internal.STORE_ID,
-  ) as internal.AIProviderStorage | undefined;
+    main.STORE_ID,
+  ) as main.AIProviderStorage | undefined;
 
   const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-");
 

@@ -6,7 +6,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 import { useShell } from "../../contexts/shell";
-import * as persisted from "../../store/tinybase/persisted";
+import * as main from "../../store/tinybase/main";
 
 export function ChatHeader({
   currentChatGroupId,
@@ -86,19 +86,19 @@ function ChatGroups({
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const currentChatTitle = persisted.UI.useCell(
+  const currentChatTitle = main.UI.useCell(
     "chat_groups",
     currentChatGroupId || "",
     "title",
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
-  const recentChatGroupIds = persisted.UI.useSortedRowIds(
+  const recentChatGroupIds = main.UI.useSortedRowIds(
     "chat_groups",
     "created_at",
     true,
     0,
     5,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return (
@@ -162,7 +162,7 @@ function ChatGroupItem({
   isActive: boolean;
   onSelect: (groupId: string) => void;
 }) {
-  const chatGroup = persisted.UI.useRow("chat_groups", groupId, persisted.STORE_ID);
+  const chatGroup = main.UI.useRow("chat_groups", groupId, main.STORE_ID);
 
   if (!chatGroup) {
     return null;

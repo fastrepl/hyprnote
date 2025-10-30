@@ -7,9 +7,9 @@ import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useState } from "react";
 
-import * as persisted from "../../../store/tinybase/persisted";
+import * as main from "../../../store/tinybase/main";
 
-type ReorderItem = persisted.TemplateSection;
+type ReorderItem = main.TemplateSection;
 
 interface SectionsListProps {
   disabled: boolean;

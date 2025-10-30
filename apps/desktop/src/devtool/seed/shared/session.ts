@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { SessionStorage } from "../../../store/tinybase/persisted";
+import type { SessionStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 export const generateTitle = () => {

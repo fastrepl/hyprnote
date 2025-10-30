@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { TemplateSection, TemplateStorage } from "../../../store/tinybase/persisted";
+import type { TemplateSection, TemplateStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 export const createTemplate = (): { id: string; data: TemplateStorage } => {

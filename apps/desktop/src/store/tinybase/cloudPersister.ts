@@ -2,8 +2,7 @@ import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream }
 import { useCallback } from "react";
 
 import { useAuth } from "../../auth";
-import * as internal from "./internal";
-import * as persisted from "./persisted";
+import * as main from "./main";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
@@ -39,19 +38,18 @@ const useCloudSaver = () => {
     throw new Error("'auth' is not set");
   }
 
-  const store = persisted.UI.useStore(persisted.STORE_ID)!;
-  const store2 = internal.UI.useStore(internal.STORE_ID)!;
+  const store = main.UI.useStore(main.STORE_ID)!;
 
-  const user_id = store2.getValue("user_id");
+  const user_id = store.getValue("user_id");
   if (!user_id) {
     throw new Error("'user_id' is not set");
   }
 
   const save = useCallback(async () => {
-    const changesTable = store2.getTable("changes")!;
+    const changesTable = store.getTable("changes")!;
     const tables = store.getTables();
 
-    const changes = persisted.TABLES.flatMap((tableName) => {
+    const changes = main.TABLES.flatMap((tableName) => {
       const table = tables[tableName];
       if (!table) {
         return [];
@@ -87,18 +85,17 @@ const useCloudSaver = () => {
 };
 
 const useCloudLoader = () => {
-  const store = persisted.UI.useStore(persisted.STORE_ID)!;
-  const store2 = internal.UI.useStore(internal.STORE_ID)!;
+  const store = main.UI.useStore(main.STORE_ID)!;
 
-  const user_id = store2.getValue("user_id");
+  const user_id = store.getValue("user_id");
   if (!user_id) {
     throw new Error("'user_id' is not set");
   }
 
-  const metaTable = store2.getTable("electric")!;
+  const metaTable = store.getTable("electric")!;
 
   const load = useCallback(async () => {
-    const steams = persisted.TABLES.map((table) => {
+    const steams = main.TABLES.map((table) => {
       const metaRow = Object.values(metaTable).find((row) => row.table === table);
 
       const resumable: {
@@ -150,14 +147,14 @@ const useCloudLoader = () => {
       }),
     );
 
-    const results = persisted.TABLES.reduce((acc, table, index) => {
+    const results = main.TABLES.reduce((acc, table, index) => {
       acc[table] = resultsArray[index];
       return acc;
-    }, {} as Record<typeof persisted.TABLES[number], IncomingChangeMessage[]>);
+    }, {} as Record<typeof main.TABLES[number], IncomingChangeMessage[]>);
 
     for (
       const [table, messages] of Object.entries(results) as [
-        typeof persisted.TABLES[number],
+        typeof main.TABLES[number],
         IncomingChangeMessage[],
       ][]
     ) {

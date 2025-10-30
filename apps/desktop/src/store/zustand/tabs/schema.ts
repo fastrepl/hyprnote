@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { TABLES } from "../../tinybase/persisted";
+import { TABLES } from "../../tinybase/main";
 
 const baseTabSchema = z.object({
   active: z.boolean(),

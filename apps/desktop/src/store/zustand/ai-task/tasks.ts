@@ -3,7 +3,7 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { ToolRegistry } from "../../../contexts/tool-registry/core";
-import type { Store as PersistedStore } from "../../tinybase/persisted";
+import type { Store as PersistedStore } from "../../tinybase/main";
 import { applyTransforms } from "./shared/transform_infra";
 import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType, type ToolNamesByTask } from "./task-configs";
 

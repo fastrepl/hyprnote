@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import { useListener } from "../contexts/listener";
-import * as persisted from "../store/tinybase/persisted";
+import * as main from "../store/tinybase/main";
 import type { PersistFinalCallback } from "../store/zustand/listener/transcript";
 import { id } from "../utils";
 import { useSTTConnection } from "./useSTTConnection";
@@ -9,7 +9,7 @@ import { useSTTConnection } from "./useSTTConnection";
 export function useStartListening(sessionId: string) {
   const start = useListener((state) => state.start);
   const conn = useSTTConnection();
-  const store = persisted.UI.useStore(persisted.STORE_ID);
+  const store = main.UI.useStore(main.STORE_ID);
   const keywords = useVocabs();
 
   const persistFinal = useCallback<PersistFinalCallback>((words) => {
@@ -73,7 +73,7 @@ export function useStartListening(sessionId: string) {
 }
 
 function useVocabs() {
-  const table = persisted.UI.useResultTable(persisted.QUERIES.visibleVocabs, persisted.STORE_ID);
+  const table = main.UI.useResultTable(main.QUERIES.visibleVocabs, main.STORE_ID);
 
   const ret = useMemo(() => {
     return Object.values(table).map(({ text }) => text as string);

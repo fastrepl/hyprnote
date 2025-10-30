@@ -3,7 +3,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/c
 import { Contact2Icon } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -70,10 +70,10 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
     openCurrent({ type: "sessions", id });
   }, [openCurrent]);
 
-  const deletePersonFromStore = persisted.UI.useDelRowCallback(
+  const deletePersonFromStore = main.UI.useDelRowCallback(
     "humans",
     (human_id: string) => human_id,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const handleDeletePerson = useCallback((id: string) => {
@@ -81,10 +81,10 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
     deletePersonFromStore(id);
   }, [invalidateResource, deletePersonFromStore]);
 
-  const deleteOrganizationFromStore = persisted.UI.useDelRowCallback(
+  const deleteOrganizationFromStore = main.UI.useDelRowCallback(
     "organizations",
     (org_id: string) => org_id,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   const handleDeleteOrganization = useCallback((id: string) => {

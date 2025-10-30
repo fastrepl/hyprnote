@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from "react";
 
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 
 export function FolderBreadcrumb(
   {
@@ -52,15 +52,15 @@ function FolderWrapper(
     children: (props: { id: string; name: string; isLast: boolean }) => ReactNode;
   },
 ) {
-  const name = persisted.UI.useCell("folders", folderId, "name", persisted.STORE_ID);
+  const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
   return <>{children({ id: folderId, name: name ?? "Untitled", isLast: false })}</>;
 }
 
 export function useFolderChain(folderId: string) {
-  const folderIds = persisted.UI.useLinkedRowIds(
+  const folderIds = main.UI.useLinkedRowIds(
     "folderToParentFolder",
     folderId,
-    persisted.STORE_ID,
+    main.STORE_ID,
   );
 
   return useMemo(() => {

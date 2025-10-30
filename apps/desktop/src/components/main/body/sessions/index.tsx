@@ -5,7 +5,7 @@ import { StickyNoteIcon } from "lucide-react";
 
 import AudioPlayer from "../../../../contexts/audio-player";
 import { useListener } from "../../../../contexts/listener";
-import * as persisted from "../../../../store/tinybase/persisted";
+import * as main from "../../../../store/tinybase/main";
 import { rowIdfromTab, type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
@@ -24,7 +24,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
     handleCloseAll,
   },
 ) => {
-  const title = persisted.UI.useCell("sessions", rowIdfromTab(tab), "title", persisted.STORE_ID);
+  const title = main.UI.useCell("sessions", rowIdfromTab(tab), "title", main.STORE_ID);
   const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
   const isActive = status === "running_active" && sessionId === tab.id;
 

@@ -1,6 +1,6 @@
 import { expect } from "vitest";
 
-import type * as persisted from "../../../../../../../store/tinybase/persisted";
+import type * as main from "../../../../../../../store/tinybase/main";
 import type { MaybePartialWord } from "../../../../../../../utils/segments";
 
 interface CustomMatchers<R = unknown> {
@@ -68,7 +68,7 @@ export function word(
   start_ms: number,
   end_ms: number,
   channel: number = 0,
-): persisted.Word {
+): main.Word {
   return {
     text,
     start_ms,
